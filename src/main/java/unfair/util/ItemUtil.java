@@ -13,6 +13,7 @@ import net.minecraft.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 
 public class ItemUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -285,6 +286,44 @@ public class ItemUtil {
             return false;
         }
         return itemStack.getItem() instanceof ItemFireball;
+    }
+
+    /**
+     * Checks if the given item is a projectile
+     */
+    public static boolean isProjectile(ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        Item item = itemStack.getItem();
+        return item instanceof ItemEgg ||
+                item instanceof ItemSnowball;
+    }
+
+    /**
+     * Finds inventory slots with the specified item type
+     */
+    public static int findInventorySlot(ItemType itemType) {
+        int slot = -1;
+        int maxStackSize = 0;
+        for (int i = 0; i < 36; i++) {
+            ItemStack itemStack = ItemUtil.mc.thePlayer.inventory.getStackInSlot(i);
+            if (itemStack != null) {
+                if (Objects.requireNonNull(itemType) == ItemType.Projectile) {
+                    if (isProjectile(itemStack)) {
+                        if (maxStackSize < itemStack.stackSize) {
+                            maxStackSize = itemStack.stackSize;
+                            slot = i;
+                        }
+                    }
+                }
+            }
+        }
+        return slot == -1 ? -1 : slot + (slot < 9 ? 36 : 0); // Convert to actual inventory slot
+    }
+
+    public enum ItemType {
+        Projectile
     }
 
     static final class SpecialItems extends ArrayList<Integer> {

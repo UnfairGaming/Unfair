@@ -25,11 +25,11 @@ public abstract class MixinFontRenderer {
             return string;
         } else {
             AntiObfuscate antiObfuscate = (AntiObfuscate) Unfair.moduleManager.modules.get(AntiObfuscate.class);
-            if (antiObfuscate.isEnabled()) {
+            if (antiObfuscate != null && antiObfuscate.isEnabled()) {
                 string = antiObfuscate.stripObfuscated(string);
             }
             NickHider nickHider = (NickHider) Unfair.moduleManager.modules.get(NickHider.class);
-            return nickHider.isEnabled() ? nickHider.replaceNick(string) : string;
+            return nickHider != null && nickHider.isEnabled() ? nickHider.replaceNick(string) : string;
         }
     }
 
@@ -44,11 +44,11 @@ public abstract class MixinFontRenderer {
             return string;
         } else {
             AntiObfuscate antiObfuscate = (AntiObfuscate) Unfair.moduleManager.modules.get(AntiObfuscate.class);
-            if (antiObfuscate.isEnabled()) {
+            if (antiObfuscate != null && antiObfuscate.isEnabled()) {
                 string = antiObfuscate.stripObfuscated(string);
             }
             NickHider nickHider = (NickHider) Unfair.moduleManager.modules.get(NickHider.class);
-            return nickHider.isEnabled() ? nickHider.replaceNick(string) : string;
+            return nickHider != null && nickHider.isEnabled() ? nickHider.replaceNick(string) : string;
         }
     }
 

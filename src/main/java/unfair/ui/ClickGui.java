@@ -145,7 +145,9 @@ public class ClickGui extends GuiScreen {
         GL11.glColor3f(1.0f, 1.0f, 1.0f);
         GlStateManager.pushMatrix();
         GlStateManager.disableBlend();
-        GuiInventory.drawEntityOnScreen(this.width + 15 - this.smoothEntity.getValueInt(0, 40, 2), this.height - 10, 40, (float) (this.width - 25 - x), (float) (this.height - 50 - y), this.mc.thePlayer);
+        if (this.mc.thePlayer != null) {
+            GuiInventory.drawEntityOnScreen(this.width + 15 - this.smoothEntity.getValueInt(0, 40, 2), this.height - 10, 40, (float) (this.width - 25 - x), (float) (this.height - 50 - y), this.mc.thePlayer);
+        }
         GlStateManager.enableBlend();
         GlStateManager.popMatrix();
 
