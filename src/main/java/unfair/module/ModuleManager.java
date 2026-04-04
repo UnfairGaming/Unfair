@@ -53,7 +53,6 @@ public class ModuleManager {
             while (resources.hasMoreElements()) {
                 URL url = resources.nextElement();
                 if (url.getProtocol().equals("jar")) {
-                    // 从 JAR 文件扫描
                     String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
                     try (JarFile jar = new JarFile(jarPath)) {
                         Enumeration<JarEntry> entries = jar.entries();
@@ -73,7 +72,6 @@ public class ModuleManager {
                         }
                     }
                 } else if (url.getProtocol().equals("file")) {
-                    // 从文件系统扫描 (开发环境)
                     java.io.File directory = new java.io.File(url.toURI());
                     if (directory.exists() && directory.isDirectory()) {
                         scanDirectoryForModules(directory, packageName, result);
