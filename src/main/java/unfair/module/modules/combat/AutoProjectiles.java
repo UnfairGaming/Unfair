@@ -43,7 +43,7 @@ public class AutoProjectiles extends Module {
     private boolean hasRotated = false;
     private SmartPredictor smartPredictor = new SmartPredictor();
     public AutoProjectiles() {
-        super("AutoProjectile", false);
+        super("AutoProjectiles", false);
     }
 
     private boolean isValidTarget(EntityLivingBase entity) {
