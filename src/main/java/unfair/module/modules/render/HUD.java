@@ -199,7 +199,6 @@ public class HUD extends Module {
                     );
                 }
                 if (this.showBar.getValue()) {
-                    if (this.shadow.getValue()) {
                         RenderUtil.drawRect(
                                 x / this.scale.getValue() + (this.posX.getValue() == 0 ? -3.0F : 1.0F),
                                 y / this.scale.getValue() - (this.posY.getValue() == 0 ? (offset == 0L ? 1.0F : 0.0F) : 1.0F),
@@ -207,22 +206,6 @@ public class HUD extends Module {
                                 y / this.scale.getValue() + height + (this.posY.getValue() == 0 ? 1.0F : (offset == 0L ? 1.0F : 0.0F)),
                                 color
                         );
-                        RenderUtil.drawRect(
-                                x / this.scale.getValue() + (this.posX.getValue() == 0 ? -2.0F : 2.0F),
-                                y / this.scale.getValue() - (this.posY.getValue() == 0 ? (offset == 0L ? 1.0F : 0.0F) : 1.0F),
-                                x / this.scale.getValue() + (this.posX.getValue() == 0 ? -1.0F : 3.0F),
-                                y / this.scale.getValue() + height + (this.posY.getValue() == 0 ? 1.0F : (offset == 0L ? 1.0F : 0.0F)),
-                                (color & 16579836) >> 2 | color & 0xFF000000
-                        );
-                    } else {
-                        RenderUtil.drawRect(
-                                x / this.scale.getValue() + (this.posX.getValue() == 0 ? -2.0F : 1.0F),
-                                y / this.scale.getValue() - (this.posY.getValue() == 0 ? (offset == 0L ? 1.0F : 0.0F) : 0.0F),
-                                x / this.scale.getValue() + (this.posX.getValue() == 0 ? -1.0F : 2.0F),
-                                y / this.scale.getValue() + height + (this.posY.getValue() == 0 ? 0.0F : (offset == 0L ? 1.0F : 0.0F)),
-                                color
-                        );
-                    }
                 }
                 RenderUtil.disableRenderState();
                 GlStateManager.disableDepth();

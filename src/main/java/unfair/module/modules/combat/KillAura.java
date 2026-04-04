@@ -107,7 +107,9 @@ public class KillAura extends Module {
         this.lastTickProcessed = 0;
         this.mode = new ModeProperty("mode", 0, new String[]{"SINGLE", "SWITCH"});
         this.sort = new ModeProperty("sort", 0, new String[]{"DISTANCE", "HEALTH", "HURT_TIME", "FOV"});
-        this.autoBlock = new ModeProperty("auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE"});
+        this.autoBlock = new ModeProperty(
+                "auto-block", 2, new String[]{"NONE", "VANILLA", "SPOOF", "HYPIXEL", "BLINK", "INTERACT", "SWAP", "LEGIT", "FAKE"}
+        );
         this.autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
         this.autoBlockCPS = new FloatProperty("auto-block-aps", 10.0F, 1.0F, 20.0F);
         this.autoBlockRange = new FloatProperty("auto-block-range", 6.0F, 3.0F, 8.0F);
@@ -381,7 +383,11 @@ public class KillAura extends Module {
 
     public boolean shouldAutoBlock() {
         if (this.isPlayerBlocking() && this.isBlocking) {
-            return !mc.thePlayer.isInWater() && !mc.thePlayer.isInLava() && (this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 3 || this.autoBlock.getValue() == 4);
+            return !mc.thePlayer.isInWater() && !mc.thePlayer.isInLava() && (this.autoBlock.getValue() == 3
+                    || this.autoBlock.getValue() == 4
+                    || this.autoBlock.getValue() == 5
+                    || this.autoBlock.getValue() == 6
+                    || this.autoBlock.getValue() == 7);
         } else {
             return false;
         }
@@ -450,6 +456,31 @@ public class KillAura extends Module {
                             break;
                         case 2:
                             if (this.hasValidTarget()) {
+                                int item = ((IAccessorPlayerControllerMP) mc.playerController).getCurrentPlayerItem();
+                                if (Unfair.playerStateManager.digging
+                                        || Unfair.playerStateManager.placing
+                                        || mc.thePlayer.inventory.currentItem != item
+                                        || this.isPlayerBlocking() && this.blockTick != 0
+                                        || this.attackDelayMS > 0L && this.attackDelayMS <= 50L) {
+                                    this.blockTick = 0;
+                                } else {
+                                    int slot = this.findEmptySlot(item);
+                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(slot));
+                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(item));
+                                    swap = true;
+                                    this.blockTick = 1;
+                                }
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = true;
+                                this.fakeBlockState = false;
+                            } else {
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 3:
+                            if (this.hasValidTarget()) {
                                 if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
                                     switch (this.blockTick) {
                                         case 0:
@@ -491,7 +522,74 @@ public class KillAura extends Module {
                                 this.fakeBlockState = false;
                             }
                             break;
-                        case 3:
+                        case 4:
+                            if (this.hasValidTarget()) {
+                                if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blinkReset = true;
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            if (this.isPlayerBlocking()) {
+                                                this.stopBlock();
+                                                attack = false;
+                                            }
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 5:
+                            if (this.hasValidTarget()) {
+                                int item = ((IAccessorPlayerControllerMP) mc.playerController).getCurrentPlayerItem();
+                                if (mc.thePlayer.inventory.currentItem == item && !Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blinkReset = true;
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            if (this.isPlayerBlocking()) {
+                                                int slot = this.findEmptySlot(item);
+                                                PacketUtil.sendPacket(new C09PacketHeldItemChange(slot));
+                                                ((IAccessorPlayerControllerMP) mc.playerController).setCurrentPlayerItem(slot);
+                                                attack = false;
+                                            }
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 6:
                             if (this.hasValidTarget()) {
                                 int item = ((IAccessorPlayerControllerMP) mc.playerController).getCurrentPlayerItem();
                                 if (mc.thePlayer.inventory.currentItem == item && !Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
@@ -532,7 +630,39 @@ public class KillAura extends Module {
                             this.isBlocking = false;
                             this.fakeBlockState = false;
                             break;
-                        case 4:
+                        case 7:
+                            if (this.hasValidTarget()) {
+                                if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            if (this.isPlayerBlocking()) {
+                                                this.stopBlock();
+                                                attack = false;
+                                            }
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = true;
+                                this.fakeBlockState = false;
+                            } else {
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 8:
                             Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
                             this.isBlocking = false;
                             this.fakeBlockState = this.hasValidTarget();
@@ -542,7 +672,6 @@ public class KillAura extends Module {
                                     && !Unfair.playerStateManager.placing) {
                                 swap = true;
                             }
-                            break;
                     }
                 }
                 boolean attacked = false;
@@ -832,7 +961,12 @@ public class KillAura extends Module {
                 }
             }
         } else {
-            boolean badCps = this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 3;
+            boolean badCps = this.autoBlock.getValue() == 2
+                    || this.autoBlock.getValue() == 3
+                    || this.autoBlock.getValue() == 4
+                    || this.autoBlock.getValue() == 5
+                    || this.autoBlock.getValue() == 6
+                    || this.autoBlock.getValue() == 7;
             if (badCps && this.autoBlockCPS.getValue() > 10.0F) {
                 this.autoBlockCPS.setValue(10.0F);
             }
