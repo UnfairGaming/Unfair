@@ -33,23 +33,21 @@ public class AutoProjectiles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final FloatProperty range = new FloatProperty("Range", 8.0F, 3.0F, 15.0F);
     public final IntProperty amount = new IntProperty("Amount", 3, 1, 10);
-    // 新增投掷延迟，默认100ms，用于控制两轮“爆发”之间的间隔
-    public final IntProperty throwDelay = new IntProperty("Throw Delay", 100, 0, 1000);
+
+    public final IntProperty throwDelay = new IntProperty("Throw Delay", 200, 50, 1000);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
     public final BooleanProperty teams = new BooleanProperty("Teams", true);
 
     private EntityLivingBase target = null;
     private int lastSlot = -1;
     private long lastThrowTime = 0L;
-    private int throwState = 0; // 0: 寻找目标/冷却, 1: 切换槽位, 2: 旋转, 3: 瞬时爆发投掷, 4: 切回原位
+    private int throwState = 0;
     private boolean hasRotated = false;
     private SmartPredictor smartPredictor = new SmartPredictor();
 
     public AutoProjectiles() {
         super("AutoProjectiles", false);
     }
-
-    // ... (isValidTarget, getTarget, hasProjectile, isProjectile, getProjectileSlot, calculateSimulatedRotations, simulateProjectile 等逻辑保持不变)
 
     private boolean isValidTarget(EntityLivingBase entity) {
         if (entity == mc.thePlayer || entity.deathTime > 0) return false;
@@ -171,7 +169,7 @@ public class AutoProjectiles extends Module {
         if (projectileSlot != -1) {
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(projectileSlot);
             if (isProjectile(stack)) {
-                // 发送封包进行投掷
+
                 PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(stack));
             }
         }
@@ -181,7 +179,6 @@ public class AutoProjectiles extends Module {
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE) return;
 
-        // 检查是否有投掷物
         if (!this.hasProjectile()) {
             this.target = null;
             this.throwState = 0;
@@ -190,25 +187,24 @@ public class AutoProjectiles extends Module {
         }
 
         switch (this.throwState) {
-            case 0: // 等待延迟并寻找目标
+            case 0:
                 if (System.currentTimeMillis() - this.lastThrowTime < this.throwDelay.getValue()) return;
 
                 this.target = this.getTarget();
                 if (this.target == null) return;
 
-                // 如果正在KillAura范围内，通常不需要投掷（可选逻辑）
                 KillAura aura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
                 if (aura != null && aura.isEnabled() && mc.thePlayer.getDistanceToEntity(this.target) <= aura.attackRange.getValue()) return;
 
                 this.throwState = 1;
                 break;
 
-            case 1: // 切换到投掷物
+            case 1:
                 this.switchToProjectile();
                 this.throwState = 2;
                 break;
 
-            case 2: // 设置旋转角度
+            case 2:
                 float[] rots = calculateSimulatedRotations(this.target);
                 if (rots != null) {
                     event.setRotation(rots[0], rots[1], 2);
@@ -216,19 +212,19 @@ public class AutoProjectiles extends Module {
                     this.hasRotated = true;
                     this.throwState = 3;
                 } else {
-                    this.throwState = 4; // 无法瞄准则跳过
+                    this.throwState = 4;
                 }
                 break;
 
-            case 3: // 瞬时爆发投掷 (Amount)
+            case 3:
                 for (int i = 0; i < this.amount.getValue(); i++) {
                     this.throwProjectile();
                 }
-                this.lastThrowTime = System.currentTimeMillis(); // 投掷完一轮后开始计时
+                this.lastThrowTime = System.currentTimeMillis();
                 this.throwState = 4;
                 break;
 
-            case 4: // 清理状态并切回原槽位
+            case 4:
                 this.switchBack();
                 this.target = null;
                 this.hasRotated = false;
@@ -261,7 +257,6 @@ public class AutoProjectiles extends Module {
         this.hasRotated = false;
     }
 
-    // ... (SmartPredictor 内部类保持不变)
     private static class SmartPredictor {
         private final Vec3[] positions = new Vec3[20];
         private final long[] timestamps = new long[20];
