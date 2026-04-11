@@ -27,7 +27,7 @@ public class Velocity extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static boolean attack = false;
     private static boolean inventory = false;
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"VANILLA", "DELAY", "INTAVE"});
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"VANILLA", "DELAY", "REDUCE"});
     public final IntProperty delayTicks = new IntProperty("delay-ticks", 2, 1, 5, () -> this.mode.getValue() == 1);
     public final PercentProperty delayChance = new PercentProperty("delay-chance", 100, () -> this.mode.getValue() == 1);
     public final PercentProperty chance = new PercentProperty("chance", 100, () -> this.mode.getValue() == 0);
