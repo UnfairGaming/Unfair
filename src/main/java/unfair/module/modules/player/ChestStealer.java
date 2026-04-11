@@ -60,19 +60,43 @@ public class ChestStealer extends Module {
     }
 
     private void takeAllInstant(Container container, IInventory inventory) {
+        // First pass: Take all non-projectile items (or all items if keepProjectiles is false)
         for (int i = 0; i < inventory.getSizeInventory(); i++) {
             if (container.getSlot(i).getHasStack()) {
                 ItemStack stack = container.getSlot(i).getStack();
 
+                // Skip projectile items if we want to keep them
                 if (this.keepProjectiles.getValue() && this.isProjectileStack(stack)) {
                     continue;
                 }
 
+                // Skip trash items if enabled
                 if (this.skipTrash.getValue() && ItemUtil.isNotSpecialItem(stack)) {
                     continue;
                 }
 
                 this.shiftClick(container.windowId, i);
+            }
+        }
+
+        // Second pass: If keepProjectiles is false, take projectile items as well
+        if (!this.keepProjectiles.getValue()) {
+            for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                if (container.getSlot(i).getHasStack()) {
+                    ItemStack stack = container.getSlot(i).getStack();
+
+                    // Only take projectile items in this pass
+                    if (!this.isProjectileStack(stack)) {
+                        continue;
+                    }
+
+                    // Skip trash items if enabled
+                    if (this.skipTrash.getValue() && ItemUtil.isNotSpecialItem(stack)) {
+                        continue;
+                    }
+
+                    this.shiftClick(container.windowId, i);
+                }
             }
         }
     }
@@ -138,7 +162,12 @@ public class ChestStealer extends Module {
 
                             boolean allEmpty = true;
                             for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                                ItemStack stack = container.getSlot(i).getStack();
                                 if (container.getSlot(i).getHasStack()) {
+                                    // If keepProjectiles is enabled, ignore projectile items when checking if chest is empty
+                                    if (this.keepProjectiles.getValue() && this.isProjectileStack(stack)) {
+                                        continue;
+                                    }
                                     allEmpty = false;
                                     break;
                                 }

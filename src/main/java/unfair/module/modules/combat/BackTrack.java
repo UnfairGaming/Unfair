@@ -825,7 +825,7 @@ public class BackTrack extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{supposedDelay() + " ms"};
+        return new String[]{supposedDelay() + "ms"};
     }
 
     private static final class PacketFieldCache {

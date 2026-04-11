@@ -11,7 +11,7 @@ import unfair.property.properties.IntProperty;
 
 public class NoJumpDelay extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delay = new IntProperty("delay", 3, 0, 8);
+    public final IntProperty delay = new IntProperty("delay", 0, 0, 8);
 
     public NoJumpDelay() {
         super("NoJumpDelay", false);
