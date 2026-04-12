@@ -17,16 +17,16 @@ import unfair.module.Module;
 import unfair.property.properties.*;
 import unfair.util.ColorUtil;
 import unfair.util.RenderUtil;
+import unfair.util.Timer;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class HUD extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final float ANIMATION_DURATION = 200.0F;
     public final ModeProperty colorMode = new ModeProperty(
             "color", 3, new String[]{"RAINBOW", "CHROMA", "ASTOLFO", "CUSTOM1", "CUSTOM12", "CUSTOM123"}
     );
@@ -50,6 +50,8 @@ public class HUD extends Module {
     public final BooleanProperty blinkTimer = new BooleanProperty("blink-timer", true);
     public final BooleanProperty toggleSound = new BooleanProperty("toggle-sounds", true);
     public final BooleanProperty toggleAlerts = new BooleanProperty("toggle-alerts", false);
+    private final Set<Module> fadingOutModules = new HashSet<>();
+    private final Map<Module, Timer> animationMap = new HashMap<>();
     private List<Module> activeModules = new ArrayList<>();
 
     public HUD() {
@@ -146,7 +148,58 @@ public class HUD extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (this.isEnabled() && event.getType() == EventType.POST) {
-            this.activeModules = Unfair.moduleManager.modules.values().stream().filter(module -> module.isEnabled() && !module.isHidden()).sorted(Comparator.comparingInt(this::getModuleWidth).reversed()).collect(Collectors.<Module>toList());
+            List<Module> newActiveModules = Unfair.moduleManager.modules.values().stream()
+                    .filter(module -> module.isEnabled() && !module.isHidden())
+                    .sorted(Comparator.comparingInt(this::getModuleWidth).reversed())
+                    .collect(Collectors.<Module>toList());
+
+            for (Module module : newActiveModules) {
+                if (!this.activeModules.contains(module) && !this.animationMap.containsKey(module)) {
+                    Timer timer = new Timer(ANIMATION_DURATION);
+                    timer.start();
+                    this.animationMap.put(module, timer);
+                    this.fadingOutModules.remove(module);
+                } else if (this.fadingOutModules.remove(module)) {
+
+                    Timer timer = new Timer(ANIMATION_DURATION);
+                    timer.start();
+                    this.animationMap.put(module, timer);
+                }
+            }
+
+            for (Module module : this.activeModules) {
+                if (!newActiveModules.contains(module)) {
+
+                    Timer existing = this.animationMap.get(module);
+                    if (existing == null || existing.cached == 1.0F || this.fadingOutModules.contains(module)) {
+                        Timer timer = new Timer(ANIMATION_DURATION);
+                        timer.start();
+                        this.animationMap.put(module, timer);
+                    }
+                    this.fadingOutModules.add(module);
+                }
+            }
+
+            Iterator<Map.Entry<Module, Timer>> it = this.animationMap.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Module, Timer> entry = it.next();
+                Module m = entry.getKey();
+                Timer t = entry.getValue();
+                if (m == null || t == null) {
+                    it.remove();
+                    continue;
+                }
+                if (!m.isEnabled()) {
+                    long elapsed = System.currentTimeMillis() - t.last;
+                    if (t.cached == 0.0F || elapsed > ANIMATION_DURATION + 100) {
+                        it.remove();
+                        this.fadingOutModules.remove(m);
+                    }
+                }
+
+            }
+
+            this.activeModules = newActiveModules;
         }
     }
 
@@ -183,70 +236,135 @@ public class HUD extends Module {
             GlStateManager.scale(this.scale.getValue(), this.scale.getValue(), 0.0F);
             long l = System.currentTimeMillis();
             long offset = 0L;
-            for (Module module : this.activeModules) {
+
+            List<Module> renderList = new ArrayList<>(this.activeModules);
+            for (Module fading : this.fadingOutModules) {
+                if (!renderList.contains(fading)) {
+                    renderList.add(fading);
+                }
+            }
+
+            renderList.sort(Comparator.comparingInt(this::getModuleWidth).reversed());
+
+            for (Module module : renderList) {
                 String moduleName = this.getModuleName(module);
                 String[] moduleSuffix = this.getModuleSuffix(module);
                 float totalWidth = (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1));
                 int color = this.getColor(l, offset).getRGB();
+
+                float animProgress = 1.0F;
+                boolean isFadingOut = !module.isEnabled();
+                Timer animTimer = this.animationMap.get(module);
+                if (animTimer != null && animTimer.last > 0 && animTimer.cached != 1.0F) {
+                    try {
+                        if (isFadingOut) {
+
+                            animProgress = Math.max(0.0F, 1.0F - animTimer.getValueFloat(0.0F, 1.0F, 2));
+                        } else {
+
+                            animProgress = animTimer.getValueFloat(0.0F, 1.0F, 2);
+                        }
+                    } catch (Exception ignored) {
+                        animProgress = isFadingOut ? 0.0F : 1.0F;
+                    }
+                }
+
+                if (isFadingOut && animProgress <= 0.01F) {
+                    continue;
+                }
+
+                boolean alignLeft = this.posX.getValue() == 0;
+                boolean alignTop = this.posY.getValue() == 0;
+
+                float xSlideDir = alignLeft ? -1.0F : 1.0F;
+                float xSlideAmount = (1.0F - animProgress) * totalWidth * xSlideDir;
+
+                float ySlideDir = alignTop ? 1.0F : -1.0F;
+                float ySlideAmount = (1.0F - animProgress) * (height + 2.0F) * ySlideDir;
+
+                float currentX = x + xSlideAmount;
+                float currentY = y + ySlideAmount;
+
+                int animatedColor = color;
+                if (animProgress < 1.0F) {
+                    int alpha = Math.max(0, Math.min(255, (int) (animProgress * 255.0F)));
+                    animatedColor = (color & 0x00FFFFFF) | (alpha << 24);
+                } else {
+                    animatedColor = color;
+                }
+
                 RenderUtil.enableRenderState();
-                if (this.background.getValue() > 0) {
+                if (this.background.getValue() > 0 && animProgress > 0.02F) {
+                    int bgAlpha = (int) (animProgress * this.background.getValue().floatValue() / 100.0F * 255.0F);
+                    bgAlpha = Math.min(bgAlpha, 255);
                     RenderUtil.drawRect(
-                            x / this.scale.getValue() - 1.0F - (this.posX.getValue() == 0 ? 0.0F : totalWidth),
-                            y / this.scale.getValue() - (this.posY.getValue() == 0 ? (offset == 0L ? 1.0F : 0.0F) : (this.shadow.getValue() ? 1.0F : 0.0F)),
-                            x / this.scale.getValue() + 1.0F + (this.posX.getValue() == 0 ? totalWidth : 0.0F),
-                            y / this.scale.getValue() + height + (this.posY.getValue() == 0 ? (this.shadow.getValue() ? 1.0F : 0.0F) : (offset == 0L ? 1.0F : 0.0F)),
-                            new Color(0.0F, 0.0F, 0.0F, this.background.getValue().floatValue() / 100.0F).getRGB()
+                            currentX / this.scale.getValue() - 1.0F - (alignLeft ? 0.0F : totalWidth),
+                            currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : (this.shadow.getValue() ? 1.0F : 0.0F)),
+                            currentX / this.scale.getValue() + 1.0F + (alignLeft ? totalWidth : 0.0F),
+                            currentY / this.scale.getValue() + height + (alignTop ? (this.shadow.getValue() ? 1.0F : 0.0F) : (offset == 0L ? 1.0F : 0.0F)),
+                            new Color(0.0F, 0.0F, 0.0F, bgAlpha / 255.0F).getRGB()
                     );
                 }
-                if (this.showBar.getValue()) {
-                        RenderUtil.drawRect(
-                                x / this.scale.getValue() + (this.posX.getValue() == 0 ? -3.0F : 1.0F),
-                                y / this.scale.getValue() - (this.posY.getValue() == 0 ? (offset == 0L ? 1.0F : 0.0F) : 1.0F),
-                                x / this.scale.getValue() + (this.posX.getValue() == 0 ? -2.0F : 2.0F),
-                                y / this.scale.getValue() + height + (this.posY.getValue() == 0 ? 1.0F : (offset == 0L ? 1.0F : 0.0F)),
-                                color
-                        );
+                if (this.showBar.getValue() && animProgress > 0.02F) {
+                    int barAlpha = (int) (animProgress * 255.0F);
+                    barAlpha = Math.min(barAlpha, 255);
+                    int barColor = (color & 0x00FFFFFF) | (barAlpha << 24);
+                    RenderUtil.drawRect(
+                            currentX / this.scale.getValue() + (alignLeft ? -3.0F : 1.0F),
+                            currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F),
+                            currentX / this.scale.getValue() + (alignLeft ? -2.0F : 2.0F),
+                            currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F)),
+                            barColor
+                    );
                 }
                 RenderUtil.disableRenderState();
                 GlStateManager.disableDepth();
-                if (this.shadow.getValue()) {
-                    mc.fontRendererObj
-                            .drawStringWithShadow(moduleName, x / this.scale.getValue() - (this.posX.getValue() == 1 ? totalWidth : 0.0F), y / this.scale.getValue(), color);
-                } else {
-                    mc.fontRendererObj
-                            .drawString(
-                                    moduleName,
-                                    x / this.scale.getValue() - (this.posX.getValue() == 1 ? totalWidth : 0.0F),
-                                    y / this.scale.getValue() + (this.posY.getValue() == 1 ? 1.0F : 0.0F),
-                                    color,
-                                    false
-                            );
-                }
-                if (this.suffixes.getValue() && moduleSuffix.length > 0) {
-                    float width = (float) mc.fontRendererObj.getStringWidth(moduleName) + 3.0F;
-                    for (String string : moduleSuffix) {
-                        if (this.shadow.getValue()) {
-                            mc.fontRendererObj
-                                    .drawStringWithShadow(
-                                            string,
-                                            x / this.scale.getValue() - (this.posX.getValue() == 1 ? totalWidth : 0.0F) + width,
-                                            y / this.scale.getValue(),
-                                            ChatColors.GRAY.toAwtColor()
-                                    );
-                        } else {
-                            mc.fontRendererObj
-                                    .drawString(
-                                            string,
-                                            x / this.scale.getValue() - (this.posX.getValue() == 1 ? totalWidth : 0.0F) + width,
-                                            y / this.scale.getValue() + (this.posY.getValue() == 1 ? 1.0F : 0.0F),
-                                            ChatColors.GRAY.toAwtColor(),
-                                            false
-                                    );
-                        }
-                        width += (float) mc.fontRendererObj.getStringWidth(string) + (this.shadow.getValue() ? 3.0F : 2.0F);
+                if (animProgress > 0.05F) {
+                    GlStateManager.enableBlend();
+                    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                    if (this.shadow.getValue()) {
+                        mc.fontRendererObj
+                                .drawStringWithShadow(moduleName, currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth), currentY / this.scale.getValue(), animatedColor);
+                    } else {
+                        mc.fontRendererObj
+                                .drawString(
+                                        moduleName,
+                                        currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth),
+                                        currentY / this.scale.getValue() + (alignTop ? 0.0F : 1.0F),
+                                        animatedColor,
+                                        false
+                                );
                     }
+                    if (this.suffixes.getValue() && moduleSuffix.length > 0 && animProgress > 0.5F) {
+                        float width = (float) mc.fontRendererObj.getStringWidth(moduleName) + 3.0F;
+                        int suffixAlpha = (int) (((animProgress - 0.5F) / 0.5F) * 255.0F);
+                        suffixAlpha = Math.min(suffixAlpha, 255);
+                        int suffixColor = ChatColors.GRAY.toAwtColor() & 0x00FFFFFF | (suffixAlpha << 24);
+                        for (String string : moduleSuffix) {
+                            if (this.shadow.getValue()) {
+                                mc.fontRendererObj
+                                        .drawStringWithShadow(
+                                                string,
+                                                currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth) + width,
+                                                currentY / this.scale.getValue(),
+                                                suffixColor
+                                        );
+                            } else {
+                                mc.fontRendererObj
+                                        .drawString(
+                                                string,
+                                                currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth) + width,
+                                                currentY / this.scale.getValue() + (alignTop ? 0.0F : 1.0F),
+                                                suffixColor,
+                                                false
+                                        );
+                            }
+                            width += (float) mc.fontRendererObj.getStringWidth(string) + (this.shadow.getValue() ? 3.0F : 2.0F);
+                        }
+                    }
+                    GlStateManager.disableBlend();
                 }
-                y += (height + (this.shadow.getValue() ? 1.0F : 0.0F)) * this.scale.getValue() * (this.posY.getValue() == 0 ? 1.0F : -1.0F);
+                y += (height + (this.shadow.getValue() ? 1.0F : 0.0F)) * this.scale.getValue() * (alignTop ? 1.0F : -1.0F);
                 offset++;
             }
             if (this.blinkTimer.getValue()) {

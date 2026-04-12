@@ -215,6 +215,36 @@ public class RenderUtil {
         GlStateManager.resetColor();
     }
 
+    /**
+     * Draw a clean 2D outline box for ESP — no hardcoded background, proper color.
+     */
+    public static void drawESPBox2D(float left, float top, float right, float bottom, float lineWidth, int color) {
+        if (color == 0) {
+            return;
+        }
+        RenderUtil.setColor(color);
+        GL11.glLineWidth(lineWidth);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+        GL11.glBegin(GL11.GL_LINES);
+        // Left edge
+        GL11.glVertex2f(left, top);
+        GL11.glVertex2f(left, bottom);
+        // Bottom edge
+        GL11.glVertex2f(left, bottom);
+        GL11.glVertex2f(right, bottom);
+        // Right edge
+        GL11.glVertex2f(right, bottom);
+        GL11.glVertex2f(right, top);
+        // Top edge
+        GL11.glVertex2f(right, top);
+        GL11.glVertex2f(left, top);
+        GL11.glEnd();
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glLineWidth(2.0f);
+        GlStateManager.resetColor();
+    }
+
     public static void drawLine(float x1, float y1, float x2, float y2, float lineWidth, int color) {
         RenderUtil.setColor(color);
         GL11.glLineWidth(lineWidth);

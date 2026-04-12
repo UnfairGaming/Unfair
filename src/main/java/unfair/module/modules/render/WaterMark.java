@@ -1,21 +1,20 @@
 package unfair.module.modules.render;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import unfair.Unfair;
 import unfair.event.EventTarget;
 import unfair.events.Render2DEvent;
 import unfair.module.Module;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import unfair.property.properties.IntProperty;
 import unfair.util.RenderUtil;
 
 public class WaterMark extends Module {
+    public final IntProperty rectLeft = new IntProperty("RectLeft", 2, 0, 20);
+    public final IntProperty rectTop = new IntProperty("RectTop", 2, 0, 20);
     public WaterMark() {
         super("WaterMark", true, true);
     }
-
-    public final IntProperty rectLeft = new IntProperty("RectLeft", 2, 0, 20);
-    public final IntProperty rectTop = new IntProperty("RectTop", 2, 0, 20);
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {

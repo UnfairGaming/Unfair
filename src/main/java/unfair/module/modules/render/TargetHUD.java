@@ -66,6 +66,7 @@ public class TargetHUD extends Module {
     private TimerUtil fadeTimer = null;
     private boolean fadingIn = false;
     private EntityLivingBase fadingEntity = null;
+
     public TargetHUD() {
         super("TargetHUD", false, true);
     }

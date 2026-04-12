@@ -1,5 +1,14 @@
 package unfair.module.modules.player;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiChest;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ContainerChest;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.*;
+import net.minecraft.world.WorldSettings.GameType;
+import org.apache.commons.lang3.RandomUtils;
 import unfair.Unfair;
 import unfair.event.EventTarget;
 import unfair.event.types.EventType;
@@ -11,15 +20,6 @@ import unfair.property.properties.IntProperty;
 import unfair.property.properties.ModeProperty;
 import unfair.util.ChatUtil;
 import unfair.util.ItemUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiChest;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.ContainerChest;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
-import net.minecraft.world.WorldSettings.GameType;
-import org.apache.commons.lang3.RandomUtils;
 
 public class ChestStealer extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

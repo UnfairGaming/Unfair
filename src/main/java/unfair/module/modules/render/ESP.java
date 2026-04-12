@@ -161,11 +161,18 @@ public class ESP extends Module {
                             float y = (float) screenPosition.y;
                             float z = (float) screenPosition.z;
                             float w = (float) screenPosition.w;
-                            if (this.mode.getValue() == 1) {
-                                int color = this.getEntityColor(player).getRGB();
-                                RenderUtil.drawOutlineRect(x, y, z, w, 3.0F, 0, (color & 16579836) >> 2 | color & 0xFF000000);
-                                RenderUtil.drawOutlineRect(x, y, z, w, 1.5F, 0, color);
-                            }
+                        if (this.mode.getValue() == 1) {
+                            int color = this.getEntityColor(player).getRGB();
+                            // Draw outer glow (slightly darker/wider)
+                            int glowAlpha = (color >> 24) & 0xFF;
+                            int glowR = ((color >> 16) & 0xFF) * 2 / 3;
+                            int glowG = ((color >> 8) & 0xFF) * 2 / 3;
+                            int glowB = (color & 0xFF) * 2 / 3;
+                            int glowColor = (Math.max(glowAlpha - 80, 0) << 24) | (glowR << 16) | (glowG << 8) | glowB;
+                            RenderUtil.drawESPBox2D(x, y, z, w, 3.0F, glowColor);
+                            // Draw inner outline
+                            RenderUtil.drawESPBox2D(x, y, z, w, 1.5F, color);
+                        }
                             if (this.healthBar.getValue() == 1) {
                                 float heal = player.getHealth() + player.getAbsorptionAmount();
                                 float percent = Math.min(Math.max(heal / player.getMaxHealth(), 0.0F), 1.0F);

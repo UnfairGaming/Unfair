@@ -1,14 +1,5 @@
 package unfair.module.modules.player;
 
-import unfair.event.EventTarget;
-import unfair.event.types.EventType;
-import unfair.events.UpdateEvent;
-import unfair.events.WindowClickEvent;
-import unfair.module.Module;
-import unfair.property.properties.BooleanProperty;
-import unfair.property.properties.IntProperty;
-import unfair.property.properties.ModeProperty;
-import unfair.util.ItemUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerPlayer;
@@ -18,6 +9,15 @@ import net.minecraft.item.ItemSnowball;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.WorldSettings.GameType;
 import org.apache.commons.lang3.RandomUtils;
+import unfair.event.EventTarget;
+import unfair.event.types.EventType;
+import unfair.events.UpdateEvent;
+import unfair.events.WindowClickEvent;
+import unfair.module.Module;
+import unfair.property.properties.BooleanProperty;
+import unfair.property.properties.IntProperty;
+import unfair.property.properties.ModeProperty;
+import unfair.util.ItemUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

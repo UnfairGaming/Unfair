@@ -96,7 +96,10 @@ public class AutoProjectiles extends Module {
     private float[] calculateSimulatedRotations(EntityLivingBase target) {
         smartPredictor.addPosition(new Vec3(target.posX, target.posY, target.posZ), System.currentTimeMillis());
         double ping = 0;
-        try { ping = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()).getResponseTime(); } catch (Exception ignored) {}
+        try {
+            ping = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()).getResponseTime();
+        } catch (Exception ignored) {
+        }
         double distance = mc.thePlayer.getDistanceToEntity(target);
         double flightTicks = distance / 1.5;
         double totalPredictTicks = flightTicks + (ping / 50.0) + 1.0;
@@ -169,7 +172,6 @@ public class AutoProjectiles extends Module {
         if (projectileSlot != -1) {
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(projectileSlot);
             if (isProjectile(stack)) {
-
                 PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(stack));
             }
         }
@@ -194,7 +196,8 @@ public class AutoProjectiles extends Module {
                 if (this.target == null) return;
 
                 KillAura aura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
-                if (aura != null && aura.isEnabled() && mc.thePlayer.getDistanceToEntity(this.target) <= aura.attackRange.getValue()) return;
+                if (aura != null && aura.isEnabled() && mc.thePlayer.getDistanceToEntity(this.target) <= aura.attackRange.getValue())
+                    return;
 
                 this.throwState = 1;
                 break;
@@ -260,8 +263,8 @@ public class AutoProjectiles extends Module {
     private static class SmartPredictor {
         private final Vec3[] positions = new Vec3[20];
         private final long[] timestamps = new long[20];
-        private int index = 0;
         private final double[] movementPatterns = new double[4];
+        private int index = 0;
         private double strafeFrequency = 0.0;
         private double jumpFrequency = 0.0;
         private long lastDirectionChange = 0L;
@@ -288,10 +291,12 @@ public class AutoProjectiles extends Module {
             );
 
             if (Math.abs(movement.xCoord) > 0.01) {
-                if (movement.xCoord > 0) movementPatterns[0] += 0.1; else movementPatterns[1] += 0.1;
+                if (movement.xCoord > 0) movementPatterns[0] += 0.1;
+                else movementPatterns[1] += 0.1;
             }
             if (Math.abs(movement.zCoord) > 0.01) {
-                if (movement.zCoord > 0) movementPatterns[2] += 0.1; else movementPatterns[3] += 0.1;
+                if (movement.zCoord > 0) movementPatterns[2] += 0.1;
+                else movementPatterns[3] += 0.1;
             }
             for (int i = 0; i < 4; i++) movementPatterns[i] *= 0.95;
 
@@ -322,7 +327,7 @@ public class AutoProjectiles extends Module {
 
         public Vec3 predictNextPosition(double predictionTime) {
             int curIdx = (index - 1 + positions.length) % positions.length;
-            if (positions[curIdx] == null) return new Vec3(0,0,0);
+            if (positions[curIdx] == null) return new Vec3(0, 0, 0);
 
             Vec3 velocity = getCurrentVelocity();
             Vec3 acceleration = getCurrentAcceleration();
@@ -370,7 +375,8 @@ public class AutoProjectiles extends Module {
             int p = (index - 2 + positions.length) % positions.length;
             int pp = (index - 3 + positions.length) % positions.length;
             if (positions[pp] == null) return new Vec3(0, 0, 0);
-            Vec3 v1 = getVel(c, p); Vec3 v2 = getVel(p, pp);
+            Vec3 v1 = getVel(c, p);
+            Vec3 v2 = getVel(p, pp);
             long time = timestamps[c] - timestamps[p];
             if (time <= 0) return new Vec3(0, 0, 0);
             return new Vec3((v1.xCoord - v2.xCoord) / (time / 1000.0), (v1.yCoord - v2.yCoord) / (time / 1000.0), (v1.zCoord - v2.zCoord) / (time / 1000.0));

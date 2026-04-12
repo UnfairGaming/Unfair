@@ -34,9 +34,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class BackTrack extends Module {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
-
+    private static final float ESP_SMOOTH_FACTOR = 0.2f;
     public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Legacy", "Modern"});
-
     public final IntProperty nextBacktrackDelay = new IntProperty(
             "NextBacktrackDelay",
             0,
@@ -44,7 +43,6 @@ public class BackTrack extends Module {
             2000,
             () -> this.mode.getValue() == 1
     );
-
     public final IntProperty maxDelay = new IntProperty("MaxDelay", 80, 0, 2000);
     public final IntProperty minDelay = new IntProperty(
             "MinDelay",
@@ -53,21 +51,18 @@ public class BackTrack extends Module {
             2000,
             () -> this.mode.getValue() == 1
     );
-
     public final ModeProperty cachingMode = new ModeProperty(
             "Caching mode",
             0,
             new String[]{"ClientPos", "ServerPos"},
             () -> this.mode.getValue() == 0
     );
-
     public final ModeProperty style = new ModeProperty(
             "Style",
             1,
             new String[]{"Pulse", "Smooth"},
             () -> this.mode.getValue() == 1
     );
-
     public final FloatProperty distanceMin = new FloatProperty(
             "DistanceMin",
             2.0f,
@@ -75,7 +70,6 @@ public class BackTrack extends Module {
             6.0f,
             () -> this.mode.getValue() == 1
     );
-
     public final FloatProperty distanceMax = new FloatProperty(
             "DistanceMax",
             3.0f,
@@ -83,23 +77,20 @@ public class BackTrack extends Module {
             6.0f,
             () -> this.mode.getValue() == 1
     );
-
     public final BooleanProperty smart = new BooleanProperty(
             "Smart",
             true,
             () -> this.mode.getValue() == 1
     );
-
     public final ModeProperty espMode = new ModeProperty(
             "ESP-Mode",
             0,
             new String[]{"Box", "FullBox"},
             () -> this.mode.getValue() == 1
     );
-
     public final ColorProperty espColor = new ColorProperty(
             "ESPColor",
-            0x00FF00,
+            0xFFFFFF,
             () -> this.mode.getValue() == 1
     );
     public final IntProperty maximumCachedPositions = new IntProperty(
@@ -124,6 +115,7 @@ public class BackTrack extends Module {
     private ModernDelay modernDelay = new ModernDelay(80, false);
     private Object lastWorld = null;
     private Object lastNetHandler = null;
+    private Vec3 smoothedEspOffset = new Vec3(0, 0, 0);
 
     public BackTrack() {
         super("BackTrack", false);
@@ -518,13 +510,37 @@ public class BackTrack extends Module {
         if (!isModern()) return;
         if (!shouldBacktrack() || !this.shouldRender) return;
         if (this.target == null) return;
+        if (mc.theWorld == null) return;
 
         Vec3 truePos = this.truePositions.get(this.target.getEntityId());
         if (truePos == null) return;
 
-        double x = truePos.xCoord;
-        double y = truePos.yCoord;
-        double z = truePos.zCoord;
+        // Safety: verify target is still valid in the world
+        if (mc.theWorld.getEntityByID(this.target.getEntityId()) != this.target) {
+            this.clear();
+            return;
+        }
+
+        double partialTicks = event.getPartialTicks();
+        double entityRenderX = this.target.lastTickPosX + (this.target.posX - this.target.lastTickPosX) * partialTicks;
+        double entityRenderY = this.target.lastTickPosY + (this.target.posY - this.target.lastTickPosY) * partialTicks;
+        double entityRenderZ = this.target.lastTickPosZ + (this.target.posZ - this.target.lastTickPosZ) * partialTicks;
+
+        Vec3 targetOffset = new Vec3(
+                truePos.xCoord - entityRenderX,
+                truePos.yCoord - entityRenderY,
+                truePos.zCoord - entityRenderZ
+        );
+
+        this.smoothedEspOffset = new Vec3(
+                this.smoothedEspOffset.xCoord + (targetOffset.xCoord - this.smoothedEspOffset.xCoord) * ESP_SMOOTH_FACTOR,
+                this.smoothedEspOffset.yCoord + (targetOffset.yCoord - this.smoothedEspOffset.yCoord) * ESP_SMOOTH_FACTOR,
+                this.smoothedEspOffset.zCoord + (targetOffset.zCoord - this.smoothedEspOffset.zCoord) * ESP_SMOOTH_FACTOR
+        );
+
+        double x = entityRenderX + this.smoothedEspOffset.xCoord;
+        double y = entityRenderY + this.smoothedEspOffset.yCoord;
+        double z = entityRenderZ + this.smoothedEspOffset.zCoord;
 
         int rgb = this.espColor.getValue();
         int r = (rgb >> 16) & 255;
@@ -548,7 +564,7 @@ public class BackTrack extends Module {
                 GlStateManager.disableDepth();
                 GlStateManager.depthMask(false);
 
-                RenderGlobal.drawOutlinedBoundingBox(aabb, r, g, b, 153);
+                RenderGlobal.drawOutlinedBoundingBox(aabb, r, g, b, 200);
 
                 GlStateManager.depthMask(true);
                 GlStateManager.enableDepth();

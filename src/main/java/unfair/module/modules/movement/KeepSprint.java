@@ -1,6 +1,5 @@
 package unfair.module.modules.movement;
 
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import unfair.module.Module;
 import unfair.property.properties.BooleanProperty;

@@ -10,6 +10,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
+import unfair.config.Config;
 import unfair.module.Category;
 import unfair.module.modules.render.GuiModule;
 import unfair.module.modules.render.HUD;
@@ -343,6 +344,7 @@ public class ClickGui extends GuiScreen {
         }
         this.mc.gameSettings.guiScale = originalScale;
         savePositions();
+        saveCurrentConfig();
     }
 
     @Override
@@ -380,6 +382,13 @@ public class ClickGui extends GuiScreen {
             gson.toJson(json, writer);
         } catch (java.io.IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void saveCurrentConfig() {
+        if (Config.lastConfig != null && !Config.lastConfig.isEmpty()) {
+            Config config = new Config(Config.lastConfig, false);
+            config.save();
         }
     }
 
