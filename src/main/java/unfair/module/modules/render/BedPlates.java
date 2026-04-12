@@ -14,8 +14,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
 import unfair.Unfair;
@@ -46,7 +44,6 @@ public class BedPlates extends Module {
         if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null) return;
 
         BedESP bedESP = (BedESP) Unfair.moduleManager.modules.get(BedESP.class);
-        if (bedESP == null) return;
 
         ScaledResolution sr = new ScaledResolution(mc);
         double scaleFactor = sr.getScaleFactor();
