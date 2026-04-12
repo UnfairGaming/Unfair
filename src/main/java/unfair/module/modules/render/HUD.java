@@ -169,7 +169,12 @@ public class HUD extends Module {
 
             for (Module module : this.activeModules) {
                 if (!newActiveModules.contains(module)) {
-
+                    // If the module was hidden (not disabled), remove immediately — no fade-out animation
+                    if (module.isHidden()) {
+                        this.animationMap.remove(module);
+                        this.fadingOutModules.remove(module);
+                        continue;
+                    }
                     Timer existing = this.animationMap.get(module);
                     if (existing == null || existing.cached == 1.0F || this.fadingOutModules.contains(module)) {
                         Timer timer = new Timer(ANIMATION_DURATION);
@@ -239,7 +244,8 @@ public class HUD extends Module {
 
             List<Module> renderList = new ArrayList<>(this.activeModules);
             for (Module fading : this.fadingOutModules) {
-                if (!renderList.contains(fading)) {
+                // Don't render hidden or fully faded-out modules
+                if (!fading.isHidden() && !renderList.contains(fading)) {
                     renderList.add(fading);
                 }
             }

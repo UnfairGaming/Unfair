@@ -28,7 +28,7 @@ public class JumpReset extends Module {
 
     @EventTarget
     public void onKnockback(KnockbackEvent event) {
-        if (this.isEnabled() || !event.isCancelled()) {
+        if (this.isEnabled() && !event.isCancelled()) {
             this.jumpFlag = event.getY() > 0.0;
         }
     }

@@ -105,47 +105,49 @@ public class Velocity extends Module {
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
-        if (event.getType() == EventType.POST) {
-            if (this.delayFlag
-                    && (this.isInLiquidOrWeb() || Unfair.delayManager.getDelay() >= (long) this.delayTicks.getValue())) {
-                Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
-                this.delayFlag = false;
+        if (isEnabled()) {
+            if (event.getType() == EventType.POST) {
+                if (this.delayFlag
+                        && (this.isInLiquidOrWeb() || Unfair.delayManager.getDelay() >= (long) this.delayTicks.getValue())) {
+                    Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
+                    this.delayFlag = false;
+                }
             }
-        }
-        if (this.mode.getValue() == 2) {
-            if (event.getType() != EventType.PRE) return;
+            if (this.mode.getValue() == 2) {
+                if (event.getType() != EventType.PRE) return;
 
-            if (!knockback) return;
+                if (!knockback) return;
 
-            if (badPackets()) return;
+                if (badPackets()) return;
 
-            boolean isInWeb = ((IAccessorEntity) mc.thePlayer).getIsInWeb();
-            if (isInWeb || isInLiquidOrWeb()) return;
+                boolean isInWeb = ((IAccessorEntity) mc.thePlayer).getIsInWeb();
+                if (isInWeb || isInLiquidOrWeb()) return;
 
-            if (!MoveUtil.isForwardPressed() || !mc.thePlayer.isSprinting()) return;
+                if (!MoveUtil.isForwardPressed() || !mc.thePlayer.isSprinting()) return;
 
-            KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-            if (killAura == null || !killAura.isEnabled() || killAura.getTarget() == null) {
-                return;
+                KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
+                if (killAura == null || !killAura.isEnabled() || killAura.getTarget() == null) {
+                    return;
+                }
+                Entity target = killAura.getTarget();
+
+                if (!Motion) {
+                    Motion = true;
+                }
+
+                EventManager.call(new AttackEvent(target));
+                mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
+                mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+
+                mc.thePlayer.motionX *= 0.6;
+                mc.thePlayer.motionZ *= 0.6;
+                mc.thePlayer.setSprinting(false);
+
+                dbg(Unfair.clientName + "Reduce 40%");
+
+                knockback = false;
+                Motion = false;
             }
-            Entity target = killAura.getTarget();
-
-            if (!Motion) {
-                Motion = true;
-            }
-
-            EventManager.call(new AttackEvent(target));
-            mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
-            mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
-
-            mc.thePlayer.motionX *= 0.6;
-            mc.thePlayer.motionZ *= 0.6;
-            mc.thePlayer.setSprinting(false);
-
-            dbg(Unfair.clientName + "Reduce 40%");
-
-            knockback = false;
-            Motion = false;
         }
     }
 

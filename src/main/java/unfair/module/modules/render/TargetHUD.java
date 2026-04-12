@@ -123,33 +123,35 @@ public class TargetHUD extends Module {
             EntityLivingBase entityLivingBase = this.target;
             this.target = this.resolveTarget();
 
-            // Handle fade in/out logic
             if (this.target != null) {
-                // Target exists
+
                 if (entityLivingBase == null && fadeTimer == null) {
-                    // Target just appeared - start fade in
+
                     fadeTimer = new TimerUtil();
                     fadeTimer.reset();
                     fadingIn = true;
                 } else if (fadingIn && fadeTimer != null && fadeTimer.getElapsedTime() >= 400) {
-                    // Fade in complete
+
                     fadeTimer = null;
                     fadingIn = false;
                 }
             } else {
-                // Target is null - check if we should fade out
+
                 if (entityLivingBase != null && fadeTimer == null) {
                     fadeTimer = new TimerUtil();
                     fadeTimer.reset();
                     fadingIn = false;
-                    fadingEntity = entityLivingBase; // Store the entity for fade out
+                    fadingEntity = entityLivingBase;
                 }
             }
 
-            // Render if we have a target or we're fading out
             if (entityLivingBase != null || fadeTimer != null) {
-                // Use this.target if available, otherwise use fadingEntity for fade out
+
                 EntityLivingBase entity = this.target != null ? this.target : fadingEntity;
+                if (entity == null) {
+
+                    return;
+                }
                 float health = (mc.thePlayer.getHealth() + mc.thePlayer.getAbsorptionAmount()) / 2.0F;
                 float abs = entity.getAbsorptionAmount() / 2.0F;
                 float heal = entity.getHealth() / 2.0F + abs;
@@ -276,10 +278,10 @@ public class TargetHUD extends Module {
             long elapsed = fadeTimer.getElapsedTime();
             if (elapsed < 400) {
                 if (fadingIn) {
-                    // Fade in: 0 -> 255
+
                     alpha = (int) ((elapsed / 400.0f) * 255);
                 } else {
-                    // Fade out: 255 -> 0
+
                     alpha = (int) (255 - (elapsed / 400.0f) * 255);
                 }
             } else {
@@ -306,14 +308,13 @@ public class TargetHUD extends Module {
         final int maxAlphaOutline = Math.min(alpha, 110);
         final int maxAlphaBackground = Math.min(alpha, 210);
 
-        // Get gradient colors from HUD
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         int gradientLeft = hud.getColor(System.currentTimeMillis()).getRGB();
         int gradientRight = hud.getColor(System.currentTimeMillis() + 500).getRGB();
         int[] gradientColors = new int[]{gradientLeft, gradientRight};
 
         switch (mode) {
-            case 0: // Modern - with blur like ClickGUI (exact RavenBS implementation)
+            case 0:
                 float bloomRadius = (fadeTimer == null) ? 2f : (2f * alpha / 255f);
                 float blurRadius = (fadeTimer == null) ? 3 : (3f * alpha / 255f);
                 BlurUtils.prepareBloom();
@@ -323,7 +324,7 @@ public class TargetHUD extends Module {
                 RoundedUtils.drawRound((float) n6, (float) n7, (float) (n8 - n6), (float) (n9 + 13 - n7), 8.0f, true, new Color(RenderUtil.mergeAlpha(Color.black.getRGB(), maxAlphaOutline)));
                 BlurUtils.blurEnd(2, blurRadius);
                 break;
-            case 1: // Legacy - no blur
+            case 1:
                 RenderUtil.drawRoundedGradientOutlinedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 10.0f,
                         RenderUtil.mergeAlpha(Color.black.getRGB(), maxAlphaOutline),
                         RenderUtil.mergeAlpha(gradientColors[0], alpha),
@@ -335,7 +336,6 @@ public class TargetHUD extends Module {
         final int n14 = n8 - 6;
         final int n15 = n9;
 
-        // Bar background
         RenderUtil.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 4.0f,
                 RenderUtil.mergeAlpha(Color.black.getRGB(), maxAlphaOutline));
 
@@ -344,7 +344,6 @@ public class TargetHUD extends Module {
 
         float healthBar = (float) (n14 + (n13 - n14) * (1 - healthRatio));
 
-        // Smooth health bar animation
         if (lastHealthBar != healthBar && lastHealthBar - n13 >= 3) {
             float diff = lastHealthBar - healthBar;
             if (diff > 0) {
@@ -361,13 +360,13 @@ public class TargetHUD extends Module {
         }
 
         switch (mode) {
-            case 0: // Modern
+            case 0:
                 RenderUtil.drawRoundedRectangle((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 4.0f,
                         RenderUtil.darkenColor(mergedGradientRight, 25));
                 RenderUtil.drawRoundedGradientRect((float) n13, (float) n15, healthBar, (float) (n15 + 5), 4.0f,
                         mergedGradientLeft, mergedGradientLeft, mergedGradientRight, mergedGradientRight);
                 break;
-            case 1: // Legacy
+            case 1:
                 RenderUtil.drawRoundedGradientRect((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 4.0f,
                         mergedGradientLeft, mergedGradientLeft, mergedGradientRight, mergedGradientRight);
                 break;
