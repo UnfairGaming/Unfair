@@ -541,7 +541,7 @@ public class KillAura extends Module {
                             Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
                             Vec3 lookVec = ((IAccessorEntity) mc.thePlayer).callGetVectorForRotation(event.getPitch(), event.getYaw());
                             Vec3 lookEnd = eyePos.addVector(lookVec.xCoord * 6.0, lookVec.yCoord * 6.0, lookVec.zCoord * 6.0);
-                            Vec3 bestPoint = RotationUtil.clampVecToBox(lookEnd, this.target.getBox());
+                            Vec3 bestPoint = RotationUtil.getClosestPointOnBox(lookEnd, this.target.getBox());
 
                             targetRotations = RotationUtil.getRotations(
                                     bestPoint.xCoord - eyePos.xCoord,

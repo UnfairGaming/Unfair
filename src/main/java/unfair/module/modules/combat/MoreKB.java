@@ -1,6 +1,5 @@
 package unfair.module.modules.combat;
 
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -16,7 +15,7 @@ import unfair.property.properties.ModeProperty;
 
 public class MoreKB extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"LEGIT", "LEGITFAST", "LESSPACKET", "PACKET", "DOUBLEPACKET"});
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"Legit", "LegitFast", "LessPacket", "Packet", "DoublePacket"});
     public final BooleanProperty intelligent = new BooleanProperty("intelligent", false);
     public final BooleanProperty onlyGround = new BooleanProperty("only-ground", true);
     private boolean shouldSprintReset;
@@ -106,6 +105,6 @@ public class MoreKB extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 }

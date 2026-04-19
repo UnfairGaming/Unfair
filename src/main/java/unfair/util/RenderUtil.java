@@ -132,6 +132,75 @@ public class RenderUtil {
         GlStateManager.popMatrix();
     }
 
+    public static void renderItemAndEffectIntoGui3D(ItemStack stack, int xPos, int yPos) {
+        if (stack == null) {
+            return;
+        }
+
+        GlStateManager.pushMatrix();
+        prepareGuiItemRenderState();
+        GlStateManager.depthMask(true);
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(1.0f, 1.0f, -0.01f);
+        mc.getRenderItem().zLevel = -150.0f;
+        mc.getRenderItem().renderItemAndEffectIntoGUI(stack, xPos, yPos);
+        mc.getRenderItem().zLevel = 0.0f;
+        GlStateManager.popMatrix();
+        RenderHelper.disableStandardItemLighting();
+        prepareGuiTextureRenderState();
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawDurabilityBar(int xPos, int yPos, float durabilityRatio) {
+        if (durabilityRatio < 0) durabilityRatio = 0;
+        if (durabilityRatio > 1) durabilityRatio = 1;
+
+        int barWidth = (int) (durabilityRatio * 13);
+
+        GlStateManager.disableTexture2D();
+        Tessellator tess = Tessellator.getInstance();
+        WorldRenderer wr = tess.getWorldRenderer();
+
+        wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        wr.pos(xPos + 2, yPos + 15, 0).color(0.0F, 0.0F, 0.0F, 1.0F).endVertex();
+        wr.pos(xPos + 2, yPos + 16, 0).color(0.0F, 0.0F, 0.0F, 1.0F).endVertex();
+        wr.pos(xPos + 15, yPos + 16, 0).color(0.0F, 0.0F, 0.0F, 1.0F).endVertex();
+        wr.pos(xPos + 15, yPos + 15, 0).color(0.0F, 0.0F, 0.0F, 1.0F).endVertex();
+        tess.draw();
+
+        float r, g, b;
+        if (durabilityRatio <= 0.3F) { r=1; g=0; b=0; }
+        else if (durabilityRatio <= 0.6F) { r=1; g=1; b=0; }
+        else { r=0; g=1; b=0; }
+
+        wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        wr.pos(xPos + 2, yPos + 15, 0).color(r, g, b, 1.0F).endVertex();
+        wr.pos(xPos + 2, yPos + 16, 0).color(r, g, b, 1.0F).endVertex();
+        wr.pos(xPos + 2 + barWidth, yPos + 16, 0).color(r, g, b, 1.0F).endVertex();
+        wr.pos(xPos + 2 + barWidth, yPos + 15, 0).color(r, g, b, 1.0F).endVertex();
+        tess.draw();
+
+        GlStateManager.enableTexture2D();
+    }
+
+    private static void prepareGuiItemRenderState() {
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+        GlStateManager.color(1, 1, 1, 1);
+    }
+
+    private static void prepareGuiTextureRenderState() {
+        GlStateManager.disableDepth();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+    }
+
     public static void renderPotionEffect(PotionEffect potionEffect, int x, int y) {
         int n3 = Potion.potionTypes[potionEffect.getPotionID()].getStatusIconIndex();
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -215,9 +284,6 @@ public class RenderUtil {
         GlStateManager.resetColor();
     }
 
-    /**
-     * Draw a clean 2D outline box for ESP — no hardcoded background, proper color.
-     */
     public static void drawESPBox2D(float left, float top, float right, float bottom, float lineWidth, int color) {
         if (color == 0) {
             return;
@@ -227,16 +293,16 @@ public class RenderUtil {
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
         GL11.glBegin(GL11.GL_LINES);
-        // Left edge
+
         GL11.glVertex2f(left, top);
         GL11.glVertex2f(left, bottom);
-        // Bottom edge
+
         GL11.glVertex2f(left, bottom);
         GL11.glVertex2f(right, bottom);
-        // Right edge
+
         GL11.glVertex2f(right, bottom);
         GL11.glVertex2f(right, top);
-        // Top edge
+
         GL11.glVertex2f(right, top);
         GL11.glVertex2f(left, top);
         GL11.glEnd();
@@ -617,7 +683,7 @@ public class RenderUtil {
             radius = Math.min(radius, width / 2.0f);
         }
 
-        radius = Math.min(radius, 4.0f); // Increase the radius value
+        radius = Math.min(radius, 4.0f);
 
         glEnable(3042);
         GL11.glDisable(3553);
@@ -699,7 +765,7 @@ public class RenderUtil {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 
-    public static void glColor(final int n) { // credit to the creator of raven b4
+    public static void glColor(final int n) {
         GL11.glColor4f((float) (n >> 16 & 0xFF) / 255.0f, (float) (n >> 8 & 0xFF) / 255.0f, (float) (n & 0xFF) / 255.0f, (float) (n >> 24 & 0xFF) / 255.0f);
     }
 

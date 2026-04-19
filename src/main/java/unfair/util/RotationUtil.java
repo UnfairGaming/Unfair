@@ -56,19 +56,11 @@ public class RotationUtil {
         return new float[]{RotationUtil.quantizeAngle(currentYaw + yawDelta), RotationUtil.quantizeAngle(currentPitch + pitchDelta)};
     }
 
-    public static Vec3 clampVecToBox(Vec3 vector, AxisAlignedBB boundingBox) {
-        double[] coords = new double[]{vector.xCoord, vector.yCoord, vector.zCoord};
-        double[] minCoords = new double[]{boundingBox.minX, boundingBox.minY, boundingBox.minZ};
-        double[] maxCoords = new double[]{boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ};
-        for (int i = 0; i < 3; ++i) {
-            if (coords[i] > maxCoords[i]) {
-                coords[i] = maxCoords[i];
-                continue;
-            }
-            if (!(coords[i] < minCoords[i])) continue;
-            coords[i] = minCoords[i];
-        }
-        return new Vec3(coords[0], coords[1], coords[2]);
+    public static Vec3 getClosestPointOnBox(Vec3 point, AxisAlignedBB bb) {
+        double x = MathHelper.clamp_double(point.xCoord, bb.minX, bb.maxX);
+        double y = MathHelper.clamp_double(point.yCoord, bb.minY, bb.maxY);
+        double z = MathHelper.clamp_double(point.zCoord, bb.minZ, bb.maxZ);
+        return new Vec3(x, y, z);
     }
 
     public static double distanceToEntity(Entity entity) {
@@ -79,22 +71,19 @@ public class RotationUtil {
 
     public static double distanceToBox(Entity entity, Vec3 point) {
         float borderSize = entity.getCollisionBorderSize();
-        return RotationUtil.clampVecToBox(entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize), point);
+        return RotationUtil.getDistanceToBox(entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize), point);
     }
 
     public static double distanceToBox(AxisAlignedBB boundingBox) {
-        return RotationUtil.clampVecToBox(boundingBox, RotationUtil.mc.thePlayer.getPositionEyes(1.0f));
+        return RotationUtil.getDistanceToBox(boundingBox, RotationUtil.mc.thePlayer.getPositionEyes(1.0f));
     }
 
-    public static double clampVecToBox(AxisAlignedBB boundingBox, Vec3 point) {
-        if (boundingBox.isVecInside(point)) {
+    public static double getDistanceToBox(AxisAlignedBB bb, Vec3 point) {
+        if (bb.isVecInside(point)) {
             return 0.0;
         }
-        Vec3 clampedPoint = RotationUtil.clampVecToBox(point, boundingBox);
-        double deltaX = clampedPoint.xCoord - point.xCoord;
-        double deltaY = clampedPoint.yCoord - point.yCoord;
-        double deltaZ = clampedPoint.zCoord - point.zCoord;
-        return Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+        Vec3 closestPoint = getClosestPointOnBox(point, bb);
+        return point.distanceTo(closestPoint);
     }
 
     public static float angleToEntity(Entity entity) {
@@ -123,7 +112,7 @@ public class RotationUtil {
     public static MovingObjectPosition rayTrace(Entity entity) {
         Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(1.0f);
         float borderSize = entity.getCollisionBorderSize();
-        Vec3 targetPos = RotationUtil.clampVecToBox(eyePos, entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize));
+        Vec3 targetPos = RotationUtil.getClosestPointOnBox(eyePos, entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize));
         return RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPos);
     }
 

@@ -73,6 +73,7 @@ public class BlockHit extends Module {
                 }
             }
             if (this.mode.getValue() == 1) {
+                if (target == null) return;
                 if (attacking) {
                     attackTicks++;
                 }

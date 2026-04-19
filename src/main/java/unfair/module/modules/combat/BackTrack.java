@@ -20,13 +20,15 @@ import unfair.events.LoadWorldEvent;
 import unfair.events.PacketEvent;
 import unfair.events.Render3DEvent;
 import unfair.mixin.IAccessorRenderManager;
+import unfair.mixin.IAccessorS14PacketEntity;
+import unfair.mixin.IAccessorS18PacketEntityTeleport;
+import unfair.mixin.IAccessorS19PacketEntityStatus;
 import unfair.module.Module;
 import unfair.property.properties.*;
 import unfair.util.RenderUtil;
 import unfair.util.RotationUtil;
 import unfair.util.TimerUtil;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -630,7 +632,7 @@ public class BackTrack extends Module {
                     data.pos.zCoord - this.target.posZ
             );
 
-            double dist = RotationUtil.clampVecToBox(box, mc.thePlayer.getPositionEyes(1.0f));
+            double dist = RotationUtil.getDistanceToBox(box, mc.thePlayer.getPositionEyes(1.0f));
             if (inDistanceRange(dist)) {
                 found = true;
                 break;
@@ -845,44 +847,16 @@ public class BackTrack extends Module {
     }
 
     private static final class PacketFieldCache {
-        private static Field s14EntityId;
-        private static Field s18EntityId;
-        private static Field s19EntityId;
-
         private static int getS14EntityId(S14PacketEntity packet) {
-            try {
-                if (s14EntityId == null) {
-                    s14EntityId = S14PacketEntity.class.getDeclaredField("entityId");
-                    s14EntityId.setAccessible(true);
-                }
-                return (int) s14EntityId.get(packet);
-            } catch (Throwable t) {
-                return -1;
-            }
+            return ((IAccessorS14PacketEntity) packet).getEntityId();
         }
 
         private static int getS18EntityId(S18PacketEntityTeleport packet) {
-            try {
-                if (s18EntityId == null) {
-                    s18EntityId = S18PacketEntityTeleport.class.getDeclaredField("entityId");
-                    s18EntityId.setAccessible(true);
-                }
-                return (int) s18EntityId.get(packet);
-            } catch (Throwable t) {
-                return -1;
-            }
+            return ((IAccessorS18PacketEntityTeleport) packet).getEntityId();
         }
 
         private static int getS19EntityId(S19PacketEntityStatus packet) {
-            try {
-                if (s19EntityId == null) {
-                    s19EntityId = S19PacketEntityStatus.class.getDeclaredField("entityId");
-                    s19EntityId.setAccessible(true);
-                }
-                return (int) s19EntityId.get(packet);
-            } catch (Throwable t) {
-                return -1;
-            }
+            return ((IAccessorS19PacketEntityStatus) packet).getEntityId();
         }
     }
 
