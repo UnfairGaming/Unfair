@@ -53,7 +53,7 @@ public class BlockHit extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (!this.isEnabled()) return;
+        if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null) return;
         if (event.getType() == EventType.PRE) {
             if (this.mode.getValue() == 0) {
                 if (mc.gameSettings.keyBindAttack.isKeyDown()) {
