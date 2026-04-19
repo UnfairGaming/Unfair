@@ -12,6 +12,7 @@ import unfair.util.RenderUtil;
 public class WaterMark extends Module {
     public final IntProperty rectLeft = new IntProperty("RectLeft", 2, 0, 20);
     public final IntProperty rectTop = new IntProperty("RectTop", 2, 0, 20);
+
     public WaterMark() {
         super("WaterMark", true, true);
     }

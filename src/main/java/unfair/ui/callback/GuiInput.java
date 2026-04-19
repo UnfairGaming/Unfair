@@ -12,9 +12,9 @@ public class GuiInput extends GuiScreen {
     private final String title;
     private final String defaultValue;
     private final Consumer<String> callback;
+    private final GuiScreen caller;
     private GuiTextField textField;
     private GuiButton buttonOk;
-    private final GuiScreen caller;
 
     public GuiInput(String title, String defaultValue, Consumer<String> callback, GuiScreen caller) {
         this.title = title;

@@ -41,6 +41,7 @@ public class AutoProjectiles extends Module {
     private int throwsRemaining = 0;
     private boolean hasRotated = false;
     private SmartPredictor smartPredictor = new SmartPredictor();
+
     public AutoProjectiles() {
         super("AutoProjectile", false);
     }
@@ -339,9 +340,8 @@ public class AutoProjectiles extends Module {
     private static class SmartPredictor {
         private final Vec3[] positions = new Vec3[20];
         private final long[] timestamps = new long[20];
-        private int index = 0;
-
         private final double[] movementPatterns = new double[4];
+        private int index = 0;
         private double strafeFrequency = 0.0;
         private double jumpFrequency = 0.0;
         private long lastDirectionChange = 0L;

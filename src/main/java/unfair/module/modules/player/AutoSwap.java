@@ -15,23 +15,20 @@ import java.util.List;
 
 public class AutoSwap extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    
-    private Item lastItem;
-    private int lastSlot = -1;
-
     public final BooleanProperty blocks = new BooleanProperty("blocks", true);
     public final BooleanProperty projectiles = new BooleanProperty("projectiles", true);
     public final BooleanProperty pearls = new BooleanProperty("pearls", true);
     public final BooleanProperty swords = new BooleanProperty("swords", true);
     public final BooleanProperty tools = new BooleanProperty("tools", true);
     public final BooleanProperty resources = new BooleanProperty("resources", true);
-
     private final List<String> ALLOWED_BLOCKS = Arrays.asList("stone", "grass", "dirt", "planks", "wool", "wood", "glass", "leaves", "clay", "cloth", "cobblestone", "sand", "gravel", "netherrack");
     private final List<String> PROJECTILES = Arrays.asList("egg", "snowball", "ender_pearl", "fireball");
     private final List<String> PEARLS = Arrays.asList("pearl", "ender_pearl");
     private final List<String> SWORDS = Arrays.asList("sword", "axe");
     private final List<String> TOOLS = Arrays.asList("rod", "pickaxe", "axe", "shovel", "hoe", "flint_and_steel");
     private final List<String> RESOURCES = Arrays.asList("265", "266", "388", "264", "diamond", "gold", "iron", "emerald");
+    private Item lastItem;
+    private int lastSlot = -1;
 
     public AutoSwap() {
         super("AutoSwap", false);

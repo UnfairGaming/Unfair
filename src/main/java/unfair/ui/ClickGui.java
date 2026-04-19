@@ -32,6 +32,9 @@ public class ClickGui extends GuiScreen {
     private static ClickGui instance;
     private static boolean isNotFirstOpen;
     private final File configFile = new File("./config/Unfair/", "clickgui.txt");
+    private final String clientName = "Unfair";
+    private final String clientVersion = Unfair.version;
+    private final String developer = "dev, UnfairGaming";
     public int originalScale;
     public int previousScale;
     public float updates;
@@ -41,9 +44,6 @@ public class ClickGui extends GuiScreen {
     private Timer smoothEntity;
     private Timer backgroundFade;
     private Timer blurSmooth;
-    private final String clientName = "Unfair";
-    private final String clientVersion = Unfair.version;
-    private final String developer = "dev, UnfairGaming";
     private boolean clickGuiOpen = false;
     private long openedTime;
     private int hudColorCached = Color.white.getRGB();

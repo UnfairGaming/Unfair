@@ -32,9 +32,10 @@ public class Velocity extends Module {
     private static boolean inventory = false;
     public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"VANILLA", "Prediction"});
     public final BooleanProperty reduce = new BooleanProperty("reduce", true, () -> this.mode.getValue() == 1);
-    public final BooleanProperty delay = new BooleanProperty("delay (only bw)", false, () -> this.mode.getValue() == 1 && !this.airBuffer.getValue());
+    public final BooleanProperty delay = new BooleanProperty("delay", false, () -> this.mode.getValue() == 1 && !this.airBuffer.getValue());
     public final IntProperty delayTicks = new IntProperty("delay-ticks", 1, 1, 5, () -> this.mode.getValue() == 1 && this.delay.getValue() && !this.airBuffer.getValue());
-    public final BooleanProperty airBuffer = new BooleanProperty("air-buffer (only bw)", true, () -> this.mode.getValue() == 1 && !this.delay.getValue());
+    //airBuffer is much better than delay in some low ping servers
+    public final BooleanProperty airBuffer = new BooleanProperty("air-buffer", true, () -> this.mode.getValue() == 1 && !this.delay.getValue());
     public final PercentProperty chance = new PercentProperty("chance", 100, () -> this.mode.getValue() == 0);
     public final PercentProperty horizontal = new PercentProperty("horizontal", 100, () -> this.mode.getValue() == 0);
     public final PercentProperty vertical = new PercentProperty("vertical", 100, () -> this.mode.getValue() == 0);
@@ -47,8 +48,6 @@ public class Velocity extends Module {
     private boolean pendingExplosion = false;
     private boolean allowNext = true;
     private boolean delayFlag = false;
-    private boolean Motion = false;
-
     public Velocity() {
         super("Velocity", false, false);
     }
@@ -155,22 +154,19 @@ public class Velocity extends Module {
                 }
             }
 
-            if (!Motion) {
-                Motion = true;
-            }
-
             EventManager.call(new AttackEvent(target));
+
             mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
             mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
 
-            mc.thePlayer.motionX *= 0.6;
-            mc.thePlayer.motionZ *= 0.6;
+            mc.thePlayer.motionX *= 0.6D;
+            mc.thePlayer.motionZ *= 0.6D;
+
             mc.thePlayer.setSprinting(false);
 
             dbg(Unfair.clientName + "Reduce 40%");
 
             knockback = false;
-            Motion = false;
         }
     }
 
@@ -248,7 +244,6 @@ public class Velocity extends Module {
 
     @Override
     public void onEnabled() {
-        Motion = false;
         knockback = false;
     }
 
@@ -256,7 +251,6 @@ public class Velocity extends Module {
     public void onDisabled() {
         this.pendingExplosion = false;
         this.allowNext = true;
-        Motion = false;
         knockback = false;
     }
 

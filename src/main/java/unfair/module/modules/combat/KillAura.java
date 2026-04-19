@@ -33,6 +33,7 @@ import unfair.event.types.EventType;
 import unfair.event.types.Priority;
 import unfair.events.*;
 import unfair.management.RotationState;
+import unfair.mixin.IAccessorEntity;
 import unfair.mixin.IAccessorPlayerControllerMP;
 import unfair.module.Module;
 import unfair.module.modules.misc.BedNuker;
@@ -54,7 +55,7 @@ public class KillAura extends Module {
     public final ModeProperty sort;
     public final ModeProperty autoBlock;
     public final BooleanProperty autoBlockRequirePress;
-    public final FloatProperty autoBlockCPS;
+    public final IntProperty autoBlockCPS;
     public final FloatProperty autoBlockRange;
     public final FloatProperty swingRange;
     public final FloatProperty attackRange;
@@ -81,6 +82,9 @@ public class KillAura extends Module {
     public final BooleanProperty silverfish;
     public final BooleanProperty teams;
     public final ModeProperty showTarget;
+    public final BooleanProperty aimBestAngle;
+    public final IntProperty aimSpeedYaw;
+    public final IntProperty aimSpeedPitch;
     private final TimerUtil timer = new TimerUtil();
     private AttackData target = null;
     private int switchTick = 0;
@@ -90,6 +94,8 @@ public class KillAura extends Module {
     private boolean fakeBlockState = false;
     private long attackDelayMS = 0L;
     private int blockTick = 0;
+    private float serverYaw;
+    private float serverPitch;
 
     public KillAura() {
         super("KillAura", false);
@@ -100,7 +106,7 @@ public class KillAura extends Module {
                 "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE"}
         );
         this.autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
-        this.autoBlockCPS = new FloatProperty("auto-block-aps", 10.0F, 1.0F, 20.0F);
+        this.autoBlockCPS = new IntProperty("auto-block-aps", 10, 1, 20);
         this.autoBlockRange = new FloatProperty("auto-block-range", 6.0F, 3.0F, 8.0F);
         this.swingRange = new FloatProperty("swing-range", 3.5F, 3.0F, 6.0F);
         this.attackRange = new FloatProperty("attack-range", 3.0F, 3.0F, 6.0F);
@@ -112,6 +118,9 @@ public class KillAura extends Module {
         this.moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
         this.smoothing = new PercentProperty("smoothing", 0);
         this.angleStep = new IntProperty("angle-step", 90, 30, 180);
+        this.aimBestAngle = new BooleanProperty("aim-best-angle", false, () -> this.rotations.getValue() == 2);
+        this.aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotations.getValue() == 2);
+        this.aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotations.getValue() == 2);
         this.throughWalls = new BooleanProperty("through-walls", true);
         this.requirePress = new BooleanProperty("require-press", false);
         this.allowMining = new BooleanProperty("allow-mining", false);
@@ -323,6 +332,33 @@ public class KillAura extends Module {
         return entityLivingBase instanceof EntityPlayer && TeamUtil.isTarget((EntityPlayer) entityLivingBase);
     }
 
+    private float[] interpolateRotation(float targetYaw, float targetPitch) {
+        float maxDeltaYaw = this.aimSpeedYaw.getValue().floatValue();
+        float maxDeltaPitch = this.aimSpeedPitch.getValue().floatValue();
+
+        float deltaYaw = targetYaw - this.serverYaw;
+        while (deltaYaw <= -180.0F) deltaYaw += 360.0F;
+        while (deltaYaw > 180.0F) deltaYaw -= 360.0F;
+
+        if (Math.abs(deltaYaw) > maxDeltaYaw) {
+            this.serverYaw += Math.signum(deltaYaw) * maxDeltaYaw;
+        } else {
+            this.serverYaw = targetYaw;
+        }
+
+        float deltaPitch = targetPitch - this.serverPitch;
+
+        if (Math.abs(deltaPitch) > maxDeltaPitch) {
+            this.serverPitch += Math.signum(deltaPitch) * maxDeltaPitch;
+        } else {
+            this.serverPitch = targetPitch;
+        }
+
+        this.serverPitch = Math.max(-90.0F, Math.min(90.0F, this.serverPitch));
+
+        return new float[]{this.serverYaw, this.serverPitch};
+    }
+
     public EntityLivingBase getTarget() {
         return this.target != null ? this.target.getEntity() : null;
     }
@@ -495,23 +531,72 @@ public class KillAura extends Module {
                 boolean attacked = false;
                 if (this.isBoxInSwingRange(this.target.getBox())) {
                     if (this.rotations.getValue() == 2 || this.rotations.getValue() == 3) {
-                        float[] rotations = RotationUtil.getRotationsToBox(
-                                this.target.getBox(),
-                                event.getYaw(),
-                                event.getPitch(),
-                                (float) this.angleStep.getValue() + RandomUtil.nextFloat(-5.0F, 5.0F),
-                                (float) this.smoothing.getValue() / 100.0F
-                        );
-                        event.setRotation(rotations[0], rotations[1], 1);
-                        if (this.rotations.getValue() == 3) {
-                            Unfair.rotationManager.setRotation(rotations[0], rotations[1], 1, true);
+
+                        float[] targetRotations;
+                        float randomOffset = (float) this.angleStep.getValue() + RandomUtil.nextFloat(-5.0F, 5.0F);
+                        float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
+
+                        if (this.aimBestAngle.getValue()) {
+
+                            Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
+                            Vec3 lookVec = ((IAccessorEntity) mc.thePlayer).callGetVectorForRotation(event.getPitch(), event.getYaw());
+                            Vec3 lookEnd = eyePos.addVector(lookVec.xCoord * 6.0, lookVec.yCoord * 6.0, lookVec.zCoord * 6.0);
+                            Vec3 bestPoint = RotationUtil.clampVecToBox(lookEnd, this.target.getBox());
+
+                            targetRotations = RotationUtil.getRotations(
+                                    bestPoint.xCoord - eyePos.xCoord,
+                                    bestPoint.yCoord - eyePos.yCoord,
+                                    bestPoint.zCoord - eyePos.zCoord,
+                                    event.getYaw(),
+                                    event.getPitch(),
+                                    randomOffset,
+                                    smoothFactor
+                            );
+                        } else {
+
+                            targetRotations = RotationUtil.getRotationsToBox(
+                                    this.target.getBox(),
+                                    event.getYaw(),
+                                    event.getPitch(),
+                                    randomOffset,
+                                    smoothFactor
+                            );
                         }
+
+                        float finalYaw, finalPitch;
+
+                        if (this.rotations.getValue() == 2) {
+
+                            finalYaw = targetRotations[0];
+                            finalPitch = targetRotations[1];
+
+                            float[] smoothed = interpolateRotation(finalYaw, finalPitch);
+                            event.setRotation(smoothed[0], smoothed[1], 1);
+                        } else {
+
+                            finalYaw = targetRotations[0];
+                            finalPitch = targetRotations[1];
+                            event.setRotation(finalYaw, finalPitch, 1);
+                            Unfair.rotationManager.setRotation(finalYaw, finalPitch, 1, true);
+                        }
+
                         if (this.moveFix.getValue() != 0 || this.rotations.getValue() == 3) {
-                            event.setPervRotation(rotations[0], 1);
+                            event.setPervRotation(event.getNewYaw(), 1);
                         }
                     }
                     if (attack) {
                         attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
+                    }
+                } else if (this.rotations.getValue() == 2 && this.target != null) {
+
+                    float realYaw = mc.thePlayer.rotationYaw;
+                    float realPitch = mc.thePlayer.rotationPitch;
+
+                    float[] reset = interpolateRotation(realYaw, realPitch);
+                    event.setRotation(reset[0], reset[1], 1);
+
+                    if (this.moveFix.getValue() != 0) {
+                        event.setPervRotation(reset[0], 1);
                     }
                 }
                 if (swap) {
@@ -524,6 +609,18 @@ public class KillAura extends Module {
                 if (blocked) {
                     Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
                     Unfair.blinkManager.setBlinkState(true, BlinkModules.AUTO_BLOCK);
+                }
+            }
+
+            if (this.rotations.getValue() == 2 && !attack) {
+                float realYaw = mc.thePlayer.rotationYaw;
+                float realPitch = mc.thePlayer.rotationPitch;
+
+                float[] reset = interpolateRotation(realYaw, realPitch);
+                event.setRotation(reset[0], reset[1], 1);
+
+                if (this.moveFix.getValue() != 0) {
+                    event.setPervRotation(reset[0], 1);
                 }
             }
         }
@@ -709,6 +806,9 @@ public class KillAura extends Module {
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
         this.blockTick = 0;
+
+        this.serverYaw = mc.thePlayer.rotationYaw;
+        this.serverPitch = mc.thePlayer.rotationPitch;
     }
 
     @Override

@@ -22,12 +22,12 @@ public class ModuleComponent implements Component {
     public final ArrayList<Component> settings;
     private final int enabledColor = new Color(24, 154, 255).getRGB();
     private final int disabledColor = new Color(192, 192, 192).getRGB();
+    private final int originalHoverAlpha = 120;
+    private final int hoverColor = (new Color(0, 0, 0, originalHoverAlpha)).getRGB();
     public Module mod;
     public CategoryComponent category;
     public int yPos;
     public boolean isOpened;
-    private final int originalHoverAlpha = 120;
-    private final int hoverColor = (new Color(0, 0, 0, originalHoverAlpha)).getRGB();
     private boolean hovering;
     private Timer hoverTimer;
     private boolean hoverStarted;

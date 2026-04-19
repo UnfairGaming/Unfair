@@ -32,6 +32,7 @@ public final class EventAPI {
     public static final String[] AUTHORS = {
             "DarkMagician6"
     };
+
     /**
      * No need to create an Object of this class as all Methods are static.
      */

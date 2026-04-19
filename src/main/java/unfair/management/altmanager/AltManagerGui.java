@@ -22,9 +22,9 @@ public class AltManagerGui extends GuiScreen {
     private static File altFile;
     // Buttons
     private final List<Button> buttons = new ArrayList<>();
+    private final int maxVisibleAlts = 8;
     private int selectedAlt = -1;
     private int scrollOffset = 0;
-    private final int maxVisibleAlts = 8;
     // UI dimensions
     private int guiX, guiY, guiWidth, guiHeight;
     private int listX, listY, listWidth, listHeight;
