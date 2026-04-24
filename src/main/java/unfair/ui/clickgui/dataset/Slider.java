@@ -1,4 +1,4 @@
-package unfair.ui.dataset;
+package unfair.ui.clickgui.dataset;
 
 public abstract class Slider {
     public abstract double getInput();

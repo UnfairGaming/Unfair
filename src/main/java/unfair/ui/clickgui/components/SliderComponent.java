@@ -1,12 +1,12 @@
-package unfair.ui.components;
+package unfair.ui.clickgui.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.module.modules.render.HUD;
-import unfair.ui.Component;
-import unfair.ui.dataset.Slider;
+import unfair.ui.clickgui.Component;
+import unfair.ui.clickgui.dataset.Slider;
 import unfair.util.RenderUtil;
 
 import java.awt.*;

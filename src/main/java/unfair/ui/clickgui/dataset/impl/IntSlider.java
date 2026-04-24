@@ -1,8 +1,8 @@
-package unfair.ui.dataset.impl;
+package unfair.ui.clickgui.dataset.impl;
 
 import unfair.enums.ChatColors;
 import unfair.property.properties.IntProperty;
-import unfair.ui.dataset.Slider;
+import unfair.ui.clickgui.dataset.Slider;
 
 public class IntSlider extends Slider {
     private final IntProperty property;

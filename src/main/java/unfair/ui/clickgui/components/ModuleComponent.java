@@ -1,4 +1,4 @@
-package unfair.ui.components;
+package unfair.ui.clickgui.components;
 
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
@@ -6,10 +6,10 @@ import unfair.Unfair;
 import unfair.module.Module;
 import unfair.property.Property;
 import unfair.property.properties.*;
-import unfair.ui.Component;
-import unfair.ui.dataset.impl.FloatSlider;
-import unfair.ui.dataset.impl.IntSlider;
-import unfair.ui.dataset.impl.PercentageSlider;
+import unfair.ui.clickgui.Component;
+import unfair.ui.clickgui.dataset.impl.FloatSlider;
+import unfair.ui.clickgui.dataset.impl.IntSlider;
+import unfair.ui.clickgui.dataset.impl.PercentageSlider;
 import unfair.util.RenderUtil;
 import unfair.util.Timer;
 

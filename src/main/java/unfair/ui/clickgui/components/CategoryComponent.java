@@ -1,4 +1,4 @@
-package unfair.ui.components;
+package unfair.ui.clickgui.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.module.Module;
 import unfair.module.modules.render.HUD;
-import unfair.ui.Component;
+import unfair.ui.clickgui.Component;
 import unfair.util.RenderUtil;
 import unfair.util.Timer;
 

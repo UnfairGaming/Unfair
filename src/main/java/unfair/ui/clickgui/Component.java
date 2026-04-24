@@ -1,4 +1,4 @@
-package unfair.ui;
+package unfair.ui.clickgui;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

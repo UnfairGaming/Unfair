@@ -1,4 +1,4 @@
-package unfair.ui.dataset;
+package unfair.ui.clickgui.dataset;
 
 public class BindStage {
     public static String bind = "Bind";

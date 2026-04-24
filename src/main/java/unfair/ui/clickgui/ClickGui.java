@@ -1,4 +1,4 @@
-package unfair.ui;
+package unfair.ui.clickgui;
 
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
@@ -14,9 +14,9 @@ import unfair.config.Config;
 import unfair.module.Category;
 import unfair.module.modules.render.GuiModule;
 import unfair.module.modules.render.HUD;
-import unfair.ui.components.BindComponent;
-import unfair.ui.components.CategoryComponent;
-import unfair.ui.components.ModuleComponent;
+import unfair.ui.clickgui.components.BindComponent;
+import unfair.ui.clickgui.components.CategoryComponent;
+import unfair.ui.clickgui.components.ModuleComponent;
 import unfair.util.Timer;
 import unfair.util.shader.BlurUtils;
 import unfair.util.shader.RoundedUtils;
@@ -138,7 +138,7 @@ public class ClickGui extends GuiScreen {
             c.render(this.fontRendererObj);
             c.mousePosition(x, y);
 
-            for (unfair.ui.Component m : c.getModules()) {
+            for (Component m : c.getModules()) {
                 m.drawScreen(x, y);
             }
         }
@@ -260,7 +260,7 @@ public class ClickGui extends GuiScreen {
 
         for (CategoryComponent category : categories) {
             if (category.isOpened() && !category.getModules().isEmpty() && category.overRect(mouseX, mouseY)) {
-                for (unfair.ui.Component component : category.getModules()) {
+                for (Component component : category.getModules()) {
                     if (component instanceof ModuleComponent) {
                         ModuleComponent moduleComponent = (ModuleComponent) component;
                         moduleComponent.onClick(mouseX, mouseY, mouseButton);
@@ -278,7 +278,7 @@ public class ClickGui extends GuiScreen {
                 CategoryComponent category = iterator.next();
                 category.overTitle(false);
                 if (category.isOpened() && !category.getModules().isEmpty()) {
-                    for (unfair.ui.Component module : category.getModules()) {
+                    for (Component module : category.getModules()) {
                         module.mouseReleased(x, y, button);
                     }
                 }
@@ -325,7 +325,7 @@ public class ClickGui extends GuiScreen {
                 CategoryComponent category = iterator.next();
 
                 if (category.isOpened() && !category.getModules().isEmpty()) {
-                    for (unfair.ui.Component module : category.getModules()) {
+                    for (Component module : category.getModules()) {
                         module.keyTyped(t, k);
                     }
                 }
@@ -338,7 +338,7 @@ public class ClickGui extends GuiScreen {
         this.logoSmoothLength = null;
         for (CategoryComponent c : categories) {
             c.dragging = false;
-            for (unfair.ui.Component m : c.getModules()) {
+            for (Component m : c.getModules()) {
                 m.onGuiClosed();
             }
         }
@@ -354,10 +354,10 @@ public class ClickGui extends GuiScreen {
 
     private boolean binding() {
         for (CategoryComponent c : categories) {
-            for (unfair.ui.Component component : c.getModules()) {
+            for (Component component : c.getModules()) {
                 if (component instanceof ModuleComponent) {
                     ModuleComponent moduleComponent = (ModuleComponent) component;
-                    for (unfair.ui.Component setting : moduleComponent.settings) {
+                    for (Component setting : moduleComponent.settings) {
                         if (setting instanceof BindComponent && ((BindComponent) setting).isBinding) {
                             return true;
                         }

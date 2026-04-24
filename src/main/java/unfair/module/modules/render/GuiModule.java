@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
 import unfair.module.Module;
 import unfair.property.properties.BooleanProperty;
-import unfair.ui.ClickGui;
+import unfair.ui.clickgui.ClickGui;
 
 public class GuiModule extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

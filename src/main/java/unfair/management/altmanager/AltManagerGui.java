@@ -7,7 +7,7 @@ import org.lwjgl.input.Keyboard;
 import unfair.Unfair;
 import unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 import unfair.module.modules.render.HUD;
-import unfair.ui.ClickGui;
+import unfair.ui.clickgui.ClickGui;
 import unfair.util.RenderUtil;
 
 import java.awt.*;
