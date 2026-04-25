@@ -1,7 +1,6 @@
 package unfair.ui.clickgui.components;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -143,7 +142,7 @@ public class CategoryComponent {
         (smoothScrollTimer = new Timer(200)).start();
     }
 
-    public void render(FontRenderer renderer) {
+    public void render() {
         this.targetModuleY = Math.min(this.targetModuleY, this.y);
         if (this.targetModuleY + this.bigSettings < this.y + this.big + this.titleHeight) {
             this.targetModuleY = (int) (this.y + this.big - this.bigSettings);
@@ -166,7 +165,7 @@ public class CategoryComponent {
             bigSettings = settingsHeight;
         }
 
-        float middlePos = (float) (this.x + this.width / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.categoryName) / 2);
+        float middlePos = (float) (this.x + this.width / 2 - Unfair.fontManager.getFont(20).getStringWidth(this.categoryName) / 2);
         float xPos = opened ? middlePos : this.x + 12;
         float extra = this.y + this.titleHeight + modulesHeight + 4;
 
@@ -185,7 +184,7 @@ public class CategoryComponent {
 
         float namePos = textTimer == null ? xPos : textTimer.getValueFloat(this.x + 12, middlePos, 1);
         if (!this.opened) {
-            namePos = textTimer == null ? xPos : middlePos - textTimer.getValueFloat(0, this.width / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.categoryName) / 2 - 12, 1);
+            namePos = textTimer == null ? xPos : middlePos - textTimer.getValueFloat(0, this.width / 2 - Unfair.fontManager.getFont(20).getStringWidth(this.categoryName) / 2 - 12, 1);
         }
 
         if (scrolled && smoothScrollTimer != null) {
@@ -213,7 +212,7 @@ public class CategoryComponent {
         RenderUtil.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.width + 2, extra, 10, translucentBackground,
                 hudColor1, hudColor2);
         renderItemForCategory(this.categoryName, this.x + 1, this.y + 4, opened || hovering);
-        renderer.drawString(this.categoryName, namePos, (float) (this.y + 4), categoryNameColor, false);
+        Unfair.fontManager.getFont(20).drawString(this.categoryName, namePos, (float) (this.y + 4), categoryNameColor, false);
         RenderUtil.scissor(this.x - 2, this.y + this.titleHeight + 3, this.width + 6, extra - this.y - 4 - this.titleHeight);
 
         int prevY = this.y;

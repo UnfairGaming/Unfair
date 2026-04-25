@@ -135,7 +135,7 @@ public class ClickGui extends GuiScreen {
         }
 
         for (CategoryComponent c : categories) {
-            c.render(this.fontRendererObj);
+            c.render();
             c.mousePosition(x, y);
 
             for (Component m : c.getModules()) {
@@ -167,7 +167,7 @@ public class ClickGui extends GuiScreen {
             int[] displaySize = {this.width, this.height};
             int y = displaySize[1] + (8 - getValueInt(0, 30, 2));
 
-            this.fontRendererObj.drawString(clientName + "-" + clientVersion, 4, y, hudColorCached, true);
+            Unfair.fontManager.getFont(20).drawString(clientName + "-" + clientVersion, 4, y, hudColorCached, true);
 
             long elapsedTime = System.currentTimeMillis() - openedTime + 50L;
             int characterIndex = (int) (elapsedTime / 200L);
@@ -183,9 +183,9 @@ public class ClickGui extends GuiScreen {
                     obfuscated += currentChar;
                 }
 
-                this.fontRendererObj.drawString(obfuscated, 4, y, hudColorCached, true);
+                Unfair.fontManager.getFont(20).drawString(obfuscated, 4, y, hudColorCached, true);
             } else {
-                this.fontRendererObj.drawString(developer, 4, y, hudColorCached, true);
+                Unfair.fontManager.getFont(20).drawString(developer, 4, y, hudColorCached, true);
             }
         }
     }

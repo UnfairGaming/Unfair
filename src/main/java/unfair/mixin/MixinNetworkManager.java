@@ -15,6 +15,7 @@ import unfair.Unfair;
 import unfair.event.EventManager;
 import unfair.event.types.EventType;
 import unfair.events.PacketEvent;
+import unfair.util.PacketUtil;
 
 import java.util.concurrent.Future;
 
@@ -93,6 +94,17 @@ public abstract class MixinNetworkManager {
                         callbackInfo.cancel();
                     }
                 }
+            }
+        }
+    }
+    @SuppressWarnings("unchecked")
+    @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
+    public void receivePacket(ChannelHandlerContext p_channelRead0_1_, Packet<?> packet, CallbackInfo ci) {
+        if (packet != null) {
+            if (PacketUtil.skipReceiveEvent.contains(packet)) {
+                PacketUtil.skipReceiveEvent.remove(packet);
+                ci.cancel();
+                return;
             }
         }
     }

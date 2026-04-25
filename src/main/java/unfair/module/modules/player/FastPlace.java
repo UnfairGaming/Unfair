@@ -13,7 +13,7 @@ import unfair.events.TickEvent;
 import unfair.mixin.IAccessorMinecraft;
 import unfair.module.Module;
 import unfair.property.properties.BooleanProperty;
-import unfair.property.properties.FloatProperty;
+import unfair.property.properties.IntProperty;
 import unfair.util.RotationUtil;
 
 import java.text.DecimalFormat;
@@ -23,7 +23,7 @@ import java.util.Locale;
 public class FastPlace extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final DecimalFormat df = new DecimalFormat("0.0#", new DecimalFormatSymbols(Locale.US));
-    public final FloatProperty delay = new FloatProperty("delay", 1.0F, 1.0F, 3.0F);
+    public final IntProperty delay = new IntProperty("delay", 1, 1, 3);
     public final BooleanProperty blocksOnly = new BooleanProperty("blocks-only", true);
     public final BooleanProperty placeFix = new BooleanProperty("place-fix", true);
     private long delayMS = 0L;

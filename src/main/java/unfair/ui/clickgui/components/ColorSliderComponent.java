@@ -1,8 +1,8 @@
 package unfair.ui.clickgui.components;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import org.lwjgl.opengl.GL11;
+import unfair.Unfair;
 import unfair.enums.ChatColors;
 import unfair.property.properties.ColorProperty;
 import unfair.ui.clickgui.Component;
@@ -47,7 +47,7 @@ public class ColorSliderComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5, 0.5, 0.5);
         String text = property.getName().replace("-", " ") + ": " + ChatColors.formatColor(property.formatValue());
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(text, x * 2, (parentModule.category.getY() + offsetY + 3) * 2, -1);
+        Unfair.fontManager.getFont(24).drawString(text, x * 2, (parentModule.category.getY() + offsetY + 3) * 2, -1);
         GL11.glPopMatrix();
     }
 
@@ -190,7 +190,7 @@ public class ColorSliderComponent implements Component {
         // Draw label
         GL11.glPushMatrix();
         GL11.glScaled(0.5, 0.5, 0.5);
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(property.getName(), x * 2, (y + 3) * 2, -1);
+        Unfair.fontManager.getFont(24).drawString(property.getName(), x * 2, (y + 3) * 2, -1);
         GL11.glPopMatrix();
 
         // Update color values from property

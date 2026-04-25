@@ -1,6 +1,5 @@
 package unfair.ui.clickgui.components;
 
-import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.module.Module;
@@ -146,7 +145,7 @@ public class ModuleComponent implements Component {
             this.category.updateHeight();
         }
 
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(this.mod.getName(), (float) (this.category.getX() + this.category.getWidth() / 2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.mod.getName()) / 2), (float) (this.category.getY() + this.yPos + 4), button_rgb);
+        Unfair.fontManager.getFont(20).drawString(this.mod.getName(), (float) (this.category.getX() + this.category.getWidth() / 2 - Unfair.fontManager.getFont(20).getStringWidth(this.mod.getName()) / 2), (float) (this.category.getY() + this.yPos + 4), button_rgb);
         boolean scissorRequired = smoothTimer != null;
         if (scissorRequired) {
             GL11.glPushMatrix();

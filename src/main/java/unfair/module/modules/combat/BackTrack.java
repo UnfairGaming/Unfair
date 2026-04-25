@@ -2,905 +2,346 @@ package unfair.module.modules.combat;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
-import net.minecraft.network.handshake.client.C00Handshake;
-import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.server.*;
-import net.minecraft.network.status.client.C00PacketServerQuery;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
+import org.jetbrains.annotations.NotNull;
+import org.lwjgl.opengl.GL11;
 import unfair.event.EventTarget;
 import unfair.event.types.EventType;
-import unfair.events.AttackEvent;
-import unfair.events.LoadWorldEvent;
-import unfair.events.PacketEvent;
-import unfair.events.Render3DEvent;
-import unfair.mixin.IAccessorRenderManager;
-import unfair.mixin.IAccessorS14PacketEntity;
-import unfair.mixin.IAccessorS18PacketEntityTeleport;
-import unfair.mixin.IAccessorS19PacketEntityStatus;
+import unfair.events.*;
+import unfair.mixin.S14PacketEntityAccessor;
 import unfair.module.Module;
-import unfair.property.properties.*;
-import unfair.util.RenderUtil;
-import unfair.util.RotationUtil;
-import unfair.util.TimerUtil;
+import unfair.property.properties.BooleanProperty;
+import unfair.property.properties.FloatProperty;
+import unfair.property.properties.IntProperty;
+import unfair.util.PacketUtil;
+import unfair.util.TimedPacket;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BackTrack extends Module {
-
-    private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final float ESP_SMOOTH_FACTOR = 0.2f;
-    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Legacy", "Modern"});
-    public final IntProperty nextBacktrackDelay = new IntProperty(
-            "NextBacktrackDelay",
-            0,
-            0,
-            2000,
-            () -> this.mode.getValue() == 1
-    );
-    public final IntProperty maxDelay = new IntProperty("MaxDelay", 80, 0, 2000);
-    public final IntProperty minDelay = new IntProperty(
-            "MinDelay",
-            80,
-            0,
-            2000,
-            () -> this.mode.getValue() == 1
-    );
-    public final ModeProperty cachingMode = new ModeProperty(
-            "Caching mode",
-            0,
-            new String[]{"ClientPos", "ServerPos"},
-            () -> this.mode.getValue() == 0
-    );
-    public final ModeProperty style = new ModeProperty(
-            "Style",
-            1,
-            new String[]{"Pulse", "Smooth"},
-            () -> this.mode.getValue() == 1
-    );
-    public final FloatProperty distanceMin = new FloatProperty(
-            "DistanceMin",
-            2.0f,
-            0.0f,
-            6.0f,
-            () -> this.mode.getValue() == 1
-    );
-    public final FloatProperty distanceMax = new FloatProperty(
-            "DistanceMax",
-            3.0f,
-            0.0f,
-            6.0f,
-            () -> this.mode.getValue() == 1
-    );
-    public final BooleanProperty smart = new BooleanProperty(
-            "Smart",
-            true,
-            () -> this.mode.getValue() == 1
-    );
-    public final ModeProperty espMode = new ModeProperty(
-            "ESP-Mode",
-            0,
-            new String[]{"Box", "FullBox"},
-            () -> this.mode.getValue() == 1
-    );
-    public final ColorProperty espColor = new ColorProperty(
-            "ESPColor",
-            0xFFFFFF,
-            () -> this.mode.getValue() == 1
-    );
-    public final IntProperty maximumCachedPositions = new IntProperty(
-            "MaxCachedPositions",
-            10,
-            1,
-            20,
-            () -> this.mode.getValue() == 0
-    );
-    private final Queue<QueueData> packetQueue = new ConcurrentLinkedQueue<>();
-    private final Queue<PosData> positions = new ConcurrentLinkedQueue<>();
-    private final Map<Integer, Vec3> truePositions = new HashMap<>();
-    private final TimerUtil globalTimer = new TimerUtil();
-    private final ConcurrentHashMap<UUID, LinkedList<BacktrackData>> backtrackedPlayer = new ConcurrentHashMap<>();
-    private final String[] nonDelayedSoundSubstrings = new String[]{"game.player.hurt", "game.player.die"};
-    private final ArrayDeque<Packet<?>> queuedPackets = new ArrayDeque<>();
-    private final Object queueLock = new Object();
-    private EntityLivingBase target = null;
-    private boolean shouldRender = true;
-    private boolean ignoreWholeTick = false;
-    private long delayForNextBacktrack = 0L;
-    private ModernDelay modernDelay = new ModernDelay(80, false);
-    private Object lastWorld = null;
-    private Object lastNetHandler = null;
-    private Vec3 smoothedEspOffset = new Vec3(0, 0, 0);
-
     public BackTrack() {
         super("BackTrack", false);
     }
+    private static final Minecraft mc = Minecraft.getMinecraft();
+    private final IntProperty minLatency = new IntProperty("MinMS", 50, 10, 1000);
+    private final IntProperty maxLatency = new IntProperty("MaxMS", 100, 10, 1000);
+    private final FloatProperty minDistance = new FloatProperty("MinDistance", 0.0F, 0.0F, 3.0F);
+    private final FloatProperty maxDistance = new FloatProperty("MaxDistance", 6.0F, 0.0F, 10.0F);
+    private final IntProperty stopOnTargetHurtTime = new IntProperty("PlayerHurtTime", -1, -1, 10);
+    private final IntProperty stopOnSelfHurtTime = new IntProperty("StopOnSelfHurtTime", -1, -1, 10);
+    private final BooleanProperty drawRealPosition = new BooleanProperty("DrawRealPosition", true);
+    private final Queue<TimedPacket> packetQueue = new ConcurrentLinkedQueue<>();
+    private final List<Packet<?>> skipPackets = new ArrayList<>();
 
-    private boolean areQueuedPacketsEmpty() {
-        synchronized (queueLock) {
-            return queuedPackets.isEmpty();
-        }
-    }
+    private Vec3 vec3;
+    private EntityPlayer target;
+
+    private Vec3 renderVec;
+
+    private int currentLatency = 0;
+
 
     @Override
     public void onEnabled() {
-        this.reset();
-        this.clearPackets(true, false);
-        this.backtrackedPlayer.clear();
-        this.lastWorld = mc.theWorld;
-        this.lastNetHandler = mc.getNetHandler();
+        packetQueue.clear();
+        skipPackets.clear();
+        vec3 = null;
+        target = null;
+        renderVec = null;
     }
-
+    public static final int color = new Color(255, 255, 255, 200).getRGB();
+    public static void drawBox(@NotNull Vec3 pos) {
+        GlStateManager.pushMatrix();
+        double x = pos.xCoord - mc.getRenderManager().viewerPosX;
+        double y = pos.yCoord - mc.getRenderManager().viewerPosY;
+        double z = pos.zCoord - mc.getRenderManager().viewerPosZ;
+        AxisAlignedBB bbox = mc.thePlayer.getEntityBoundingBox().expand(0.1D, 0.1, 0.1);
+        AxisAlignedBB axis = new AxisAlignedBB(bbox.minX - mc.thePlayer.posX + x, bbox.minY - mc.thePlayer.posY + y, bbox.minZ - mc.thePlayer.posZ + z, bbox.maxX - mc.thePlayer.posX + x, bbox.maxY - mc.thePlayer.posY + y, bbox.maxZ - mc.thePlayer.posZ + z);
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+        GL11.glBlendFunc(770, 771);
+        GL11.glEnable(3042);
+        GL11.glDisable(3553);
+        GL11.glDisable(2929);
+        GL11.glDepthMask(false);
+        GL11.glLineWidth(2.0F);
+        GL11.glColor4f(r, g, b, a);
+        drawBoundingBox(axis, r, g, b);
+        GL11.glEnable(3553);
+        GL11.glEnable(2929);
+        GL11.glDepthMask(true);
+        GL11.glDisable(3042);
+        GlStateManager.popMatrix();
+    }
+    public static void drawBoundingBox(AxisAlignedBB abb, float r, float g, float b) {
+        drawBoundingBox(abb, r, g, b, 0.25f);
+    }
+    public static void drawBoundingBox(@NotNull AxisAlignedBB abb, float r, float g, float b, float a) {
+        Tessellator ts = Tessellator.getInstance();
+        WorldRenderer vb = ts.getWorldRenderer();
+        vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        ts.draw();
+        vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        ts.draw();
+        vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        ts.draw();
+        vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        ts.draw();
+        vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        ts.draw();
+        vb.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vb.pos(abb.minX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.minX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.minZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.maxY, abb.maxZ).color(r, g, b, a).endVertex();
+        vb.pos(abb.maxX, abb.minY, abb.maxZ).color(r, g, b, a).endVertex();
+        ts.draw();
+    }
     @Override
     public void onDisabled() {
-        this.clearPackets(true, true);
-        this.backtrackedPlayer.clear();
-        this.truePositions.clear();
-        this.target = null;
-        this.lastWorld = null;
-        this.lastNetHandler = null;
-
-        synchronized (queueLock) {
-            queuedPackets.clear();
-        }
-    }
-
-    private void resetAllState(boolean handleQueuedPackets) {
-        this.clearPackets(handleQueuedPackets, true);
-        this.reset();
-        this.backtrackedPlayer.clear();
-        this.truePositions.clear();
-        this.target = null;
-    }
-
-    private void syncContextAndResetIfNeeded() {
-        Object world = mc.theWorld;
-        Object netHandler = mc.getNetHandler();
-
-        if (world == null || mc.thePlayer == null || netHandler == null) {
-            if (!this.packetQueue.isEmpty() || !this.positions.isEmpty() || !this.truePositions.isEmpty() || this.target != null) {
-                resetAllState(false);
-            }
-            this.lastWorld = world;
-            this.lastNetHandler = netHandler;
-            return;
-        }
-
-        if (this.lastWorld != world || this.lastNetHandler != netHandler) {
-            resetAllState(false);
-        }
-
-        this.lastWorld = world;
-        this.lastNetHandler = netHandler;
-    }
-
-    @Override
-    public void verifyValue(String name) {
-        if (this.maxDelay.getName().equals(name)) {
-            if (this.maxDelay.getValue() < this.minDelay.getValue()) {
-                this.maxDelay.setValue(this.minDelay.getValue());
-            }
-        } else if (this.minDelay.getName().equals(name)) {
-            if (this.minDelay.getValue() > this.maxDelay.getValue()) {
-                this.minDelay.setValue(this.maxDelay.getValue());
-            }
-        } else if (this.distanceMin.getName().equals(name)) {
-            if (this.distanceMin.getValue() > this.distanceMax.getValue()) {
-                this.distanceMin.setValue(this.distanceMax.getValue());
-            }
-        } else if (this.distanceMax.getName().equals(name)) {
-            if (this.distanceMax.getValue() < this.distanceMin.getValue()) {
-                this.distanceMax.setValue(this.distanceMin.getValue());
-            }
-        } else if (this.mode.getName().equals(name)) {
-            this.clearPackets(true, true);
-            this.backtrackedPlayer.clear();
-            this.target = null;
-        }
-    }
-
-    private boolean isModern() {
-        return this.mode.getValue() == 1;
-    }
-
-    private boolean isLegacy() {
-        return this.mode.getValue() == 0;
-    }
-
-    private int supposedDelay() {
-        if (isModern()) {
-            return modernDelay.delay;
-        }
-        return this.maxDelay.getValue();
-    }
-
-    private boolean inDistanceRange(double range) {
-        return range >= this.distanceMin.getValue() && range <= this.distanceMax.getValue();
+        releaseAll();
+        renderVec = null;
     }
 
     @EventTarget
-    public void onAttack(AttackEvent event) {
-        if (!this.isEnabled()) return;
-        if (!(event.getTarget() instanceof EntityLivingBase)) return;
-
-        EntityLivingBase newTarget = (EntityLivingBase) event.getTarget();
-        if (this.target != newTarget) {
-            this.clearPackets(true, true);
-            this.reset();
-        }
-        this.target = newTarget;
-    }
-
-    @EventTarget
-    public void onLoadWorld(LoadWorldEvent event) {
-        if (!this.isEnabled()) return;
-        resetAllState(false);
-    }
-
-    @EventTarget
-    public void onPacket(PacketEvent event) {
-        if (!this.isEnabled()) return;
-        syncContextAndResetIfNeeded();
-        if (mc.thePlayer == null || mc.theWorld == null || mc.getNetHandler() == null) return;
-        if (event.isCancelled()) return;
-
-        Packet<?> packet = event.getPacket();
-
-        if (isLegacy()) {
-            handleLegacyPacket(packet, event);
+    public void onUpdate(UpdateEvent e) {
+        if (!isEnabled() || e.getType() == EventType.POST) return;
+        if (vec3 == null || target == null || mc.thePlayer == null) {
+            currentLatency = 0;
             return;
         }
-
-        handleModernPacket(packet, event);
-    }
-
-    private void handleLegacyPacket(Packet<?> packet, PacketEvent event) {
-        if (packet instanceof S0CPacketSpawnPlayer) {
-            S0CPacketSpawnPlayer p = (S0CPacketSpawnPlayer) packet;
-            Entity e = mc.theWorld.getEntityByID(p.getEntityID());
-            if (e instanceof EntityPlayer) {
-                addBacktrackData(e.getUniqueID(), p.getX() / 32.0, p.getY() / 32.0, p.getZ() / 32.0, System.currentTimeMillis());
-            }
-            return;
+        if (vec3.distanceTo(mc.thePlayer.getPositionVector()) < target.getPositionVector().distanceTo(mc.thePlayer.getPositionVector())){
+            currentLatency = 0;
         }
-
-        if (packet instanceof S14PacketEntity) {
-            updateTruePosition((S14PacketEntity) packet);
-            if (this.cachingMode.getValue() == 1) {
-                Entity e = ((S14PacketEntity) packet).getEntity(mc.theWorld);
-                if (e != null) {
-                    Vec3 v = this.truePositions.get(e.getEntityId());
-                    if (v != null) {
-                        addBacktrackData(e.getUniqueID(), v.xCoord, v.yCoord, v.zCoord, System.currentTimeMillis());
-                    }
-                }
-            }
-            return;
-        }
-
-        if (packet instanceof S18PacketEntityTeleport) {
-            updateTruePosition((S18PacketEntityTeleport) packet);
-            if (this.cachingMode.getValue() == 1) {
-                Entity e = mc.theWorld.getEntityByID(((S18PacketEntityTeleport) packet).getEntityId());
-                if (e != null) {
-                    Vec3 v = this.truePositions.get(e.getEntityId());
-                    if (v != null) {
-                        addBacktrackData(e.getUniqueID(), v.xCoord, v.yCoord, v.zCoord, System.currentTimeMillis());
-                    }
-                }
-            }
-        }
-
-        if (packet instanceof S29PacketSoundEffect) {
-            // no-op
-        }
-
-        if (this.cachingMode.getValue() == 0 && packet instanceof S14PacketEntity) {
-            Entity e = ((S14PacketEntity) packet).getEntity(mc.theWorld);
-            if (e instanceof EntityPlayer) {
-                addBacktrackData(e.getUniqueID(), e.posX, e.posY, e.posZ, System.currentTimeMillis());
-            }
-        }
-    }
-
-    private void handleModernPacket(Packet<?> packet, PacketEvent event) {
-        if (mc.isSingleplayer()) {
-            clearPackets(true, true);
-            return;
-        }
-
-        if (packet instanceof S40PacketDisconnect) {
-            resetAllState(false);
-            return;
-        }
-
-        if (packet instanceof S01PacketJoinGame
-                || packet instanceof S07PacketRespawn
-                || packet instanceof S08PacketPlayerPosLook
-                || packet instanceof S21PacketChunkData
-                || packet instanceof S26PacketMapChunkBulk) {
-            this.clearPackets(false, true);
-            this.reset();
-            this.target = null;
-            this.truePositions.clear();
-            return;
-        }
-
-        if (packet instanceof C00Handshake
-                || packet instanceof C00PacketServerQuery
-                || packet instanceof S02PacketChat
-                || packet instanceof net.minecraft.network.status.server.S01PacketPong) {
-            return;
-        }
-
-        if (packet instanceof S29PacketSoundEffect) {
-            S29PacketSoundEffect s29 = (S29PacketSoundEffect) packet;
-            for (String s : nonDelayedSoundSubstrings) {
-                if (s29.getSoundName().contains(s)) {
-                    return;
-                }
-            }
-        }
-
-        if (packet instanceof S06PacketUpdateHealth) {
-            if (((S06PacketUpdateHealth) packet).getHealth() <= 0.0f) {
-                clearPackets(true, true);
-                return;
-            }
-        }
-
-        if (packet instanceof S13PacketDestroyEntities && this.target != null) {
-            for (int id : ((S13PacketDestroyEntities) packet).getEntityIDs()) {
-                if (id == this.target.getEntityId()) {
-                    clearPackets(true, true);
-                    reset();
-                    return;
-                }
-            }
-        }
-
-        if (packet instanceof S1CPacketEntityMetadata && this.target != null) {
-            S1CPacketEntityMetadata meta = (S1CPacketEntityMetadata) packet;
-            if (meta.getEntityId() == this.target.getEntityId()) {
-                List<?> data = meta.func_149376_c();
-                if (data != null) {
-                    for (Object obj : data) {
-                        if (obj instanceof net.minecraft.entity.DataWatcher.WatchableObject) {
-                            net.minecraft.entity.DataWatcher.WatchableObject wo = (net.minecraft.entity.DataWatcher.WatchableObject) obj;
-                            if (wo.getDataValueId() == 6) {
-                                try {
-                                    double v = Double.parseDouble(String.valueOf(wo.getObject()));
-                                    if (!Double.isNaN(v) && v <= 0.0) {
-                                        clearPackets(true, true);
-                                        reset();
-                                        return;
-                                    }
-                                } catch (Exception ignored) {
-                                }
-                            }
-                        }
-                    }
-                }
-                return;
-            }
-        }
-
-        if (packet instanceof S19PacketEntityStatus && this.target != null) {
-            int id = PacketFieldCache.getS19EntityId((S19PacketEntityStatus) packet);
-            if (id != -1 && id == this.target.getEntityId()) {
-                return;
-            }
-        }
-
-        if (packet instanceof S0CPacketSpawnPlayer) {
-            S0CPacketSpawnPlayer p = (S0CPacketSpawnPlayer) packet;
-            this.truePositions.put(p.getEntityID(), new Vec3(p.getX() / 32.0, p.getY() / 32.0, p.getZ() / 32.0));
-        } else if (packet instanceof S0FPacketSpawnMob) {
-            S0FPacketSpawnMob p = (S0FPacketSpawnMob) packet;
-            this.truePositions.put(p.getEntityID(), new Vec3(p.getX() / 32.0, p.getY() / 32.0, p.getZ() / 32.0));
-        } else if (packet instanceof S14PacketEntity) {
-            updateTruePosition((S14PacketEntity) packet);
-        } else if (packet instanceof S18PacketEntityTeleport) {
-            updateTruePosition((S18PacketEntityTeleport) packet);
-        }
-
-        if (this.packetQueue.isEmpty() && areQueuedPacketsEmpty() && !shouldBacktrack()) {
-            return;
-        }
-
-        if (event.getType() == EventType.RECEIVE) {
-            if (packet instanceof S14PacketEntity && this.target != null) {
-                S14PacketEntity p = (S14PacketEntity) packet;
-                int id = PacketFieldCache.getS14EntityId(p);
-                if (id != -1 && id == this.target.getEntityId()) {
-                    Vec3 v = this.truePositions.get(id);
-                    if (v != null) {
-                        this.positions.add(new PosData(v, System.currentTimeMillis()));
-                    }
-                }
+        try {
+            final double distance = vec3.distanceTo(mc.thePlayer.getPositionVector());
+            if (distance > maxDistance.getValue()
+                    || distance < minDistance.getValue()
+            ) {
+                currentLatency = 0;
             }
 
-            if (packet instanceof S18PacketEntityTeleport && this.target != null) {
-                S18PacketEntityTeleport p = (S18PacketEntityTeleport) packet;
-                int id = PacketFieldCache.getS18EntityId(p);
-                if (id != -1 && id == this.target.getEntityId()) {
-                    Vec3 v = this.truePositions.get(id);
-                    if (v != null) {
-                        this.positions.add(new PosData(v, System.currentTimeMillis()));
-                    }
-                }
-            }
-
-            event.setCancelled(true);
-            this.packetQueue.add(new QueueData(packet, System.currentTimeMillis()));
+        } catch (NullPointerException ignored) {
         }
     }
 
     @EventTarget
-    public void onTick(unfair.events.TickEvent event) {
-        if (!this.isEnabled()) return;
-        syncContextAndResetIfNeeded();
-        if (mc.thePlayer == null || mc.theWorld == null || mc.getNetHandler() == null) return;
-        if (event.getType() != EventType.POST) return;
-
-        if (isLegacy()) {
-            long now = System.currentTimeMillis();
-            for (Map.Entry<UUID, LinkedList<BacktrackData>> e : backtrackedPlayer.entrySet()) {
-                LinkedList<BacktrackData> list = e.getValue();
-                list.removeIf(d -> d.time + supposedDelay() < now);
-                if (list.isEmpty()) {
-                    backtrackedPlayer.remove(e.getKey());
-                }
-            }
-
-            processQueuedPackets();
-            return;
-        }
-
-        if (shouldBacktrack() && this.target != null) {
-            Vec3 truePos = this.truePositions.get(this.target.getEntityId());
-            if (truePos != null) {
-                double trueDist = mc.thePlayer.getDistance(truePos.xCoord, truePos.yCoord, truePos.zCoord);
-                double dist = mc.thePlayer.getDistanceToEntity(this.target);
-
-                boolean smoothAllow = this.style.getValue() == 1 || !this.globalTimer.hasTimeElapsed(supposedDelay());
-
-                if (trueDist <= 6.0
-                        && (!this.smart.getValue() || trueDist >= dist)
-                        && smoothAllow) {
-                    this.shouldRender = true;
-                    double rangeToTarget = RotationUtil.distanceToEntity(this.target);
-                    if (inDistanceRange(rangeToTarget)) {
-                        handlePackets();
-                    } else {
-                        handlePacketsRange();
-                    }
+    public void onTick(TickEvent e) {
+        if (!isEnabled() || e.getType() == EventType.POST) return;
+        while (!packetQueue.isEmpty()) {
+            try {
+                if (packetQueue.element().getCold().getCum(currentLatency)) {
+                    Packet<?> packet = packetQueue.remove().getPacket();
+                    skipPackets.add(packet);
+                    PacketUtil.receivePacket(packet);
                 } else {
-                    clear();
+                    break;
                 }
-            } else {
-                clear();
+            } catch (NullPointerException ignored) {
             }
-        } else {
-            clear();
         }
 
-        if (this.packetQueue.isEmpty() && areQueuedPacketsEmpty()) {
-            if (!this.modernDelay.changed && !shouldBacktrack()) {
-                this.delayForNextBacktrack = System.currentTimeMillis() + this.nextBacktrackDelay.getValue();
-                this.modernDelay = new ModernDelay((int) unfair.util.RandomUtil.nextLong(this.minDelay.getValue(), this.maxDelay.getValue()), true);
-            }
-        } else {
-            this.modernDelay = new ModernDelay(this.modernDelay.delay, false);
+        if (packetQueue.isEmpty() && target != null) {
+            vec3 = target.getPositionVector();
         }
+    }
 
-        this.ignoreWholeTick = false;
 
-        processQueuedPackets();
+
+    @EventTarget
+    public void onAttack(AttackEvent e) {
+        if (!isEnabled()) return;
+        final Vec3 targetPos = e.getTarget().getPositionVector();
+        if (e.getTarget() instanceof EntityPlayer) {
+            if (target == null || e.getTarget() != target) {
+                vec3 = targetPos;
+                renderVec = null;
+            }
+            target = (EntityPlayer) e.getTarget();
+
+            try {
+                final double distance = targetPos.distanceTo(mc.thePlayer.getPositionVector());
+                if (distance > maxDistance.getValue() || distance < minDistance.getValue())
+                    return;
+            } catch (NullPointerException ignored) {
+            }
+
+            currentLatency = (int) (Math.random() * (maxLatency.getValue() - minLatency.getValue()) + minLatency.getValue());
+        }
     }
 
     @EventTarget
     public void onRender3D(Render3DEvent event) {
-        if (!this.isEnabled()) return;
-        if (!isModern()) return;
-        if (!shouldBacktrack() || !this.shouldRender) return;
-        if (this.target == null) return;
-        if (mc.theWorld == null) return;
-
-        Vec3 truePos = this.truePositions.get(this.target.getEntityId());
-        if (truePos == null) return;
-
-        // Safety: verify target is still valid in the world
-        if (mc.theWorld.getEntityByID(this.target.getEntityId()) != this.target) {
-            this.clear();
+        if (target == null || vec3 == null || target.isDead || !isEnabled()) {
+            renderVec = null;
             return;
         }
 
-        double partialTicks = event.getPartialTicks();
-        double entityRenderX = this.target.lastTickPosX + (this.target.posX - this.target.lastTickPosX) * partialTicks;
-        double entityRenderY = this.target.lastTickPosY + (this.target.posY - this.target.lastTickPosY) * partialTicks;
-        double entityRenderZ = this.target.lastTickPosZ + (this.target.posZ - this.target.lastTickPosZ) * partialTicks;
-
-        Vec3 targetOffset = new Vec3(
-                truePos.xCoord - entityRenderX,
-                truePos.yCoord - entityRenderY,
-                truePos.zCoord - entityRenderZ
-        );
-
-        this.smoothedEspOffset = new Vec3(
-                this.smoothedEspOffset.xCoord + (targetOffset.xCoord - this.smoothedEspOffset.xCoord) * ESP_SMOOTH_FACTOR,
-                this.smoothedEspOffset.yCoord + (targetOffset.yCoord - this.smoothedEspOffset.yCoord) * ESP_SMOOTH_FACTOR,
-                this.smoothedEspOffset.zCoord + (targetOffset.zCoord - this.smoothedEspOffset.zCoord) * ESP_SMOOTH_FACTOR
-        );
-
-        double x = entityRenderX + this.smoothedEspOffset.xCoord;
-        double y = entityRenderY + this.smoothedEspOffset.yCoord;
-        double z = entityRenderZ + this.smoothedEspOffset.zCoord;
-
-        int rgb = this.espColor.getValue();
-        int r = (rgb >> 16) & 255;
-        int g = (rgb >> 8) & 255;
-        int b = rgb & 255;
-
-        AxisAlignedBB aabb = this.target.getEntityBoundingBox()
-                .offset(x - this.target.posX, y - this.target.posY, z - this.target.posZ)
-                .offset(
-                        -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX(),
-                        -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY(),
-                        -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ()
-                );
-
-        switch (this.espMode.getValue()) {
-            case 0: {
-                GlStateManager.pushMatrix();
-                GlStateManager.disableTexture2D();
-                GlStateManager.disableLighting();
-                GlStateManager.enableBlend();
-                GlStateManager.disableDepth();
-                GlStateManager.depthMask(false);
-
-                RenderGlobal.drawOutlinedBoundingBox(aabb, r, g, b, 200);
-
-                GlStateManager.depthMask(true);
-                GlStateManager.enableDepth();
-                GlStateManager.disableBlend();
-                GlStateManager.enableLighting();
-                GlStateManager.enableTexture2D();
-                GlStateManager.popMatrix();
-                break;
-            }
-            case 1: {
-                RenderUtil.enableRenderState();
-                RenderUtil.drawFilledBox(aabb, r, g, b);
-                RenderUtil.disableRenderState();
-                break;
-            }
-        }
-    }
-
-    private void handlePackets() {
-        long now = System.currentTimeMillis();
-        int delay = supposedDelay();
-
-        packetQueue.removeIf(data -> {
-            if (data.time <= now - delay) {
-                schedulePacketProcess(data.packet);
-                return true;
-            }
-            return false;
-        });
-
-        positions.removeIf(pd -> pd.time < now - delay);
-    }
-
-    private void handlePacketsRange() {
-        long time = getRangeTime();
-        if (time == -1L) {
-            clearPackets(true, true);
+        if (vec3.distanceTo(target.getPositionVector()) < 0.1) {
+            renderVec = null;
             return;
         }
 
-        packetQueue.removeIf(data -> {
-            if (data.time <= time) {
-                schedulePacketProcess(data.packet);
-                return true;
-            }
-            return false;
-        });
+        final net.minecraft.util.Vec3 pos = currentLatency > 0 ? vec3 : target.getPositionVector();
 
-        positions.removeIf(pd -> pd.time < time);
-    }
-
-    private long getRangeTime() {
-        if (this.target == null) return 0L;
-
-        long time = 0L;
-        boolean found = false;
-        for (PosData data : positions) {
-            time = data.time;
-
-            AxisAlignedBB box = this.target.getEntityBoundingBox().offset(
-                    data.pos.xCoord - this.target.posX,
-                    data.pos.yCoord - this.target.posY,
-                    data.pos.zCoord - this.target.posZ
+        if (renderVec == null) {
+            renderVec = pos;
+        } else {
+            double smoothFactor = 0.2;
+            renderVec = new Vec3(
+                    renderVec.xCoord + (pos.xCoord - renderVec.xCoord) * smoothFactor,
+                    renderVec.yCoord + (pos.yCoord - renderVec.yCoord) * smoothFactor,
+                    renderVec.zCoord + (pos.zCoord - renderVec.zCoord) * smoothFactor
             );
-
-            double dist = RotationUtil.getDistanceToBox(box, mc.thePlayer.getPositionEyes(1.0f));
-            if (inDistanceRange(dist)) {
-                found = true;
-                break;
-            }
         }
 
-        return found ? time : -1L;
-    }
-
-    private void clearPackets(boolean handlePackets, boolean stopRendering) {
-        packetQueue.removeIf(data -> {
-            if (handlePackets) {
-                schedulePacketProcess(data.packet);
-            }
-            return true;
-        });
-        positions.clear();
-
-        if (stopRendering) {
-            this.shouldRender = false;
-            this.ignoreWholeTick = true;
+        if (drawRealPosition.getValue()) {
+            drawBox(renderVec);
         }
     }
 
-    private void schedulePacketProcess(Packet<?> packet) {
-        synchronized (queueLock) {
-            queuedPackets.add(packet);
-        }
-    }
-
-    private void processQueuedPackets() {
-        synchronized (queueLock) {
-            while (!queuedPackets.isEmpty()) {
-                Packet<?> packet = queuedPackets.poll();
-                if (packet != null) {
-                    processPacket(packet);
-                }
-            }
-        }
-    }
-
-    private void processPacket(Packet<?> packet) {
-        if (mc.getNetHandler() != null) {
-            try {
-                ((Packet<INetHandlerPlayClient>) packet).processPacket(mc.getNetHandler());
-            } catch (Throwable ignored) {
-            }
-        }
-    }
-
-    private void updateTruePosition(S14PacketEntity packet) {
-        int id = PacketFieldCache.getS14EntityId(packet);
-        if (id == -1) {
+    @EventTarget
+    public void onReceivePacket(PacketEvent e) {
+        if (!isEnabled() || e.getType() == EventType.SEND) return;
+        Packet<?> p = e.getPacket();
+        if (skipPackets.contains(p)) {
+            skipPackets.remove(p);
             return;
         }
-        Vec3 pos = this.truePositions.getOrDefault(id, new Vec3(0, 0, 0));
-        Vec3 next = pos.addVector(packet.func_149062_c() / 32.0, packet.func_149061_d() / 32.0, packet.func_149064_e() / 32.0);
-        this.truePositions.put(id, next);
-    }
 
-    private void updateTruePosition(S18PacketEntityTeleport packet) {
-        int id = PacketFieldCache.getS18EntityId(packet);
-        if (id == -1) {
+        if (target != null && stopOnTargetHurtTime.getValue() != -1 && target.hurtTime == stopOnTargetHurtTime.getValue()) {
+            releaseAll();
             return;
         }
-        this.truePositions.put(id, new Vec3(packet.getX() / 32.0, packet.getY() / 32.0, packet.getZ() / 32.0));
-    }
-
-    private void addBacktrackData(UUID id, double x, double y, double z, long time) {
-        LinkedList<BacktrackData> list = this.backtrackedPlayer.get(id);
-        if (list == null) {
-            list = new LinkedList<>();
-            this.backtrackedPlayer.put(id, list);
+        if (stopOnSelfHurtTime.getValue() != -1 && mc.thePlayer.hurtTime == stopOnSelfHurtTime.getValue()) {
+            releaseAll();
+            return;
         }
-        if (list.size() >= this.maximumCachedPositions.getValue()) {
-            list.removeFirst();
-        }
-        list.add(new BacktrackData(x, y, z, time));
-    }
-
-    public void loopThroughBacktrackData(Entity entity, Runnable action) {
-        if (!this.isEnabled() || !isLegacy()) return;
-        if (!(entity instanceof EntityPlayer)) return;
-
-        LinkedList<BacktrackData> list = this.backtrackedPlayer.get(entity.getUniqueID());
-        if (list == null) return;
-
-        double currX = entity.posX;
-        double currY = entity.posY;
-        double currZ = entity.posZ;
-        double prevX = entity.prevPosX;
-        double prevY = entity.prevPosY;
-        double prevZ = entity.prevPosZ;
-
-        ListIterator<BacktrackData> it = list.listIterator(list.size());
-        while (it.hasPrevious()) {
-            BacktrackData d = it.previous();
-            entity.setPosition(d.x, d.y, d.z);
-            entity.prevPosX = d.x;
-            entity.prevPosY = d.y;
-            entity.prevPosZ = d.z;
-            action.run();
-        }
-
-        entity.setPosition(currX, currY, currZ);
-        entity.prevPosX = prevX;
-        entity.prevPosY = prevY;
-        entity.prevPosZ = prevZ;
-    }
-
-    public <T> T runWithNearestTrackedDistance(Entity entity, java.util.concurrent.Callable<T> f) {
-        if (!this.isEnabled() || !isLegacy() || !(entity instanceof EntityPlayer)) {
-            try {
-                return f.call();
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        LinkedList<BacktrackData> list = this.backtrackedPlayer.get(entity.getUniqueID());
-        if (list == null || list.isEmpty()) {
-            try {
-                return f.call();
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        BacktrackData best = null;
-        double bestDist = Double.MAX_VALUE;
-        for (BacktrackData d : list) {
-            double oldX = entity.posX, oldY = entity.posY, oldZ = entity.posZ;
-            double oldPX = entity.prevPosX, oldPY = entity.prevPosY, oldPZ = entity.prevPosZ;
-
-            entity.setPosition(d.x, d.y, d.z);
-            entity.prevPosX = d.x;
-            entity.prevPosY = d.y;
-            entity.prevPosZ = d.z;
-
-            double dist = RotationUtil.distanceToEntity(entity);
-
-            entity.setPosition(oldX, oldY, oldZ);
-            entity.prevPosX = oldPX;
-            entity.prevPosY = oldPY;
-            entity.prevPosZ = oldPZ;
-
-            if (dist < bestDist) {
-                bestDist = dist;
-                best = d;
-            }
-        }
-
-        if (best == null) {
-            try {
-                return f.call();
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        double currX = entity.posX;
-        double currY = entity.posY;
-        double currZ = entity.posZ;
-        double prevX = entity.prevPosX;
-        double prevY = entity.prevPosY;
-        double prevZ = entity.prevPosZ;
-
-        entity.setPosition(best.x, best.y, best.z);
-        entity.prevPosX = best.x;
-        entity.prevPosY = best.y;
-        entity.prevPosZ = best.z;
 
         try {
-            return f.call();
-        } catch (Exception e) {
-            return null;
-        } finally {
-            entity.setPosition(currX, currY, currZ);
-            entity.prevPosX = prevX;
-            entity.prevPosY = prevY;
-            entity.prevPosZ = prevZ;
+            if (mc.thePlayer == null || mc.thePlayer.ticksExisted < 20) {
+                packetQueue.clear();
+                return;
+            }
+
+            if (target == null) {
+                releaseAll();
+                return;
+            }
+
+            if (e.isCancelled())
+                return;
+
+            if (p instanceof S19PacketEntityStatus
+                    || p instanceof S02PacketChat
+                    || p instanceof S0BPacketAnimation
+                    || p instanceof S06PacketUpdateHealth
+            )
+                return;
+
+            if (p instanceof S08PacketPlayerPosLook || p instanceof S40PacketDisconnect) {
+                releaseAll();
+                target = null;
+                vec3 = null;
+                renderVec = null;
+                return;
+
+            } else if (p instanceof S13PacketDestroyEntities) {
+                S13PacketDestroyEntities wrapper = (S13PacketDestroyEntities) p;
+                for (int id : wrapper.getEntityIDs()) {
+                    if (id == target.getEntityId()) {
+                        target = null;
+                        vec3 = null;
+                        renderVec = null;
+                        releaseAll();
+                        return;
+                    }
+                }
+            } else if (p instanceof S14PacketEntity) {
+                S14PacketEntity wrapper = (S14PacketEntity) p;
+                if (((S14PacketEntityAccessor) wrapper).getEntityId() == target.getEntityId()) {
+                    vec3 = vec3.add(new Vec3(wrapper.func_149062_c() / 32.0D, wrapper.func_149061_d() / 32.0D,
+                            wrapper.func_149064_e() / 32.0D));
+                }
+            } else if (p instanceof S18PacketEntityTeleport) {
+                S18PacketEntityTeleport wrapper = (S18PacketEntityTeleport) p;
+                if (wrapper.getEntityId() == target.getEntityId()) {
+                    vec3 = new Vec3(wrapper.getX() / 32.0D, wrapper.getY() / 32.0D, wrapper.getZ() / 32.0D);
+                }
+            }
+
+            packetQueue.add(new TimedPacket(p));
+            e.setCancelled(true);
+        } catch (NullPointerException ignored) {
+
         }
     }
 
-    private boolean shouldBacktrack() {
-        if (mc.thePlayer == null || mc.theWorld == null) return false;
-        if (this.target == null) return false;
-        if (mc.thePlayer.getHealth() <= 0.0f) return false;
-        if (!(this.target.getHealth() > 0.0f) && !Float.isNaN(this.target.getHealth())) return false;
-        if (mc.playerController != null && mc.playerController.getCurrentGameType() == net.minecraft.world.WorldSettings.GameType.SPECTATOR)
-            return false;
-        if (System.currentTimeMillis() < this.delayForNextBacktrack) return false;
-        if (mc.thePlayer.ticksExisted <= 20) return false;
-        return !this.ignoreWholeTick;
-    }
-
-    private void reset() {
-        this.target = null;
-        this.globalTimer.reset();
-        this.delayForNextBacktrack = 0L;
-        this.modernDelay = new ModernDelay((int) unfair.util.RandomUtil.nextLong(this.minDelay.getValue(), this.maxDelay.getValue()), false);
-    }
-
-    private void clear() {
-        this.clearPackets(true, true);
-        this.globalTimer.reset();
-    }
-
-    @Override
-    public String[] getSuffix() {
-        return new String[]{supposedDelay() + "ms"};
-    }
-
-    private static final class PacketFieldCache {
-        private static int getS14EntityId(S14PacketEntity packet) {
-            return ((IAccessorS14PacketEntity) packet).getEntityId();
-        }
-
-        private static int getS18EntityId(S18PacketEntityTeleport packet) {
-            return ((IAccessorS18PacketEntityTeleport) packet).getEntityId();
-        }
-
-        private static int getS19EntityId(S19PacketEntityStatus packet) {
-            return ((IAccessorS19PacketEntityStatus) packet).getEntityId();
+    private void releaseAll() {
+        if (!packetQueue.isEmpty()) {
+            for (TimedPacket timedPacket : packetQueue) {
+                Packet<?> packet = timedPacket.getPacket();
+                skipPackets.add(packet);
+                PacketUtil.receivePacket(packet);
+            }
+            packetQueue.clear();
         }
     }
 
-    private static final class QueueData {
-        private final Packet<?> packet;
-        private final long time;
-
-        private QueueData(Packet<?> packet, long time) {
-            this.packet = packet;
-            this.time = time;
-        }
-    }
-
-    private static final class PosData {
-        private final Vec3 pos;
-        private final long time;
-
-        private PosData(Vec3 pos, long time) {
-            this.pos = pos;
-            this.time = time;
-        }
-    }
-
-    private static final class BacktrackData {
-        private final double x;
-        private final double y;
-        private final double z;
-        private final long time;
-
-        private BacktrackData(double x, double y, double z, long time) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.time = time;
-        }
-    }
-
-    private static final class ModernDelay {
-        private final int delay;
-        private final boolean changed;
-
-        private ModernDelay(int delay, boolean changed) {
-            this.delay = delay;
-            this.changed = changed;
-        }
-    }
 }

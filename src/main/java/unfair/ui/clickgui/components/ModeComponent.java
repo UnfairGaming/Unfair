@@ -1,7 +1,7 @@
 package unfair.ui.clickgui.components;
 
-import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
+import unfair.Unfair;
 import unfair.enums.ChatColors;
 import unfair.property.properties.ModeProperty;
 import unfair.ui.clickgui.Component;
@@ -29,9 +29,9 @@ public class ModeComponent implements Component {
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         String mode = this.property.getModeString();
         mode = mode.replace("_", " ");
-        int bruhWidth = (int) (Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.property.getName() + ": ") * 0.5);
-        Minecraft.getMinecraft().fontRendererObj.drawString(this.property.getName() + ": ", (float) ((this.parentModule.category.getX() + 4) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 4) * 2), 0xffffffff, true);
-        Minecraft.getMinecraft().fontRendererObj.drawString(ChatColors.formatColor("&9" + mode.substring(0, 1).toUpperCase() + mode.substring(1).toLowerCase()), (float) ((this.parentModule.category.getX() + 4 + bruhWidth) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 4) * 2), -1, true);
+        int bruhWidth = (int) (Unfair.fontManager.getFont(24).getStringWidth(this.property.getName() + ": ") * 0.5);
+        Unfair.fontManager.getFont(24).drawString(this.property.getName() + ": ", (float) ((this.parentModule.category.getX() + 4) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 4) * 2), 0xffffffff, true);
+        Unfair.fontManager.getFont(24).drawString(ChatColors.formatColor("&9" + mode.substring(0, 1).toUpperCase() + mode.substring(1).toLowerCase()), (float) ((this.parentModule.category.getX() + 4 + bruhWidth) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 4) * 2), -1, true);
         GL11.glPopMatrix();
     }
 
@@ -94,11 +94,11 @@ public class ModeComponent implements Component {
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         String mode = this.property.getModeString();
         mode = mode.replace("_", " ");
-        int bruhWidth = (int) (Minecraft.getMinecraft().fontRendererObj.getStringWidth(this.property.getName() + ": ") * 0.5);
-        Minecraft.getMinecraft().fontRendererObj.drawString(this.property.getName() + ": ",
+        int bruhWidth = (int) (Unfair.fontManager.getFont(24).getStringWidth(this.property.getName() + ": ") * 0.5);
+        Unfair.fontManager.getFont(24).drawString(this.property.getName() + ": ",
                 (float) ((this.parentModule.category.getX() + 4) * 2),
                 (float) ((this.parentModule.category.getModuleY() + this.offsetY + 4) * 2), 0xffffffff, true);
-        Minecraft.getMinecraft().fontRendererObj.drawString(
+        Unfair.fontManager.getFont(24).drawString(
                 mode.substring(0, 1).toUpperCase() + mode.substring(1).toLowerCase(),
                 (float) ((this.parentModule.category.getX() + 4 + bruhWidth) * 2),
                 (float) ((this.parentModule.category.getModuleY() + this.offsetY + 4) * 2),

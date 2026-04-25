@@ -31,16 +31,16 @@ public class Velocity extends Module {
     private static boolean attack = false;
     private static boolean inventory = false;
     public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"VANILLA", "Prediction"});
-    public final BooleanProperty reduce = new BooleanProperty("reduce", true, () -> this.mode.getValue() == 1);
-    public final BooleanProperty delay = new BooleanProperty("delay", false, () -> this.mode.getValue() == 1 && !this.airBuffer.getValue());
-    public final IntProperty delayTicks = new IntProperty("delay-ticks", 1, 1, 5, () -> this.mode.getValue() == 1 && this.delay.getValue() && !this.airBuffer.getValue());
+    public final BooleanProperty reduce = new BooleanProperty("reduce", true, () -> mode.getValue() == 1);
+    public final BooleanProperty delay = new BooleanProperty("delay", false, () -> mode.getValue() == 1 && !this.airBuffer.getValue());
+    public final IntProperty delayTicks = new IntProperty("delay-ticks", 1, 1, 5, () -> mode.getValue() == 1 && delay.getValue() && !this.airBuffer.getValue());
     //airBuffer is much better than delay in some low ping servers
-    public final BooleanProperty airBuffer = new BooleanProperty("air-buffer", true, () -> this.mode.getValue() == 1 && !this.delay.getValue());
-    public final PercentProperty chance = new PercentProperty("chance", 100, () -> this.mode.getValue() == 0);
-    public final PercentProperty horizontal = new PercentProperty("horizontal", 100, () -> this.mode.getValue() == 0);
-    public final PercentProperty vertical = new PercentProperty("vertical", 100, () -> this.mode.getValue() == 0);
-    public final PercentProperty explosionHorizontal = new PercentProperty("explosions-horizontal", 100, () -> this.mode.getValue() == 0);
-    public final PercentProperty explosionVertical = new PercentProperty("explosions-vertical", 100, () -> this.mode.getValue() == 0);
+    public final BooleanProperty airBuffer = new BooleanProperty("air-buffer", true, () -> mode.getValue() == 1 && !delay.getValue());
+    public final PercentProperty chance = new PercentProperty("chance", 100, () -> mode.getValue() == 0);
+    public final PercentProperty horizontal = new PercentProperty("horizontal", 100, () -> mode.getValue() == 0);
+    public final PercentProperty vertical = new PercentProperty("vertical", 100, () -> mode.getValue() == 0);
+    public final PercentProperty explosionHorizontal = new PercentProperty("explosions-horizontal", 100, () -> mode.getValue() == 0);
+    public final PercentProperty explosionVertical = new PercentProperty("explosions-vertical", 100, () -> mode.getValue() == 0);
     public final BooleanProperty fakeCheck = new BooleanProperty("fake-check", true);
     public final BooleanProperty debug = new BooleanProperty("debug", false);
     public boolean knockback = false;
@@ -58,40 +58,40 @@ public class Velocity extends Module {
 
     @EventTarget
     public void onKnockback(KnockbackEvent event) {
-        if (!this.isEnabled() || event.isCancelled()) {
-            this.pendingExplosion = false;
-            this.allowNext = true;
+        if (!isEnabled() || event.isCancelled()) {
+            pendingExplosion = false;
+            allowNext = true;
             return;
         }
-        if (this.mode.getValue() == 0) {
-            if (!this.allowNext || !(Boolean) this.fakeCheck.getValue()) {
-                this.allowNext = true;
-                if (this.pendingExplosion) {
-                    this.pendingExplosion = false;
-                    if (this.explosionHorizontal.getValue() > 0) {
-                        event.setX(event.getX() * (double) this.explosionHorizontal.getValue() / 100.0);
-                        event.setZ(event.getZ() * (double) this.explosionHorizontal.getValue() / 100.0);
+        if (mode.getValue() == 0) {
+            if (!allowNext || !(Boolean) fakeCheck.getValue()) {
+                allowNext = true;
+                if (pendingExplosion) {
+                    pendingExplosion = false;
+                    if (explosionHorizontal.getValue() > 0) {
+                        event.setX(event.getX() * (double) explosionHorizontal.getValue() / 100.0);
+                        event.setZ(event.getZ() * (double) explosionHorizontal.getValue() / 100.0);
                     } else {
                         event.setX(mc.thePlayer.motionX);
                         event.setZ(mc.thePlayer.motionZ);
                     }
-                    if (this.explosionVertical.getValue() > 0) {
-                        event.setY(event.getY() * (double) this.explosionVertical.getValue() / 100.0);
+                    if (explosionVertical.getValue() > 0) {
+                        event.setY(event.getY() * (double) explosionVertical.getValue() / 100.0);
                     } else {
                         event.setY(mc.thePlayer.motionY);
                     }
                 } else {
-                    this.chanceCounter = this.chanceCounter % 100 + this.chance.getValue();
-                    if (this.chanceCounter >= 100) {
-                        if (this.horizontal.getValue() > 0) {
-                            event.setX(event.getX() * (double) this.horizontal.getValue() / 100.0);
-                            event.setZ(event.getZ() * (double) this.horizontal.getValue() / 100.0);
+                    chanceCounter = chanceCounter % 100 + chance.getValue();
+                    if (chanceCounter >= 100) {
+                        if (horizontal.getValue() > 0) {
+                            event.setX(event.getX() * (double) horizontal.getValue() / 100.0);
+                            event.setZ(event.getZ() * (double) horizontal.getValue() / 100.0);
                         } else {
                             event.setX(mc.thePlayer.motionX);
                             event.setZ(mc.thePlayer.motionZ);
                         }
-                        if (this.vertical.getValue() > 0) {
-                            event.setY(event.getY() * (double) this.vertical.getValue() / 100.0);
+                        if (vertical.getValue() > 0) {
+                            event.setY(event.getY() * (double) vertical.getValue() / 100.0);
                         } else {
                             event.setY(mc.thePlayer.motionY);
                         }
@@ -115,17 +115,18 @@ public class Velocity extends Module {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (!isEnabled()) return;
-        if (this.mode.getValue() == 0) return;
+        if (mode.getValue() == 0) return;
         if (event.getType() == EventType.POST) {
-            if (this.delayFlag && ((delay.getValue()
-                    && (this.isInLiquidOrWeb() || Unfair.delayManager.getDelay() >= (long) this.delayTicks.getValue()))
-                    || (airBuffer.getValue() && mc.thePlayer.onGround && this.delayFlag))) {
+            if (delayFlag && ((delay.getValue()
+                    && (isInLiquidOrWeb() || Unfair.delayManager.getDelay() >= (long) delayTicks.getValue()))
+                    || (airBuffer.getValue() && mc.thePlayer.onGround && delayFlag))) {
                 dbg(Unfair.clientName + "Delay/Buffer " + Unfair.delayManager.getDelay() + " Ticks");
                 Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
-                this.delayFlag = false;
+                delayFlag = false;
             }
         }
-        if (this.reduce.getValue()) {
+        if (reduce.getValue()) {
+            // why reduce in the UpdateEvent? IDK.
             if (event.getType() != EventType.PRE) return;
 
             if (!knockback) return;
@@ -172,23 +173,23 @@ public class Velocity extends Module {
 
     @EventTarget
     public void onPacket(PacketEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.RECEIVE && !event.isCancelled()) {
+        if (isEnabled() && event.getType() == EventType.RECEIVE && !event.isCancelled()) {
             if (event.getPacket() instanceof S12PacketEntityVelocity) {
                 S12PacketEntityVelocity packet = (S12PacketEntityVelocity) event.getPacket();
                 if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                     LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
-                    if (this.mode.getValue() == 1
-                            && !this.delayFlag
-                            && !this.isInLiquidOrWeb()
-                            && !this.pendingExplosion
-                            && (!this.allowNext || !(Boolean) this.fakeCheck.getValue())
+                    if (mode.getValue() == 1
+                            && !delayFlag
+                            && !isInLiquidOrWeb()
+                            && !pendingExplosion
+                            && (!allowNext || !(Boolean) fakeCheck.getValue())
                             && (!longJump.isEnabled() || !longJump.canStartJump())) {
-                        if ((this.airBuffer.getValue() && !mc.thePlayer.onGround) || (this.delay.getValue() && mc.thePlayer.onGround)) {
+                        if ((airBuffer.getValue() && !mc.thePlayer.onGround) || (delay.getValue() && mc.thePlayer.onGround)) {
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
                             dbg(Unfair.clientName + "Delay/Buffer Active");
                             Unfair.delayManager.delayedPacket.offer(packet);
                             event.setCancelled(true);
-                            this.delayFlag = true;
+                            delayFlag = true;
                         }
                     }
                 }
@@ -197,14 +198,14 @@ public class Velocity extends Module {
                     S19PacketEntityStatus packet = (S19PacketEntityStatus) event.getPacket();
                     Entity entity = packet.getEntity(mc.theWorld);
                     if (entity != null && entity.equals(mc.thePlayer) && packet.getOpCode() == 2) {
-                        this.allowNext = false;
+                        allowNext = false;
                     }
                 }
-            } else if (this.mode.getValue() == 0) {
+            } else if (mode.getValue() == 0) {
                 S27PacketExplosion packet = (S27PacketExplosion) event.getPacket();
                 if (packet.func_149149_c() != 0.0F || packet.func_149144_d() != 0.0F || packet.func_149147_e() != 0.0F) {
-                    this.pendingExplosion = true;
-                    if (this.explosionHorizontal.getValue() == 0 || this.explosionVertical.getValue() == 0) {
+                    pendingExplosion = true;
+                    if (explosionHorizontal.getValue() == 0 || explosionVertical.getValue() == 0) {
                         event.setCancelled(true);
                     }
                 }
@@ -235,7 +236,7 @@ public class Velocity extends Module {
 
     @EventTarget
     public void onLoadWorld(LoadWorldEvent event) {
-        this.onDisabled();
+        onDisabled();
     }
 
     public void dbg(String msg) {
@@ -249,29 +250,29 @@ public class Velocity extends Module {
 
     @Override
     public void onDisabled() {
-        this.pendingExplosion = false;
-        this.allowNext = true;
+        pendingExplosion = false;
+        allowNext = true;
         knockback = false;
     }
 
     @Override
     public void verifyValue(String name) {
-        if (this.delay.getName().equals(name) && this.delay.getValue()) {
-            this.airBuffer.setValue(false);
-        } else if (this.airBuffer.getName().equals(name) && this.airBuffer.getValue()) {
-            this.delay.setValue(false);
+        if (delay.getName().equals(name) && delay.getValue()) {
+            airBuffer.setValue(false);
+        } else if (airBuffer.getName().equals(name) && airBuffer.getValue()) {
+            delay.setValue(false);
         }
     }
 
     @Override
     public String[] getSuffix() {
-        if (this.mode.getValue() == 0) {
+        if (mode.getValue() == 0) {
             return new String[]{
-                    String.format("%d%%", this.horizontal.getValue()),
-                    String.format("%d%%", this.vertical.getValue())
+                    String.format("%d%%", horizontal.getValue()),
+                    String.format("%d%%", vertical.getValue())
             };
         } else {
-            return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+            return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, mode.getModeString())};
         }
     }
 }

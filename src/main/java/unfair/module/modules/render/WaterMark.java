@@ -1,17 +1,19 @@
 package unfair.module.modules.render;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import unfair.Unfair;
 import unfair.event.EventTarget;
 import unfair.events.Render2DEvent;
 import unfair.module.Module;
+import unfair.property.properties.BooleanProperty;
 import unfair.property.properties.IntProperty;
 import unfair.util.RenderUtil;
+import unfair.font.impl.UFontRenderer; // 必须导入自定义字体类
 
 public class WaterMark extends Module {
     public final IntProperty rectLeft = new IntProperty("RectLeft", 2, 0, 20);
     public final IntProperty rectTop = new IntProperty("RectTop", 2, 0, 20);
+    public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
 
     public WaterMark() {
         super("WaterMark", true, true);
@@ -24,18 +26,22 @@ public class WaterMark extends Module {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
-        FontRenderer fr = mc.fontRendererObj;
+        UFontRenderer fr = Unfair.fontManager.getFont(20);
         String text = "Unfair";
 
-        int textWidth = fr.getStringWidth(text);
-        int textHeight = fr.FONT_HEIGHT;
+        float textWidth = (float) fr.getStringWidth(text);
+        float textHeight = (float) fr.getHeight();
 
-        int padding = 4;
+        float padX = 6.0F;
+        float padY = 4.0F;
 
-        float rectRight = rectLeft.getValue() + textWidth + padding * 2;
-        float rectBottom = rectTop.getValue() + textHeight + padding * 2;
+        float startX = (float) rectLeft.getValue();
+        float startY = (float) rectTop.getValue();
 
-        float radius = 6f;
+        float rectRight = startX + textWidth + (padX);
+        float rectBottom = startY + textHeight + (padY);
+
+        float radius = 4.0f;
 
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
 
@@ -43,10 +49,16 @@ public class WaterMark extends Module {
         int hudColor = hud.getColor(System.currentTimeMillis()).getRGB();
 
         RenderUtil.drawRoundedGradientOutlinedRectangle(
-                rectLeft.getValue(), rectTop.getValue(), rectRight, rectBottom,
+                startX, startY, rectRight, rectBottom,
                 radius, fillColor, hudColor, hudColor
         );
 
-        fr.drawStringWithShadow(text, rectLeft.getValue() + padding, rectTop.getValue() + padding, hudColor);
+        fr.drawString(
+                text,
+                startX + padX / 2,
+                startY,
+                hudColor,
+                shadow.getValue()
+        );
     }
 }

@@ -1,7 +1,7 @@
 package unfair.ui.clickgui.components;
 
-import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
+import unfair.Unfair;
 import unfair.enums.ChatColors;
 import unfair.property.properties.TextProperty;
 import unfair.ui.clickgui.ClickGui;
@@ -29,7 +29,7 @@ public class TextComponent implements Component {
     public void draw(AtomicInteger offset) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Minecraft.getMinecraft().fontRendererObj.drawString(this.property.getName().replace("-", " ") + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
+        Unfair.fontManager.getFont(24).drawString(this.property.getName().replace("-", " ") + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
         GL11.glPopMatrix();
     }
 
@@ -74,7 +74,7 @@ public class TextComponent implements Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Minecraft.getMinecraft().fontRendererObj.drawString(
+        Unfair.fontManager.getFont(24).drawString(
                 this.property.getName().replace("-", " ") + ": " + this.property.getValue(),
                 (float) ((this.module.category.getX() + 4) * 2),
                 (float) ((this.module.category.getModuleY() + this.offsetY + 4) * 2), -1, false);

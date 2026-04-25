@@ -1,6 +1,5 @@
 package unfair.ui.clickgui.components;
 
-import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
@@ -94,7 +93,7 @@ public class BindComponent implements Component {
     }
 
     private void renderText(String s, int color) {
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float) ((this.parentModule.category.getX() + 4) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 3) * 2), color);
+        Unfair.fontManager.getFont(24).drawString(s, (float) ((this.parentModule.category.getX() + 4) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 3) * 2), color);
     }
 
     @Override
@@ -102,7 +101,7 @@ public class BindComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         String text = this.isBinding ? "Press a key..." : "Bind: " + Keyboard.getKeyName(this.parentModule.mod.getKey());
-        Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(text,
+        Unfair.fontManager.getFont(24).drawString(text,
                 (float) ((this.parentModule.category.getX() + 4) * 2),
                 (float) ((this.parentModule.category.getModuleY() + this.offsetY + 3) * 2),
                 this.isBinding ? new Color(255, 100, 100).getRGB() : -1);

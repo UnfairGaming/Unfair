@@ -30,8 +30,7 @@ import unfair.property.properties.*;
 import unfair.util.ColorUtil;
 import unfair.util.RenderUtil;
 import unfair.util.TeamUtil;
-import unfair.util.font.FontManager;
-import unfair.util.font.FontRenderer;
+import unfair.font.impl.UFontRenderer;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -80,7 +79,6 @@ public class NameTags extends Module {
     public final BooleanProperty bots = new BooleanProperty("bots", false, () -> this.mode.getValue() == 0);
     // raven mode's settings
     public final FloatProperty ravenScale = new FloatProperty("scale", 1.0F, 0.5F, 2.0F, () -> this.mode.getValue() == 1);
-    public final ModeProperty ravenFont = new ModeProperty("font", 0, FontManager.getHudFontOptions(), () -> this.mode.getValue() == 1);
     public final BooleanProperty ravenAutoScale = new BooleanProperty("auto-scale", true, () -> this.mode.getValue() == 1);
     public final BooleanProperty ravenBackground = new BooleanProperty("background", true, () -> this.mode.getValue() == 1);
     public final PercentProperty ravenBgOpacity = new PercentProperty("bg-opacity", 50, () -> this.mode.getValue() == 1);
@@ -330,7 +328,7 @@ public class NameTags extends Module {
 
         RenderManager rm = mc.getRenderManager();
         net.minecraft.client.gui.FontRenderer itemFR = mc.fontRendererObj;
-        FontRenderer textFR = FontManager.getNametagRenderer(getRavenFontName());
+        UFontRenderer textFR = getRavenFontRenderer();
 
         ((IAccessorEntityRenderer) mc.entityRenderer).callSetupCameraTransform(event.getPartialTicks(), 0);
 
@@ -353,7 +351,7 @@ public class NameTags extends Module {
     }
 
     private void updateRavenStates() {
-        FontRenderer fr = FontManager.getNametagRenderer(getRavenFontName());
+        UFontRenderer fr = getRavenFontRenderer();
         Entity viewer = mc.getRenderViewEntity();
         if (viewer == null) {
             ravenStateCount = 0;
@@ -549,15 +547,12 @@ public class NameTags extends Module {
         return RenderUtil.isInViewFrustum(entity.getEntityBoundingBox(), 10.0) || entity.ignoreFrustumCheck;
     }
 
-    private String getRavenFontName() {
-        String[] options = FontManager.getHudFontOptions();
-        int idx = ravenFont.getValue();
-        if (idx < 0 || idx >= options.length) idx = 0;
-        return options[idx];
+    private UFontRenderer getRavenFontRenderer() {
+        return Unfair.fontManager.getFont(16);
     }
 
     private void renderRavenNametag(RavenState state, float pt, RenderManager rm,
-                                    FontRenderer textFR, net.minecraft.client.gui.FontRenderer itemFR) {
+                                    UFontRenderer textFR, net.minecraft.client.gui.FontRenderer itemFR) {
         EntityPlayer ent = state.player;
         if (ent == null || ent.isDead || ent.deathTime > 0) return;
 
@@ -647,31 +642,19 @@ public class NameTags extends Module {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    private void drawRavenDisplayName(RavenState state, FontRenderer fr) {
-        if (state.relationshipColor == -1 || state.playerNameStart < 0 || state.playerNameEnd <= state.playerNameStart) {
-            fr.drawString(state.displayName, -state.stringHalfWidth, 0.0f, 0xFFFFFFFF, ravenShadow.getValue());
-            return;
-        }
-
-        final int[] visibleIdx = {0};
-        fr.drawGlyphString(state.displayName, -state.stringHalfWidth, 0.0f, (ch, xOffset, width, fmtColor) -> {
-            int idx = visibleIdx[0]++;
-            if (idx >= state.playerNameStart && idx < state.playerNameEnd) {
-                return state.relationshipColor;
-            }
-            return fmtColor != null ? fmtColor : 0xFFFFFFFF;
-        }, ravenShadow.getValue());
+    private void drawRavenDisplayName(RavenState state, UFontRenderer fr) {
+        fr.drawString(state.displayName, -state.stringHalfWidth, 0.0f, 0xFFFFFFFF, ravenShadow.getValue());
     }
 
-    private void renderRavenBackground(int stringWidth, float textY, int teamColor, int relColor, FontRenderer fr) {
+    private void renderRavenBackground(int stringWidth, float textY, int teamColor, int relColor, UFontRenderer fr) {
         GlStateManager.disableTexture2D();
         Tessellator tess = Tessellator.getInstance();
         WorldRenderer wr = tess.getWorldRenderer();
         float alpha = (float) ravenBgOpacity.getValue() / 100.0f;
         float left = -stringWidth - 3.0f;
         float right = stringWidth + 3.0f;
-        float top = textY + fr.getTextTopOffset() - 3.0f;
-        float bottom = textY + fr.getTextBottomOffset() + 2.0f;
+        float top = textY - 3.0f;
+        float bottom = textY + fr.getHeight() + 2.0f;
 
         if (ravenBackground.getValue() && alpha > 0.01f) {
             wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
