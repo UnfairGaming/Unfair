@@ -7,7 +7,7 @@ import org.lwjgl.input.Keyboard;
 import unfair.Unfair;
 import unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 import unfair.module.modules.render.HUD;
-import unfair.ui.clickgui.ClickGui;
+import unfair.ui.clickgui.raven.RavenClickGui;
 import unfair.util.RenderUtil;
 
 import java.awt.*;
@@ -110,7 +110,7 @@ public class AltManagerGui extends GuiScreen {
         buttons.add(new Button("Token Login", btnX, btnY + spacing * 2, btnW, btnH, () -> mc.displayGuiScreen(new TokenLoginGui(this))));
         buttons.add(new Button("Remove", btnX, btnY + spacing * 3, btnW, btnH, () -> removeSelected()));
         buttons.add(new Button("OAuth Login", btnX, btnY + spacing * 4, btnW, btnH, () -> startOAuth()));
-        buttons.add(new Button("Back", guiX + guiWidth / 2 - 30, guiY + guiHeight - 25, 60, 18, () -> mc.displayGuiScreen(ClickGui.getInstance())));
+        buttons.add(new Button("Back", guiX + guiWidth / 2 - 30, guiY + guiHeight - 25, 60, 18, () -> mc.displayGuiScreen(RavenClickGui.getInstance())));
     }
 
     @Override
@@ -232,7 +232,7 @@ public class AltManagerGui extends GuiScreen {
     @Override
     protected void keyTyped(char typedChar, int keyCode) {
         if (keyCode == Keyboard.KEY_ESCAPE) {
-            mc.displayGuiScreen(ClickGui.getInstance());
+            mc.displayGuiScreen(RavenClickGui.getInstance());
             return;
         }
 

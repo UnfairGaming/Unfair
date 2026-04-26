@@ -2,14 +2,13 @@ package unfair.font.impl;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.awt.font.GlyphVector;
-import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
 import java.text.Bidi;
 import java.util.ArrayList;
@@ -153,6 +152,7 @@ public class StringCache {
     }
 
     public int renderString(String str, float startX, float startY, int initialColor, boolean shadowFlag) {
+
         if (str == null) {
             return 0;
         }
@@ -289,6 +289,8 @@ public class StringCache {
 
         GlStateManager.enableBlend();
         return (int) (startX + entry.advance / 2f);
+
+
     }
 
     public int getStringWidth(String str) {

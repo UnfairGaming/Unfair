@@ -1,11 +1,11 @@
-package unfair.ui.clickgui.components;
+package unfair.ui.clickgui.raven.components;
 
 import net.minecraft.client.gui.Gui;
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.enums.ChatColors;
 import unfair.property.properties.ColorProperty;
-import unfair.ui.clickgui.Component;
+import unfair.ui.clickgui.raven.Component;
 
 import java.awt.*;
 

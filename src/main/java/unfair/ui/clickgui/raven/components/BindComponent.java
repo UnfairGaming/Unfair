@@ -1,12 +1,12 @@
-package unfair.ui.clickgui.components;
+package unfair.ui.clickgui.raven.components;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.module.modules.render.GuiModule;
 import unfair.module.modules.render.HUD;
-import unfair.ui.clickgui.Component;
-import unfair.ui.clickgui.dataset.BindStage;
+import unfair.ui.clickgui.raven.Component;
+import unfair.ui.clickgui.raven.dataset.BindStage;
 
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;

@@ -1,8 +1,8 @@
-package unfair.ui.clickgui.dataset.impl;
+package unfair.ui.clickgui.raven.dataset.impl;
 
 import unfair.enums.ChatColors;
 import unfair.property.properties.PercentProperty;
-import unfair.ui.clickgui.dataset.Slider;
+import unfair.ui.clickgui.raven.dataset.Slider;
 
 public class PercentageSlider extends Slider {
     private final PercentProperty property;

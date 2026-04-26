@@ -1,13 +1,13 @@
-package unfair.ui.clickgui.dataset.impl;
+package unfair.ui.clickgui.raven.dataset.impl;
 
 import unfair.enums.ChatColors;
-import unfair.property.properties.FloatProperty;
-import unfair.ui.clickgui.dataset.Slider;
+import unfair.property.properties.IntProperty;
+import unfair.ui.clickgui.raven.dataset.Slider;
 
-public class FloatSlider extends Slider {
-    private final FloatProperty property;
+public class IntSlider extends Slider {
+    private final IntProperty property;
 
-    public FloatSlider(FloatProperty property) {
+    public IntSlider(IntProperty property) {
         this.property = property;
     }
 
@@ -28,7 +28,7 @@ public class FloatSlider extends Slider {
 
     @Override
     public void setValue(double value) {
-        property.setValue(new Double(value).floatValue());
+        property.setValue(new Double(value).intValue());
     }
 
     @Override
@@ -43,7 +43,7 @@ public class FloatSlider extends Slider {
 
     @Override
     public double getIncrement() {
-        return 0.1;
+        return 1;
     }
 
     @Override

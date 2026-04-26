@@ -1,23 +1,22 @@
-package unfair.ui.clickgui.components;
+package unfair.ui.clickgui.raven.components;
 
 import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.enums.ChatColors;
-import unfair.property.properties.TextProperty;
-import unfair.ui.clickgui.ClickGui;
-import unfair.ui.clickgui.Component;
-import unfair.ui.clickgui.callback.GuiInput;
+import unfair.property.properties.BooleanProperty;
+import unfair.ui.clickgui.raven.Component;
 
+import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TextComponent implements Component {
-    private final TextProperty property;
+public class CheckBoxComponent implements Component {
+    private final BooleanProperty property;
     private final ModuleComponent module;
     private int offsetY;
     private int x;
     private int y;
 
-    public TextComponent(TextProperty property, ModuleComponent parentModule, int offsetY) {
+    public CheckBoxComponent(BooleanProperty property, ModuleComponent parentModule, int offsetY) {
         this.property = property;
         this.module = parentModule;
         this.x = parentModule.category.getX() + parentModule.category.getWidth();
@@ -75,9 +74,11 @@ public class TextComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         Unfair.fontManager.getFont(24).drawString(
-                this.property.getName().replace("-", " ") + ": " + this.property.getValue(),
+                (this.property.getValue() ? "[+]  " : "[-]  ") + this.property.getName(),
                 (float) ((this.module.category.getX() + 4) * 2),
-                (float) ((this.module.category.getModuleY() + this.offsetY + 4) * 2), -1, false);
+                (float) ((this.module.category.getModuleY() + this.offsetY + 4) * 2),
+                this.property.getValue() ? (new Color(20, 255, 0)).getRGB() : -1,
+                false);
         GL11.glPopMatrix();
     }
 
@@ -90,11 +91,13 @@ public class TextComponent implements Component {
     @Override
     public void onClick(int x, int y, int mouse) {
         if (this.isHovered(x, y) && mouse == 0 && this.module.isOpened) {
-            GuiInput.prompt(property.getName().replace("-", " "), property.getValue(), property::setValue, ClickGui.getInstance());
+            this.property.setValue(!this.property.getValue());
+            // Trigger height update to fix sub-options overlapping
+            this.module.updateHeight(this.module.yPos);
+            this.module.category.updateHeight();
         }
     }
 
-    @Override
     public void updateHeight(int y) {
         this.offsetY = y;
     }

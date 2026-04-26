@@ -1,4 +1,4 @@
-package unfair.ui.clickgui.components;
+package unfair.ui.clickgui.raven.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 import unfair.Unfair;
 import unfair.module.Module;
 import unfair.module.modules.render.HUD;
-import unfair.ui.clickgui.Component;
+import unfair.ui.clickgui.raven.Component;
 import unfair.util.RenderUtil;
 import unfair.util.Timer;
 
@@ -212,7 +212,7 @@ public class CategoryComponent {
         RenderUtil.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.width + 2, extra, 10, translucentBackground,
                 hudColor1, hudColor2);
         renderItemForCategory(this.categoryName, this.x + 1, this.y + 4, opened || hovering);
-        Unfair.fontManager.getFont(20).drawString(this.categoryName, namePos, (float) (this.y + 4), categoryNameColor, false);
+        Unfair.fontManager.getFont(20).drawString(this.categoryName, namePos, (float) (this.y + 2), categoryNameColor, false);
         RenderUtil.scissor(this.x - 2, this.y + this.titleHeight + 3, this.width + 6, extra - this.y - 4 - this.titleHeight);
 
         int prevY = this.y;

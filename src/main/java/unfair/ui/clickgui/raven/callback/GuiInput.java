@@ -1,4 +1,4 @@
-package unfair.ui.clickgui.callback;
+package unfair.ui.clickgui.raven.callback;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;

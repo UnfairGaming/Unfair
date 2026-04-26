@@ -1,4 +1,4 @@
-package unfair.ui.clickgui;
+package unfair.ui.clickgui.raven;
 
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
@@ -14,9 +14,9 @@ import unfair.config.Config;
 import unfair.module.Category;
 import unfair.module.modules.render.GuiModule;
 import unfair.module.modules.render.HUD;
-import unfair.ui.clickgui.components.BindComponent;
-import unfair.ui.clickgui.components.CategoryComponent;
-import unfair.ui.clickgui.components.ModuleComponent;
+import unfair.ui.clickgui.raven.components.BindComponent;
+import unfair.ui.clickgui.raven.components.CategoryComponent;
+import unfair.ui.clickgui.raven.components.ModuleComponent;
 import unfair.util.Timer;
 import unfair.util.shader.BlurUtils;
 import unfair.util.shader.RoundedUtils;
@@ -27,9 +27,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class ClickGui extends GuiScreen {
+public class RavenClickGui extends GuiScreen {
     public static ArrayList<CategoryComponent> categories;
-    private static ClickGui instance;
+    private static RavenClickGui instance;
     private static boolean isNotFirstOpen;
     private final File configFile = new File("./config/Unfair/", "clickgui.txt");
     private final String clientName = "Unfair";
@@ -50,7 +50,7 @@ public class ClickGui extends GuiScreen {
     private long lastHudColorUpdate = 0;
     private float cached;
 
-    public ClickGui() {
+    public RavenClickGui() {
         instance = this;
         categories = new ArrayList();
         int y = 5;
@@ -67,7 +67,7 @@ public class ClickGui extends GuiScreen {
         loadPositions();
     }
 
-    public static ClickGui getInstance() {
+    public static RavenClickGui getInstance() {
         return instance;
     }
 
@@ -156,12 +156,12 @@ public class ClickGui extends GuiScreen {
     }
 
     private void onRenderTick(float partialTicks) {
-        if (!clickGuiOpen && this.mc.currentScreen instanceof ClickGui) {
+        if (!clickGuiOpen && this.mc.currentScreen instanceof RavenClickGui) {
             clickGuiOpen = true;
             initTimer(500.0F);
             startTimer();
             openedTime = System.currentTimeMillis();
-        } else if (!(this.mc.currentScreen instanceof ClickGui)) {
+        } else if (!(this.mc.currentScreen instanceof RavenClickGui)) {
             clickGuiOpen = false;
         } else {
             int[] displaySize = {this.width, this.height};
