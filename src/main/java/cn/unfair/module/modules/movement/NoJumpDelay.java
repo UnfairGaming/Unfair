@@ -27,6 +27,6 @@ public class NoJumpDelay extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{this.delay.getValue().toString() + "ticks"};
+        return new String[]{this.delay.getValue().toString()};
     }
 }

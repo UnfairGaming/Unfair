@@ -26,16 +26,14 @@ import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 
+import static cn.unfair.util.BadPacketUtil.bad;
+
 public class Velocity extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static boolean attack = false;
-    private static boolean inventory = false;
     public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"VANILLA", "Prediction"});
     public final BooleanProperty reduce = new BooleanProperty("reduce", true, () -> mode.getValue() == 1);
-    public final BooleanProperty delay = new BooleanProperty("delay", false, () -> mode.getValue() == 1 && !this.airBuffer.getValue());
-    public final IntProperty delayTicks = new IntProperty("delay-ticks", 1, 1, 5, () -> mode.getValue() == 1 && delay.getValue() && !this.airBuffer.getValue());
-    //airBuffer is much better than delay in some low ping servers
-    public final BooleanProperty airBuffer = new BooleanProperty("air-buffer", true, () -> mode.getValue() == 1 && !delay.getValue());
+    public final BooleanProperty delay = new BooleanProperty("delay", false, () -> mode.getValue() == 1);
+    public final IntProperty delayTicks = new IntProperty("delay-ticks", 1, 1, 5, () -> mode.getValue() == 1 && delay.getValue());
     public final PercentProperty chance = new PercentProperty("chance", 100, () -> mode.getValue() == 0);
     public final PercentProperty horizontal = new PercentProperty("horizontal", 100, () -> mode.getValue() == 0);
     public final PercentProperty vertical = new PercentProperty("vertical", 100, () -> mode.getValue() == 0);
@@ -103,15 +101,6 @@ public class Velocity extends Module {
         }
     }
 
-    private boolean badPackets() {
-        return (attack) || (inventory);
-    }
-
-    private void resetBadPackets() {
-        attack = false;
-        inventory = false;
-    }
-
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (!isEnabled()) return;
@@ -119,8 +108,8 @@ public class Velocity extends Module {
         if (event.getType() == EventType.POST) {
             if (delayFlag && ((delay.getValue()
                     && (isInLiquidOrWeb() || Unfair.delayManager.getDelay() >= (long) delayTicks.getValue()))
-                    || (airBuffer.getValue() && mc.thePlayer.onGround && delayFlag))) {
-                dbg(Unfair.clientName + "Delay/Buffer " + Unfair.delayManager.getDelay() + " Ticks");
+                    || (mc.thePlayer.onGround && delayFlag))) {
+                dbg(Unfair.clientName + "Delay" + Unfair.delayManager.getDelay() + " Ticks");
                 Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
                 delayFlag = false;
             }
@@ -131,7 +120,7 @@ public class Velocity extends Module {
 
             if (!knockback) return;
 
-            if (badPackets()) return;
+            if (bad()) return;
 
             boolean isInWeb = ((IAccessorEntity) mc.thePlayer).getIsInWeb();
             if (isInWeb || isInLiquidOrWeb()) return;
@@ -149,7 +138,7 @@ public class Velocity extends Module {
             if (!noAura) {
                 target = killAura.getTarget();
             } else {
-                RayCastUtil.RayCastResult result = RayCastUtil.rayCast(new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0009);
+                RayCastUtil.RayCastResult result = RayCastUtil.rayCast(new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0f);
                 if (result != null && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY && result.entityHit instanceof EntityPlayer) {
                     target = result.entityHit;
                 }
@@ -184,9 +173,9 @@ public class Velocity extends Module {
                             && !pendingExplosion
                             && (!allowNext || !(Boolean) fakeCheck.getValue())
                             && (!longJump.isEnabled() || !longJump.canStartJump())) {
-                        if ((airBuffer.getValue() && !mc.thePlayer.onGround) || (delay.getValue() && mc.thePlayer.onGround)) {
+                        if ((delay.getValue() && !mc.thePlayer.onGround)) {
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
-                            dbg(Unfair.clientName + "Delay/Buffer Active");
+                            dbg(Unfair.clientName + "Delay Active");
                             Unfair.delayManager.delayedPacket.offer(packet);
                             event.setCancelled(true);
                             delayFlag = true;
@@ -219,19 +208,6 @@ public class Velocity extends Module {
                 }
             }
         }
-        if (event.getType() == EventType.SEND && !event.isCancelled()) {
-            if (event.getPacket() instanceof C02PacketUseEntity) {
-                C02PacketUseEntity useEntity = (C02PacketUseEntity) event.getPacket();
-                if (useEntity.getAction() == C02PacketUseEntity.Action.ATTACK) {
-                    attack = true;
-                }
-            } else if (event.getPacket() instanceof C0DPacketCloseWindow || event.getPacket() instanceof C0EPacketClickWindow ||
-                    (event.getPacket() instanceof C16PacketClientStatus && ((C16PacketClientStatus) event.getPacket()).getStatus() == C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT)) {
-                inventory = true;
-            } else if (event.getPacket() instanceof C03PacketPlayer) {
-                resetBadPackets();
-            }
-        }
     }
 
     @EventTarget
@@ -253,15 +229,6 @@ public class Velocity extends Module {
         pendingExplosion = false;
         allowNext = true;
         knockback = false;
-    }
-
-    @Override
-    public void verifyValue(String name) {
-        if (delay.getName().equals(name) && delay.getValue()) {
-            airBuffer.setValue(false);
-        } else if (airBuffer.getName().equals(name) && airBuffer.getValue()) {
-            delay.setValue(false);
-        }
     }
 
     @Override
