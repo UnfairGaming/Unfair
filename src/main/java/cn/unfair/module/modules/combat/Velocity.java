@@ -1,5 +1,6 @@
 package cn.unfair.module.modules.combat;
 
+import cn.unfair.module.modules.movement.Stuck;
 import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -172,6 +173,7 @@ public class Velocity extends Module {
                             && !isInLiquidOrWeb()
                             && !pendingExplosion
                             && (!allowNext || !(Boolean) fakeCheck.getValue())
+                            && !Unfair.moduleManager.getModule(Stuck.class).isEnabled()
                             && (!longJump.isEnabled() || !longJump.canStartJump())) {
                         if ((delay.getValue() && !mc.thePlayer.onGround)) {
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);

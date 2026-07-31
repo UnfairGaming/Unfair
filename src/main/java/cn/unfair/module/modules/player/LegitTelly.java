@@ -61,7 +61,7 @@ public class LegitTelly extends Module {
 
     public final BooleanProperty autoSwap = new BooleanProperty("auto-swap", true);
     public final BooleanProperty disableSafeWalk = new BooleanProperty("disable-safewalk", true);
-    public final BooleanProperty showActivationHitbox = new BooleanProperty("show-activation-hitbox", false);
+    public final BooleanProperty showActivationHitbox = new BooleanProperty("show-activation-hitbox", true);
     public final BooleanProperty print = new BooleanProperty("print", false);
 
     private static final Map<String, Object> BRIDGE_VALUES = new HashMap<>();

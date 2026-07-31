@@ -12,6 +12,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.WorldSettings.GameType;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
@@ -34,25 +35,11 @@ import java.util.Comparator;
 
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final double[] placeOffsets = new double[]{
-            0.03125,
-            0.09375,
-            0.15625,
-            0.21875,
-            0.28125,
-            0.34375,
-            0.40625,
-            0.46875,
-            0.53125,
-            0.59375,
-            0.65625,
-            0.71875,
-            0.78125,
-            0.84375,
-            0.90625,
-            0.96875
+    private final float[] lastErrors = new float[20];
+    private static final double[] placeOffsets = new double[]{0.03125, 0.09375, 0.15625, 0.21875, 0.28125, 0.34375, 0.40625, 0.46875, 0.53125, 0.59375, 0.65625, 0.71875, 0.78125, 0.84375, 0.90625, 0.96875
     };
-    public final ModeProperty rotationMode = new ModeProperty("rotations", 2, new String[]{"NONE", "DEFAULT", "BACKWARDS", "SIDEWAYS"});
+    private int errorIndex = 0;
+    public final ModeProperty rotationMode = new ModeProperty("rotations", 5, new String[]{"None", "Vanilla", "BackWards", "Strafe", "Test", "Prediction"});
     public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT"});
     public final ModeProperty sprintMode = new ModeProperty("sprint", 0, new String[]{"NONE", "VANILLA"});
     public final PercentProperty groundMotion = new PercentProperty("ground-motion", 100);
@@ -60,6 +47,7 @@ public class Scaffold extends Module {
     public final PercentProperty speedMotion = new PercentProperty("speed-motion", 100);
     public final ModeProperty tower = new ModeProperty("tower", 0, new String[]{"NONE", "VANILLA", "EXTRA", "TELLY"});
     public final ModeProperty keepY = new ModeProperty("keep-y", 0, new String[]{"NONE", "VANILLA", "EXTRA", "TELLY"});
+    public final BooleanProperty predictionTower = new BooleanProperty("Prediction Tower", true);
     public final BooleanProperty keepYonPress = new BooleanProperty("keep-y-on-press", false, () -> this.keepY.getValue() != 0);
     public final BooleanProperty multiplace = new BooleanProperty("multi-place", true);
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
@@ -78,6 +66,9 @@ public class Scaffold extends Module {
     private int startY = 256;
     private boolean shouldKeepY = false;
     private boolean towering = false;
+    private float lastYaw = 0;
+    private float lastYawChange = 0;
+    private float lastPitchChange = 0;
     private EnumFacing targetFacing = null;
 
     public Scaffold() {
@@ -254,6 +245,16 @@ public class Scaffold extends Module {
             if (this.rotationTick > 0) {
                 this.rotationTick--;
             }
+            if (predictionTower.getValue() && mc.thePlayer.motionY <= 0.0
+                    && Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ) <= 0.02D
+                    && mc.thePlayer.motionY >= -0.09
+                    && !(Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode())
+                    || Keyboard.isKeyDown(mc.gameSettings.keyBindBack.getKeyCode())
+                    || Keyboard.isKeyDown(mc.gameSettings.keyBindLeft.getKeyCode())
+                    || Keyboard.isKeyDown(mc.gameSettings.keyBindRight.getKeyCode()))
+                    && Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode())) {
+                mc.thePlayer.motionY = -0.38;
+            }
             if (mc.thePlayer.onGround) {
                 if (this.stage > 0) {
                     this.stage--;
@@ -320,6 +321,106 @@ public class Scaffold extends Module {
                             } else {
                                 this.yaw = RotationUtil.quantizeAngle(diagonalYaw);
                             }
+                            break;
+                        case 4:
+                            if (this.yaw == -180.0F && this.pitch == 0.0F) {
+                                this.yaw = (float) (RotationUtil.quantizeAngle(diagonalYaw) + RandomUtil.nextDouble(0.7d, 1.5d));
+                                this.pitch = RotationUtil.quantizeAngle(85.0F);
+                            }
+                            break;
+                        case 5:
+                            BlockData currentBlockData = this.getBlockData();
+
+                            if (currentBlockData != null) {
+                                Vec3 targetVec = getVec3(currentBlockData);
+                                float[] targetRots = RotationUtil.getRotationsTo(
+                                        targetVec.xCoord - mc.thePlayer.posX,
+                                        targetVec.yCoord - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight(),
+                                        targetVec.zCoord - mc.thePlayer.posZ,
+                                        this.yaw,
+                                        this.pitch
+                                );
+                                float targetYaw = targetRots[0];
+                                float targetPitch = targetRots[1];
+                                float predictedYaw = getPredictedYaw();
+                                float currentYaw2 = this.yaw;
+                                float currentPitch = this.pitch;
+                                float yawToTarget = MathHelper.wrapAngleTo180_float(targetYaw - currentYaw2);
+                                float pitchToTarget = targetPitch - currentPitch;
+                                float absYawDiff = Math.abs(yawToTarget);
+                                float distance = (float) mc.thePlayer.getDistance(
+                                        currentBlockData.blockPos().getX() + 0.5,
+                                        currentBlockData.blockPos().getY() + 0.5,
+                                        currentBlockData.blockPos().getZ() + 0.5
+                                );
+                                float currentSpeed = getCurrentSpeed(distance);
+                                float actualYawDiff = MathHelper.wrapAngleTo180_float(currentYaw - lastYaw);
+                                float error = Math.abs(actualYawDiff - lastYawChange);
+                                lastErrors[errorIndex] = error;
+                                errorIndex = (errorIndex + 1) % 20;
+
+                                float avgError = 0;
+                                for (float e : lastErrors) {
+                                    avgError += e;
+                                }
+                                avgError /= 20;
+
+                                if (avgError > 5) {
+                                    currentSpeed *= 0.8F;
+                                } else if (avgError < 1) {
+                                    currentSpeed *= 1.1F;
+                                }
+
+                                float yawChange;
+                                if (absYawDiff > 90) {
+                                    yawChange = Math.signum(yawToTarget) * currentSpeed * 1.2F;
+                                } else if (absYawDiff > 30) {
+                                    yawChange = Math.signum(yawToTarget) * currentSpeed * 0.8F;
+                                } else {
+                                    float fineSpeed = currentSpeed * 0.3F;
+                                    yawChange = yawToTarget * 0.2F;
+                                    yawChange = MathHelper.clamp_float(yawChange, -fineSpeed, fineSpeed);
+                                }
+
+                                float inertia = 0.3F;
+                                yawChange = lastYawChange * inertia + yawChange * (1 - inertia);
+                                lastYawChange = yawChange;
+                                float pitchChange = Math.signum(pitchToTarget) * currentSpeed * 0.3F;
+                                pitchChange = lastPitchChange * inertia + pitchChange * (1 - inertia);
+                                lastPitchChange = pitchChange;
+
+                                double ticks = 1.0;
+                                double futureX = mc.thePlayer.posX + mc.thePlayer.motionX * ticks;
+                                double futureY = mc.thePlayer.posY + mc.thePlayer.motionY * ticks;
+                                double futureZ = mc.thePlayer.posZ + mc.thePlayer.motionZ * ticks;
+                                BlockPos futureBlockPos = new BlockPos(
+                                        MathHelper.floor_double(futureX),
+                                        MathHelper.floor_double(futureY) - 1,
+                                        MathHelper.floor_double(futureZ)
+                                );
+
+                                if (BlockUtil.isReplaceable(futureBlockPos)) {
+                                    float[] futureRots = RotationUtil.getRotationsTo(
+                                            futureBlockPos.getX() + 0.5 - mc.thePlayer.posX,
+                                            futureBlockPos.getY() + 0.5 - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight(),
+                                            futureBlockPos.getZ() + 0.5 - mc.thePlayer.posZ,
+                                            this.yaw,
+                                            this.pitch
+                                    );
+                                    yawToTarget = MathHelper.wrapAngleTo180_float(futureRots[0] - currentYaw2);
+                                    pitchToTarget = futureRots[1] - currentPitch;
+                                    yawChange += Math.signum(yawToTarget) * currentSpeed * 0.4F;
+                                    pitchChange += Math.signum(pitchToTarget) * currentSpeed * 0.2F;
+                                } else if (this.towering) {
+                                    yawToTarget = MathHelper.wrapAngleTo180_float(predictedYaw - currentYaw2);
+                                    yawChange += Math.signum(yawToTarget) * currentSpeed * 0.2F;
+                                }
+
+                                this.yaw = RotationUtil.quantizeAngle(currentYaw2 + yawChange);
+                                this.pitch = RotationUtil.quantizeAngle(MathHelper.clamp_float(currentPitch + pitchChange, 55.0F, 90.0F));
+                                lastYaw = currentYaw;
+                            }
+                            break;
                     }
                 }
                 BlockData blockData = this.getBlockData();
@@ -387,6 +488,7 @@ public class Scaffold extends Module {
                             break;
                         case 3:
                             this.yaw = RotationUtil.quantizeAngle(diagonalYaw);
+                            break;
                     }
                 }
                 if (this.rotationMode.getValue() != 0) {
@@ -394,7 +496,7 @@ public class Scaffold extends Module {
                     float targetPitch = this.pitch;
                     if (this.towering && (mc.thePlayer.motionY > 0.0 || mc.thePlayer.posY > (double) (this.startY + 1))) {
                         float yawDiff = MathHelper.wrapAngleTo180_float(this.yaw - event.getYaw());
-                        float tolerance = this.rotationTick >= 2 ? RandomUtil.nextFloat(90.0F, 95.0F) : RandomUtil.nextFloat(30.0F, 35.0F);
+                        float tolerance = this.rotationTick >= 2 ? RandomUtil.nextFloat(115f, 120f) : RandomUtil.nextFloat(30f, 35f);
                         if (Math.abs(yawDiff) > tolerance) {
                             float clampedYaw = RotationUtil.clampAngle(yawDiff, tolerance);
                             targetYaw = RotationUtil.quantizeAngle(event.getYaw() + clampedYaw);
@@ -471,6 +573,45 @@ public class Scaffold extends Module {
                 }
             }
         }
+    }
+
+    private float getCurrentSpeed(float distance) {
+        float baseSpeed;
+        if (this.towering) {
+            baseSpeed = 40.0F;
+        } else if (MoveUtil.getSpeedLevel() > 0) {
+            baseSpeed = 35.0F;
+        } else {
+            baseSpeed = 25.0F;
+        }
+        float speedMultiplier = Math.min(1.2F, distance);
+        float currentSpeed = baseSpeed * speedMultiplier;
+        return Math.min(45.0F, Math.max(10.0F, currentSpeed));
+    }
+
+    private float getPredictedYaw() {
+        float currentMoveYaw = this.getCurrentYaw();
+        if (this.isDiagonal(currentMoveYaw)) {
+            return currentMoveYaw - 180.0F;
+        }
+        float sideMultiplier = (currentMoveYaw + 180.0F) % 90.0F < 45.0F ? 1.0F : -1.0F;
+        return currentMoveYaw - 135.0F * sideMultiplier;
+    }
+
+    private Vec3 getVec3(BlockData data) {
+        if (data == null) {
+            return null;
+        }
+
+        BlockPos pos = data.blockPos();
+        EnumFacing face = data.facing();
+        double x = pos.getX() + 0.5D;
+        double y = pos.getY() + 0.5D;
+        double z = pos.getZ() + 0.5D;
+        x += (double) face.getFrontOffsetX() * 0.5D;
+        y += (double) face.getFrontOffsetY() * 0.5D;
+        z += (double) face.getFrontOffsetZ() * 0.5D;
+        return new Vec3(x, y, z);
     }
 
     @EventTarget
@@ -739,6 +880,13 @@ public class Scaffold extends Module {
         this.towerTick = 0;
         this.towerDelay = 0;
         this.towering = false;
+        this.lastYaw = 0;
+        this.lastYawChange = 0;
+        this.lastPitchChange = 0;
+        this.errorIndex = 0;
+        for (int i = 0; i < this.lastErrors.length; i++) {
+            this.lastErrors[i] = 0.0F;
+        }
     }
 
     @Override

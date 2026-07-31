@@ -256,8 +256,30 @@ public class RavenClickGui extends GuiScreen {
         }
         int wheelInput = Mouse.getDWheel();
         if (wheelInput != 0) {
-            for (CategoryComponent category : categories) {
-                category.onScroll(wheelInput);
+            int mouseX = Mouse.getEventX() * this.width / this.mc.displayWidth;
+            int mouseY = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
+
+            boolean handled = false;
+            for (int i = categories.size() - 1; i >= 0; i--) {
+                CategoryComponent category = categories.get(i);
+                if (category.overContent(mouseX, mouseY)) {
+                    category.onScroll(wheelInput);
+                    handled = category.canScroll();
+                    break;
+                }
+            }
+
+            if (!handled) {
+                for (int i = categories.size() - 1; i >= 0; i--) {
+                    CategoryComponent category = categories.get(i);
+                    if (category.overTitle(mouseX, mouseY)) {
+                        break;
+                    }
+                    if (category.overCategory(mouseX, mouseY)) {
+                        category.onScroll(wheelInput);
+                        break;
+                    }
+                }
             }
         }
     }

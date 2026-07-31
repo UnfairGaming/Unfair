@@ -50,6 +50,8 @@ public class CategoryComponent {
     private boolean scrolled;
     private int targetModuleY;
     private float closedHeight;
+    private int visibleContentHeight;
+    private int totalContentHeight;
 
     public CategoryComponent(String categoryName, List<Module> modules) {
         this.categoryName = categoryName;
@@ -127,10 +129,7 @@ public class CategoryComponent {
     }
 
     public void onScroll(int mouseScrollInput) {
-        for (Component component : this.modules) {
-            component.onScroll(mouseScrollInput);
-        }
-        if (!hoveringOverCategory || !this.opened) {
+        if (!canScroll()) {
             return;
         }
         int scrollSpeed = 12;
@@ -139,17 +138,13 @@ public class CategoryComponent {
         } else if (mouseScrollInput < 0) {
             this.targetModuleY -= scrollSpeed;
         }
+        clampTargetModuleY();
         scrolled = true;
 
         (smoothScrollTimer = new Animation(200)).start();
     }
 
     public void render() {
-        this.targetModuleY = Math.min(this.targetModuleY, this.y);
-        if (this.targetModuleY + this.bigSettings < this.y + this.big + this.titleHeight) {
-            this.targetModuleY = (int) (this.y + this.big - this.bigSettings);
-        }
-
         this.width = 92;
         int modulesHeight = 0;
         int settingsHeight = 0;
@@ -165,6 +160,16 @@ public class CategoryComponent {
             }
             big = modulesHeight;
             bigSettings = settingsHeight;
+            visibleContentHeight = modulesHeight;
+            totalContentHeight = settingsHeight;
+            clampTargetModuleY();
+        } else {
+            big = 0;
+            bigSettings = 0;
+            visibleContentHeight = 0;
+            totalContentHeight = 0;
+            this.targetModuleY = this.y;
+            this.moduleY = this.y;
         }
 
         float middlePos = (float) (this.x + this.width / 2 - mc.fontRendererObj.getStringWidth(this.categoryName) / 2);
@@ -297,6 +302,18 @@ public class CategoryComponent {
         return x >= this.x - 2 && x <= this.x + this.width + 2 && (float) y >= (float) this.y + 2.0F && y <= this.y + this.titleHeight + big + 1;
     }
 
+    public boolean overContent(int x, int y) {
+        return this.opened
+                && x >= this.x - 2
+                && x <= this.x + this.width + 2
+                && y >= this.y + this.titleHeight + 3
+                && y <= this.y + this.titleHeight + 3 + this.visibleContentHeight;
+    }
+
+    public boolean canScroll() {
+        return this.opened && hoveringOverCategory && this.totalContentHeight > this.visibleContentHeight;
+    }
+
     public boolean draggable(int x, int y) {
         return x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.titleHeight;
     }
@@ -360,5 +377,10 @@ public class CategoryComponent {
 
     public String getName() {
         return categoryName;
+    }
+
+    private void clampTargetModuleY() {
+        int minModuleY = this.y - Math.max(0, this.totalContentHeight - this.visibleContentHeight);
+        this.targetModuleY = Math.max(minModuleY, Math.min(this.targetModuleY, this.y));
     }
 }
