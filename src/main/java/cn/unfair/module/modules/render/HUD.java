@@ -17,7 +17,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.ColorUtil;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.Timer;
+import cn.unfair.util.Animation;
 
 import java.awt.*;
 import java.util.*;
@@ -51,7 +51,7 @@ public class HUD extends Module {
     public final BooleanProperty toggleSound = new BooleanProperty("toggle-sounds", true);
     public final BooleanProperty toggleAlerts = new BooleanProperty("toggle-alerts", false);
     private final Set<Module> fadingOutModules = new HashSet<>();
-    private final Map<Module, Timer> animationMap = new HashMap<>();
+    private final Map<Module, Animation> animationMap = new HashMap<>();
     private List<Module> activeModules = new ArrayList<>();
 
     public HUD() {
@@ -155,15 +155,14 @@ public class HUD extends Module {
 
             for (Module module : newActiveModules) {
                 if (!this.activeModules.contains(module) && !this.animationMap.containsKey(module)) {
-                    Timer timer = new Timer(ANIMATION_DURATION);
-                    timer.start();
-                    this.animationMap.put(module, timer);
+                    Animation animation = new Animation(ANIMATION_DURATION);
+                    animation.start();
+                    this.animationMap.put(module, animation);
                     this.fadingOutModules.remove(module);
                 } else if (this.fadingOutModules.remove(module)) {
-
-                    Timer timer = new Timer(ANIMATION_DURATION);
-                    timer.start();
-                    this.animationMap.put(module, timer);
+                    Animation animation = new Animation(ANIMATION_DURATION);
+                    animation.start();
+                    this.animationMap.put(module, animation);
                 }
             }
 
@@ -175,28 +174,28 @@ public class HUD extends Module {
                         this.fadingOutModules.remove(module);
                         continue;
                     }
-                    Timer existing = this.animationMap.get(module);
-                    if (existing == null || existing.cached == 1.0F || this.fadingOutModules.contains(module)) {
-                        Timer timer = new Timer(ANIMATION_DURATION);
-                        timer.start();
-                        this.animationMap.put(module, timer);
+                    Animation existing = this.animationMap.get(module);
+                    if (existing == null || existing.isFinished() || this.fadingOutModules.contains(module)) {
+                        Animation animation = new Animation(ANIMATION_DURATION);
+                        animation.start();
+                        this.animationMap.put(module, animation);
                     }
                     this.fadingOutModules.add(module);
                 }
             }
 
-            Iterator<Map.Entry<Module, Timer>> it = this.animationMap.entrySet().iterator();
+            Iterator<Map.Entry<Module, Animation>> it = this.animationMap.entrySet().iterator();
             while (it.hasNext()) {
-                Map.Entry<Module, Timer> entry = it.next();
+                Map.Entry<Module, Animation> entry = it.next();
                 Module m = entry.getKey();
-                Timer t = entry.getValue();
-                if (m == null || t == null) {
+                Animation animation = entry.getValue();
+                if (m == null || animation == null) {
                     it.remove();
                     continue;
                 }
                 if (!m.isEnabled()) {
-                    long elapsed = System.currentTimeMillis() - t.last;
-                    if (t.cached == 0.0F || elapsed > ANIMATION_DURATION + 100) {
+                    long elapsed = animation.getElapsed();
+                    if (animation.isFinished() || elapsed > ANIMATION_DURATION + 100) {
                         it.remove();
                         this.fadingOutModules.remove(m);
                     }
@@ -260,8 +259,8 @@ public class HUD extends Module {
 
                 float animProgress = 1.0F;
                 boolean isFadingOut = !module.isEnabled();
-                Timer animTimer = this.animationMap.get(module);
-                if (animTimer != null && animTimer.last > 0 && animTimer.cached != 1.0F) {
+                Animation animTimer = this.animationMap.get(module);
+                if (animTimer != null && animTimer.isStarted() && !animTimer.isFinished()) {
                     try {
                         if (isFadingOut) {
 

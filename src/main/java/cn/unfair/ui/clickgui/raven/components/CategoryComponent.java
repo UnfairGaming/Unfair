@@ -14,7 +14,7 @@ import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.Component;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.Timer;
+import cn.unfair.util.Animation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -37,12 +37,12 @@ public class CategoryComponent {
     public int yy;
     public boolean hovering = false;
     public boolean hoveringOverCategory = false;
-    public Timer smoothTimer;
-    public Timer smoothScrollTimer;
+    public Animation smoothTimer;
+    public Animation smoothScrollTimer;
     public ScaledResolution scale;
     public float big;
     public int moduleY;
-    private Timer textTimer;
+    private Animation textTimer;
     private float bigSettings;
     private float lastHeight;
     private int lastModuleY;
@@ -111,8 +111,8 @@ public class CategoryComponent {
 
     public void setOpened(boolean on) {
         this.opened = on;
-        (this.smoothTimer = new Timer(500)).start();
-        (this.textTimer = new Timer(200)).start();
+        (this.smoothTimer = new Animation(500)).start();
+        (this.textTimer = new Animation(200)).start();
     }
 
     public void mouseClicked(boolean on) {
@@ -123,7 +123,7 @@ public class CategoryComponent {
         if (!component.isOpened) {
             closedHeight = this.y + this.titleHeight + big + 4;
         }
-        (this.smoothTimer = new Timer(200)).start();
+        (this.smoothTimer = new Animation(200)).start();
     }
 
     public void onScroll(int mouseScrollInput) {
@@ -141,7 +141,7 @@ public class CategoryComponent {
         }
         scrolled = true;
 
-        (smoothScrollTimer = new Timer(200)).start();
+        (smoothScrollTimer = new Animation(200)).start();
     }
 
     public void render() {
@@ -171,7 +171,7 @@ public class CategoryComponent {
         float xPos = opened ? middlePos : this.x + 12;
         float extra = this.y + this.titleHeight + modulesHeight + 4;
 
-        if (smoothTimer != null && System.currentTimeMillis() - smoothTimer.last >= 330) {
+        if (smoothTimer != null && smoothTimer.getElapsed() >= 330) {
             smoothTimer = null;
         }
 
@@ -190,7 +190,7 @@ public class CategoryComponent {
         }
 
         if (scrolled && smoothScrollTimer != null) {
-            if (System.currentTimeMillis() - smoothScrollTimer.last <= 200) {
+            if (smoothScrollTimer.getElapsed() <= 200) {
                 float interpolated = smoothScrollTimer.getValueFloat(lastModuleY, targetModuleY, 4);
                 moduleY = (int) interpolated;
             } else {

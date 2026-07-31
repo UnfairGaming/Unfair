@@ -10,7 +10,7 @@ import cn.unfair.ui.clickgui.raven.dataset.impl.FloatSlider;
 import cn.unfair.ui.clickgui.raven.dataset.impl.IntSlider;
 import cn.unfair.ui.clickgui.raven.dataset.impl.PercentageSlider;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.Timer;
+import cn.unfair.util.Animation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -30,9 +30,9 @@ public class ModuleComponent implements Component {
     public int yPos;
     public boolean isOpened;
     private boolean hovering;
-    private Timer hoverTimer;
+    private Animation hoverTimer;
     private boolean hoverStarted;
-    private Timer smoothTimer;
+    private Animation smoothTimer;
     private int smoothingY = 16;
     private int targetHeight = 16;
     private boolean isAnimatingHeight = false;
@@ -117,7 +117,7 @@ public class ModuleComponent implements Component {
         }
         int button_rgb = this.mod.isEnabled() ? enabledColor : disabledColor;
 
-        if (smoothTimer != null && System.currentTimeMillis() - smoothTimer.last >= 300) {
+        if (smoothTimer != null && smoothTimer.getElapsed() >= 300) {
             smoothTimer = null;
             isAnimatingHeight = false;
         }
@@ -198,7 +198,7 @@ public class ModuleComponent implements Component {
         this.smoothingY = fromHeight;
         this.targetHeight = toHeight;
         this.isAnimatingHeight = true;
-        (this.smoothTimer = new Timer(200)).start();
+        (this.smoothTimer = new Animation(200)).start();
         this.category.updateHeight();
     }
 
@@ -234,12 +234,12 @@ public class ModuleComponent implements Component {
         if (overModuleName(x, y) && this.category.opened) {
             hovering = true;
             if (hoverTimer == null) {
-                (hoverTimer = new Timer(75)).start();
+                (hoverTimer = new Animation(75)).start();
                 hoverStarted = true;
             }
         } else {
             if (hovering && hoverStarted) {
-                (hoverTimer = new Timer(75)).start();
+                (hoverTimer = new Animation(75)).start();
             }
             hoverStarted = false;
             hovering = false;
@@ -257,7 +257,7 @@ public class ModuleComponent implements Component {
 
         if (this.overModuleName(x, y) && mouse == 1) {
             this.isOpened = !this.isOpened;
-            (this.smoothTimer = new Timer(200)).start();
+            (this.smoothTimer = new Animation(200)).start();
             this.category.updateHeight();
         }
 
