@@ -1,7 +1,6 @@
 package cn.unfair.module.modules.combat;
 
 import com.google.common.base.CaseFormat;
-import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -19,7 +18,6 @@ import net.minecraft.entity.passive.EntitySquid;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.C02PacketUseEntity.Action;
 import net.minecraft.util.*;
@@ -36,7 +34,6 @@ import cn.unfair.management.RotationState;
 import cn.unfair.mixin.IAccessorPlayerControllerMP;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.misc.BedNuker;
-import cn.unfair.module.modules.movement.NoSlow;
 import cn.unfair.module.modules.player.AutoBlockIn;
 import cn.unfair.module.modules.player.AutoHeal;
 import cn.unfair.module.modules.player.Scaffold;
@@ -46,7 +43,6 @@ import cn.unfair.util.*;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class KillAura extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -442,28 +438,25 @@ public class KillAura extends Module {
                                 if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
                                     switch (this.blockTick) {
                                         case 0:
-                                            Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                            blocked = true;
                                             if (!this.isPlayerBlocking()) {
                                                 swap = true;
                                             }
-                                            blocked = true;
                                             this.blockTick = 1;
                                             break;
                                         case 1:
                                             if (this.isPlayerBlocking()) {
-                                                if (Unfair.moduleManager.modules.get(NoSlow.class).isEnabled()) {
-                                                    int randomSlot = new Random().nextInt(9);
-                                                    while (randomSlot == mc.thePlayer.inventory.currentItem) {
-                                                        randomSlot = new Random().nextInt(9);
-                                                    }
-                                                    Unfair.blinkManager.setBlinkState(true, BlinkModules.AUTO_BLOCK);
-                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(randomSlot));
-                                                    mc.getNetHandler().addToSendQueue(new C17PacketCustomPayload("send", new PacketBuffer(Unpooled.buffer())));
-                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
-                                                }
+                                                int handle = mc.thePlayer.inventory.currentItem;
+                                                PacketUtil.sendPacket(new C09PacketHeldItemChange(handle % 8 + 1));
+                                                PacketUtil.sendPacket(new C09PacketHeldItemChange(handle % 7 + 2));
+                                                PacketUtil.sendPacket(new C09PacketHeldItemChange(handle));
                                                 this.stopBlock();
-                                                attack = false;
                                             }
+                                            attack = false;
+                                            blockTick = 2;
+                                            break;
+                                        case 2:
+                                            Unfair.blinkManager.setBlinkState(false,BlinkModules.AUTO_BLOCK);
                                             if (this.attackDelayMS <= 50L) {
                                                 this.blockTick = 0;
                                             }
@@ -476,6 +469,9 @@ public class KillAura extends Module {
                                 this.fakeBlockState = true;
                             } else {
                                 Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                if (isBlocking){
+                                    this.stopBlock();
+                                }
                                 this.isBlocking = false;
                                 this.fakeBlockState = false;
                             }
