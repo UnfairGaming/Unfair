@@ -28,6 +28,8 @@ import cn.unfair.util.TeamUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import static cn.unfair.util.BadPacketUtil.bad;
+
 public class AutoProjectiles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final FloatProperty range = new FloatProperty("Range", 8.0F, 3.0F, 15.0F);
@@ -239,7 +241,7 @@ public class AutoProjectiles extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
-        if (!this.isEnabled() || event.getType() != EventType.PRE) {
+        if (!this.isEnabled() || event.getType() != EventType.PRE || bad()) {
             return;
         }
 
