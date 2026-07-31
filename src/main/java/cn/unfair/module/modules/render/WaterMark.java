@@ -8,7 +8,6 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.font.impl.UFontRenderer; // 必须导入自定义字体类
 
 public class WaterMark extends Module {
     public final IntProperty rectLeft = new IntProperty("RectLeft", 2, 0, 20);
@@ -26,11 +25,9 @@ public class WaterMark extends Module {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
-        UFontRenderer fr = Unfair.fontManager.getFont(20);
         String text = "Unfair";
 
-        float textWidth = (float) fr.getStringWidth(text);
-        float textHeight = (float) fr.getHeight();
+        float textWidth = (float) mc.fontRendererObj.getStringWidth(text);
 
         float padX = 6.0F;
         float padY = 4.0F;
@@ -39,7 +36,7 @@ public class WaterMark extends Module {
         float startY = (float) rectTop.getValue();
 
         float rectRight = startX + textWidth + (padX);
-        float rectBottom = startY + textHeight + (padY);
+        float rectBottom = startY + (padY);
 
         float radius = 4.0f;
 
@@ -53,7 +50,7 @@ public class WaterMark extends Module {
                 radius, fillColor, hudColor, hudColor
         );
 
-        fr.drawString(
+        mc.fontRendererObj.drawString(
                 text,
                 startX + padX / 2,
                 startY,

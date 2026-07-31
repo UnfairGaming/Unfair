@@ -3,13 +3,15 @@ package cn.unfair.ui.clickgui.raven.components;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
-import cn.unfair.module.modules.render.GuiModule;
+import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.Component;
 import cn.unfair.ui.clickgui.raven.dataset.BindStage;
 
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static cn.unfair.config.Config.mc;
 
 public class BindComponent implements Component {
     public static boolean isAnyBinding = false;
@@ -60,7 +62,7 @@ public class BindComponent implements Component {
     public void keyTyped(char chatTyped, int keyCode) {
         if (this.isBinding) {
             if (keyCode == 1 || keyCode == 14) {
-                if (this.parentModule.mod instanceof GuiModule) {
+                if (this.parentModule.mod instanceof ClickGui) {
                     this.parentModule.mod.setKey(54);
                 } else {
                     this.parentModule.mod.setKey(0);
@@ -93,7 +95,7 @@ public class BindComponent implements Component {
     }
 
     private void renderText(String s, int color) {
-        Unfair.fontManager.getFont(24).drawString(s, (float) ((this.parentModule.category.getX() + 4) * 2), (float) ((this.parentModule.category.getY() + this.offsetY + 3) * 2), color);
+        mc.fontRendererObj.drawString(s, (this.parentModule.category.getX() + 4) * 2, (this.parentModule.category.getY() + this.offsetY + 3) * 2, color);
     }
 
     @Override
@@ -101,9 +103,9 @@ public class BindComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         String text = this.isBinding ? "Press a key..." : "Bind: " + Keyboard.getKeyName(this.parentModule.mod.getKey());
-        Unfair.fontManager.getFont(24).drawString(text,
-                (float) ((this.parentModule.category.getX() + 4) * 2),
-                (float) ((this.parentModule.category.getModuleY() + this.offsetY + 3) * 2),
+        mc.fontRendererObj.drawString(text,
+                (this.parentModule.category.getX() + 4) * 2,
+                (this.parentModule.category.getModuleY() + this.offsetY + 3) * 2,
                 this.isBinding ? new Color(255, 100, 100).getRGB() : -1);
         GL11.glPopMatrix();
     }

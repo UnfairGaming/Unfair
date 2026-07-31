@@ -20,6 +20,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cn.unfair.config.Config.mc;
+
 public class CategoryComponent {
     private final int translucentBackground = new Color(0, 0, 0, 110).getRGB();
     private final int categoryNameColor = new Color(220, 220, 220).getRGB();
@@ -165,7 +167,7 @@ public class CategoryComponent {
             bigSettings = settingsHeight;
         }
 
-        float middlePos = (float) (this.x + this.width / 2 - Unfair.fontManager.getFont(20).getStringWidth(this.categoryName) / 2);
+        float middlePos = (float) (this.x + this.width / 2 - mc.fontRendererObj.getStringWidth(this.categoryName) / 2);
         float xPos = opened ? middlePos : this.x + 12;
         float extra = this.y + this.titleHeight + modulesHeight + 4;
 
@@ -184,7 +186,7 @@ public class CategoryComponent {
 
         float namePos = textTimer == null ? xPos : textTimer.getValueFloat(this.x + 12, middlePos, 1);
         if (!this.opened) {
-            namePos = textTimer == null ? xPos : middlePos - textTimer.getValueFloat(0, this.width / 2 - Unfair.fontManager.getFont(20).getStringWidth(this.categoryName) / 2 - 12, 1);
+            namePos = textTimer == null ? xPos : middlePos - textTimer.getValueFloat(0, this.width / 2 - mc.fontRendererObj.getStringWidth(this.categoryName) / 2 - 12, 1);
         }
 
         if (scrolled && smoothScrollTimer != null) {
@@ -212,7 +214,7 @@ public class CategoryComponent {
         RenderUtil.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.width + 2, extra, 10, translucentBackground,
                 hudColor1, hudColor2);
         renderItemForCategory(this.categoryName, this.x + 1, this.y + 4, opened || hovering);
-        Unfair.fontManager.getFont(20).drawString(this.categoryName, namePos, (float) (this.y + 2), categoryNameColor, false);
+        mc.fontRendererObj.drawString(this.categoryName, namePos, (float) (this.y + 2), categoryNameColor, false);
         RenderUtil.scissor(this.x - 2, this.y + this.titleHeight + 3, this.width + 6, extra - this.y - 4 - this.titleHeight);
 
         int prevY = this.y;

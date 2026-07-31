@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static cn.unfair.config.Config.mc;
+
 public class ModuleComponent implements Component {
     public final ArrayList<Component> settings;
     private final int enabledColor = new Color(24, 154, 255).getRGB();
@@ -145,7 +147,7 @@ public class ModuleComponent implements Component {
             this.category.updateHeight();
         }
 
-        Unfair.fontManager.getFont(20).drawString(this.mod.getName(), (float) (this.category.getX() + this.category.getWidth() / 2 - Unfair.fontManager.getFont(20).getStringWidth(this.mod.getName()) / 2), (float) (this.category.getY() + this.yPos + 2), button_rgb);
+        mc.fontRendererObj.drawString(this.mod.getName(), (int) (this.category.getX() + this.category.getWidth() / 2 - mc.fontRendererObj.getStringWidth(this.mod.getName()) / 2), (int) (this.category.getY() + this.yPos + 2), button_rgb);
         boolean scissorRequired = smoothTimer != null;
         if (scissorRequired) {
             GL11.glPushMatrix();

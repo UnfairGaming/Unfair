@@ -6,7 +6,6 @@ import cn.unfair.command.CommandManager;
 import cn.unfair.command.commands.*;
 import cn.unfair.config.Config;
 import cn.unfair.event.EventManager;
-import cn.unfair.font.FontManager;
 import cn.unfair.management.*;
 import cn.unfair.module.Module;
 import cn.unfair.module.ModuleManager;
@@ -33,7 +32,6 @@ public class Unfair {
     public static PropertyManager propertyManager;
     public static ModuleManager moduleManager;
     public static CommandManager commandManager;
-    public static FontManager fontManager;
 
     public Unfair() {
         this.init();
@@ -51,8 +49,6 @@ public class Unfair {
         propertyManager = new PropertyManager();
         moduleManager = new ModuleManager();
         commandManager = new CommandManager();
-        fontManager = new FontManager();
-        fontManager.load();
         EventManager.register(rotationManager);
         EventManager.register(floatManager);
         EventManager.register(blinkManager);
@@ -109,7 +105,7 @@ public class Unfair {
             JsonObject modInfo = new JsonParser().parse(reader).getAsJsonObject();
             version = modInfo.get("version").getAsString();
         } catch (Exception e) {
-            version = "dev";
+            version = "error";
         }
     }
 }

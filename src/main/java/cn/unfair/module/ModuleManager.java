@@ -5,7 +5,7 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.KeyEvent;
 import cn.unfair.events.TickEvent;
-import cn.unfair.module.modules.render.GuiModule;
+import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.SoundUtil;
@@ -140,7 +140,7 @@ public class ModuleManager {
             if (hud != null && shouldNotify) {
                 shouldNotify = hud.toggleAlerts.getValue();
             }
-            if (module instanceof GuiModule) {
+            if (module instanceof ClickGui) {
                 shouldNotify = false;
             }
             if (shouldNotify) {

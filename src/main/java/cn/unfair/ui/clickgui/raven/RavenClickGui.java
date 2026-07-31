@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.config.Config;
 import cn.unfair.module.Category;
-import cn.unfair.module.modules.render.GuiModule;
+import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.components.BindComponent;
 import cn.unfair.ui.clickgui.raven.components.CategoryComponent;
@@ -91,8 +91,8 @@ public class RavenClickGui extends GuiScreen {
 
     @Override
     public void drawScreen(int x, int y, float p) {
-        GuiModule guiModule = (GuiModule) Unfair.moduleManager.modules.get(GuiModule.class);
-        if (guiModule.blur.getValue()) {
+        ClickGui clickGUI = (ClickGui) Unfair.moduleManager.modules.get(ClickGui.class);
+        if (clickGUI.blur.getValue()) {
             BlurUtils.prepareBlur();
             RoundedUtils.drawRound(0, 0, this.width, this.height, 0.0f, true, Color.black);
             float inputToRange = 1.5f;
@@ -167,7 +167,7 @@ public class RavenClickGui extends GuiScreen {
             int[] displaySize = {this.width, this.height};
             int y = displaySize[1] + (8 - getValueInt(0, 30, 2));
 
-            Unfair.fontManager.getFont(20).drawString(clientName + "-" + clientVersion, 4, y, hudColorCached, true);
+            mc.fontRendererObj.drawString(clientName + "-" + clientVersion, 4, y, hudColorCached, true);
 
             long elapsedTime = System.currentTimeMillis() - openedTime + 50L;
             int characterIndex = (int) (elapsedTime / 200L);
@@ -183,9 +183,9 @@ public class RavenClickGui extends GuiScreen {
                     obfuscated += currentChar;
                 }
 
-                Unfair.fontManager.getFont(20).drawString(obfuscated, 4, y, hudColorCached, true);
+                mc.fontRendererObj.drawString(obfuscated, 4, y, hudColorCached, true);
             } else {
-                Unfair.fontManager.getFont(20).drawString(developer, 4, y, hudColorCached, true);
+                mc.fontRendererObj.drawString(developer, 4, y, hudColorCached, true);
             }
         }
     }

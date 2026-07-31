@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static cn.unfair.config.Config.mc;
+
 public class SliderComponent implements Component {
     private final Slider slider;
     private final ModuleComponent parentModule;
@@ -50,7 +52,7 @@ public class SliderComponent implements Component {
         Gui.drawRect(sliderStart, this.parentModule.category.getY() + this.offsetY + 11, sliderEnd, this.parentModule.category.getY() + this.offsetY + 15, ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis(), offset.get()).getRGB());
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Unfair.fontManager.getFont(24).drawStringWithShadow(this.slider.getName() + ": " + this.slider.getValueString(), (float) ((int) ((float) (this.parentModule.category.getX() + 4) * 2.0F)), (float) ((int) ((float) (this.parentModule.category.getY() + this.offsetY + 3) * 2.0F)), -1);
+        mc.fontRendererObj.drawStringWithShadow(this.slider.getName() + ": " + this.slider.getValueString(), (float) ((int) ((float) (this.parentModule.category.getX() + 4) * 2.0F)), (float) ((int) ((float) (this.parentModule.category.getY() + this.offsetY + 3) * 2.0F)), -1);
         GL11.glPopMatrix();
     }
 
@@ -150,7 +152,7 @@ public class SliderComponent implements Component {
         // Draw text
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Unfair.fontManager.getFont(24).drawStringWithShadow(
+        mc.fontRendererObj.drawStringWithShadow(
                 this.slider.getName() + ": " + this.slider.getValueString(),
                 (float) ((this.parentModule.category.getX() + 4) * 2),
                 (float) ((this.parentModule.category.getModuleY() + this.offsetY + 3) * 2), -1);

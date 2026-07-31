@@ -9,6 +9,8 @@ import cn.unfair.ui.clickgui.raven.Component;
 
 import java.awt.*;
 
+import static cn.unfair.config.Config.mc;
+
 public class ColorSliderComponent implements Component {
     private final ModuleComponent parentModule;
     private final ColorProperty property;
@@ -47,7 +49,7 @@ public class ColorSliderComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5, 0.5, 0.5);
         String text = property.getName().replace("-", " ") + ": " + ChatColors.formatColor(property.formatValue());
-        Unfair.fontManager.getFont(24).drawString(text, x * 2, (parentModule.category.getY() + offsetY + 3) * 2, -1);
+        mc.fontRendererObj.drawString(text, x * 2, (parentModule.category.getY() + offsetY + 3) * 2, -1);
         GL11.glPopMatrix();
     }
 
@@ -190,7 +192,7 @@ public class ColorSliderComponent implements Component {
         // Draw label
         GL11.glPushMatrix();
         GL11.glScaled(0.5, 0.5, 0.5);
-        Unfair.fontManager.getFont(24).drawString(property.getName(), x * 2, (y + 3) * 2, -1);
+        mc.fontRendererObj.drawString(property.getName(), x * 2, (y + 3) * 2, -1);
         GL11.glPopMatrix();
 
         // Update color values from property

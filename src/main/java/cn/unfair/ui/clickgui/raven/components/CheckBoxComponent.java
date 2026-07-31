@@ -9,6 +9,8 @@ import cn.unfair.ui.clickgui.raven.Component;
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static cn.unfair.config.Config.mc;
+
 public class CheckBoxComponent implements Component {
     private final BooleanProperty property;
     private final ModuleComponent module;
@@ -28,7 +30,7 @@ public class CheckBoxComponent implements Component {
     public void draw(AtomicInteger offset) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Unfair.fontManager.getFont(24).drawString(this.property.getName().replace("-", " ") + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
+        mc.fontRendererObj.drawString(this.property.getName().replace("-", " ") + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
         GL11.glPopMatrix();
     }
 
@@ -73,7 +75,7 @@ public class CheckBoxComponent implements Component {
     public void render() {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Unfair.fontManager.getFont(24).drawString(
+        mc.fontRendererObj.drawString(
                 (this.property.getValue() ? "[+]  " : "[-]  ") + this.property.getName(),
                 (float) ((this.module.category.getX() + 4) * 2),
                 (float) ((this.module.category.getModuleY() + this.offsetY + 4) * 2),
