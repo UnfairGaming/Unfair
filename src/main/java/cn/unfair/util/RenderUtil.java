@@ -769,62 +769,106 @@ public class RenderUtil {
         GL11.glColor4f((float) (n >> 16 & 0xFF) / 255.0f, (float) (n >> 8 & 0xFF) / 255.0f, (float) (n & 0xFF) / 255.0f, (float) (n >> 24 & 0xFF) / 255.0f);
     }
 
-    public static void drawRoundedGradientOutlinedRectangle(float x, float y, float x2, float y2, final float radius, final int n6, final int n7, final int n8) {
-        x *= 2.0f;
-        y *= 2.0f;
-        x2 *= 2.0f;
-        y2 *= 2.0f;
+    public static void drawRoundedGradientOutlinedRectangle(
+            float startX,
+            float startY,
+            float endX,
+            float endY,
+            final float cornerRadius,
+            final int fillColor,
+            final int outlineColor1,
+            final int outlineColor2) {
+
+        startX *= 2.0f;
+        startY *= 2.0f;
+        endX *= 2.0f;
+        endY *= 2.0f;
+
         GL11.glPushAttrib(1);
         GL11.glScaled(0.5, 0.5, 0.5);
+
         glEnable(3042);
         GL11.glDisable(3553);
         glEnable(2848);
+
         GL11.glBegin(9);
-        glColor(n6);
-        for (int i = 0; i <= 90; i += 3) {
-            final double n9 = i * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n9) * radius * -1.0, (double) (y + radius) + Math.cos(n9) * radius * -1.0);
+        glColor(fillColor);
+
+        for (int angle = 0; angle <= 90; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
+                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
+            );
         }
-        for (int j = 90; j <= 180; j += 3) {
-            final double n10 = j * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n10) * radius * -1.0, (double) (y2 - radius) + Math.cos(n10) * radius * -1.0);
+
+        for (int angle = 90; angle <= 180; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
+                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
+            );
         }
-        for (int k = 0; k <= 90; k += 3) {
-            final double n11 = k * 0.017453292f;
-            GL11.glVertex2d((double) (x2 - radius) + Math.sin(n11) * radius, (double) (y2 - radius) + Math.cos(n11) * radius);
+
+        for (int angle = 0; angle <= 90; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
+                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius
+            );
         }
-        for (int l = 90; l <= 180; l += 3) {
-            final double n12 = l * 0.017453292f;
-            GL11.glVertex2d((double) (x2 - radius) + Math.sin(n12) * radius, (double) (y + radius) + Math.cos(n12) * radius);
+
+        for (int angle = 90; angle <= 180; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
+                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius
+            );
         }
         GL11.glEnd();
+
         GL11.glPushMatrix();
         GL11.glShadeModel(7425);
-        GL11.glLineWidth(2.0f);
+        GL11.glLineWidth(1.5f);
         GL11.glBegin(2);
-        if (n7 != 0L) {
-            glColor(n7);
+
+        if (outlineColor1 != 0L) {
+            glColor(outlineColor1);
         }
-        for (int n13 = 0; n13 <= 90; n13 += 3) {
-            final double n14 = n13 * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n14) * radius * -1.0, (double) (y + radius) + Math.cos(n14) * radius * -1.0);
+        for (int angle = 0; angle <= 90; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
+                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
+            );
         }
-        for (int n15 = 90; n15 <= 180; n15 += 3) {
-            final double n16 = n15 * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n16) * radius * -1.0, (double) (y2 - radius) + Math.cos(n16) * radius * -1.0);
+        for (int angle = 90; angle <= 180; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
+                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
+            );
         }
-        if (n8 != 0) {
-            glColor(n8);
+
+        if (outlineColor2 != 0) {
+            glColor(outlineColor2);
         }
-        for (int n17 = 0; n17 <= 90; n17 += 3) {
-            final double n18 = n17 * 0.017453292f;
-            GL11.glVertex2d((double) (x2 - radius) + Math.sin(n18) * radius, (double) (y2 - radius) + Math.cos(n18) * radius);
+        for (int angle = 0; angle <= 90; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
+                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius
+            );
         }
-        for (int n19 = 90; n19 <= 180; n19 += 3) {
-            final double n20 = n19 * 0.017453292f;
-            GL11.glVertex2d((double) (x2 - radius) + Math.sin(n20) * radius, (double) (y + radius) + Math.cos(n20) * radius);
+        for (int angle = 90; angle <= 180; angle += 3) {
+            final double radian = angle * 0.017453292f;
+            GL11.glVertex2d(
+                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
+                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius
+            );
         }
         GL11.glEnd();
+
         glPopMatrix();
         glEnable(3553);
         GL11.glDisable(3042);

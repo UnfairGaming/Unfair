@@ -36,7 +36,7 @@ public class WaterMark extends Module {
         float startY = (float) rectTop.getValue();
 
         float rectRight = startX + textWidth + (padX);
-        float rectBottom = startY + (padY);
+        float rectBottom = startY + (padY) + (mc.fontRendererObj.FONT_HEIGHT);
 
         float radius = 4.0f;
 
@@ -53,7 +53,7 @@ public class WaterMark extends Module {
         mc.fontRendererObj.drawString(
                 text,
                 startX + padX / 2,
-                startY,
+                startY + (padY / 2),
                 hudColor,
                 shadow.getValue()
         );

@@ -36,7 +36,7 @@ public class HUD extends Module {
     public final ColorProperty custom1 = new ColorProperty("custom-color-1", Color.WHITE.getRGB(), () -> this.colorMode.getValue() == 3 || this.colorMode.getValue() == 4 || this.colorMode.getValue() == 5);
     public final ColorProperty custom2 = new ColorProperty("custom-color-2", Color.WHITE.getRGB(), () -> this.colorMode.getValue() == 4 || this.colorMode.getValue() == 5);
     public final ColorProperty custom3 = new ColorProperty("custom-color-3", Color.WHITE.getRGB(), () -> this.colorMode.getValue() == 5);
-    public final ModeProperty posX = new ModeProperty("position-x", 0, new String[]{"LEFT", "RIGHT"});
+    public final ModeProperty posX = new ModeProperty("position-x", 1, new String[]{"LEFT", "RIGHT"});
     public final ModeProperty posY = new ModeProperty("position-y", 0, new String[]{"TOP", "BOTTOM"});
     public final IntProperty offsetX = new IntProperty("offset-x", 2, 0, 255);
     public final IntProperty offsetY = new IntProperty("offset-y", 2, 0, 255);
@@ -316,9 +316,9 @@ public class HUD extends Module {
                     barAlpha = Math.min(barAlpha, 255);
                     int barColor = (color & 0x00FFFFFF) | (barAlpha << 24);
                     RenderUtil.drawRect(
-                            currentX / this.scale.getValue() + (alignLeft ? -3.0F : 1.0F),
+                            currentX / this.scale.getValue() + (alignLeft ? -2.0F : 1.0F),
                             currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F),
-                            currentX / this.scale.getValue() + (alignLeft ? -2.0F : 2.0F),
+                            currentX / this.scale.getValue() + (alignLeft ? -1.0F : 2.0F),
                             currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F)),
                             barColor
                     );
