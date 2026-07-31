@@ -50,39 +50,42 @@ import java.util.Random;
 
 public class KillAura extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode;
-    public final ModeProperty sort;
-    public final ModeProperty autoBlock;
-    public final BooleanProperty autoBlockRequirePress;
-    public final IntProperty autoBlockCPS;
-    public final FloatProperty autoBlockRange;
-    public final FloatProperty swingRange;
-    public final FloatProperty attackRange;
-    public final IntProperty fov;
-    public final IntProperty minCPS;
-    public final IntProperty maxCPS;
-    public final IntProperty switchDelay;
-    public final ModeProperty rotations;
-    public final ModeProperty moveFix;
-    public final PercentProperty smoothing;
-    public final IntProperty angleStep;
-    public final BooleanProperty throughWalls;
-    public final BooleanProperty requirePress;
-    public final BooleanProperty allowMining;
-    public final BooleanProperty weaponsOnly;
-    public final BooleanProperty allowTools;
-    public final BooleanProperty inventoryCheck;
-    public final BooleanProperty botCheck;
-    public final BooleanProperty players;
-    public final BooleanProperty bosses;
-    public final BooleanProperty mobs;
-    public final BooleanProperty animals;
-    public final BooleanProperty golems;
-    public final BooleanProperty silverfish;
-    public final BooleanProperty teams;
-    public final ModeProperty showTarget;
-    public final IntProperty aimSpeedYaw;
-    public final IntProperty aimSpeedPitch;
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"SINGLE", "SWITCH"});
+    public final ModeProperty sort = new ModeProperty("sort", 0, new String[]{"DISTANCE", "HEALTH", "HURT_TIME", "FOV"});
+    public final ModeProperty autoBlock = new ModeProperty(
+            "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE", "HYPIXEL_LAG"}
+    );
+    private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
+    public final BooleanProperty autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
+    public final IntProperty autoBlockCPS = new IntProperty("auto-block-aps", 10, 1, 20);
+    public final FloatProperty autoBlockRange = new FloatProperty("auto-block-range", 6.0F, 3.0F, 8.0F);
+    public final FloatProperty swingRange = new FloatProperty("swing-range", 3.5F, 3.0F, 6.0F);
+    public final FloatProperty attackRange = new FloatProperty("attack-range", 3.0F, 3.0F, 6.0F);
+    public final IntProperty fov = new IntProperty("fov", 360, 30, 360);
+    public final IntProperty minCPS = new IntProperty("min-aps", 14, 1, 20);
+    public final IntProperty maxCPS = new IntProperty("max-aps", 14, 1, 20);
+    public final IntProperty switchDelay = new IntProperty("switch-delay", 150, 0, 1000);
+    public final ModeProperty rotations = new ModeProperty("rotations", 2, new String[]{"NONE", "LEGIT", "SILENT", "LOCK_VIEW"});
+    public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
+    public final PercentProperty smoothing = new PercentProperty("smoothing", 0);
+    public final IntProperty angleStep = new IntProperty("angle-step", 90, 30, 180);
+    public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotations.getValue() == 2);
+    public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotations.getValue() == 2);
+    public final BooleanProperty throughWalls = new BooleanProperty("through-walls", true);
+    public final BooleanProperty requirePress = new BooleanProperty("require-press", false);
+    public final BooleanProperty allowMining = new BooleanProperty("allow-mining", false);
+    public final BooleanProperty weaponsOnly = new BooleanProperty("weapons-only", false);
+    public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final BooleanProperty botCheck = new BooleanProperty("bot-check", true);
+    public final BooleanProperty players = new BooleanProperty("players", true);
+    public final BooleanProperty bosses = new BooleanProperty("bosses", false);
+    public final BooleanProperty mobs = new BooleanProperty("mobs", false);
+    public final BooleanProperty animals = new BooleanProperty("animals", false);
+    public final BooleanProperty golems = new BooleanProperty("golems", false);
+    public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
+    public final BooleanProperty teams = new BooleanProperty("teams", true);
+    public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "DEFAULT", "HUD"});
     private final TimerUtil timer = new TimerUtil();
     private AttackData target = null;
     private int switchTick = 0;
@@ -97,42 +100,6 @@ public class KillAura extends Module {
 
     public KillAura() {
         super("KillAura", false);
-        this.mode = new ModeProperty("mode", 0, new String[]{"SINGLE", "SWITCH"});
-        this.sort = new ModeProperty("sort", 0, new String[]{"DISTANCE", "HEALTH", "HURT_TIME", "FOV"});
-
-        this.autoBlock = new ModeProperty(
-                "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE"}
-        );
-        this.autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
-        this.autoBlockCPS = new IntProperty("auto-block-aps", 10, 1, 20);
-        this.autoBlockRange = new FloatProperty("auto-block-range", 6.0F, 3.0F, 8.0F);
-        this.swingRange = new FloatProperty("swing-range", 3.5F, 3.0F, 6.0F);
-        this.attackRange = new FloatProperty("attack-range", 3.0F, 3.0F, 6.0F);
-        this.fov = new IntProperty("fov", 360, 30, 360);
-        this.minCPS = new IntProperty("min-aps", 14, 1, 20);
-        this.maxCPS = new IntProperty("max-aps", 14, 1, 20);
-        this.switchDelay = new IntProperty("switch-delay", 150, 0, 1000);
-        this.rotations = new ModeProperty("rotations", 2, new String[]{"NONE", "LEGIT", "SILENT", "LOCK_VIEW"});
-        this.moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
-        this.smoothing = new PercentProperty("smoothing", 0);
-        this.angleStep = new IntProperty("angle-step", 90, 30, 180);
-        this.aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotations.getValue() == 2);
-        this.aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotations.getValue() == 2);
-        this.throughWalls = new BooleanProperty("through-walls", true);
-        this.requirePress = new BooleanProperty("require-press", false);
-        this.allowMining = new BooleanProperty("allow-mining", false);
-        this.weaponsOnly = new BooleanProperty("weapons-only", false);
-        this.allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
-        this.inventoryCheck = new BooleanProperty("inventory-check", true);
-        this.botCheck = new BooleanProperty("bot-check", true);
-        this.players = new BooleanProperty("players", true);
-        this.bosses = new BooleanProperty("bosses", false);
-        this.mobs = new BooleanProperty("mobs", false);
-        this.animals = new BooleanProperty("animals", false);
-        this.golems = new BooleanProperty("golems", false);
-        this.silverfish = new BooleanProperty("silverfish", false);
-        this.teams = new BooleanProperty("teams", true);
-        this.showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "DEFAULT", "HUD"});
     }
 
     private long getAttackDelay() {
@@ -375,10 +342,20 @@ public class KillAura extends Module {
 
     public boolean shouldAutoBlock() {
         if (this.isPlayerBlocking() && this.isBlocking) {
-            return !mc.thePlayer.isInWater() && !mc.thePlayer.isInLava() && (this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 3);
+            return !mc.thePlayer.isInWater() && !mc.thePlayer.isInLava()
+                    && (this.autoBlock.getValue() == 2
+                    || this.autoBlock.getValue() == 3
+                    || this.autoBlock.getValue() == 4
+                    || this.autoBlock.getValue() == 5);
         } else {
             return false;
         }
+    }
+
+    private boolean shouldKeepSilentRotation() {
+        return this.target != null
+                && this.rotations.getValue() == 2
+                && (this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 5);
     }
 
     public boolean isBlocking() {
@@ -442,7 +419,6 @@ public class KillAura extends Module {
                                 if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
                                     switch (this.blockTick) {
                                         case 0:
-                                            Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
                                             if (!this.isPlayerBlocking()) {
                                                 swap = true;
                                             }
@@ -450,6 +426,10 @@ public class KillAura extends Module {
                                             this.blockTick = 1;
                                             break;
                                         case 1:
+                                            attack = false;
+                                            this.blockTick = 2;
+                                            break;
+                                        case 2:
                                             if (this.isPlayerBlocking()) {
                                                 if (Unfair.moduleManager.modules.get(NoSlow.class).isEnabled()) {
                                                     int randomSlot = new Random().nextInt(9);
@@ -462,11 +442,9 @@ public class KillAura extends Module {
                                                     PacketUtil.sendPacket(new C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem));
                                                 }
                                                 this.stopBlock();
-                                                attack = false;
                                             }
-                                            if (this.attackDelayMS <= 50L) {
-                                                this.blockTick = 0;
-                                            }
+                                            attack = false;
+                                            this.blockTick = 0;
                                             break;
                                         default:
                                             this.blockTick = 0;
@@ -523,6 +501,51 @@ public class KillAura extends Module {
                                 swap = true;
                             }
                             break;
+                        case 5:
+                            if (this.hasValidTarget()) {
+                                if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            blocked = true;
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            if (this.isPlayerBlocking()) {
+                                                if (this.c09Instead.getValue()) {
+                                                    int handle = mc.thePlayer.inventory.currentItem;
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(handle % 8 + 1));
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(handle % 7 + 2));
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(handle));
+                                                }
+                                                this.stopBlock();
+                                            }
+                                            attack = false;
+                                            this.blockTick = 2;
+                                            break;
+                                        case 2:
+                                            Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                if (this.isBlocking) {
+                                    this.stopBlock();
+                                }
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
                     }
                 }
                 boolean attacked = false;
@@ -567,7 +590,7 @@ public class KillAura extends Module {
                     if (attack) {
                         attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
                     }
-                } else if (this.rotations.getValue() == 2 && this.target != null) {
+                } else if (this.rotations.getValue() == 2 && this.target != null && !this.shouldKeepSilentRotation()) {
 
                     float realYaw = mc.thePlayer.rotationYaw;
                     float realPitch = mc.thePlayer.rotationPitch;
@@ -592,7 +615,7 @@ public class KillAura extends Module {
                 }
             }
 
-            if (this.rotations.getValue() == 2 && !attack) {
+            if (this.rotations.getValue() == 2 && !attack && !this.shouldKeepSilentRotation()) {
                 float realYaw = mc.thePlayer.rotationYaw;
                 float realPitch = mc.thePlayer.rotationPitch;
 
@@ -820,7 +843,6 @@ public class KillAura extends Module {
                 }
             }
         } else {
-
             boolean badCps = this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 3;
             if (badCps && this.autoBlockCPS.getValue() > 10) {
                 this.autoBlockCPS.setValue(10);
