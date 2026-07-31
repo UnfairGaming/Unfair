@@ -33,7 +33,6 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
-import cn.unfair.mixin.IAccessorEntity;
 import cn.unfair.mixin.IAccessorPlayerControllerMP;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.misc.BedNuker;
@@ -82,7 +81,6 @@ public class KillAura extends Module {
     public final BooleanProperty silverfish;
     public final BooleanProperty teams;
     public final ModeProperty showTarget;
-    public final BooleanProperty aimBestAngle;
     public final IntProperty aimSpeedYaw;
     public final IntProperty aimSpeedPitch;
     private final TimerUtil timer = new TimerUtil();
@@ -118,7 +116,6 @@ public class KillAura extends Module {
         this.moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
         this.smoothing = new PercentProperty("smoothing", 0);
         this.angleStep = new IntProperty("angle-step", 90, 30, 180);
-        this.aimBestAngle = new BooleanProperty("aim-best-angle", false, () -> this.rotations.getValue() == 2);
         this.aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotations.getValue() == 2);
         this.aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotations.getValue() == 2);
         this.throughWalls = new BooleanProperty("through-walls", true);
@@ -535,24 +532,7 @@ public class KillAura extends Module {
                         float[] targetRotations;
                         float randomOffset = (float) this.angleStep.getValue() + RandomUtil.nextFloat(-5.0F, 5.0F);
                         float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
-
-                        if (this.aimBestAngle.getValue()) {
-
-                            Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
-                            Vec3 lookVec = ((IAccessorEntity) mc.thePlayer).callGetVectorForRotation(event.getPitch(), event.getYaw());
-                            Vec3 lookEnd = eyePos.addVector(lookVec.xCoord * 6.0, lookVec.yCoord * 6.0, lookVec.zCoord * 6.0);
-                            Vec3 bestPoint = RotationUtil.getClosestPointOnBox(lookEnd, this.target.getBox());
-
-                            targetRotations = RotationUtil.getRotations(
-                                    bestPoint.xCoord - eyePos.xCoord,
-                                    bestPoint.yCoord - eyePos.yCoord,
-                                    bestPoint.zCoord - eyePos.zCoord,
-                                    event.getYaw(),
-                                    event.getPitch(),
-                                    randomOffset,
-                                    smoothFactor
-                            );
-                        } else {
+                        {
 
                             targetRotations = RotationUtil.getRotationsToBox(
                                     this.target.getBox(),
