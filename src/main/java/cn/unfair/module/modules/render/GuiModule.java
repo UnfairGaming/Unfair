@@ -1,0 +1,39 @@
+package cn.unfair.module.modules.render;
+
+import net.minecraft.client.Minecraft;
+import org.lwjgl.input.Keyboard;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.ui.clickgui.modern.ModernClickGui;
+import cn.unfair.ui.clickgui.raven.RavenClickGui;
+
+public class GuiModule extends Module {
+    private static final Minecraft mc = Minecraft.getMinecraft();
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Raven", "Modern"});
+    public final BooleanProperty blur = new BooleanProperty("blur", false);
+    private RavenClickGui ravenClickGui;
+    private ModernClickGui modernClickGui;
+
+    public GuiModule() {
+        super("ClickGui", false);
+        setKey(Keyboard.KEY_RSHIFT);
+    }
+
+    @Override
+    public void onEnabled() {
+        setEnabled(false);
+        if (mode.getValue() == 0){
+            if (ravenClickGui == null) {
+                ravenClickGui = new RavenClickGui();
+                ravenClickGui.initMain();
+            }
+            mc.displayGuiScreen(ravenClickGui);
+        } else {
+            if (modernClickGui == null) {
+                modernClickGui = new ModernClickGui();
+            }
+            mc.displayGuiScreen(modernClickGui);
+        }
+    }
+}
