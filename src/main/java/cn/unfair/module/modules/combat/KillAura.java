@@ -822,8 +822,8 @@ public class KillAura extends Module {
         } else {
 
             boolean badCps = this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 3;
-            if (badCps && this.autoBlockCPS.getValue() > 10.0F) {
-                this.autoBlockCPS.setValue(10.0F);
+            if (badCps && this.autoBlockCPS.getValue() > 10) {
+                this.autoBlockCPS.setValue(10);
             }
         }
     }
