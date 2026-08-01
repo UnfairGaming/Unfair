@@ -26,7 +26,7 @@ import net.minecraft.potion.Potion;
 
 import static cn.unfair.util.ChatUtil.dbg;
 
-public class Prediction extends SubModule {
+public class PredictionVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int ROTATION_PRIORITY = 100;
     private static final int PREDICT_TICKS = 3;
@@ -39,7 +39,7 @@ public class Prediction extends SubModule {
     private boolean rotating;
     private Entity target;
 
-    public Prediction() {
+    public PredictionVelocity() {
         super("Prediction");
     }
 
@@ -140,7 +140,7 @@ public class Prediction extends SubModule {
 
     @Override
     public void onEnabled() {
-        dbg("Disable your JumpReset module.");
+        dbg("Disable your JumpReset module when using prediction velocity.");
         resetPredict();
     }
 

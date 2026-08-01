@@ -14,7 +14,7 @@ import net.minecraft.network.play.server.S27PacketExplosion;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 
-public class Vanilla extends SubModule {
+public class VanillaVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final PercentProperty chance = new PercentProperty("chance", 100);
@@ -28,7 +28,7 @@ public class Vanilla extends SubModule {
     private boolean pendingExplosion = false;
     private boolean allowNext = true;
 
-    public Vanilla() {
+    public VanillaVelocity() {
         super("Vanilla");
     }
 

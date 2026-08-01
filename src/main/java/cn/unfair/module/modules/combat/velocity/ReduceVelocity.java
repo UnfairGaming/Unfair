@@ -22,11 +22,11 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 import static cn.unfair.util.BadPacketUtil.bad;
 
-public class Reduce extends SubModule {
+public class ReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public boolean knockback = false;
 
-    public Reduce() {
+    public ReduceVelocity() {
         super("Reduce");
     }
 
