@@ -63,7 +63,7 @@ public class ModuleManager {
                                 String className = name.replace('/', '.').substring(0, name.length() - 6);
                                 try {
                                     Class<?> clazz = Class.forName(className);
-                                    if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())) {
+                                    if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()) && clazz.getEnclosingClass() == null && !SubModule.class.isAssignableFrom(clazz)) {
                                         result.add((Class<? extends Module>) clazz);
                                     }
                                 } catch (ClassNotFoundException ignored) {
@@ -97,7 +97,7 @@ public class ModuleManager {
                 String className = packageName + "." + file.getName().substring(0, file.getName().length() - 6);
                 try {
                     Class<?> clazz = Class.forName(className);
-                    if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())) {
+                    if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()) && clazz.getEnclosingClass() == null && !SubModule.class.isAssignableFrom(clazz)) {
                         result.add((Class<? extends Module>) clazz);
                     }
                 } catch (ClassNotFoundException ignored) {

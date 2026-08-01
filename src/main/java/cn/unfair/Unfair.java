@@ -9,6 +9,7 @@ import cn.unfair.event.EventManager;
 import cn.unfair.management.*;
 import cn.unfair.module.Module;
 import cn.unfair.module.ModuleManager;
+import cn.unfair.module.ModuleWithModuleSettings;
 import cn.unfair.property.Property;
 import cn.unfair.property.PropertyManager;
 
@@ -73,17 +74,28 @@ public class Unfair {
         commandManager.commands.add(new VclipCommand());
         for (Module module : moduleManager.modules.values()) {
             ArrayList<Property<?>> properties = new ArrayList<>();
-            for (final Field field : module.getClass().getDeclaredFields()) {
-                field.setAccessible(true);
-                final Object obj;
-                try {
-                    obj = field.get(module);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+            Class<?> clazz = module.getClass();
+            while (clazz != null && clazz != Object.class) {
+                for (final Field field : clazz.getDeclaredFields()) {
+                    field.setAccessible(true);
+                    final Object obj;
+                    try {
+                        obj = field.get(module);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (obj instanceof Property<?>) {
+                        ((Property<?>) obj).setOwner(module);
+                        properties.add((Property<?>) obj);
+                    }
                 }
-                if (obj instanceof Property<?>) {
-                    ((Property<?>) obj).setOwner(module);
-                    properties.add((Property<?>) obj);
+                clazz = clazz.getSuperclass();
+            }
+            if (module instanceof ModuleWithModuleSettings) {
+                ModuleWithModuleSettings mws = (ModuleWithModuleSettings) module;
+                properties.addAll(mws.collectSubModuleProperties());
+                for (Module subModule : mws.getSubModules()) {
+                    EventManager.register(subModule);
                 }
             }
             propertyManager.properties.put(module.getClass(), properties);
