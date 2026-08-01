@@ -92,6 +92,7 @@ public class KillAura extends Module {
     public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
     public final BooleanProperty teams = new BooleanProperty("teams", true);
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX", "CIRCLE"});
+    public boolean attackDisabled = false;
     private final TimerUtil timer = new TimerUtil();
     private AttackData target = null;
     private int switchTick = 0;
@@ -178,6 +179,9 @@ public class KillAura extends Module {
     }
 
     private boolean canAttack() {
+        if (this.attackDisabled) {
+            return false;
+        }
         if (this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer) {
             return false;
         } else if (!(Boolean) this.weaponsOnly.getValue()
