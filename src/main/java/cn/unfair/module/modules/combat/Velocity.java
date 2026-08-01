@@ -144,19 +144,17 @@ public class Velocity extends Module {
                     target = result.entityHit;
                 }
             }
+            if (target != null) {
+                mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
+                mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
 
-            EventManager.call(new AttackEvent(target));
+                mc.thePlayer.motionX *= 0.6D;
+                mc.thePlayer.motionZ *= 0.6D;
 
-            mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
-            mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+                mc.thePlayer.setSprinting(false);
 
-            mc.thePlayer.motionX *= 0.6D;
-            mc.thePlayer.motionZ *= 0.6D;
-
-            mc.thePlayer.setSprinting(false);
-
-            dbg(Unfair.clientName + "Reduce 40%");
-
+                dbg(Unfair.clientName + "Reduce 40%");
+            }
             knockback = false;
         }
     }
