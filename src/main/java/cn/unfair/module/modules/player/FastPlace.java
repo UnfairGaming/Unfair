@@ -22,7 +22,6 @@ import java.util.Locale;
 
 public class FastPlace extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final DecimalFormat df = new DecimalFormat("0.0#", new DecimalFormatSymbols(Locale.US));
     public final IntProperty delay = new IntProperty("delay", 1, 1, 3);
     public final BooleanProperty blocksOnly = new BooleanProperty("blocks-only", true);
     public final BooleanProperty placeFix = new BooleanProperty("place-fix", true);
@@ -73,10 +72,5 @@ public class FastPlace extends Module {
     @Override
     public void onDisabled() {
         this.delayMS = 0L;
-    }
-
-    @Override
-    public String[] getSuffix() {
-        return new String[]{df.format(this.delay.getValue())};
     }
 }

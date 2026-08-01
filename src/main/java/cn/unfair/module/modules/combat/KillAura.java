@@ -1,10 +1,15 @@
 package cn.unfair.module.modules.combat;
 
+import cn.unfair.mixin.IAccessorRenderManager;
 import com.google.common.base.CaseFormat;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
@@ -43,6 +48,7 @@ import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -85,7 +91,7 @@ public class KillAura extends Module {
     public final BooleanProperty golems = new BooleanProperty("golems", false);
     public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
     public final BooleanProperty teams = new BooleanProperty("teams", true);
-    public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "DEFAULT", "HUD"});
+    public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX", "CIRCLE"});
     private final TimerUtil timer = new TimerUtil();
     private AttackData target = null;
     private int switchTick = 0;
@@ -703,6 +709,99 @@ public class KillAura extends Module {
         }
     }
 
+    private void renderScan(Render3DEvent event, EntityLivingBase target) {
+        double renderPosX = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX();
+        double renderPosY = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY();
+        double renderPosZ = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ();
+        Vec3 interpolated = interpolate(
+                new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ),
+                target.getPositionVector(),
+                event.getPartialTicks()
+        );
+
+        double height = target.height;
+        long time = System.currentTimeMillis();
+        double rawAngle = time / 300.0;
+        double offset = (Math.sin(rawAngle) + 1) / 2.0 * height;
+
+        double thicknessScale = 1.0 - Math.abs(Math.sin(rawAngle));
+        double minScale = 0.15;
+        thicknessScale = minScale + (1.0 - minScale) * thicknessScale;
+
+        double x = interpolated.xCoord - renderPosX;
+        double y = interpolated.yCoord + offset - renderPosY;
+        double z = interpolated.zCoord - renderPosZ;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
+
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.shadeModel(GL11.GL_SMOOTH);
+        GlStateManager.disableCull();
+
+        float radius = 0.6f;
+        double baseThickness = 0.5f;
+        double thickness = baseThickness * thicknessScale;
+        double halfThick = thickness / 2.0;
+        double bottomY = -halfThick;
+
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        int slices = 60;
+
+        for (int i = 0; i < slices; i++) {
+            double angle1 = Math.toRadians((i / (double) slices) * 360.0);
+            double angle2 = Math.toRadians(((i + 1) / (double) slices) * 360.0);
+
+            double x1 = Math.sin(angle1) * radius;
+            double z1 = Math.cos(angle1) * radius;
+            double x2 = Math.sin(angle2) * radius;
+            double z2 = Math.cos(angle2) * radius;
+
+            Color col1 = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor((int) (i * 360.0 / slices * 10));
+            Color col2 = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor((int) ((i + 1) * 360.0 / slices * 10));
+            float r1 = col1.getRed() / 255f;
+            float g1 = col1.getGreen() / 255f;
+            float b1 = col1.getBlue() / 255f;
+            float r2 = col2.getRed() / 255f;
+            float g2 = col2.getGreen() / 255f;
+            float b2 = col2.getBlue() / 255f;
+
+            float alphaTop, alphaBottom;
+            if (Math.cos(rawAngle) > 0) {
+                alphaBottom = 0.05f;
+                alphaTop = 0.7f;
+            } else {
+                alphaBottom = 0.7f;
+                alphaTop = 0.05f;
+            }
+
+            worldrenderer.begin(GL11.GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+            worldrenderer.pos(x1, bottomY, z1).color(r1, g1, b1, alphaBottom).endVertex();
+            worldrenderer.pos(x1, halfThick, z1).color(r1, g1, b1, alphaTop).endVertex();
+            worldrenderer.pos(x2, bottomY, z2).color(r2, g2, b2, alphaBottom).endVertex();
+            worldrenderer.pos(x2, halfThick, z2).color(r2, g2, b2, alphaTop).endVertex();
+            tessellator.draw();
+        }
+        GlStateManager.shadeModel(GL11.GL_FLAT);
+        GlStateManager.enableAlpha();
+        GlStateManager.enableCull();
+        GlStateManager.disableBlend();
+        GlStateManager.enableTexture2D();
+        GlStateManager.popMatrix();
+    }
+
+    private static Vec3 interpolate(Vec3 prev, Vec3 current, float partialTicks) {
+        return new Vec3(
+                prev.xCoord + (current.xCoord - prev.xCoord) * partialTicks,
+                prev.yCoord + (current.yCoord - prev.yCoord) * partialTicks,
+                prev.zCoord + (current.zCoord - prev.zCoord) * partialTicks
+        );
+    }
+
     @EventTarget(Priority.LOWEST)
     public void onPacket(PacketEvent event) {
         if (this.isEnabled() && !event.isCancelled()) {
@@ -740,24 +839,17 @@ public class KillAura extends Module {
     @EventTarget
     public void onRender(Render3DEvent event) {
         if (this.isEnabled() && target != null) {
-            if (this.showTarget.getValue() != 0
-                    && TeamUtil.isEntityLoaded(this.target.getEntity())
+            if (TeamUtil.isEntityLoaded(this.target.getEntity())
                     && this.isAttackAllowed()) {
-                Color color = new Color(-1);
-                switch (this.showTarget.getValue()) {
-                    case 1:
-                        if (this.target.getEntity().hurtTime > 0) {
-                            color = new Color(16733525);
-                        } else {
-                            color = new Color(5635925);
-                        }
-                        break;
-                    case 2:
-                        color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                if (this.showTarget.getValue() == 1) {
+                    Color color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                    RenderUtil.enableRenderState();
+                    RenderUtil.drawEntityBox(this.target.getEntity(), color.getRed(), color.getGreen(), color.getBlue());
+                    RenderUtil.disableRenderState();
                 }
-                RenderUtil.enableRenderState();
-                RenderUtil.drawEntityBox(this.target.getEntity(), color.getRed(), color.getGreen(), color.getBlue());
-                RenderUtil.disableRenderState();
+                if (this.showTarget.getValue() == 2) {
+                    renderScan(event, getTarget());
+                }
             }
         }
     }

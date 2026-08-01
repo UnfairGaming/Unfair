@@ -24,9 +24,4 @@ public class NoJumpDelay extends Module {
                     .setJumpTicks(Math.min(((IAccessorEntityLivingBase) mc.thePlayer).getJumpTicks(), this.delay.getValue() + 1));
         }
     }
-
-    @Override
-    public String[] getSuffix() {
-        return new String[]{this.delay.getValue().toString()};
-    }
 }
