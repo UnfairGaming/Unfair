@@ -1,7 +1,9 @@
 package cn.unfair.module.modules.combat;
 
+import cn.unfair.util.RotationUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -32,8 +34,11 @@ import static cn.unfair.util.BadPacketUtil.bad;
 
 public class AutoProjectiles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty range = new FloatProperty("Range", 8.0F, 3.0F, 15.0F);
-    public final IntProperty amount = new IntProperty("Amount", 1, 1, 10);
+    public final FloatProperty minRange = new FloatProperty("MinRange", 3.0f, 2.0f, 6.0f);
+    public final FloatProperty maxRange = new FloatProperty("MaxRange", 8.0f, 3.0f, 15.0f);
+    public final BooleanProperty smartDelay = new BooleanProperty("smart-delay", true);
+    public final IntProperty throwDelay = new IntProperty("throw-delay", 3, 1, 15, () -> !smartDelay.getValue());
+    public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
     public final BooleanProperty teams = new BooleanProperty("Teams", true);
     private EntityLivingBase target = null;
@@ -56,14 +61,49 @@ public class AutoProjectiles extends Module {
             return false;
         }
         double distance = mc.thePlayer.getDistanceToEntity(entity);
-        if (distance > this.range.getValue()) {
+        if (distance > this.maxRange.getValue()) {
             return false;
         }
         EntityPlayer player = (EntityPlayer) entity;
         if (TeamUtil.isFriend(player)) {
             return false;
         }
+        if (RotationUtil.angleToEntity(player) > (float) this.fov.getValue()) return false;
         return !this.teams.getValue() || !TeamUtil.isSameTeam(player);
+    }
+
+    private int getThrowDelay() {
+        if (!this.smartDelay.getValue()) {
+            return this.throwDelay.getValue();
+        }
+
+        EntityLivingBase target = this.getTarget();
+        if (target == null) {
+            return this.throwDelay.getValue();
+        }
+
+        if (AutoProjectiles.mc.gameSettings.keyBindBack.isKeyDown()) {
+            return 1;
+        }
+
+        double distance = mc.thePlayer.getDistanceToEntity(target);
+
+        if (distance <= 4.5) {
+            return 1;
+        }
+        if (distance <= 6.0) {
+            return 2;
+        }
+        if (distance <= 8.0) {
+            return 3;
+        }
+        if (distance <= 9.0) {
+            return 5;
+        }
+        if (distance <= 15.0) {
+            return 8;
+        }
+        return 20;
     }
 
     private EntityLivingBase getTarget() {
@@ -255,6 +295,9 @@ public class AutoProjectiles extends Module {
         }
 
         if (this.throwState == 0) {
+            if (System.currentTimeMillis() - this.lastThrowTime < this.getThrowDelay() * 50L) {
+                return;
+            }
             this.target = this.getTarget();
             if (this.target == null) {
                 return;
@@ -263,7 +306,7 @@ public class AutoProjectiles extends Module {
             KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
             if (killAura != null && killAura.isEnabled()) {
                 double distance = mc.thePlayer.getDistanceToEntity(this.target);
-                if (distance <= killAura.attackRange.getValue()) {
+                if (distance <= minRange.getValue()) {
                     return;
                 }
             }
@@ -272,7 +315,7 @@ public class AutoProjectiles extends Module {
                 return;
             }
 
-            this.throwsRemaining = this.amount.getValue();
+            this.throwsRemaining = 1;
             this.throwState = 1;
             this.hasRotated = false;
         }

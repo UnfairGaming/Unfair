@@ -1,5 +1,6 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.events.LoadWorldEvent;
 import net.minecraft.client.Minecraft;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.TickEvent;
@@ -22,6 +23,11 @@ public class FreeLook extends Module {
     public FreeLook() {
         super("FreeLook", false, true);
         INSTANCE = this;
+    }
+
+    @EventTarget
+    public void onLoadWorld(LoadWorldEvent event) {
+        this.active = false;
     }
 
     @EventTarget
