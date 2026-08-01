@@ -4,15 +4,19 @@ import cn.unfair.Unfair;
 import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.*;
-import cn.unfair.mixin.IAccessorEntity;
+import cn.unfair.events.LoadWorldEvent;
+import cn.unfair.events.MoveInputEvent;
+import cn.unfair.events.PacketEvent;
+import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.*;
+import cn.unfair.util.PacketUtil;
+import cn.unfair.util.RayCastUtil;
+import cn.unfair.util.RotationUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,6 +24,8 @@ import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.potion.Potion;
+
+import static cn.unfair.util.ChatUtil.dbg;
 
 public class Prediction extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -42,10 +48,6 @@ public class Prediction extends SubModule {
 
     private Velocity velocity() {
         return (Velocity) Unfair.moduleManager.getModule(Velocity.class);
-    }
-
-    private boolean isInLiquidOrWeb() {
-        return mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || ((IAccessorEntity) mc.thePlayer).getIsInWeb();
     }
 
     @EventTarget
@@ -112,7 +114,7 @@ public class Prediction extends SubModule {
             if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                 LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
                 if (predictTick < 0
-                        && !isInLiquidOrWeb()
+                        && !Velocity.isInLiquidOrWeb()
                         && !Unfair.moduleManager.getModule(Stuck.class).isEnabled()
                         && (!longJump.isEnabled() || !longJump.canStartJump())) {
                     Entity found = findTarget();
@@ -191,7 +193,7 @@ public class Prediction extends SubModule {
     }
 
     private void doJumpReset() {
-        if (mc.thePlayer.onGround && !isInLiquidOrWeb() && !mc.thePlayer.isPotionActive(Potion.jump)) {
+        if (mc.thePlayer.onGround && !Velocity.isInLiquidOrWeb() && !mc.thePlayer.isPotionActive(Potion.jump)) {
             mc.thePlayer.movementInput.jump = true;
             dbg("JumpReset");
         }
@@ -213,10 +215,4 @@ public class Prediction extends SubModule {
         rotating = false;
     }
 
-    private void dbg(String msg) {
-        Velocity velocity = velocity();
-        if (velocity != null && debug.getValue()) {
-            ChatUtil.sendFormatted(msg);
-        }
-    }
 }
