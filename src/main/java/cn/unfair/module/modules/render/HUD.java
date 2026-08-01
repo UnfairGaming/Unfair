@@ -260,7 +260,7 @@ public class HUD extends Module {
                 float animProgress = 1.0F;
                 boolean isFadingOut = !module.isEnabled();
                 Animation animTimer = this.animationMap.get(module);
-                if (animTimer != null && animTimer.isStarted() && !animTimer.isFinished()) {
+                if (animTimer != null && animTimer.isStarted()) {
                     try {
                         if (isFadingOut) {
 
