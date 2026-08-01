@@ -9,7 +9,6 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.mixin.IAccessorEntity;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
@@ -22,11 +21,9 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 import static cn.unfair.util.BadPacketUtil.bad;
-import static cn.unfair.util.ChatUtil.dbg;
 
 public class Reduce extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final BooleanProperty debug = new BooleanProperty("debug", false);
     public boolean knockback = false;
 
     public Reduce() {
@@ -75,7 +72,6 @@ public class Reduce extends SubModule {
 
             mc.thePlayer.setSprinting(false);
 
-            dbg(Unfair.clientName + "Reduce 40%");
         }
         knockback = false;
     }

@@ -13,7 +13,6 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
-import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
@@ -32,8 +31,6 @@ public class Prediction extends SubModule {
     private static final int ROTATION_PRIORITY = 100;
     private static final int PREDICT_TICKS = 3;
     private static final int POST_TICKS = 2;
-
-    public final BooleanProperty debug = new BooleanProperty("debug", false);
 
     private int predictTick = -1;
     private boolean predictSprinting;
@@ -67,7 +64,6 @@ public class Prediction extends SubModule {
             if (delaying) {
                 if (tick == 0) {
                     mc.thePlayer.setSprinting(true);
-                    dbg("Predict tick0: rotate + restore sprint");
                 } else if (tick == 1) {
                     doReduce();
                 } else if (tick == PREDICT_TICKS - 1) {
@@ -81,8 +77,6 @@ public class Prediction extends SubModule {
                 doJumpReset();
                 jumpResetTicks--;
             }
-        } else {
-            dbg("Post tick" + (tick - PREDICT_TICKS) + ": rotate + move");
         }
 
         if (target != null) {
@@ -131,9 +125,6 @@ public class Prediction extends SubModule {
                             delaying = true;
                             KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
                             if (killAura != null) killAura.attackDisabled = true;
-                            dbg("Predict delay active (non-sprint)");
-                        } else {
-                            dbg("Predict reduce (sprint)");
                         }
                         predictTick = 0;
                     }
@@ -149,6 +140,7 @@ public class Prediction extends SubModule {
 
     @Override
     public void onEnabled() {
+        dbg("Disable your JumpReset module.");
         resetPredict();
     }
 
@@ -189,13 +181,11 @@ public class Prediction extends SubModule {
         mc.thePlayer.motionX *= 0.6D;
         mc.thePlayer.motionZ *= 0.6D;
         mc.thePlayer.setSprinting(false);
-        dbg("Reduce 40%");
     }
 
     private void doJumpReset() {
         if (mc.thePlayer.onGround && !Velocity.isInLiquidOrWeb() && !mc.thePlayer.isPotionActive(Potion.jump)) {
             mc.thePlayer.movementInput.jump = true;
-            dbg("JumpReset");
         }
     }
 
@@ -204,7 +194,6 @@ public class Prediction extends SubModule {
         KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
         if (killAura != null) killAura.attackDisabled = false;
         delaying = false;
-        dbg("Delay released");
     }
 
     private void resetPredict() {
