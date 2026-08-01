@@ -321,7 +321,7 @@ public class RavenClickGui extends GuiScreen {
         this.logoSmoothLength = null;
         this.footerSlide = null;
         for (CategoryComponent c : categories) {
-            c.dragging = false;
+            c.onGuiClosed();
             for (Component m : c.getModules()) {
                 m.onGuiClosed();
             }

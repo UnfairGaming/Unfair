@@ -379,6 +379,26 @@ public class CategoryComponent {
         return categoryName;
     }
 
+    public void onGuiClosed() {
+        this.dragging = false;
+        this.hovering = false;
+        this.hoveringOverCategory = false;
+        this.smoothTimer = null;
+        this.smoothScrollTimer = null;
+        this.textTimer = null;
+        this.scrolled = false;
+        this.moduleY = this.y;
+        this.targetModuleY = this.y;
+        this.lastModuleY = this.y;
+        this.closedHeight = 0.0F;
+        this.big = 0.0F;
+        this.bigSettings = 0.0F;
+        this.visibleContentHeight = 0;
+        this.totalContentHeight = 0;
+        this.lastHeight = this.y + this.titleHeight + (this.opened ? 4.0F : 0.0F);
+        this.updateHeight();
+    }
+
     private void clampTargetModuleY() {
         int minModuleY = this.y - Math.max(0, this.totalContentHeight - this.visibleContentHeight);
         this.targetModuleY = Math.max(minModuleY, Math.min(this.targetModuleY, this.y));
