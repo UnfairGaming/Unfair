@@ -48,7 +48,6 @@ public class ModuleManager {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private List<Class<? extends Module>> scanPackageForModules(String packageName) {
         Set<Class<? extends Module>> result = new LinkedHashSet<>();
         String path = packageName.replace('.', '/');
@@ -62,7 +61,7 @@ public class ModuleManager {
                     try (JarFile jar = connection.getJarFile()) {
                         Enumeration<JarEntry> entries = jar.entries();
                         while (entries.hasMoreElements()) {
-                            addModuleClass(entries.nextElement().getName(), result);
+                            addModuleClass(entries.nextElement().getName(), path, result);
                         }
                     }
                 } else if ("file".equals(url.getProtocol())) {
@@ -74,7 +73,7 @@ public class ModuleManager {
                                     .forEach(file -> {
                                         String relativeName = directory.relativize(file).toString()
                                                 .replace(File.separatorChar, '/');
-                                        addModuleClass(path + "/" + relativeName, result);
+                                        addModuleClass(path + "/" + relativeName, path, result);
                                     });
                         }
                     }
@@ -88,8 +87,10 @@ public class ModuleManager {
     }
 
     @SuppressWarnings("unchecked")
-    private void addModuleClass(String entryName, Set<Class<? extends Module>> result) {
-        if (!entryName.endsWith(".class") || entryName.endsWith("module-info.class")) {
+    private void addModuleClass(String entryName, String packagePath, Set<Class<? extends Module>> result) {
+        if (!entryName.startsWith(packagePath + "/")
+                || !entryName.endsWith(".class")
+                || entryName.endsWith("module-info.class")) {
             return;
         }
         String className = entryName.substring(0, entryName.length() - 6).replace('/', '.');
