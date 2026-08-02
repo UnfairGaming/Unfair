@@ -143,6 +143,7 @@ public class KillAura extends Module {
     private float serverYaw;
     private float serverPitch;
     private Vec3 currentVec;
+    private Vec3 lastAimVec;
     private Vec3 offsetVec = zeroVec();
     private float[] normalisedRot;
     private double lastXOffset;
@@ -742,6 +743,7 @@ public class KillAura extends Module {
                         }
                         if (targets.isEmpty()) {
                             this.target = null;
+                            this.resetAimVec();
                         } else {
                             if (targets.stream().anyMatch(this::isInSwingRange)) {
                                 targets.removeIf(entityLivingBase -> !this.isInSwingRange(entityLivingBase));
@@ -872,7 +874,7 @@ public class KillAura extends Module {
             targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D));
         }
 
-        this.currentVec = targetVec;
+        this.updateAimVec(targetVec);
         float[] rot = RotationUtil.getRotations(
                 targetVec.xCoord - eyes.xCoord,
                 targetVec.yCoord - eyes.yCoord,
@@ -1333,22 +1335,25 @@ public class KillAura extends Module {
                     renderScan(event, getTarget());
                 }
                 if (this.advancedRotations.getValue() && this.aimDot.getValue() && this.currentVec != null) {
-                    this.renderAimDot();
+                    this.renderAimDot(event.getPartialTicks());
                 }
             }
         }
     }
 
-    private void renderAimDot() {
+    private void renderAimDot(float partialTicks) {
         double size = 0.05D;
         Color color = new Color(this.aimDotColor.getValue());
+        Vec3 aimVec = this.lastAimVec == null
+                ? this.currentVec
+                : interpolate(this.lastAimVec, this.currentVec, partialTicks);
         AxisAlignedBB dotBox = new AxisAlignedBB(
-                this.currentVec.xCoord - size,
-                this.currentVec.yCoord - size,
-                this.currentVec.zCoord - size,
-                this.currentVec.xCoord + size,
-                this.currentVec.yCoord + size,
-                this.currentVec.zCoord + size
+                aimVec.xCoord - size,
+                aimVec.yCoord - size,
+                aimVec.zCoord - size,
+                aimVec.xCoord + size,
+                aimVec.yCoord + size,
+                aimVec.zCoord + size
         ).offset(
                 -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX(),
                 -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY(),
@@ -1358,6 +1363,16 @@ public class KillAura extends Module {
         RenderUtil.enableRenderState();
         RenderUtil.drawFilledBox(dotBox, color.getRed(), color.getGreen(), color.getBlue());
         RenderUtil.disableRenderState();
+    }
+
+    private void updateAimVec(Vec3 targetVec) {
+        this.lastAimVec = this.currentVec == null ? targetVec : this.currentVec;
+        this.currentVec = targetVec;
+    }
+
+    private void resetAimVec() {
+        this.currentVec = null;
+        this.lastAimVec = null;
     }
 
     @EventTarget
@@ -1403,6 +1418,7 @@ public class KillAura extends Module {
     @Override
     public void onEnabled() {
         this.target = null;
+        this.resetAimVec();
         this.switchTick = 0;
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
@@ -1418,6 +1434,7 @@ public class KillAura extends Module {
         this.blockingState = false;
         this.isBlocking = false;
         this.fakeBlockState = false;
+        this.resetAimVec();
     }
 
     @Override
