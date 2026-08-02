@@ -93,11 +93,7 @@ The project also provides a Forge client run configuration. Start the developmen
 
 The first build downloads Minecraft, Forge, mappings, and other Gradle dependencies, so an internet connection is required.
 
-## Project Structure
-
-```
-
-```
+## Developers Need To Know
 
 When the mod starts, it scans the category packages and automatically registers `Module` implementations. Therefore, adding a regular module usually only requires placing the class in the appropriate category package and extending `Module`.
 
