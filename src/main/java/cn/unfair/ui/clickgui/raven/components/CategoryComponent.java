@@ -132,7 +132,7 @@ public class CategoryComponent {
         if (!canScroll()) {
             return;
         }
-        int scrollSpeed = 12;
+        int scrollSpeed = 100;
         if (mouseScrollInput > 0) {
             this.targetModuleY += scrollSpeed;
         } else if (mouseScrollInput < 0) {

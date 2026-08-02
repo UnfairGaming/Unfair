@@ -44,8 +44,6 @@ public class HitBox extends Module {
     public final FloatProperty multiplier = new FloatProperty("multiplier", 1.2F, 1.0F, 5.0F);
     public final ModeProperty showHitbox = new ModeProperty("show-hitbox", 0, new String[]{"NONE", "PLAYERS", "MOBS", "ANIMALS", "ALL"});
     public final ColorProperty color = new ColorProperty("color", new Color(255, 255, 255).getRGB(), () -> this.showHitbox.getValue() != 0);
-    public final BooleanProperty teams = new BooleanProperty("teams", true, () -> this.showHitbox.getValue() == 1 || this.showHitbox.getValue() == 4);
-    public final BooleanProperty botCheck = new BooleanProperty("bot-check", true, () -> this.showHitbox.getValue() == 1 || this.showHitbox.getValue() == 4);
     private MovingObjectPosition targetEntity = null;
 
     public HitBox() {
@@ -142,10 +140,7 @@ public class HitBox extends Module {
                     if (TeamUtil.isFriend(player)) {
                         return false;
                     }
-                    if (this.teams.getValue() && TeamUtil.isSameTeam(player)) {
-                        return false;
-                    }
-                    return !this.botCheck.getValue() || !TeamUtil.isBot(player);
+                    return !TeamUtil.shouldBlockTarget(player);
                 }
                 return false;
             case 2:
@@ -168,10 +163,7 @@ public class HitBox extends Module {
                     if (TeamUtil.isFriend(player)) {
                         return false;
                     }
-                    if (this.teams.getValue() && TeamUtil.isSameTeam(player)) {
-                        return false;
-                    }
-                    return !this.botCheck.getValue() || !TeamUtil.isBot(player);
+                    return !TeamUtil.shouldBlockTarget(player);
                 }
                 return true;
             default:

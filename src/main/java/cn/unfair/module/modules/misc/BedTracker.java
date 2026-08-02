@@ -156,9 +156,9 @@ public class BedTracker extends Module {
                     .stream()
                     .filter(entity -> entity instanceof EntityPlayer)
                     .map(entity -> (EntityPlayer) entity)
-                    .filter(entityPlayer -> !TeamUtil.isBot(entityPlayer) && !this.whitelistedPlayers.contains(entityPlayer.getName()))
+                    .filter(entityPlayer -> !TeamUtil.shouldBlockBot(entityPlayer) && !this.whitelistedPlayers.contains(entityPlayer.getName()))
                     .collect(Collectors.toList())) {
-                if (TeamUtil.isSameTeam(player)) {
+                if (TeamUtil.shouldBlockTeam(player)) {
                     this.whitelistedPlayers.add(player.getName());
                 } else {
                     double distance = player.getDistance((double) this.bedPos.getX() + 0.5, (double) this.bedPos.getY() + 0.5, (double) this.bedPos.getZ() + 0.5);

@@ -17,8 +17,8 @@ public class GhostHand extends Module {
 
     public boolean shouldSkip(Entity entity) {
         return entity instanceof EntityPlayer
-                && !TeamUtil.isBot((EntityPlayer) entity)
-                && (!this.teamsOnly.getValue() || TeamUtil.isSameTeam((EntityPlayer) entity))
+                && !TeamUtil.shouldBlockBot((EntityPlayer) entity)
+                && (!this.teamsOnly.getValue() || TeamUtil.shouldBlockTeam((EntityPlayer) entity))
                 && (!this.ignoreWeapons.getValue() || !ItemUtil.hasRawUnbreakingEnchant());
     }
 }

@@ -76,7 +76,9 @@ public class NameTags extends Module {
             return false;
         } else if (entityLivingBase instanceof EntityPlayer) {
             if (entityLivingBase != mc.thePlayer && entityLivingBase != mc.getRenderViewEntity()) {
-                if (TeamUtil.isBot((EntityPlayer) entityLivingBase)) {
+                if (TeamUtil.shouldBlockRenderTarget((EntityPlayer) entityLivingBase)) {
+                    return false;
+                } else if (!TeamUtil.isAntiBotEnabled() && TeamUtil.isBot((EntityPlayer) entityLivingBase)) {
                     return this.bots.getValue();
                 } else if (TeamUtil.isFriend((EntityPlayer) entityLivingBase)) {
                     return this.friends.getValue();

@@ -44,7 +44,9 @@ public class Tracers extends Module {
         } else if (mc.getRenderViewEntity().getDistanceToEntity(entityPlayer) > 512.0F) {
             return false;
         } else if (entityPlayer != mc.thePlayer && entityPlayer != mc.getRenderViewEntity()) {
-            if (TeamUtil.isBot(entityPlayer)) {
+            if (TeamUtil.shouldBlockRenderTarget(entityPlayer)) {
+                return false;
+            } else if (!TeamUtil.isAntiBotEnabled() && TeamUtil.isBot(entityPlayer)) {
                 return this.showBots.getValue();
             } else if (TeamUtil.isFriend(entityPlayer)) {
                 return this.showFriends.getValue();

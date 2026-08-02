@@ -29,8 +29,6 @@ public class AimAssist extends Module {
     public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
     public final BooleanProperty weaponOnly = new BooleanProperty("weapons-only", true);
     public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponOnly::getValue);
-    public final BooleanProperty botChecks = new BooleanProperty("bot-check", true);
-    public final BooleanProperty team = new BooleanProperty("teams", true);
     private final TimerUtil timer = new TimerUtil();
 
     public AimAssist() {
@@ -52,7 +50,7 @@ public class AimAssist extends Module {
             } else if (TeamUtil.isFriend(entityPlayer)) {
                 return false;
             } else {
-                return (!this.team.getValue() || !TeamUtil.isSameTeam(entityPlayer)) && (!this.botChecks.getValue() || !TeamUtil.isBot(entityPlayer));
+                return !TeamUtil.shouldBlockTarget(entityPlayer);
             }
         } else {
             return false;

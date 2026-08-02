@@ -39,8 +39,6 @@ public class AutoProjectiles extends Module {
     public final IntProperty throwDelay = new IntProperty("throw-delay", 3, 1, 15, () -> !smartDelay.getValue());
     public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
-    public final BooleanProperty botChecks = new BooleanProperty("bot-check", true);
-    public final BooleanProperty teams = new BooleanProperty("Teams", true);
     private EntityLivingBase target = null;
     private int lastSlot = -1;
     private long lastThrowTime = 0L;
@@ -75,12 +73,12 @@ public class AutoProjectiles extends Module {
         if (TeamUtil.isFriend(player)) {
             return false;
         }
-        if (this.botChecks.getValue() && TeamUtil.isBot(player)) {
+        if (TeamUtil.shouldBlockBot(player)) {
             return false;
         }
         if (!isEntityHeightVisible(entity)) return false;
         if (RotationUtil.angleToEntity(player) > (float) this.fov.getValue()) return false;
-        return !this.teams.getValue() || !TeamUtil.isSameTeam(player);
+        return !TeamUtil.shouldBlockTeam(player);
     }
 
     private int getThrowDelay() {

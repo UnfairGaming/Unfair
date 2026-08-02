@@ -1,9 +1,11 @@
 package cn.unfair.property;
 
 import com.google.gson.JsonObject;
+import cn.unfair.config.Config;
 import cn.unfair.module.Module;
 import cn.unfair.module.ModuleWithModuleSettings;
 
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
@@ -65,9 +67,13 @@ public abstract class Property<T> {
         if (this.validator != null && !this.validator.test((T) object)) {
             return false;
         } else {
+            T oldValue = this.value;
             this.value = (T) object;
             if (this.owner != null) {
                 this.owner.verifyValue(this.name);
+            }
+            if (!Objects.equals(oldValue, this.value)) {
+                Config.markDirty();
             }
             return true;
         }

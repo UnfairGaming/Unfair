@@ -121,14 +121,12 @@ public class KillAura extends Module {
     public final BooleanProperty weaponsOnly = new BooleanProperty("weapons-only", false);
     public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
     public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
-    public final BooleanProperty botCheck = new BooleanProperty("bot-check", true);
     public final BooleanProperty players = new BooleanProperty("players", true);
     public final BooleanProperty bosses = new BooleanProperty("bosses", false);
     public final BooleanProperty mobs = new BooleanProperty("mobs", false);
     public final BooleanProperty animals = new BooleanProperty("animals", false);
     public final BooleanProperty golems = new BooleanProperty("golems", false);
     public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
-    public final BooleanProperty teams = new BooleanProperty("teams", true);
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX", "CIRCLE"});
     public boolean attackDisabled = false;
     private final TimerUtil timer = new TimerUtil();
@@ -311,7 +309,7 @@ public class KillAura extends Module {
                 } else if (TeamUtil.isFriend((EntityPlayer) entityLivingBase)) {
                     return false;
                 } else {
-                    return (!this.teams.getValue() || !TeamUtil.isSameTeam((EntityPlayer) entityLivingBase)) && (!this.botCheck.getValue() || !TeamUtil.isBot((EntityPlayer) entityLivingBase));
+                    return !TeamUtil.shouldBlockTarget((EntityPlayer) entityLivingBase);
                 }
             } else if (entityLivingBase instanceof EntityDragon || entityLivingBase instanceof EntityWither) {
                 return this.bosses.getValue();
@@ -324,12 +322,12 @@ public class KillAura extends Module {
                 } else if (!(entityLivingBase instanceof EntityIronGolem)) {
                     return false;
                 } else {
-                    return this.golems.getValue() && (!this.teams.getValue() || !TeamUtil.hasTeamColor(entityLivingBase));
+                    return this.golems.getValue() && !TeamUtil.shouldBlockTeamColor(entityLivingBase);
                 }
             } else if (!(entityLivingBase instanceof EntitySilverfish)) {
                 return this.mobs.getValue();
             } else {
-                return this.silverfish.getValue() && (!this.teams.getValue() || !TeamUtil.hasTeamColor(entityLivingBase));
+                return this.silverfish.getValue() && !TeamUtil.shouldBlockTeamColor(entityLivingBase);
             }
         } else {
             return false;
