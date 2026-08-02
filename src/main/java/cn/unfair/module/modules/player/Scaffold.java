@@ -53,7 +53,7 @@ public class Scaffold extends Module {
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
     public final BooleanProperty swing = new BooleanProperty("swing", true);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
-    public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "SB"});
+    public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
     private int rotationTick = 0;
     private int lastSlot = -1;
     private int blockCount = -1;
@@ -828,7 +828,21 @@ public class Scaffold extends Module {
                 }
 
                 case 2 : {
-
+                    HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+                    float scale = hud.scale.getValue();
+                    GlStateManager.pushMatrix();
+                    GlStateManager.scale(scale, scale, 0.0F);
+                    GlStateManager.disableDepth();
+                    GlStateManager.enableBlend();
+                    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                    RenderUtil.drawOutlinedString(
+                            Integer.toString(getBlockCount()),
+                            ((new ScaledResolution(mc).getScaledWidth() - mc.fontRendererObj.FONT_HEIGHT * Integer.toString(getBlockCount()).codePointCount(0, Integer.toString(getBlockCount()).length()) * .5F) / 2.0F) / scale,
+                            new ScaledResolution(mc).getScaledHeight() / 2.0F - 15F
+                            );
+                    GlStateManager.disableBlend();
+                    GlStateManager.enableDepth();
+                    GlStateManager.popMatrix();
                 }
             }
         }
