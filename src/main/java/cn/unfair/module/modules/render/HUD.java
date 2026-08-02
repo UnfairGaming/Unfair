@@ -43,6 +43,7 @@ public class HUD extends Module {
     public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
     public final PercentProperty background = new PercentProperty("background", 50);
     public final BooleanProperty showBar = new BooleanProperty("bar", true);
+    public final ModeProperty barPos = new ModeProperty("Bar Mode", 0, new String[]{"LEFT", "RIGHT", "TOP"}, this.showBar::getValue);
     public final BooleanProperty shadow = new BooleanProperty("shadow", true);
     public final BooleanProperty suffixes = new BooleanProperty("suffixes", true);
     public final BooleanProperty lowerCase = new BooleanProperty("lower-case", false);
@@ -314,14 +315,64 @@ public class HUD extends Module {
                     int barAlpha = (int) (animProgress * 255.0F);
                     barAlpha = Math.min(barAlpha, 255);
                     int barColor = (color & 0x00FFFFFF) | (barAlpha << 24);
-                    RenderUtil.drawRect(
-                            currentX / this.scale.getValue() + (alignLeft ? -2.0F : 1.0F),
-                            currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F),
-                            currentX / this.scale.getValue() + (alignLeft ? -1.0F : 2.0F),
-                            currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F)),
-                            barColor
-                    );
+
+                    float barX = 0, barX2 = 0;
+                    float barY = 0, barY2 = 0;
+                    boolean shouldDrawBar = true;
+
+                    if (barPos.getValue() == 0) {
+                        if (alignLeft) {
+                            barX = currentX / this.scale.getValue() - 2.0F;
+                            barX2 = currentX / this.scale.getValue() - 1.0F;
+                        } else {
+                            barX = currentX / this.scale.getValue() - totalWidth - 2.0F;
+                            barX2 = currentX / this.scale.getValue() - totalWidth - 1.0F;
+                        }
+                        barY = currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F);
+                        barY2 = currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F));
+                    } else if (barPos.getValue() == 1) {
+                        if (alignLeft) {
+                            barX = currentX / this.scale.getValue() + totalWidth + 1.0F;
+                            barX2 = currentX / this.scale.getValue() + totalWidth + 2.0F;
+                        } else {
+                            barX = currentX / this.scale.getValue() + 1.0F;
+                            barX2 = currentX / this.scale.getValue() + 2.0F;
+                        }
+                        barY = currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F);
+                        barY2 = currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F));
+                    } else {
+                        if (offset == 0L) {
+                            if (alignLeft) {
+                                barX = currentX / this.scale.getValue() - 1.0F;
+                                barX2 = currentX / this.scale.getValue() + totalWidth + 1.0F;
+                            } else {
+                                barX = currentX / this.scale.getValue() - totalWidth - 1.0F;
+                                barX2 = currentX / this.scale.getValue() + 1.0F;
+                            }
+                            if (alignTop) {
+                                barY = currentY / this.scale.getValue() - 2.0F;
+                                barY2 = currentY / this.scale.getValue() - 1.0F;
+                            } else {
+                                barY = currentY / this.scale.getValue() + height + 1.0F;
+                                barY2 = currentY / this.scale.getValue() + height + 2.0F;
+                            }
+                        } else {
+                            // 不是第一个模块，不绘制 bar
+                            shouldDrawBar = false;
+                        }
+                    }
+
+                    if (shouldDrawBar) {
+                        RenderUtil.drawRect(
+                                barX,
+                                barY,
+                                barX2,
+                                barY2,
+                                barColor
+                        );
+                    }
                 }
+
                 RenderUtil.disableRenderState();
                 GlStateManager.disableDepth();
                 if (animProgress > 0.05F) {
