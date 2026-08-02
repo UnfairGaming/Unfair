@@ -48,11 +48,15 @@ import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
+import cn.unfair.util.rotation.PointFinder;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class KillAura extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -77,6 +81,40 @@ public class KillAura extends Module {
     public final IntProperty angleStep = new IntProperty("angle-step", 90, 30, 180);
     public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotations.getValue() == 2);
     public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotations.getValue() == 2);
+    public final BooleanProperty advancedRotations = new BooleanProperty("advanced-rotations", false, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
+    public final BooleanProperty gcdFix = new BooleanProperty("gcd-fix", false, this.advancedRotations::getValue);
+    public final FloatProperty hitboxQuality = new FloatProperty("hitbox-quality", 1.0F, 0.01F, 1.0F, this.advancedRotations::getValue);
+    public final FloatProperty outOfRangeBuffer = new FloatProperty("out-of-range-buffer", 0.0F, -1.0F, 1.0F, this.advancedRotations::getValue);
+    public final ModeProperty preferredBodyPart = new ModeProperty("preferred-body-part", 0, new String[]{"NONE", "HEAD", "TORSO", "FEET"}, this.advancedRotations::getValue);
+    public final BooleanProperty blacklistHead = new BooleanProperty("blacklist-head", false, this.advancedRotations::getValue);
+    public final BooleanProperty blacklistTorso = new BooleanProperty("blacklist-torso", false, this.advancedRotations::getValue);
+    public final BooleanProperty blacklistFeet = new BooleanProperty("blacklist-feet", false, this.advancedRotations::getValue);
+    public final BooleanProperty blacklistBadHitVec = new BooleanProperty("blacklist-bad-hitvec", false, this.advancedRotations::getValue);
+    public final BooleanProperty blacklistHeuristic = new BooleanProperty("blacklist-heuristic", false, this.advancedRotations::getValue);
+    public final FloatProperty badHitVecBuffer = new FloatProperty("bad-hitvec-buffer", 0.5F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && this.blacklistBadHitVec.getValue());
+    public final FloatProperty heuristicBuffer = new FloatProperty("heuristic-buffer", 0.1F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && this.blacklistHeuristic.getValue());
+    public final BooleanProperty dynamicTrim = new BooleanProperty("dynamic-trim", false, this.advancedRotations::getValue);
+    public final FloatProperty yTrim = new FloatProperty("y-trim", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && !this.dynamicTrim.getValue());
+    public final FloatProperty xzTrim = new FloatProperty("xz-trim", 0.0F, 0.0F, 0.5F, this.advancedRotations::getValue);
+    public final FloatProperty xzRandAdd = new FloatProperty("xz-rand-add", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.dynamicTrim.getValue());
+    public final BooleanProperty predictionEngine = new BooleanProperty("prediction-engine", false, this.advancedRotations::getValue);
+    public final BooleanProperty jitter = new BooleanProperty("jitter", false, this.advancedRotations::getValue);
+    public final FloatProperty jitterMin = new FloatProperty("jitter-min", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
+    public final FloatProperty jitterMax = new FloatProperty("jitter-max", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
+    public final BooleanProperty interpolateJitterVec = new BooleanProperty("interpolate-jitter-vec", false, () -> this.advancedRotations.getValue() && this.jitter.getValue());
+    public final ModeProperty lookVec = new ModeProperty("look-vec", 2, new String[]{"CLIENT", "SERVER", "NORMALISED"}, this.advancedRotations::getValue);
+    public final ModeProperty offsetMode = new ModeProperty("offset-mode", 0, new String[]{"NONE", "GAUSSIAN", "NOISE", "ADVANCED"}, this.advancedRotations::getValue);
+    public final ModeProperty advancedBase = new ModeProperty("advanced-base", 0, new String[]{"GAUSSIAN", "NOISE"}, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() == 3);
+    public final IntProperty offsetChance = new IntProperty("offset-chance", 75, 1, 100, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty yawFactorMin = new FloatProperty("yaw-factor-min", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty yawFactorMax = new FloatProperty("yaw-factor-max", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty pitchFactorMin = new FloatProperty("pitch-factor-min", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty pitchFactorMax = new FloatProperty("pitch-factor-max", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final BooleanProperty interpolateVec = new BooleanProperty("interpolate-vec", false, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty offsetAmount = new FloatProperty("offset-amount", 0.5F, 0.01F, 1.0F, () -> this.advancedRotations.getValue() && this.interpolateVec.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty tolerance = new FloatProperty("tolerance", 0.05F, 0.01F, 0.1F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() == 3);
+    public final BooleanProperty aimDot = new BooleanProperty("aim-dot", false, this.advancedRotations::getValue);
+    public final ColorProperty aimDotColor = new ColorProperty("aim-dot-color", Color.WHITE.getRGB(), () -> this.advancedRotations.getValue() && this.aimDot.getValue());
     public final BooleanProperty throughWalls = new BooleanProperty("through-walls", true);
     public final BooleanProperty requirePress = new BooleanProperty("require-press", false);
     public final BooleanProperty allowMining = new BooleanProperty("allow-mining", false);
@@ -104,6 +142,25 @@ public class KillAura extends Module {
     private int blockTick = 0;
     private float serverYaw;
     private float serverPitch;
+    private Vec3 currentVec;
+    private Vec3 offsetVec = zeroVec();
+    private float[] normalisedRot;
+    private double lastXOffset;
+    private double lastYOffset;
+    private double lastZOffset;
+    private boolean shouldRandomize;
+    private double finalXZTrim;
+    private double xzRandShrinkThing;
+    private float tremorYaw;
+    private float tremorPitch;
+    private float targetJitterYaw;
+    private float targetJitterPitch;
+    private float clickImpulseYaw;
+    private float clickImpulsePitch;
+    private float jitterYaw;
+    private float jitterPitch;
+    private int lastJitterTick;
+    private final ArrayList<Long> jitterClicks = new ArrayList<>();
 
     public KillAura() {
         super("KillAura", false);
@@ -330,7 +387,26 @@ public class KillAura extends Module {
 
         this.serverPitch = Math.max(-90.0F, Math.min(90.0F, this.serverPitch));
 
+        if (this.gcdFix.getValue() && this.advancedRotations.getValue()) {
+            float[] fixed = this.applyGcdFix(this.serverYaw, this.serverPitch, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+            this.serverYaw = fixed[0];
+            this.serverPitch = fixed[1];
+        }
+
         return new float[]{this.serverYaw, this.serverPitch};
+    }
+
+    private float[] applyGcdFix(float yaw, float pitch, float previousYaw, float previousPitch) {
+        float sensitivity = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+        float gcd = sensitivity * sensitivity * sensitivity * 1.2F;
+        float yawDelta = yaw - previousYaw;
+        float pitchDelta = pitch - previousPitch;
+
+        yaw = previousYaw + yawDelta - yawDelta % gcd;
+        pitch = previousPitch + pitchDelta - pitchDelta % gcd;
+        pitch = MathHelper.clamp_float(pitch, -90.0F, 90.0F);
+
+        return new float[]{yaw, pitch};
     }
 
     public EntityLivingBase getTarget() {
@@ -379,6 +455,8 @@ public class KillAura extends Module {
     @EventTarget(Priority.LOW)
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
+            this.shouldRandomize = RandomUtil.nextDouble(0.0D, 100.0D) <= this.offsetChance.getValue();
+            this.xzRandShrinkThing = Math.random();
             if (this.attackDelayMS > 0L) {
                 this.attackDelayMS -= 50L;
             }
@@ -565,16 +643,15 @@ public class KillAura extends Module {
                         float[] targetRotations;
                         float randomOffset = (float) this.angleStep.getValue() + RandomUtil.nextFloat(-5.0F, 5.0F);
                         float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
-                        {
-
-                            targetRotations = RotationUtil.getRotationsToBox(
-                                    this.target.getBox(),
-                                    event.getYaw(),
-                                    event.getPitch(),
-                                    randomOffset,
-                                    smoothFactor
-                            );
-                        }
+                        targetRotations = this.advancedRotations.getValue()
+                                ? this.getAdvancedRotations(event.getYaw(), event.getPitch(), randomOffset, smoothFactor)
+                                : RotationUtil.getRotationsToBox(
+                                        this.target.getBox(),
+                                        event.getYaw(),
+                                        event.getPitch(),
+                                        randomOffset,
+                                        smoothFactor
+                                );
 
                         float finalYaw, finalPitch;
 
@@ -589,6 +666,11 @@ public class KillAura extends Module {
 
                             finalYaw = targetRotations[0];
                             finalPitch = targetRotations[1];
+                            if (this.gcdFix.getValue() && this.advancedRotations.getValue()) {
+                                float[] fixed = this.applyGcdFix(finalYaw, finalPitch, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+                                finalYaw = fixed[0];
+                                finalPitch = fixed[1];
+                            }
                             event.setRotation(finalYaw, finalPitch, 1);
                             Unfair.rotationManager.setRotation(finalYaw, finalPitch, 1, true);
                         }
@@ -713,6 +795,203 @@ public class KillAura extends Module {
         }
     }
 
+    private float[] getAdvancedRotations(float yaw, float pitch, float maxAngle, float smoothFactor) {
+        EntityLivingBase entity = this.target.getEntity();
+        Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
+        AxisAlignedBB bb = this.getAdvancedBox(entity);
+        double speedShrinkFactor = Math.min(
+                this.xzTrim.getValue(),
+                Math.max(getSpeedPosBased(mc.thePlayer) * 0.5D, getSpeedPosBased(entity) * 0.5D)
+        ) + this.xzRandShrinkThing * this.xzRandAdd.getValue();
+        this.finalXZTrim = this.dynamicTrim.getValue() ? speedShrinkFactor : this.xzTrim.getValue();
+        double finalYTrim = this.dynamicTrim.getValue() ? Math.abs(mc.thePlayer.motionY) : this.yTrim.getValue();
+        bb = contract(bb, this.finalXZTrim, finalYTrim, this.finalXZTrim);
+
+        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(bb)) {
+            AxisAlignedBB playerBox = mc.thePlayer.getEntityBoundingBox();
+            double overlapX = Math.min(playerBox.maxX, bb.maxX) - Math.max(playerBox.minX, bb.minX);
+            double overlapZ = Math.min(playerBox.maxZ, bb.maxZ) - Math.max(playerBox.minZ, bb.minZ);
+            bb = contract(bb, overlapX / 2.0D, 0.0D, overlapZ / 2.0D);
+        }
+
+        PointFinder.findPoints(bb, Math.max(1, (int) (PointFinder.POINT_COUNT * this.hitboxQuality.getValue())));
+        List<Vec3> hitboxPoints = PointFinder.hitboxPoints;
+        double playerToTarget = distance(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, entity.prevPosX, entity.prevPosY, entity.prevPosZ)
+                - distance(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, entity.posX, entity.posY, entity.posZ);
+        double targetToPlayer = distance(entity.posX, entity.posY, entity.posZ, mc.thePlayer.prevPosX, mc.thePlayer.prevPosY, mc.thePlayer.prevPosZ)
+                - distance(entity.posX, entity.posY, entity.posZ, mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        double pred = (playerToTarget + targetToPlayer) / 2.0D;
+        boolean outOfRange = RotationUtil.distanceToBox(this.target.getBox()) > this.attackRange.getValue();
+
+        boolean[] preferred = this.getPreferredHittable(bb, eyes, this.attackRange.getValue() + this.outOfRangeBuffer.getValue() + pred + this.finalXZTrim);
+        AxisAlignedBB finalBb = bb;
+        hitboxPoints.removeIf(point -> {
+            boolean invalid = !this.isValidPoint(point, finalBb, pred, outOfRange, preferred[0], preferred[1], preferred[2]);
+            if (invalid) {
+                PointFinder.invalidHitboxPoints.add(point);
+            }
+            return invalid;
+        });
+        AxisAlignedBB finalBb1 = bb;
+        PointFinder.allHitboxPoints.removeIf(point -> this.pointInBlacklistedPos(point, finalBb1, preferred[0], preferred[1], preferred[2]));
+
+        Vec3 lookDir = this.getAdvancedLookVec(yaw, pitch);
+        Vec3 vec;
+        if (!hitboxPoints.isEmpty()) {
+            hitboxPoints.sort(Comparator.comparingDouble(point -> crossLength(subtract(point, eyes), lookDir)));
+            if (this.blacklistBadHitVec.getValue() || this.blacklistHeuristic.getValue()) {
+                Vec3 badHitVec = hitboxPoints.stream().min(Comparator.comparingDouble(point -> point.distanceTo(eyes))).orElse(center(bb));
+                if (this.blacklistHeuristic.getValue()) {
+                    hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) < this.heuristicBuffer.getValue()
+                            || Math.abs(point.yCoord - badHitVec.yCoord) < this.heuristicBuffer.getValue() / 2.0F);
+                }
+                if (this.blacklistBadHitVec.getValue()) {
+                    hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) > this.badHitVecBuffer.getValue());
+                }
+            }
+            vec = hitboxPoints.isEmpty() ? this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb) : hitboxPoints.get(0);
+        } else {
+            vec = this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb);
+        }
+
+        this.normalisedRot = rotationsTo(vec, eyes);
+        float[] jitterOffset = this.jitter.getValue()
+                ? this.calculateJitter(RandomUtil.nextFloat(this.jitterMin.getValue(), this.jitterMax.getValue()), this.interpolateJitterVec.getValue())
+                : new float[]{0.0F, 0.0F};
+        Vec3 targetVec = add(vec, this.getOffsetVec());
+        boolean notVisible = !canSeePoint(targetVec) && canSeePoint(subtract(targetVec, this.offsetVec));
+        if (notVisible) {
+            targetVec = subtract(targetVec, this.offsetVec);
+        }
+        targetVec = new Vec3(
+                MathHelper.clamp_double(targetVec.xCoord, bb.minX, bb.maxX),
+                MathHelper.clamp_double(targetVec.yCoord, bb.minY, bb.maxY),
+                MathHelper.clamp_double(targetVec.zCoord, bb.minZ, bb.maxZ)
+        );
+        if (this.predictionEngine.getValue()) {
+            targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D));
+        }
+
+        this.currentVec = targetVec;
+        float[] rot = RotationUtil.getRotations(
+                targetVec.xCoord - eyes.xCoord,
+                targetVec.yCoord - eyes.yCoord,
+                targetVec.zCoord - eyes.zCoord,
+                yaw,
+                pitch,
+                maxAngle,
+                smoothFactor
+        );
+        if (!notVisible) {
+            rot[0] += jitterOffset[0];
+            rot[1] += jitterOffset[1];
+        }
+        this.shouldRandomize = false;
+        return rot;
+    }
+
+    private AxisAlignedBB getAdvancedBox(EntityLivingBase entity) {
+        AxisAlignedBB bb = this.target.getBox();
+        if (!this.predictionEngine.getValue()) {
+            return bb;
+        }
+        double dist = RotationUtil.distanceToBox(bb);
+        double speed = getSpeedPosBased(entity);
+        double offset = 0.0D;
+        if (dist > this.attackRange.getValue()) {
+            offset = Math.min(Math.max((dist - this.attackRange.getValue()) * 3.0D, 0.0D), 8.0D);
+        }
+        if (speed > 0.4D) {
+            offset = -Math.min(Math.max(dist, 0.0D), 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? Math.random() : -Math.random());
+        }
+        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(bb)) {
+            offset = 3.0D;
+        }
+        Vec3 prediction = multiply(flat(getMoveDelta(entity)), offset);
+        return bb.offset(prediction.xCoord, prediction.yCoord, prediction.zCoord);
+    }
+
+    private Vec3 getAdvancedLookVec(float yaw, float pitch) {
+        switch (this.lookVec.getValue()) {
+            case 0:
+                return getVectorForRotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+            case 1:
+                return getVectorForRotation(this.serverYaw, this.serverPitch);
+            default:
+                return this.normalisedRot == null ? mc.thePlayer.getLook(1.0F) : getVectorForRotation(this.normalisedRot[0], this.normalisedRot[1]);
+        }
+    }
+
+    private Vec3 getBackupVec(List<Vec3> points, Vec3 eyes, Vec3 lookDir, AxisAlignedBB bb) {
+        if (points.isEmpty()) {
+            return center(bb);
+        }
+        points.sort(Comparator.comparingDouble(point -> crossLength(subtract(point, eyes), lookDir)));
+        return points.get(0);
+    }
+
+    private boolean isValidPoint(Vec3 point, AxisAlignedBB bb, double pred, boolean outOfRange, boolean headHittable, boolean torsoHittable, boolean feetHittable) {
+        return this.canSeePoint(point, bb, pred, outOfRange) && !this.pointInBlacklistedPos(point, bb, headHittable, torsoHittable, feetHittable);
+    }
+
+    private boolean pointInBlacklistedPos(Vec3 point, AxisAlignedBB bb, boolean headHittable, boolean torsoHittable, boolean feetHittable) {
+        double height = bb.maxY - bb.minY;
+        double headSize = height / 4.5D;
+        double torsoSize = height / 2.75D;
+        boolean head = point.yCoord <= bb.maxY && point.yCoord > bb.maxY - headSize;
+        boolean torso = point.yCoord <= bb.maxY - headSize && point.yCoord >= bb.minY + torsoSize;
+        boolean feet = point.yCoord >= bb.minY && point.yCoord < bb.minY + torsoSize;
+        if (headHittable && !head) return true;
+        if (torsoHittable && !torso) return true;
+        if (feetHittable && !feet) return true;
+        if (this.blacklistHead.getValue() && head) return true;
+        if (this.blacklistTorso.getValue() && torso) return true;
+        if (this.blacklistFeet.getValue() && feet) return true;
+        return this.blacklistHeuristic.getValue() && Math.abs(point.yCoord - center(bb).yCoord - 0.2D) < this.heuristicBuffer.getValue() / 2.0F;
+    }
+
+    private boolean canSeePoint(Vec3 point, AxisAlignedBB bb, double pred, boolean outOfRange) {
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0F);
+        MovingObjectPosition blockHit = mc.theWorld.rayTraceBlocks(eyePos, point, false, false, false);
+        MovingObjectPosition boxHit = bb.calculateIntercept(eyePos, point);
+        if (boxHit != null && boxHit.hitVec.distanceTo(point) > 0.01D) {
+            return false;
+        }
+        return blockHit == null && (eyePos.distanceTo(point) < this.attackRange.getValue() + this.outOfRangeBuffer.getValue() + pred + this.finalXZTrim || outOfRange);
+    }
+
+    private boolean canSeePoint(Vec3 point) {
+        return mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0F), point, false, false, false) == null;
+    }
+
+    private boolean[] getPreferredHittable(AxisAlignedBB bb, Vec3 eyes, double range) {
+        boolean[] hittable = new boolean[3];
+        AxisAlignedBB selected = null;
+        double height = bb.maxY - bb.minY;
+        double headSize = height / 4.5D;
+        double torsoSize = height / 2.75D;
+        switch (this.preferredBodyPart.getValue()) {
+            case 1:
+                selected = new AxisAlignedBB(bb.minX, bb.maxY - headSize, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
+                break;
+            case 2:
+                selected = new AxisAlignedBB(bb.minX, bb.minY + torsoSize, bb.minZ, bb.maxX, bb.maxY - headSize, bb.maxZ);
+                break;
+            case 3:
+                selected = new AxisAlignedBB(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY + torsoSize, bb.maxZ);
+                break;
+            default:
+                return hittable;
+        }
+        for (Vec3 vertex : vertices(selected)) {
+            if (eyes.distanceTo(vertex) < range) {
+                hittable[this.preferredBodyPart.getValue() - 1] = true;
+                break;
+            }
+        }
+        return hittable;
+    }
+
     private void renderScan(Render3DEvent event, EntityLivingBase target) {
         double renderPosX = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX();
         double renderPosY = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY();
@@ -806,9 +1085,208 @@ public class KillAura extends Module {
         );
     }
 
+    private Vec3 getOffsetVec() {
+        double minXZ = -0.5D;
+        double maxXZ = 0.5D;
+        double minY = -0.5D;
+        double maxY = 0.5D;
+        double yawFactor = randomBetween(this.yawFactorMin.getValue(), this.yawFactorMax.getValue());
+        double pitchFactor = randomBetween(this.pitchFactorMin.getValue(), this.pitchFactorMax.getValue());
+        double meanXZ = (minXZ + maxXZ) / 2.0D;
+        double stdDevXZ = (maxXZ - minXZ) / 4.0D;
+        double meanY = (minY + maxY) / 2.0D;
+        double stdDevY = (maxY - minY) / 4.0D;
+
+        if (this.shouldRandomize) {
+            switch (this.offsetMode.getValue()) {
+                case 1:
+                    this.updateOffset(
+                            ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
+                            ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY,
+                            ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
+                            yawFactor,
+                            pitchFactor
+                    );
+                    break;
+                case 2:
+                    this.updateOffset(RandomUtil.nextDouble(minXZ, maxXZ), RandomUtil.nextDouble(minY, maxY), RandomUtil.nextDouble(minXZ, maxXZ), yawFactor, pitchFactor);
+                    break;
+                case 3:
+                    Vec3 lastOffset = new Vec3(this.lastXOffset, this.lastYOffset, this.lastZOffset);
+                    if (this.offsetVec.distanceTo(lastOffset) < this.tolerance.getValue()) {
+                        if (this.advancedBase.getValue() == 0) {
+                            this.updateOffset(
+                                    ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
+                                    ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY,
+                                    ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
+                                    yawFactor,
+                                    pitchFactor
+                            );
+                        } else {
+                            this.updateOffset(RandomUtil.nextDouble(minXZ, maxXZ), RandomUtil.nextDouble(minY, maxY), RandomUtil.nextDouble(minXZ, maxXZ), yawFactor, pitchFactor);
+                        }
+                    }
+                    break;
+                default:
+                    this.offsetVec = zeroVec();
+            }
+        } else if (this.offsetMode.getValue() != 0) {
+            this.offsetVec = interpolate(this.offsetVec, new Vec3(this.lastXOffset, this.lastYOffset, this.lastZOffset), this.interpolateVec.getValue() ? this.offsetAmount.getValue() : 1.0F);
+        } else {
+            this.offsetVec = zeroVec();
+        }
+
+        return this.offsetVec;
+    }
+
+    private void updateOffset(double xOffset, double yOffset, double zOffset, double yawFactor, double pitchFactor) {
+        xOffset *= yawFactor;
+        yOffset *= pitchFactor;
+        zOffset *= yawFactor;
+        this.offsetVec = interpolate(this.offsetVec, new Vec3(xOffset, yOffset, zOffset), this.interpolateVec.getValue() ? this.offsetAmount.getValue() : 1.0F);
+        this.lastXOffset = xOffset;
+        this.lastYOffset = yOffset;
+        this.lastZOffset = zOffset;
+    }
+
+    private float[] calculateJitter(float strength, boolean interpolate) {
+        long time = System.currentTimeMillis();
+        this.jitterClicks.removeIf(click -> click + 1000L < time);
+        if (this.jitterClicks.isEmpty()) {
+            return new float[]{this.jitterYaw, this.jitterPitch};
+        }
+
+        boolean lastFrameClicked = false;
+        for (Long clickTime : this.jitterClicks) {
+            if (clickTime + 17L > time) {
+                lastFrameClicked = true;
+                break;
+            }
+        }
+        if (lastFrameClicked) {
+            this.clickImpulseYaw += RandomUtil.nextFloat(-strength, strength);
+            this.clickImpulsePitch += RandomUtil.nextFloat(-strength, strength);
+        }
+
+        float cpsFactor = Math.min(this.jitterClicks.size() / 12.0F, 1.5F);
+        float yawJitter = this.tremorYaw * 0.6F * cpsFactor + this.clickImpulseYaw;
+        float pitchJitter = this.tremorPitch * 0.6F * cpsFactor + this.clickImpulsePitch;
+        if (interpolate) {
+            this.jitterYaw = interpolate(this.jitterYaw, yawJitter, 0.25F);
+            this.jitterPitch = interpolate(this.jitterPitch, pitchJitter, 0.25F);
+        } else {
+            this.jitterYaw = yawJitter;
+            this.jitterPitch = pitchJitter;
+        }
+
+        if (mc.thePlayer.ticksExisted != this.lastJitterTick) {
+            if (Math.random() < 0.08D) {
+                this.targetJitterYaw = RandomUtil.nextFloat(-0.15F, 0.15F);
+                this.targetJitterPitch = RandomUtil.nextFloat(-0.15F, 0.15F);
+            }
+            this.tremorYaw += (this.targetJitterYaw - this.tremorYaw) * 0.12F;
+            this.tremorPitch += (this.targetJitterPitch - this.tremorPitch) * 0.12F;
+            this.clickImpulseYaw *= 0.75F;
+            this.clickImpulsePitch *= 0.75F;
+            this.lastJitterTick = mc.thePlayer.ticksExisted;
+        }
+        return new float[]{this.jitterYaw, this.jitterPitch};
+    }
+
+    private static AxisAlignedBB contract(AxisAlignedBB bb, double x, double y, double z) {
+        return new AxisAlignedBB(bb.minX + x, bb.minY + y, bb.minZ + z, bb.maxX - x, bb.maxY - y, bb.maxZ - z);
+    }
+
+    private static Vec3[] vertices(AxisAlignedBB bb) {
+        return new Vec3[]{
+                new Vec3(bb.minX, bb.minY, bb.minZ), new Vec3(bb.minX, bb.minY, bb.maxZ),
+                new Vec3(bb.minX, bb.maxY, bb.minZ), new Vec3(bb.minX, bb.maxY, bb.maxZ),
+                new Vec3(bb.maxX, bb.minY, bb.minZ), new Vec3(bb.maxX, bb.minY, bb.maxZ),
+                new Vec3(bb.maxX, bb.maxY, bb.minZ), new Vec3(bb.maxX, bb.maxY, bb.maxZ)
+        };
+    }
+
+    private static Vec3 center(AxisAlignedBB bb) {
+        return new Vec3((bb.minX + bb.maxX) / 2.0D, (bb.minY + bb.maxY) / 2.0D, (bb.minZ + bb.maxZ) / 2.0D);
+    }
+
+    private static Vec3 getMoveDelta(Entity entity) {
+        return new Vec3(entity.posX - entity.prevPosX, entity.posY - entity.prevPosY, entity.posZ - entity.prevPosZ);
+    }
+
+    private static double getSpeedPosBased(Entity entity) {
+        return Math.hypot(entity.posX - entity.prevPosX, entity.posZ - entity.prevPosZ);
+    }
+
+    private static Vec3 getVectorForRotation(float yaw, float pitch) {
+        float yawRad = -yaw * 0.017453292F - (float) Math.PI;
+        float pitchRad = -pitch * 0.017453292F;
+        float cosYaw = MathHelper.cos(yawRad);
+        float sinYaw = MathHelper.sin(yawRad);
+        float cosPitch = -MathHelper.cos(pitchRad);
+        float sinPitch = MathHelper.sin(pitchRad);
+        return new Vec3(sinYaw * cosPitch, sinPitch, cosYaw * cosPitch);
+    }
+
+    private static float[] rotationsTo(Vec3 target, Vec3 eyes) {
+        double x = target.xCoord - eyes.xCoord;
+        double y = target.yCoord - eyes.yCoord;
+        double z = target.zCoord - eyes.zCoord;
+        double dist = MathHelper.sqrt_double(x * x + z * z);
+        return new float[]{
+                (float) (Math.atan2(z, x) * 180.0D / Math.PI) - 90.0F,
+                (float) (-(Math.atan2(y, dist) * 180.0D / Math.PI))
+        };
+    }
+
+    private static Vec3 add(Vec3 a, Vec3 b) {
+        return new Vec3(a.xCoord + b.xCoord, a.yCoord + b.yCoord, a.zCoord + b.zCoord);
+    }
+
+    private static Vec3 subtract(Vec3 a, Vec3 b) {
+        return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
+    }
+
+    private static Vec3 multiply(Vec3 vec, double factor) {
+        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
+    }
+
+    private static Vec3 flat(Vec3 vec) {
+        return new Vec3(vec.xCoord, 0.0D, vec.zCoord);
+    }
+
+    private static Vec3 zeroVec() {
+        return new Vec3(0.0D, 0.0D, 0.0D);
+    }
+
+    private static double crossLength(Vec3 a, Vec3 b) {
+        double x = a.yCoord * b.zCoord - a.zCoord * b.yCoord;
+        double y = a.zCoord * b.xCoord - a.xCoord * b.zCoord;
+        double z = a.xCoord * b.yCoord - a.yCoord * b.xCoord;
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    private static double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
+        double x = x1 - x2;
+        double y = y1 - y2;
+        double z = z1 - z2;
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    private static float interpolate(float current, float target, float amount) {
+        return current + (target - current) * amount;
+    }
+
+    private static double randomBetween(float min, float max) {
+        return min == max ? min : RandomUtil.nextDouble(Math.min(min, max), Math.max(min, max));
+    }
+
     @EventTarget(Priority.LOWEST)
     public void onPacket(PacketEvent event) {
         if (this.isEnabled() && !event.isCancelled()) {
+            if (event.getType() == EventType.SEND && event.getPacket() instanceof C0APacketAnimation) {
+                this.jitterClicks.add(System.currentTimeMillis());
+            }
             if (event.getPacket() instanceof C07PacketPlayerDigging) {
                 C07PacketPlayerDigging packet = (C07PacketPlayerDigging) event.getPacket();
                 if (packet.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
@@ -854,8 +1332,32 @@ public class KillAura extends Module {
                 if (this.showTarget.getValue() == 2) {
                     renderScan(event, getTarget());
                 }
+                if (this.advancedRotations.getValue() && this.aimDot.getValue() && this.currentVec != null) {
+                    this.renderAimDot();
+                }
             }
         }
+    }
+
+    private void renderAimDot() {
+        double size = 0.05D;
+        Color color = new Color(this.aimDotColor.getValue());
+        AxisAlignedBB dotBox = new AxisAlignedBB(
+                this.currentVec.xCoord - size,
+                this.currentVec.yCoord - size,
+                this.currentVec.zCoord - size,
+                this.currentVec.xCoord + size,
+                this.currentVec.yCoord + size,
+                this.currentVec.zCoord + size
+        ).offset(
+                -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX(),
+                -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY(),
+                -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ()
+        );
+
+        RenderUtil.enableRenderState();
+        RenderUtil.drawFilledBox(dotBox, color.getRed(), color.getGreen(), color.getBlue());
+        RenderUtil.disableRenderState();
     }
 
     @EventTarget
