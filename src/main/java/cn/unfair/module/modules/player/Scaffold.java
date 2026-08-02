@@ -53,7 +53,7 @@ public class Scaffold extends Module {
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
     public final BooleanProperty swing = new BooleanProperty("swing", true);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
-    public final BooleanProperty blockCounter = new BooleanProperty("block-counter", true);
+    public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "SB"});
     private int rotationTick = 0;
     private int lastSlot = -1;
     private int blockCount = -1;
@@ -800,40 +800,55 @@ public class Scaffold extends Module {
     @EventTarget
     public void onRender(Render2DEvent event) {
         if (this.isEnabled()) {
-            if (this.blockCounter.getValue()) {
-                int count = 0;
-                for (int i = 0; i < 9; i++) {
-                    ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-                    if (stack != null && stack.stackSize > 0) {
-                        Item item = stack.getItem();
-                        if (item instanceof ItemBlock) {
-                            Block block = ((ItemBlock) item).getBlock();
-                            if (!BlockUtil.isInteractable(block) && BlockUtil.isSolid(block)) {
-                                count += stack.stackSize;
-                            }
-                        }
-                    }
+
+            switch (blockCounterMode.getValue()) {
+                case 0 : {
+                    return;
                 }
-                HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-                float scale = hud.scale.getValue();
-                GlStateManager.pushMatrix();
-                GlStateManager.scale(scale, scale, 0.0F);
-                GlStateManager.disableDepth();
-                GlStateManager.enableBlend();
-                GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                mc.fontRendererObj
-                        .drawString(
-                                String.format("%d block%s left", count, count != 1 ? "s" : ""),
-                                ((float) new ScaledResolution(mc).getScaledWidth() / 2.0F + (float) mc.fontRendererObj.FONT_HEIGHT * 1.5F) / scale,
-                                (float) new ScaledResolution(mc).getScaledHeight() / 2.0F / scale - (float) mc.fontRendererObj.FONT_HEIGHT / 2.0F + 1.0F,
-                                (count > 0 ? Color.WHITE.getRGB() : new Color(255, 85, 85).getRGB()) | -1090519040,
-                                hud.shadow.getValue()
-                        );
-                GlStateManager.disableBlend();
-                GlStateManager.enableDepth();
-                GlStateManager.popMatrix();
+
+                case 1 : {
+                    HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+                    float scale = hud.scale.getValue();
+                    GlStateManager.pushMatrix();
+                    GlStateManager.scale(scale, scale, 0.0F);
+                    GlStateManager.disableDepth();
+                    GlStateManager.enableBlend();
+                    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                    mc.fontRendererObj
+                            .drawString(
+                                    String.format("%d block%s left", getBlockCount(), getBlockCount() != 1 ? "s" : ""),
+                                    ((float) new ScaledResolution(mc).getScaledWidth() / 2.0F + (float) mc.fontRendererObj.FONT_HEIGHT * 1.5F) / scale,
+                                    (float) new ScaledResolution(mc).getScaledHeight() / 2.0F / scale - (float) mc.fontRendererObj.FONT_HEIGHT / 2.0F + 1.0F,
+                                    (getBlockCount() > 0 ? Color.WHITE.getRGB() : new Color(255, 85, 85).getRGB()) | -1090519040,
+                                    hud.shadow.getValue()
+                            );
+                    GlStateManager.disableBlend();
+                    GlStateManager.enableDepth();
+                    GlStateManager.popMatrix();
+                }
+
+                case 2 : {
+
+                }
             }
         }
+    }
+
+    public int getBlockCount() {
+        int count = 0;
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (stack != null && stack.stackSize > 0) {
+                Item item = stack.getItem();
+                if (item instanceof ItemBlock) {
+                    Block block = ((ItemBlock) item).getBlock();
+                    if (!BlockUtil.isInteractable(block) && BlockUtil.isSolid(block)) {
+                        count += stack.stackSize;
+                    }
+                }
+            }
+        }
+        return count;
     }
 
     @EventTarget
