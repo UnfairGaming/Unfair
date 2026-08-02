@@ -14,7 +14,9 @@ import cn.unfair.mixin.IAccessorRenderManager;
 import cn.unfair.mixin.IAccessorS14PacketEntity;
 import cn.unfair.mixin.IAccessorS18PacketEntityTeleport;
 import cn.unfair.module.Module;
+import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
@@ -64,6 +66,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Queue;
@@ -92,13 +95,17 @@ public class BackTrack extends Module {
     public final BooleanProperty animals = new BooleanProperty("animals", false);
     public final BooleanProperty botCheck = new BooleanProperty("bot-check", true);
     public final BooleanProperty teams = new BooleanProperty("teams", true);
+    public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.esp.getValue() == 1);
+    public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
+    public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.esp.getValue() == 1);
     public final BooleanProperty debug = new BooleanProperty("debug", false);
 
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
-    private Vec3 anim = zeroVec();
+    private Vec3 lastRenderPosition;
+    private Vec3 currentRenderPosition;
     public static boolean shouldLag;
     private boolean dispatched;
     private boolean outOfRange;
@@ -116,7 +123,8 @@ public class BackTrack extends Module {
     public void onEnabled() {
         realPosition = zeroVec();
         realLastPos = zeroVec();
-        this.anim = zeroVec();
+        this.lastRenderPosition = null;
+        this.currentRenderPosition = null;
         this.lastTarget = null;
     }
 
@@ -127,7 +135,8 @@ public class BackTrack extends Module {
         shouldLag = false;
         realPosition = null;
         realLastPos = null;
-        this.anim = null;
+        this.lastRenderPosition = null;
+        this.currentRenderPosition = null;
         this.target = null;
         this.lastTarget = null;
     }
@@ -145,6 +154,18 @@ public class BackTrack extends Module {
 
         if (event.getType() == EventType.PRE) {
             BackTrackLagUtils.onPreTick();
+        } else if (event.getType() == EventType.POST) {
+            if (this.target != null && realPosition != null) {
+                if (this.currentRenderPosition == null) {
+                    this.lastRenderPosition = realPosition;
+                } else {
+                    this.lastRenderPosition = this.currentRenderPosition;
+                }
+                this.currentRenderPosition = realPosition;
+            } else {
+                this.lastRenderPosition = null;
+                this.currentRenderPosition = null;
+            }
         }
     }
 
@@ -176,18 +197,17 @@ public class BackTrack extends Module {
         this.target = getTarget(8.0D);
         if (this.target == null) {
             this.lastTarget = null;
+            this.lastRenderPosition = null;
+            this.currentRenderPosition = null;
             this.debugNoTarget();
             BackTrackLagUtils.onPostTick();
             return;
         }
-        if (this.target != this.lastTarget || realPosition == null || realLastPos == null || this.anim == null) {
+        if (this.target != this.lastTarget || realPosition == null || realLastPos == null) {
             realPosition = getServerPositionVector(this.target);
             realLastPos = realPosition;
-            this.anim = new Vec3(
-                    realPosition.xCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX(),
-                    realPosition.yCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY(),
-                    realPosition.zCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ()
-            );
+            this.lastRenderPosition = realPosition;
+            this.currentRenderPosition = realPosition;
             this.lastTarget = this.target;
         }
 
@@ -337,15 +357,11 @@ public class BackTrack extends Module {
             return;
         }
 
-        float x = (float) (realPosition.xCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX());
-        float y = (float) (realPosition.yCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY());
-        float z = (float) (realPosition.zCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ());
-        this.anim = interpolate(this.anim, new Vec3(x, y, z));
-
-        AxisAlignedBB bb = offset(getHitbox(this.target), subtract(this.anim, getPositionVector(this.target)));
+        AxisAlignedBB bb = this.getRenderBox(event.getPartialTicks());
+        Color color = this.getBoxColor();
         RenderUtil.enableRenderState();
-        RenderUtil.drawFilledBox(bb, 0, 0, 0);
-        RenderUtil.drawBoundingBox(bb, 0, 0, 0, 40, 1.0F);
+        RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue());
+        RenderUtil.drawBoundingBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 255, this.outlineWidth.getValue());
         RenderUtil.disableRenderState();
     }
 
@@ -355,12 +371,55 @@ public class BackTrack extends Module {
             return;
         }
 
-        float x = (float) (realPosition.xCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX());
-        float y = (float) (realPosition.yCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY());
-        float z = (float) (realPosition.zCoord - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ());
-        this.anim = interpolate(this.anim, new Vec3(x, y, z));
+        float partialTicks = ((IAccessorMinecraft) mc).getTimer().renderPartialTicks;
+        Vec3 renderPosition = this.getRenderPosition(partialTicks).addVector(
+                -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX(),
+                -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY(),
+                -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ()
+        );
 
-        mc.getRenderManager().doRenderEntity(this.target, this.anim.xCoord, this.anim.yCoord, this.anim.zCoord, this.target.rotationYawHead, ((IAccessorMinecraft) mc).getTimer().renderPartialTicks, true);
+        mc.getRenderManager().doRenderEntity(this.target, renderPosition.xCoord, renderPosition.yCoord, renderPosition.zCoord, this.target.rotationYawHead, partialTicks, true);
+    }
+
+    private Color getBoxColor() {
+        switch (this.boxColor.getValue()) {
+            case 1:
+                return ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+            case 2:
+                return new Color(this.boxCustomColor.getValue());
+            default:
+                return this.target instanceof EntityPlayer ? TeamUtil.getTeamColor((EntityPlayer) this.target, 1.0F) : new Color(0, 0, 0);
+        }
+    }
+
+    private AxisAlignedBB getRenderBox(float partialTicks) {
+        Vec3 position = this.getRenderPosition(partialTicks);
+        float size = this.target.getCollisionBorderSize();
+        return new AxisAlignedBB(
+                position.xCoord - (double) this.target.width / 2.0D,
+                position.yCoord,
+                position.zCoord - (double) this.target.width / 2.0D,
+                position.xCoord + (double) this.target.width / 2.0D,
+                position.yCoord + (double) this.target.height,
+                position.zCoord + (double) this.target.width / 2.0D
+        )
+                .expand(size, size, size)
+                .offset(
+                        -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX(),
+                        -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY(),
+                        -((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ()
+                );
+    }
+
+    private Vec3 getRenderPosition(float partialTicks) {
+        if (this.currentRenderPosition == null || this.lastRenderPosition == null) {
+            return realPosition;
+        }
+        return new Vec3(
+                RenderUtil.lerpDouble(this.currentRenderPosition.xCoord, this.lastRenderPosition.xCoord, partialTicks),
+                RenderUtil.lerpDouble(this.currentRenderPosition.yCoord, this.lastRenderPosition.yCoord, partialTicks),
+                RenderUtil.lerpDouble(this.currentRenderPosition.zCoord, this.lastRenderPosition.zCoord, partialTicks)
+        );
     }
 
     private boolean isValidTarget(EntityLivingBase entity) {
@@ -487,14 +546,6 @@ public class BackTrack extends Module {
         double y = entity.posY - vec.yCoord;
         double z = entity.posZ - vec.zCoord;
         return Math.sqrt(x * x + y * y + z * z);
-    }
-
-    private static Vec3 interpolate(Vec3 current, Vec3 target) {
-        return new Vec3(
-                current.xCoord + (target.xCoord - current.xCoord) * 0.25D,
-                current.yCoord + (target.yCoord - current.yCoord) * 0.25D,
-                current.zCoord + (target.zCoord - current.zCoord) * 0.25D
-        );
     }
 
     private static int randomizeAround(int value) {
