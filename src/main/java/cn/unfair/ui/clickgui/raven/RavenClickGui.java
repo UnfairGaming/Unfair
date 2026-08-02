@@ -32,7 +32,6 @@ public class RavenClickGui extends GuiScreen {
     private static boolean isNotFirstOpen;
     private final File configFile = new File("./config/Unfair/", "clickgui.txt");
     private final String clientName = "Unfair";
-    private final String clientVersion = Unfair.version;
     private final String developer = "dev, UnfairGaming";
     public int originalScale;
     public int previousScale;
@@ -169,7 +168,7 @@ public class RavenClickGui extends GuiScreen {
             int[] displaySize = {this.width, this.height};
             int y = displaySize[1] + (8 - this.getLerpValueInt(this.footerSlideStart, 600.0F, 0, 30, 2));
 
-            mc.fontRendererObj.drawString(clientName + "-" + clientVersion, 4, y, hudColorCached, true);
+            mc.fontRendererObj.drawString(clientName + "-" + Unfair.version, 4, y, hudColorCached, true);
 
             long elapsedTime = System.currentTimeMillis() - openedTime + 50L;
             int characterIndex = (int) (elapsedTime / 200L);

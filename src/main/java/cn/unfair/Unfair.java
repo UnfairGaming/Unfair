@@ -39,6 +39,7 @@ public class Unfair {
     }
 
     public void init() {
+        version = loadVersion();
         rotationManager = new RotationManager();
         floatManager = new FloatManager();
         blinkManager = new BlinkManager();
@@ -114,12 +115,14 @@ public class Unfair {
             targetManager.load();
         }
         Runtime.getRuntime().addShutdownHook(new Thread(Config::saveCurrentSilent));
+    }
 
+    private static String loadVersion() {
         try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(Unfair.class.getResourceAsStream("/version.json")), StandardCharsets.UTF_8)) {
             JsonObject modInfo = new JsonParser().parse(reader).getAsJsonObject();
-            version = modInfo.get("version").getAsString();
+            return modInfo.get("version").getAsString();
         } catch (Exception e) {
-            version = "error";
+            return "error";
         }
     }
 }
