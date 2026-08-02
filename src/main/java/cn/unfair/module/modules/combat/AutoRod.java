@@ -11,10 +11,7 @@ import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.PacketUtil;
-import cn.unfair.util.RotationUtil;
-import cn.unfair.util.TeamUtil;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -92,6 +89,8 @@ public class AutoRod extends Module {
         if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
             return;
         }
+
+        if (BadPacketUtil.bad()) return;
 
         AutoProjectiles autoProjectiles = ((AutoProjectiles) Unfair.moduleManager.modules.get(AutoProjectiles.class));
         if ((autoProjectiles.isEnabled() && autoProjectiles.hasProjectile())) {
