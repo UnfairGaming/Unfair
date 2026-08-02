@@ -18,6 +18,11 @@ public class TimerUtil {
     public void setTime() {
         this.lastMS = 0L;
     }
+
+    public void setTime(long time) {
+        lastMS = time;
+    }
+
     public boolean getPass(long time) {
         return System.currentTimeMillis() - this.lastMS >= time;
     }

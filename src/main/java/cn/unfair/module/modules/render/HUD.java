@@ -27,15 +27,15 @@ import java.util.stream.Collectors;
 public class HUD extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final float ANIMATION_DURATION = 200.0F;
-    public final ModeProperty colorMode = new ModeProperty(
+    public static final ModeProperty colorMode = new ModeProperty(
             "color", 3, new String[]{"RAINBOW", "CHROMA", "ASTOLFO", "CUSTOM1", "CUSTOM12", "CUSTOM123"}
     );
-    public final FloatProperty colorSpeed = new FloatProperty("color-speed", 1.0F, 0.5F, 1.5F);
-    public final PercentProperty colorSaturation = new PercentProperty("color-saturation", 50);
-    public final PercentProperty colorBrightness = new PercentProperty("color-brightness", 100);
-    public final ColorProperty custom1 = new ColorProperty("custom-color-1", Color.WHITE.getRGB(), () -> this.colorMode.getValue() == 3 || this.colorMode.getValue() == 4 || this.colorMode.getValue() == 5);
-    public final ColorProperty custom2 = new ColorProperty("custom-color-2", Color.WHITE.getRGB(), () -> this.colorMode.getValue() == 4 || this.colorMode.getValue() == 5);
-    public final ColorProperty custom3 = new ColorProperty("custom-color-3", Color.WHITE.getRGB(), () -> this.colorMode.getValue() == 5);
+    public static final FloatProperty colorSpeed = new FloatProperty("color-speed", 1.0F, 0.5F, 1.5F);
+    public static final PercentProperty colorSaturation = new PercentProperty("color-saturation", 50);
+    public static final PercentProperty colorBrightness = new PercentProperty("color-brightness", 100);
+    public static final ColorProperty custom1 = new ColorProperty("custom-color-1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 3 || colorMode.getValue() == 4 || colorMode.getValue() == 5);
+    public static final ColorProperty custom2 = new ColorProperty("custom-color-2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 4 || colorMode.getValue() == 5);
+    public static final ColorProperty custom3 = new ColorProperty("custom-color-3", Color.WHITE.getRGB(), () -> colorMode.getValue() == 5);
     public final ModeProperty posX = new ModeProperty("position-x", 1, new String[]{"LEFT", "RIGHT"});
     public final ModeProperty posY = new ModeProperty("position-y", 0, new String[]{"TOP", "BOTTOM"});
     public final IntProperty offsetX = new IntProperty("offset-x", 2, 0, 255);
@@ -92,56 +92,56 @@ public class HUD extends Module {
         return width;
     }
 
-    private float getColorCycle(long long3, long long4) {
-        long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, this.colorSpeed.getValue()), 1.5F), 3.0));
+    public static float getColorCycle(long long3, long long4) {
+        long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, colorSpeed.getValue()), 1.5F), 3.0));
         return 1.0F - (float) (Math.abs(long3 - long4 * 300L) % speed) / (float) speed;
     }
 
-    public Color getColor(long time) {
-        return this.getColor(time, 0L);
+    public static Color getColor(long time) {
+        return getColor(time, 0L);
     }
 
-    public Color getColor(long time, long offset) {
+    public static Color getColor(long time, long offset) {
         Color color = Color.white;
-        switch (this.colorMode.getValue()) {
+        switch (colorMode.getValue()) {
             case 0:
-                color = ColorUtil.fromHSB(this.getColorCycle(time, offset), 1.0F, 1.0F);
+                color = ColorUtil.fromHSB(getColorCycle(time, offset), 1.0F, 1.0F);
                 break;
             case 1:
-                color = ColorUtil.fromHSB(this.getColorCycle(time / 3L, 0L), 1.0F, 1.0F);
+                color = ColorUtil.fromHSB(getColorCycle(time / 3L, 0L), 1.0F, 1.0F);
                 break;
             case 2:
-                float cycle = this.getColorCycle(time, offset);
+                float cycle = getColorCycle(time, offset);
                 if (cycle % 1.0F < 0.5F) {
                     cycle = 1.0F - cycle % 1.0F;
                 }
                 color = ColorUtil.fromHSB(cycle, 1.0F, 1.0F);
                 break;
             case 3:
-                color = new Color(this.custom1.getValue());
+                color = new Color(custom1.getValue());
                 break;
             case 4:
-                double cycle1 = this.getColorCycle(time, offset);
+                double cycle1 = getColorCycle(time, offset);
                 color = ColorUtil.interpolate(
                         (float) (2.0 * Math.abs(cycle1 - Math.floor(cycle1 + 0.5))),
-                        new Color(this.custom1.getValue()),
-                        new Color(this.custom2.getValue())
+                        new Color(custom1.getValue()),
+                        new Color(custom2.getValue())
                 );
                 break;
             case 5:
-                double cycle2 = this.getColorCycle(time, offset);
+                double cycle2 = getColorCycle(time, offset);
                 float floor = (float) (2.0 * Math.abs(cycle2 - Math.floor(cycle2 + 0.5)));
                 if (floor <= 0.5F) {
-                    color = ColorUtil.interpolate(floor * 2.0F, new Color(this.custom1.getValue()), new Color(this.custom2.getValue()));
+                    color = ColorUtil.interpolate(floor * 2.0F, new Color(custom1.getValue()), new Color(custom2.getValue()));
                 } else {
-                    color = ColorUtil.interpolate((floor - 0.5F) * 2.0F, new Color(this.custom2.getValue()), new Color(this.custom3.getValue()));
+                    color = ColorUtil.interpolate((floor - 0.5F) * 2.0F, new Color(custom2.getValue()), new Color(custom3.getValue()));
                 }
         }
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
         return Color.getHSBColor(
                 hsb[0],
-                hsb[1] * (this.colorSaturation.getValue().floatValue() / 100.0F),
-                hsb[2] * (this.colorBrightness.getValue().floatValue() / 100.0F)
+                hsb[1] * (colorSaturation.getValue().floatValue() / 100.0F),
+                hsb[2] * (colorBrightness.getValue().floatValue() / 100.0F)
         );
     }
 

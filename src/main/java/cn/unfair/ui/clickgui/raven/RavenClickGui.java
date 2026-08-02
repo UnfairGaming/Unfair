@@ -18,7 +18,7 @@ import cn.unfair.ui.clickgui.raven.components.BindComponent;
 import cn.unfair.ui.clickgui.raven.components.CategoryComponent;
 import cn.unfair.ui.clickgui.raven.components.ModuleComponent;
 import cn.unfair.util.Animation;
-import cn.unfair.util.shader.BlurUtils;
+import cn.unfair.util.shader.PostProcessingUtils;
 import cn.unfair.util.shader.RoundedUtils;
 
 import java.awt.*;
@@ -95,10 +95,10 @@ public class RavenClickGui extends GuiScreen {
     public void drawScreen(int x, int y, float p) {
         ClickGui clickGUI = (ClickGui) Unfair.moduleManager.modules.get(ClickGui.class);
         if (clickGUI.blur.getValue()) {
-            BlurUtils.prepareBlur();
+            PostProcessingUtils.prepareBlur();
             RoundedUtils.drawRound(0, 0, this.width, this.height, 0.0f, true, Color.black);
             float inputToRange = 1.5f;
-            BlurUtils.blurEnd(2, this.getAnimationValueFloat(this.blurSmooth, 0.0F, inputToRange, 1));
+            PostProcessingUtils.blurEnd(2, this.getAnimationValueFloat(this.blurSmooth, 0.0F, inputToRange, 1));
         }
 
         drawRect(0, 0, this.width, this.height, (int) (this.getAnimationValueFloat(this.backgroundFade, 0.0F, 0.7F, 2) * 255.0F) << 24);
