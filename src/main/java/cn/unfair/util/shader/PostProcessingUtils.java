@@ -3,7 +3,7 @@ package cn.unfair.util.shader;
 import net.minecraft.client.shader.Framebuffer;
 import cn.unfair.util.RenderUtil;
 
-public class BlurUtils {
+public class PostProcessingUtils {
     private static Framebuffer stencilFrameBufferBlur = new Framebuffer(1, 1, false);
     private static Framebuffer stencilFrameBufferBloom = new Framebuffer(1, 1, false);
 

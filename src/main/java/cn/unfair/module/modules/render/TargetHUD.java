@@ -27,7 +27,7 @@ import cn.unfair.util.ColorUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
-import cn.unfair.util.shader.BlurUtils;
+import cn.unfair.util.shader.PostProcessingUtils;
 import cn.unfair.util.shader.RoundedUtils;
 
 import java.awt.*;
@@ -317,12 +317,12 @@ public class TargetHUD extends Module {
             case 0:
                 float bloomRadius = (fadeTimer == null) ? 2f : (2f * alpha / 255f);
                 float blurRadius = (fadeTimer == null) ? 3 : (3f * alpha / 255f);
-                BlurUtils.prepareBloom();
+                PostProcessingUtils.prepareBloom();
                 RoundedUtils.drawRound((float) n6, (float) n7, (float) (n8 - n6), (float) (n9 + 13 - n7), 8.0f, true, new Color(0, 0, 0, maxAlphaBackground));
-                BlurUtils.bloomEnd(3, bloomRadius);
-                BlurUtils.prepareBlur();
+                PostProcessingUtils.bloomEnd(3, bloomRadius);
+                PostProcessingUtils.prepareBlur();
                 RoundedUtils.drawRound((float) n6, (float) n7, (float) (n8 - n6), (float) (n9 + 13 - n7), 8.0f, true, new Color(RenderUtil.mergeAlpha(Color.black.getRGB(), maxAlphaOutline)));
-                BlurUtils.blurEnd(2, blurRadius);
+                PostProcessingUtils.blurEnd(2, blurRadius);
                 break;
             case 1:
                 RenderUtil.drawRoundedGradientOutlinedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 10.0f,
