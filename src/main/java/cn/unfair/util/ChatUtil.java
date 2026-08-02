@@ -1,9 +1,10 @@
 package cn.unfair.util;
 
+import cn.unfair.Unfair;
+import cn.unfair.enums.ChatColors;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
-import cn.unfair.enums.ChatColors;
 
 public class ChatUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -26,5 +27,8 @@ public class ChatUtil {
         if (ChatUtil.mc.thePlayer != null) {
             ChatUtil.mc.thePlayer.sendChatMessage(string);
         }
+    }
+    public static void dbg(String string) {
+        ChatUtil.sendFormatted(Unfair.clientName + string);
     }
 }

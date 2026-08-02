@@ -2,6 +2,7 @@ package cn.unfair.property;
 
 import com.google.gson.JsonObject;
 import cn.unfair.module.Module;
+import cn.unfair.module.ModuleWithModuleSettings;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -11,8 +12,10 @@ public abstract class Property<T> {
     private final T type;
     private final Predicate<T> validator;
     private final BooleanSupplier visibleChecker;
+    private String[] visibleModes;
     private T value;
     private Module owner;
+    private Module visibilityOwner;
 
     protected Property(String name, Object value, BooleanSupplier visibleChecker) {
         this(name, value, null, visibleChecker);
@@ -34,6 +37,21 @@ public abstract class Property<T> {
     public abstract String getValuePrompt();
 
     public boolean isVisible() {
+        Module visibilitySource = this.visibilityOwner != null ? this.visibilityOwner : this.owner;
+        if (this.visibleModes != null && visibilitySource instanceof ModuleWithModuleSettings) {
+            ModuleWithModuleSettings moduleWithSettings = (ModuleWithModuleSettings) visibilitySource;
+            String currentMode = moduleWithSettings.modeProperty.getModeString();
+            boolean modeVisible = false;
+            for (String visibleMode : this.visibleModes) {
+                if (visibleMode != null && visibleMode.equalsIgnoreCase(currentMode)) {
+                    modeVisible = true;
+                    break;
+                }
+            }
+            if (!modeVisible) {
+                return false;
+            }
+        }
         return this.visibleChecker == null || this.visibleChecker.getAsBoolean();
     }
 
@@ -60,6 +78,14 @@ public abstract class Property<T> {
 
     public void setOwner(Module module) {
         this.owner = module;
+    }
+
+    public void setVisibilityOwner(Module module) {
+        this.visibilityOwner = module;
+    }
+
+    public void setVisibleModes(String... visibleModes) {
+        this.visibleModes = visibleModes;
     }
 
     public abstract boolean parseString(String string);

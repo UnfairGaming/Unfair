@@ -61,7 +61,8 @@ public class ModeComponent implements Component {
                 this.property.previousMode();
             }
             int newHeight = this.parentModule.getModuleHeight();
-            // If height changed, trigger smooth animation
+            this.parentModule.updateHeight(this.parentModule.yPos);
+            this.parentModule.category.updateHeight();
             if (oldHeight != newHeight) {
                 this.parentModule.startHeightAnimation(oldHeight, newHeight);
             }

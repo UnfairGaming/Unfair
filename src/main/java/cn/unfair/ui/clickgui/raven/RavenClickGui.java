@@ -10,7 +10,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
-import cn.unfair.config.Config;
 import cn.unfair.module.Category;
 import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
@@ -321,14 +320,13 @@ public class RavenClickGui extends GuiScreen {
         this.logoSmoothLength = null;
         this.footerSlide = null;
         for (CategoryComponent c : categories) {
-            c.dragging = false;
+            c.onGuiClosed();
             for (Component m : c.getModules()) {
                 m.onGuiClosed();
             }
         }
         this.mc.gameSettings.guiScale = originalScale;
         savePositions();
-        saveCurrentConfig();
     }
 
     @Override
@@ -366,13 +364,6 @@ public class RavenClickGui extends GuiScreen {
             gson.toJson(json, writer);
         } catch (java.io.IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void saveCurrentConfig() {
-        if (Config.lastConfig != null && !Config.lastConfig.isEmpty()) {
-            Config config = new Config(Config.lastConfig, false);
-            config.save();
         }
     }
 

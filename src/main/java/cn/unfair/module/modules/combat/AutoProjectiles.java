@@ -1,17 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import cn.unfair.util.RotationUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityOtherPlayerMP;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemEgg;
-import net.minecraft.item.ItemSnowball;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.util.Vec3;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -25,7 +13,18 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.PacketUtil;
+import cn.unfair.util.RotationUtil;
 import cn.unfair.util.TeamUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemEgg;
+import net.minecraft.item.ItemSnowball;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.util.Vec3;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,6 +39,7 @@ public class AutoProjectiles extends Module {
     public final IntProperty throwDelay = new IntProperty("throw-delay", 3, 1, 15, () -> !smartDelay.getValue());
     public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
+    public final BooleanProperty botChecks = new BooleanProperty("bot-check", true);
     public final BooleanProperty teams = new BooleanProperty("Teams", true);
     private EntityLivingBase target = null;
     private int lastSlot = -1;
@@ -51,6 +51,13 @@ public class AutoProjectiles extends Module {
 
     public AutoProjectiles() {
         super("AutoProjectiles", false);
+    }
+
+    private boolean isEntityHeightVisible(EntityLivingBase entity) {
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
+        Vec3 top = new Vec3(entity.posX, entity.posY + entity.height, entity.posZ);
+        Vec3 bottom = new Vec3(entity.posX, entity.posY, entity.posZ);
+        return mc.theWorld.rayTraceBlocks(eyePos, top) == null || mc.theWorld.rayTraceBlocks(eyePos, bottom) == null;
     }
 
     private boolean isValidTarget(EntityLivingBase entity) {
@@ -68,6 +75,10 @@ public class AutoProjectiles extends Module {
         if (TeamUtil.isFriend(player)) {
             return false;
         }
+        if (this.botChecks.getValue() && TeamUtil.isBot(player)) {
+            return false;
+        }
+        if (!isEntityHeightVisible(entity)) return false;
         if (RotationUtil.angleToEntity(player) > (float) this.fov.getValue()) return false;
         return !this.teams.getValue() || !TeamUtil.isSameTeam(player);
     }
@@ -129,7 +140,7 @@ public class AutoProjectiles extends Module {
         return newTarget;
     }
 
-    private boolean hasProjectile() {
+    public boolean hasProjectile() {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
             if (isProjectile(stack)) {

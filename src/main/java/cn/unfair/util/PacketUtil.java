@@ -12,12 +12,14 @@ import java.util.List;
 public class PacketUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static List<Packet<INetHandlerPlayClient>> skipReceiveEvent = new ArrayList<>();
+    public static List<Packet<?>> skipSendEvent = new ArrayList<>();
 
     public static void sendPacket(Packet<?> packet) {
         mc.getNetHandler().getNetworkManager().sendPacket(packet);
     }
 
     public static void sendPacketNoEvent(Packet<?> packet) {
+        skipSendEvent.add(packet);
         mc.getNetHandler().getNetworkManager().sendPacket(packet, null);
     }
     public static void receivePacketNoEvent(Packet<?> packet) {

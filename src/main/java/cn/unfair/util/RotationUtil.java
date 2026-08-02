@@ -2,10 +2,7 @@ package cn.unfair.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import cn.unfair.mixin.IAccessorEntity;
 
 public class RotationUtil {
@@ -45,6 +42,20 @@ public class RotationUtil {
 
     public static float[] getRotationsTo(double targetX, double targetY, double targetZ, float currentYaw, float currentPitch) {
         return RotationUtil.getRotations(targetX, targetY, targetZ, currentYaw, currentPitch, 180.0f, 0.0f);
+    }
+
+    public static float[] getRotations(BlockPos blockPos) {
+        return getRotations(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, mc.thePlayer.posX, mc.thePlayer.posY + (double)mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
+    }
+
+    public static float[] getRotations(double rotX, double rotY, double rotZ, double startX, double startY, double startZ) {
+        double x = rotX - startX;
+        double y = rotY - startY;
+        double z = rotZ - startZ;
+        double dist = MathHelper.sqrt_double(x * x + z * z);
+        float yaw = (float) (Math.atan2(z, x) * 180.0 / Math.PI) - 90.0F;
+        float pitch = (float) (-(Math.atan2(y, dist) * 180.0 / Math.PI));
+        return new float[]{yaw, pitch};
     }
 
     public static float[] getRotations(double targetX, double targetY, double targetZ, float currentYaw, float currentPitch, float maxAngle, float smoothFactor) {

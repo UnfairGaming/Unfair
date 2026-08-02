@@ -5,6 +5,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.INetHandlerPlayClient;
+import net.minecraft.network.play.client.C16PacketClientStatus;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.spongepowered.asm.mixin.Mixin;
@@ -48,6 +49,13 @@ public abstract class MixinNetworkManager {
     )
     private void sendPacket(Packet<?> packet, CallbackInfo callbackInfo) {
         if (!packet.getClass().getName().startsWith("net.minecraft.network.play.server")) {
+            if (isRespawnPacket(packet)) {
+                return;
+            }
+            if (PacketUtil.skipSendEvent.contains(packet)) {
+                PacketUtil.skipSendEvent.remove(packet);
+                return;
+            }
             PacketEvent event = new PacketEvent(EventType.SEND, packet);
             EventManager.call(event);
             if (event.isCancelled()) {
@@ -81,6 +89,19 @@ public abstract class MixinNetworkManager {
             CallbackInfo callbackInfo
     ) {
         if (!packet.getClass().getName().startsWith("net.minecraft.network.play.server")) {
+            if (isRespawnPacket(packet)) {
+                return;
+            }
+            if (PacketUtil.skipSendEvent.contains(packet)) {
+                PacketUtil.skipSendEvent.remove(packet);
+                return;
+            }
+            PacketEvent event = new PacketEvent(EventType.SEND, packet);
+            EventManager.call(event);
+            if (event.isCancelled()) {
+                callbackInfo.cancel();
+                return;
+            }
             if (Unfair.playerStateManager != null && Unfair.blinkManager != null && Unfair.lagManager != null) {
                 if (!Unfair.lagManager.isFlushing()) {
                     Unfair.playerStateManager.handlePacket(packet);
@@ -107,5 +128,10 @@ public abstract class MixinNetworkManager {
                 return;
             }
         }
+    }
+
+    private boolean isRespawnPacket(Packet<?> packet) {
+        return packet instanceof C16PacketClientStatus
+                && ((C16PacketClientStatus) packet).getStatus() == C16PacketClientStatus.EnumState.PERFORM_RESPAWN;
     }
 }

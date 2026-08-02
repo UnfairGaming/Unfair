@@ -117,10 +117,6 @@ public class ModuleComponent implements Component {
         }
         int button_rgb = this.mod.isEnabled() ? enabledColor : disabledColor;
 
-        if (smoothTimer != null && smoothTimer.getElapsed() >= 300) {
-            smoothTimer = null;
-            isAnimatingHeight = false;
-        }
         if (smoothTimer != null) {
             if (isAnimatingHeight) {
                 // Height change animation (for mode switches)
@@ -144,6 +140,11 @@ public class ModuleComponent implements Component {
                     smoothTimer = null;
                 }
             }
+            if (smoothTimer != null && smoothTimer.getElapsed() >= 300) {
+                smoothingY = isAnimatingHeight ? targetHeight : (isOpened ? getModuleHeight() : 16);
+                smoothTimer = null;
+                isAnimatingHeight = false;
+            }
             this.category.updateHeight();
         }
 
@@ -152,7 +153,7 @@ public class ModuleComponent implements Component {
         if (scissorRequired) {
             GL11.glPushMatrix();
             GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            RenderUtil.scissor(this.category.getX() - 2, this.category.getY() + this.yPos + 4, this.category.getWidth() + 4, smoothingY + 4);
+            RenderUtil.scissor(this.category.getX() - 2, this.category.getY() + this.yPos + 4, this.category.getWidth() + 4, Math.max(0, smoothingY + 4));
         }
 
         if (this.isOpened || smoothTimer != null) {
@@ -229,6 +230,9 @@ public class ModuleComponent implements Component {
 
     public void drawScreen(int x, int y) {
         for (Component c : this.settings) {
+            if (!isVisible(c)) {
+                continue;
+            }
             c.drawScreen(x, y);
         }
         if (overModuleName(x, y) && this.category.opened) {
@@ -262,6 +266,9 @@ public class ModuleComponent implements Component {
         }
 
         for (Component settingComponent : this.settings) {
+            if (!isVisible(settingComponent)) {
+                continue;
+            }
             settingComponent.onClick(x, y, mouse);
         }
     }
