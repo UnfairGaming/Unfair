@@ -1,0 +1,25 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url = 'https://maven.architectury.dev/' }
+        maven { url = 'https://maven.fabricmc.net' }
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/maven/' }
+        maven { url = 'https://repo.essential.gg/repository/maven-releases/' }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == 'gg.essential.loom') {
+                useModule("gg.essential:architectury-loom:${requested.version}".toString())
+            }
+        }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.6.0'
+}
+
+rootProject.name = 'unfair'

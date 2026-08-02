@@ -17,7 +17,6 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.ColorUtil;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.Animation;
 
 import java.awt.*;
 import java.util.*;
@@ -52,7 +51,7 @@ public class HUD extends Module {
     public final BooleanProperty toggleSound = new BooleanProperty("toggle-sounds", true);
     public final BooleanProperty toggleAlerts = new BooleanProperty("toggle-alerts", false);
     private final Set<Module> fadingOutModules = new HashSet<>();
-    private final Map<Module, Animation> animationMap = new HashMap<>();
+    private final Map<Module, HudAnimation> animationMap = new HashMap<>();
     private List<Module> activeModules = new ArrayList<>();
 
     public HUD() {
@@ -154,21 +153,13 @@ public class HUD extends Module {
                     .sorted(Comparator.comparingInt(this::getModuleWidth).reversed())
                     .collect(Collectors.<Module>toList());
 
-            for (Module module : newActiveModules) {
-                if (!this.activeModules.contains(module) && !this.animationMap.containsKey(module)) {
-                    Animation animation = new Animation(ANIMATION_DURATION);
-                    animation.start();
-                    this.animationMap.put(module, animation);
-                    this.fadingOutModules.remove(module);
-                } else if (this.fadingOutModules.remove(module)) {
-                    Animation animation = new Animation(ANIMATION_DURATION);
-                    animation.start();
-                    this.animationMap.put(module, animation);
-                }
-            }
+            Set<Module> trackedModules = new HashSet<>();
+            trackedModules.addAll(this.activeModules);
+            trackedModules.addAll(newActiveModules);
+            trackedModules.addAll(this.fadingOutModules);
 
-            for (Module module : this.activeModules) {
-                if (!newActiveModules.contains(module)) {
+            for (Module module : trackedModules) {
+                if (module == null || module.isHidden()) {
                     // If the module was hidden (not disabled), remove immediately — no fade-out animation
                     if (module.isHidden()) {
                         this.animationMap.remove(module);
