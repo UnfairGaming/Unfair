@@ -463,6 +463,13 @@ public class InvManager extends Module {
                                     return;
                                 }
                             }
+                            if (preferredFishingRodHotbarSlot >= 0 && preferredFishingRodHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredFishingRodHotbarSlot) && (equippedFishingRodSlot != -1 || inventoryFishingRodSlot != -1)) {
+                                usedHotbarSlots.add(preferredFishingRodHotbarSlot);
+                                if (equippedFishingRodSlot != preferredFishingRodHotbarSlot && inventoryFishingRodSlot != preferredFishingRodHotbarSlot) {
+                                    int slot = equippedFishingRodSlot != -1 ? equippedFishingRodSlot : inventoryFishingRodSlot;
+                                    this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredFishingRodHotbarSlot, 2);
+                                }
+                            }
                         }
                         if (this.mode.getValue() == 0 && this.dropTrash.getValue()) {
                             int currentBlockCount = this.getStackSize(inventoryBlocksSlot);
