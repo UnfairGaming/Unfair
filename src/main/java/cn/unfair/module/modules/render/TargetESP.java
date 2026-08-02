@@ -11,11 +11,10 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.ColorUtil;
+import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.MathUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TimerUtil;
-import cn.unfair.util.animations.Animation;
-import cn.unfair.util.animations.advanced.impl.DecelerateAnimation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -43,7 +42,7 @@ public class TargetESP extends Module {
     private final ModeProperty mode = new ModeProperty("Mark Mode", 1, new String[]{"Points", "Ghost", "Ghost2", "Image", "Exhi", "Circle"});
     private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim","Custom"}, () -> mode.getValue() == 3);
     private final BooleanProperty animation = new BooleanProperty("Animation", true, () -> mode.getValue() == 3 && imageMode.getValue() == 5);
-    // 给👇这个删了你妈就死了
+    // 给👇这个删了你妈就死了 笑死我了
     private final BooleanProperty selectImage = new BooleanProperty("Select Image", false, () -> mode.getValue() == 3 && imageMode.getValue() == 5) {
         @Override
         public boolean setValue(Object value) {
@@ -64,10 +63,9 @@ public class TargetESP extends Module {
 
     private EntityLivingBase target;
     private final TimerUtil displayTimer = new TimerUtil();
-    private final TimerUtil animTimer = new TimerUtil();
     private long lastTime = System.currentTimeMillis();
+    private long alphaStartTime = 0L;
     private boolean hasFullyFadedIn = false;
-    private final Animation alphaAnim = new DecelerateAnimation(400, 1);
     private final ResourceLocation glowCircle = new ResourceLocation("minecraft", "unfair/targetesp/glow_circle.png");
     private final ResourceLocation rectangle = new ResourceLocation("minecraft", "unfair/targetesp/rectangle.png");
     private final ResourceLocation quadstapple = new ResourceLocation("minecraft", "unfair/targetesp/quadstapple.png");
@@ -115,9 +113,8 @@ public class TargetESP extends Module {
     @Override
     public void onEnabled() {
         target = null;
-        alphaAnim.reset();
+        alphaStartTime = AnimationUtil.start();
         displayTimer.reset();
-        animTimer.reset();
         lastTime = System.currentTimeMillis();
         hasFullyFadedIn = false;
         prevCircleStep = 0;
@@ -127,7 +124,7 @@ public class TargetESP extends Module {
     @Override
     public void onDisabled() {
         target = null;
-        alphaAnim.reset();
+        alphaStartTime = 0L;
     }
 
     @EventTarget
@@ -151,9 +148,7 @@ public class TargetESP extends Module {
                 if (target != newTarget) {
                     target = newTarget;
                     lastTime = System.currentTimeMillis();
-                    alphaAnim.reset();
-                    alphaAnim.setDirection(Animation.Direction.FORWARDS);
-                    animTimer.reset();
+                    alphaStartTime = AnimationUtil.start();
                     hasFullyFadedIn = false;
                 }
                 displayTimer.reset();
@@ -187,19 +182,18 @@ public class TargetESP extends Module {
     private float getAlpha() {
         if (target == null) return 0.0f;
 
-        long animElapsed = animTimer.getElapsedTime();
         long displayElapsed = displayTimer.getElapsedTime();
 
         if (!hasFullyFadedIn) {
-            if (animElapsed < 200) {
-                return animElapsed / 200.0f;
+            if (!AnimationUtil.finished(alphaStartTime, 200.0F)) {
+                return AnimationUtil.progress(alphaStartTime, 200.0F, ((IAccessorMinecraft) mc).getTimer().renderPartialTicks, 0);
             } else {
                 hasFullyFadedIn = true;
                 return 1.0f;
             }
         } else {
             if (displayElapsed > 800) {
-                return Math.max(0.0f, (1000 - displayElapsed) / 200.0f);
+                return 1.0F - AnimationUtil.progress(System.currentTimeMillis() - (displayElapsed - 800L), 200.0F, ((IAccessorMinecraft) mc).getTimer().renderPartialTicks, 0);
             } else {
                 return 1.0f;
             }

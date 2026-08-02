@@ -92,6 +92,18 @@ public class HUD extends Module {
         return width;
     }
 
+    private float getAnimationProgress(Module module, float partialTicks) {
+        HudAnimation animation = this.animationMap.get(module);
+        if (animation == null) {
+            return module.isEnabled() && !module.isHidden() ? 1.0F : 0.0F;
+        }
+        return Math.max(0.0F, Math.min(1.0F, RenderUtil.lerpFloat(
+                animation.currentProgress,
+                animation.lastProgress,
+                partialTicks
+        )));
+    }
+
     public static float getColorCycle(long long3, long long4) {
         long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, colorSpeed.getValue()), 1.5F), 3.0));
         return 1.0F - (float) (Math.abs(long3 - long4 * 300L) % speed) / (float) speed;
@@ -161,36 +173,45 @@ public class HUD extends Module {
             for (Module module : trackedModules) {
                 if (module == null || module.isHidden()) {
                     // If the module was hidden (not disabled), remove immediately — no fade-out animation
-                    if (module.isHidden()) {
+                    if (module != null) {
                         this.animationMap.remove(module);
                         this.fadingOutModules.remove(module);
                         continue;
                     }
-                    Animation existing = this.animationMap.get(module);
-                    if (existing == null || existing.isFinished() || this.fadingOutModules.contains(module)) {
-                        Animation animation = new Animation(ANIMATION_DURATION);
-                        animation.start();
-                        this.animationMap.put(module, animation);
-                    }
+                    continue;
+                }
+                boolean active = newActiveModules.contains(module);
+                HudAnimation animation = this.animationMap.get(module);
+                if (animation == null) {
+                    animation = new HudAnimation(active ? 0.0F : 1.0F);
+                    this.animationMap.put(module, animation);
+                }
+
+                animation.tick(active);
+                if (active) {
+                    this.fadingOutModules.remove(module);
+                } else {
                     this.fadingOutModules.add(module);
+                    if (animation.isFinishedOut()) {
+                        this.animationMap.remove(module);
+                        this.fadingOutModules.remove(module);
+                    }
                 }
             }
 
-            Iterator<Map.Entry<Module, Animation>> it = this.animationMap.entrySet().iterator();
+            Iterator<Map.Entry<Module, HudAnimation>> it = this.animationMap.entrySet().iterator();
             while (it.hasNext()) {
-                Map.Entry<Module, Animation> entry = it.next();
+                Map.Entry<Module, HudAnimation> entry = it.next();
                 Module m = entry.getKey();
-                Animation animation = entry.getValue();
-                if (m == null || animation == null) {
+                HudAnimation animation = entry.getValue();
+                if (m == null || animation == null || m.isHidden()) {
                     it.remove();
+                    this.fadingOutModules.remove(m);
                     continue;
                 }
-                if (!m.isEnabled()) {
-                    long elapsed = animation.getElapsed();
-                    if (animation.isFinished() || elapsed > ANIMATION_DURATION + 100) {
-                        it.remove();
-                        this.fadingOutModules.remove(m);
-                    }
+                if (!m.isEnabled() && animation.isFinishedOut()) {
+                    it.remove();
+                    this.fadingOutModules.remove(m);
                 }
 
             }
@@ -249,22 +270,8 @@ public class HUD extends Module {
                 float totalWidth = (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1));
                 int color = this.getColor(l, offset).getRGB();
 
-                float animProgress = 1.0F;
                 boolean isFadingOut = !module.isEnabled();
-                Animation animTimer = this.animationMap.get(module);
-                if (animTimer != null && animTimer.isStarted()) {
-                    try {
-                        if (isFadingOut) {
-
-                            animProgress = Math.max(0.0F, 1.0F - animTimer.getValueFloat(0.0F, 1.0F, 2));
-                        } else {
-
-                            animProgress = animTimer.getValueFloat(0.0F, 1.0F, 2);
-                        }
-                    } catch (Exception ignored) {
-                        animProgress = isFadingOut ? 0.0F : 1.0F;
-                    }
-                }
+                float animProgress = this.getAnimationProgress(module, event.getPartialTicks());
 
                 if (isFadingOut && animProgress <= 0.01F) {
                     continue;
@@ -276,11 +283,8 @@ public class HUD extends Module {
                 float xSlideDir = alignLeft ? -1.0F : 1.0F;
                 float xSlideAmount = (1.0F - animProgress) * totalWidth * xSlideDir;
 
-                float ySlideDir = alignTop ? 1.0F : -1.0F;
-                float ySlideAmount = (1.0F - animProgress) * (height + 2.0F) * ySlideDir;
-
                 float currentX = x + xSlideAmount;
-                float currentY = y + ySlideAmount;
+                float currentY = y;
 
                 int animatedColor = color;
                 if (animProgress < 1.0F) {
@@ -436,6 +440,29 @@ public class HUD extends Module {
             }
             GlStateManager.enableDepth();
             GlStateManager.popMatrix();
+        }
+    }
+
+    private static class HudAnimation {
+        private static final float TICK_MS = 50.0F;
+        private final float step;
+        private float lastProgress;
+        private float currentProgress;
+
+        private HudAnimation(float progress) {
+            this.step = Math.min(1.0F, TICK_MS / ANIMATION_DURATION);
+            this.lastProgress = progress;
+            this.currentProgress = progress;
+        }
+
+        private void tick(boolean forwards) {
+            this.lastProgress = this.currentProgress;
+            this.currentProgress += forwards ? this.step : -this.step;
+            this.currentProgress = Math.max(0.0F, Math.min(1.0F, this.currentProgress));
+        }
+
+        private boolean isFinishedOut() {
+            return this.currentProgress <= 0.0F && this.lastProgress <= 0.0F;
         }
     }
 }

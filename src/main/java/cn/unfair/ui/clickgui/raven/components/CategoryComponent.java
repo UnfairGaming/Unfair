@@ -10,11 +10,12 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
+import cn.unfair.mixin.IAccessorMinecraft;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.Component;
+import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.Animation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -37,12 +38,13 @@ public class CategoryComponent {
     public int yy;
     public boolean hovering = false;
     public boolean hoveringOverCategory = false;
-    public Animation smoothTimer;
-    public Animation smoothScrollTimer;
+    public long smoothStartTime;
+    public long smoothScrollStartTime;
     public ScaledResolution scale;
     public float big;
     public int moduleY;
-    private Animation textTimer;
+    private long textStartTime;
+    private float smoothDuration;
     private float bigSettings;
     private float lastHeight;
     private int lastModuleY;
@@ -59,8 +61,8 @@ public class CategoryComponent {
         this.x = 5;
         this.moduleY = this.y = 5;
         this.titleHeight = 13;
-        this.smoothTimer = null;
-        this.textTimer = null;
+        this.smoothStartTime = 0L;
+        this.textStartTime = 0L;
         this.xx = 0;
         this.opened = false;
         this.dragging = false;
@@ -113,8 +115,9 @@ public class CategoryComponent {
 
     public void setOpened(boolean on) {
         this.opened = on;
-        (this.smoothTimer = new Animation(500)).start();
-        (this.textTimer = new Animation(200)).start();
+        this.smoothStartTime = AnimationUtil.start();
+        this.smoothDuration = 500.0F;
+        this.textStartTime = AnimationUtil.start();
     }
 
     public void mouseClicked(boolean on) {
@@ -125,7 +128,8 @@ public class CategoryComponent {
         if (!component.isOpened) {
             closedHeight = this.y + this.titleHeight + big + 4;
         }
-        (this.smoothTimer = new Animation(200)).start();
+        this.smoothStartTime = AnimationUtil.start();
+        this.smoothDuration = 200.0F;
     }
 
     public void onScroll(int mouseScrollInput) {
@@ -141,7 +145,7 @@ public class CategoryComponent {
         clampTargetModuleY();
         scrolled = true;
 
-        (smoothScrollTimer = new Animation(200)).start();
+        this.smoothScrollStartTime = AnimationUtil.start();
     }
 
     public void render() {
@@ -176,32 +180,32 @@ public class CategoryComponent {
         float xPos = opened ? middlePos : this.x + 12;
         float extra = this.y + this.titleHeight + modulesHeight + 4;
 
-        if (smoothTimer != null && smoothTimer.getElapsed() >= 330) {
-            smoothTimer = null;
+        if (smoothStartTime > 0L && AnimationUtil.elapsed(smoothStartTime) >= 330L) {
+            smoothStartTime = 0L;
         }
 
-        if (extra != lastHeight && smoothTimer != null) {
+        if (extra != lastHeight && smoothStartTime > 0L) {
             double diff = lastHeight - extra;
             if (diff < 0) {
-                extra = smoothTimer.getValueFloat(lastHeight, this.y + this.titleHeight + modulesHeight + 4, 1);
+                extra = AnimationUtil.value(lastHeight, this.y + this.titleHeight + modulesHeight + 4, smoothStartTime, smoothDuration, this.mcPartialTicks(), 1);
             } else if (diff > 0) {
-                extra = smoothTimer.getValueFloat(this.opened ? closedHeight : lastHeight, this.y + this.titleHeight + modulesHeight + 4, 1);
+                extra = AnimationUtil.value(this.opened ? closedHeight : lastHeight, this.y + this.titleHeight + modulesHeight + 4, smoothStartTime, smoothDuration, this.mcPartialTicks(), 1);
             }
         }
 
-        float namePos = textTimer == null ? xPos : textTimer.getValueFloat(this.x + 12, middlePos, 1);
+        float namePos = textStartTime == 0L ? xPos : AnimationUtil.value(this.x + 12, middlePos, textStartTime, 200.0F, this.mcPartialTicks(), 1);
         if (!this.opened) {
-            namePos = textTimer == null ? xPos : middlePos - textTimer.getValueFloat(0, this.width / 2 - mc.fontRendererObj.getStringWidth(this.categoryName) / 2 - 12, 1);
+            namePos = textStartTime == 0L ? xPos : middlePos - AnimationUtil.value(0, this.width / 2 - mc.fontRendererObj.getStringWidth(this.categoryName) / 2 - 12, textStartTime, 200.0F, this.mcPartialTicks(), 1);
         }
 
-        if (scrolled && smoothScrollTimer != null) {
-            if (smoothScrollTimer.getElapsed() <= 200) {
-                float interpolated = smoothScrollTimer.getValueFloat(lastModuleY, targetModuleY, 4);
+        if (scrolled && smoothScrollStartTime > 0L) {
+            if (AnimationUtil.elapsed(smoothScrollStartTime) <= 200L) {
+                float interpolated = AnimationUtil.value(lastModuleY, targetModuleY, smoothScrollStartTime, 200.0F, this.mcPartialTicks(), 4);
                 moduleY = (int) interpolated;
             } else {
                 moduleY = targetModuleY;
                 scrolled = false;
-                smoothScrollTimer = null;
+                smoothScrollStartTime = 0L;
             }
         } else {
             moduleY = targetModuleY;
@@ -225,7 +229,7 @@ public class CategoryComponent {
         int prevY = this.y;
         this.y = this.moduleY;
 
-        if (this.opened || smoothTimer != null) {
+        if (this.opened || smoothStartTime > 0L) {
             for (Component c2 : this.modules) {
                 c2.render();
             }
@@ -383,9 +387,9 @@ public class CategoryComponent {
         this.dragging = false;
         this.hovering = false;
         this.hoveringOverCategory = false;
-        this.smoothTimer = null;
-        this.smoothScrollTimer = null;
-        this.textTimer = null;
+        this.smoothStartTime = 0L;
+        this.smoothScrollStartTime = 0L;
+        this.textStartTime = 0L;
         this.scrolled = false;
         this.moduleY = this.y;
         this.targetModuleY = this.y;
@@ -402,5 +406,9 @@ public class CategoryComponent {
     private void clampTargetModuleY() {
         int minModuleY = this.y - Math.max(0, this.totalContentHeight - this.visibleContentHeight);
         this.targetModuleY = Math.max(minModuleY, Math.min(this.targetModuleY, this.y));
+    }
+
+    private float mcPartialTicks() {
+        return ((IAccessorMinecraft) mc).getTimer().renderPartialTicks;
     }
 }

@@ -12,6 +12,7 @@ import cn.unfair.property.Property;
 import cn.unfair.util.ChatUtil;
 
 import java.io.*;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -164,7 +165,11 @@ public class Config {
             try (PrintWriter printWriter = new PrintWriter(new FileWriter(tempFile))) {
                 printWriter.println(gson.toJson(object));
             }
-            Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
             dirty = false;
             if (!silent) {
                 ChatUtil.sendFormatted(String.format("%sConfig has been saved (&a&o%s&r)&r", Unfair.clientName, file.getName()));
@@ -189,6 +194,13 @@ public class Config {
         }
         dirty = true;
         lastDirtyTime = System.currentTimeMillis();
+    }
+
+    public static void markDirtyAndSave() {
+        markDirty();
+        if (dirty) {
+            saveCurrentSilent();
+        }
     }
 
     public static void saveCurrent() {

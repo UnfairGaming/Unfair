@@ -16,7 +16,7 @@ import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.components.BindComponent;
 import cn.unfair.ui.clickgui.raven.components.CategoryComponent;
 import cn.unfair.ui.clickgui.raven.components.ModuleComponent;
-import cn.unfair.util.Animation;
+import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.shader.PostProcessingUtils;
 import cn.unfair.util.shader.RoundedUtils;
 
@@ -36,12 +36,13 @@ public class RavenClickGui extends GuiScreen {
     private final String developer = "dev, UnfairGaming";
     public int originalScale;
     public int previousScale;
-    private Animation logoSmoothWidth;
-    private Animation logoSmoothLength;
-    private Animation smoothEntity;
-    private Animation backgroundFade;
-    private Animation blurSmooth;
-    private Animation footerSlide;
+    private long logoSmoothWidthStart;
+    private long logoSmoothLengthStart;
+    private long smoothEntityStart;
+    private long backgroundFadeStart;
+    private long blurSmoothStart;
+    private long footerSlideStart;
+    private float partialTicks;
     private boolean clickGuiOpen = false;
     private long openedTime;
     private int hudColorCached = Color.white.getRGB();
@@ -68,12 +69,12 @@ public class RavenClickGui extends GuiScreen {
     }
 
     public void initMain() {
-        this.logoSmoothWidth = this.createAnimation(500.0F);
-        this.logoSmoothLength = this.createAnimation(350.0F);
-        this.smoothEntity = this.createAnimation(650.0F);
-        this.backgroundFade = this.createAnimation(450.0F);
-        this.blurSmooth = this.createAnimation(400.0F);
-        this.footerSlide = this.createAnimation(600.0F);
+        this.logoSmoothWidthStart = AnimationUtil.start();
+        this.logoSmoothLengthStart = AnimationUtil.start();
+        this.smoothEntityStart = AnimationUtil.start();
+        this.backgroundFadeStart = AnimationUtil.start();
+        this.blurSmoothStart = AnimationUtil.start();
+        this.footerSlideStart = AnimationUtil.start();
     }
 
     @Override
@@ -92,15 +93,16 @@ public class RavenClickGui extends GuiScreen {
 
     @Override
     public void drawScreen(int x, int y, float p) {
+        this.partialTicks = p;
         ClickGui clickGUI = (ClickGui) Unfair.moduleManager.modules.get(ClickGui.class);
         if (clickGUI.blur.getValue()) {
             PostProcessingUtils.prepareBlur();
             RoundedUtils.drawRound(0, 0, this.width, this.height, 0.0f, true, Color.black);
             float inputToRange = 1.5f;
-            PostProcessingUtils.blurEnd(2, this.getAnimationValueFloat(this.blurSmooth, 0.0F, inputToRange, 1));
+            PostProcessingUtils.blurEnd(2, this.getLerpValueFloat(this.blurSmoothStart, 400.0F, 0.0F, inputToRange, 1));
         }
 
-        drawRect(0, 0, this.width, this.height, (int) (this.getAnimationValueFloat(this.backgroundFade, 0.0F, 0.7F, 2) * 255.0F) << 24);
+        drawRect(0, 0, this.width, this.height, (int) (this.getLerpValueFloat(this.backgroundFadeStart, 450.0F, 0.0F, 0.7F, 2) * 255.0F) << 24);
 
         // Update cached HUD color every 50ms
         if (System.currentTimeMillis() - lastHudColorUpdate > 50) {
@@ -111,7 +113,7 @@ public class RavenClickGui extends GuiScreen {
 
         int h = this.height / 4;
         int wd = this.width / 2;
-        int w_c = 30 - this.getAnimationValueInt(this.logoSmoothWidth, 0, 30, 3);
+        int w_c = 30 - this.getLerpValueInt(this.logoSmoothWidthStart, 500.0F, 0, 30, 3);
 
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         int hudColor1 = hud.getColor(System.currentTimeMillis()).getRGB();
@@ -129,8 +131,8 @@ public class RavenClickGui extends GuiScreen {
         this.drawCenteredString(this.fontRendererObj, "r", wd + 1 + w_c, h + 30, hudColor1);
         this.drawVerticalLine(wd - 10 - w_c, h - 30, h + 43, Color.white.getRGB());
         this.drawVerticalLine(wd + 10 + w_c, h - 30, h + 43, Color.white.getRGB());
-        if (this.logoSmoothLength != null) {
-            int r = this.getAnimationValueInt(this.logoSmoothLength, 0, 20, 2);
+        if (this.logoSmoothLengthStart > 0L) {
+            int r = this.getLerpValueInt(this.logoSmoothLengthStart, 350.0F, 0, 20, 2);
             this.drawHorizontalLine(wd - 10, wd - 10 + r, h - 29, -1);
             this.drawHorizontalLine(wd + 10, wd + 10 - r, h + 42, -1);
         }
@@ -148,7 +150,7 @@ public class RavenClickGui extends GuiScreen {
         GlStateManager.pushMatrix();
         GlStateManager.disableBlend();
         if (this.mc.thePlayer != null) {
-            GuiInventory.drawEntityOnScreen(this.width + 15 - this.getAnimationValueInt(this.smoothEntity, 0, 40, 2), this.height - 10, 40, (float) (this.width - 25 - x), (float) (this.height - 50 - y), this.mc.thePlayer);
+            GuiInventory.drawEntityOnScreen(this.width + 15 - this.getLerpValueInt(this.smoothEntityStart, 650.0F, 0, 40, 2), this.height - 10, 40, (float) (this.width - 25 - x), (float) (this.height - 50 - y), this.mc.thePlayer);
         }
         GlStateManager.enableBlend();
         GlStateManager.popMatrix();
@@ -159,13 +161,13 @@ public class RavenClickGui extends GuiScreen {
     private void onRenderTick(float partialTicks) {
         if (!clickGuiOpen && this.mc.currentScreen instanceof RavenClickGui) {
             clickGuiOpen = true;
-            this.footerSlide = this.createAnimation(600.0F);
+            this.footerSlideStart = AnimationUtil.start();
             openedTime = System.currentTimeMillis();
         } else if (!(this.mc.currentScreen instanceof RavenClickGui)) {
             clickGuiOpen = false;
         } else {
             int[] displaySize = {this.width, this.height};
-            int y = displaySize[1] + (8 - this.getAnimationValueInt(this.footerSlide, 0, 30, 2));
+            int y = displaySize[1] + (8 - this.getLerpValueInt(this.footerSlideStart, 600.0F, 0, 30, 2));
 
             mc.fontRendererObj.drawString(clientName + "-" + clientVersion, 4, y, hudColorCached, true);
 
@@ -317,8 +319,8 @@ public class RavenClickGui extends GuiScreen {
 
     @Override
     public void onGuiClosed() {
-        this.logoSmoothLength = null;
-        this.footerSlide = null;
+        this.logoSmoothLengthStart = 0L;
+        this.footerSlideStart = 0L;
         for (CategoryComponent c : categories) {
             c.onGuiClosed();
             for (Component m : c.getModules()) {
@@ -385,17 +387,11 @@ public class RavenClickGui extends GuiScreen {
         }
     }
 
-    private Animation createAnimation(float duration) {
-        Animation animation = new Animation(duration);
-        animation.start();
-        return animation;
+    private float getLerpValueFloat(long startTime, float duration, float begin, float end, int easing) {
+        return AnimationUtil.value(begin, end, startTime, duration, this.partialTicks, easing);
     }
 
-    private float getAnimationValueFloat(Animation animation, float begin, float end, int easing) {
-        return animation == null ? end : animation.getValueFloat(begin, end, easing);
-    }
-
-    private int getAnimationValueInt(Animation animation, int begin, int end, int easing) {
-        return animation == null ? end : animation.getValueInt(begin, end, easing);
+    private int getLerpValueInt(long startTime, float duration, int begin, int end, int easing) {
+        return AnimationUtil.value(begin, end, startTime, duration, this.partialTicks, easing);
     }
 }

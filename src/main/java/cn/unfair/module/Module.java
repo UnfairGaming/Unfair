@@ -84,7 +84,7 @@ public abstract class Module {
     public void setKey(int integer) {
         if (this.key != integer) {
             this.key = integer;
-            Config.markDirty();
+            Config.markDirtyAndSave();
         }
     }
 

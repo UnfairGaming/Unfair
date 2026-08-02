@@ -2,6 +2,7 @@ package cn.unfair.ui.clickgui.raven.components;
 
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
+import cn.unfair.mixin.IAccessorMinecraft;
 import cn.unfair.module.Module;
 import cn.unfair.property.Property;
 import cn.unfair.property.properties.*;
@@ -9,8 +10,8 @@ import cn.unfair.ui.clickgui.raven.Component;
 import cn.unfair.ui.clickgui.raven.dataset.impl.FloatSlider;
 import cn.unfair.ui.clickgui.raven.dataset.impl.IntSlider;
 import cn.unfair.ui.clickgui.raven.dataset.impl.PercentageSlider;
+import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.Animation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -30,9 +31,10 @@ public class ModuleComponent implements Component {
     public int yPos;
     public boolean isOpened;
     private boolean hovering;
-    private Animation hoverTimer;
+    private long hoverStartTime;
     private boolean hoverStarted;
-    private Animation smoothTimer;
+    private long smoothStartTime;
+    private int heightStart = 16;
     private int smoothingY = 16;
     private int targetHeight = 16;
     private boolean isAnimatingHeight = false;
@@ -108,55 +110,54 @@ public class ModuleComponent implements Component {
     }
 
     public void render() {
-        if (hovering || hoverTimer != null) {
-            double hoverAlpha = (hovering && hoverTimer != null) ? hoverTimer.getValueFloat(0, originalHoverAlpha, 1) : (hoverTimer != null && !hovering) ? originalHoverAlpha - hoverTimer.getValueFloat(0, originalHoverAlpha, 1) : originalHoverAlpha;
-            if (hoverAlpha == 0) {
-                hoverTimer = null;
+        if (hovering || hoverStartTime > 0L) {
+            float hoverProgress = AnimationUtil.progress(hoverStartTime, 75.0F, this.mcPartialTicks(), 1);
+            double hoverAlpha = hovering ? hoverProgress * originalHoverAlpha : (1.0F - hoverProgress) * originalHoverAlpha;
+            if (!hovering && AnimationUtil.finished(hoverStartTime, 75.0F)) {
+                hoverStartTime = 0L;
             }
             RenderUtil.drawRoundedRectangle(this.category.getX(), this.category.getY() + yPos, this.category.getX() + this.category.getWidth(), this.category.getY() + 16 + this.yPos, 8, mergeAlpha(hoverColor, (int) hoverAlpha));
         }
         int button_rgb = this.mod.isEnabled() ? enabledColor : disabledColor;
 
-        if (smoothTimer != null) {
+        if (smoothStartTime > 0L) {
             if (isAnimatingHeight) {
-                // Height change animation (for mode switches)
-                if (targetHeight > smoothingY) {
-                    smoothingY = smoothTimer.getValueInt(smoothingY, targetHeight, 1);
-                } else {
-                    smoothingY = smoothTimer.getValueInt(targetHeight, smoothingY, 1);
-                }
-                if (smoothingY == targetHeight) {
-                    smoothTimer = null;
+                smoothingY = AnimationUtil.value(heightStart, targetHeight, smoothStartTime, 200.0F, this.mcPartialTicks(), 1);
+                if (AnimationUtil.finished(smoothStartTime, 200.0F)) {
+                    smoothingY = targetHeight;
+                    smoothStartTime = 0L;
                     isAnimatingHeight = false;
                 }
             } else if (isOpened) {
-                smoothingY = smoothTimer.getValueInt(16, getModuleHeight(), 1);
-                if (smoothingY == getModuleHeight()) {
-                    smoothTimer = null;
+                smoothingY = AnimationUtil.value(heightStart, targetHeight, smoothStartTime, 200.0F, this.mcPartialTicks(), 1);
+                if (AnimationUtil.finished(smoothStartTime, 200.0F)) {
+                    smoothingY = targetHeight;
+                    smoothStartTime = 0L;
                 }
             } else {
-                smoothingY = smoothTimer.getValueInt(getModuleHeight(), 16, 1);
-                if (smoothingY == 16) {
-                    smoothTimer = null;
+                smoothingY = AnimationUtil.value(heightStart, targetHeight, smoothStartTime, 200.0F, this.mcPartialTicks(), 1);
+                if (AnimationUtil.finished(smoothStartTime, 200.0F)) {
+                    smoothingY = 16;
+                    smoothStartTime = 0L;
                 }
             }
-            if (smoothTimer != null && smoothTimer.getElapsed() >= 300) {
+            if (smoothStartTime > 0L && AnimationUtil.elapsed(smoothStartTime) >= 300L) {
                 smoothingY = isAnimatingHeight ? targetHeight : (isOpened ? getModuleHeight() : 16);
-                smoothTimer = null;
+                smoothStartTime = 0L;
                 isAnimatingHeight = false;
             }
             this.category.updateHeight();
         }
 
         mc.fontRendererObj.drawString(this.mod.getName(), (int) (this.category.getX() + this.category.getWidth() / 2 - mc.fontRendererObj.getStringWidth(this.mod.getName()) / 2), (int) (this.category.getY() + this.yPos + 2), button_rgb);
-        boolean scissorRequired = smoothTimer != null;
+        boolean scissorRequired = smoothStartTime > 0L;
         if (scissorRequired) {
             GL11.glPushMatrix();
             GL11.glEnable(GL11.GL_SCISSOR_TEST);
             RenderUtil.scissor(this.category.getX() - 2, this.category.getY() + this.yPos + 4, this.category.getWidth() + 4, Math.max(0, smoothingY + 4));
         }
 
-        if (this.isOpened || smoothTimer != null) {
+        if (this.isOpened || smoothStartTime > 0L) {
             for (Component settingComponent : this.settings) {
                 if (!isVisible(settingComponent)) {
                     continue;
@@ -172,7 +173,7 @@ public class ModuleComponent implements Component {
     }
 
     public int getHeight() {
-        if (smoothTimer != null) {
+        if (smoothStartTime > 0L) {
             return smoothingY;
         }
         if (!this.isOpened) {
@@ -197,9 +198,10 @@ public class ModuleComponent implements Component {
 
     public void startHeightAnimation(int fromHeight, int toHeight) {
         this.smoothingY = fromHeight;
+        this.heightStart = fromHeight;
         this.targetHeight = toHeight;
         this.isAnimatingHeight = true;
-        (this.smoothTimer = new Animation(200)).start();
+        this.smoothStartTime = AnimationUtil.start();
         this.category.updateHeight();
     }
 
@@ -237,13 +239,13 @@ public class ModuleComponent implements Component {
         }
         if (overModuleName(x, y) && this.category.opened) {
             hovering = true;
-            if (hoverTimer == null) {
-                (hoverTimer = new Animation(75)).start();
+            if (hoverStartTime == 0L) {
+                hoverStartTime = AnimationUtil.start();
                 hoverStarted = true;
             }
         } else {
             if (hovering && hoverStarted) {
-                (hoverTimer = new Animation(75)).start();
+                hoverStartTime = AnimationUtil.start();
             }
             hoverStarted = false;
             hovering = false;
@@ -261,7 +263,10 @@ public class ModuleComponent implements Component {
 
         if (this.overModuleName(x, y) && mouse == 1) {
             this.isOpened = !this.isOpened;
-            (this.smoothTimer = new Animation(200)).start();
+            this.heightStart = this.smoothingY;
+            this.targetHeight = this.isOpened ? this.getModuleHeight() : 16;
+            this.isAnimatingHeight = false;
+            this.smoothStartTime = AnimationUtil.start();
             this.category.updateHeight();
         }
 
@@ -296,8 +301,8 @@ public class ModuleComponent implements Component {
         for (Component c : this.settings) {
             c.onGuiClosed();
         }
-        smoothTimer = null;
-        hoverTimer = null;
+        smoothStartTime = 0L;
+        hoverStartTime = 0L;
         smoothingY = getHeight();
     }
 
@@ -312,6 +317,10 @@ public class ModuleComponent implements Component {
     private int mergeAlpha(int color, int alpha) {
         int newAlpha = (alpha & 0xFF) << 24;
         return (color & 0x00FFFFFF) | newAlpha;
+    }
+
+    private float mcPartialTicks() {
+        return ((IAccessorMinecraft) mc).getTimer().renderPartialTicks;
     }
 
     @Override
