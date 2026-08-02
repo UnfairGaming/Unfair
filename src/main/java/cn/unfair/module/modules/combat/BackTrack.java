@@ -141,7 +141,7 @@ public class BackTrack extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{this.ms.getValue() + this.nextRand + " ms"};
+        return new String[]{this.ms.getValue() + this.nextRand + "ms"};
     }
 
     @EventTarget

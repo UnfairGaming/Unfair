@@ -5,6 +5,7 @@ import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.ItemAppleGold;
 import net.minecraft.item.ItemEgg;
+import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemSnowball;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.WorldSettings.GameType;
@@ -40,6 +41,7 @@ public class InvManager extends Module {
     public final IntProperty throwsSlot = new IntProperty("Throws Slot", 4, 0, 9);
     public final IntProperty throwsAmount = new IntProperty("Throws Amount", 64, 16, 320);
     public final IntProperty gappleSlot = new IntProperty("Gapple Slot", 3, 0, 9);
+    public final IntProperty fishingRodSlot = new IntProperty("Fishing Rod Slot", 6, 0, 9);
     private int actionDelay = 0;
     private int oDelay = 0;
     private boolean inventoryOpen = false;
@@ -82,6 +84,31 @@ public class InvManager extends Module {
     private boolean isGapple(ItemStack stack) {
         if (stack == null) return false;
         return stack.getItem() instanceof ItemAppleGold;
+    }
+
+    private boolean isFishingRod(ItemStack stack) {
+        if (stack == null) return false;
+        return stack.getItem() instanceof ItemFishingRod;
+    }
+
+    private int findFishingRodSlot(int preferredSlot, boolean hotbarOnly) {
+        if (preferredSlot >= 0 && preferredSlot <= 8) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(preferredSlot);
+            if (this.isFishingRod(stack)) {
+                return preferredSlot;
+            }
+        }
+
+        int start = hotbarOnly ? 0 : 9;
+        int end = hotbarOnly ? 9 : 36;
+
+        for (int i = start; i < end; i++) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (this.isFishingRod(stack)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private int findThrowableSlot(int preferredSlot, boolean hotbarOnly) {
@@ -154,9 +181,12 @@ public class InvManager extends Module {
             } else {
                 if (!this.inventoryOpen) {
                     this.inventoryOpen = true;
-                    this.oDelay = this.openDelay.getValue() + 1;
+                    this.oDelay = this.openDelay.getValue();
                 }
-                if (this.oDelay <= 0 && (this.mode.getValue() == 1 || this.actionDelay <= 0)) {
+                if (this.oDelay > 0) {
+                    return;
+                }
+                if (this.mode.getValue() == 1 || this.actionDelay <= 0) {
                     if (this.isEnabled() && this.isValidGameMode()) {
                         ArrayList<Integer> equippedArmorSlots = new ArrayList<>(Arrays.asList(-1, -1, -1, -1));
                         ArrayList<Integer> inventoryArmorSlots = new ArrayList<>(Arrays.asList(-1, -1, -1, -1));
@@ -184,6 +214,9 @@ public class InvManager extends Module {
                         int preferredGappleHotbarSlot = this.gappleSlot.getValue() - 1;
                         int equippedGappleSlot = this.findGappleSlot(preferredGappleHotbarSlot, true);
                         int inventoryGappleSlot = this.findGappleSlot(preferredGappleHotbarSlot, false);
+                        int preferredFishingRodHotbarSlot = this.fishingRodSlot.getValue() - 1;
+                        int equippedFishingRodSlot = this.findFishingRodSlot(preferredFishingRodHotbarSlot, true);
+                        int inventoryFishingRodSlot = this.findFishingRodSlot(preferredFishingRodHotbarSlot, false);
                         if (this.mode.getValue() == 0) {
                             if (this.autoArmor.getValue()) {
                                 for (int i = 0; i < 4; i++) {
@@ -263,6 +296,14 @@ public class InvManager extends Module {
                                     return;
                                 }
                             }
+                            if (preferredFishingRodHotbarSlot >= 0 && preferredFishingRodHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredFishingRodHotbarSlot) && (equippedFishingRodSlot != -1 || inventoryFishingRodSlot != -1)) {
+                                usedHotbarSlots.add(preferredFishingRodHotbarSlot);
+                                if (equippedFishingRodSlot != preferredFishingRodHotbarSlot && inventoryFishingRodSlot != preferredFishingRodHotbarSlot) {
+                                    int slot = equippedFishingRodSlot != -1 ? equippedFishingRodSlot : inventoryFishingRodSlot;
+                                    this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredFishingRodHotbarSlot, 2);
+                                    return;
+                                }
+                            }
                         } else if (this.mode.getValue() == 1) {
                             ArrayList<Integer> itemsToDrop = new ArrayList<>();
                             int currentBlockCount = this.getStackSize(inventoryBlocksSlot);
@@ -284,7 +325,9 @@ public class InvManager extends Module {
                                             && equippedThrowsSlot != i
                                             && inventoryThrowsSlot != i
                                             && equippedGappleSlot != i
-                                            && inventoryGappleSlot != i) {
+                                            && inventoryGappleSlot != i
+                                            && equippedFishingRodSlot != i
+                                            && inventoryFishingRodSlot != i) {
                                         ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
                                         if (this.isThrowable(stack)) {
                                             itemsToDrop.add(i);
@@ -315,8 +358,9 @@ public class InvManager extends Module {
                                         boolean isBlock = ItemUtil.isBlock(stack);
                                         boolean isThrowable = this.isThrowable(stack);
                                         boolean isGapple = this.isGapple(stack);
+                                        boolean isFishingRod = this.isFishingRod(stack);
 
-                                        if (!isThrowable && !isGapple && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()))) {
+                                        if (!isThrowable && !isGapple && !isFishingRod && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()))) {
                                             itemsToDrop.add(i);
                                         }
 
@@ -327,8 +371,9 @@ public class InvManager extends Module {
                                 }
                             }
 
-                            for (int slot : itemsToDrop) {
-                                this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), 1, 4);
+                            if (!itemsToDrop.isEmpty()) {
+                                this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(itemsToDrop.get(0)), 1, 4);
+                                return;
                             }
 
                             if (this.autoArmor.getValue()) {
@@ -344,9 +389,11 @@ public class InvManager extends Module {
                                                 } else {
                                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(playerArmorSlot), 1, 4);
                                                 }
+                                                return;
                                             } else {
                                                 int armorToEquipSlot = equippedSlot != -1 ? equippedSlot : inventorySlot;
                                                 this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(armorToEquipSlot), 0, 1);
+                                                return;
                                             }
                                         }
                                     }
@@ -358,6 +405,7 @@ public class InvManager extends Module {
                                 if (equippedSwordSlot != preferredSwordHotbarSlot && inventorySwordSlot != preferredSwordHotbarSlot) {
                                     int slot = equippedSwordSlot != -1 ? equippedSwordSlot : inventorySwordSlot;
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredSwordHotbarSlot, 2);
+                                    return;
                                 }
                             }
                             if (preferredPickaxeHotbarSlot >= 0 && preferredPickaxeHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredPickaxeHotbarSlot) && (equippedPickaxeSlot != -1 || inventoryPickaxeSlot != -1)) {
@@ -365,6 +413,7 @@ public class InvManager extends Module {
                                 if (equippedPickaxeSlot != preferredPickaxeHotbarSlot && inventoryPickaxeSlot != preferredPickaxeHotbarSlot) {
                                     int slot = equippedPickaxeSlot != -1 ? equippedPickaxeSlot : inventoryPickaxeSlot;
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredPickaxeHotbarSlot, 2);
+                                    return;
                                 }
                             }
                             if (preferredShovelHotbarSlot >= 0 && preferredShovelHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredShovelHotbarSlot) && (equippedShovelSlot != -1 || inventoryShovelSlot != -1)) {
@@ -372,6 +421,7 @@ public class InvManager extends Module {
                                 if (equippedShovelSlot != preferredShovelHotbarSlot && inventoryShovelSlot != preferredShovelHotbarSlot) {
                                     int slot = equippedShovelSlot != -1 ? equippedShovelSlot : inventoryShovelSlot;
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredShovelHotbarSlot, 2);
+                                    return;
                                 }
                             }
                             if (preferredAxeHotbarSlot >= 0 && preferredAxeHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredAxeHotbarSlot) && (equippedAxeSlot != -1 || inventoryAxeSlot != -1)) {
@@ -379,12 +429,14 @@ public class InvManager extends Module {
                                 if (equippedAxeSlot != preferredAxeHotbarSlot && inventoryAxeSlot != preferredAxeHotbarSlot) {
                                     int slot = equippedAxeSlot != -1 ? equippedAxeSlot : inventoryAxeSlot;
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredAxeHotbarSlot, 2);
+                                    return;
                                 }
                             }
                             if (preferredBlocksHotbarSlot >= 0 && preferredBlocksHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredBlocksHotbarSlot) && inventoryBlocksSlot != -1) {
                                 usedHotbarSlots.add(preferredBlocksHotbarSlot);
                                 if (inventoryBlocksSlot != preferredBlocksHotbarSlot) {
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(inventoryBlocksSlot), preferredBlocksHotbarSlot, 2);
+                                    return;
                                 }
                             }
                             if (preferredThrowsHotbarSlot >= 0 && preferredThrowsHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredThrowsHotbarSlot) && (equippedThrowsSlot != -1 || inventoryThrowsSlot != -1)) {
@@ -392,6 +444,7 @@ public class InvManager extends Module {
                                 if (equippedThrowsSlot != preferredThrowsHotbarSlot && inventoryThrowsSlot != preferredThrowsHotbarSlot) {
                                     int slot = equippedThrowsSlot != -1 ? equippedThrowsSlot : inventoryThrowsSlot;
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredThrowsHotbarSlot, 2);
+                                    return;
                                 }
                             }
                             if (preferredGappleHotbarSlot >= 0 && preferredGappleHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredGappleHotbarSlot) && (equippedGappleSlot != -1 || inventoryGappleSlot != -1)) {
@@ -399,6 +452,15 @@ public class InvManager extends Module {
                                 if (equippedGappleSlot != preferredGappleHotbarSlot && inventoryGappleSlot != preferredGappleHotbarSlot) {
                                     int slot = equippedGappleSlot != -1 ? equippedGappleSlot : inventoryGappleSlot;
                                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredGappleHotbarSlot, 2);
+                                    return;
+                                }
+                            }
+                            if (preferredFishingRodHotbarSlot >= 0 && preferredFishingRodHotbarSlot <= 8 && !usedHotbarSlots.contains(preferredFishingRodHotbarSlot) && (equippedFishingRodSlot != -1 || inventoryFishingRodSlot != -1)) {
+                                usedHotbarSlots.add(preferredFishingRodHotbarSlot);
+                                if (equippedFishingRodSlot != preferredFishingRodHotbarSlot && inventoryFishingRodSlot != preferredFishingRodHotbarSlot) {
+                                    int slot = equippedFishingRodSlot != -1 ? equippedFishingRodSlot : inventoryFishingRodSlot;
+                                    this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(slot), preferredFishingRodHotbarSlot, 2);
+                                    return;
                                 }
                             }
                         }
@@ -422,7 +484,9 @@ public class InvManager extends Module {
                                             && equippedThrowsSlot != i
                                             && inventoryThrowsSlot != i
                                             && equippedGappleSlot != i
-                                            && inventoryGappleSlot != i) {
+                                            && inventoryGappleSlot != i
+                                            && equippedFishingRodSlot != i
+                                            && inventoryFishingRodSlot != i) {
                                         ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
                                         if (this.isThrowable(stack)) {
                                             this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(i), 1, 4);
@@ -447,14 +511,17 @@ public class InvManager extends Module {
                                         && equippedThrowsSlot != i
                                         && inventoryThrowsSlot != i
                                         && equippedGappleSlot != i
-                                        && inventoryGappleSlot != i) {
+                                        && inventoryGappleSlot != i
+                                        && equippedFishingRodSlot != i
+                                        && inventoryFishingRodSlot != i) {
                                     ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
                                     if (stack != null) {
                                         boolean isBlock = ItemUtil.isBlock(stack);
                                         boolean isThrowable = this.isThrowable(stack);
                                         boolean isGapple = this.isGapple(stack);
+                                        boolean isFishingRod = this.isFishingRod(stack);
 
-                                        if (!isThrowable && !isGapple && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()))) {
+                                        if (!isThrowable && !isGapple && !isFishingRod && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()))) {
                                             this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(i), 1, 4);
                                             return;
                                         }
