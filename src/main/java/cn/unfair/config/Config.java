@@ -18,8 +18,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 public class Config {
-    public static Minecraft mc = Minecraft.getMinecraft();
-    public static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    public static final Minecraft mc = Minecraft.getMinecraft();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     public static String lastConfig;
     private static final long AUTO_SAVE_DELAY_MS = 1000L;
     private static Config currentConfig;
@@ -36,7 +36,7 @@ public class Config {
             this.name = "default";
         }
         lastConfig = this.name;
-        this.file = new File("./config/Unfair/", String.format("%s.json", this.name));
+        this.file = new File(new File(mc.mcDataDir, "config/Unfair"), String.format("%s.json", this.name));
         try {
             file.getParentFile().mkdirs();
             if (newConfig) {

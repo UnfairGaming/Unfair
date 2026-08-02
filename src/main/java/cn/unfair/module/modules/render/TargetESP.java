@@ -1,5 +1,6 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
@@ -8,21 +9,18 @@ import cn.unfair.mixin.IAccessorMinecraft;
 import cn.unfair.mixin.IAccessorRenderManager;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.ColorUtil;
-import cn.unfair.util.AnimationUtil;
-import cn.unfair.util.MathUtil;
-import cn.unfair.util.RenderUtil;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
@@ -36,36 +34,16 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import static cn.unfair.util.MathUtil.interpolate;
+
 public class TargetESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-
-    private final ModeProperty mode = new ModeProperty("Mark Mode", 1, new String[]{"Points", "Ghost", "Ghost2", "Image", "Exhi", "Circle"});
-    private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim","Custom"}, () -> mode.getValue() == 3);
-    private final BooleanProperty animation = new BooleanProperty("Animation", true, () -> mode.getValue() == 3 && imageMode.getValue() == 5);
-    // 给👇这个删了你妈就死了 笑死我了
-    private final BooleanProperty selectImage = new BooleanProperty("Select Image", false, () -> mode.getValue() == 3 && imageMode.getValue() == 5) {
-        @Override
-        public boolean setValue(Object value) {
-            boolean result = super.setValue(value);
-            if (result && (Boolean)value) {
-                selectCustomImage();
-                super.setValue(false);
-            }
-            return result;
-        }
-    };
-    private final FloatProperty circleSpeed = new FloatProperty("CircleSpeed", 2.0F, 1.0F, 5.0F, () -> mode.getValue() == 5);
-    private final BooleanProperty onlyPlayer = new BooleanProperty("OnlyPlayer", false);
-    private final BooleanProperty showHurt = new BooleanProperty("ShowHurt", false, () -> mode.getValue() == 3);
-    private ResourceLocation customImage = null;
-    private long lastHurtTime = 0;
     private static final long HURT_DURATION = 500;
-
-    private EntityLivingBase target;
+    private final ModeProperty mode = new ModeProperty("Mark Mode", 1, new String[]{"Points", "Ghost", "Ghost2", "Image", "Exhi", "Circle"});
+    private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim", "Custom"}, () -> mode.getValue() == 3);
+    private final BooleanProperty animation = new BooleanProperty("Animation", true, () -> mode.getValue() == 3 && imageMode.getValue() == 5);
+    private final BooleanProperty showHurt = new BooleanProperty("ShowHurt", false, () -> mode.getValue() == 3);
     private final TimerUtil displayTimer = new TimerUtil();
-    private long lastTime = System.currentTimeMillis();
-    private long alphaStartTime = 0L;
-    private boolean hasFullyFadedIn = false;
     private final ResourceLocation glowCircle = new ResourceLocation("minecraft", "unfair/targetesp/glow_circle.png");
     private final ResourceLocation rectangle = new ResourceLocation("minecraft", "unfair/targetesp/rectangle.png");
     private final ResourceLocation quadstapple = new ResourceLocation("minecraft", "unfair/targetesp/quadstapple.png");
@@ -74,6 +52,24 @@ public class TargetESP extends Module {
     private final ResourceLocation aim = new ResourceLocation("minecraft", "unfair/targetesp/shenmi.png");
     public double prevCircleStep;
     public double circleStep;
+    private ResourceLocation customImage = null;
+    // 给👇这个删了你妈就死了 笑死我了
+    private final BooleanProperty selectImage = new BooleanProperty("Select Image", false, () -> mode.getValue() == 3 && imageMode.getValue() == 5) {
+        @Override
+        public boolean setValue(Object value) {
+            boolean result = super.setValue(value);
+            if (result && (Boolean) value) {
+                selectCustomImage();
+                super.setValue(false);
+            }
+            return result;
+        }
+    };
+    private long lastHurtTime = 0;
+    private EntityLivingBase target;
+    private long lastTime = System.currentTimeMillis();
+    private long alphaStartTime = 0L;
+    private boolean hasFullyFadedIn = false;
 
     public TargetESP() {
         super("TargetESP", false);
@@ -81,7 +77,7 @@ public class TargetESP extends Module {
 
     private void selectCustomImage() {
         new Thread(() -> {
-            FileDialog fileDialog = new FileDialog((Frame)null, "Select Custom Image", FileDialog.LOAD);
+            FileDialog fileDialog = new FileDialog((Frame) null, "Select Custom Image", FileDialog.LOAD);
             fileDialog.setFile("*.png");
             fileDialog.setFilenameFilter((dir, name) -> name.toLowerCase().endsWith(".png"));
             fileDialog.setVisible(true);
@@ -129,7 +125,7 @@ public class TargetESP extends Module {
 
     @EventTarget
     public void onPacket(PacketEvent event) {
-        if(!this.isEnabled()) return;
+        if (!this.isEnabled()) return;
         if (event.getType() == EventType.SEND && event.getPacket() instanceof C02PacketUseEntity) {
             C02PacketUseEntity packet = (C02PacketUseEntity) event.getPacket();
             if (packet.getAction() == C02PacketUseEntity.Action.ATTACK) {
@@ -142,8 +138,7 @@ public class TargetESP extends Module {
                 return;
             }
             Entity entity = packet.getEntityFromWorld(mc.theWorld);
-            if (entity instanceof EntityLivingBase &&
-                    (!onlyPlayer.getValue() || entity instanceof EntityPlayer)) {
+            if (entity instanceof EntityLivingBase) {
                 EntityLivingBase newTarget = (EntityLivingBase) entity;
                 if (target != newTarget) {
                     target = newTarget;
@@ -157,9 +152,9 @@ public class TargetESP extends Module {
     }
 
     @EventTarget
-    public void onUpdate(UpdateEvent event){
-        if(!this.isEnabled()) return;
-        if(target != null && displayTimer.hasTimeElapsed(1000)){
+    public void onUpdate(UpdateEvent event) {
+        if (!this.isEnabled()) return;
+        if (target != null && displayTimer.hasTimeElapsed(1000)) {
             hasFullyFadedIn = false;
             target = null;
         }
@@ -202,7 +197,7 @@ public class TargetESP extends Module {
 
     @EventTarget
     public void onRender3D(Render3DEvent event) {
-        if(!this.isEnabled()) return;
+        if (!this.isEnabled()) return;
         if (target != null) {
             if (mode.getValue() == 0)
                 points(event);
@@ -222,7 +217,7 @@ public class TargetESP extends Module {
                 double distance = 19;
                 int lenght = 20;
 
-                Vec3 interpolated = MathUtil.interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), event.getPartialTicks());
+                Vec3 interpolated = interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), event.getPartialTicks());
                 interpolated = new Vec3(interpolated.xCoord, interpolated.yCoord + 0.75f, interpolated.zCoord);
 
                 RenderUtil.setupOrientationMatrix(interpolated.xCoord, interpolated.yCoord + 0.5f, interpolated.zCoord);
@@ -307,60 +302,88 @@ public class TargetESP extends Module {
             }
 
             if (mode.getValue() == 5) {
-                prevCircleStep = circleStep;
-                circleStep += (double) this.circleSpeed.getValue() * ((IAccessorMinecraft) mc).getTimer().renderPartialTicks * 0.05;
-                float eyeHeight = target.getEyeHeight();
-                if (target.isSneaking()) {
-                    eyeHeight -= 0.2F;
+                double renderPosX = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX();
+                double renderPosY = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY();
+                double renderPosZ = ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ();
+                Vec3 interpolated = interpolate(
+                        new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ),
+                        target.getPositionVector(),
+                        event.getPartialTicks()
+                );
+
+                double height = target.height;
+                long time = System.currentTimeMillis();
+                double rawAngle = time / 300.0;
+                double offset = (Math.sin(rawAngle) + 1) / 2.0 * height;
+
+                double thicknessScale = 1.0 - Math.abs(Math.sin(rawAngle));
+                double minScale = 0.15;
+                thicknessScale = minScale + (1.0 - minScale) * thicknessScale;
+
+                double x = interpolated.xCoord - renderPosX;
+                double y = interpolated.yCoord + offset - renderPosY;
+                double z = interpolated.zCoord - renderPosZ;
+
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(x, y, z);
+
+                GlStateManager.disableTexture2D();
+                GlStateManager.enableBlend();
+                GlStateManager.disableAlpha();
+                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+                GlStateManager.shadeModel(GL11.GL_SMOOTH);
+                GlStateManager.disableCull();
+
+                float radius = 0.6f;
+                double baseThickness = 0.5f;
+                double thickness = baseThickness * thicknessScale;
+                double halfThick = thickness / 2.0;
+                double bottomY = -halfThick;
+
+                Tessellator tessellator = Tessellator.getInstance();
+                WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+                int slices = 60;
+
+                for (int i = 0; i < slices; i++) {
+                    double angle1 = Math.toRadians((i / (double) slices) * 360.0);
+                    double angle2 = Math.toRadians(((i + 1) / (double) slices) * 360.0);
+
+                    double x1 = Math.sin(angle1) * radius;
+                    double z1 = Math.cos(angle1) * radius;
+                    double x2 = Math.sin(angle2) * radius;
+                    double z2 = Math.cos(angle2) * radius;
+
+                    Color col1 = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor((int) (i * 360.0 / slices * 10));
+                    Color col2 = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor((int) ((i + 1) * 360.0 / slices * 10));
+                    float r1 = col1.getRed() / 255f;
+                    float g1 = col1.getGreen() / 255f;
+                    float b1 = col1.getBlue() / 255f;
+                    float r2 = col2.getRed() / 255f;
+                    float g2 = col2.getGreen() / 255f;
+                    float b2 = col2.getBlue() / 255f;
+
+                    float alphaTop, alphaBottom;
+                    if (Math.cos(rawAngle) > 0) {
+                        alphaBottom = 0.05f;
+                        alphaTop = 0.7f;
+                    } else {
+                        alphaBottom = 0.7f;
+                        alphaTop = 0.05f;
+                    }
+
+                    worldrenderer.begin(GL11.GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+                    worldrenderer.pos(x1, bottomY, z1).color(r1, g1, b1, alphaBottom).endVertex();
+                    worldrenderer.pos(x1, halfThick, z1).color(r1, g1, b1, alphaTop).endVertex();
+                    worldrenderer.pos(x2, bottomY, z2).color(r2, g2, b2, alphaBottom).endVertex();
+                    worldrenderer.pos(x2, halfThick, z2).color(r2, g2, b2, alphaTop).endVertex();
+                    tessellator.draw();
                 }
-
-                double cs = prevCircleStep + (circleStep - prevCircleStep) * (double) event.getPartialTicks();
-                double prevSinAnim = Math.abs(1.0D + Math.sin(cs - 0.5D)) / 2.0D;
-                double sinAnim = Math.abs(1.0D + Math.sin(cs)) / 2.0D;
-                double x = target.lastTickPosX + (target.posX - target.lastTickPosX) * (double) event.getPartialTicks() - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosX();
-                double y = target.lastTickPosY + (target.posY - target.lastTickPosY) * (double) event.getPartialTicks() - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY() + prevSinAnim * (double) eyeHeight;
-                double z = target.lastTickPosZ + (target.posZ - target.lastTickPosZ) * (double) event.getPartialTicks() - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosZ();
-                double nextY = target.lastTickPosY + (target.posY - target.lastTickPosY) * (double) event.getPartialTicks() - ((IAccessorRenderManager) mc.getRenderManager()).getRenderPosY() + sinAnim * (double) eyeHeight;
-                GL11.glPushMatrix();
-                GL11.glDisable(2884);
-                GL11.glDisable(3553);
-                GL11.glEnable(3042);
-                GL11.glDisable(2929);
-                GL11.glDisable(3008);
-                GL11.glShadeModel(7425);
-                GL11.glBegin(8);
-
-                int i;
-                Color color;
-                for (i = 0; i <= 360; ++i) {
-                    color = getInterfaceColor();
-                    float alpha = getAlpha();
-                    GL11.glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, 0.6F * alpha);
-                    GL11.glVertex3d(x + Math.cos(Math.toRadians(i)) * (double) target.width * 0.8D, nextY, z + Math.sin(Math.toRadians(i)) * (double) target.width * 0.8D);
-                    GL11.glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, 0.01F * alpha);
-                    GL11.glVertex3d(x + Math.cos(Math.toRadians(i)) * (double) target.width * 0.8D, y, z + Math.sin(Math.toRadians(i)) * (double) target.width * 0.8D);
-                }
-
-                GL11.glEnd();
-                GL11.glEnable(2848);
-                GL11.glBegin(2);
-
-                for (i = 0; i <= 360; ++i) {
-                    color = getInterfaceColor();
-                    float alpha = getAlpha();
-                    GL11.glColor4f((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, 0.8F * alpha);
-                    GL11.glVertex3d(x + Math.cos(Math.toRadians(i)) * (double) target.width * 0.8D, nextY, z + Math.sin(Math.toRadians(i)) * (double) target.width * 0.8D);
-                }
-
-                GL11.glEnd();
-                GL11.glDisable(2848);
-                GL11.glEnable(3553);
-                GL11.glEnable(3008);
-                GL11.glEnable(2929);
-                GL11.glShadeModel(7424);
-                GL11.glDisable(3042);
-                GL11.glEnable(2884);
-                GL11.glPopMatrix();
+                GlStateManager.shadeModel(GL11.GL_FLAT);
+                GlStateManager.enableAlpha();
+                GlStateManager.enableCull();
+                GlStateManager.disableBlend();
+                GlStateManager.enableTexture2D();
+                GlStateManager.popMatrix();
             }
         }
     }
@@ -368,7 +391,7 @@ public class TargetESP extends Module {
     private void ghost2(Render3DEvent event) {
         if (target == null) return;
         float partialTicks = event.getPartialTicks();
-        Vec3 interpolated = MathUtil.interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), partialTicks);
+        Vec3 interpolated = interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), partialTicks);
         interpolated = new Vec3(interpolated.xCoord, interpolated.yCoord + 0.9f, interpolated.zCoord);
         GlStateManager.pushMatrix();
         GlStateManager.disableLighting();
@@ -415,7 +438,7 @@ public class TargetESP extends Module {
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {
-        if(!this.isEnabled()) return;
+        if (!this.isEnabled()) return;
         int index = 3;
         if (mode.getValue() == 3 && target != null) {
             float dst = mc.thePlayer.getDistanceToEntity(target);
@@ -429,7 +452,7 @@ public class TargetESP extends Module {
 
     @EventTarget
     public void onShader2D(Shader2DEvent event) {
-        if(!this.isEnabled()) return;
+        if (!this.isEnabled()) return;
         if (event.getShaderType() == Shader2DEvent.ShaderType.GLOW) {
             int index = 3;
             if (mode.getValue() == 3 && imageMode.getValue() == 0 && target != null) {
@@ -505,10 +528,10 @@ public class TargetESP extends Module {
         Color baseWithAlpha = ColorUtil.applyOpacity(baseColor, 1.0f);
         Color hurtWithAlpha = ColorUtil.applyOpacity(hurtColor, hurtAlpha);
 
-        int r = (int)(baseWithAlpha.getRed() * (1 - hurtAlpha) + hurtWithAlpha.getRed() * hurtAlpha);
-        int g = (int)(baseWithAlpha.getGreen() * (1 - hurtAlpha) + hurtWithAlpha.getGreen() * hurtAlpha);
-        int b = (int)(baseWithAlpha.getBlue() * (1 - hurtAlpha) + hurtWithAlpha.getBlue() * hurtAlpha);
-        int a = (int)(baseWithAlpha.getAlpha() * (1 - hurtAlpha) + hurtWithAlpha.getAlpha() * hurtAlpha);
+        int r = (int) (baseWithAlpha.getRed() * (1 - hurtAlpha) + hurtWithAlpha.getRed() * hurtAlpha);
+        int g = (int) (baseWithAlpha.getGreen() * (1 - hurtAlpha) + hurtWithAlpha.getGreen() * hurtAlpha);
+        int b = (int) (baseWithAlpha.getBlue() * (1 - hurtAlpha) + hurtWithAlpha.getBlue() * hurtAlpha);
+        int a = (int) (baseWithAlpha.getAlpha() * (1 - hurtAlpha) + hurtWithAlpha.getAlpha() * hurtAlpha);
 
         int color = new Color(r, g, b, a).getRGB();
         int color2 = color;
@@ -535,7 +558,7 @@ public class TargetESP extends Module {
         Color HUDColor = getInterfaceColor();
         float alpha = getAlpha();
         GL11.glColor4f(HUDColor.getRed() / 255.0f, HUDColor.getGreen() / 255.0f, HUDColor.getBlue() / 255.0f, alpha);
-        switch (imageMode.getValue()){
+        switch (imageMode.getValue()) {
             case 0:
                 RenderUtil.drawImage(rectangle, renderX, renderY, x2, y2, color, color2, color3, color4);
                 break;
@@ -571,9 +594,9 @@ public class TargetESP extends Module {
     private float[] targetESPSPos(EntityLivingBase entity, Render2DEvent event) {
         EntityRenderer entityRenderer = mc.entityRenderer;
         float partialTicks = event != null ? event.getPartialTicks() : ((IAccessorMinecraft) mc).getTimer().renderPartialTicks;
-        double x = MathUtil.interpolate(entity.prevPosX, entity.posX, partialTicks);
-        double y = MathUtil.interpolate(entity.prevPosY, entity.posY, partialTicks) + entity.height * 0.4f;
-        double z = MathUtil.interpolate(entity.prevPosZ, entity.posZ, partialTicks);
+        double x = interpolate(entity.prevPosX, entity.posX, partialTicks);
+        double y = interpolate(entity.prevPosY, entity.posY, partialTicks) + entity.height * 0.4f;
+        double z = interpolate(entity.prevPosZ, entity.posZ, partialTicks);
         double width = entity.width / 2.0f;
         double height = entity.height / 4.0f;
         AxisAlignedBB bb = new AxisAlignedBB(x - width, y - height, z - width, x + width, y + height, z + width);

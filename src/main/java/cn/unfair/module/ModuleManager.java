@@ -10,10 +10,15 @@ import cn.unfair.module.modules.render.HUD;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.SoundUtil;
 
+import java.io.File;
+import java.net.JarURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
 
 public class ModuleManager {
     public final LinkedHashMap<Class<?>, Module> modules = new LinkedHashMap<>();
@@ -45,36 +50,33 @@ public class ModuleManager {
 
     @SuppressWarnings("unchecked")
     private List<Class<? extends Module>> scanPackageForModules(String packageName) {
-        List<Class<? extends Module>> result = new ArrayList<>();
+        Set<Class<? extends Module>> result = new LinkedHashSet<>();
         String path = packageName.replace('.', '/');
 
         try {
             Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(path);
             while (resources.hasMoreElements()) {
                 URL url = resources.nextElement();
-                if (url.getProtocol().equals("jar")) {
-                    String jarPath = url.getPath().substring(5, url.getPath().indexOf("!"));
-                    try (JarFile jar = new JarFile(jarPath)) {
+                if ("jar".equals(url.getProtocol())) {
+                    JarURLConnection connection = (JarURLConnection) url.openConnection();
+                    try (JarFile jar = connection.getJarFile()) {
                         Enumeration<JarEntry> entries = jar.entries();
                         while (entries.hasMoreElements()) {
-                            JarEntry entry = entries.nextElement();
-                            String name = entry.getName();
-                            if (name.startsWith(path) && name.endsWith(".class")) {
-                                String className = name.replace('/', '.').substring(0, name.length() - 6);
-                                try {
-                                    Class<?> clazz = Class.forName(className);
-                                    if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()) && clazz.getEnclosingClass() == null && !SubModule.class.isAssignableFrom(clazz)) {
-                                        result.add((Class<? extends Module>) clazz);
-                                    }
-                                } catch (ClassNotFoundException ignored) {
-                                }
-                            }
+                            addModuleClass(entries.nextElement().getName(), result);
                         }
                     }
-                } else if (url.getProtocol().equals("file")) {
-                    java.io.File directory = new java.io.File(url.toURI());
-                    if (directory.exists() && directory.isDirectory()) {
-                        scanDirectoryForModules(directory, packageName, result);
+                } else if ("file".equals(url.getProtocol())) {
+                    Path directory = new File(url.toURI()).toPath();
+                    if (Files.isDirectory(directory)) {
+                        try (Stream<Path> files = Files.walk(directory)) {
+                            files.filter(Files::isRegularFile)
+                                    .filter(file -> file.getFileName().toString().endsWith(".class"))
+                                    .forEach(file -> {
+                                        String relativeName = directory.relativize(file).toString()
+                                                .replace(File.separatorChar, '/');
+                                        addModuleClass(path + "/" + relativeName, result);
+                                    });
+                        }
                     }
                 }
             }
@@ -82,27 +84,25 @@ public class ModuleManager {
             e.printStackTrace();
         }
 
-        return result;
+        return new ArrayList<>(result);
     }
 
     @SuppressWarnings("unchecked")
-    private void scanDirectoryForModules(java.io.File directory, String packageName, List<Class<? extends Module>> result) {
-        java.io.File[] files = directory.listFiles();
-        if (files == null) return;
-
-        for (java.io.File file : files) {
-            if (file.isDirectory()) {
-                scanDirectoryForModules(file, packageName + "." + file.getName(), result);
-            } else if (file.getName().endsWith(".class")) {
-                String className = packageName + "." + file.getName().substring(0, file.getName().length() - 6);
-                try {
-                    Class<?> clazz = Class.forName(className);
-                    if (Module.class.isAssignableFrom(clazz) && !clazz.isInterface() && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()) && clazz.getEnclosingClass() == null && !SubModule.class.isAssignableFrom(clazz)) {
-                        result.add((Class<? extends Module>) clazz);
-                    }
-                } catch (ClassNotFoundException ignored) {
-                }
+    private void addModuleClass(String entryName, Set<Class<? extends Module>> result) {
+        if (!entryName.endsWith(".class") || entryName.endsWith("module-info.class")) {
+            return;
+        }
+        String className = entryName.substring(0, entryName.length() - 6).replace('/', '.');
+        try {
+            Class<?> clazz = Class.forName(className);
+            if (Module.class.isAssignableFrom(clazz)
+                    && !clazz.isInterface()
+                    && !java.lang.reflect.Modifier.isAbstract(clazz.getModifiers())
+                    && clazz.getEnclosingClass() == null
+                    && !SubModule.class.isAssignableFrom(clazz)) {
+                result.add((Class<? extends Module>) clazz);
             }
+        } catch (ClassNotFoundException ignored) {
         }
     }
 

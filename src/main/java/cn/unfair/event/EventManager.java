@@ -7,9 +7,11 @@ import cn.unfair.event.types.Priority;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -34,7 +36,7 @@ public final class EventManager {
      * @param object Object that you want to register.
      */
     public static void register(Object object) {
-        for (final Method method : object.getClass().getDeclaredMethods()) {
+        for (final Method method : getEventMethods(object.getClass())) {
             if (!isMethodBad(method)) {
                 register(method, object);
             }
@@ -49,7 +51,7 @@ public final class EventManager {
      * @param eventClass class for the marked method we are looking for.
      */
     public static void register(Object object, Class<? extends Event> eventClass) {
-        for (final Method method : object.getClass().getDeclaredMethods()) {
+        for (final Method method : getEventMethods(object.getClass())) {
             if (!isMethodBad(method, eventClass)) {
                 register(method, object);
             }
@@ -63,11 +65,7 @@ public final class EventManager {
      */
     public static void unregister(Object object) {
         for (final List<MethodData> dataList : REGISTRY_MAP.values()) {
-            for (final MethodData data : dataList) {
-                if (data.getSource().equals(object)) {
-                    dataList.remove(data);
-                }
-            }
+            dataList.removeIf(data -> data.getSource().equals(object));
         }
         cleanMap(true);
     }
@@ -80,13 +78,23 @@ public final class EventManager {
      */
     public static void unregister(Object object, Class<? extends Event> eventClass) {
         if (REGISTRY_MAP.containsKey(eventClass)) {
-            for (final MethodData data : REGISTRY_MAP.get(eventClass)) {
-                if (data.getSource().equals(object)) {
-                    REGISTRY_MAP.get(eventClass).remove(data);
-                }
-            }
+            REGISTRY_MAP.get(eventClass).removeIf(data -> data.getSource().equals(object));
             cleanMap(true);
         }
+    }
+
+    private static List<Method> getEventMethods(Class<?> type) {
+        List<Method> methods = new java.util.ArrayList<>();
+        Set<String> signatures = new HashSet<>();
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
+            for (Method method : current.getDeclaredMethods()) {
+                String signature = method.getName() + java.util.Arrays.toString(method.getParameterTypes());
+                if (signatures.add(signature)) {
+                    methods.add(method);
+                }
+            }
+        }
+        return methods;
     }
 
     /**

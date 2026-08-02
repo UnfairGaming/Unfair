@@ -127,7 +127,7 @@ public class KillAura extends Module {
     public final BooleanProperty animals = new BooleanProperty("animals", false);
     public final BooleanProperty golems = new BooleanProperty("golems", false);
     public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
-    public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX", "CIRCLE"});
+    public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX"});
     public boolean attackDisabled = false;
     private final TimerUtil timer = new TimerUtil();
     private AttackData target = null;
@@ -1328,9 +1328,6 @@ public class KillAura extends Module {
                     RenderUtil.enableRenderState();
                     RenderUtil.drawEntityBox(this.target.getEntity(), color.getRed(), color.getGreen(), color.getBlue());
                     RenderUtil.disableRenderState();
-                }
-                if (this.showTarget.getValue() == 2) {
-                    renderScan(event, getTarget());
                 }
                 if (this.advancedRotations.getValue() && this.aimDot.getValue() && this.currentVec != null) {
                     this.renderAimDot(event.getPartialTicks());

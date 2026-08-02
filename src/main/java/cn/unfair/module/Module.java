@@ -68,7 +68,10 @@ public abstract class Module {
         boolean enabled = !this.enabled;
         this.setEnabled(enabled);
         if (this.enabled == enabled) {
-            if (((HUD) Unfair.moduleManager.modules.get(HUD.class)).toggleSound.getValue()) {
+            HUD hud = Unfair.moduleManager == null
+                    ? null
+                    : (HUD) Unfair.moduleManager.modules.get(HUD.class);
+            if (hud != null && hud.toggleSound.getValue()) {
                 Unfair.moduleManager.playSound();
             }
             return true;

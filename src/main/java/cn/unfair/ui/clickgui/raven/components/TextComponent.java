@@ -1,7 +1,6 @@
 package cn.unfair.ui.clickgui.raven.components;
 
 import org.lwjgl.opengl.GL11;
-import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.property.properties.TextProperty;
 import cn.unfair.ui.clickgui.raven.RavenClickGui;
