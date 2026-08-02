@@ -71,6 +71,8 @@ config/Unfair/
 
 项目使用 Java 8 语言级别编写。建议使用 JDK 8 进行开发，JDK 17 或 21 构建；如果使用较新的 JDK，需要确认 Gradle、Loom 及旧版 Minecraft 依赖能够正常运行。
 
+模组启动时会扫描各分类包并自动注册 `Module` 实现，因此新增普通模块时通常只需要将类放入对应分类包并继承 `Module`。
+
 ## 构建
 
 Windows:
@@ -92,11 +94,6 @@ build/libs/Unfair-<版本>.jar
 ```
 
 首次构建会下载 Minecraft、Forge、映射和其他 Gradle 依赖，因此需要网络连接。
-
-## 开发须知
-
-模组启动时会扫描各分类包并自动注册 `Module` 实现，因此新增普通模块时通常只需要将类放入对应分类包并继承 `Module`。
-
 
 ## 许可证
 

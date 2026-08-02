@@ -71,6 +71,8 @@ The default configuration file is `default.json`. Module states, keybinds, hidde
 
 The project is written using the Java 8 language level. JDK 8 is recommended for development, while JDK 17 or 21 can be used for building. If you use a newer JDK, make sure that Gradle, Loom, and the legacy Minecraft dependencies work correctly.
 
+When the mod starts, it scans the category packages and automatically registers `Module` implementations. Therefore, adding a regular module usually only requires placing the class in the appropriate category package and extending `Module`.
+
 ## Building
 
 Windows:
@@ -92,10 +94,6 @@ The project also provides a Forge client run configuration. Start the developmen
 ```
 
 The first build downloads Minecraft, Forge, mappings, and other Gradle dependencies, so an internet connection is required.
-
-## Developers Need To Know
-
-When the mod starts, it scans the category packages and automatically registers `Module` implementations. Therefore, adding a regular module usually only requires placing the class in the appropriate category package and extending `Module`.
 
 ## License
 
