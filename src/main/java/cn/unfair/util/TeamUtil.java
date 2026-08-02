@@ -9,6 +9,9 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import cn.unfair.Unfair;
+import cn.unfair.module.Module;
+import cn.unfair.module.modules.misc.AntiBot;
+import cn.unfair.module.modules.misc.Teams;
 
 import java.awt.*;
 import java.util.List;
@@ -98,6 +101,52 @@ public class TeamUtil {
             return false;
         }
         return selfTeam.getColorPrefix().equals(targetTeam.getColorPrefix());
+    }
+
+    public static boolean shouldBlockBot(EntityPlayer player) {
+        Module antiBot = Unfair.moduleManager != null ? Unfair.moduleManager.getModule(AntiBot.class) : null;
+        return antiBot != null && antiBot.isEnabled() && isBot(player);
+    }
+
+    public static boolean shouldBlockTeam(EntityPlayer player) {
+        Module teams = Unfair.moduleManager != null ? Unfair.moduleManager.getModule(Teams.class) : null;
+        return teams != null && teams.isEnabled() && isSameTeam(player);
+    }
+
+    public static boolean shouldBlockTarget(EntityPlayer player) {
+        return shouldBlockTeam(player) || shouldBlockBot(player);
+    }
+
+    public static boolean isAntiBotEnabled() {
+        AntiBot antiBot = getModule(AntiBot.class);
+        return antiBot != null && antiBot.isEnabled();
+    }
+
+    public static boolean shouldBlockRenderBot(EntityPlayer player) {
+        AntiBot antiBot = getModule(AntiBot.class);
+        return antiBot != null && antiBot.isEnabled() && antiBot.render.getValue() && isBot(player);
+    }
+
+    public static boolean shouldBlockRenderTeam(EntityPlayer player) {
+        Teams teams = getModule(Teams.class);
+        return teams != null && teams.isEnabled() && teams.render.getValue() && isSameTeam(player);
+    }
+
+    public static boolean shouldBlockRenderTarget(EntityPlayer player) {
+        return shouldBlockRenderTeam(player) || shouldBlockRenderBot(player);
+    }
+
+    public static boolean shouldBlockTeamColor(EntityLivingBase entity) {
+        Module teams = Unfair.moduleManager != null ? Unfair.moduleManager.getModule(Teams.class) : null;
+        return teams != null && teams.isEnabled() && hasTeamColor(entity);
+    }
+
+    private static <T extends Module> T getModule(Class<T> moduleClass) {
+        if (Unfair.moduleManager == null) {
+            return null;
+        }
+        Module module = Unfair.moduleManager.getModule(moduleClass);
+        return moduleClass.isInstance(module) ? moduleClass.cast(module) : null;
     }
 
     public static boolean hasTeamColor(EntityLivingBase entity) {

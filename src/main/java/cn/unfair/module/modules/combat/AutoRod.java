@@ -7,23 +7,27 @@ import cn.unfair.events.LeftClickMouseEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.mixin.IAccessorPlayerControllerMP;
 import cn.unfair.module.Module;
+import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
+import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RotationUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+
+import java.awt.*;
 
 public class AutoRod extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -39,8 +43,6 @@ public class AutoRod extends Module {
     public final FloatProperty basePrediction = new FloatProperty("base-prediction", 2.0F, 0.0F, 8.0F, this.rotate::getValue);
     public final BooleanProperty onlyOnKillAura = new BooleanProperty("only-on-kill-aura", false);
     public final BooleanProperty overrideAuraRots = new BooleanProperty("override-kill-aura-rots", true);
-    public final BooleanProperty botChecks = new BooleanProperty("bot-check", true);
-    public final BooleanProperty teams = new BooleanProperty("teams", true);
 
     private final TimerUtil recastTimer = new TimerUtil();
     private final TimerUtil delayTimer = new TimerUtil();
@@ -52,6 +54,8 @@ public class AutoRod extends Module {
     private boolean resetSpoofing = true;
     private double predictionSize;
     private boolean rotating;
+    private int rodState;
+    private int rodSlot = -1;
 
     public AutoRod() {
         super("AutoRod", false);
@@ -64,6 +68,8 @@ public class AutoRod extends Module {
         this.usingRod = false;
         this.resetSpoofing = true;
         this.rotating = false;
+        this.rodState = 0;
+        this.rodSlot = -1;
         this.recastTimer.reset();
         this.delayTimer.reset();
         this.switchTimer.reset();
@@ -77,6 +83,8 @@ public class AutoRod extends Module {
         this.usingRod = false;
         this.resetSpoofing = true;
         this.rotating = false;
+        this.rodState = 0;
+        this.rodSlot = -1;
     }
 
     @EventTarget
@@ -85,7 +93,7 @@ public class AutoRod extends Module {
             return;
         }
 
-        AutoProjectiles autoProjectiles = new AutoProjectiles();
+        AutoProjectiles autoProjectiles = ((AutoProjectiles) Unfair.moduleManager.modules.get(AutoProjectiles.class));
         if ((autoProjectiles.isEnabled() && autoProjectiles.hasProjectile())) {
             return;
         }
@@ -107,6 +115,10 @@ public class AutoRod extends Module {
         double predictedDistance = this.getCustomDistanceToEntityBox(playerEyes, targetEyes, this.currentTarget);
 
         this.updateRotations(event);
+        if (this.rodState != 0) {
+            this.handleRodState(event);
+            return;
+        }
 
         if (predictedDistance >= this.minRange.getValue()
                 && predictedDistance <= this.maxRange.getValue()
@@ -115,7 +127,7 @@ public class AutoRod extends Module {
                 if (this.delayTimer.hasTimeElapsed(this.maxWaitDelay.getValue() * 50L) || this.currentTarget.hurtTime <= 3) {
                     int rod = this.findRod();
                     if (rod != -1) {
-                        this.useRod(rod);
+                        this.startRodUse(rod);
                     }
                 }
             } else if (this.recastTimer.hasTimeElapsed(this.maxRecastDelay.getValue() * 50L) || this.currentTarget.hurtTime >= 9) {
@@ -148,7 +160,6 @@ public class AutoRod extends Module {
                 && range <= this.maxRange.getValue()
                 && currentItem != null
                 && currentItem.getItem() instanceof ItemFishingRod;
-
         if (this.rotating) {
             float[] rotations = this.faceTrajectory(this.currentTarget, (float) this.predictionSize, 0.03F, 2.0F);
             event.setRotation(rotations[0], rotations[1], 2);
@@ -194,10 +205,7 @@ public class AutoRod extends Module {
         if (TeamUtil.isFriend(player)) {
             return false;
         }
-        if (this.botChecks.getValue() && TeamUtil.isBot(player)) {
-            return false;
-        }
-        if (this.teams.getValue() && TeamUtil.isSameTeam(player)) {
+        if (TeamUtil.shouldBlockTarget(player)) {
             return false;
         }
         return true;
@@ -217,6 +225,8 @@ public class AutoRod extends Module {
         this.usingRod = false;
         this.resetSpoofing = true;
         this.rotating = false;
+        this.rodState = 0;
+        this.rodSlot = -1;
     }
 
     private void restoreSlot() {
@@ -239,22 +249,57 @@ public class AutoRod extends Module {
         return -1;
     }
 
-    private void useRod(int rod) {
+    private void startRodUse(int rod) {
         if (this.oldSlot < 0 || this.oldSlot > 8) {
             this.oldSlot = mc.thePlayer.inventory.currentItem;
         }
-        mc.thePlayer.inventory.currentItem = rod - 36;
+        this.rodSlot = rod - 36;
+        this.rodState = 1;
+    }
 
-        if (this.resetSpoofing) {
-            this.useTimer.reset();
-            this.resetSpoofing = false;
+    private void handleRodState(UpdateEvent event) {
+        switch (this.rodState) {
+            case 1:
+                mc.thePlayer.inventory.currentItem = this.rodSlot;
+                if (this.resetSpoofing) {
+                    this.useTimer.reset();
+                    this.resetSpoofing = false;
+                }
+                this.rodState = 2;
+                break;
+            case 2:
+                mc.thePlayer.inventory.currentItem = this.rodSlot;
+                if (!this.useTimer.hasTimeElapsed(this.useDelayOnSwitch.getValue() * 50L)) {
+                    break;
+                }
+                if (this.rotate.getValue()) {
+                    float[] rotations = this.faceTrajectory(this.currentTarget, (float) this.predictionSize, 0.03F, 2.0F);
+                    event.setRotation(rotations[0], rotations[1], 2);
+                    event.setPervRotation(rotations[0], 2);
+                    this.rotating = true;
+                }
+                this.rodState = 3;
+                break;
+            case 3:
+                mc.thePlayer.inventory.currentItem = this.rodSlot;
+                this.castRod();
+                this.rodState = 0;
+                this.rodSlot = -1;
+                break;
+            default:
+                this.rodState = 0;
+                this.rodSlot = -1;
         }
+    }
 
-        if (!this.useTimer.hasTimeElapsed(this.useDelayOnSwitch.getValue() * 50L)) {
+    private void castRod() {
+        ItemStack stack = mc.thePlayer.inventory.getCurrentItem();
+        if (stack == null || !(stack.getItem() instanceof ItemFishingRod)) {
+            this.reset();
             return;
         }
-
-        KeyBinding.onTick(mc.gameSettings.keyBindUseItem.getKeyCode());
+        ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
+        PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(stack));
         this.usingRod = true;
         this.recastTimer.reset();
         this.switchTimer.reset();

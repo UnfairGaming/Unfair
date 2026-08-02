@@ -41,8 +41,6 @@ public class LagRange extends Module {
     public final FloatProperty range = new FloatProperty("range", 10.0F, 3.0F, 100.0F);
     public final BooleanProperty weaponsOnly = new BooleanProperty("weapons-only", true);
     public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
-    public final BooleanProperty botCheck = new BooleanProperty("bot-check", true);
-    public final BooleanProperty teams = new BooleanProperty("teams", true);
     public final ModeProperty showPosition = new ModeProperty("show-position", 0, new String[]{"NONE", "DEFAULT", "HUD"});
     private int tickIndex = -1;
     private long delayCounter = 0L;
@@ -63,7 +61,7 @@ public class LagRange extends Module {
             } else if (TeamUtil.isFriend(entityPlayer)) {
                 return false;
             } else {
-                return (!this.teams.getValue() || !TeamUtil.isSameTeam(entityPlayer)) && (!this.botCheck.getValue() || !TeamUtil.isBot(entityPlayer));
+                return !TeamUtil.shouldBlockTarget(entityPlayer);
             }
         } else {
             return false;

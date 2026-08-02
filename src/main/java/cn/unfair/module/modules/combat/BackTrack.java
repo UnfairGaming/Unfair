@@ -93,8 +93,6 @@ public class BackTrack extends Module {
     public final BooleanProperty players = new BooleanProperty("players", true);
     public final BooleanProperty mobs = new BooleanProperty("mobs", false);
     public final BooleanProperty animals = new BooleanProperty("animals", false);
-    public final BooleanProperty botCheck = new BooleanProperty("bot-check", true);
-    public final BooleanProperty teams = new BooleanProperty("teams", true);
     public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.esp.getValue() == 1);
     public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
     public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.esp.getValue() == 1);
@@ -431,7 +429,7 @@ public class BackTrack extends Module {
             if (!this.players.getValue() || TeamUtil.isFriend(player)) {
                 return false;
             }
-            return (!this.teams.getValue() || !TeamUtil.isSameTeam(player)) && (!this.botCheck.getValue() || !TeamUtil.isBot(player));
+            return !TeamUtil.shouldBlockTarget(player);
         }
         String entityPackage = entity.getClass().getName();
         if (entityPackage.contains(".monster.") || entityPackage.contains(".boss.")) {

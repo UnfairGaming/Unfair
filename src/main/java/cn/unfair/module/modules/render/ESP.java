@@ -56,7 +56,9 @@ public class ESP extends Module {
         } else if (!entityPlayer.ignoreFrustumCheck && !RenderUtil.isInViewFrustum(entityPlayer.getEntityBoundingBox(), 0.1F)) {
             return false;
         } else if (entityPlayer != mc.thePlayer && entityPlayer != mc.getRenderViewEntity()) {
-            if (TeamUtil.isBot(entityPlayer)) {
+            if (TeamUtil.shouldBlockRenderTarget(entityPlayer)) {
+                return false;
+            } else if (!TeamUtil.isAntiBotEnabled() && TeamUtil.isBot(entityPlayer)) {
                 return this.bots.getValue();
             } else if (TeamUtil.isFriend(entityPlayer)) {
                 return this.friends.getValue();
