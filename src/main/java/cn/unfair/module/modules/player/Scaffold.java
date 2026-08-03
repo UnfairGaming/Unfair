@@ -335,6 +335,9 @@ public class Scaffold extends Module {
                 float diagonalYaw = this.isDiagonal(currentYaw)
                         ? yawDiffTo180
                         : RotationUtil.wrapAngleDiff(currentYaw - 135.0F * ((currentYaw + 180.0F) % 90.0F < 45.0F ? 1.0F : -1.0F), event.getYaw());
+                float strafeYaw = this.isDiagonal(currentYaw)
+                        ? yawDiffTo180
+                        : RotationUtil.wrapAngleDiff(currentYaw + 135.0F, event.getYaw());
                 if (!this.canRotate) {
                     switch (this.rotationMode.getValue()) {
                         case 1:
@@ -355,10 +358,10 @@ public class Scaffold extends Module {
                             break;
                         case 3:
                             if (this.yaw == -180.0F && this.pitch == 0.0F) {
-                                this.yaw = RotationUtil.quantizeAngle(diagonalYaw);
+                                this.yaw = RotationUtil.quantizeAngle(strafeYaw);
                                 this.pitch = RotationUtil.quantizeAngle(85.0F);
                             } else {
-                                this.yaw = RotationUtil.quantizeAngle(diagonalYaw);
+                                this.yaw = RotationUtil.quantizeAngle(strafeYaw);
                             }
                             break;
                         case 4:
@@ -526,7 +529,7 @@ public class Scaffold extends Module {
                             this.yaw = RotationUtil.quantizeAngle(yawDiffTo180);
                             break;
                         case 3:
-                            this.yaw = RotationUtil.quantizeAngle(diagonalYaw);
+                            this.yaw = RotationUtil.quantizeAngle(strafeYaw);
                             break;
                     }
                 }
