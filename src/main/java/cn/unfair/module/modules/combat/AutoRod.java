@@ -85,7 +85,7 @@ public class AutoRod extends Module {
         this.rodSlot = -1;
     }
 
-    @EventTarget(Priority.HIGH)
+    @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
             return;
