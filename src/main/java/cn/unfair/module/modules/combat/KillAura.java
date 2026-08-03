@@ -93,6 +93,12 @@ public class KillAura extends Module {
     public final FloatProperty xzTrim = new FloatProperty("xz-trim", 0.0F, 0.0F, 0.5F, this.advancedRotations::getValue);
     public final FloatProperty xzRandAdd = new FloatProperty("xz-rand-add", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.dynamicTrim.getValue());
     public final BooleanProperty predictionEngine = new BooleanProperty("prediction-engine", false, this.advancedRotations::getValue);
+    public final BooleanProperty simulateReactionTime = new BooleanProperty("simulate-reaction-time", false, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue());
+    public final IntProperty reactionTimeMin = new IntProperty("reaction-time-min", 0, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final IntProperty reactionTimeMax = new IntProperty("reaction-time-max", 10, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final FloatProperty thresholdToApplyReactionTime = new FloatProperty("threshold-to-apply-reaction-time", 0.1F, 0.01F, 1.0F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final FloatProperty thresholdForDirectionConfidence = new FloatProperty("threshold-for-direction-confidence", 0.1F, 0.01F, 0.5F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final FloatProperty extraPrediction = new FloatProperty("extra-reaction-prediction", 1.0F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
     public final BooleanProperty jitter = new BooleanProperty("jitter", false, this.advancedRotations::getValue);
     public final FloatProperty jitterMin = new FloatProperty("jitter-min", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
     public final FloatProperty jitterMax = new FloatProperty("jitter-max", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
@@ -145,6 +151,14 @@ public class KillAura extends Module {
     private boolean shouldRandomize;
     private double finalXZTrim;
     private double xzRandShrinkThing;
+    private float predictionTargetOffset;
+    private EntityLivingBase predictionTrackedEntity;
+    private AxisAlignedBB predictionLastTrackedAABB;
+    private int predictionTicksExisted;
+    private int currentReactionTime;
+    private Vec3 predictionLastTrackedMoveDelta = zeroVec();
+    private final TimerUtil predictionUpdateTimer = new TimerUtil();
+    private final ArrayList<Double> previousTargetMotions = new ArrayList<>();
     private float tremorYaw;
     private float tremorPitch;
     private float targetJitterYaw;
@@ -737,6 +751,7 @@ public class KillAura extends Module {
                         if (targets.isEmpty()) {
                             target = null;
                             this.resetAimVec();
+                            this.resetPredictionEngine();
                         } else {
                             if (targets.stream().anyMatch(this::isInSwingRange)) {
                                 targets.removeIf(entityLivingBase -> !this.isInSwingRange(entityLivingBase));
@@ -864,7 +879,7 @@ public class KillAura extends Module {
                 MathHelper.clamp_double(targetVec.zCoord, bb.minZ, bb.maxZ)
         );
         if (this.predictionEngine.getValue()) {
-            targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D));
+            targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D * this.extraPrediction.getValue()));
         }
 
         this.updateAimVec(targetVec);
@@ -890,20 +905,117 @@ public class KillAura extends Module {
         if (!this.predictionEngine.getValue()) {
             return bb;
         }
-        double dist = RotationUtil.distanceToBox(bb);
+        return this.simulatePredictions(entity, bb);
+    }
+
+    private AxisAlignedBB simulatePredictions(EntityLivingBase entity, AxisAlignedBB hitbox) {
+        if (this.predictionTrackedEntity != entity) {
+            this.resetPredictionEngine();
+            this.predictionTrackedEntity = entity;
+        }
+
+        double dist = RotationUtil.distanceToBox(hitbox);
+        boolean shouldPredict = false;
         double speed = getSpeedPosBased(entity);
-        double offset = 0.0D;
+
         if (dist > this.attackRange.getValue()) {
-            offset = Math.min(Math.max((dist - this.attackRange.getValue()) * 3.0D, 0.0D), 8.0D);
+            this.predictionTargetOffset = (float) Math.min(Math.max((dist - this.attackRange.getValue()) * 3.0D, 0.0D), 8.0D);
+            shouldPredict = true;
         }
+
         if (speed > 0.4D) {
-            offset = -Math.min(Math.max(dist, 0.0D), 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? Math.random() : -Math.random());
+            double extra = Math.random() * RandomUtil.nextFloat(0.9F, 1.1F);
+            float predictedOffset = (float) (-Math.min(Math.max(dist, 0.0D), 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? extra : -extra));
+            this.predictionTargetOffset = interpolate(this.predictionTargetOffset, predictedOffset, 0.05F);
+            shouldPredict = true;
         }
-        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(bb)) {
-            offset = 3.0D;
+
+        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(hitbox)) {
+            this.predictionTargetOffset = 3.0F;
+            shouldPredict = true;
         }
-        Vec3 prediction = multiply(flat(getMoveDelta(entity)), offset);
-        return bb.offset(prediction.xCoord, prediction.yCoord, prediction.zCoord);
+
+        Vec3 moveDelta = getMoveDelta(entity);
+        AxisAlignedBB trackedHitbox = this.simulateReactionTime.getValue() ? this.getReactionDelayedHitbox(hitbox, moveDelta) : hitbox;
+        Vec3 prediction = multiply(flat(moveDelta), shouldPredict ? this.predictionTargetOffset : 0.0D);
+        return trackedHitbox.offset(prediction.xCoord, prediction.yCoord, prediction.zCoord);
+    }
+
+    private AxisAlignedBB getReactionDelayedHitbox(AxisAlignedBB hitbox, Vec3 moveDelta) {
+        if (this.predictionLastTrackedAABB == null) {
+            this.predictionLastTrackedAABB = hitbox;
+            this.predictionLastTrackedMoveDelta = moveDelta;
+        }
+
+        if (mc.thePlayer.ticksExisted != this.predictionTicksExisted) {
+            this.previousTargetMotions.add(moveDelta.lengthVector());
+
+            if (this.predictionUpdateTimer.hasTimeElapsed((this.currentReactionTime + 1L) * 50L)) {
+                this.predictionLastTrackedAABB = hitbox;
+                this.predictionLastTrackedMoveDelta = moveDelta;
+                this.currentReactionTime = this.getReactionTimeFromMotion();
+                this.predictionUpdateTimer.reset();
+            } else if (this.getDirectionConfidence(moveDelta, this.predictionLastTrackedMoveDelta) >= this.thresholdForDirectionConfidence.getValue()) {
+                this.predictionLastTrackedAABB = this.predictionLastTrackedAABB.offset(
+                        this.predictionLastTrackedMoveDelta.xCoord,
+                        this.predictionLastTrackedMoveDelta.yCoord,
+                        this.predictionLastTrackedMoveDelta.zCoord
+                );
+                hitbox = this.predictionLastTrackedAABB;
+            } else {
+                this.predictionLastTrackedAABB = hitbox;
+                this.predictionLastTrackedMoveDelta = moveDelta;
+            }
+
+            while (this.previousTargetMotions.size() > 20) {
+                this.previousTargetMotions.remove(0);
+            }
+        }
+
+        this.predictionTicksExisted = mc.thePlayer.ticksExisted;
+        return hitbox;
+    }
+
+    private int getReactionTimeFromMotion() {
+        if (this.previousTargetMotions.isEmpty()) {
+            return this.currentReactionTime;
+        }
+
+        double averageMotion = 0.0D;
+        for (Double motion : this.previousTargetMotions) {
+            averageMotion += motion;
+        }
+        averageMotion /= this.previousTargetMotions.size();
+
+        double motionPercentage = MathHelper.clamp_double(averageMotion * 2.0D, 0.0D, 1.0D);
+        if (averageMotion < this.thresholdToApplyReactionTime.getValue()) {
+            motionPercentage = 0.0D;
+        }
+
+        int min = Math.min(this.reactionTimeMin.getValue(), this.reactionTimeMax.getValue());
+        int max = Math.max(this.reactionTimeMin.getValue(), this.reactionTimeMax.getValue());
+        return (int) interpolate(min, max, (float) motionPercentage);
+    }
+
+    private double getDirectionConfidence(Vec3 current, Vec3 previous) {
+        double currentLength = current.lengthVector();
+        double previousLength = previous.lengthVector();
+        if (currentLength < 1.0E-4D || previousLength < 1.0E-4D) {
+            return 1.0D;
+        }
+        double dot = current.xCoord * previous.xCoord + current.yCoord * previous.yCoord + current.zCoord * previous.zCoord;
+        return MathHelper.clamp_double((dot / (currentLength * previousLength) + 1.0D) / 2.0D, 0.0D, 1.0D);
+    }
+
+    private void resetPredictionEngine() {
+        this.predictionTargetOffset = 0.0F;
+        this.predictionTrackedEntity = null;
+        this.predictionLastTrackedAABB = null;
+        this.predictionTicksExisted = 0;
+        this.currentReactionTime = 0;
+        this.predictionLastTrackedMoveDelta = zeroVec();
+        this.previousTargetMotions.clear();
+        this.predictionUpdateTimer.setTime();
     }
 
     private Vec3 getAdvancedLookVec(float yaw, float pitch) {
@@ -1248,7 +1360,7 @@ public class KillAura extends Module {
     }
 
     private void renderAimDot(float partialTicks) {
-        double size = 0.05D;
+        double size = 0.1D;
         Color color = new Color(this.aimDotColor.getValue());
         Vec3 aimVec = this.lastAimVec == null
                 ? this.currentVec
@@ -1325,6 +1437,7 @@ public class KillAura extends Module {
     public void onEnabled() {
         target = null;
         this.resetAimVec();
+        this.resetPredictionEngine();
         this.switchTick = 0;
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
@@ -1341,6 +1454,7 @@ public class KillAura extends Module {
         this.isBlocking = false;
         this.fakeBlockState = false;
         this.resetAimVec();
+        this.resetPredictionEngine();
     }
 
     @Override
@@ -1357,6 +1471,14 @@ public class KillAura extends Module {
             } else if (this.minCPS.getName().equals(mode)) {
                 if (this.minCPS.getValue() > this.maxCPS.getValue()) {
                     this.maxCPS.setValue(this.minCPS.getValue());
+                }
+            } else if (this.reactionTimeMin.getName().equals(mode)) {
+                if (this.reactionTimeMin.getValue() > this.reactionTimeMax.getValue()) {
+                    this.reactionTimeMax.setValue(this.reactionTimeMin.getValue());
+                }
+            } else if (this.reactionTimeMax.getName().equals(mode)) {
+                if (this.reactionTimeMin.getValue() > this.reactionTimeMax.getValue()) {
+                    this.reactionTimeMin.setValue(this.reactionTimeMax.getValue());
                 }
             } else {
                 if (this.maxCPS.getName().equals(mode) && this.minCPS.getValue() > this.maxCPS.getValue()) {
