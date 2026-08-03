@@ -32,6 +32,7 @@ public class InvManager extends Module {
     public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Normal", "Instant"});
     public final BooleanProperty autoArmor = new BooleanProperty("Auto Armor", true);
     public final BooleanProperty dropTrash = new BooleanProperty("Drop Trash", true);
+    public final IntProperty dropDelay = new IntProperty("Drop Delay", 0, 0, 20);
     public final IntProperty swordSlot = new IntProperty("Sword Slot", 1, 0, 9);
     public final IntProperty pickaxeSlot = new IntProperty("Pickaxe Slot", 8, 0, 9);
     public final IntProperty shovelSlot = new IntProperty("Shovel Slot", 7, 0, 9);
@@ -44,6 +45,7 @@ public class InvManager extends Module {
     public final IntProperty fishingRodSlot = new IntProperty("Fishing Rod Slot", 6, 0, 9);
     private int actionDelay = 0;
     private int oDelay = 0;
+    private int dropDelayCounter = 0;
     private boolean inventoryOpen = false;
 
     public InvManager() {
@@ -171,6 +173,9 @@ public class InvManager extends Module {
             if (this.oDelay > 0) {
                 this.oDelay--;
             }
+            if (this.dropDelayCounter > 0) {
+                this.dropDelayCounter--;
+            }
 
             boolean isInventoryOpen = (mc.currentScreen instanceof GuiInventory);
 
@@ -186,7 +191,7 @@ public class InvManager extends Module {
                 if (this.oDelay > 0) {
                     return;
                 }
-                if (this.mode.getValue() == 1 || this.actionDelay <= 0) {
+                if (this.mode.getValue() == 1 || this.actionDelay <= 0 || (this.mode.getValue() == 0 && this.dropTrash.getValue() && this.dropDelayCounter <= 0)) {
                     if (this.isEnabled() && this.isValidGameMode()) {
                         ArrayList<Integer> equippedArmorSlots = new ArrayList<>(Arrays.asList(-1, -1, -1, -1));
                         ArrayList<Integer> inventoryArmorSlots = new ArrayList<>(Arrays.asList(-1, -1, -1, -1));
@@ -217,7 +222,7 @@ public class InvManager extends Module {
                         int preferredFishingRodHotbarSlot = this.fishingRodSlot.getValue() - 1;
                         int equippedFishingRodSlot = this.findFishingRodSlot(preferredFishingRodHotbarSlot, true);
                         int inventoryFishingRodSlot = this.findFishingRodSlot(preferredFishingRodHotbarSlot, false);
-                        if (this.mode.getValue() == 0) {
+                        if (this.mode.getValue() == 0 && this.actionDelay <= 0) {
                             if (this.autoArmor.getValue()) {
                                 for (int i = 0; i < 4; i++) {
                                     int equippedSlot = equippedArmorSlots.get(i);
@@ -471,7 +476,7 @@ public class InvManager extends Module {
                                 }
                             }
                         }
-                        if (this.mode.getValue() == 0 && this.dropTrash.getValue()) {
+                        if (this.mode.getValue() == 0 && this.dropTrash.getValue() && this.dropDelayCounter <= 0) {
                             int currentBlockCount = this.getStackSize(inventoryBlocksSlot);
                             int totalThrowsCount = this.getTotalThrowsCount();
 
@@ -497,6 +502,7 @@ public class InvManager extends Module {
                                         ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
                                         if (this.isThrowable(stack)) {
                                             this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(i), 1, 4);
+                                            this.dropDelayCounter = this.dropDelay.getValue();
                                             return;
                                         }
                                     }
@@ -530,6 +536,7 @@ public class InvManager extends Module {
 
                                         if (!isThrowable && !isGapple && !isFishingRod && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()))) {
                                             this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(i), 1, 4);
+                                            this.dropDelayCounter = this.dropDelay.getValue();
                                             return;
                                         }
 

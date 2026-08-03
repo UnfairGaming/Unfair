@@ -24,7 +24,7 @@ import cn.unfair.util.ItemUtil;
 public class ChestStealer extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Instant"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Instant", "Drop"});
 
     public final IntProperty minDelay = new IntProperty("Min Delay", 1, 0, 20);
     public final IntProperty maxDelay = new IntProperty("Max Delay", 2, 0, 20);
@@ -57,6 +57,21 @@ public class ChestStealer extends Module {
 
     private void shiftClick(int windowId, int slotId) {
         mc.playerController.windowClick(windowId, slotId, 0, 1, mc.thePlayer);
+    }
+
+    private void dropStack(int windowId, int slotId) {
+        mc.playerController.windowClick(windowId, slotId, 1, 4, mc.thePlayer);
+    }
+
+    // Performs the per-slot interaction for Normal/Drop modes. In Normal mode
+    // this shift-clicks the stack into the player's inventory; in Drop mode it
+    // drops the stack out of the chest instead.
+    private void interactSlot(int windowId, int slotId) {
+        if (this.mode.getValue() == 2) {
+            this.dropStack(windowId, slotId);
+        } else {
+            this.shiftClick(windowId, slotId);
+        }
     }
 
     private void takeAllInstant(Container container, IInventory inventory) {
@@ -105,7 +120,7 @@ public class ChestStealer extends Module {
     public void onUpdate(UpdateEvent event) {
         if (event.getType() == EventType.PRE) {
 
-            if (this.mode.getValue() == 0) {
+            if (this.mode.getValue() == 0 || this.mode.getValue() == 2) {
                 if (this.clickDelay > 0) {
                     this.clickDelay--;
                 }
@@ -126,7 +141,7 @@ public class ChestStealer extends Module {
                     if (!this.inChest) {
                         this.inChest = true;
                         this.warnedFull = false;
-                        if (this.mode.getValue() == 0) {
+                        if (this.mode.getValue() == 0 || this.mode.getValue() == 2) {
                             this.oDelay = this.openDelay.getValue() + 1;
                         }
                         this.instantExecuted = false;
@@ -179,9 +194,9 @@ public class ChestStealer extends Module {
                         }
                     }
 
-                    // Normal Mode
-                    else if (this.mode.getValue() == 0 && this.oDelay <= 0 && this.clickDelay <= 0) {
-                        if (mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
+                    // Normal Mode / Drop Mode (Drop shares Normal's logic but drops stacks out of the chest instead of taking them)
+                    else if ((this.mode.getValue() == 0 || this.mode.getValue() == 2) && this.oDelay <= 0 && this.clickDelay <= 0) {
+                        if (this.mode.getValue() == 0 && mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
                             if (!this.warnedFull) {
                                 ChatUtil.sendFormatted(String.format("%s%s: &cYour inventory is full!&r", Unfair.clientName, this.getName()));
                                 this.warnedFull = true;
@@ -196,7 +211,7 @@ public class ChestStealer extends Module {
                                         if (container.getSlot(i).getHasStack()) {
                                             ItemStack stack = container.getSlot(i).getStack();
                                             if (this.isProjectileStack(stack)) {
-                                                this.shiftClick(container.windowId, i);
+                                                this.interactSlot(container.windowId, i);
                                                 return;
                                             }
                                         }
@@ -256,7 +271,7 @@ public class ChestStealer extends Module {
                                 int swordInInventorySlot = ItemUtil.findSwordInInventorySlot(0, true);
                                 double damage = swordInInventorySlot != -1 ? ItemUtil.getAttackBonus(mc.thePlayer.inventory.getStackInSlot(swordInInventorySlot)) : 0.0;
                                 if (bestDamage > damage) {
-                                    this.shiftClick(container.windowId, bestSword);
+                                    this.interactSlot(container.windowId, bestSword);
                                     return;
                                 }
 
@@ -266,7 +281,7 @@ public class ChestStealer extends Module {
                                             ? ItemUtil.getArmorProtection(mc.thePlayer.inventory.getStackInSlot(slot))
                                             : 0.0;
                                     if (bestArmorProtection[i] > protectionLevel) {
-                                        this.shiftClick(container.windowId, bestArmorSlots[i]);
+                                        this.interactSlot(container.windowId, bestArmorSlots[i]);
                                         return;
                                     }
                                 }
@@ -274,21 +289,21 @@ public class ChestStealer extends Module {
                                 int pickaxeSlot = ItemUtil.findInventorySlot("pickaxe", 0, true);
                                 float pickaxeEfficiency = pickaxeSlot != -1 ? ItemUtil.getToolEfficiency(mc.thePlayer.inventory.getStackInSlot(pickaxeSlot)) : 1.0F;
                                 if (bestPickaxeEfficiency > pickaxeEfficiency) {
-                                    this.shiftClick(container.windowId, bestPickaxeSlot);
+                                    this.interactSlot(container.windowId, bestPickaxeSlot);
                                     return;
                                 }
 
                                 int shovelSlot = ItemUtil.findInventorySlot("shovel", 0, true);
                                 float shovelEfficiency = shovelSlot != -1 ? ItemUtil.getToolEfficiency(mc.thePlayer.inventory.getStackInSlot(shovelSlot)) : 1.0F;
                                 if (bestShovelEfficiency > shovelEfficiency) {
-                                    this.shiftClick(container.windowId, bestShovelSlot);
+                                    this.interactSlot(container.windowId, bestShovelSlot);
                                     return;
                                 }
 
                                 int axeSlot = ItemUtil.findInventorySlot("axe", 0, true);
                                 float efficiency = axeSlot != -1 ? ItemUtil.getToolEfficiency(mc.thePlayer.inventory.getStackInSlot(axeSlot)) : 1.0F;
                                 if (bestAxeEfficiency > efficiency) {
-                                    this.shiftClick(container.windowId, bestAxeSlot);
+                                    this.interactSlot(container.windowId, bestAxeSlot);
                                     return;
                                 }
                             }
@@ -297,11 +312,11 @@ public class ChestStealer extends Module {
                                 if (container.getSlot(i).getHasStack()) {
                                     ItemStack stack = container.getSlot(i).getStack();
                                     if (this.keepProjectiles.getValue() && this.isProjectileStack(stack)) {
-                                        this.shiftClick(container.windowId, i);
+                                        this.interactSlot(container.windowId, i);
                                         return;
                                     }
                                     if (!this.skipTrash.getValue() || !ItemUtil.isNotSpecialItem(stack)) {
-                                        this.shiftClick(container.windowId, i);
+                                        this.interactSlot(container.windowId, i);
                                         return;
                                     }
                                 }
@@ -319,7 +334,7 @@ public class ChestStealer extends Module {
 
     @EventTarget
     public void onWindowClick(WindowClickEvent event) {
-        if (this.mode.getValue() == 0) {
+        if (this.mode.getValue() == 0 || this.mode.getValue() == 2) {
             this.clickDelay = RandomUtils.nextInt(this.minDelay.getValue() + 1, this.maxDelay.getValue() + 2);
         }
         if (this.mode.getValue() == 1) {
