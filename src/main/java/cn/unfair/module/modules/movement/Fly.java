@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Fly extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"VANILLA", "POLAR"});
-    public final FloatProperty hSpeed = new FloatProperty("horizontal-speed", 1.0F, 0.0F, 100.0F);
-    public final FloatProperty vSpeed = new FloatProperty("vertical-speed", 1.0F, 0.0F, 100.0F);
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"Vanilla", "Polar"});
+    public final FloatProperty hSpeed = new FloatProperty("horizontal-speed", 5.0F, 0.0F, 10.0F);
+    public final FloatProperty vSpeed = new FloatProperty("vertical-speed", 3.0F, 0.0F, 10.0F);
     private final Deque<Packet<?>> polarS32Packets = new ConcurrentLinkedDeque<>();
     private double verticalMotion = 0.0;
     private Entity polarBoat = null;
