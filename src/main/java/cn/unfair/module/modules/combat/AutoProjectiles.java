@@ -290,7 +290,7 @@ public class AutoProjectiles extends Module {
         }
     }
 
-    @EventTarget(Priority.HIGH)
+    @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE || bad()) {
             return;

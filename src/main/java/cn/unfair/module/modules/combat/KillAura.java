@@ -6,10 +6,6 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
@@ -49,7 +45,6 @@ import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
 import cn.unfair.util.rotation.PointFinder;
-import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -98,6 +93,12 @@ public class KillAura extends Module {
     public final FloatProperty xzTrim = new FloatProperty("xz-trim", 0.0F, 0.0F, 0.5F, this.advancedRotations::getValue);
     public final FloatProperty xzRandAdd = new FloatProperty("xz-rand-add", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.dynamicTrim.getValue());
     public final BooleanProperty predictionEngine = new BooleanProperty("prediction-engine", false, this.advancedRotations::getValue);
+    public final BooleanProperty simulateReactionTime = new BooleanProperty("simulate-reaction-time", false, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue());
+    public final IntProperty reactionTimeMin = new IntProperty("reaction-time-min", 0, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final IntProperty reactionTimeMax = new IntProperty("reaction-time-max", 10, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final FloatProperty thresholdToApplyReactionTime = new FloatProperty("threshold-to-apply-reaction-time", 0.1F, 0.01F, 1.0F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final FloatProperty thresholdForDirectionConfidence = new FloatProperty("threshold-for-direction-confidence", 0.1F, 0.01F, 0.5F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
+    public final FloatProperty extraPrediction = new FloatProperty("extra-reaction-prediction", 1.0F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
     public final BooleanProperty jitter = new BooleanProperty("jitter", false, this.advancedRotations::getValue);
     public final FloatProperty jitterMin = new FloatProperty("jitter-min", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
     public final FloatProperty jitterMax = new FloatProperty("jitter-max", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
@@ -150,6 +151,14 @@ public class KillAura extends Module {
     private boolean shouldRandomize;
     private double finalXZTrim;
     private double xzRandShrinkThing;
+    private float predictionTargetOffset;
+    private EntityLivingBase predictionTrackedEntity;
+    private AxisAlignedBB predictionLastTrackedAABB;
+    private int predictionTicksExisted;
+    private int currentReactionTime;
+    private Vec3 predictionLastTrackedMoveDelta = zeroVec();
+    private final TimerUtil predictionUpdateTimer = new TimerUtil();
+    private final ArrayList<Double> previousTargetMotions = new ArrayList<>();
     private float tremorYaw;
     private float tremorPitch;
     private float targetJitterYaw;
@@ -178,16 +187,16 @@ public class KillAura extends Module {
             } else {
                 this.attackDelayMS = this.attackDelayMS + this.getAttackDelay();
                 mc.thePlayer.swingItem();
-                if ((this.rotations.getValue() != 0 || !this.isBoxInAttackRange(this.target.getBox()))
-                        && RotationUtil.rayTrace(this.target.getBox(), yaw, pitch, this.attackRange.getValue()) == null) {
+                if ((this.rotations.getValue() != 0 || !this.isBoxInAttackRange(target.getBox()))
+                        && RotationUtil.rayTrace(target.getBox(), yaw, pitch, this.attackRange.getValue()) == null) {
                     return false;
                 } else {
-                    AttackEvent event = new AttackEvent(this.target.getEntity());
+                    AttackEvent event = new AttackEvent(target.getEntity());
                     EventManager.call(event);
                     ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
-                    PacketUtil.sendPacket(new C02PacketUseEntity(this.target.getEntity(), Action.ATTACK));
+                    PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), Action.ATTACK));
                     if (mc.playerController.getCurrentGameType() != GameType.SPECTATOR) {
-                        PlayerUtil.attackEntity(this.target.getEntity());
+                        PlayerUtil.attackEntity(target.getEntity());
                     }
                     this.hitRegistered = true;
                     return true;
@@ -216,17 +225,17 @@ public class KillAura extends Module {
     }
 
     private void interactAttack(float yaw, float pitch) {
-        if (this.target != null) {
-            MovingObjectPosition mop = RotationUtil.rayTrace(this.target.getBox(), yaw, pitch, 8.0);
+        if (target != null) {
+            MovingObjectPosition mop = RotationUtil.rayTrace(target.getBox(), yaw, pitch, 8.0);
             if (mop != null) {
                 ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
                 PacketUtil.sendPacket(
                         new C02PacketUseEntity(
-                                this.target.getEntity(),
-                                new Vec3(mop.hitVec.xCoord - this.target.getX(), mop.hitVec.yCoord - this.target.getY(), mop.hitVec.zCoord - this.target.getZ())
+                                target.getEntity(),
+                                new Vec3(mop.hitVec.xCoord - target.getX(), mop.hitVec.yCoord - target.getY(), mop.hitVec.zCoord - target.getZ())
                         )
                 );
-                PacketUtil.sendPacket(new C02PacketUseEntity(this.target.getEntity(), Action.INTERACT));
+                PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), Action.INTERACT));
                 PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
                 mc.thePlayer.setItemInUse(mc.thePlayer.getHeldItem(), mc.thePlayer.getHeldItem().getMaxItemUseDuration());
                 this.blockingState = true;
@@ -409,7 +418,7 @@ public class KillAura extends Module {
     }
 
     public EntityLivingBase getTarget() {
-        return this.target != null ? this.target.getEntity() : null;
+        return target != null ? target.getEntity() : null;
     }
 
     public boolean isAttackAllowed() {
@@ -438,7 +447,7 @@ public class KillAura extends Module {
     }
 
     private boolean shouldKeepSilentRotation() {
-        return this.target != null
+        return target != null
                 && this.rotations.getValue() == 2
                 && (this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 5);
     }
@@ -459,7 +468,7 @@ public class KillAura extends Module {
             if (this.attackDelayMS > 0L) {
                 this.attackDelayMS -= 50L;
             }
-            boolean attack = this.target != null && this.canAttack();
+            boolean attack = target != null && this.canAttack();
             boolean block = attack && this.canAutoBlock();
             if (!block) {
                 Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
@@ -636,7 +645,7 @@ public class KillAura extends Module {
                     }
                 }
                 boolean attacked = false;
-                if (this.isBoxInSwingRange(this.target.getBox())) {
+                if (this.isBoxInSwingRange(target.getBox())) {
                     if (this.rotations.getValue() == 2 || this.rotations.getValue() == 3) {
 
                         float[] targetRotations;
@@ -645,7 +654,7 @@ public class KillAura extends Module {
                         targetRotations = this.advancedRotations.getValue()
                                 ? this.getAdvancedRotations(event.getYaw(), event.getPitch(), randomOffset, smoothFactor)
                                 : RotationUtil.getRotationsToBox(
-                                        this.target.getBox(),
+                                        target.getBox(),
                                         event.getYaw(),
                                         event.getPitch(),
                                         randomOffset,
@@ -681,7 +690,7 @@ public class KillAura extends Module {
                     if (attack) {
                         attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
                     }
-                } else if (this.rotations.getValue() == 2 && this.target != null && !this.shouldKeepSilentRotation()) {
+                } else if (this.rotations.getValue() == 2 && target != null && !this.shouldKeepSilentRotation()) {
 
                     float realYaw = mc.thePlayer.rotationYaw;
                     float realPitch = mc.thePlayer.rotationPitch;
@@ -725,10 +734,10 @@ public class KillAura extends Module {
         if (this.isEnabled()) {
             switch (event.getType()) {
                 case PRE:
-                    if (this.target == null
-                            || !this.isValidTarget(this.target.getEntity())
-                            || !this.isBoxInAttackRange(this.target.getBox())
-                            || !this.isBoxInSwingRange(this.target.getBox())
+                    if (target == null
+                            || !this.isValidTarget(target.getEntity())
+                            || !this.isBoxInAttackRange(target.getBox())
+                            || !this.isBoxInSwingRange(target.getBox())
                             || this.timer.hasTimeElapsed(this.switchDelay.getValue().longValue())) {
                         this.timer.reset();
                         ArrayList<EntityLivingBase> targets = new ArrayList<>();
@@ -740,8 +749,9 @@ public class KillAura extends Module {
                             }
                         }
                         if (targets.isEmpty()) {
-                            this.target = null;
+                            target = null;
                             this.resetAimVec();
+                            this.resetPredictionEngine();
                         } else {
                             if (targets.stream().anyMatch(this::isInSwingRange)) {
                                 targets.removeIf(entityLivingBase -> !this.isInSwingRange(entityLivingBase));
@@ -780,11 +790,11 @@ public class KillAura extends Module {
                             if (this.mode.getValue() == 0 || this.switchTick >= targets.size()) {
                                 this.switchTick = 0;
                             }
-                            this.target = new AttackData(targets.get(this.switchTick));
+                            target = new AttackData(targets.get(this.switchTick));
                         }
                     }
-                    if (this.target != null) {
-                        this.target = new AttackData(this.target.getEntity());
+                    if (target != null) {
+                        target = new AttackData(target.getEntity());
                     }
                     break;
                 case POST:
@@ -796,7 +806,7 @@ public class KillAura extends Module {
     }
 
     private float[] getAdvancedRotations(float yaw, float pitch, float maxAngle, float smoothFactor) {
-        EntityLivingBase entity = this.target.getEntity();
+        EntityLivingBase entity = target.getEntity();
         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
         AxisAlignedBB bb = this.getAdvancedBox(entity);
         double speedShrinkFactor = Math.min(
@@ -821,7 +831,7 @@ public class KillAura extends Module {
         double targetToPlayer = distance(entity.posX, entity.posY, entity.posZ, mc.thePlayer.prevPosX, mc.thePlayer.prevPosY, mc.thePlayer.prevPosZ)
                 - distance(entity.posX, entity.posY, entity.posZ, mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
         double pred = (playerToTarget + targetToPlayer) / 2.0D;
-        boolean outOfRange = RotationUtil.distanceToBox(this.target.getBox()) > this.attackRange.getValue();
+        boolean outOfRange = RotationUtil.distanceToBox(target.getBox()) > this.attackRange.getValue();
 
         boolean[] preferred = this.getPreferredHittable(bb, eyes, this.attackRange.getValue() + this.outOfRangeBuffer.getValue() + pred + this.finalXZTrim);
         AxisAlignedBB finalBb = bb;
@@ -869,7 +879,7 @@ public class KillAura extends Module {
                 MathHelper.clamp_double(targetVec.zCoord, bb.minZ, bb.maxZ)
         );
         if (this.predictionEngine.getValue()) {
-            targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D));
+            targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D * this.extraPrediction.getValue()));
         }
 
         this.updateAimVec(targetVec);
@@ -891,24 +901,121 @@ public class KillAura extends Module {
     }
 
     private AxisAlignedBB getAdvancedBox(EntityLivingBase entity) {
-        AxisAlignedBB bb = this.target.getBox();
+        AxisAlignedBB bb = target.getBox();
         if (!this.predictionEngine.getValue()) {
             return bb;
         }
-        double dist = RotationUtil.distanceToBox(bb);
+        return this.simulatePredictions(entity, bb);
+    }
+
+    private AxisAlignedBB simulatePredictions(EntityLivingBase entity, AxisAlignedBB hitbox) {
+        if (this.predictionTrackedEntity != entity) {
+            this.resetPredictionEngine();
+            this.predictionTrackedEntity = entity;
+        }
+
+        double dist = RotationUtil.distanceToBox(hitbox);
+        boolean shouldPredict = false;
         double speed = getSpeedPosBased(entity);
-        double offset = 0.0D;
+
         if (dist > this.attackRange.getValue()) {
-            offset = Math.min(Math.max((dist - this.attackRange.getValue()) * 3.0D, 0.0D), 8.0D);
+            this.predictionTargetOffset = (float) Math.min(Math.max((dist - this.attackRange.getValue()) * 3.0D, 0.0D), 8.0D);
+            shouldPredict = true;
         }
+
         if (speed > 0.4D) {
-            offset = -Math.min(Math.max(dist, 0.0D), 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? Math.random() : -Math.random());
+            double extra = Math.random() * RandomUtil.nextFloat(0.9F, 1.1F);
+            float predictedOffset = (float) (-Math.min(Math.max(dist, 0.0D), 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? extra : -extra));
+            this.predictionTargetOffset = interpolate(this.predictionTargetOffset, predictedOffset, 0.05F);
+            shouldPredict = true;
         }
-        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(bb)) {
-            offset = 3.0D;
+
+        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(hitbox)) {
+            this.predictionTargetOffset = 3.0F;
+            shouldPredict = true;
         }
-        Vec3 prediction = multiply(flat(getMoveDelta(entity)), offset);
-        return bb.offset(prediction.xCoord, prediction.yCoord, prediction.zCoord);
+
+        Vec3 moveDelta = getMoveDelta(entity);
+        AxisAlignedBB trackedHitbox = this.simulateReactionTime.getValue() ? this.getReactionDelayedHitbox(hitbox, moveDelta) : hitbox;
+        Vec3 prediction = multiply(flat(moveDelta), shouldPredict ? this.predictionTargetOffset : 0.0D);
+        return trackedHitbox.offset(prediction.xCoord, prediction.yCoord, prediction.zCoord);
+    }
+
+    private AxisAlignedBB getReactionDelayedHitbox(AxisAlignedBB hitbox, Vec3 moveDelta) {
+        if (this.predictionLastTrackedAABB == null) {
+            this.predictionLastTrackedAABB = hitbox;
+            this.predictionLastTrackedMoveDelta = moveDelta;
+        }
+
+        if (mc.thePlayer.ticksExisted != this.predictionTicksExisted) {
+            this.previousTargetMotions.add(moveDelta.lengthVector());
+
+            if (this.predictionUpdateTimer.hasTimeElapsed((this.currentReactionTime + 1L) * 50L)) {
+                this.predictionLastTrackedAABB = hitbox;
+                this.predictionLastTrackedMoveDelta = moveDelta;
+                this.currentReactionTime = this.getReactionTimeFromMotion();
+                this.predictionUpdateTimer.reset();
+            } else if (this.getDirectionConfidence(moveDelta, this.predictionLastTrackedMoveDelta) >= this.thresholdForDirectionConfidence.getValue()) {
+                this.predictionLastTrackedAABB = this.predictionLastTrackedAABB.offset(
+                        this.predictionLastTrackedMoveDelta.xCoord,
+                        this.predictionLastTrackedMoveDelta.yCoord,
+                        this.predictionLastTrackedMoveDelta.zCoord
+                );
+                hitbox = this.predictionLastTrackedAABB;
+            } else {
+                this.predictionLastTrackedAABB = hitbox;
+                this.predictionLastTrackedMoveDelta = moveDelta;
+            }
+
+            while (this.previousTargetMotions.size() > 20) {
+                this.previousTargetMotions.remove(0);
+            }
+        }
+
+        this.predictionTicksExisted = mc.thePlayer.ticksExisted;
+        return hitbox;
+    }
+
+    private int getReactionTimeFromMotion() {
+        if (this.previousTargetMotions.isEmpty()) {
+            return this.currentReactionTime;
+        }
+
+        double averageMotion = 0.0D;
+        for (Double motion : this.previousTargetMotions) {
+            averageMotion += motion;
+        }
+        averageMotion /= this.previousTargetMotions.size();
+
+        double motionPercentage = MathHelper.clamp_double(averageMotion * 2.0D, 0.0D, 1.0D);
+        if (averageMotion < this.thresholdToApplyReactionTime.getValue()) {
+            motionPercentage = 0.0D;
+        }
+
+        int min = Math.min(this.reactionTimeMin.getValue(), this.reactionTimeMax.getValue());
+        int max = Math.max(this.reactionTimeMin.getValue(), this.reactionTimeMax.getValue());
+        return (int) interpolate(min, max, (float) motionPercentage);
+    }
+
+    private double getDirectionConfidence(Vec3 current, Vec3 previous) {
+        double currentLength = current.lengthVector();
+        double previousLength = previous.lengthVector();
+        if (currentLength < 1.0E-4D || previousLength < 1.0E-4D) {
+            return 1.0D;
+        }
+        double dot = current.xCoord * previous.xCoord + current.yCoord * previous.yCoord + current.zCoord * previous.zCoord;
+        return MathHelper.clamp_double((dot / (currentLength * previousLength) + 1.0D) / 2.0D, 0.0D, 1.0D);
+    }
+
+    private void resetPredictionEngine() {
+        this.predictionTargetOffset = 0.0F;
+        this.predictionTrackedEntity = null;
+        this.predictionLastTrackedAABB = null;
+        this.predictionTicksExisted = 0;
+        this.currentReactionTime = 0;
+        this.predictionLastTrackedMoveDelta = zeroVec();
+        this.previousTargetMotions.clear();
+        this.predictionUpdateTimer.setTime();
     }
 
     private Vec3 getAdvancedLookVec(float yaw, float pitch) {
@@ -1236,12 +1343,13 @@ public class KillAura extends Module {
     @EventTarget
     public void onRender(Render3DEvent event) {
         if (this.isEnabled() && target != null) {
-            if (TeamUtil.isEntityLoaded(this.target.getEntity())
+            if (TeamUtil.isEntityLoaded(target.getEntity())
                     && this.isAttackAllowed()) {
                 if (this.showTarget.getValue() == 1) {
-                    Color color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                    Unfair.moduleManager.modules.get(HUD.class);
+                    Color color = HUD.getColor(System.currentTimeMillis());
                     RenderUtil.enableRenderState();
-                    RenderUtil.drawEntityBox(this.target.getEntity(), color.getRed(), color.getGreen(), color.getBlue());
+                    RenderUtil.drawEntityBox(target.getEntity(), color.getRed(), color.getGreen(), color.getBlue());
                     RenderUtil.disableRenderState();
                 }
                 if (this.advancedRotations.getValue() && this.aimDot.getValue() && this.currentVec != null) {
@@ -1252,7 +1360,7 @@ public class KillAura extends Module {
     }
 
     private void renderAimDot(float partialTicks) {
-        double size = 0.05D;
+        double size = 0.1D;
         Color color = new Color(this.aimDotColor.getValue());
         Vec3 aimVec = this.lastAimVec == null
                 ? this.currentVec
@@ -1290,7 +1398,7 @@ public class KillAura extends Module {
         if (this.isBlocking) {
             event.setCancelled(true);
         } else {
-            if (this.isEnabled() && this.target != null && this.canAttack()) {
+            if (this.isEnabled() && target != null && this.canAttack()) {
                 event.setCancelled(true);
             }
         }
@@ -1301,7 +1409,7 @@ public class KillAura extends Module {
         if (this.isBlocking) {
             event.setCancelled(true);
         } else {
-            if (this.isEnabled() && this.target != null && this.canAttack()) {
+            if (this.isEnabled() && target != null && this.canAttack()) {
                 event.setCancelled(true);
             }
         }
@@ -1312,7 +1420,7 @@ public class KillAura extends Module {
         if (this.isBlocking) {
             event.setCancelled(true);
         } else {
-            if (this.isEnabled() && this.target != null && this.canAttack()) {
+            if (this.isEnabled() && target != null && this.canAttack()) {
                 event.setCancelled(true);
             }
         }
@@ -1327,8 +1435,9 @@ public class KillAura extends Module {
 
     @Override
     public void onEnabled() {
-        this.target = null;
+        target = null;
         this.resetAimVec();
+        this.resetPredictionEngine();
         this.switchTick = 0;
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
@@ -1345,6 +1454,7 @@ public class KillAura extends Module {
         this.isBlocking = false;
         this.fakeBlockState = false;
         this.resetAimVec();
+        this.resetPredictionEngine();
     }
 
     @Override
@@ -1361,6 +1471,14 @@ public class KillAura extends Module {
             } else if (this.minCPS.getName().equals(mode)) {
                 if (this.minCPS.getValue() > this.maxCPS.getValue()) {
                     this.maxCPS.setValue(this.minCPS.getValue());
+                }
+            } else if (this.reactionTimeMin.getName().equals(mode)) {
+                if (this.reactionTimeMin.getValue() > this.reactionTimeMax.getValue()) {
+                    this.reactionTimeMax.setValue(this.reactionTimeMin.getValue());
+                }
+            } else if (this.reactionTimeMax.getName().equals(mode)) {
+                if (this.reactionTimeMin.getValue() > this.reactionTimeMax.getValue()) {
+                    this.reactionTimeMin.setValue(this.reactionTimeMax.getValue());
                 }
             } else {
                 if (this.maxCPS.getName().equals(mode) && this.minCPS.getValue() > this.maxCPS.getValue()) {
