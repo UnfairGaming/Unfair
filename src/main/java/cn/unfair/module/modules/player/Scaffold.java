@@ -55,6 +55,9 @@ public class Scaffold extends Module {
     public final BooleanProperty keepYonPress = new BooleanProperty("keep-y-on-press", false, () -> this.keepY.getValue() != 0);
     public final BooleanProperty multiplace = new BooleanProperty("multi-place", true);
     public final BooleanProperty alwaysClick = new BooleanProperty("always-click", false);
+    public final BooleanProperty raytraceCheck = new BooleanProperty("raytrace-check", true);
+    public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotationMode.getValue() != 0);
+    public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotationMode.getValue() != 0);
     public final IntProperty minCps = new IntProperty("min-cps", 8, 1, 30, this.alwaysClick::getValue);
     public final IntProperty maxCps = new IntProperty("max-cps", 12, 1, 30, this.alwaysClick::getValue);
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
@@ -69,6 +72,8 @@ public class Scaffold extends Module {
     private int blockCount = -1;
     private float yaw = -180.0F;
     private float pitch = 0.0F;
+    private float serverYaw = 0.0F;
+    private float serverPitch = 0.0F;
     private boolean canRotate = false;
     private int towerTick = 0;
     private int towerDelay = 0;
@@ -81,6 +86,7 @@ public class Scaffold extends Module {
     private float lastYawChange = 0;
     private float lastPitchChange = 0;
     private EnumFacing targetFacing = null;
+    private boolean easingOut = false;
     private final TimerUtil clickTimer = new TimerUtil();
     private long nextClickDelay = 0L;
 
@@ -158,57 +164,68 @@ public class Scaffold extends Module {
         }
     }
 
-    private BlockData getBlockData() {
+    private BlockPos getTargetPos() {
         int startY = MathHelper.floor_double(mc.thePlayer.posY);
-        BlockPos targetPos = new BlockPos(
+        return new BlockPos(
                 MathHelper.floor_double(mc.thePlayer.posX),
                 (this.stage != 0 && !this.shouldKeepY ? Math.min(startY, this.startY) : startY) - 1,
                 MathHelper.floor_double(mc.thePlayer.posZ)
         );
+    }
+
+    private ArrayList<BlockData> getBlockDataCandidates() {
+        BlockPos targetPos = this.getTargetPos();
+        ArrayList<BlockData> candidates = new ArrayList<>();
         if (!BlockUtil.isReplaceable(targetPos)) {
-            return null;
-        } else {
-            ArrayList<BlockPos> positions = new ArrayList<>();
-            for (int x = -4; x <= 4; x++) {
-                for (int y = -4; y <= 0; y++) {
-                    for (int z = -4; z <= 4; z++) {
-                        BlockPos pos = targetPos.add(x, y, z);
-                        if (!BlockUtil.isReplaceable(pos)
-                                && !BlockUtil.isInteractable(pos)
-                                && !(
-                                mc.thePlayer.getDistance((double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5)
-                                        > (double) mc.playerController.getBlockReachDistance()
-                        )
-                                && (this.stage == 0 || this.shouldKeepY || pos.getY() < this.startY)) {
-                            for (EnumFacing facing : EnumFacing.VALUES) {
-                                if (facing != EnumFacing.DOWN) {
-                                    BlockPos blockPos = pos.offset(facing);
-                                    if (BlockUtil.isReplaceable(blockPos)) {
-                                        positions.add(pos);
-                                    }
+            return candidates;
+        }
+        for (int x = -4; x <= 4; x++) {
+            for (int y = -4; y <= 0; y++) {
+                for (int z = -4; z <= 4; z++) {
+                    BlockPos pos = targetPos.add(x, y, z);
+                    if (!BlockUtil.isReplaceable(pos)
+                            && !BlockUtil.isInteractable(pos)
+                            && !(
+                            mc.thePlayer.getDistance((double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5)
+                                    > (double) mc.playerController.getBlockReachDistance()
+                    )
+                            && (this.stage == 0 || this.shouldKeepY || pos.getY() < this.startY)) {
+                        for (EnumFacing facing : EnumFacing.VALUES) {
+                            if (facing != EnumFacing.DOWN) {
+                                BlockPos blockPos = pos.offset(facing);
+                                if (BlockUtil.isReplaceable(blockPos)) {
+                                    candidates.add(new BlockData(pos, facing));
                                 }
                             }
                         }
                     }
                 }
             }
-            if (positions.isEmpty()) {
-                return null;
-            } else {
-                positions.sort(
-                        Comparator.comparingDouble(
-                                o -> o.distanceSqToCenter((double) targetPos.getX() + 0.5, (double) targetPos.getY() + 0.5, (double) targetPos.getZ() + 0.5)
-                        )
-                );
-                BlockPos blockPos = positions.get(0);
-                EnumFacing facing = this.getBestFacing(blockPos, targetPos);
-                return facing == null ? null : new BlockData(blockPos, facing);
-            }
         }
+        candidates.sort(
+                Comparator.comparingDouble(
+                        o -> o.blockPos().offset(o.facing()).distanceSqToCenter((double) targetPos.getX() + 0.5, (double) targetPos.getY() + 0.5, (double) targetPos.getZ() + 0.5)
+                )
+        );
+        return candidates;
+    }
+
+    private BlockData getBlockData() {
+        BlockPos targetPos = this.getTargetPos();
+        ArrayList<BlockData> candidates = this.getBlockDataCandidates();
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        BlockPos blockPos = candidates.get(0).blockPos();
+        EnumFacing facing = this.getBestFacing(blockPos, targetPos);
+        return facing == null ? null : new BlockData(blockPos, facing);
     }
 
     private boolean place(BlockPos blockPos, EnumFacing enumFacing, Vec3 vec3) {
         if (vec3 == null) {
+            return false;
+        }
+        if (this.raytraceCheck.getValue() && !this.isValidPlacementTarget(blockPos, enumFacing)) {
             return false;
         }
         if (ItemUtil.isHoldingBlock() && this.blockCount > 0) {
@@ -225,6 +242,115 @@ public class Scaffold extends Module {
             }
         }
         return false;
+    }
+
+    private boolean isValidPlacementTarget(BlockPos blockPos, EnumFacing enumFacing) {
+        if (blockPos == null || enumFacing == null) {
+            return false;
+        }
+        if (BlockUtil.isReplaceable(blockPos) || BlockUtil.isInteractable(blockPos)) {
+            return false;
+        }
+        return BlockUtil.isReplaceable(blockPos.offset(enumFacing));
+    }
+
+    private MovingObjectPosition getMatchingRaytrace(BlockPos blockPos, EnumFacing enumFacing, float yaw, float pitch) {
+        MovingObjectPosition mop = RotationUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
+        if (mop == null || mop.typeOfHit != MovingObjectType.BLOCK) {
+            return null;
+        }
+        return mop.getBlockPos().equals(blockPos) && mop.sideHit == enumFacing ? mop : null;
+    }
+
+    private Vec3 getPlacementHitVec(BlockPos blockPos, EnumFacing enumFacing, float yaw, float pitch) {
+        MovingObjectPosition mop = this.getMatchingRaytrace(blockPos, enumFacing, yaw, pitch);
+        if (mop != null) {
+            return mop.hitVec;
+        }
+        return this.raytraceCheck.getValue() ? null : BlockUtil.getHitVec(blockPos, enumFacing, yaw, pitch);
+    }
+
+    private float[] interpolateRotation(float targetYaw, float targetPitch) {
+        float maxDeltaYaw = this.aimSpeedYaw.getValue().floatValue();
+        float maxDeltaPitch = this.aimSpeedPitch.getValue().floatValue();
+        float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - this.serverYaw);
+        if (Math.abs(deltaYaw) > maxDeltaYaw) {
+            this.serverYaw = RotationUtil.quantizeAngle(this.serverYaw + Math.signum(deltaYaw) * maxDeltaYaw);
+        } else {
+            this.serverYaw = targetYaw;
+        }
+        float deltaPitch = targetPitch - this.serverPitch;
+        if (Math.abs(deltaPitch) > maxDeltaPitch) {
+            this.serverPitch = RotationUtil.quantizeAngle(this.serverPitch + Math.signum(deltaPitch) * maxDeltaPitch);
+        } else {
+            this.serverPitch = targetPitch;
+        }
+        this.serverPitch = MathHelper.clamp_float(this.serverPitch, -90.0F, 90.0F);
+        return new float[]{this.serverYaw, this.serverPitch};
+    }
+
+    private boolean isAtRotation(float yaw, float pitch) {
+        return Math.abs(MathHelper.wrapAngleTo180_float(yaw - this.serverYaw)) < 0.01F
+                && Math.abs(pitch - this.serverPitch) < 0.01F;
+    }
+
+    private PlacementTarget findClosestPlacementTarget(float currentYaw, float currentPitch) {
+        BlockPos targetPos = this.getTargetPos();
+        PlacementTarget bestTarget = null;
+        double bestScore = 0.0D;
+        for (BlockData blockData : this.getBlockDataCandidates()) {
+            if (!this.isValidPlacementTarget(blockData.blockPos(), blockData.facing())) {
+                continue;
+            }
+            double[] x = placeOffsets;
+            double[] y = placeOffsets;
+            double[] z = placeOffsets;
+            switch (blockData.facing()) {
+                case NORTH:
+                    z = new double[]{0.0};
+                    break;
+                case EAST:
+                    x = new double[]{1.0};
+                    break;
+                case SOUTH:
+                    z = new double[]{1.0};
+                    break;
+                case WEST:
+                    x = new double[]{0.0};
+                    break;
+                case DOWN:
+                    y = new double[]{0.0};
+                    break;
+                case UP:
+                    y = new double[]{1.0};
+            }
+            for (double dx : x) {
+                for (double dy : y) {
+                    for (double dz : z) {
+                        double relX = (double) blockData.blockPos().getX() + dx - mc.thePlayer.posX;
+                        double relY = (double) blockData.blockPos().getY() + dy - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();
+                        double relZ = (double) blockData.blockPos().getZ() + dz - mc.thePlayer.posZ;
+                        float[] exactRotations = RotationUtil.getRotationsTo(relX, relY, relZ, currentYaw, currentPitch);
+                        MovingObjectPosition mop = this.getMatchingRaytrace(blockData.blockPos(), blockData.facing(), exactRotations[0], exactRotations[1]);
+                        if (mop != null) {
+                            double angleScore = Math.abs(MathHelper.wrapAngleTo180_float(exactRotations[0] - currentYaw))
+                                    + Math.abs(exactRotations[1] - currentPitch);
+                            double targetScore = blockData.blockPos().offset(blockData.facing()).distanceSqToCenter(
+                                    (double) targetPos.getX() + 0.5D,
+                                    (double) targetPos.getY() + 0.5D,
+                                    (double) targetPos.getZ() + 0.5D
+                            ) * 4.0D;
+                            double score = angleScore + targetScore;
+                            if (bestTarget == null || score < bestScore) {
+                                bestTarget = new PlacementTarget(blockData, mop.hitVec, exactRotations[0], exactRotations[1]);
+                                bestScore = score;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return bestTarget;
     }
 
     private boolean canAlwaysClick() {
@@ -309,6 +435,19 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
+        if (this.easingOut && event.getType() == EventType.PRE) {
+            float targetYaw = event.getNewYaw();
+            float targetPitch = event.getNewPitch();
+            float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
+            event.setRotation(rotations[0], rotations[1], 3);
+            if (this.moveFix.getValue() == 1) {
+                event.setPervRotation(rotations[0], 3);
+            }
+            if (this.isAtRotation(targetYaw, targetPitch)) {
+                this.easingOut = false;
+            }
+            return;
+        }
         if (this.isEnabled() && event.getType() == EventType.PRE) {
             if (this.rotationTick > 0) {
                 this.rotationTick--;
@@ -499,62 +638,76 @@ public class Scaffold extends Module {
                 boolean canClick = !this.alwaysClick.getValue() || this.canAlwaysClick();
                 boolean clicked = false;
                 if (blockData != null) {
-                    double[] x = placeOffsets;
-                    double[] y = placeOffsets;
-                    double[] z = placeOffsets;
-                    switch (blockData.facing()) {
-                        case NORTH:
-                            z = new double[]{0.0};
-                            break;
-                        case EAST:
-                            x = new double[]{1.0};
-                            break;
-                        case SOUTH:
-                            z = new double[]{1.0};
-                            break;
-                        case WEST:
-                            x = new double[]{0.0};
-                            break;
-                        case DOWN:
-                            y = new double[]{0.0};
-                            break;
-                        case UP:
-                            y = new double[]{1.0};
-                    }
-                    float bestYaw = -180.0F;
-                    float bestPitch = 0.0F;
-                    float bestDiff = 0.0F;
-                    for (double dx : x) {
-                        for (double dy : y) {
-                            for (double dz : z) {
-                                double relX = (double) blockData.blockPos().getX() + dx - mc.thePlayer.posX;
-                                double relY = (double) blockData.blockPos().getY() + dy - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();
-                                double relZ = (double) blockData.blockPos().getZ() + dz - mc.thePlayer.posZ;
-                                float baseYaw = RotationUtil.wrapAngleDiff(this.yaw, event.getYaw());
-                                float[] rotations = RotationUtil.getRotationsTo(relX, relY, relZ, baseYaw, this.pitch);
-                                MovingObjectPosition mop = RotationUtil.rayTrace(rotations[0], rotations[1], mc.playerController.getBlockReachDistance(), 1.0F);
-                                if (mop != null
-                                        && mop.typeOfHit == MovingObjectType.BLOCK
-                                        && mop.getBlockPos().equals(blockData.blockPos())
-                                        && mop.sideHit == blockData.facing()) {
-                                    float totalDiff = Math.abs(rotations[0] - baseYaw) + Math.abs(rotations[1] - this.pitch);
-                                    if (bestYaw == -180.0F && bestPitch == 0.0F || totalDiff < bestDiff) {
-                                        bestYaw = rotations[0];
-                                        bestPitch = rotations[1];
-                                        bestDiff = totalDiff;
-                                        hitVec = mop.hitVec;
+                    if (this.raytraceCheck.getValue()) {
+                        PlacementTarget target = this.findClosestPlacementTarget(RotationUtil.wrapAngleDiff(this.yaw, event.getYaw()), this.pitch);
+                        if (target != null) {
+                            blockData = target.blockData;
+                            this.yaw = target.yaw;
+                            this.pitch = target.pitch;
+                            hitVec = target.hitVec;
+                            this.canRotate = true;
+                        }
+                    } else {
+                        double[] x = placeOffsets;
+                        double[] y = placeOffsets;
+                        double[] z = placeOffsets;
+                        switch (blockData.facing()) {
+                            case NORTH:
+                                z = new double[]{0.0};
+                                break;
+                            case EAST:
+                                x = new double[]{1.0};
+                                break;
+                            case SOUTH:
+                                z = new double[]{1.0};
+                                break;
+                            case WEST:
+                                x = new double[]{0.0};
+                                break;
+                            case DOWN:
+                                y = new double[]{0.0};
+                                break;
+                            case UP:
+                                y = new double[]{1.0};
+                        }
+                        float bestYaw = -180.0F;
+                        float bestPitch = 0.0F;
+                        float bestDiff = 0.0F;
+                        for (double dx : x) {
+                            for (double dy : y) {
+                                for (double dz : z) {
+                                    double relX = (double) blockData.blockPos().getX() + dx - mc.thePlayer.posX;
+                                    double relY = (double) blockData.blockPos().getY() + dy - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();
+                                    double relZ = (double) blockData.blockPos().getZ() + dz - mc.thePlayer.posZ;
+                                    float baseYaw = RotationUtil.wrapAngleDiff(this.yaw, event.getYaw());
+                                    float[] rotations = RotationUtil.getRotationsTo(relX, relY, relZ, baseYaw, this.pitch);
+                                    MovingObjectPosition mop = RotationUtil.rayTrace(rotations[0], rotations[1], mc.playerController.getBlockReachDistance(), 1.0F);
+                                    if (mop != null
+                                            && mop.typeOfHit == MovingObjectType.BLOCK
+                                            && mop.getBlockPos().equals(blockData.blockPos())
+                                            && mop.sideHit == blockData.facing()) {
+                                        float totalDiff = Math.abs(rotations[0] - baseYaw) + Math.abs(rotations[1] - this.pitch);
+                                        if (bestYaw == -180.0F && bestPitch == 0.0F || totalDiff < bestDiff) {
+                                            bestYaw = rotations[0];
+                                            bestPitch = rotations[1];
+                                            bestDiff = totalDiff;
+                                            hitVec = mop.hitVec;
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    if (bestYaw != -180.0F || bestPitch != 0.0F) {
-                        this.yaw = bestYaw;
-                        this.pitch = bestPitch;
-                        this.canRotate = true;
+                        if (bestYaw != -180.0F || bestPitch != 0.0F) {
+                            this.yaw = bestYaw;
+                            this.pitch = bestPitch;
+                            this.canRotate = true;
+                        }
                     }
                 }
-                if (this.canRotate && MoveUtil.isForwardPressed() && Math.abs(MathHelper.wrapAngleTo180_float(yawDiffTo180 - this.yaw)) < 90.0F) {
+                if ((!this.raytraceCheck.getValue() || hitVec == null)
+                        && this.canRotate
+                        && MoveUtil.isForwardPressed()
+                        && Math.abs(MathHelper.wrapAngleTo180_float(yawDiffTo180 - this.yaw)) < 90.0F) {
                     switch (this.rotationMode.getValue()) {
                         case 2:
                             this.yaw = RotationUtil.quantizeAngle(yawDiffTo180);
@@ -583,26 +736,42 @@ public class Scaffold extends Module {
                         this.rotationTick = 3;
                         this.towering = true;
                     }
+                    float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
+                    targetYaw = rotations[0];
+                    targetPitch = rotations[1];
+                    this.yaw = targetYaw;
+                    this.pitch = targetPitch;
+                    if (blockData != null) {
+                        hitVec = this.getPlacementHitVec(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
+                    }
                     event.setRotation(targetYaw, targetPitch, 3);
                     if (this.moveFix.getValue() == 1) {
                         event.setPervRotation(targetYaw, 3);
                     }
                 }
                 if (blockData != null && hitVec != null && this.rotationTick <= 0 && canClick) {
-                    clicked = this.place(blockData.blockPos(), blockData.facing(), hitVec) || clicked;
+                    Vec3 placementHitVec = this.raytraceCheck.getValue()
+                            ? this.getPlacementHitVec(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch)
+                            : hitVec;
+                    if (placementHitVec == null) {
+                        placementHitVec = this.getPlacementHitVec(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
+                    }
+                    if (placementHitVec != null) {
+                        clicked = this.place(blockData.blockPos(), blockData.facing(), placementHitVec) || clicked;
+                    }
                     if (this.multiplace.getValue()) {
                         for (int i = 0; i < 3; i++) {
                             blockData = this.getBlockData();
                             if (blockData == null) {
                                 break;
                             }
-                            MovingObjectPosition mop = RotationUtil.rayTrace(this.yaw, this.pitch, mc.playerController.getBlockReachDistance(), 1.0F);
-                            if (mop != null
-                                    && mop.typeOfHit == MovingObjectType.BLOCK
-                                    && mop.getBlockPos().equals(blockData.blockPos())
-                                    && mop.sideHit == blockData.facing()) {
+                            MovingObjectPosition mop = this.getMatchingRaytrace(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
+                            if (mop != null) {
                                 clicked = this.place(blockData.blockPos(), blockData.facing(), mop.hitVec) || clicked;
                             } else {
+                                if (this.raytraceCheck.getValue()) {
+                                    break;
+                                }
                                 hitVec = BlockUtil.getClickVec(blockData.blockPos(), blockData.facing());
                                 double dx = hitVec.xCoord - mc.thePlayer.posX;
                                 double dy = hitVec.yCoord - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();
@@ -611,11 +780,8 @@ public class Scaffold extends Module {
                                 if (!(Math.abs(rotations[0] - this.yaw) < 120.0F) || !(Math.abs(rotations[1] - this.pitch) < 60.0F)) {
                                     break;
                                 }
-                                mop = RotationUtil.rayTrace(rotations[0], rotations[1], mc.playerController.getBlockReachDistance(), 1.0F);
-                                if (mop == null
-                                        || mop.typeOfHit != MovingObjectType.BLOCK
-                                        || !mop.getBlockPos().equals(blockData.blockPos())
-                                        || mop.sideHit != blockData.facing()) {
+                                mop = this.getMatchingRaytrace(blockData.blockPos(), blockData.facing(), rotations[0], rotations[1]);
+                                if (mop == null) {
                                     break;
                                 }
                                 clicked = this.place(blockData.blockPos(), blockData.facing(), mop.hitVec) || clicked;
@@ -629,7 +795,7 @@ public class Scaffold extends Module {
                         int playerBlockY = MathHelper.floor_double(mc.thePlayer.posY);
                         int playerBlockZ = MathHelper.floor_double(mc.thePlayer.posZ);
                         BlockPos belowPlayer = new BlockPos(playerBlockX, playerBlockY - 1, playerBlockZ);
-                        hitVec = BlockUtil.getHitVec(belowPlayer, this.targetFacing, this.yaw, this.pitch);
+                        hitVec = this.getPlacementHitVec(belowPlayer, this.targetFacing, this.yaw, this.pitch);
                         if (hitVec != null) {
                             clicked = this.place(belowPlayer, this.targetFacing, hitVec) || clicked;
                         }
@@ -641,7 +807,7 @@ public class Scaffold extends Module {
                         this.shouldKeepY = true;
                         blockData = this.getBlockData();
                         if (blockData != null && this.rotationTick <= 0 && canClick) {
-                            hitVec = BlockUtil.getHitVec(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
+                            hitVec = this.getPlacementHitVec(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
                             if (hitVec != null) {
                                 clicked = this.place(blockData.blockPos(), blockData.facing(), hitVec) || clicked;
                             }
@@ -989,7 +1155,20 @@ public class Scaffold extends Module {
     }
 
     @Override
+    public void setEnabled(boolean enabled) {
+        boolean shouldEaseOut = !enabled
+                && this.enabled
+                && mc.thePlayer != null
+                && this.rotationMode.getValue() != 0;
+        if (shouldEaseOut) {
+            this.easingOut = true;
+        }
+        super.setEnabled(enabled);
+    }
+
+    @Override
     public void onEnabled() {
+        this.easingOut = false;
         if (mc.thePlayer != null) {
             this.lastSlot = mc.thePlayer.inventory.currentItem;
         } else {
@@ -999,6 +1178,8 @@ public class Scaffold extends Module {
         this.rotationTick = 3;
         this.yaw = -180.0F;
         this.pitch = 0.0F;
+        this.serverYaw = mc.thePlayer != null ? mc.thePlayer.rotationYaw : 0.0F;
+        this.serverPitch = mc.thePlayer != null ? mc.thePlayer.rotationPitch : 0.0F;
         this.canRotate = false;
         this.towerTick = 0;
         this.towerDelay = 0;
@@ -1063,6 +1244,20 @@ public class Scaffold extends Module {
 
         public EnumFacing facing() {
             return this.facing;
+        }
+    }
+
+    private static class PlacementTarget {
+        private final BlockData blockData;
+        private final Vec3 hitVec;
+        private final float yaw;
+        private final float pitch;
+
+        private PlacementTarget(BlockData blockData, Vec3 hitVec, float yaw, float pitch) {
+            this.blockData = blockData;
+            this.hitVec = hitVec;
+            this.yaw = yaw;
+            this.pitch = pitch;
         }
     }
 }
