@@ -1,7 +1,6 @@
 package cn.unfair.module;
 
 import cn.unfair.Unfair;
-import cn.unfair.config.Config;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.util.KeyBindUtil;
 
@@ -60,7 +59,6 @@ public abstract class Module {
             } else {
                 this.onDisabled();
             }
-            Config.markDirty();
         }
     }
 
@@ -68,10 +66,7 @@ public abstract class Module {
         boolean enabled = !this.enabled;
         this.setEnabled(enabled);
         if (this.enabled == enabled) {
-            HUD hud = Unfair.moduleManager == null
-                    ? null
-                    : (HUD) Unfair.moduleManager.modules.get(HUD.class);
-            if (hud != null && hud.toggleSound.getValue()) {
+            if (((HUD) Unfair.moduleManager.modules.get(HUD.class)).toggleSound.getValue()) {
                 Unfair.moduleManager.playSound();
             }
             return true;
@@ -85,10 +80,7 @@ public abstract class Module {
     }
 
     public void setKey(int integer) {
-        if (this.key != integer) {
-            this.key = integer;
-            Config.markDirtyAndSave();
-        }
+        this.key = integer;
     }
 
     public boolean isHidden() {
@@ -96,10 +88,7 @@ public abstract class Module {
     }
 
     public void setHidden(boolean boolean1) {
-        if (this.hidden != boolean1) {
-            this.hidden = boolean1;
-            Config.markDirty();
-        }
+        this.hidden = boolean1;
     }
 
     public void onEnabled() {
