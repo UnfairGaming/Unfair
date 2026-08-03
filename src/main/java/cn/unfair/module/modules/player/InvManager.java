@@ -2,8 +2,12 @@ package cn.unfair.module.modules.player;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemAppleGold;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemEgg;
 import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemSnowball;
@@ -91,6 +95,21 @@ public class InvManager extends Module {
     private boolean isFishingRod(ItemStack stack) {
         if (stack == null) return false;
         return stack.getItem() instanceof ItemFishingRod;
+    }
+
+    private boolean shouldKeepStack(ItemStack stack) {
+        if (stack == null) return false;
+        Item item = stack.getItem();
+        if (item == Items.boat) {
+            return true;
+        }
+        if (item instanceof ItemBlock) {
+            return item == Item.getItemFromBlock(Blocks.planks)
+                    || item == Item.getItemFromBlock(Blocks.log)
+                    || item == Item.getItemFromBlock(Blocks.log2)
+                    || item == Item.getItemFromBlock(Blocks.crafting_table);
+        }
+        return false;
     }
 
     private int findFishingRodSlot(int preferredSlot, boolean hotbarOnly) {
@@ -359,7 +378,7 @@ public class InvManager extends Module {
                                         && inventoryGappleSlot != i
                                         && !itemsToDrop.contains(i)) {
                                     ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-                                    if (stack != null) {
+                                    if (stack != null && !this.shouldKeepStack(stack)) {
                                         boolean isBlock = ItemUtil.isBlock(stack);
                                         boolean isThrowable = this.isThrowable(stack);
                                         boolean isGapple = this.isGapple(stack);
@@ -528,7 +547,7 @@ public class InvManager extends Module {
                                         && equippedFishingRodSlot != i
                                         && inventoryFishingRodSlot != i) {
                                     ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-                                    if (stack != null) {
+                                    if (stack != null && !this.shouldKeepStack(stack)) {
                                         boolean isBlock = ItemUtil.isBlock(stack);
                                         boolean isThrowable = this.isThrowable(stack);
                                         boolean isGapple = this.isGapple(stack);
