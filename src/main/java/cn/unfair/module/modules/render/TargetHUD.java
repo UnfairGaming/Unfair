@@ -12,6 +12,9 @@ import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C02PacketUseEntity.Action;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
@@ -41,6 +44,7 @@ public class TargetHUD extends Module {
     private static final DecimalFormat diffFormat = new DecimalFormat("+0.0;-0.0", new DecimalFormatSymbols(Locale.US));
     public final ModeProperty style = new ModeProperty("style", 0, new String[]{"UNFAIR", "RAVENBS-MODERN", "RAVENBS-LEGACY"});
     public final ModeProperty color = new ModeProperty("color", 0, new String[]{"DEFAULT", "HUD"});
+    public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
     public final ModeProperty posX = new ModeProperty("position-x", 1, new String[]{"LEFT", "MIDDLE", "RIGHT"});
     public final ModeProperty posY = new ModeProperty("position-y", 1, new String[]{"TOP", "MIDDLE", "BOTTOM"});
     public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
@@ -117,6 +121,37 @@ public class TargetHUD extends Module {
         }
     }
 
+    private float getTabHealth(EntityLivingBase entityLivingBase) {
+        if (!(entityLivingBase instanceof EntityPlayer) || mc.theWorld == null) {
+            return -1.0F;
+        }
+        Scoreboard scoreboard = mc.theWorld.getScoreboard();
+        if (scoreboard == null) {
+            return -1.0F;
+        }
+        ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(2);
+        if (objective == null) {
+            return -1.0F;
+        }
+        Score score = scoreboard.getValueFromObjective(entityLivingBase.getName(), objective);
+        return score == null ? -1.0F : (float) score.getScorePoints();
+    }
+
+    private HealthInfo getHealthInfo(EntityLivingBase entityLivingBase) {
+        float healthPoints = entityLivingBase.getHealth();
+        if (this.health.getValue() == 1) {
+            float tabHealth = this.getTabHealth(entityLivingBase);
+            if (tabHealth >= 0.0F) {
+                healthPoints = tabHealth;
+            }
+        }
+
+        float absorptionHearts = entityLivingBase.getAbsorptionAmount() / 2.0F;
+        float healthHearts = healthPoints / 2.0F + absorptionHearts;
+        float maxHearts = Math.max(entityLivingBase.getMaxHealth(), healthPoints) / 2.0F;
+        return new HealthInfo(healthHearts, absorptionHearts, Math.max(maxHearts, 1.0F));
+    }
+
     @EventTarget
     public void onRender(Render2DEvent event) {
         if (this.isEnabled() && mc.thePlayer != null) {
@@ -152,9 +187,11 @@ public class TargetHUD extends Module {
 
                     return;
                 }
-                float health = (mc.thePlayer.getHealth() + mc.thePlayer.getAbsorptionAmount()) / 2.0F;
-                float abs = entity.getAbsorptionAmount() / 2.0F;
-                float heal = entity.getHealth() / 2.0F + abs;
+                HealthInfo playerHealthInfo = this.getHealthInfo(mc.thePlayer);
+                HealthInfo targetHealthInfo = this.getHealthInfo(entity);
+                float playerHealth = playerHealthInfo.health;
+                float abs = targetHealthInfo.absorption;
+                float heal = targetHealthInfo.health;
 
                 if (entity != this.target) {
                     this.headTexture = null;
@@ -165,7 +202,7 @@ public class TargetHUD extends Module {
                 if (!this.animations.getValue() || this.animTimer.hasTimeElapsed(150L)) {
                     this.oldHealth = this.newHealth;
                     this.newHealth = heal;
-                    this.maxHealth = entity.getMaxHealth() / 2.0F;
+                    this.maxHealth = targetHealthInfo.maxHealth;
                     if (this.oldHealth != this.newHealth) {
                         this.animTimer.reset();
                     }
@@ -177,23 +214,23 @@ public class TargetHUD extends Module {
 
                 int styleMode = this.style.getValue();
                 if (styleMode == 0) {
-                    drawUnfairStyle(health, abs, heal);
+                    drawUnfairStyle(entity, playerHealth, abs, heal);
                 } else {
-                    drawRavenBSStyle(styleMode - 1, entity, health, abs, heal);
+                    drawRavenBSStyle(styleMode - 1, entity, playerHealth, abs, heal, targetHealthInfo.maxHealth);
                 }
             }
         }
     }
 
-    private void drawUnfairStyle(float health, float abs, float heal) {
+    private void drawUnfairStyle(EntityLivingBase entity, float health, float abs, float heal) {
         float elapsedTime = (float) Math.min(Math.max(this.animTimer.getElapsedTime(), 0L), 150L);
         float lerpedHealthRatio = Math.min(Math.max(RenderUtil.lerpFloat(this.newHealth, this.oldHealth, elapsedTime / 150.0F) / this.maxHealth, 0.0F), 1.0F);
-        Color targetColor = this.getTargetColor(this.target);
+        Color targetColor = this.getTargetColor(entity);
         Color healthBarColor = this.color.getValue() == 0 ? ColorUtil.getHealthBlend(lerpedHealthRatio) : targetColor;
         float healthDeltaRatio = Math.min(Math.max((health - heal + 1.0F) / 2.0F, 0.0F), 1.0F);
         Color healthDeltaColor = ColorUtil.getHealthBlend(healthDeltaRatio);
         ScaledResolution scaledResolution = new ScaledResolution(mc);
-        String targetNameText = ChatColors.formatColor(String.format("&r%s&r", TeamUtil.stripName(this.target)));
+        String targetNameText = ChatColors.formatColor(String.format("&r%s&r", TeamUtil.stripName(entity)));
         int targetNameWidth = mc.fontRendererObj.getStringWidth(targetNameText);
         String healthText = ChatColors.formatColor(
                 String.format("&r&f%s%s❤&r", healthFormat.format(heal), abs > 0.0F ? "&6" : "&c")
@@ -260,9 +297,9 @@ public class TargetHUD extends Module {
         GlStateManager.popMatrix();
     }
 
-    private void drawRavenBSStyle(int mode, EntityLivingBase entity, float health, float abs, float heal) {
+    private void drawRavenBSStyle(int mode, EntityLivingBase entity, float health, float abs, float heal, float maxHealth) {
         String playerInfo = entity.getDisplayName().getFormattedText();
-        double healthRatio = entity.getHealth() / entity.getMaxHealth();
+        double healthRatio = heal / maxHealth;
         if (entity.isDead) {
             healthRatio = 0;
         }
@@ -395,6 +432,18 @@ public class TargetHUD extends Module {
                 this.lastAttackTimer.reset();
                 this.lastTarget = (EntityLivingBase) entity;
             }
+        }
+    }
+
+    private static class HealthInfo {
+        private final float health;
+        private final float absorption;
+        private final float maxHealth;
+
+        private HealthInfo(float health, float absorption, float maxHealth) {
+            this.health = health;
+            this.absorption = absorption;
+            this.maxHealth = maxHealth;
         }
     }
 }
