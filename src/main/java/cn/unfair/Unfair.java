@@ -39,7 +39,6 @@ public class Unfair {
     }
 
     public void init() {
-        version = loadVersion();
         rotationManager = new RotationManager();
         floatManager = new FloatManager();
         blinkManager = new BlinkManager();
@@ -103,8 +102,6 @@ public class Unfair {
             EventManager.register(module);
         }
         Config config = new Config("default", true);
-        Config.initAutosave(config);
-        EventManager.register(config);
         if (config.file.exists()) {
             config.load();
         }
@@ -114,15 +111,13 @@ public class Unfair {
         if (targetManager.file.exists()) {
             targetManager.load();
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(Config::saveCurrentSilent));
-    }
+        Runtime.getRuntime().addShutdownHook(new Thread(config::save));
 
-    private static String loadVersion() {
         try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(Unfair.class.getResourceAsStream("/version.json")), StandardCharsets.UTF_8)) {
             JsonObject modInfo = new JsonParser().parse(reader).getAsJsonObject();
-            return modInfo.get("version").getAsString();
+            version = modInfo.get("version").getAsString();
         } catch (Exception e) {
-            return "error";
+            version = "error";
         }
     }
 }
