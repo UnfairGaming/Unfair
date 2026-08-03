@@ -92,6 +92,11 @@ public class AutoRod extends Module {
 
         if (BadPacketUtil.bad()) return;
 
+        BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
+        if (backTrack.isEnabled() && BackTrack.shouldLag) {
+            return;
+        }
+
         AutoProjectiles autoProjectiles = ((AutoProjectiles) Unfair.moduleManager.modules.get(AutoProjectiles.class));
         if ((autoProjectiles.isEnabled() && autoProjectiles.hasProjectile())) {
             return;

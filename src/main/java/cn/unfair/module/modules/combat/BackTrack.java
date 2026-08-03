@@ -23,7 +23,7 @@ import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.client.gui.GuiDownloadTerrain;
@@ -96,7 +96,6 @@ public class BackTrack extends Module {
     public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.esp.getValue() == 1);
     public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
     public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.esp.getValue() == 1);
-    public final BooleanProperty debug = new BooleanProperty("debug", false);
 
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
@@ -108,9 +107,9 @@ public class BackTrack extends Module {
     private boolean dispatched;
     private boolean outOfRange;
     private boolean attacked;
-    private final DemiseTimer relagTimer = new DemiseTimer();
-    private final DemiseTimer attackTimer = new DemiseTimer();
-    private final DemiseTimer debugTimer = new DemiseTimer();
+    public boolean isBackTracking;
+    private final TimerUtil relagTimer = new TimerUtil();
+    private final TimerUtil attackTimer = new TimerUtil();
     private int nextRand;
 
     public BackTrack() {
@@ -124,6 +123,7 @@ public class BackTrack extends Module {
         this.lastRenderPosition = null;
         this.currentRenderPosition = null;
         this.lastTarget = null;
+        this.isBackTracking = false;
     }
 
     @Override
@@ -137,6 +137,7 @@ public class BackTrack extends Module {
         this.currentRenderPosition = null;
         this.target = null;
         this.lastTarget = null;
+        this.isBackTracking = false;
     }
 
     @Override
@@ -178,6 +179,7 @@ public class BackTrack extends Module {
 
     private void runBackTrack() {
         if (mc.thePlayer == null || mc.theWorld == null) {
+            this.isBackTracking = false;
             BackTrackLagUtils.onPostTick();
             return;
         }
@@ -197,7 +199,7 @@ public class BackTrack extends Module {
             this.lastTarget = null;
             this.lastRenderPosition = null;
             this.currentRenderPosition = null;
-            this.debugNoTarget();
+            this.isBackTracking = false;
             BackTrackLagUtils.onPostTick();
             return;
         }
@@ -213,13 +215,6 @@ public class BackTrack extends Module {
         double realDistance = getCustomDistanceToEntityBox(
                 add(add(realPosition, 0.0D, this.target.getEyeHeight(), 0.0D), multiply(getMoveDeltaVector(this.target), this.predictionTicks.getValue())),
                 mc.thePlayer
-        );
-        double realDistanceNoPred = getCustomDistanceToEntityBox(add(realPosition, 0.0D, this.target.getEyeHeight(), 0.0D), mc.thePlayer);
-        double realDistanceToMouseOverNoPred = getDistToTargetFromMouseOver(
-                mc.thePlayer.getPositionEyes(1.0F),
-                mc.thePlayer.getLook(1.0F),
-                this.target,
-                offset(getHitbox(this.target), subtract(add(realPosition, 0.0D, this.target.getEyeHeight(), 0.0D), this.target.getPositionEyes(1.0F)))
         );
         double clientDistance = getDistToTargetFromMouseOver(
                 mc.thePlayer.getPositionEyes(1.0F),
@@ -256,19 +251,7 @@ public class BackTrack extends Module {
         boolean on = extraCheck && realDistance > this.rangeStart.getValue() && realDistance < this.rangeEnd.getValue();
 
         shouldLag = this.onlyWhenNeeded.getValue() ? onlyNeeded : on;
-        this.debugOnlyNeeded(
-                extraCheck,
-                realDistance,
-                realDistanceNoPred,
-                realDistanceToMouseOverNoPred,
-                clientDistance,
-                onlyNeeded,
-                this.onlyWhenNeeded.getValue(),
-                realDistance > this.attackRange.getValue() || this.outOfRange,
-                realDistance < 4.5D,
-                clientDistance <= 3.0D,
-                this.target.hurtTime <= this.hurtTimeToWork.getValue()
-        );
+        this.isBackTracking = shouldLag;
 
         if (shouldLag) {
             if (this.relagTimer.hasTimeElapsed(this.delayForNextLag.getValue())) {
@@ -333,6 +316,7 @@ public class BackTrack extends Module {
                     if (mc.thePlayer != null && ((IAccessorS18PacketEntityTeleport) s18PacketEntityTeleport).getEntityId() == mc.thePlayer.getEntityId()) {
                         this.dispatched = false;
                         shouldLag = false;
+                        this.isBackTracking = false;
                     }
                 }
             }
@@ -564,47 +548,6 @@ public class BackTrack extends Module {
         return new Vec3(0.0D, 0.0D, 0.0D);
     }
 
-    private void debugOnlyNeeded(boolean extraCheck, double realDistance, double realDistanceNoPred, double realMouseDistance, double clientDistance, boolean onlyNeeded,
-                                 boolean onlyWhenNeeded,
-                                 boolean realInRange, boolean maxRange, boolean clientInRange, boolean hurtTimeOk) {
-        if (!this.debug.getValue() || !this.onlyWhenNeeded.getValue() || !this.debugTimer.hasTimeElapsed(500L)) {
-            return;
-        }
-
-        this.debugTimer.reset();
-        ChatUtil.sendFormatted(String.format(
-                "&7BT dbg target=%s should=%s enabled=%s only=%s extra=%s rd=%.2f rdNo=%.2f rMouse=%.2f cMouse=%.2f atk=%.2f ht=%d/%d oor=%s why=%s%s%s%s%s lagQ=%d",
-                this.target == null ? "null" : this.target.getName(),
-                shouldLag,
-                onlyWhenNeeded,
-                onlyNeeded,
-                extraCheck,
-                realDistance,
-                realDistanceNoPred,
-                realMouseDistance,
-                clientDistance,
-                this.attackRange.getValue(),
-                this.target == null ? -1 : this.target.hurtTime,
-                this.hurtTimeToWork.getValue(),
-                this.outOfRange,
-                extraCheck ? "" : "E",
-                realInRange ? "" : "R",
-                maxRange ? "" : "X",
-                clientInRange ? "" : "C",
-                hurtTimeOk ? "" : "H",
-                BackTrackLagUtils.size()
-        ));
-    }
-
-    private void debugNoTarget() {
-        if (!this.debug.getValue() || !this.onlyWhenNeeded.getValue() || !this.debugTimer.hasTimeElapsed(500L)) {
-            return;
-        }
-
-        this.debugTimer.reset();
-        ChatUtil.sendFormatted("&7BT dbg target=null should=false reason=no-target");
-    }
-
     private void stopLaggingForRespawn() {
         BackTrackLagUtils.disable();
         BackTrackLagUtils.dispatch();
@@ -614,6 +557,7 @@ public class BackTrack extends Module {
         this.attacked = false;
         this.target = null;
         this.lastTarget = null;
+        this.isBackTracking = false;
     }
 
     private enum PacketDirection {
@@ -625,7 +569,7 @@ public class BackTrack extends Module {
         private static final long DEFAULT_TIMER_DELAY = 100L;
         private static final long BLINK_DELAY = 9999999L;
         private static final Queue<TimedPacket> packets = new ConcurrentLinkedQueue<>();
-        private static final DemiseTimer enabledTimer = new DemiseTimer();
+        private static final TimerUtil enabledTimer = new TimerUtil();
         private static boolean enabled;
         private static long delayAmount;
         private static boolean post;
@@ -698,7 +642,7 @@ public class BackTrack extends Module {
 
         private static void disable() {
             enabled = false;
-            enabledTimer.setTime(enabledTimer.getTime() - BLINK_DELAY);
+            enabledTimer.setTime(enabledTimer.getElapsedTime() - BLINK_DELAY);
         }
 
         private static boolean shouldHandlePacket(Packet<?> packet) {
@@ -747,26 +691,6 @@ public class BackTrack extends Module {
             this.packet = packet;
             this.direction = direction;
             this.millis = System.currentTimeMillis();
-        }
-    }
-
-    private static final class DemiseTimer {
-        private long lastMS = System.currentTimeMillis();
-
-        private void reset() {
-            this.lastMS = System.currentTimeMillis();
-        }
-
-        private boolean hasTimeElapsed(long time) {
-            return System.currentTimeMillis() - this.lastMS > time;
-        }
-
-        private long getTime() {
-            return System.currentTimeMillis() - this.lastMS;
-        }
-
-        private void setTime(long time) {
-            this.lastMS = time;
         }
     }
 }

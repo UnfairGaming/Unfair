@@ -8,6 +8,7 @@ import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
+import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
@@ -38,6 +39,7 @@ public class AutoProjectiles extends Module {
     public final BooleanProperty smartDelay = new BooleanProperty("smart-delay", true);
     public final IntProperty throwDelay = new IntProperty("throw-delay", 3, 1, 15, () -> !smartDelay.getValue());
     public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
+    public final BooleanProperty rotation = new BooleanProperty("rotation", true);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
     private EntityLivingBase target = null;
     private int lastSlot = -1;
@@ -294,6 +296,11 @@ public class AutoProjectiles extends Module {
             return;
         }
 
+        BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
+        if (backTrack.isEnabled() && BackTrack.shouldLag) {
+            return;
+        }
+
         if (!this.hasProjectile()) {
             this.target = null;
             this.throwState = 0;
@@ -335,11 +342,14 @@ public class AutoProjectiles extends Module {
         } else if (this.throwState == 2) {
             if (this.throwsRemaining > 0) {
                 Vec3 predictedPos = this.predictPosition(this.target);
-                float[] rotations = this.getRotationsToPosition(predictedPos);
-
-                event.setRotation(rotations[0], rotations[1], 2);
-                event.setPervRotation(rotations[0], 2);
-                this.hasRotated = true;
+                if (this.rotation.getValue()) {
+                    float[] rotations = this.getRotationsToPosition(predictedPos);
+                    event.setRotation(rotations[0], rotations[1], 2);
+                    event.setPervRotation(rotations[0], 2);
+                    this.hasRotated = true;
+                } else {
+                    this.hasRotated = false;
+                }
                 this.throwState = 3;
             } else {
                 this.throwState = 4;
