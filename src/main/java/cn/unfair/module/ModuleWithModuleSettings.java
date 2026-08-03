@@ -72,8 +72,11 @@ public abstract class ModuleWithModuleSettings extends Module {
                     try {
                         Object obj = field.get(subModule);
                         if (obj instanceof Property<?>) {
-                            ((Property<?>) obj).setOwner(subModule);
-                            result.add((Property<?>) obj);
+                            Property<?> property = (Property<?>) obj;
+                            property.setOwner(subModule);
+                            property.setVisibilityOwner(this);
+                            property.setVisibleModes(subModule.getName());
+                            result.add(property);
                         }
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
