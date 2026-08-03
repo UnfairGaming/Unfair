@@ -297,7 +297,7 @@ public class AutoProjectiles extends Module {
         }
 
         BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
-        if (backTrack.isEnabled() && BackTrack.shouldLag) {
+        if (backTrack.isEnabled() && backTrack.isBackTracking) {
             return;
         }
 

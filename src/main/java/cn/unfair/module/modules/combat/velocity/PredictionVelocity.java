@@ -9,6 +9,7 @@ import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
+import cn.unfair.module.modules.combat.BackTrack;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
@@ -117,8 +118,9 @@ public class PredictionVelocity extends SubModule {
                         boolean grounded = mc.thePlayer.onGround;
                         predictSprinting = mc.thePlayer.isSprinting();
                         jumpResetTicks = grounded ? 3 : 0;
+                        BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
 
-                        if (!predictSprinting) {
+                        if (!predictSprinting && !(backTrack.isEnabled() && backTrack.isBackTracking)) {
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
                             Unfair.delayManager.delayedPacket.offer(packet);
                             event.setCancelled(true);
