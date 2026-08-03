@@ -5,6 +5,9 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.Scoreboard;
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.event.EventTarget;
@@ -33,6 +36,7 @@ public class ESP extends Module {
     public final ModeProperty mode = new ModeProperty("mode", 2, new String[]{"NONE", "2D", "3D", "OUTLINE", "FAKECORNER", "FAKE2D"});
     public final ModeProperty color = new ModeProperty("color", 0, new String[]{"DEFAULT", "TEAMS", "HUD"});
     public final ModeProperty healthBar = new ModeProperty("health-bar", 0, new String[]{"NONE", "2D", "RAVEN"});
+    public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
     public final BooleanProperty players = new BooleanProperty("players", true);
     public final BooleanProperty friends = new BooleanProperty("friends", true);
     public final BooleanProperty enemies = new BooleanProperty("enemies", true);
@@ -89,6 +93,32 @@ public class ESP extends Module {
                     return new Color(-1);
             }
         }
+    }
+
+    private float getTabHealth(EntityPlayer entityPlayer) {
+        if (mc.theWorld == null) {
+            return -1.0F;
+        }
+        Scoreboard scoreboard = mc.theWorld.getScoreboard();
+        if (scoreboard == null) {
+            return -1.0F;
+        }
+        ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(2);
+        if (objective == null) {
+            return -1.0F;
+        }
+        Score score = scoreboard.getValueFromObjective(entityPlayer.getName(), objective);
+        return score == null ? -1.0F : (float) score.getScorePoints();
+    }
+
+    private float getHealthPoints(EntityPlayer entityPlayer) {
+        if (this.health.getValue() == 1) {
+            float tabHealth = this.getTabHealth(entityPlayer);
+            if (tabHealth >= 0.0F) {
+                return tabHealth;
+            }
+        }
+        return entityPlayer.getHealth();
     }
 
     public boolean isOutlineEnabled() {
@@ -176,7 +206,7 @@ public class ESP extends Module {
                                 RenderUtil.drawESPBox2D(x, y, z, w, 1.5F, color);
                             }
                             if (this.healthBar.getValue() == 1) {
-                                float heal = player.getHealth() + player.getAbsorptionAmount();
+                                float heal = this.getHealthPoints(player) + player.getAbsorptionAmount();
                                 float percent = Math.min(Math.max(heal / player.getMaxHealth(), 0.0F), 1.0F);
                                 float box = (z - x) * 0.08F;
                                 Color healthColor = ColorUtil.getHealthBlend(percent);
@@ -222,7 +252,7 @@ public class ESP extends Module {
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(x, y, z);
                         GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
-                        float heal = player.getHealth() + player.getAbsorptionAmount();
+                        float heal = this.getHealthPoints(player) + player.getAbsorptionAmount();
                         float percent = Math.min(Math.max(heal / player.getMaxHealth(), 0.0F), 1.0F);
                         Color healthColor = ColorUtil.getHealthBlend(percent);
                         float height = player.height + 0.2F;
