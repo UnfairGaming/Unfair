@@ -20,11 +20,13 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.mixin.IAccessorEntityRenderer;
 import cn.unfair.mixin.IAccessorMinecraft;
 import cn.unfair.mixin.IAccessorRenderManager;
+import cn.unfair.util.shader.Shader;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -38,6 +40,130 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 public class RenderUtil {
+    private static final String ROUNDED_RECT_SRC =
+            "#version 120\n" +
+                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec4 color;\n" +
+                    "uniform float radius;\n" +
+                    "uniform bool blur;\n" +
+                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
+                    "void main() {\n" +
+                    "    vec2 rectHalf = rectSize * 0.5;\n" +
+                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
+                    "    gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);\n" +
+                    "}";
+    private static final String MULTI_RADIUS_SRC =
+            "#version 120\n" +
+                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec4 color;\n" +
+                    "uniform float radiusTopLeft, radiusTopRight, radiusBottomLeft, radiusBottomRight;\n" +
+                    "float roundedBoxSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
+                    "void main() {\n" +
+                    "    vec2 rectHalf = rectSize * 0.5;\n" +
+                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    float r = (pos.x > 0.0) ? ((pos.y > 0.0) ? radiusTopRight : radiusBottomRight) : ((pos.y > 0.0) ? radiusTopLeft : radiusBottomLeft);\n" +
+                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundedBoxSDF(pos, rectHalf - r - 0.25, r));\n" +
+                    "    gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);\n" +
+                    "}";
+    private static final String ROUNDED_GRADIENT_SRC =
+            "#version 120\n" +
+                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec4 color1, color2, color3, color4;\n" +
+                    "uniform float radius;\n" +
+                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
+                    "void main() {\n" +
+                    "    vec2 rectHalf = rectSize * 0.5;\n" +
+                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
+                    "    vec2 uv = gl_TexCoord[0].st;\n" +
+                    "    vec4 left = mix(color1, color2, uv.y);\n" +
+                    "    vec4 right = mix(color3, color4, uv.y);\n" +
+                    "    vec4 gradColor = mix(left, right, uv.x);\n" +
+                    "    gl_FragColor = vec4(gradColor.rgb, gradColor.a * smoothedAlpha);\n" +
+                    "}";
+    private static final String ROUNDED_GRADIENT_OUTLINE_SRC =
+            "#version 120\n" +
+                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec4 color1, color2;\n" +
+                    "uniform float radius, thickness;\n" +
+                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
+                    "void main() {\n" +
+                    "    vec2 rectHalf = rectSize * 0.5;\n" +
+                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    float outer = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
+                    "    float innerRadius = max(radius - thickness, 0.0);\n" +
+                    "    vec2 innerHalf = max(rectHalf - thickness, vec2(0.0));\n" +
+                    "    float inner = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, innerHalf - innerRadius - 0.25, innerRadius));\n" +
+                    "    float outlineAlpha = outer * (1.0 - inner);\n" +
+                    "    vec4 gradColor = mix(color1, color2, gl_TexCoord[0].st.x);\n" +
+                    "    gl_FragColor = vec4(gradColor.rgb, gradColor.a * outlineAlpha);\n" +
+                    "}";
+    private static final Shader roundedShader = new Shader(ROUNDED_RECT_SRC) {
+        @Override
+        public void onLink() {
+            this.setUniform("location");
+            this.setUniform("rectSize");
+            this.setUniform("color");
+            this.setUniform("radius");
+            this.setUniform("blur");
+        }
+
+        @Override
+        public void onUse() {
+            GL20.glUseProgram(this.programId);
+        }
+    };
+    private static final Shader multiRadiusShader = new Shader(MULTI_RADIUS_SRC) {
+        @Override
+        public void onLink() {
+            this.setUniform("location");
+            this.setUniform("rectSize");
+            this.setUniform("color");
+            this.setUniform("radiusTopLeft");
+            this.setUniform("radiusTopRight");
+            this.setUniform("radiusBottomLeft");
+            this.setUniform("radiusBottomRight");
+        }
+
+        @Override
+        public void onUse() {
+            GL20.glUseProgram(this.programId);
+        }
+    };
+    private static final Shader roundedGradientShader = new Shader(ROUNDED_GRADIENT_SRC) {
+        @Override
+        public void onLink() {
+            this.setUniform("location");
+            this.setUniform("rectSize");
+            this.setUniform("color1");
+            this.setUniform("color2");
+            this.setUniform("color3");
+            this.setUniform("color4");
+            this.setUniform("radius");
+        }
+
+        @Override
+        public void onUse() {
+            GL20.glUseProgram(this.programId);
+        }
+    };
+    private static final Shader roundedGradientOutlineShader = new Shader(ROUNDED_GRADIENT_OUTLINE_SRC) {
+        @Override
+        public void onLink() {
+            this.setUniform("location");
+            this.setUniform("rectSize");
+            this.setUniform("color1");
+            this.setUniform("color2");
+            this.setUniform("radius");
+            this.setUniform("thickness");
+        }
+
+        @Override
+        public void onUse() {
+            GL20.glUseProgram(this.programId);
+        }
+    };
     private static Minecraft mc;
     private static Frustum cameraFrustum;
     private static IntBuffer viewportBuffer;
@@ -733,121 +859,110 @@ public class RenderUtil {
         GL11.glScissor(scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
-    public static void drawRoundedRectangle(float x, float y, float x2, float y2, float radius, final int color) {
-        if (x2 <= x) {
+    public static void drawRoundedRect(float x, float y, float width, float height, float radius, boolean blur, Color color) {
+        if (width <= 0.0F || height <= 0.0F || color.getAlpha() <= 0) {
             return;
         }
 
-        float width = x2 - x;
+        radius = Math.min(radius, Math.min(width, height) / 2.0F);
 
-        if (width < 3) {
-            radius = Math.min(radius, width / 2.0f);
+        GlStateManager.resetColor();
+        GlStateManager.enableBlend();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.alphaFunc(516, 0.0F);
+
+        roundedShader.use();
+        setupRoundedRectUniforms(roundedShader, x, y, width, height);
+
+        int sf = getScaleFactor();
+        GL20.glUniform1f(roundedShader.getUniformLocationCached("radius"), radius * sf);
+        GL20.glUniform1i(roundedShader.getUniformLocationCached("blur"), blur ? 1 : 0);
+        GL20.glUniform4f(
+                roundedShader.getUniformLocationCached("color"),
+                color.getRed() / 255.0F,
+                color.getGreen() / 255.0F,
+                color.getBlue() / 255.0F,
+                color.getAlpha() / 255.0F
+        );
+
+        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+
+        roundedShader.stop();
+        GlStateManager.disableBlend();
+    }
+
+    public static void drawRoundedRect(float x, float y, float width, float height, float radiusTopLeft, float radiusTopRight, float radiusBottomLeft, float radiusBottomRight, int color) {
+        if (width <= 0.0F || height <= 0.0F || ((color >> 24) & 0xFF) <= 0) {
+            return;
         }
 
-        radius = Math.min(radius, 4.0f);
+        float maxRadius = Math.min(width, height) / 2.0F;
+        radiusTopLeft = Math.min(radiusTopLeft, maxRadius);
+        radiusTopRight = Math.min(radiusTopRight, maxRadius);
+        radiusBottomLeft = Math.min(radiusBottomLeft, maxRadius);
+        radiusBottomRight = Math.min(radiusBottomRight, maxRadius);
 
-        x *= 2.0;
-        y *= 2.0;
-        x2 *= 2.0;
-        y2 *= 2.0;
-        GL11.glPushAttrib(0);
-        GL11.glScaled(0.5, 0.5, 0.5);
-        glEnable(3042);
-        GL11.glDisable(3553);
-        glEnable(2848);
-        GL11.glBegin(9);
-        glColor(color);
-        for (int i = 0; i <= 90; i += 3) {
-            final double n7 = i * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n7) * radius * -1.0, (double) (y + radius) + Math.cos(n7) * radius * -1.0);
+        GlStateManager.resetColor();
+        GlStateManager.enableBlend();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.alphaFunc(516, 0.0F);
+
+        multiRadiusShader.use();
+        setupRoundedRectUniforms(multiRadiusShader, x, y, width, height);
+
+        int sf = getScaleFactor();
+        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusTopLeft"), radiusTopLeft * sf);
+        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusTopRight"), radiusTopRight * sf);
+        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusBottomLeft"), radiusBottomLeft * sf);
+        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusBottomRight"), radiusBottomRight * sf);
+
+        float alpha = (color >> 24 & 255) / 255.0F;
+        float red = (color >> 16 & 255) / 255.0F;
+        float green = (color >> 8 & 255) / 255.0F;
+        float blue = (color & 255) / 255.0F;
+        GL20.glUniform4f(multiRadiusShader.getUniformLocationCached("color"), red, green, blue, alpha);
+
+        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+
+        multiRadiusShader.stop();
+        GlStateManager.disableBlend();
+    }
+
+    public static void drawRoundedRectangle(float x, float y, float x2, float y2, float radius, final int color) {
+        if (x2 <= x || y2 <= y) {
+            return;
         }
-        for (int j = 90; j <= 180; j += 3) {
-            final double n8 = j * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n8) * radius * -1.0, (double) (y2 - radius) + Math.cos(n8) * radius * -1.0);
-        }
-        if (x2 - x >= 4.5) {
-            for (int k = 0; k <= 90; k += 1) {
-                final double n9 = k * 0.017453292f;
-                GL11.glVertex2d((double) (x2 - radius) + Math.sin(n9) * radius, (double) (y2 - radius) + Math.cos(n9) * radius);
-            }
-            for (int l = 90; l <= 180; l += 1) {
-                final double n10 = l * 0.017453292f;
-                GL11.glVertex2d((double) (x2 - radius) + Math.sin(n10) * radius, (double) (y + radius) + Math.cos(n10) * radius);
-            }
-        }
-        GL11.glEnd();
-        glEnable(3553);
-        GL11.glDisable(3042);
-        GL11.glDisable(2848);
-        glEnable(3553);
-        GL11.glScaled(2.0, 2.0, 2.0);
-        GL11.glPopAttrib();
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        drawRoundedRect(x, y, x2 - x, y2 - y, radius, false, new Color(color, true));
     }
 
     public static void drawRoundedGradientRect(float x, float y, float x2, float y2, float radius, final int n6, final int n7, final int n8, final int n9) {
-        if (x2 <= x) {
+        if (x2 <= x || y2 <= y) {
             return;
         }
 
         float width = x2 - x;
+        float height = y2 - y;
+        radius = Math.min(radius, Math.min(width, height) / 2.0F);
 
-        if (width < 3) {
-            radius = Math.min(radius, width / 2.0f);
-        }
+        GlStateManager.resetColor();
+        GlStateManager.enableBlend();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.alphaFunc(516, 0.0F);
 
-        radius = Math.min(radius, 4.0f);
+        roundedGradientShader.use();
+        setupRoundedRectUniforms(roundedGradientShader, x, y, width, height);
 
-        glEnable(3042);
-        GL11.glDisable(3553);
-        GL11.glBlendFunc(770, 771);
-        glEnable(2848);
-        GL11.glShadeModel(7425);
-        GL11.glPushAttrib(0);
-        GL11.glScaled(0.5, 0.5, 0.5);
-        x *= 2.0;
-        y *= 2.0;
-        x2 *= 2.0;
-        y2 *= 2.0;
-        glEnable(3042);
-        GL11.glDisable(3553);
-        glColor(n6);
-        glEnable(2848);
-        GL11.glShadeModel(7425);
-        GL11.glBegin(9);
-        for (int i = 0; i <= 90; i += 3) {
-            final double n10 = i * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n10) * radius * -1.0, (double) (y + radius) + Math.cos(n10) * radius * -1.0);
-        }
-        glColor(n7);
-        for (int j = 90; j <= 180; j += 3) {
-            final double n11 = j * 0.017453292f;
-            GL11.glVertex2d((double) (x + radius) + Math.sin(n11) * radius * -1.0, (double) (y2 - radius) + Math.cos(n11) * radius * -1.0);
-        }
-        if (x2 - x >= 4.5) {
-            glColor(n8);
-            for (int k = 0; k <= 90; k += 3) {
-                final double n12 = k * 0.017453292f;
-                GL11.glVertex2d((double) (x2 - radius) + Math.sin(n12) * radius, (double) (y2 - radius) + Math.cos(n12) * radius);
-            }
-            glColor(n9);
-            for (int l = 90; l <= 180; l += 3) {
-                final double n13 = l * 0.017453292f;
-                GL11.glVertex2d((double) (x2 - radius) + Math.sin(n13) * radius, (double) (y + radius) + Math.cos(n13) * radius);
-            }
-        }
-        GL11.glEnd();
-        glEnable(3553);
-        GL11.glDisable(3042);
-        GL11.glDisable(2848);
-        GL11.glDisable(3042);
-        glEnable(3553);
-        GL11.glScaled(2.0, 2.0, 2.0);
-        GL11.glPopAttrib();
-        glEnable(3553);
-        GL11.glDisable(3042);
-        GL11.glDisable(2848);
-        GL11.glShadeModel(7424);
+        int sf = getScaleFactor();
+        GL20.glUniform1f(roundedGradientShader.getUniformLocationCached("radius"), radius * sf);
+        setShaderColor(roundedGradientShader, "color1", n6);
+        setShaderColor(roundedGradientShader, "color2", n7);
+        setShaderColor(roundedGradientShader, "color3", n9);
+        setShaderColor(roundedGradientShader, "color4", n8);
+
+        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+
+        roundedGradientShader.stop();
+        GlStateManager.disableBlend();
     }
 
     public static void drawGradientRect(int left, int top, float right, int bottom, int startColor, int endColor) {
@@ -878,6 +993,34 @@ public class RenderUtil {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 
+    public static void drawGradientSideways(double left, double top, double right, double bottom, int startColor, int endColor) {
+        float startAlpha = (startColor >> 24 & 255) / 255.0F;
+        float startRed = (startColor >> 16 & 255) / 255.0F;
+        float startGreen = (startColor >> 8 & 255) / 255.0F;
+        float startBlue = (startColor & 255) / 255.0F;
+        float endAlpha = (endColor >> 24 & 255) / 255.0F;
+        float endRed = (endColor >> 16 & 255) / 255.0F;
+        float endGreen = (endColor >> 8 & 255) / 255.0F;
+        float endBlue = (endColor & 255) / 255.0F;
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glShadeModel(GL11.GL_SMOOTH);
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+        worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        worldRenderer.pos(left, top, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        worldRenderer.pos(left, bottom, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        worldRenderer.pos(right, bottom, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
+        worldRenderer.pos(right, top, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
+        tessellator.draw();
+        GL11.glShadeModel(GL11.GL_FLAT);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+    }
+
     public static void glColor(final int n) {
         GL11.glColor4f((float) (n >> 16 & 0xFF) / 255.0f, (float) (n >> 8 & 0xFF) / 255.0f, (float) (n & 0xFF) / 255.0f, (float) (n >> 24 & 0xFF) / 255.0f);
     }
@@ -891,107 +1034,44 @@ public class RenderUtil {
             final int fillColor,
             final int outlineColor1,
             final int outlineColor2) {
-
-        startX *= 2.0f;
-        startY *= 2.0f;
-        endX *= 2.0f;
-        endY *= 2.0f;
-
-        GL11.glPushAttrib(1);
-        GL11.glScaled(0.5, 0.5, 0.5);
-
-        glEnable(3042);
-        GL11.glDisable(3553);
-        glEnable(2848);
-
-        GL11.glBegin(9);
-        glColor(fillColor);
-
-        for (int angle = 0; angle <= 90; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
-                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
-            );
+        if (endX <= startX || endY <= startY) {
+            return;
         }
 
-        for (int angle = 90; angle <= 180; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
-                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
-            );
+        float outlineWidth = 1.5F;
+        if (((fillColor >> 24) & 0xFF) > 0) {
+            drawRoundedRectangle(startX, startY, endX, endY, cornerRadius, fillColor);
         }
 
-        for (int angle = 0; angle <= 90; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
-                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius
-            );
+        drawRoundedGradientOutline(startX, startY, endX - startX, endY - startY, cornerRadius, outlineWidth, outlineColor1, outlineColor2);
+    }
+
+    private static void drawRoundedGradientOutline(float x, float y, float width, float height, float radius, float thickness, int color1, int color2) {
+        if (width <= 0.0F || height <= 0.0F || thickness <= 0.0F) {
+            return;
         }
 
-        for (int angle = 90; angle <= 180; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
-                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius
-            );
-        }
-        GL11.glEnd();
+        radius = Math.min(radius, Math.min(width, height) / 2.0F);
+        thickness = Math.min(thickness, Math.min(width, height) / 2.0F);
 
-        GL11.glPushMatrix();
-        GL11.glShadeModel(7425);
-        GL11.glLineWidth(1.5f);
-        GL11.glBegin(2);
+        GlStateManager.resetColor();
+        GlStateManager.enableBlend();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.alphaFunc(516, 0.0F);
 
-        if (outlineColor1 != 0L) {
-            glColor(outlineColor1);
-        }
-        for (int angle = 0; angle <= 90; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
-                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
-            );
-        }
-        for (int angle = 90; angle <= 180; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (startX + cornerRadius) + Math.sin(radian) * cornerRadius * -1.0,
-                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius * -1.0
-            );
-        }
+        roundedGradientOutlineShader.use();
+        setupRoundedRectUniforms(roundedGradientOutlineShader, x, y, width, height);
 
-        if (outlineColor2 != 0) {
-            glColor(outlineColor2);
-        }
-        for (int angle = 0; angle <= 90; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
-                    (double) (endY - cornerRadius) + Math.cos(radian) * cornerRadius
-            );
-        }
-        for (int angle = 90; angle <= 180; angle += 3) {
-            final double radian = angle * 0.017453292f;
-            GL11.glVertex2d(
-                    (double) (endX - cornerRadius) + Math.sin(radian) * cornerRadius,
-                    (double) (startY + cornerRadius) + Math.cos(radian) * cornerRadius
-            );
-        }
-        GL11.glEnd();
+        int sf = getScaleFactor();
+        GL20.glUniform1f(roundedGradientOutlineShader.getUniformLocationCached("radius"), radius * sf);
+        GL20.glUniform1f(roundedGradientOutlineShader.getUniformLocationCached("thickness"), thickness * sf);
+        setShaderColor(roundedGradientOutlineShader, "color1", color1);
+        setShaderColor(roundedGradientOutlineShader, "color2", color2);
 
-        glPopMatrix();
-        glEnable(3553);
-        GL11.glDisable(3042);
-        GL11.glDisable(2848);
-        glEnable(3553);
-        GL11.glScaled(2.0, 2.0, 2.0);
-        GL11.glPopAttrib();
-        GL11.glLineWidth(1.0f);
-        GL11.glShadeModel(7424);
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+
+        roundedGradientOutlineShader.stop();
+        GlStateManager.disableBlend();
     }
 
     public static int mergeAlpha(int color, int alpha) {
@@ -1029,6 +1109,92 @@ public class RenderUtil {
 
     public static void resetColor() {
         GlStateManager.color(1, 1, 1, 1);
+    }
+
+    public static void drawRoundedRectWithCorners(double x, double y, double x1, double y1, int color, double radius,
+                                                  boolean leftTop, boolean rightTop, boolean leftBot, boolean rightBot) {
+        if (x1 <= x || y1 <= y) {
+            return;
+        }
+
+        radius = Math.min(radius, Math.min(x1 - x, y1 - y) / 2.0);
+
+        GL11.glPushMatrix();
+
+        drawRect(x + radius, y, x1 - radius, y1, color);
+        drawRect(x, y + (leftTop ? radius : 0.0), x + radius, y1 - (leftBot ? radius : 0.0), color);
+        drawRect(x1 - radius, y + (rightTop ? radius : 0.0), x1, y1 - (rightBot ? radius : 0.0), color);
+
+        if (leftTop) {
+            drawCirclePart(x + radius, y + radius, radius, 270, 360, color);
+        }
+        if (rightTop) {
+            drawCirclePart(x1 - radius, y + radius, radius, 0, 90, color);
+        }
+        if (leftBot) {
+            drawCirclePart(x + radius, y1 - radius, radius, 180, 270, color);
+        }
+        if (rightBot) {
+            drawCirclePart(x1 - radius, y1 - radius, radius, 90, 180, color);
+        }
+
+        GL11.glPopMatrix();
+    }
+
+    private static void drawCirclePart(double x, double y, double radius, double from, double to, int color) {
+        GlStateManager.enableBlend();
+        GlStateManager.disableTexture2D();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        setColor(color);
+
+        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
+        GL11.glVertex2d(x, y);
+        for (double i = from; i <= to; i += 2.0) {
+            GL11.glVertex2d(
+                    x + Math.sin(i * Math.PI / 180.0) * radius,
+                    y - Math.cos(i * Math.PI / 180.0) * radius
+            );
+        }
+        GL11.glEnd();
+
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
+    }
+
+    private static int getScaleFactor() {
+        return new ScaledResolution(mc).getScaleFactor();
+    }
+
+    private static void setupRoundedRectUniforms(Shader shader, float x, float y, float width, float height) {
+        int sf = getScaleFactor();
+        float locX = x * sf;
+        float locY = mc.displayHeight - height * sf - y * sf;
+
+        GL20.glUniform2f(shader.getUniformLocationCached("location"), locX, locY);
+        GL20.glUniform2f(shader.getUniformLocationCached("rectSize"), width * sf, height * sf);
+    }
+
+    private static void setShaderColor(Shader shader, String uniform, int color) {
+        GL20.glUniform4f(
+                shader.getUniformLocationCached(uniform),
+                (color >> 16 & 255) / 255.0F,
+                (color >> 8 & 255) / 255.0F,
+                (color & 255) / 255.0F,
+                (color >> 24 & 255) / 255.0F
+        );
+    }
+
+    private static void drawQuads(float x, float y, float width, float height) {
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2f(0.0F, 0.0F);
+        GL11.glVertex2f(x, y);
+        GL11.glTexCoord2f(0.0F, 1.0F);
+        GL11.glVertex2f(x, y + height);
+        GL11.glTexCoord2f(1.0F, 1.0F);
+        GL11.glVertex2f(x + width, y + height);
+        GL11.glTexCoord2f(1.0F, 0.0F);
+        GL11.glVertex2f(x + width, y);
+        GL11.glEnd();
     }
 
     public static void setAlphaLimit(float limit) {

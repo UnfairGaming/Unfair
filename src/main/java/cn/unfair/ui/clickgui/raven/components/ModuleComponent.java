@@ -116,7 +116,7 @@ public class ModuleComponent implements Component {
             if (!hovering && AnimationUtil.finished(hoverStartTime, 75.0F)) {
                 hoverStartTime = 0L;
             }
-            RenderUtil.drawRoundedRectangle(this.category.getX(), this.category.getY() + yPos, this.category.getX() + this.category.getWidth(), this.category.getY() + 16 + this.yPos, 8, mergeAlpha(hoverColor, (int) hoverAlpha));
+            RenderUtil.drawRoundedRectangle(this.category.getX(), this.category.getY() + yPos, this.category.getX() + this.category.getWidth(), this.category.getY() + 16 + this.yPos, 4, mergeAlpha(hoverColor, (int) hoverAlpha));
         }
         int button_rgb = this.mod.isEnabled() ? enabledColor : disabledColor;
 

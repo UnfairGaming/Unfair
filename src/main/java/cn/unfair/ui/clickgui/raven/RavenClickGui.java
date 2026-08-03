@@ -10,6 +10,9 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.PostProcessBlurEvent;
 import cn.unfair.module.Category;
 import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
@@ -17,8 +20,7 @@ import cn.unfair.ui.clickgui.raven.components.BindComponent;
 import cn.unfair.ui.clickgui.raven.components.CategoryComponent;
 import cn.unfair.ui.clickgui.raven.components.ModuleComponent;
 import cn.unfair.util.AnimationUtil;
-import cn.unfair.util.shader.PostProcessingUtils;
-import cn.unfair.util.shader.RoundedUtils;
+import cn.unfair.util.RenderUtil;
 
 import java.awt.*;
 import java.io.File;
@@ -93,13 +95,6 @@ public class RavenClickGui extends GuiScreen {
     @Override
     public void drawScreen(int x, int y, float p) {
         this.partialTicks = p;
-        ClickGui clickGUI = (ClickGui) Unfair.moduleManager.modules.get(ClickGui.class);
-        if (clickGUI.blur.getValue()) {
-            PostProcessingUtils.prepareBlur();
-            RoundedUtils.drawRound(0, 0, this.width, this.height, 0.0f, true, Color.black);
-            float inputToRange = 1.5f;
-            PostProcessingUtils.blurEnd(2, this.getLerpValueFloat(this.blurSmoothStart, 400.0F, 0.0F, inputToRange, 1));
-        }
 
         drawRect(0, 0, this.width, this.height, (int) (this.getLerpValueFloat(this.backgroundFadeStart, 450.0F, 0.0F, 0.7F, 2) * 255.0F) << 24);
 
@@ -188,6 +183,20 @@ public class RavenClickGui extends GuiScreen {
             } else {
                 mc.fontRendererObj.drawString(developer, 4, y, hudColorCached, true);
             }
+        }
+    }
+
+    @EventTarget
+    public void onPostProcessBlur(PostProcessBlurEvent event) {
+        ClickGui clickGUI = (ClickGui) Unfair.moduleManager.modules.get(ClickGui.class);
+        if (clickGUI == null || !clickGUI.blur.getValue() || !(this.mc.currentScreen instanceof RavenClickGui)) {
+            return;
+        }
+        event.setCancelled(true);
+        if (event.getType() == EventType.POST) {
+            RenderUtil.enableRenderState();
+            RenderUtil.drawRect(0.0, 0.0, this.width, this.height, 0xFF000000);
+            RenderUtil.disableRenderState();
         }
     }
 

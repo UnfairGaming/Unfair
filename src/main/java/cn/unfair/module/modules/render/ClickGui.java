@@ -2,6 +2,7 @@ package cn.unfair.module.modules.render;
 
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
+import cn.unfair.event.EventManager;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
@@ -24,6 +25,7 @@ public class ClickGui extends Module {
         if (mode.getValue() == 0){
             if (ravenClickGui == null) {
                 ravenClickGui = new RavenClickGui();
+                EventManager.register(ravenClickGui);
                 ravenClickGui.initMain();
             }
             mc.displayGuiScreen(ravenClickGui);

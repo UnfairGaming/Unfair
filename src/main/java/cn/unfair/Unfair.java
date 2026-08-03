@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import cn.unfair.command.CommandManager;
 import cn.unfair.command.commands.*;
 import cn.unfair.config.Config;
+import cn.unfair.config.WidgetConfig;
 import cn.unfair.event.EventManager;
 import cn.unfair.management.*;
 import cn.unfair.module.Module;
@@ -12,6 +13,8 @@ import cn.unfair.module.ModuleManager;
 import cn.unfair.module.ModuleWithModuleSettings;
 import cn.unfair.property.Property;
 import cn.unfair.property.PropertyManager;
+import cn.unfair.ui.widget.WidgetManager;
+import cn.unfair.ui.widget.impl.HudWidgets;
 
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
@@ -33,6 +36,8 @@ public class Unfair {
     public static PropertyManager propertyManager;
     public static ModuleManager moduleManager;
     public static CommandManager commandManager;
+    public static WidgetManager widgetManager;
+    public static WidgetConfig widgetConfig;
 
     public Unfair() {
         this.init();
@@ -50,6 +55,8 @@ public class Unfair {
         propertyManager = new PropertyManager();
         moduleManager = new ModuleManager();
         commandManager = new CommandManager();
+        widgetManager = new WidgetManager();
+        widgetConfig = new WidgetConfig("widgets");
         EventManager.register(rotationManager);
         EventManager.register(floatManager);
         EventManager.register(blinkManager);
@@ -101,6 +108,9 @@ public class Unfair {
             propertyManager.properties.put(module.getClass(), properties);
             EventManager.register(module);
         }
+        HudWidgets.registerAll();
+        widgetConfig.load();
+        EventManager.register(widgetManager);
         Config config = new Config("default", true);
         if (config.file.exists()) {
             config.load();
@@ -111,7 +121,10 @@ public class Unfair {
         if (targetManager.file.exists()) {
             targetManager.load();
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(config::save));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            config.save();
+            widgetConfig.save();
+        }));
 
         try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(Unfair.class.getResourceAsStream("/version.json")), StandardCharsets.UTF_8)) {
             JsonObject modInfo = new JsonParser().parse(reader).getAsJsonObject();

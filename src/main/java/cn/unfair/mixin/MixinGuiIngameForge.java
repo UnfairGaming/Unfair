@@ -13,6 +13,7 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.modules.misc.NickHider;
+import cn.unfair.util.postprocessing.PostProcessingRenderer;
 
 @SideOnly(Side.CLIENT)
 @Mixin({GuiIngameForge.class})
@@ -27,6 +28,7 @@ public abstract class MixinGuiIngameForge {
             )}
     )
     private void renderGameOverlay(float float1, CallbackInfo callbackInfo) {
+        PostProcessingRenderer.render2D(float1);
         EventManager.call(new Render2DEvent(float1));
     }
 

@@ -1,0 +1,126 @@
+package cn.unfair.util.postprocessing;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.shader.Framebuffer;
+import org.lwjgl.opengl.GL11;
+
+public class BlurShader {
+    private static final Minecraft mc = Minecraft.getMinecraft();
+
+    private static final String VERTEX = "#version 120\n" +
+            "varying vec2 texCoord;\n" +
+            "varying vec2 oneTexel;\n" +
+            "uniform vec2 InSize;\n" +
+            "void main() {\n" +
+            "    gl_TexCoord[0] = gl_MultiTexCoord0;\n" +
+            "    texCoord = gl_MultiTexCoord0.st;\n" +
+            "    oneTexel = 1.0 / InSize;\n" +
+            "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n" +
+            "}";
+
+    private static final String FRAGMENT = "#version 120\n" +
+            "uniform sampler2D DiffuseSampler;\n" +
+            "varying vec2 texCoord;\n" +
+            "varying vec2 oneTexel;\n" +
+            "uniform vec2 InSize;\n" +
+            "uniform vec2 BlurDir;\n" +
+            "uniform vec2 BlurXY;\n" +
+            "uniform vec2 BlurCoord;\n" +
+            "uniform float Radius;\n" +
+            "float SCurve (float x) {\n" +
+            "    x = x * 2.0 - 1.0;\n" +
+            "    return -x * abs(x) * 0.5 + x + 0.5;\n" +
+            "}\n" +
+            "vec4 BlurH (sampler2D source, vec2 size, vec2 uv, float radius) {\n" +
+            "    if (uv.x / oneTexel.x >= BlurXY.x && uv.y / oneTexel.y >= BlurXY.y && uv.x / oneTexel.x <= (BlurCoord.x + BlurXY.x) && uv.y / oneTexel.y <= (BlurCoord.y + BlurXY.y))\n" +
+            "    {\n" +
+            "        vec4 A = vec4(0.0);\n" +
+            "        vec4 C = vec4(0.0);\n" +
+            "        float divisor = 0.0;\n" +
+            "        float weight = 0.0;\n" +
+            "        float radiusMultiplier = 1.0 / radius;\n" +
+            "        for (float x = -radius; x <= radius; x++)\n" +
+            "        {\n" +
+            "            A = texture2D(source, uv + vec2(x * size) * BlurDir);\n" +
+            "            weight = SCurve(1.0 - (abs(x) * radiusMultiplier));\n" +
+            "            C += A * weight;\n" +
+            "            divisor += weight;\n" +
+            "        }\n" +
+            "        return vec4(C.r / divisor, C.g / divisor, C.b / divisor, 1.0);\n" +
+            "    }\n" +
+            "    return texture2D(source, uv);\n" +
+            "}\n" +
+            "void main() {\n" +
+            "    if (texCoord.x / oneTexel.x >= BlurXY.x - Radius && texCoord.y / oneTexel.y >= BlurXY.y - Radius && texCoord.x / oneTexel.x <= (BlurCoord.x + BlurXY.x) + Radius && texCoord.y / oneTexel.y <= (BlurCoord.y + BlurXY.y) + Radius) {\n" +
+            "        gl_FragColor = BlurH(DiffuseSampler, oneTexel, texCoord, Radius);\n" +
+            "    } else {\n" +
+            "        gl_FragColor = texture2D(DiffuseSampler, texCoord);\n" +
+            "    }\n" +
+            "}";
+
+    private static ShaderUtils shader;
+    private static Framebuffer pass1;
+    private static Framebuffer pass2;
+
+    private static void ensureFramebuffers() {
+        if (pass1 == null || pass1.framebufferWidth != mc.displayWidth || pass1.framebufferHeight != mc.displayHeight) {
+            if (pass1 != null) {
+                pass1.deleteFramebuffer();
+            }
+            pass1 = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+            pass1.setFramebufferFilter(GL11.GL_LINEAR);
+        }
+        if (pass2 == null || pass2.framebufferWidth != mc.displayWidth || pass2.framebufferHeight != mc.displayHeight) {
+            if (pass2 != null) {
+                pass2.deleteFramebuffer();
+            }
+            pass2 = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+            pass2.setFramebufferFilter(GL11.GL_LINEAR);
+        }
+    }
+
+    private static ShaderUtils ensureShader() {
+        if (shader == null) {
+            shader = new ShaderUtils(FRAGMENT, VERTEX, true);
+        }
+        return shader;
+    }
+
+    public static int render(int inputTexture, float radius, float x, float y, float w, float h, int screenW, int screenH) {
+        ensureFramebuffers();
+        ShaderUtils s = ensureShader();
+
+        GL11.glClearColor(0, 0, 0, 0);
+        pass1.framebufferClear();
+        pass1.bindFramebuffer(false);
+        s.init();
+        s.setUniformi("DiffuseSampler", 0);
+        s.setUniformf("InSize", screenW, screenH);
+        s.setUniformf("BlurDir", 1.0f, 0.0f);
+        s.setUniformf("BlurXY", x, screenH - y - h);
+        s.setUniformf("BlurCoord", w, h);
+        s.setUniformf("Radius", Math.max(0.0f, radius));
+        GlStateManager.bindTexture(inputTexture);
+        ShaderUtils.drawQuads();
+        s.unload();
+
+        GL11.glClearColor(0, 0, 0, 0);
+        pass2.framebufferClear();
+        pass2.bindFramebuffer(false);
+        s.init();
+        s.setUniformi("DiffuseSampler", 0);
+        s.setUniformf("InSize", screenW, screenH);
+        s.setUniformf("BlurDir", 0.0f, 1.0f);
+        s.setUniformf("BlurXY", x, screenH - y - h);
+        s.setUniformf("BlurCoord", w, h);
+        s.setUniformf("Radius", Math.max(0.0f, radius));
+        GlStateManager.bindTexture(pass1.framebufferTexture);
+        ShaderUtils.drawQuads();
+        s.unload();
+
+        mc.getFramebuffer().bindFramebuffer(false);
+        GlStateManager.bindTexture(0);
+        return pass2.framebufferTexture;
+    }
+}

@@ -135,7 +135,7 @@ public class SliderComponent implements Component {
         RenderUtil.drawRoundedRectangle(this.parentModule.category.getX() + 4,
                 this.parentModule.category.getModuleY() + this.offsetY + 11,
                 this.parentModule.category.getX() + 4 + this.parentModule.category.getWidth() - 8,
-                this.parentModule.category.getModuleY() + this.offsetY + 15, 4, -12302777);
+                this.parentModule.category.getModuleY() + this.offsetY + 15, 2, -12302777);
 
         // Draw slider fill
         int left = this.parentModule.category.getX() + 4;
@@ -146,7 +146,7 @@ public class SliderComponent implements Component {
         RenderUtil.drawRoundedRectangle(left,
                 this.parentModule.category.getModuleY() + this.offsetY + 11,
                 right,
-                this.parentModule.category.getModuleY() + this.offsetY + 15, 4,
+                this.parentModule.category.getModuleY() + this.offsetY + 15, 2,
                 Color.getHSBColor((float) (System.currentTimeMillis() % 11000L) / 11000.0F, 0.75F, 0.9F).getRGB());
 
         // Draw text

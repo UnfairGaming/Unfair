@@ -119,7 +119,7 @@ public class AltManagerGui extends GuiScreen {
         drawDefaultBackground();
 
         // Main panel
-        RenderUtil.drawRoundedRectangle(guiX, guiY, guiX + guiWidth, guiY + guiHeight, 8, new Color(30, 30, 30, 200).getRGB());
+        RenderUtil.drawRoundedRectangle(guiX, guiY, guiX + guiWidth, guiY + guiHeight, 4, new Color(30, 30, 30, 200).getRGB());
 
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         int hudColor = hud.getColor(System.currentTimeMillis()).getRGB();
@@ -131,7 +131,7 @@ public class AltManagerGui extends GuiScreen {
         mc.fontRendererObj.drawStringWithShadow("Status: " + status, guiX + 120, guiY + 10, -1);
 
         // Alt list background
-        RenderUtil.drawRoundedRectangle(listX, listY, listX + listWidth, listY + listHeight, 4, new Color(20, 20, 20, 180).getRGB());
+        RenderUtil.drawRoundedRectangle(listX, listY, listX + listWidth, listY + listHeight, 2.5F, new Color(20, 20, 20, 180).getRGB());
 
         // Alt list
         int itemHeight = 18;
@@ -145,7 +145,7 @@ public class AltManagerGui extends GuiScreen {
             boolean isHovered = mouseX >= listX && mouseX <= listX + listWidth && mouseY >= itemY && mouseY < itemY + itemHeight;
 
             int bgColor = isSelected ? hudColor : (isHovered ? new Color(60, 60, 60, 180).getRGB() : new Color(40, 40, 40, 150).getRGB());
-            RenderUtil.drawRoundedRectangle(listX + 2, itemY, listX + listWidth - 2, itemY + itemHeight - 2, 2, bgColor);
+            RenderUtil.drawRoundedRectangle(listX + 2, itemY, listX + listWidth - 2, itemY + itemHeight - 2, 1.5F, bgColor);
 
             String typeStr = alt.isCracked() ? "Cracked" : "Microsoft";
             String displayName = alt.getName() != null && !alt.getName().isEmpty() ? alt.getName() : alt.getEmail();
@@ -166,8 +166,8 @@ public class AltManagerGui extends GuiScreen {
         int inputH = 14;
 
         int inputBorder = inputFocused ? hudColor : new Color(80, 80, 80).getRGB();
-        RenderUtil.drawRoundedRectangle(inputX - 1, inputY - 1, inputX + inputW + 1, inputY + inputH + 1, 2, inputBorder);
-        RenderUtil.drawRoundedRectangle(inputX, inputY, inputX + inputW, inputY + inputH, 2, new Color(20, 20, 20).getRGB());
+        RenderUtil.drawRoundedRectangle(inputX - 1, inputY - 1, inputX + inputW + 1, inputY + inputH + 1, 1.5F, inputBorder);
+        RenderUtil.drawRoundedRectangle(inputX, inputY, inputX + inputW, inputY + inputH, 1.5F, new Color(20, 20, 20).getRGB());
         mc.fontRendererObj.drawString("Username/Token:", inputX, inputY - 10, new Color(200, 200, 200).getRGB());
 
         String inputDisplay = usernameInput.isEmpty() ? (inputFocused ? "_" : "") : usernameInput;
@@ -180,7 +180,7 @@ public class AltManagerGui extends GuiScreen {
         for (Button btn : buttons) {
             boolean hovered = mouseX >= btn.x && mouseX <= btn.x + btn.w && mouseY >= btn.y && mouseY <= btn.y + btn.h;
             int btnColor = hovered ? new Color(hudColor).brighter().getRGB() : hudColor;
-            RenderUtil.drawRoundedRectangle(btn.x, btn.y, btn.x + btn.w, btn.y + btn.h, 4, btnColor);
+            RenderUtil.drawRoundedRectangle(btn.x, btn.y, btn.x + btn.w, btn.y + btn.h, 2.5F, btnColor);
             int textWidth = mc.fontRendererObj.getStringWidth(btn.text);
             mc.fontRendererObj.drawStringWithShadow(btn.text, btn.x + (btn.w - textWidth) / 2, btn.y + 5, -1);
         }

@@ -220,7 +220,7 @@ public class CategoryComponent {
         int hudColor1 = hud.getColor(System.currentTimeMillis()).getRGB();
         int hudColor2 = hud.getColor(System.currentTimeMillis() + 500).getRGB();
 
-        RenderUtil.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.width + 2, extra, 10, translucentBackground,
+        RenderUtil.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.width + 2, extra, 5, translucentBackground,
                 hudColor1, hudColor2);
         renderItemForCategory(this.categoryName, this.x + 1, this.y + 4, opened || hovering);
         mc.fontRendererObj.drawString(this.categoryName, namePos, (float) (this.y + 2), categoryNameColor, false);
