@@ -41,7 +41,6 @@ public class WidgetManager {
             }
             widget.updatePos(sr);
             widget.render(event.getPartialTicks());
-            widget.updatePos(sr);
         }
     }
 
@@ -92,13 +91,13 @@ public class WidgetManager {
         if (event.getType() != EventType.POST) {
             return;
         }
+        ScaledResolution sr = new ScaledResolution(mc);
         for (Widget widget : this.widgets) {
             if (!widget.shouldRenderBlurMask()) {
                 continue;
             }
-            widget.updatePos(new ScaledResolution(mc));
+            widget.updatePos(sr);
             widget.renderBlurMask(event.getPartialTicks());
-            widget.updatePos(new ScaledResolution(mc));
         }
     }
 
@@ -119,13 +118,13 @@ public class WidgetManager {
         if (event.getType() != EventType.POST) {
             return;
         }
+        ScaledResolution sr = new ScaledResolution(mc);
         for (Widget widget : this.widgets) {
             if (!widget.shouldRenderBloomMask()) {
                 continue;
             }
-            widget.updatePos(new ScaledResolution(mc));
+            widget.updatePos(sr);
             widget.renderBloomMask(event.getPartialTicks());
-            widget.updatePos(new ScaledResolution(mc));
         }
     }
 }

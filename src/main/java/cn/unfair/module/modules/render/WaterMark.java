@@ -18,16 +18,28 @@ import java.awt.Color;
 
 public class WaterMark extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final float FONT_SIZE = 15.0F;
+    private static final float FONT_SIZE = 16.0F;
     private static final String MINECRAFT_FONT = "Minecraft";
+    private static final int VERSION_COLOR = 0xEBE6E8EE;
+    private static final int INFO_COLOR = 0xE6D2D6E1;
+    private static final int BACKGROUND_RGB = 9 << 16 | 11 << 8 | 15;
 
     public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
-    public final PercentProperty background = new PercentProperty("background", 45);
+    public final PercentProperty background = new PercentProperty("background", 0);
     public final BooleanProperty round = new BooleanProperty("round", true, () -> this.background.getValue() > 0);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
     public final BooleanProperty showVersion = new BooleanProperty("version", true);
     public final BooleanProperty showFps = new BooleanProperty("fps", false);
     public final BooleanProperty showPing = new BooleanProperty("ping", false);
+    private int cachedFont = -1;
+    private boolean cachedShowVersion;
+    private boolean cachedShowFps;
+    private boolean cachedShowPing;
+    private String cachedVersion = "";
+    private long cachedInfoTime;
+    private String[] cachedSegments = new String[0];
+    private float cachedWidth;
+    private float cachedHeight;
 
     public WaterMark() {
         super("WaterMark", true, true);
@@ -56,68 +68,96 @@ public class WaterMark extends Module {
             return;
         }
 
-        WatermarkBounds bounds = this.getBounds(x, y);
+        this.updateLayoutCache();
         long time = System.currentTimeMillis();
         int accent = HUD.getColor(time).getRGB();
-        int fillColor = new Color(9, 11, 15, (int) (this.background.getValue().floatValue() / 100.0F * 220.0F)).getRGB();
+        int backgroundAlpha = (int) (this.background.getValue().floatValue() / 100.0F * 220.0F);
 
-        RenderUtil.enableRenderState();
-        this.drawBackground(bounds, fillColor);
-        RenderUtil.disableRenderState();
+        if (backgroundAlpha > 0) {
+            RenderUtil.enableRenderState();
+            this.drawBackground(x, y, x + this.cachedWidth, y + this.cachedHeight, backgroundAlpha << 24 | BACKGROUND_RGB);
+            RenderUtil.disableRenderState();
+        }
 
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        this.drawString("Unfair", bounds.left + 4.0F, bounds.top + 3.0F, accent, this.shadow.getValue());
+        this.drawString("Unfair", x + 4.0F, y + 3.0F, accent, this.shadow.getValue());
 
-        float cursor = bounds.left + 4.0F + this.getStringWidth("Unfair");
+        float cursor = x + 4.0F + this.getStringWidth("Unfair");
         if (this.showVersion.getValue()) {
-            this.drawString(" " + Unfair.version, cursor, bounds.top + 3.0F, new Color(230, 232, 238, 235).getRGB(), this.shadow.getValue());
+            this.drawString(" " + Unfair.version, cursor, y + 3.0F, VERSION_COLOR, this.shadow.getValue());
             cursor += this.getStringWidth(" " + Unfair.version);
         }
 
-        for (String segment : this.getInfoSegments()) {
-            this.drawSeparator(cursor + 3.0F, bounds.top + 3.0F, accent);
+        for (String segment : this.cachedSegments) {
+            this.drawSeparator(cursor + 3.0F, y + 3.0F, accent);
             cursor += 7.0F;
-            this.drawString(segment, cursor, bounds.top + 3.0F, new Color(210, 214, 225, 230).getRGB(), this.shadow.getValue());
+            this.drawString(segment, cursor, y + 3.0F, INFO_COLOR, this.shadow.getValue());
             cursor += this.getStringWidth(segment);
         }
         GlStateManager.disableBlend();
     }
 
     public void renderWidgetMask(float x, float y, int color) {
-        WatermarkBounds bounds = this.getBounds(x, y);
+        if (!this.shouldRenderWidgetEffects()) {
+            return;
+        }
+        this.updateLayoutCache();
         RenderUtil.enableRenderState();
-        this.drawBackground(bounds, color);
+        this.drawBackground(x, y, x + this.cachedWidth, y + this.cachedHeight, color);
         RenderUtil.disableRenderState();
     }
 
-    private void drawBackground(WatermarkBounds bounds, int color) {
+    private void drawBackground(float left, float top, float right, float bottom, int color) {
+        if (((color >> 24) & 0xFF) <= 0) {
+            return;
+        }
         if (this.round.getValue()) {
-            RenderUtil.drawRoundedRectangle(bounds.left, bounds.top, bounds.right, bounds.bottom, 2.0F, color);
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
         } else {
-            RenderUtil.drawRect(bounds.left, bounds.top, bounds.right, bounds.bottom, color);
+            RenderUtil.drawRect(left, top, right, bottom, color);
         }
     }
 
     public float[] getWidgetSize() {
-        WatermarkBounds bounds = this.getBounds(0.0F, 0.0F);
-        return new float[]{bounds.width(), bounds.height()};
+        this.updateLayoutCache();
+        return new float[]{this.cachedWidth, this.cachedHeight};
     }
 
-    private WatermarkBounds getBounds(float left, float top) {
+    private void updateLayoutCache() {
+        long now = System.currentTimeMillis();
+        boolean dynamicInfo = this.showFps.getValue() || this.showPing.getValue();
+        boolean dirty = this.cachedFont != this.font.getValue()
+                || this.cachedShowVersion != this.showVersion.getValue()
+                || this.cachedShowFps != this.showFps.getValue()
+                || this.cachedShowPing != this.showPing.getValue()
+                || !this.cachedVersion.equals(Unfair.version)
+                || (dynamicInfo && now - this.cachedInfoTime > 250L);
+        if (!dirty && this.cachedWidth > 0.0F && this.cachedHeight > 0.0F) {
+            return;
+        }
+
+        this.cachedFont = this.font.getValue();
+        this.cachedShowVersion = this.showVersion.getValue();
+        this.cachedShowFps = this.showFps.getValue();
+        this.cachedShowPing = this.showPing.getValue();
+        this.cachedVersion = Unfair.version;
+        this.cachedInfoTime = now;
+        this.cachedSegments = this.buildInfoSegments();
+
         float width = 8.0F + this.getStringWidth("Unfair");
         if (this.showVersion.getValue()) {
             width += this.getStringWidth(" " + Unfair.version);
         }
-        for (String segment : this.getInfoSegments()) {
+        for (String segment : this.cachedSegments) {
             width += 7.0F + this.getStringWidth(segment);
         }
 
-        float height = Math.max(14.0F, this.getFontHeight() + 5.0F);
-        return new WatermarkBounds(left, top, left + width, top + height);
+        this.cachedWidth = width;
+        this.cachedHeight = Math.max(14.0F, this.getFontHeight() + 5.0F);
     }
 
-    private String[] getInfoSegments() {
+    private String[] buildInfoSegments() {
         int count = 0;
         if (this.showFps.getValue()) {
             count++;
@@ -191,27 +231,5 @@ public class WaterMark extends Module {
 
     private void drawSeparator(float x, float y, int color) {
         RenderUtil.drawRect(x, y + 1.5F, x + 1.0F, y + this.getFontHeight() - 1.5F, ColorUtil.darker(new Color(color, true), 0.65F).getRGB());
-    }
-
-    private static class WatermarkBounds {
-        private final float left;
-        private final float top;
-        private final float right;
-        private final float bottom;
-
-        private WatermarkBounds(float left, float top, float right, float bottom) {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
-        }
-
-        private float width() {
-            return this.right - this.left;
-        }
-
-        private float height() {
-            return this.bottom - this.top;
-        }
     }
 }

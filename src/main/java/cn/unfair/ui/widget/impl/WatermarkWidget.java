@@ -7,6 +7,8 @@ import cn.unfair.ui.widget.WidgetAlign;
 import net.minecraft.client.gui.ScaledResolution;
 
 public class WatermarkWidget extends Widget {
+    private WaterMark waterMark;
+
     public WatermarkWidget() {
         super("WaterMark", WidgetAlign.LEFT | WidgetAlign.TOP);
         this.x = 0.01F;
@@ -15,22 +17,22 @@ public class WatermarkWidget extends Widget {
 
     @Override
     public boolean shouldRender() {
-        WaterMark waterMark = (WaterMark) Unfair.moduleManager.getModule(WaterMark.class);
-        return waterMark != null && waterMark.shouldRenderWidget();
+        WaterMark module = this.getWaterMark();
+        return module != null && module.shouldRenderWidget();
     }
 
     @Override
     public boolean shouldRenderBlurMask() {
-        WaterMark waterMark = (WaterMark) Unfair.moduleManager.getModule(WaterMark.class);
-        return waterMark != null && waterMark.shouldRenderWidgetEffects();
+        WaterMark module = this.getWaterMark();
+        return module != null && module.shouldRenderWidgetEffects();
     }
 
     @Override
     public void renderBlurMask(float partialTicks) {
-        WaterMark waterMark = (WaterMark) Unfair.moduleManager.getModule(WaterMark.class);
-        if (waterMark == null) return;
-        this.updateBounds(waterMark);
-        waterMark.renderWidgetMask(this.renderX, this.renderY, 0xFF000000);
+        WaterMark module = this.getWaterMark();
+        if (module == null) return;
+        this.updateBounds(module);
+        module.renderWidgetMask(this.renderX, this.renderY, 0xFF000000);
     }
 
     @Override
@@ -40,24 +42,40 @@ public class WatermarkWidget extends Widget {
 
     @Override
     public void renderBloomMask(float partialTicks) {
-        WaterMark waterMark = (WaterMark) Unfair.moduleManager.getModule(WaterMark.class);
-        if (waterMark == null) return;
-        this.updateBounds(waterMark);
-        waterMark.renderWidgetMask(this.renderX, this.renderY, 0xFFFFFFFF);
+        WaterMark module = this.getWaterMark();
+        if (module == null) return;
+        this.updateBounds(module);
+        module.renderWidgetMask(this.renderX, this.renderY, 0xFFFFFFFF);
     }
 
     @Override
     public void render(float partialTicks) {
-        WaterMark waterMark = (WaterMark) Unfair.moduleManager.getModule(WaterMark.class);
-        if (waterMark == null) return;
-        this.updateBounds(waterMark);
-        waterMark.renderWidget(this.renderX, this.renderY);
+        WaterMark module = this.getWaterMark();
+        if (module == null) return;
+        module.renderWidget(this.renderX, this.renderY);
+    }
+
+    @Override
+    public void updatePos(ScaledResolution sr) {
+        WaterMark module = this.getWaterMark();
+        if (module != null) {
+            float[] size = module.getWidgetSize();
+            this.width = size[0];
+            this.height = size[1];
+        }
+        super.updatePos(sr);
+    }
+
+    private WaterMark getWaterMark() {
+        if (this.waterMark == null && Unfair.moduleManager != null) {
+            this.waterMark = (WaterMark) Unfair.moduleManager.getModule(WaterMark.class);
+        }
+        return this.waterMark;
     }
 
     private void updateBounds(WaterMark waterMark) {
         float[] size = waterMark.getWidgetSize();
         this.width = size[0];
         this.height = size[1];
-        this.updatePos(new ScaledResolution(mc));
     }
 }
