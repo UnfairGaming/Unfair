@@ -83,6 +83,12 @@ public class LagRange extends Module {
 
     @EventTarget(Priority.LOW)
     public void onTick(TickEvent event) {
+
+        BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
+        if (backTrack.isEnabled() && BackTrack.shouldLag) {
+            return;
+        }
+
         if (this.isEnabled()) {
             switch (event.getType()) {
                 case PRE:
@@ -151,6 +157,12 @@ public class LagRange extends Module {
 
     @EventTarget
     public void onPacket(PacketEvent event) {
+
+        BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
+        if (backTrack.isEnabled() && BackTrack.shouldLag) {
+            return;
+        }
+
         if (this.isEnabled()) {
             if (this.shouldResetOnPacket(event.getPacket())) {
                 Unfair.lagManager.setDelay(0);
