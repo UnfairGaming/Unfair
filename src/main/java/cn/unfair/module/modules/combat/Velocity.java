@@ -2,6 +2,7 @@ package cn.unfair.module.modules.combat;
 
 import cn.unfair.mixin.IAccessorEntity;
 import cn.unfair.module.ModuleWithModuleSettings;
+import cn.unfair.module.modules.combat.velocity.DelayVelocity;
 import cn.unfair.module.modules.combat.velocity.PredictionVelocity;
 import cn.unfair.module.modules.combat.velocity.ReduceVelocity;
 import cn.unfair.module.modules.combat.velocity.VanillaVelocity;
@@ -12,7 +13,12 @@ public class Velocity extends ModuleWithModuleSettings {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public Velocity() {
-        super("Velocity", false, "mode", new VanillaVelocity(), new PredictionVelocity(), new ReduceVelocity());
+        super("Velocity", false, "mode",
+                new VanillaVelocity(),
+                new PredictionVelocity(),
+                new ReduceVelocity(),
+                new DelayVelocity()
+        );
     }
 
     public static boolean isInLiquidOrWeb() {
