@@ -55,9 +55,9 @@ public class Scaffold extends Module {
     public final BooleanProperty keepYonPress = new BooleanProperty("keep-y-on-press", false, () -> this.keepY.getValue() != 0);
     public final BooleanProperty multiplace = new BooleanProperty("multi-place", true);
     public final BooleanProperty alwaysClick = new BooleanProperty("always-click", false);
-    public final BooleanProperty raytraceCheck = new BooleanProperty("raytrace-check", true);
-    public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotationMode.getValue() != 0);
-    public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotationMode.getValue() != 0);
+    public final BooleanProperty raytraceCheck = new BooleanProperty("raytrace-check", false);
+    public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
+    public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
     public final IntProperty minCps = new IntProperty("min-cps", 8, 1, 30, this.alwaysClick::getValue);
     public final IntProperty maxCps = new IntProperty("max-cps", 12, 1, 30, this.alwaysClick::getValue);
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
