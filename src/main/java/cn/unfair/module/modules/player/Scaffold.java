@@ -851,7 +851,7 @@ public class Scaffold extends Module {
 
             switch (blockCounterMode.getValue()) {
                 case 0 : {
-                    return;
+                    break;
                 }
 
                 case 1 : {
@@ -873,6 +873,7 @@ public class Scaffold extends Module {
                     GlStateManager.disableBlend();
                     GlStateManager.enableDepth();
                     GlStateManager.popMatrix();
+                    break;
                 }
 
                 case 2 : {
@@ -891,6 +892,7 @@ public class Scaffold extends Module {
                     GlStateManager.disableBlend();
                     GlStateManager.enableDepth();
                     GlStateManager.popMatrix();
+                    break;
                 }
             }
         }
