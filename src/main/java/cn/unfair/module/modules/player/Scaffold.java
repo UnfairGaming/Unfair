@@ -8,6 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
@@ -20,6 +21,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
+import cn.unfair.mixin.IAccessorPlayerControllerMP;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.misc.BedNuker;
 import cn.unfair.module.modules.movement.LongJump;
@@ -52,6 +54,9 @@ public class Scaffold extends Module {
     public final BooleanProperty predictionTower = new BooleanProperty("Prediction Tower", true);
     public final BooleanProperty keepYonPress = new BooleanProperty("keep-y-on-press", false, () -> this.keepY.getValue() != 0);
     public final BooleanProperty multiplace = new BooleanProperty("multi-place", true);
+    public final BooleanProperty alwaysClick = new BooleanProperty("always-click", false);
+    public final IntProperty minCps = new IntProperty("min-cps", 8, 1, 30, this.alwaysClick::getValue);
+    public final IntProperty maxCps = new IntProperty("max-cps", 12, 1, 30, this.alwaysClick::getValue);
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
     public final BooleanProperty sneak = new BooleanProperty("sneak", false);
     public final IntProperty sneakMinDelay = new IntProperty("sneak-min-delay", 2, 0, 10);
@@ -76,6 +81,8 @@ public class Scaffold extends Module {
     private float lastYawChange = 0;
     private float lastPitchChange = 0;
     private EnumFacing targetFacing = null;
+    private final TimerUtil clickTimer = new TimerUtil();
+    private long nextClickDelay = 0L;
 
     public Scaffold() {
         super("Scaffold", false);
@@ -200,7 +207,10 @@ public class Scaffold extends Module {
         }
     }
 
-    private void place(BlockPos blockPos, EnumFacing enumFacing, Vec3 vec3) {
+    private boolean place(BlockPos blockPos, EnumFacing enumFacing, Vec3 vec3) {
+        if (vec3 == null) {
+            return false;
+        }
         if (ItemUtil.isHoldingBlock() && this.blockCount > 0) {
             if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem(), blockPos, enumFacing, vec3)) {
                 if (mc.playerController.getCurrentGameType() != GameType.CREATIVE) {
@@ -211,8 +221,27 @@ public class Scaffold extends Module {
                 } else {
                     PacketUtil.sendPacket(new C0APacketAnimation());
                 }
+                return true;
             }
         }
+        return false;
+    }
+
+    private boolean canAlwaysClick() {
+        return this.alwaysClick.getValue() && ItemUtil.isHoldingBlock() && this.blockCount > 0 && this.clickTimer.hasTimeElapsed(this.nextClickDelay);
+    }
+
+    private void resetClickTimer() {
+        int min = Math.min(this.minCps.getValue(), this.maxCps.getValue());
+        int max = Math.max(this.minCps.getValue(), this.maxCps.getValue());
+        double cps = RandomUtil.nextDouble((double) min, (double) max);
+        this.nextClickDelay = (long) (1000.0D / cps);
+        this.clickTimer.reset();
+    }
+
+    private void sendAlwaysClick() {
+        ((IAccessorPlayerControllerMP) mc.playerController).callSyncCurrentPlayItem();
+        PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()));
     }
 
     private EnumFacing yawToFacing(float yaw) {
@@ -467,6 +496,8 @@ public class Scaffold extends Module {
                 }
                 BlockData blockData = this.getBlockData();
                 Vec3 hitVec = null;
+                boolean canClick = !this.alwaysClick.getValue() || this.canAlwaysClick();
+                boolean clicked = false;
                 if (blockData != null) {
                     double[] x = placeOffsets;
                     double[] y = placeOffsets;
@@ -557,8 +588,8 @@ public class Scaffold extends Module {
                         event.setPervRotation(targetYaw, 3);
                     }
                 }
-                if (blockData != null && hitVec != null && this.rotationTick <= 0) {
-                    this.place(blockData.blockPos(), blockData.facing(), hitVec);
+                if (blockData != null && hitVec != null && this.rotationTick <= 0 && canClick) {
+                    clicked = this.place(blockData.blockPos(), blockData.facing(), hitVec) || clicked;
                     if (this.multiplace.getValue()) {
                         for (int i = 0; i < 3; i++) {
                             blockData = this.getBlockData();
@@ -570,7 +601,7 @@ public class Scaffold extends Module {
                                     && mop.typeOfHit == MovingObjectType.BLOCK
                                     && mop.getBlockPos().equals(blockData.blockPos())
                                     && mop.sideHit == blockData.facing()) {
-                                this.place(blockData.blockPos(), blockData.facing(), mop.hitVec);
+                                clicked = this.place(blockData.blockPos(), blockData.facing(), mop.hitVec) || clicked;
                             } else {
                                 hitVec = BlockUtil.getClickVec(blockData.blockPos(), blockData.facing());
                                 double dx = hitVec.xCoord - mc.thePlayer.posX;
@@ -587,19 +618,21 @@ public class Scaffold extends Module {
                                         || mop.sideHit != blockData.facing()) {
                                     break;
                                 }
-                                this.place(blockData.blockPos(), blockData.facing(), mop.hitVec);
+                                clicked = this.place(blockData.blockPos(), blockData.facing(), mop.hitVec) || clicked;
                             }
                         }
                     }
                 }
                 if (this.targetFacing != null) {
-                    if (this.rotationTick <= 0) {
+                    if (this.rotationTick <= 0 && canClick) {
                         int playerBlockX = MathHelper.floor_double(mc.thePlayer.posX);
                         int playerBlockY = MathHelper.floor_double(mc.thePlayer.posY);
                         int playerBlockZ = MathHelper.floor_double(mc.thePlayer.posZ);
                         BlockPos belowPlayer = new BlockPos(playerBlockX, playerBlockY - 1, playerBlockZ);
                         hitVec = BlockUtil.getHitVec(belowPlayer, this.targetFacing, this.yaw, this.pitch);
-                        this.place(belowPlayer, this.targetFacing, hitVec);
+                        if (hitVec != null) {
+                            clicked = this.place(belowPlayer, this.targetFacing, hitVec) || clicked;
+                        }
                     }
                     this.targetFacing = null;
                 } else if (this.keepY.getValue() == 2 && this.stage > 0 && !mc.thePlayer.onGround) {
@@ -607,11 +640,19 @@ public class Scaffold extends Module {
                     if (nextBlockY <= this.startY && mc.thePlayer.posY > (double) (this.startY + 1)) {
                         this.shouldKeepY = true;
                         blockData = this.getBlockData();
-                        if (blockData != null && this.rotationTick <= 0) {
+                        if (blockData != null && this.rotationTick <= 0 && canClick) {
                             hitVec = BlockUtil.getHitVec(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
-                            this.place(blockData.blockPos(), blockData.facing(), hitVec);
+                            if (hitVec != null) {
+                                clicked = this.place(blockData.blockPos(), blockData.facing(), hitVec) || clicked;
+                            }
                         }
                     }
+                }
+                if (this.alwaysClick.getValue() && canClick) {
+                    if (!clicked) {
+                        this.sendAlwaysClick();
+                    }
+                    this.resetClickTimer();
                 }
             }
         }
@@ -966,6 +1007,8 @@ public class Scaffold extends Module {
         this.lastYawChange = 0;
         this.lastPitchChange = 0;
         this.errorIndex = 0;
+        this.clickTimer.setTime();
+        this.nextClickDelay = 0L;
         for (int i = 0; i < this.lastErrors.length; i++) {
             this.lastErrors[i] = 0.0F;
         }
@@ -990,6 +1033,16 @@ public class Scaffold extends Module {
             case "sneak-max-delay":
                 if (this.sneakMinDelay.getValue() > this.sneakMaxDelay.getValue()) {
                     this.sneakMinDelay.setValue(this.sneakMaxDelay.getValue());
+                }
+                break;
+            case "min-cps":
+                if (this.minCps.getValue() > this.maxCps.getValue()) {
+                    this.maxCps.setValue(this.minCps.getValue());
+                }
+                break;
+            case "max-cps":
+                if (this.minCps.getValue() > this.maxCps.getValue()) {
+                    this.minCps.setValue(this.maxCps.getValue());
                 }
                 break;
         }
