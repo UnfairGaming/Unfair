@@ -25,6 +25,7 @@ import cn.unfair.module.modules.misc.BedNuker;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
@@ -32,6 +33,7 @@ import cn.unfair.util.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
+import org.apache.commons.lang3.RandomUtils;
 
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -51,6 +53,9 @@ public class Scaffold extends Module {
     public final BooleanProperty keepYonPress = new BooleanProperty("keep-y-on-press", false, () -> this.keepY.getValue() != 0);
     public final BooleanProperty multiplace = new BooleanProperty("multi-place", true);
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
+    public final BooleanProperty sneak = new BooleanProperty("sneak", false);
+    public final IntProperty sneakMinDelay = new IntProperty("sneak-min-delay", 2, 0, 10);
+    public final IntProperty sneakMaxDelay = new IntProperty("sneak-max-delay", 3, 0, 10);
     public final BooleanProperty swing = new BooleanProperty("swing", true);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
     public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
@@ -62,6 +67,7 @@ public class Scaffold extends Module {
     private boolean canRotate = false;
     private int towerTick = 0;
     private int towerDelay = 0;
+    private int sneakDelay = 0;
     private int stage = 0;
     private int startY = 256;
     private boolean shouldKeepY = false;
@@ -94,6 +100,23 @@ public class Scaffold extends Module {
         }
     }
 
+    private boolean canMoveSafely() {
+        double[] offset = MoveUtil.predictMovement();
+        double nextX = mc.thePlayer.posX + mc.thePlayer.motionX + offset[0];
+        double nextZ = mc.thePlayer.posZ + mc.thePlayer.motionZ + offset[1];
+        BlockPos nextBlockBelow = new BlockPos(
+                MathHelper.floor_double(nextX),
+                MathHelper.floor_double(mc.thePlayer.posY) - 1,
+                MathHelper.floor_double(nextZ)
+        );
+        return BlockUtil.isReplaceable(nextBlockBelow)
+                || PlayerUtil.canMove(mc.thePlayer.motionX + offset[0], mc.thePlayer.motionZ + offset[1]);
+    }
+
+    private boolean shouldSneak() {
+        return ItemUtil.isHoldingBlock() && mc.thePlayer.onGround;
+    }
+
     private EnumFacing getBestFacing(BlockPos blockPos1, BlockPos blockPos3) {
         double offset = 0.0;
         EnumFacing enumFacing = null;
@@ -110,6 +133,22 @@ public class Scaffold extends Module {
             }
         }
         return enumFacing;
+    }
+
+    @EventTarget(Priority.LOWEST)
+    public void onTick(TickEvent event) {
+        if (!this.sneak.getValue()) {
+            this.sneakDelay = 0;
+            return;
+        }
+        if (this.isEnabled() && event.getType() == EventType.PRE) {
+            if (this.sneakDelay > 0) {
+                this.sneakDelay--;
+            }
+            if (this.sneakDelay == 0 && this.canMoveSafely()) {
+                this.sneakDelay = RandomUtils.nextInt(this.sneakMinDelay.getValue(), this.sneakMaxDelay.getValue() + 1);
+            }
+        }
     }
 
     private BlockData getBlockData() {
@@ -755,7 +794,7 @@ public class Scaffold extends Module {
         }
     }
 
-    @EventTarget
+    @EventTarget(Priority.LOWEST)
     public void onMoveInput(MoveInputEvent event) {
         if (this.isEnabled()) {
             if (this.moveFix.getValue() == 1
@@ -766,6 +805,15 @@ public class Scaffold extends Module {
             }
             if (mc.thePlayer.onGround && this.stage > 0 && MoveUtil.isForwardPressed()) {
                 mc.thePlayer.movementInput.jump = true;
+            }
+            if (this.sneak.getValue()
+                    && mc.currentScreen == null
+                    && !mc.thePlayer.movementInput.sneak
+                    && this.shouldSneak()
+                    && (this.sneakDelay > 0 || this.canMoveSafely())) {
+                mc.thePlayer.movementInput.sneak = true;
+                mc.thePlayer.movementInput.moveStrafe *= 0.3F;
+                mc.thePlayer.movementInput.moveForward *= 0.3F;
             }
         }
     }
@@ -922,6 +970,23 @@ public class Scaffold extends Module {
     public void onDisabled() {
         if (mc.thePlayer != null && this.lastSlot != -1) {
             mc.thePlayer.inventory.currentItem = this.lastSlot;
+        }
+        this.sneakDelay = 0;
+    }
+
+    @Override
+    public void verifyValue(String name) {
+        switch (name) {
+            case "sneak-min-delay":
+                if (this.sneakMinDelay.getValue() > this.sneakMaxDelay.getValue()) {
+                    this.sneakMaxDelay.setValue(this.sneakMinDelay.getValue());
+                }
+                break;
+            case "sneak-max-delay":
+                if (this.sneakMinDelay.getValue() > this.sneakMaxDelay.getValue()) {
+                    this.sneakMinDelay.setValue(this.sneakMaxDelay.getValue());
+                }
+                break;
         }
     }
 

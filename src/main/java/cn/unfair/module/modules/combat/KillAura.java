@@ -451,7 +451,7 @@ public class KillAura extends Module {
         return (mc.thePlayer.isUsingItem() || this.blockingState) && ItemUtil.isHoldingSword();
     }
 
-    @EventTarget(Priority.LOW)
+    @EventTarget(Priority.HIGHEST)
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
             this.shouldRandomize = RandomUtil.nextDouble(0.0D, 100.0D) <= this.offsetChance.getValue();

@@ -3,6 +3,7 @@ package cn.unfair.module.modules.combat;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
 import cn.unfair.events.LeftClickMouseEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.mixin.IAccessorPlayerControllerMP;
@@ -84,7 +85,7 @@ public class AutoRod extends Module {
         this.rodSlot = -1;
     }
 
-    @EventTarget
+    @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
             return;

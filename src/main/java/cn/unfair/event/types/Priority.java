@@ -11,10 +11,11 @@ package cn.unfair.event.types;
  */
 public final class Priority {
     public static final byte
-            /**
-             * Highest priority, called first.
-             */
-            HIGHEST = 0,
+
+    /**
+     * Highest priority, called first.
+     */
+    HIGHEST = 0,
     /**
      * High priority, called after the highest priority.
      */
