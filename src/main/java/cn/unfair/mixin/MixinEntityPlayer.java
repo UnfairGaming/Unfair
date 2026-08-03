@@ -1,5 +1,6 @@
 package cn.unfair.mixin;
 
+import cn.unfair.module.modules.combat.velocity.PolarVelocity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -28,6 +29,38 @@ public abstract class MixinEntityPlayer extends MixinEntityLivingBase {
             return keepSprint.isEnabled() && keepSprint.shouldKeepSprint()
                     ? speed + (1.0 - speed) * (1.0 - keepSprint.slowdown.getValue().doubleValue() / 100.0)
                     : speed;
+        }
+    }
+
+    @Redirect(
+            method = "onLivingUpdate",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/entity/player/EntityPlayer;motionX:D",
+                    ordinal = 0
+            )
+    )
+    private double modifyMotionX(EntityPlayer instance) {
+        if (PolarVelocity.mode.getValue() == 0) {
+            return instance.motionX * 0.59928D;
+        } else {
+            return instance.motionX;
+        }
+    }
+
+    @Redirect(
+            method = "onLivingUpdate",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/entity/player/EntityPlayer;motionZ:D",
+                    ordinal = 0
+            )
+    )
+    private double modifyMotionZ(EntityPlayer instance) {
+        if (PolarVelocity.mode.getValue() == 0) {
+            return instance.motionZ * 0.59928D;
+        } else {
+            return instance.motionZ;
         }
     }
 

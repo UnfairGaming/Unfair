@@ -130,7 +130,7 @@ public class KillAura extends Module {
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX"});
     public boolean attackDisabled = false;
     private final TimerUtil timer = new TimerUtil();
-    private AttackData target = null;
+    public static AttackData target = null;
     private int switchTick = 0;
     private boolean hitRegistered = false;
     private boolean blockingState = false;

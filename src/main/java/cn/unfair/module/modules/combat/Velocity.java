@@ -2,10 +2,7 @@ package cn.unfair.module.modules.combat;
 
 import cn.unfair.mixin.IAccessorEntity;
 import cn.unfair.module.ModuleWithModuleSettings;
-import cn.unfair.module.modules.combat.velocity.DelayVelocity;
-import cn.unfair.module.modules.combat.velocity.PredictionVelocity;
-import cn.unfair.module.modules.combat.velocity.ReduceVelocity;
-import cn.unfair.module.modules.combat.velocity.VanillaVelocity;
+import cn.unfair.module.modules.combat.velocity.*;
 import net.minecraft.client.Minecraft;
 
 public class Velocity extends ModuleWithModuleSettings {
@@ -17,7 +14,8 @@ public class Velocity extends ModuleWithModuleSettings {
                 new VanillaVelocity(),
                 new PredictionVelocity(),
                 new ReduceVelocity(),
-                new DelayVelocity()
+                new DelayVelocity(),
+                new PolarVelocity()
         );
     }
 
