@@ -33,12 +33,12 @@ public class PolarVelocity extends SubModule {
         if (!kb || !isEnabled() || BadPacketUtil.bad() || event.getType() != EventType.PRE) return;
         switch (mode.getValue()) {
             case 0 : {
-                // SET SPEED ON MIXINENTITYPLAYER
+                // set in MixinEntityPlayer
                 break;
             }
 
             case 1 : {
-                // CANCEL PACKET ON PACKET EVENT
+                // cancel in Packet Event
                 break;
             }
             default:
@@ -55,7 +55,7 @@ public class PolarVelocity extends SubModule {
                     kb = true;
                     switch (mode.getValue()) {
                         case 0 : {
-                            // SET SPEED ON MIXINENTITYPLAYER
+                            // set in MixinEntityPlayer
                             break;
                         }
 
