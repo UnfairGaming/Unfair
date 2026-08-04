@@ -30,6 +30,8 @@ public class StencilUtil {
         glEnable(GL_STENCIL_TEST);
         glStencilFunc(GL_ALWAYS, 1, 65535);
         glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        GlStateManager.enableAlpha();
+        glAlphaFunc(GL_GREATER, 0.0f);
         if (!renderClipLayer) {
             GlStateManager.colorMask(false, false, false, false);
         }

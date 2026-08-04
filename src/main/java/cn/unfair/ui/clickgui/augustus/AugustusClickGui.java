@@ -215,7 +215,7 @@ public class AugustusClickGui extends GuiScreen {
         titleFont.drawString("CLICKGUI", posX + 5, posY + 6, new Color(200, 200, 200).getRGB(), false);
 
         RenderUtil.drawRect(posX + 90, posY + 0.5f, posX + 92, posY + guiHeight, new Color(34, 34, 34).getRGB());
-        RenderUtil.drawRect(posX + 90, posY + 40, posX + guiWidth + 0.5f, posY + 42, new Color(34, 34, 34).getRGB());
+        RenderUtil.drawRect(posX + 90, posY + 40, posX + guiWidth, posY + 42, new Color(34, 34, 34).getRGB());
 
         renderCategories(mouseX, mouseY);
         renderModuleList(mouseX, mouseY);

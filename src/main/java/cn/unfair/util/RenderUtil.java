@@ -42,39 +42,42 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 public class RenderUtil {
     private static final String ROUNDED_RECT_SRC =
             "#version 120\n" +
-                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec2 location, rectSize, screenSize;\n" +
                     "uniform vec4 color;\n" +
                     "uniform float radius;\n" +
                     "uniform bool blur;\n" +
                     "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
                     "void main() {\n" +
+                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
                     "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    vec2 pos = screenPos - location - rectHalf;\n" +
                     "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
                     "    gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);\n" +
                     "}";
     private static final String MULTI_RADIUS_SRC =
             "#version 120\n" +
-                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec2 location, rectSize, screenSize;\n" +
                     "uniform vec4 color;\n" +
                     "uniform float radiusTopLeft, radiusTopRight, radiusBottomLeft, radiusBottomRight;\n" +
                     "float roundedBoxSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
                     "void main() {\n" +
+                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
                     "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
-                    "    float r = (pos.x > 0.0) ? ((pos.y > 0.0) ? radiusTopRight : radiusBottomRight) : ((pos.y > 0.0) ? radiusTopLeft : radiusBottomLeft);\n" +
+                    "    vec2 pos = screenPos - location - rectHalf;\n" +
+                    "    float r = (pos.x > 0.0) ? ((pos.y < 0.0) ? radiusTopRight : radiusBottomRight) : ((pos.y < 0.0) ? radiusTopLeft : radiusBottomLeft);\n" +
                     "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundedBoxSDF(pos, rectHalf - r - 0.25, r));\n" +
                     "    gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);\n" +
                     "}";
     private static final String ROUNDED_GRADIENT_SRC =
             "#version 120\n" +
-                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec2 location, rectSize, screenSize;\n" +
                     "uniform vec4 color1, color2, color3, color4;\n" +
                     "uniform float radius;\n" +
                     "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
                     "void main() {\n" +
+                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
                     "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    vec2 pos = screenPos - location - rectHalf;\n" +
                     "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
                     "    vec2 uv = gl_TexCoord[0].st;\n" +
                     "    vec4 left = mix(color1, color2, uv.y);\n" +
@@ -84,13 +87,14 @@ public class RenderUtil {
                     "}";
     private static final String ROUNDED_GRADIENT_OUTLINE_SRC =
             "#version 120\n" +
-                    "uniform vec2 location, rectSize;\n" +
+                    "uniform vec2 location, rectSize, screenSize;\n" +
                     "uniform vec4 color1, color2;\n" +
                     "uniform float radius, thickness;\n" +
                     "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
                     "void main() {\n" +
+                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
                     "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = gl_FragCoord.xy - location - rectHalf;\n" +
+                    "    vec2 pos = screenPos - location - rectHalf;\n" +
                     "    float outer = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
                     "    float innerRadius = max(radius - thickness, 0.0);\n" +
                     "    vec2 innerHalf = max(rectHalf - thickness, vec2(0.0));\n" +
@@ -104,6 +108,7 @@ public class RenderUtil {
         public void onLink() {
             this.setUniform("location");
             this.setUniform("rectSize");
+            this.setUniform("screenSize");
             this.setUniform("color");
             this.setUniform("radius");
             this.setUniform("blur");
@@ -119,6 +124,7 @@ public class RenderUtil {
         public void onLink() {
             this.setUniform("location");
             this.setUniform("rectSize");
+            this.setUniform("screenSize");
             this.setUniform("color");
             this.setUniform("radiusTopLeft");
             this.setUniform("radiusTopRight");
@@ -136,6 +142,7 @@ public class RenderUtil {
         public void onLink() {
             this.setUniform("location");
             this.setUniform("rectSize");
+            this.setUniform("screenSize");
             this.setUniform("color1");
             this.setUniform("color2");
             this.setUniform("color3");
@@ -153,6 +160,7 @@ public class RenderUtil {
         public void onLink() {
             this.setUniform("location");
             this.setUniform("rectSize");
+            this.setUniform("screenSize");
             this.setUniform("color1");
             this.setUniform("color2");
             this.setUniform("radius");
@@ -868,6 +876,7 @@ public class RenderUtil {
 
         GlStateManager.resetColor();
         GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
@@ -904,6 +913,7 @@ public class RenderUtil {
 
         GlStateManager.resetColor();
         GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
@@ -946,6 +956,7 @@ public class RenderUtil {
 
         GlStateManager.resetColor();
         GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
@@ -1056,6 +1067,7 @@ public class RenderUtil {
 
         GlStateManager.resetColor();
         GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
@@ -1168,10 +1180,11 @@ public class RenderUtil {
     private static void setupRoundedRectUniforms(Shader shader, float x, float y, float width, float height) {
         int sf = getScaleFactor();
         float locX = x * sf;
-        float locY = mc.displayHeight - height * sf - y * sf;
+        float locY = y * sf;
 
         GL20.glUniform2f(shader.getUniformLocationCached("location"), locX, locY);
         GL20.glUniform2f(shader.getUniformLocationCached("rectSize"), width * sf, height * sf);
+        GL20.glUniform2f(shader.getUniformLocationCached("screenSize"), mc.displayWidth, mc.displayHeight);
     }
 
     private static void setShaderColor(Shader shader, String uniform, int color) {

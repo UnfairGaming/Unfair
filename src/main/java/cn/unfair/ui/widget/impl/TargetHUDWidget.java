@@ -7,6 +7,8 @@ import cn.unfair.ui.widget.WidgetAlign;
 import net.minecraft.client.gui.ScaledResolution;
 
 public class TargetHUDWidget extends Widget {
+    private TargetHUD activeTargetHUD;
+
     public TargetHUDWidget() {
         super("TargetHUD", WidgetAlign.CENTER | WidgetAlign.MIDDLE);
         this.x = 0.5F;
@@ -16,12 +18,14 @@ public class TargetHUDWidget extends Widget {
     @Override
     public boolean shouldRender() {
         TargetHUD targetHUD = (TargetHUD) Unfair.moduleManager.getModule(TargetHUD.class);
+        this.activeTargetHUD = targetHUD;
         return targetHUD != null && targetHUD.shouldRenderWidget();
     }
 
     @Override
     public boolean shouldRenderBlurMask() {
         TargetHUD targetHUD = (TargetHUD) Unfair.moduleManager.getModule(TargetHUD.class);
+        this.activeTargetHUD = targetHUD;
         return targetHUD != null && targetHUD.shouldRenderWidgetEffects();
     }
 
@@ -55,9 +59,24 @@ public class TargetHUDWidget extends Widget {
     }
 
     private void updateBounds(TargetHUD targetHUD) {
+        this.activeTargetHUD = targetHUD;
         float[] size = targetHUD.getWidgetSize();
         this.width = size[0];
         this.height = size[1];
         this.updatePos(new ScaledResolution(mc));
+    }
+
+    @Override
+    public void updatePos(ScaledResolution sr) {
+        super.updatePos(sr);
+        if (this.activeTargetHUD == null) {
+            return;
+        }
+        float[] followPosition = this.activeTargetHUD.getFollowPosition(this.width, this.height);
+        if (followPosition == null) {
+            return;
+        }
+        this.renderX = clamp(followPosition[0], 0.0F, Math.max(0.0F, sr.getScaledWidth() - this.width));
+        this.renderY = clamp(followPosition[1], 0.0F, Math.max(0.0F, sr.getScaledHeight() - this.height));
     }
 }

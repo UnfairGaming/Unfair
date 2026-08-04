@@ -104,11 +104,22 @@ public class WaterMark extends Module {
         }
         this.updateLayoutCache();
         RenderUtil.enableRenderState();
-        this.drawBackground(x, y, x + this.cachedWidth, y + this.cachedHeight, color);
+        this.drawBackgroundMask(x, y, x + this.cachedWidth, y + this.cachedHeight, color);
         RenderUtil.disableRenderState();
     }
 
     private void drawBackground(float left, float top, float right, float bottom, int color) {
+        if (((color >> 24) & 0xFF) <= 0) {
+            return;
+        }
+        if (this.round.getValue()) {
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
+        } else {
+            RenderUtil.drawRect(left, top, right, bottom, color);
+        }
+    }
+
+    private void drawBackgroundMask(float left, float top, float right, float bottom, int color) {
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }

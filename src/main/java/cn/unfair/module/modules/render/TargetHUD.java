@@ -14,14 +14,20 @@ import net.minecraft.network.play.client.C02PacketUseEntity.Action;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.glu.GLU;
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.Render2DEvent;
+import cn.unfair.mixin.IAccessorActiveRenderInfo;
+import cn.unfair.mixin.IAccessorMinecraft;
+import cn.unfair.mixin.IAccessorRenderManager;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.property.properties.*;
@@ -33,6 +39,8 @@ import cn.unfair.util.TimerUtil;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 public class TargetHUD extends Module {
@@ -40,6 +48,7 @@ public class TargetHUD extends Module {
     private static final DecimalFormat healthFormat = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US));
     private static final DecimalFormat diffFormat = new DecimalFormat("+0.0;-0.0", new DecimalFormatSymbols(Locale.US));
     private static final String FORMAT = "§";
+    private static final float FOLLOW_PLAYER_X_PADDING = 2.0F;
     public final ModeProperty style = new ModeProperty("style", 0, new String[]{"UNFAIR", "RAVENBS-MODERN", "RAVENBS-LEGACY"});
     public final ModeProperty color = new ModeProperty("color", 0, new String[]{"DEFAULT", "HUD"});
     public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
@@ -52,6 +61,7 @@ public class TargetHUD extends Module {
     public final BooleanProperty shadow = new BooleanProperty("shadow", true, () -> this.style.getValue() == 0);
     public final BooleanProperty kaOnly = new BooleanProperty("ka-only", true);
     public final BooleanProperty chatPreview = new BooleanProperty("chat-preview", false);
+    public final BooleanProperty followPlayer = new BooleanProperty("follow-player", false);
     private final TimerUtil lastAttackTimer = new TimerUtil();
     private final TimerUtil animTimer = new TimerUtil();
     private EntityLivingBase lastTarget = null;
@@ -455,6 +465,28 @@ public class TargetHUD extends Module {
         return bounds == null ? new float[]{120.0F, 36.0F} : new float[]{bounds.width(), bounds.height()};
     }
 
+    public boolean shouldFollowPlayer() {
+        EntityLivingBase entity = this.getRenderableEntity();
+        return this.followPlayer.getValue() && entity != null && entity != mc.thePlayer;
+    }
+
+    public float[] getFollowPosition(float width, float height) {
+        EntityLivingBase entity = this.getRenderableEntity();
+        if (!this.followPlayer.getValue() || entity == null || entity == mc.thePlayer) {
+            return null;
+        }
+
+        TargetProjection projection = this.projectEntity(entity);
+        if (projection == null) {
+            return null;
+        }
+
+        return new float[]{
+                projection.right + FOLLOW_PLAYER_X_PADDING,
+                projection.bottom - (projection.bottom - projection.top) / 2.0F - height / 2.0F
+        };
+    }
+
     public void renderWidget(float partialTicks, float x, float y) {
         if (!this.shouldRenderWidget()) {
             return;
@@ -512,6 +544,74 @@ public class TargetHUD extends Module {
         return new RenderData(entity, playerHealthInfo.health, targetHealthInfo.absorption, targetHealthInfo.health, targetHealthInfo.maxHealth);
     }
 
+    private TargetProjection projectEntity(Entity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        IAccessorRenderManager renderManager = (IAccessorRenderManager) mc.getRenderManager();
+        float partialTicks = ((IAccessorMinecraft) mc).getTimer().renderPartialTicks;
+        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks - renderManager.getRenderPosX();
+        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks - renderManager.getRenderPosY();
+        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks - renderManager.getRenderPosZ();
+        double width = (entity.width + 0.14D) / 2.0D;
+        double height = entity.height + (entity.isSneaking() ? -0.1D : 0.2D) + 0.01D;
+        AxisAlignedBB aabb = new AxisAlignedBB(x - width, y, z - width, x + width, y + height, z + width);
+        List<double[]> vectors = Arrays.asList(
+                new double[]{aabb.minX, aabb.minY, aabb.minZ},
+                new double[]{aabb.minX, aabb.maxY, aabb.minZ},
+                new double[]{aabb.maxX, aabb.minY, aabb.minZ},
+                new double[]{aabb.maxX, aabb.maxY, aabb.minZ},
+                new double[]{aabb.minX, aabb.minY, aabb.maxZ},
+                new double[]{aabb.minX, aabb.maxY, aabb.maxZ},
+                new double[]{aabb.maxX, aabb.minY, aabb.maxZ},
+                new double[]{aabb.maxX, aabb.maxY, aabb.maxZ}
+        );
+
+        int scaleFactor = new net.minecraft.client.gui.ScaledResolution(mc).getScaleFactor();
+        TargetProjection projection = null;
+        for (double[] vector : vectors) {
+            TargetPoint projected = this.projectPoint(scaleFactor, vector[0], vector[1], vector[2]);
+            if (projected == null || projected.z < 0.0F || projected.z >= 1.0F) {
+                continue;
+            }
+
+            if (projection == null) {
+                projection = new TargetProjection(projected.x, projected.y, projected.x, projected.y);
+            } else {
+                projection = new TargetProjection(
+                        Math.min(projected.x, projection.left),
+                        Math.min(projected.y, projection.top),
+                        Math.max(projected.x, projection.right),
+                        Math.max(projected.y, projection.bottom)
+                );
+            }
+        }
+
+        return projection;
+    }
+
+    private TargetPoint projectPoint(int scaleFactor, double x, double y, double z) {
+        if (!GLU.gluProject(
+                (float) x,
+                (float) y,
+                (float) z,
+                IAccessorActiveRenderInfo.getModelView(),
+                IAccessorActiveRenderInfo.getProjection(),
+                IAccessorActiveRenderInfo.getViewport(),
+                IAccessorActiveRenderInfo.getObjectCoords()
+        )) {
+            return null;
+        }
+
+        java.nio.FloatBuffer objectCoords = IAccessorActiveRenderInfo.getObjectCoords();
+        return new TargetPoint(
+                objectCoords.get(0) / scaleFactor,
+                (Display.getHeight() - objectCoords.get(1)) / scaleFactor,
+                objectCoords.get(2)
+        );
+    }
+
     private TargetHudBounds getModernBounds(String playerInfo, float widgetX, float widgetY) {
         int padding = 8;
         int targetStrWithPadding = mc.fontRendererObj.getStringWidth(playerInfo) + padding;
@@ -559,6 +659,32 @@ public class TargetHUD extends Module {
 
         private float height() {
             return this.bottom - this.top;
+        }
+    }
+
+    private static class TargetProjection {
+        private final float left;
+        private final float top;
+        private final float right;
+        private final float bottom;
+
+        private TargetProjection(float left, float top, float right, float bottom) {
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+        }
+    }
+
+    private static class TargetPoint {
+        private final float x;
+        private final float y;
+        private final float z;
+
+        private TargetPoint(float x, float y, float z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
     }
 
