@@ -27,7 +27,7 @@ import java.util.Locale;
 public class AltManagerGui extends GuiScreen {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final List<Alt> alts = new ArrayList<>();
-    public static String status = "\u00A7aIdle";
+    public static String status = "§aIdle";
     private static File altFile;
 
     private static final int NAME_LIMIT = 16;
@@ -376,7 +376,7 @@ public class AltManagerGui extends GuiScreen {
         if (dialog == Dialog.CRACKED_LOGIN) {
             String name = crackedField.getText() == null ? "" : crackedField.getText().trim();
             if (!isValidOfflineName(name)) {
-                status = "\u00A7cEnter a valid username";
+                status = "§cEnter a valid username";
                 return;
             }
             addAltAndLogin(name);
@@ -388,7 +388,7 @@ public class AltManagerGui extends GuiScreen {
 
         String token = tokenField.getText() == null ? "" : tokenField.getText().trim();
         if (token.isEmpty()) {
-            status = "\u00A7cToken is empty.";
+            status = "§cToken is empty.";
             return;
         }
         startTokenLogin(token);
@@ -400,7 +400,7 @@ public class AltManagerGui extends GuiScreen {
         selected = alt;
         saveAlts();
         SessionChanger.instance().loginCracked(name);
-        status = "\u00A7aLogged in as " + name;
+        status = "§aLogged in as " + name;
     }
 
     @Override
@@ -424,7 +424,6 @@ public class AltManagerGui extends GuiScreen {
             }
             GuiTextField field = dialog == Dialog.CRACKED_LOGIN ? crackedField : tokenField;
             if (field.textboxKeyTyped(typedChar, keyCode)) {
-                return;
             }
         } else {
             if (keyCode == Keyboard.KEY_TAB) {
@@ -436,7 +435,6 @@ public class AltManagerGui extends GuiScreen {
             if (searchField.textboxKeyTyped(typedChar, keyCode)) {
                 scroll = 0.0F;
                 clampScroll();
-                return;
             }
         }
     }
@@ -476,13 +474,13 @@ public class AltManagerGui extends GuiScreen {
 
     private void loginSelected() {
         if (selected == null) {
-            status = "\u00A7cNo alt selected.";
+            status = "§cNo alt selected.";
             return;
         }
 
         if (selected.isCracked()) {
             SessionChanger.instance().loginCracked(getDisplayName(selected));
-            status = "\u00A7aLogged in as " + getDisplayName(selected);
+            status = "§aLogged in as " + getDisplayName(selected);
         } else if (selected.hasRefreshToken()) {
             SessionChanger.instance().loginWithRefreshToken(selected.getRefreshToken());
         } else {
@@ -507,7 +505,7 @@ public class AltManagerGui extends GuiScreen {
     }
 
     private void cookieLogin() {
-        status = "\u00A7cCookie login not available.";
+        status = "§cCookie login not available.";
     }
 
     private void startWebLogin() {
@@ -516,26 +514,26 @@ public class AltManagerGui extends GuiScreen {
         }
         oauthRunning = true;
         oauthStatus = "";
-        status = "\u00A7aOpening browser...";
+        status = "§aOpening browser...";
         MicrosoftOAuthTranslation.getRefreshToken(token -> {
             if (token == null) {
                 mc.addScheduledTask(() -> {
                     oauthRunning = false;
-                    status = "\u00A7cOAuth failed";
+                    status = "§cOAuth failed";
                 });
                 return;
             }
 
-            mc.addScheduledTask(() -> status = "\u00A76Logging in...");
+            mc.addScheduledTask(() -> status = "§6Logging in...");
             new Thread(() -> {
                 MicrosoftOAuthTranslation.LoginData loginData = MicrosoftOAuthTranslation.login(token);
                 mc.addScheduledTask(() -> {
                     oauthRunning = false;
                     if (loginData.isGood()) {
                         accountFromOAuth(loginData.username, loginData.uuid, loginData.mcToken);
-                        status = "\u00A7aWeb login complete.";
+                        status = "§aWeb login complete.";
                     } else {
-                        status = "\u00A7cWeb login failed: " + (loginData.errorMessage != null ? loginData.errorMessage : "Unknown error");
+                        status = "§cWeb login failed: " + (loginData.errorMessage != null ? loginData.errorMessage : "Unknown error");
                     }
                 });
             }, "Unfair Web Login").start();
@@ -548,7 +546,7 @@ public class AltManagerGui extends GuiScreen {
         }
         oauthRunning = true;
         oauthStatus = "Checking token...";
-        status = "\u00A7aChecking token...";
+        status = "§aChecking token...";
         new Thread(() -> {
             try {
                 MicrosoftOAuthTranslation.LoginData loginData = MicrosoftOAuthTranslation.login(token);
@@ -559,17 +557,17 @@ public class AltManagerGui extends GuiScreen {
                         dialog = Dialog.NONE;
                         tokenField.setText("");
                         oauthStatus = "";
-                        status = "\u00A7aToken login complete.";
+                        status = "§aToken login complete.";
                     } else {
                         oauthStatus = "Token login failed: " + (loginData.errorMessage != null ? loginData.errorMessage : "Unknown error");
-                        status = "\u00A7c" + oauthStatus;
+                        status = "§c" + oauthStatus;
                     }
                 });
             } catch (Exception e) {
                 mc.addScheduledTask(() -> {
                     oauthRunning = false;
                     oauthStatus = "Token login failed: " + shortError(e);
-                    status = "\u00A7c" + oauthStatus;
+                    status = "§c" + oauthStatus;
                 });
             }
         }, "Unfair Token Login").start();
@@ -603,12 +601,12 @@ public class AltManagerGui extends GuiScreen {
         List<Alt> visible = getVisibleAlts();
         selected = visible.isEmpty() ? null : visible.get(0);
         scroll = 0.0F;
-        status = "\u00A7aReloaded accounts.";
+        status = "§aReloaded accounts.";
     }
 
     private void removeSelected() {
         if (selected == null) {
-            status = "\u00A7cNo alt selected.";
+            status = "§cNo alt selected.";
             return;
         }
         alts.remove(selected);
@@ -616,14 +614,14 @@ public class AltManagerGui extends GuiScreen {
         selected = visible.isEmpty() ? null : visible.get(0);
         saveAlts();
         clampScroll();
-        status = "\u00A7aRemoved account.";
+        status = "§aRemoved account.";
     }
 
     private void randomOfflineLogin() {
         String name = RandomOfflineNameGenerator.generate();
         selected = null;
         SessionChanger.instance().loginCracked(name);
-        status = "\u00A7aRandom offline login. (" + name + ")";
+        status = "§aRandom offline login. (" + name + ")";
     }
 
     private List<Alt> getVisibleAlts() {
@@ -670,14 +668,14 @@ public class AltManagerGui extends GuiScreen {
     }
 
     private int statusColor() {
-        if (status.startsWith("\u00A7a")) return new Color(85, 255, 85).getRGB();
-        if (status.startsWith("\u00A7c")) return new Color(255, 85, 85).getRGB();
-        if (status.startsWith("\u00A76")) return new Color(255, 170, 0).getRGB();
+        if (status.startsWith("§a")) return new Color(85, 255, 85).getRGB();
+        if (status.startsWith("§c")) return new Color(255, 85, 85).getRGB();
+        if (status.startsWith("§6")) return new Color(255, 170, 0).getRGB();
         return new Color(235, 245, 245).getRGB();
     }
 
     private String stripColor(String text) {
-        return text == null ? "" : text.replaceAll("\u00A7.", "");
+        return text == null ? "" : text.replaceAll("§.", "");
     }
 
     private String shortError(Throwable error) {
