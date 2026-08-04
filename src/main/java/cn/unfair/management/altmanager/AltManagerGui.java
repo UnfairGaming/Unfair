@@ -1,39 +1,76 @@
 package cn.unfair.management.altmanager;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.ScaledResolution;
-import org.lwjgl.input.Keyboard;
-import cn.unfair.Unfair;
 import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
-import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.util.RenderUtil;
+import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.Fonts;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.ScaledResolution;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
-import java.io.*;
+import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class AltManagerGui extends GuiScreen {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final List<Alt> alts = new ArrayList<>();
-    public static String status = "§aIdle";
+    public static String status = "\u00A7aIdle";
     private static File altFile;
-    // Buttons
+
+    private static final int NAME_LIMIT = 16;
+    private static final int DARK = new Color(1, 1, 1).getRGB();
+    private static final int PANEL = new Color(34, 34, 34).getRGB();
+    private static final int LIGHT = new Color(254, 254, 254).getRGB();
+    private static final int MUTED = new Color(153, 153, 153).getRGB();
+
     private final List<Button> buttons = new ArrayList<>();
-    private final int maxVisibleAlts = 8;
-    private int selectedAlt = -1;
-    private int scrollOffset = 0;
-    // UI dimensions
-    private int guiX, guiY, guiWidth, guiHeight;
-    private int listX, listY, listWidth, listHeight;
-    // Input field (single input for username/cracked)
-    private String usernameInput = "";
-    private boolean inputFocused = false;
+    private final FontRenderer font14 = Fonts.interRegular.get(14.0F);
+    private final FontRenderer font18 = Fonts.interRegular.get(18.0F);
+    private final FontRenderer font20 = Fonts.interRegular.get(20.0F);
+    private final FontRenderer font22 = Fonts.interMedium.get(22.0F);
+    private GuiTextField searchField;
+    private GuiTextField crackedField;
+    private GuiTextField tokenField;
+    private Alt selected;
+    private String oauthStatus = "";
+    private boolean oauthRunning;
+    private boolean searchFocused;
+    private Dialog dialog = Dialog.NONE;
+    private float scroll;
+    private int listX;
+    private int listY;
+    private int listW;
+    private int listH;
+    private int entryHeight;
+    private int buttonBaseX;
+    private int buttonBaseY;
+    private int searchX;
+    private int searchY;
+    private int searchW;
+    private int searchH;
+    private int uiScale = 1;
+    private double mouseX;
+    private double mouseY;
 
     public AltManagerGui() {
         loadAlts();
+        List<Alt> visible = getVisibleAlts();
+        if (!visible.isEmpty()) {
+            selected = visible.get(0);
+        }
     }
 
     private static void loadAlts() {
@@ -41,7 +78,9 @@ public class AltManagerGui extends GuiScreen {
             altFile = new File(mc.mcDataDir, "unfair_alts.txt");
         }
         alts.clear();
-        if (!altFile.exists()) return;
+        if (!altFile.exists()) {
+            return;
+        }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(altFile))) {
             String line;
@@ -67,10 +106,9 @@ public class AltManagerGui extends GuiScreen {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(altFile))) {
             for (Alt alt : alts) {
-                String line = alt.getEmail() + ":" + alt.getPassword() + ":" + alt.isCracked() + ":" +
+                writer.println(alt.getEmail() + ":" + alt.getPassword() + ":" + alt.isCracked() + ":" +
                         (alt.getName() != null ? alt.getName() : "") + ":" +
-                        (alt.getRefreshToken() != null ? alt.getRefreshToken() : "") + ":" + alt.isBanned();
-                writer.println(line);
+                        (alt.getRefreshToken() != null ? alt.getRefreshToken() : "") + ":" + alt.isBanned());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -88,170 +126,327 @@ public class AltManagerGui extends GuiScreen {
     @Override
     public void initGui() {
         ScaledResolution sr = new ScaledResolution(mc);
-        guiWidth = 320;
-        guiHeight = 240;
-        guiX = (sr.getScaledWidth() - guiWidth) / 2;
-        guiY = (sr.getScaledHeight() - guiHeight) / 2;
+        uiScale = Math.max(1, sr.getScaleFactor());
+        float width = sr.getScaledWidth() * uiScale;
+        float height = sr.getScaledHeight() * uiScale;
 
-        listX = guiX + 10;
-        listY = guiY + 30;
-        listWidth = 150;
-        listHeight = 160;
+        listX = u((width - (width - 200.0F)) * 0.5F);
+        listY = u(69.0F);
+        listW = u(width - 200.0F);
+        listH = u(height - 169.0F);
+        entryHeight = u(52.0F);
+
+        buttonBaseX = u(width * 0.5F - 486.0F);
+        buttonBaseY = u(height - 94.0F);
+        searchX = u((width - 790.0F) * 0.5F - 140.0F);
+        searchY = u(height - 40.0F);
+        searchW = u(140.0F);
+        searchH = u(32.0F);
 
         buttons.clear();
-        int btnX = guiX + 170;
-        int btnY = guiY + 30;
-        int btnW = 140;
-        int btnH = 18;
-        int spacing = 22;
+        setupButtons();
 
-        buttons.add(new Button("Login", btnX, btnY, btnW, btnH, () -> loginSelected()));
-        buttons.add(new Button("Add Cracked", btnX, btnY + spacing, btnW, btnH, () -> addCracked()));
-        buttons.add(new Button("Token Login", btnX, btnY + spacing * 2, btnW, btnH, () -> mc.displayGuiScreen(new TokenLoginGui(this))));
-        buttons.add(new Button("Remove", btnX, btnY + spacing * 3, btnW, btnH, () -> removeSelected()));
-        buttons.add(new Button("OAuth Login", btnX, btnY + spacing * 4, btnW, btnH, () -> startOAuth()));
-        buttons.add(new Button("Back", guiX + guiWidth / 2 - 30, guiY + guiHeight - 25, 60, 18, () -> mc.displayGuiScreen(RavenClickGui.getInstance())));
+        if (searchField == null) {
+            searchField = new GuiTextField(0, mc.fontRendererObj, searchX, searchY, searchW, searchH);
+            searchField.setEnableBackgroundDrawing(false);
+            searchField.setMaxStringLength(64);
+        } else {
+            searchField.xPosition = searchX;
+            searchField.yPosition = searchY;
+            searchField.width = searchW;
+            searchField.height = searchH;
+        }
+
+        if (crackedField == null) {
+            crackedField = new GuiTextField(1, mc.fontRendererObj, 0, 0, u(264.0F), u(34.0F));
+            crackedField.setEnableBackgroundDrawing(false);
+            crackedField.setMaxStringLength(NAME_LIMIT);
+        }
+        if (tokenField == null) {
+            tokenField = new GuiTextField(2, mc.fontRendererObj, 0, 0, u(264.0F), u(34.0F));
+            tokenField.setEnableBackgroundDrawing(false);
+            tokenField.setMaxStringLength(4096);
+        }
+
+        clampScroll();
+    }
+
+    private void setupButtons() {
+        int y = buttonBaseY;
+        int wideW = u(180.0F);
+        int shortW = u(146.0F);
+        int buttonH = u(40.0F);
+        buttons.add(new Button("Login", buttonBaseX, y, wideW, buttonH, this::loginSelected));
+        buttons.add(new Button("Cracked Login", buttonBaseX + u(198.0F), y, wideW, buttonH, this::openCrackedDialog));
+        buttons.add(new Button("Cookie Login", buttonBaseX + u(396.0F), y, wideW, buttonH, this::cookieLogin));
+        buttons.add(new Button("Web Login", buttonBaseX + u(594.0F), y, wideW, buttonH, this::startWebLogin));
+        buttons.add(new Button("Token Login", buttonBaseX + u(792.0F), y, wideW, buttonH, this::openTokenDialog));
+
+        y += u(48.0F);
+        buttons.add(new Button("Reload", buttonBaseX + u(162.0F), y, shortW, buttonH, this::reloadAlts));
+        buttons.add(new Button("Random", buttonBaseX + u(324.0F), y, shortW, buttonH, this::randomOfflineLogin));
+        buttons.add(new Button("Remove", buttonBaseX + u(486.0F), y, shortW, buttonH, this::removeSelected));
+        buttons.add(new Button("Back", buttonBaseX + u(648.0F), y, shortW, buttonH, () -> mc.displayGuiScreen(RavenClickGui.getInstance())));
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        // Background
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
         drawDefaultBackground();
 
-        // Main panel
-        RenderUtil.drawRoundedRectangle(guiX, guiY, guiX + guiWidth, guiY + guiHeight, 4, new Color(30, 30, 30, 200).getRGB());
+        drawBackgroundTint();
+        drawHeader();
+        drawList();
+        drawSearch();
+        drawToolbar();
+        drawDialog();
 
-        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        int hudColor = hud.getColor(System.currentTimeMillis()).getRGB();
+        if (dialog == Dialog.NONE) {
+            searchField.drawTextBox();
+        }
+        super.drawScreen(mouseX, mouseY, partialTicks);
+    }
 
-        // Title
-        mc.fontRendererObj.drawStringWithShadow("Alt Manager", guiX + 10, guiY + 10, hudColor);
+    private void drawBackgroundTint() {
+        RenderUtil.drawRect(0.0D, 0.0D, this.width, this.height, withAlpha(DARK, 70));
+    }
 
-        // Status
-        mc.fontRendererObj.drawStringWithShadow("Status: " + status, guiX + 120, guiY + 10, -1);
+    private void drawHeader() {
+        String user = mc.getSession() == null ? "Unknown" : mc.getSession().getUsername();
+        font18.drawString(user, u(20.0F), u(20.0F), new Color(220, 220, 220).getRGB());
 
-        // Alt list background
-        RenderUtil.drawRoundedRectangle(listX, listY, listX + listWidth, listY + listHeight, 2.5F, new Color(20, 20, 20, 180).getRGB());
+        List<Alt> visible = getVisibleAlts();
+        String title = "Account Manager - " + visible.size() + " alts";
+        font18.drawCenteredString(title, this.width * 0.5F, u(20.0F), LIGHT);
+        font18.drawCenteredString(stripColor(status), this.width * 0.5F, u(40.0F), statusColor());
+    }
 
-        // Alt list
-        int itemHeight = 18;
-        int visibleStart = Math.max(0, Math.min(scrollOffset, alts.size() - maxVisibleAlts));
-        int visibleEnd = Math.min(visibleStart + maxVisibleAlts, alts.size());
+    private void drawList() {
+        drawFlatRect(listX, listY, listW, listH, withAlpha(DARK, 72));
 
-        for (int i = visibleStart; i < visibleEnd; i++) {
-            Alt alt = alts.get(i);
-            int itemY = listY + 2 + (i - visibleStart) * itemHeight;
-            boolean isSelected = i == selectedAlt;
-            boolean isHovered = mouseX >= listX && mouseX <= listX + listWidth && mouseY >= itemY && mouseY < itemY + itemHeight;
-
-            int bgColor = isSelected ? hudColor : (isHovered ? new Color(60, 60, 60, 180).getRGB() : new Color(40, 40, 40, 150).getRGB());
-            RenderUtil.drawRoundedRectangle(listX + 2, itemY, listX + listWidth - 2, itemY + itemHeight - 2, 1.5F, bgColor);
-
-            String typeStr = alt.isCracked() ? "Cracked" : "Microsoft";
-            String displayName = alt.getName() != null && !alt.getName().isEmpty() ? alt.getName() : alt.getEmail();
-            if (displayName == null || displayName.isEmpty()) displayName = "Unknown";
-
-            String listText = typeStr + ": " + displayName;
-            if (alt.isBanned()) listText = "§c[Banned] §r" + listText;
-            else if (alt.isCracked()) listText = "§e" + listText;
-            else listText = "§b" + listText;
-
-            mc.fontRendererObj.drawString(listText, listX + 6, itemY + 4, -1);
+        List<Alt> visible = getVisibleAlts();
+        clampScroll(visible);
+        if (visible.isEmpty()) {
+            font14.drawString(searchText().isEmpty() ? "No saved alts." : "No accounts match the search.", listX + u(10.0F), listY + u(14.0F), MUTED);
+            return;
         }
 
-        // Single input field for username
-        int inputX = guiX + 170;
-        int inputY = guiY + 180;
-        int inputW = 140;
-        int inputH = 14;
+        float maxScroll = Math.max(0.0F, visible.size() * entryHeight - listH);
+        scroll = clamp(scroll, 0.0F, maxScroll);
 
-        int inputBorder = inputFocused ? hudColor : new Color(80, 80, 80).getRGB();
-        RenderUtil.drawRoundedRectangle(inputX - 1, inputY - 1, inputX + inputW + 1, inputY + inputH + 1, 1.5F, inputBorder);
-        RenderUtil.drawRoundedRectangle(inputX, inputY, inputX + inputW, inputY + inputH, 1.5F, new Color(20, 20, 20).getRGB());
-        mc.fontRendererObj.drawString("Username/Token:", inputX, inputY - 10, new Color(200, 200, 200).getRGB());
+        RenderUtil.scissor(listX, listY, listW, listH);
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        try {
+            for (int i = 0; i < visible.size(); i++) {
+                Alt alt = visible.get(i);
+                float rowY = listY + u(4.0F) + i * entryHeight - scroll;
+                if (rowY + entryHeight < listY || rowY > listY + listH) {
+                    continue;
+                }
 
-        String inputDisplay = usernameInput.isEmpty() ? (inputFocused ? "_" : "") : usernameInput;
-        if (inputFocused && !usernameInput.isEmpty() && (System.currentTimeMillis() / 500) % 2 == 0) {
-            inputDisplay += "_";
+                boolean selectedRow = alt == selected;
+                boolean hovered = inside(mouseX, mouseY, listX + u(4.0F), rowY, listW - u(8.0F), entryHeight);
+                int fill = selectedRow || hovered ? withAlpha(LIGHT, selectedRow ? 56 : 36) : withAlpha(DARK, 46);
+                drawFlatRect(listX + u(4.0F), rowY, listW - u(8.0F), entryHeight - u(4.0F), fill);
+
+                String name = getDisplayName(alt);
+                String second = (alt.isCracked() ? "Cracked" : "Microsoft") + (alt.isBanned() ? " / Banned" : alt.hasRefreshToken() ? " / Token saved" : "");
+                String email = alt.getEmail() == null ? "" : alt.getEmail();
+
+                font20.drawString(name, listX + u(16.0F), rowY + u(8.0F), LIGHT);
+                font14.drawString(second + (email.isEmpty() || email.equals(name) ? "" : " / " + email), listX + u(16.0F), rowY + u(31.0F), MUTED);
+            }
+        } finally {
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
         }
-        mc.fontRendererObj.drawString(inputDisplay, inputX + 4, inputY + 3, usernameInput.isEmpty() ? new Color(100, 100, 100).getRGB() : -1);
+    }
 
-        // Buttons
-        for (Button btn : buttons) {
-            boolean hovered = mouseX >= btn.x && mouseX <= btn.x + btn.w && mouseY >= btn.y && mouseY <= btn.y + btn.h;
-            int btnColor = hovered ? new Color(hudColor).brighter().getRGB() : hudColor;
-            RenderUtil.drawRoundedRectangle(btn.x, btn.y, btn.x + btn.w, btn.y + btn.h, 2.5F, btnColor);
-            int textWidth = mc.fontRendererObj.getStringWidth(btn.text);
-            mc.fontRendererObj.drawStringWithShadow(btn.text, btn.x + (btn.w - textWidth) / 2, btn.y + 5, -1);
+    private void drawSearch() {
+        drawFlatRect(searchX, searchY, searchW, searchH, withAlpha(PANEL, 230));
+        drawBorder(searchX, searchY, searchW, searchH, withAlpha(LIGHT, searchFocused ? 90 : 34));
+        String text = searchField.getText();
+        if ((text == null || text.isEmpty()) && !searchFocused) {
+            font18.drawString("Search...", searchX + u(9.0F), searchY + u(7.0F), new Color(120, 125, 125).getRGB());
+        }
+    }
+
+    private void drawToolbar() {
+        for (Button button : buttons) {
+            boolean hovered = button.contains(mouseX, mouseY);
+            drawFlatRect(button.x, button.y, button.w, button.h, withAlpha(DARK, hovered ? 216 : 166));
+            if (hovered) {
+                drawBorder(button.x, button.y, button.w, button.h, withAlpha(LIGHT, 44));
+            }
+            font18.drawCenteredString(button.text, button.x + button.w * 0.5F, button.y + centerTextY(button.h, font18), LIGHT);
+        }
+    }
+
+    private void drawDialog() {
+        if (dialog == Dialog.NONE) {
+            return;
         }
 
-        // Scroll info
-        if (alts.size() > maxVisibleAlts) {
-            mc.fontRendererObj.drawString("(" + alts.size() + " alts, scroll)", listX, listY + listHeight + 2, new Color(150, 150, 150).getRGB());
+        float dialogW = u(340.0F);
+        float dialogH = u(210.0F);
+        float x = this.width * 0.5F - dialogW * 0.5F;
+        float y = this.height * 0.5F - dialogH * 0.5F;
+        drawFlatRect(0.0F, 0.0F, this.width, this.height, withAlpha(DARK, 120));
+        drawFlatRect(x + u(4.0F), y + u(4.0F), dialogW, dialogH, withAlpha(DARK, 90));
+        drawFlatRect(x, y, dialogW, dialogH, withAlpha(PANEL, 245));
+        drawBorder(x, y, dialogW, dialogH, withAlpha(LIGHT, 48));
+
+        boolean cracked = dialog == Dialog.CRACKED_LOGIN;
+        String title = cracked ? "Cracked Login" : "Token Login";
+        font22.drawCenteredString(title, x + dialogW * 0.5F, y + u(18.0F), LIGHT);
+        drawFlatRect(x + u(38.0F), y + u(68.0F), u(264.0F), u(34.0F), withAlpha(DARK, 72));
+        drawBorder(x + u(38.0F), y + u(68.0F), u(264.0F), u(34.0F), withAlpha(LIGHT, 42));
+
+        GuiTextField field = cracked ? crackedField : tokenField;
+        field.xPosition = (int) (x + u(46.0F));
+        field.yPosition = (int) (y + u(77.0F));
+        field.width = u(248.0F);
+        field.height = u(18.0F);
+        field.drawTextBox();
+
+        if (!oauthStatus.isEmpty()) {
+            font14.drawCenteredString(oauthStatus, x + dialogW * 0.5F, y + u(113.0F),
+                    oauthStatus.toLowerCase(Locale.ROOT).contains("fail") ? new Color(255, 85, 85).getRGB() : new Color(235, 245, 245).getRGB());
         }
+
+        drawDialogButton(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), "Login");
+        drawDialogButton(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), "Cancel");
+    }
+
+    private void drawDialogButton(float x, float y, float w, float h, String text) {
+        boolean hovered = inside(mouseX, mouseY, x, y, w, h);
+        drawFlatRect(x, y, w, h, withAlpha(DARK, hovered ? 216 : 166));
+        if (hovered) {
+            drawBorder(x, y, w, h, withAlpha(LIGHT, 44));
+        }
+        font18.drawCenteredString(text, x + w * 0.5F, y + centerTextY(h, font18), LIGHT);
     }
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check alt list clicks
-        int itemHeight = 18;
-        for (int i = 0; i < alts.size(); i++) {
-            int itemY = listY + 2 + i * itemHeight - scrollOffset * itemHeight;
-            if (itemY >= listY && itemY < listY + listHeight && mouseX >= listX && mouseX <= listX + listWidth && mouseY >= itemY && mouseY < itemY + itemHeight) {
-                selectedAlt = i;
-                if (mouseButton == 0 && i < alts.size()) {
-                    Alt alt = alts.get(i);
-                    usernameInput = alt.getName() != null ? alt.getName() : alt.getEmail();
-                }
-                return;
-            }
-        }
-
-        // Input field click
-        int inputX = guiX + 170;
-        int inputY = guiY + 180;
-        int inputW = 140;
-        int inputH = 14;
-
-        if (mouseX >= inputX && mouseX <= inputX + inputW && mouseY >= inputY && mouseY <= inputY + inputH) {
-            inputFocused = true;
+        if (dialog != Dialog.NONE) {
+            handleDialogClick(mouseX, mouseY);
             return;
         }
 
-        inputFocused = false;
+        searchFocused = inside(mouseX, mouseY, searchX, searchY, searchW, searchH);
+        searchField.setFocused(searchFocused);
 
-        // Button clicks
-        for (Button btn : buttons) {
-            if (mouseX >= btn.x && mouseX <= btn.x + btn.w && mouseY >= btn.y && mouseY <= btn.y + btn.h) {
-                btn.action.run();
+        if (handleToolbar(mouseX, mouseY)) {
+            return;
+        }
+
+        List<Alt> visible = getVisibleAlts();
+        for (int i = 0; i < visible.size(); i++) {
+            float rowY = listY + u(4.0F) + i * entryHeight - scroll;
+            if (inside(mouseX, mouseY, listX + u(4.0F), rowY, listW - u(8.0F), entryHeight - u(4.0F))) {
+                selected = visible.get(i);
                 return;
             }
         }
+    }
+
+    private void handleDialogClick(int mouseX, int mouseY) {
+        float dialogW = u(340.0F);
+        float dialogH = u(210.0F);
+        float x = this.width * 0.5F - dialogW * 0.5F;
+        float y = this.height * 0.5F - dialogH * 0.5F;
+        GuiTextField field = dialog == Dialog.CRACKED_LOGIN ? crackedField : tokenField;
+        boolean login = inside(mouseX, mouseY, x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F));
+        boolean cancel = inside(mouseX, mouseY, x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F));
+        boolean fieldClick = inside(mouseX, mouseY, x + u(38.0F), y + u(68.0F), u(264.0F), u(34.0F));
+        field.setFocused(fieldClick);
+
+        if (login) {
+            submitDialog();
+        } else if (cancel || !inside(mouseX, mouseY, x, y, dialogW, dialogH)) {
+            dialog = Dialog.NONE;
+            oauthStatus = "";
+            crackedField.setFocused(false);
+            tokenField.setFocused(false);
+        }
+    }
+
+    private void submitDialog() {
+        if (dialog == Dialog.CRACKED_LOGIN) {
+            String name = crackedField.getText() == null ? "" : crackedField.getText().trim();
+            if (!isValidOfflineName(name)) {
+                status = "\u00A7cEnter a valid username";
+                return;
+            }
+            addAltAndLogin(name);
+            crackedField.setText("");
+            crackedField.setFocused(false);
+            dialog = Dialog.NONE;
+            return;
+        }
+
+        String token = tokenField.getText() == null ? "" : tokenField.getText().trim();
+        if (token.isEmpty()) {
+            status = "\u00A7cToken is empty.";
+            return;
+        }
+        startTokenLogin(token);
+    }
+
+    private void addAltAndLogin(String name) {
+        Alt alt = new Alt(name, "", name, true);
+        alts.add(0, alt);
+        selected = alt;
+        saveAlts();
+        SessionChanger.instance().loginCracked(name);
+        status = "\u00A7aLogged in as " + name;
     }
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) {
         if (keyCode == Keyboard.KEY_ESCAPE) {
-            mc.displayGuiScreen(RavenClickGui.getInstance());
+            if (dialog != Dialog.NONE) {
+                dialog = Dialog.NONE;
+                crackedField.setFocused(false);
+                tokenField.setFocused(false);
+                oauthStatus = "";
+            } else {
+                mc.displayGuiScreen(RavenClickGui.getInstance());
+            }
             return;
         }
 
-        if (keyCode == Keyboard.KEY_TAB) {
-            inputFocused = !inputFocused;
-            return;
-        }
+        if (dialog != Dialog.NONE) {
+            if (keyCode == Keyboard.KEY_RETURN) {
+                submitDialog();
+                return;
+            }
+            GuiTextField field = dialog == Dialog.CRACKED_LOGIN ? crackedField : tokenField;
+            if (field.textboxKeyTyped(typedChar, keyCode)) {
+                return;
+            }
+        } else {
+            if (keyCode == Keyboard.KEY_TAB) {
+                searchFocused = !searchFocused;
+                searchField.setFocused(searchFocused);
+                return;
+            }
 
-        if (inputFocused) {
-            if (keyCode == Keyboard.KEY_BACK) {
-                if (!usernameInput.isEmpty()) usernameInput = usernameInput.substring(0, usernameInput.length() - 1);
-            } else if (isValidChar(typedChar) && usernameInput.length() < 64) {
-                usernameInput += typedChar;
+            if (searchField.textboxKeyTyped(typedChar, keyCode)) {
+                scroll = 0.0F;
+                clampScroll();
+                return;
             }
         }
     }
 
-    private boolean isValidChar(char c) {
-        return c >= 32 && c < 127;
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        searchField.updateCursorCounter();
+        crackedField.updateCursorCounter();
+        tokenField.updateCursorCounter();
     }
 
     @Override
@@ -261,84 +456,276 @@ public class AltManagerGui extends GuiScreen {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        int scroll = org.lwjgl.input.Mouse.getEventDWheel();
-        if (scroll != 0) {
-            scrollOffset += scroll > 0 ? -1 : 1;
-            scrollOffset = Math.max(0, Math.min(scrollOffset, Math.max(0, alts.size() - maxVisibleAlts)));
+
+        int wheel = Mouse.getEventDWheel();
+        if (wheel != 0 && dialog == Dialog.NONE && inside(Mouse.getEventX() * this.width / mc.displayWidth, this.height - Mouse.getEventY() * this.height / mc.displayHeight - 1, listX, listY, listW, listH)) {
+            scroll += wheel > 0 ? -24.0F : 24.0F;
+            clampScroll();
         }
+    }
+
+    private boolean handleToolbar(int mouseX, int mouseY) {
+        for (Button button : buttons) {
+            if (button.contains(mouseX, mouseY)) {
+                button.action.run();
+                return true;
+            }
+        }
+        return false;
     }
 
     private void loginSelected() {
-        if (selectedAlt < 0 || selectedAlt >= alts.size()) {
-            status = "§cNo alt selected";
+        if (selected == null) {
+            status = "\u00A7cNo alt selected.";
             return;
         }
-        Alt alt = alts.get(selectedAlt);
-        if (alt.isCracked()) {
-            SessionChanger.instance().loginCracked(alt.getEmail());
-            status = "§aLogged in as " + alt.getEmail();
+
+        if (selected.isCracked()) {
+            SessionChanger.instance().loginCracked(getDisplayName(selected));
+            status = "\u00A7aLogged in as " + getDisplayName(selected);
+        } else if (selected.hasRefreshToken()) {
+            SessionChanger.instance().loginWithRefreshToken(selected.getRefreshToken());
         } else {
-            if (alt.hasRefreshToken()) {
-                SessionChanger.instance().loginWithRefreshToken(alt.getRefreshToken());
-            } else {
-                SessionChanger.instance().loginMicrosoft(alt.getEmail(), alt.getPassword());
-            }
+            SessionChanger.instance().loginMicrosoft(selected.getEmail(), selected.getPassword());
         }
     }
 
-    private void addCracked() {
-        if (usernameInput.isEmpty()) {
-            status = "§cEnter a username";
+    private void openCrackedDialog() {
+        dialog = Dialog.CRACKED_LOGIN;
+        oauthStatus = "";
+        crackedField.setText("");
+        crackedField.setFocused(true);
+        tokenField.setFocused(false);
+    }
+
+    private void openTokenDialog() {
+        dialog = Dialog.TOKEN_LOGIN;
+        oauthStatus = "";
+        tokenField.setText("");
+        tokenField.setFocused(true);
+        crackedField.setFocused(false);
+    }
+
+    private void cookieLogin() {
+        status = "\u00A7cCookie login not available.";
+    }
+
+    private void startWebLogin() {
+        if (oauthRunning) {
             return;
         }
-        Alt alt = new Alt(usernameInput, "", usernameInput, true);
-        alts.add(alt);
+        oauthRunning = true;
+        oauthStatus = "";
+        status = "\u00A7aOpening browser...";
+        MicrosoftOAuthTranslation.getRefreshToken(token -> {
+            if (token == null) {
+                mc.addScheduledTask(() -> {
+                    oauthRunning = false;
+                    status = "\u00A7cOAuth failed";
+                });
+                return;
+            }
+
+            mc.addScheduledTask(() -> status = "\u00A76Logging in...");
+            new Thread(() -> {
+                MicrosoftOAuthTranslation.LoginData loginData = MicrosoftOAuthTranslation.login(token);
+                mc.addScheduledTask(() -> {
+                    oauthRunning = false;
+                    if (loginData.isGood()) {
+                        accountFromOAuth(loginData.username, loginData.uuid, loginData.mcToken);
+                        status = "\u00A7aWeb login complete.";
+                    } else {
+                        status = "\u00A7cWeb login failed: " + (loginData.errorMessage != null ? loginData.errorMessage : "Unknown error");
+                    }
+                });
+            }, "Unfair Web Login").start();
+        });
+    }
+
+    private void startTokenLogin(String token) {
+        if (oauthRunning) {
+            return;
+        }
+        oauthRunning = true;
+        oauthStatus = "Checking token...";
+        status = "\u00A7aChecking token...";
+        new Thread(() -> {
+            try {
+                MicrosoftOAuthTranslation.LoginData loginData = MicrosoftOAuthTranslation.login(token);
+                mc.addScheduledTask(() -> {
+                    oauthRunning = false;
+                    if (loginData.isGood()) {
+                        accountFromOAuth(loginData.username, loginData.uuid, loginData.mcToken);
+                        dialog = Dialog.NONE;
+                        tokenField.setText("");
+                        oauthStatus = "";
+                        status = "\u00A7aToken login complete.";
+                    } else {
+                        oauthStatus = "Token login failed: " + (loginData.errorMessage != null ? loginData.errorMessage : "Unknown error");
+                        status = "\u00A7c" + oauthStatus;
+                    }
+                });
+            } catch (Exception e) {
+                mc.addScheduledTask(() -> {
+                    oauthRunning = false;
+                    oauthStatus = "Token login failed: " + shortError(e);
+                    status = "\u00A7c" + oauthStatus;
+                });
+            }
+        }, "Unfair Token Login").start();
+    }
+
+    private void accountFromOAuth(String name, String uuid, String accessToken) {
+        Alt existing = null;
+        for (Alt alt : alts) {
+            if (alt.getName() != null && alt.getName().equalsIgnoreCase(name)) {
+                existing = alt;
+                break;
+            }
+        }
+
+        if (existing != null) {
+            existing.setUuid(uuid);
+            existing.setRefreshToken(accessToken);
+            selected = existing;
+        } else {
+            Alt alt = new Alt(name, "", name, false);
+            alt.setUuid(uuid);
+            alt.setRefreshToken(accessToken);
+            alts.add(0, alt);
+            selected = alt;
+        }
         saveAlts();
-        usernameInput = "";
-        status = "§aAdded cracked alt";
+    }
+
+    private void reloadAlts() {
+        loadAlts();
+        List<Alt> visible = getVisibleAlts();
+        selected = visible.isEmpty() ? null : visible.get(0);
+        scroll = 0.0F;
+        status = "\u00A7aReloaded accounts.";
     }
 
     private void removeSelected() {
-        if (selectedAlt < 0 || selectedAlt >= alts.size()) {
-            status = "§cNo alt selected";
+        if (selected == null) {
+            status = "\u00A7cNo alt selected.";
             return;
         }
-        alts.remove(selectedAlt);
-        if (selectedAlt >= alts.size()) selectedAlt = alts.size() - 1;
+        alts.remove(selected);
+        List<Alt> visible = getVisibleAlts();
+        selected = visible.isEmpty() ? null : visible.get(0);
         saveAlts();
-        status = "§aRemoved alt";
+        clampScroll();
+        status = "\u00A7aRemoved account.";
     }
 
-    private void startOAuth() {
-        status = "§6Waiting for browser...";
-        MicrosoftOAuthTranslation.getRefreshToken(token -> {
-            if (token != null) {
-                mc.addScheduledTask(() -> status = "§6Logging in...");
+    private void randomOfflineLogin() {
+        String name = RandomOfflineNameGenerator.generate();
+        selected = null;
+        SessionChanger.instance().loginCracked(name);
+        status = "\u00A7aRandom offline login. (" + name + ")";
+    }
 
-                // Login to get username first
-                new Thread(() -> {
-                    MicrosoftOAuthTranslation.LoginData loginData = MicrosoftOAuthTranslation.login(token);
-                    mc.addScheduledTask(() -> {
-                        if (loginData.isGood()) {
-                            // Create alt with real username
-                            Alt alt = new Alt(loginData.username, "", loginData.username, false);
-                            alt.setRefreshToken(token);
-                            alt.setUuid(loginData.uuid);
-                            alts.add(alt);
-                            saveAlts();
-
-                            // Set session
-                            SessionChanger.instance().setSessionWithData(loginData);
-                            status = "§aLogged in as " + loginData.username;
-                        } else {
-                            status = "§cOAuth login failed: " + (loginData.errorMessage != null ? loginData.errorMessage : "Unknown error");
-                        }
-                    });
-                }).start();
-            } else {
-                mc.addScheduledTask(() -> status = "§cOAuth failed");
+    private List<Alt> getVisibleAlts() {
+        List<Alt> visible = new ArrayList<>();
+        String query = searchText().toLowerCase(Locale.ROOT);
+        for (Alt alt : alts) {
+            if (query.isEmpty() || getDisplayName(alt).toLowerCase(Locale.ROOT).contains(query) ||
+                    (alt.getEmail() != null && alt.getEmail().toLowerCase(Locale.ROOT).contains(query))) {
+                visible.add(alt);
             }
-        });
+        }
+        return visible;
+    }
+
+    private void clampScroll() {
+        clampScroll(getVisibleAlts());
+    }
+
+    private void clampScroll(List<Alt> visible) {
+        float maxScroll = Math.max(0.0F, visible.size() * entryHeight - listH);
+        scroll = clamp(scroll, 0.0F, maxScroll);
+    }
+
+    private String searchText() {
+        return searchField == null || searchField.getText() == null ? "" : searchField.getText().trim();
+    }
+
+    private boolean isValidOfflineName(String text) {
+        if (text == null || text.length() < 1 || text.length() > NAME_LIMIT) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (!(c >= '0' && c <= '9') && !(c >= 'A' && c <= 'Z') && !(c >= 'a' && c <= 'z') && c != '_') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String getDisplayName(Alt alt) {
+        String displayName = alt.getName() != null && !alt.getName().isEmpty() ? alt.getName() : alt.getEmail();
+        return displayName == null || displayName.isEmpty() ? "Unknown" : displayName;
+    }
+
+    private int statusColor() {
+        if (status.startsWith("\u00A7a")) return new Color(85, 255, 85).getRGB();
+        if (status.startsWith("\u00A7c")) return new Color(255, 85, 85).getRGB();
+        if (status.startsWith("\u00A76")) return new Color(255, 170, 0).getRGB();
+        return new Color(235, 245, 245).getRGB();
+    }
+
+    private String stripColor(String text) {
+        return text == null ? "" : text.replaceAll("\u00A7.", "");
+    }
+
+    private String shortError(Throwable error) {
+        Throwable cause = error;
+        while (cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        String message = cause.getMessage();
+        if (message == null || message.trim().isEmpty()) {
+            message = cause.getClass().getSimpleName();
+        }
+        message = message.replace('\n', ' ').replace('\r', ' ');
+        return message.length() > 42 ? message.substring(0, 42) + "..." : message;
+    }
+
+    private int u(float pixels) {
+        return Math.round(pixels / Math.max(1, uiScale));
+    }
+
+    private float centerTextY(float height, FontRenderer font) {
+        return (height - font.getHeight()) * 0.5F + u(1.0F);
+    }
+
+    private void drawFlatRect(float x, float y, float w, float h, int color) {
+        RenderUtil.drawRect(x, y, x + w, y + h, color);
+    }
+
+    private void drawBorder(float x, float y, float w, float h, int color) {
+        RenderUtil.drawRect(x, y, x + w, y + 1.0F, color);
+        RenderUtil.drawRect(x, y + h - 1.0F, x + w, y + h, color);
+        RenderUtil.drawRect(x, y, x + 1.0F, y + h, color);
+        RenderUtil.drawRect(x + w - 1.0F, y, x + w, y + h, color);
+    }
+
+    private int withAlpha(int color, int alpha) {
+        return (clamp(alpha, 0, 255) << 24) | (color & 0x00FFFFFF);
+    }
+
+    private float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private boolean inside(double mx, double my, float x, float y, float w, float h) {
+        return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
 
     @Override
@@ -346,18 +733,31 @@ public class AltManagerGui extends GuiScreen {
         return false;
     }
 
-    private static class Button {
-        String text;
-        int x, y, w, h;
-        Runnable action;
+    private enum Dialog {
+        NONE,
+        CRACKED_LOGIN,
+        TOKEN_LOGIN
+    }
 
-        Button(String text, int x, int y, int w, int h, Runnable action) {
+    private static class Button {
+        private final String text;
+        private final int x;
+        private final int y;
+        private final int w;
+        private final int h;
+        private final Runnable action;
+
+        private Button(String text, int x, int y, int w, int h, Runnable action) {
             this.text = text;
             this.x = x;
             this.y = y;
             this.w = w;
             this.h = h;
             this.action = action;
+        }
+
+        private boolean contains(double mouseX, double mouseY) {
+            return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
         }
     }
 }
