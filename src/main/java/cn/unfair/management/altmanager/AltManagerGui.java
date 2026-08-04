@@ -1,13 +1,13 @@
 package cn.unfair.management.altmanager;
 
 import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
-import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.ui.mainmenu.MainMenuButtonPostProcessor;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.ScaledResolution;
@@ -61,8 +61,14 @@ public class AltManagerGui extends GuiScreen {
     private int uiScale = 1;
     private double mouseX;
     private double mouseY;
+    private final GuiScreen parentScreen;
 
     public AltManagerGui() {
+        this(new GuiMainMenu());
+    }
+
+    public AltManagerGui(GuiScreen parentScreen) {
+        this.parentScreen = parentScreen == null ? new GuiMainMenu() : parentScreen;
         loadAlts();
         List<Alt> visible = getVisibleAlts();
         if (!visible.isEmpty()) {
@@ -168,7 +174,7 @@ public class AltManagerGui extends GuiScreen {
         buttons.add(new Button("Reload", buttonBaseX + u(162.0F), y, shortW, buttonH, this::reloadAlts));
         buttons.add(new Button("Random", buttonBaseX + u(324.0F), y, shortW, buttonH, this::randomOfflineLogin));
         buttons.add(new Button("Remove", buttonBaseX + u(486.0F), y, shortW, buttonH, this::removeSelected));
-        buttons.add(new Button("Back", buttonBaseX + u(648.0F), y, shortW, buttonH, () -> mc.displayGuiScreen(RavenClickGui.getInstance())));
+        buttons.add(new Button("Back", buttonBaseX + u(648.0F), y, shortW, buttonH, this::closeScreen));
     }
 
     @Override
@@ -387,7 +393,7 @@ public class AltManagerGui extends GuiScreen {
                 tokenField.setFocused(false);
                 oauthStatus = "";
             } else {
-                mc.displayGuiScreen(RavenClickGui.getInstance());
+                closeScreen();
             }
             return;
         }
@@ -433,6 +439,10 @@ public class AltManagerGui extends GuiScreen {
             }
         }
         return false;
+    }
+
+    private void closeScreen() {
+        mc.displayGuiScreen(parentScreen);
     }
 
     private void loginSelected() {

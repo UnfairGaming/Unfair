@@ -70,7 +70,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
     @Inject(method = "actionPerformed", at = @At("HEAD"), cancellable = true)
     private void onActionPerformed(GuiButton button, CallbackInfo ci) {
         if (button.id == ALT_MANAGER_BUTTON_ID) {
-            Minecraft.getMinecraft().displayGuiScreen(new AltManagerGui());
+            Minecraft.getMinecraft().displayGuiScreen(new AltManagerGui((GuiScreen) (Object) this));
             ci.cancel();
         }
     }

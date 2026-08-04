@@ -4,6 +4,7 @@ Unfair 是一个面向 Minecraft 1.8.9 的 Forge 客户端模组，以 OpenMyau+
 
 ### 鸣谢
 
+- Demise
 - OpenMyau https://github.com/60124808866/OpenMyau
 - Epilogue https://github.com/qm123pz/Epilogue-Client
 - 其他...

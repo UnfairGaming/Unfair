@@ -1,7 +1,5 @@
 package cn.unfair;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import cn.unfair.command.CommandManager;
 import cn.unfair.command.commands.*;
 import cn.unfair.config.Config;
@@ -16,15 +14,12 @@ import cn.unfair.property.PropertyManager;
 import cn.unfair.ui.widget.WidgetManager;
 import cn.unfair.ui.widget.impl.HudWidgets;
 
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class Unfair {
     public static String clientName = "&l[&b&lUnfair&f&l]&r ";
-    public static String version;
+    public static String version = "B16";
     public static RotationManager rotationManager;
     public static FloatManager floatManager;
     public static BlinkManager blinkManager;
@@ -125,12 +120,5 @@ public class Unfair {
             config.save();
             widgetConfig.save();
         }));
-
-        try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(Unfair.class.getResourceAsStream("/version.json")), StandardCharsets.UTF_8)) {
-            JsonObject modInfo = new JsonParser().parse(reader).getAsJsonObject();
-            version = modInfo.get("version").getAsString();
-        } catch (Exception e) {
-            version = "error";
-        }
     }
 }

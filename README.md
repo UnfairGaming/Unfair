@@ -2,10 +2,17 @@
 
 Unfair is a Forge client mod for Minecraft 1.8.9. It is based on OpenMyau+7 and provides more customizable modules.
 
+### Developers
+
+- UnfairGaming
+- Un1336(qm123pz)
+
 ### Credits
 
+- Demise
 - OpenMyau https://github.com/60124808866/OpenMyau
 - Epilogue https://github.com/qm123pz/Epilogue-Client
+- 
 - And others...
 
 ## Usage

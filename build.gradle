@@ -13,6 +13,11 @@ def mcVersion = project.property('mcVersion')
 def modid = project.property('modid')
 def jarName = project.property('jarName')
 def transformerFile = file('src/main/resources/accesstransformer.cfg')
+def clientVersionMatcher = (file('src/main/java/cn/unfair/Unfair.java').text =~ /public\s+static\s+String\s+version\s*=\s*"([^"]+)"/)
+if (!clientVersionMatcher.find()) {
+    throw new GradleException('Unable to read Unfair.version from main class')
+}
+version = clientVersionMatcher.group(1)
 
 java {
     toolchain {
