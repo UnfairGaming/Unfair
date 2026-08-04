@@ -1,7 +1,14 @@
 package cn.unfair.util.postprocessing;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class ShaderUtils {
     private static final String DEFAULT_VERTEX = "#version 120\n" +
@@ -54,7 +61,21 @@ public class ShaderUtils {
             case "kawaseUpBloom":
                 return KAWASE_UP_BLOOM;
             default:
-                return name;
+                return name.contains(":") ? loadResource(name) : name;
+        }
+    }
+
+    private String loadResource(String location) {
+        try (InputStream inputStream = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(location)).getInputStream()) {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, length);
+            }
+            return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load shader resource: " + location, e);
         }
     }
 

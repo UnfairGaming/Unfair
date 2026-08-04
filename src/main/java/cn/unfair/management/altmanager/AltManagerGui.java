@@ -2,6 +2,8 @@ package cn.unfair.management.altmanager;
 
 import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 import cn.unfair.ui.clickgui.raven.RavenClickGui;
+import cn.unfair.ui.mainmenu.MainMenuButtonPostProcessor;
+import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -35,19 +37,18 @@ public class AltManagerGui extends GuiScreen {
     private static final int PANEL = new Color(34, 34, 34).getRGB();
     private static final int LIGHT = new Color(254, 254, 254).getRGB();
     private static final int MUTED = new Color(153, 153, 153).getRGB();
+    private static final float BUTTON_RADIUS = 7.0F;
 
     private final List<Button> buttons = new ArrayList<>();
     private final FontRenderer font14 = Fonts.interRegular.get(14.0F);
     private final FontRenderer font18 = Fonts.interRegular.get(18.0F);
     private final FontRenderer font20 = Fonts.interRegular.get(20.0F);
     private final FontRenderer font22 = Fonts.interMedium.get(22.0F);
-    private GuiTextField searchField;
     private GuiTextField crackedField;
     private GuiTextField tokenField;
     private Alt selected;
     private String oauthStatus = "";
     private boolean oauthRunning;
-    private boolean searchFocused;
     private Dialog dialog = Dialog.NONE;
     private float scroll;
     private int listX;
@@ -57,10 +58,6 @@ public class AltManagerGui extends GuiScreen {
     private int entryHeight;
     private int buttonBaseX;
     private int buttonBaseY;
-    private int searchX;
-    private int searchY;
-    private int searchW;
-    private int searchH;
     private int uiScale = 1;
     private double mouseX;
     private double mouseY;
@@ -138,24 +135,9 @@ public class AltManagerGui extends GuiScreen {
 
         buttonBaseX = u(width * 0.5F - 486.0F);
         buttonBaseY = u(height - 94.0F);
-        searchX = u((width - 790.0F) * 0.5F - 140.0F);
-        searchY = u(height - 40.0F);
-        searchW = u(140.0F);
-        searchH = u(32.0F);
 
         buttons.clear();
         setupButtons();
-
-        if (searchField == null) {
-            searchField = new GuiTextField(0, mc.fontRendererObj, searchX, searchY, searchW, searchH);
-            searchField.setEnableBackgroundDrawing(false);
-            searchField.setMaxStringLength(64);
-        } else {
-            searchField.xPosition = searchX;
-            searchField.yPosition = searchY;
-            searchField.width = searchW;
-            searchField.height = searchH;
-        }
 
         if (crackedField == null) {
             crackedField = new GuiTextField(1, mc.fontRendererObj, 0, 0, u(264.0F), u(34.0F));
@@ -193,23 +175,18 @@ public class AltManagerGui extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
-        drawDefaultBackground();
-
+        MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
         drawBackgroundTint();
         drawHeader();
         drawList();
-        drawSearch();
+        renderToolbarPostProcessing();
         drawToolbar();
         drawDialog();
-
-        if (dialog == Dialog.NONE) {
-            searchField.drawTextBox();
-        }
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     private void drawBackgroundTint() {
-        RenderUtil.drawRect(0.0D, 0.0D, this.width, this.height, withAlpha(DARK, 70));
+        RenderUtil.drawRect(0.0D, 0.0D, this.width, this.height, withAlpha(DARK, 30));
     }
 
     private void drawHeader() {
@@ -228,7 +205,7 @@ public class AltManagerGui extends GuiScreen {
         List<Alt> visible = getVisibleAlts();
         clampScroll(visible);
         if (visible.isEmpty()) {
-            font14.drawString(searchText().isEmpty() ? "No saved alts." : "No accounts match the search.", listX + u(10.0F), listY + u(14.0F), MUTED);
+            font14.drawString("No saved alts.", listX + u(10.0F), listY + u(14.0F), MUTED);
             return;
         }
 
@@ -262,24 +239,20 @@ public class AltManagerGui extends GuiScreen {
         }
     }
 
-    private void drawSearch() {
-        drawFlatRect(searchX, searchY, searchW, searchH, withAlpha(PANEL, 230));
-        drawBorder(searchX, searchY, searchW, searchH, withAlpha(LIGHT, searchFocused ? 90 : 34));
-        String text = searchField.getText();
-        if ((text == null || text.isEmpty()) && !searchFocused) {
-            font18.drawString("Search...", searchX + u(9.0F), searchY + u(7.0F), new Color(120, 125, 125).getRGB());
-        }
-    }
-
     private void drawToolbar() {
         for (Button button : buttons) {
             boolean hovered = button.contains(mouseX, mouseY);
-            drawFlatRect(button.x, button.y, button.w, button.h, withAlpha(DARK, hovered ? 216 : 166));
-            if (hovered) {
-                drawBorder(button.x, button.y, button.w, button.h, withAlpha(LIGHT, 44));
-            }
-            font18.drawCenteredString(button.text, button.x + button.w * 0.5F, button.y + centerTextY(button.h, font18), LIGHT);
+            MainMenuStyle.drawButton(button.x, button.y, button.w, button.h, BUTTON_RADIUS, hovered);
+            MainMenuStyle.drawCenteredInBox(font18, button.text, button.x, button.y, button.w, button.h, LIGHT);
         }
+    }
+
+    private void renderToolbarPostProcessing() {
+        List<MainMenuButtonPostProcessor.ButtonBounds> bounds = new ArrayList<>();
+        for (Button button : buttons) {
+            bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(button.x, button.y, button.w, button.h, BUTTON_RADIUS));
+        }
+        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x, bound.y, bound.w, bound.h, bound.radius), false);
     }
 
     private void drawDialog() {
@@ -314,17 +287,22 @@ public class AltManagerGui extends GuiScreen {
                     oauthStatus.toLowerCase(Locale.ROOT).contains("fail") ? new Color(255, 85, 85).getRGB() : new Color(235, 245, 245).getRGB());
         }
 
+        renderDialogButtonPostProcessing(x, y);
         drawDialogButton(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), "Login");
         drawDialogButton(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), "Cancel");
     }
 
+    private void renderDialogButtonPostProcessing(float x, float y) {
+        List<MainMenuButtonPostProcessor.ButtonBounds> bounds = new ArrayList<>();
+        bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), BUTTON_RADIUS));
+        bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), BUTTON_RADIUS));
+        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x, bound.y, bound.w, bound.h, bound.radius), false);
+    }
+
     private void drawDialogButton(float x, float y, float w, float h, String text) {
         boolean hovered = inside(mouseX, mouseY, x, y, w, h);
-        drawFlatRect(x, y, w, h, withAlpha(DARK, hovered ? 216 : 166));
-        if (hovered) {
-            drawBorder(x, y, w, h, withAlpha(LIGHT, 44));
-        }
-        font18.drawCenteredString(text, x + w * 0.5F, y + centerTextY(h, font18), LIGHT);
+        MainMenuStyle.drawButton(x, y, w, h, BUTTON_RADIUS, hovered);
+        MainMenuStyle.drawCenteredInBox(font18, text, x, y, w, h, LIGHT);
     }
 
     @Override
@@ -333,9 +311,6 @@ public class AltManagerGui extends GuiScreen {
             handleDialogClick(mouseX, mouseY);
             return;
         }
-
-        searchFocused = inside(mouseX, mouseY, searchX, searchY, searchW, searchH);
-        searchField.setFocused(searchFocused);
 
         if (handleToolbar(mouseX, mouseY)) {
             return;
@@ -425,24 +400,12 @@ public class AltManagerGui extends GuiScreen {
             GuiTextField field = dialog == Dialog.CRACKED_LOGIN ? crackedField : tokenField;
             if (field.textboxKeyTyped(typedChar, keyCode)) {
             }
-        } else {
-            if (keyCode == Keyboard.KEY_TAB) {
-                searchFocused = !searchFocused;
-                searchField.setFocused(searchFocused);
-                return;
-            }
-
-            if (searchField.textboxKeyTyped(typedChar, keyCode)) {
-                scroll = 0.0F;
-                clampScroll();
-            }
         }
     }
 
     @Override
     public void updateScreen() {
         super.updateScreen();
-        searchField.updateCursorCounter();
         crackedField.updateCursorCounter();
         tokenField.updateCursorCounter();
     }
@@ -625,15 +588,7 @@ public class AltManagerGui extends GuiScreen {
     }
 
     private List<Alt> getVisibleAlts() {
-        List<Alt> visible = new ArrayList<>();
-        String query = searchText().toLowerCase(Locale.ROOT);
-        for (Alt alt : alts) {
-            if (query.isEmpty() || getDisplayName(alt).toLowerCase(Locale.ROOT).contains(query) ||
-                    (alt.getEmail() != null && alt.getEmail().toLowerCase(Locale.ROOT).contains(query))) {
-                visible.add(alt);
-            }
-        }
-        return visible;
+        return new ArrayList<>(alts);
     }
 
     private void clampScroll() {
@@ -643,10 +598,6 @@ public class AltManagerGui extends GuiScreen {
     private void clampScroll(List<Alt> visible) {
         float maxScroll = Math.max(0.0F, visible.size() * entryHeight - listH);
         scroll = clamp(scroll, 0.0F, maxScroll);
-    }
-
-    private String searchText() {
-        return searchField == null || searchField.getText() == null ? "" : searchField.getText().trim();
     }
 
     private boolean isValidOfflineName(String text) {

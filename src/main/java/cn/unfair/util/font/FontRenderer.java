@@ -204,6 +204,20 @@ public class FontRenderer {
         return this.getStringWidth(text, getScaleFactor());
     }
 
+    public final float getStringVisualCenterOffset(String text) {
+        NickHider nickHider = getNickHider();
+        if (nickHider != null && nickHider.isEnabled()) {
+            text = nickHider.replaceNick(text);
+        }
+
+        if (text == null || text.isEmpty()) {
+            return 0.0F;
+        }
+
+        int scaleFactor = getScaleFactor();
+        return getAtlas(scaleFactor).getStringVisualCenterOffset(text) / (float) scaleFactor;
+    }
+
     private int getStringWidth(String text, int scaleFactor) {
         if (text == null) {
             return 0;
@@ -488,6 +502,41 @@ public class FontRenderer {
                 widthmap[i] = (byte) Math.ceil(this.scaledFont.getStringBounds(this.widthChar, 0, 1, this.context).getWidth());
             }
             return widthmap;
+        }
+
+        private float getStringVisualCenterOffset(String text) {
+            float penX = 0.0F;
+            float left = Float.MAX_VALUE;
+            float right = -Float.MAX_VALUE;
+            int size = text.length();
+            int i = 0;
+            while (i < size) {
+                char chr = text.charAt(i);
+                if (isFormattingPrefix(chr)) {
+                    ++i;
+                    ++i;
+                    continue;
+                }
+
+                int region = chr >> 8;
+                int id = chr & 0xFF;
+                int advance = getOrGenerateCharWidthMap(region)[id];
+                this.widthChar[0] = chr;
+                Rectangle2D bounds = this.scaledFont.createGlyphVector(this.context, this.widthChar).getVisualBounds();
+                float glyphLeft = penX + Math.max(0.0F, (float) bounds.getX());
+                float glyphRight = penX + Math.min(advance, (float) (bounds.getX() + bounds.getWidth()));
+                if (glyphRight > glyphLeft) {
+                    left = Math.min(left, glyphLeft);
+                    right = Math.max(right, glyphRight);
+                }
+                penX += advance;
+                ++i;
+            }
+
+            if (left == Float.MAX_VALUE) {
+                return penX / 2.0F;
+            }
+            return (left + right) / 2.0F;
         }
 
         private byte[] getOrGenerateCharWidthMap(int id) {
