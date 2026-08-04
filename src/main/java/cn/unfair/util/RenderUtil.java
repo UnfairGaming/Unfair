@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -31,6 +32,8 @@ import cn.unfair.util.shader.Shader;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
@@ -103,6 +106,21 @@ public class RenderUtil {
                     "    vec4 gradColor = mix(color1, color2, gl_TexCoord[0].st.x);\n" +
                     "    gl_FragColor = vec4(gradColor.rgb, gradColor.a * outlineAlpha);\n" +
                     "}";
+    private static final String ROUNDED_TEXTURE_SRC =
+            "#version 120\n" +
+                    "uniform sampler2D tex;\n" +
+                    "uniform vec2 location, rectSize, screenSize;\n" +
+                    "uniform vec4 color;\n" +
+                    "uniform float radius;\n" +
+                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
+                    "void main() {\n" +
+                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
+                    "    vec2 rectHalf = rectSize * 0.5;\n" +
+                    "    vec2 pos = screenPos - location - rectHalf;\n" +
+                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
+                    "    vec4 texColor = texture2D(tex, gl_TexCoord[0].st) * color;\n" +
+                    "    gl_FragColor = vec4(texColor.rgb, texColor.a * smoothedAlpha);\n" +
+                    "}";
     private static final Shader roundedShader = new Shader(ROUNDED_RECT_SRC) {
         @Override
         public void onLink() {
@@ -165,6 +183,22 @@ public class RenderUtil {
             this.setUniform("color2");
             this.setUniform("radius");
             this.setUniform("thickness");
+        }
+
+        @Override
+        public void onUse() {
+            GL20.glUseProgram(this.programId);
+        }
+    };
+    private static final Shader roundedTextureShader = new Shader(ROUNDED_TEXTURE_SRC) {
+        @Override
+        public void onLink() {
+            this.setUniform("tex");
+            this.setUniform("location");
+            this.setUniform("rectSize");
+            this.setUniform("screenSize");
+            this.setUniform("color");
+            this.setUniform("radius");
         }
 
         @Override
@@ -867,6 +901,113 @@ public class RenderUtil {
         GL11.glScissor(scaledX, scaledY, scaledWidth, scaledHeight);
     }
 
+    public static void renderPlayerHead(EntityLivingBase entity, float x, float y, float size) {
+        renderPlayerHead(entity, x, y, size, Color.WHITE);
+    }
+
+    public static void renderPlayerHead(EntityLivingBase entity, float x, float y, float size, Color color) {
+        ResourceLocation skin = null;
+        if (entity instanceof EntityPlayer && mc.getNetHandler() != null) {
+            EntityPlayer player = (EntityPlayer) entity;
+            if (mc.getNetHandler().getPlayerInfo(player.getName()) != null) {
+                skin = mc.getNetHandler().getPlayerInfo(player.getName()).getLocationSkin();
+            }
+        }
+        if (skin == null) {
+            return;
+        }
+
+        GlStateManager.enableBlend();
+        GlStateManager.color(color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F, color.getAlpha() / 255.0F);
+        mc.getTextureManager().bindTexture(skin);
+        Gui.drawScaledCustomSizeModalRect((int) x, (int) y, 8.0F, 8.0F, 8, 8, (int) size, (int) size, 64.0F, 64.0F);
+        Gui.drawScaledCustomSizeModalRect((int) x, (int) y, 40.0F, 8.0F, 8, 8, (int) size, (int) size, 64.0F, 64.0F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    public static void renderRoundedPlayerHead(EntityLivingBase entity, float x, float y, float size, float radius, Color color) {
+        ResourceLocation skin = null;
+        if (entity instanceof EntityPlayer && mc.getNetHandler() != null) {
+            EntityPlayer player = (EntityPlayer) entity;
+            if (mc.getNetHandler().getPlayerInfo(player.getName()) != null) {
+                skin = mc.getNetHandler().getPlayerInfo(player.getName()).getLocationSkin();
+            }
+        }
+        if (skin == null) {
+            return;
+        }
+
+        radius = Math.min(radius, size / 2.0F);
+
+        GlStateManager.resetColor();
+        GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.alphaFunc(516, 0.0F);
+
+        mc.getTextureManager().bindTexture(skin);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+
+        roundedTextureShader.use();
+        setupRoundedRectUniforms(roundedTextureShader, x, y, size, size);
+
+        int sf = getScaleFactor();
+        GL20.glUniform1i(roundedTextureShader.getUniformLocationCached("tex"), 0);
+        GL20.glUniform1f(roundedTextureShader.getUniformLocationCached("radius"), radius * sf);
+        GL20.glUniform4f(
+                roundedTextureShader.getUniformLocationCached("color"),
+                color.getRed() / 255.0F,
+                color.getGreen() / 255.0F,
+                color.getBlue() / 255.0F,
+                color.getAlpha() / 255.0F
+        );
+
+        drawTexturedQuads(x, y, size, size, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
+        drawTexturedQuads(x, y, size, size, 40.0F / 64.0F, 8.0F / 64.0F, 48.0F / 64.0F, 16.0F / 64.0F);
+
+        roundedTextureShader.stop();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
+    }
+
+    public static void renderEquipment(EntityPlayer player, float x, float y, float scale) {
+        List<ItemStack> items = new ArrayList<>();
+        if (player.getHeldItem() != null) {
+            items.add(player.getHeldItem());
+        }
+        for (int i = 3; i >= 0; --i) {
+            ItemStack armor = player.inventory.armorInventory[i];
+            if (armor != null) {
+                items.add(armor);
+            }
+        }
+        if (items.isEmpty()) {
+            return;
+        }
+
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(scale, scale, scale);
+        RenderHelper.enableGUIStandardItemLighting();
+        float drawX = x / scale;
+        float drawY = y / scale;
+        for (ItemStack item : items) {
+            renderItemInGUI(item, (int) drawX, (int) drawY);
+            drawX += 16.0F;
+        }
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawSkeetRect(float x, float y, float width, float height) {
+        drawRect(x, y, x + width, y + height, new Color(18, 18, 18, 230).getRGB());
+        drawRect(x + 1.0F, y + 1.0F, x + width - 1.0F, y + height - 1.0F, new Color(42, 42, 42, 255).getRGB());
+        drawRect(x + 2.0F, y + 2.0F, x + width - 2.0F, y + height - 2.0F, new Color(23, 23, 23, 255).getRGB());
+    }
+
     public static void drawRoundedRect(float x, float y, float width, float height, float radius, boolean blur, Color color) {
         if (width <= 0.0F || height <= 0.0F || color.getAlpha() <= 0) {
             return;
@@ -1206,6 +1347,19 @@ public class RenderUtil {
         GL11.glTexCoord2f(1.0F, 1.0F);
         GL11.glVertex2f(x + width, y + height);
         GL11.glTexCoord2f(1.0F, 0.0F);
+        GL11.glVertex2f(x + width, y);
+        GL11.glEnd();
+    }
+
+    private static void drawTexturedQuads(float x, float y, float width, float height, float u1, float v1, float u2, float v2) {
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2f(u1, v1);
+        GL11.glVertex2f(x, y);
+        GL11.glTexCoord2f(u1, v2);
+        GL11.glVertex2f(x, y + height);
+        GL11.glTexCoord2f(u2, v2);
+        GL11.glVertex2f(x + width, y + height);
+        GL11.glTexCoord2f(u2, v1);
         GL11.glVertex2f(x + width, y);
         GL11.glEnd();
     }

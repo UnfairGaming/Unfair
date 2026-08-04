@@ -1,10 +1,29 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.PacketEvent;
+import cn.unfair.events.Render2DEvent;
+import cn.unfair.mixin.IAccessorActiveRenderInfo;
+import cn.unfair.mixin.IAccessorMinecraft;
+import cn.unfair.mixin.IAccessorRenderManager;
+import cn.unfair.module.ModuleWithModuleSettings;
+import cn.unfair.module.modules.combat.KillAura;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDExhibitionMode;
+import cn.unfair.module.modules.render.targethud.TargetHUDMode;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDNewMode;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDNovolineMode;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDRavenLegacyMode;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDRavenModernMode;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDMyauMode;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.TeamUtil;
+import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -17,79 +36,130 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
-import cn.unfair.Unfair;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.Render2DEvent;
-import cn.unfair.mixin.IAccessorActiveRenderInfo;
-import cn.unfair.mixin.IAccessorMinecraft;
-import cn.unfair.mixin.IAccessorRenderManager;
-import cn.unfair.module.Module;
-import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.property.properties.*;
-import cn.unfair.util.ColorUtil;
-import cn.unfair.util.RenderUtil;
-import cn.unfair.util.TeamUtil;
-import cn.unfair.util.TimerUtil;
 
-import java.awt.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class TargetHUD extends Module {
-    private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final DecimalFormat healthFormat = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US));
-    private static final DecimalFormat diffFormat = new DecimalFormat("+0.0;-0.0", new DecimalFormatSymbols(Locale.US));
-    private static final String FORMAT = "§";
+public class TargetHUD extends ModuleWithModuleSettings {
+    public static final Minecraft mc = Minecraft.getMinecraft();
+    public static final DecimalFormat HEALTH_FORMAT = new DecimalFormat("0.0", new DecimalFormatSymbols(Locale.US));
+    public static final DecimalFormat DIFF_FORMAT = new DecimalFormat("+0.0;-0.0", new DecimalFormatSymbols(Locale.US));
+    public static final String FORMAT = "§";
     private static final float FOLLOW_PLAYER_X_PADDING = 2.0F;
-    public final ModeProperty style = new ModeProperty("style", 0, new String[]{"UNFAIR", "RAVENBS-MODERN", "RAVENBS-LEGACY"});
-    public final ModeProperty color = new ModeProperty("color", 0, new String[]{"DEFAULT", "HUD"});
+
+    public final TimerUtil lastAttackTimer = new TimerUtil();
+    public final TimerUtil animTimer = new TimerUtil();
+    public EntityLivingBase lastTarget = null;
+    public EntityLivingBase target = null;
+    public ResourceLocation headTexture = null;
+    public float oldHealth = 0.0F;
+    public float newHealth = 0.0F;
+    public float maxHealth = 0.0F;
+    public float lastHealthBar = 0.0F;
+    public TimerUtil fadeTimer = null;
+    public boolean fadingIn = false;
+    public EntityLivingBase fadingEntity = null;
+
+    public TargetHUD() {
+        super("TargetHUD", false, true, "mode",
+                new TargetHUDMyauMode(),
+                new TargetHUDRavenModernMode(),
+                new TargetHUDRavenLegacyMode(),
+                new TargetHUDNewMode(),
+                new TargetHUDNovolineMode(),
+                new TargetHUDExhibitionMode()
+        );
+    }
+
     public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
-    public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
-    public final PercentProperty background = new PercentProperty("background", 25, () -> this.style.getValue() == 0 || this.style.getValue() == 1);
-    public final BooleanProperty head = new BooleanProperty("head", true, () -> this.style.getValue() == 0);
-    public final BooleanProperty indicator = new BooleanProperty("indicator", true, () -> this.style.getValue() == 0);
-    public final BooleanProperty outline = new BooleanProperty("outline", false, () -> this.style.getValue() == 0);
-    public final BooleanProperty animations = new BooleanProperty("animations", true, () -> this.style.getValue() == 0);
-    public final BooleanProperty shadow = new BooleanProperty("shadow", true, () -> this.style.getValue() == 0);
     public final BooleanProperty kaOnly = new BooleanProperty("ka-only", true);
     public final BooleanProperty chatPreview = new BooleanProperty("chat-preview", false);
     public final BooleanProperty followPlayer = new BooleanProperty("follow-player", false);
-    private final TimerUtil lastAttackTimer = new TimerUtil();
-    private final TimerUtil animTimer = new TimerUtil();
-    private EntityLivingBase lastTarget = null;
-    private EntityLivingBase target = null;
-    private ResourceLocation headTexture = null;
-    private float oldHealth = 0.0F;
-    private float newHealth = 0.0F;
-    private float maxHealth = 0.0F;
-    private float lastHealthBar = 0.0F;
-    private TimerUtil fadeTimer = null;
-    private boolean fadingIn = false;
-    private EntityLivingBase fadingEntity = null;
 
-    public TargetHUD() {
-        super("TargetHUD", false, true);
+    public TargetHUDMode getCurrentMode() {
+        return (TargetHUDMode) this.getCurrentSubModule();
     }
-
 
     private EntityLivingBase resolveTarget() {
         KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
         if (killAura.isEnabled() && killAura.isAttackAllowed() && TeamUtil.isEntityLoaded(killAura.getTarget())) {
             return killAura.getTarget();
-        } else if (!(Boolean) this.kaOnly.getValue()
+        } else if (!this.kaOnly.getValue()
                 && !this.lastAttackTimer.hasTimeElapsed(1500L)
                 && TeamUtil.isEntityLoaded(this.lastTarget)) {
             return this.lastTarget;
         } else {
             return this.chatPreview.getValue() && mc.currentScreen instanceof GuiChat ? mc.thePlayer : null;
+        }
+    }
+
+    private boolean isChatPreviewTarget(EntityLivingBase entity) {
+        return entity == mc.thePlayer && this.chatPreview.getValue() && mc.currentScreen instanceof GuiChat;
+    }
+
+    private void startFadeIn() {
+        this.fadeTimer = new TimerUtil();
+        this.fadeTimer.reset();
+        this.fadingIn = true;
+        this.fadingEntity = null;
+    }
+
+    private void startFadeOut(EntityLivingBase entity) {
+        this.fadeTimer = new TimerUtil();
+        this.fadeTimer.reset();
+        this.fadingIn = false;
+        this.fadingEntity = entity;
+    }
+
+    private void clearFade() {
+        this.fadeTimer = null;
+        this.fadingIn = false;
+        this.fadingEntity = null;
+    }
+
+    private void updateTargetState() {
+        if (!this.isEnabled() || mc.thePlayer == null) {
+            this.target = null;
+            this.clearFade();
+            return;
+        }
+
+        EntityLivingBase previousTarget = this.target;
+        EntityLivingBase resolvedTarget = this.resolveTarget();
+        this.target = resolvedTarget;
+
+        if (this.target != null) {
+            if (this.isChatPreviewTarget(this.target)) {
+                this.clearFade();
+                return;
+            }
+
+            this.fadingEntity = null;
+            if ((previousTarget == null || this.fadeTimer != null && !this.fadingIn) && this.fadeTimer == null) {
+                this.startFadeIn();
+            } else if (this.fadeTimer != null && !this.fadingIn) {
+                this.startFadeIn();
+            } else if (this.fadingIn && this.fadeTimer != null && this.fadeTimer.getElapsedTime() >= 400L) {
+                this.clearFade();
+            }
+            return;
+        }
+
+        if (previousTarget != null) {
+            if (previousTarget == mc.thePlayer) {
+                this.clearFade();
+            } else if (this.fadeTimer == null || this.fadingIn) {
+                this.startFadeOut(previousTarget);
+            }
+        }
+
+        if (this.fadeTimer != null && (this.fadingIn || this.fadingEntity == null || this.fadeTimer.getElapsedTime() >= 400L)) {
+            this.target = null;
+            this.clearFade();
         }
     }
 
@@ -101,29 +171,6 @@ public class TargetHUD extends Module {
             }
         }
         return null;
-    }
-
-    private Color getTargetColor(EntityLivingBase entityLivingBase) {
-        if (entityLivingBase instanceof EntityPlayer) {
-            if (TeamUtil.isFriend((EntityPlayer) entityLivingBase)) {
-                return Unfair.friendManager.getColor();
-            }
-            if (TeamUtil.isTarget((EntityPlayer) entityLivingBase)) {
-                return Unfair.targetManager.getColor();
-            }
-        }
-        switch (this.color.getValue()) {
-            case 0:
-                if (!(entityLivingBase instanceof EntityPlayer)) {
-                    return new Color(-1);
-                }
-                return TeamUtil.getTeamColor((EntityPlayer) entityLivingBase, 1.0F);
-            case 1:
-                int rgb = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis()).getRGB();
-                return new Color(rgb);
-            default:
-                return new Color(-1);
-        }
     }
 
     private float getTabHealth(EntityLivingBase entityLivingBase) {
@@ -142,7 +189,7 @@ public class TargetHUD extends Module {
         return score == null ? -1.0F : (float) score.getScorePoints();
     }
 
-    private HealthInfo getHealthInfo(EntityLivingBase entityLivingBase) {
+    public HealthInfo getHealthInfo(EntityLivingBase entityLivingBase) {
         float healthPoints = entityLivingBase.getHealth();
         if (this.health.getValue() == 1) {
             float tabHealth = this.getTabHealth(entityLivingBase);
@@ -159,245 +206,44 @@ public class TargetHUD extends Module {
 
     @EventTarget
     public void onRender(Render2DEvent event) {
-        if (this.isEnabled() && mc.thePlayer != null) {
-            EntityLivingBase entityLivingBase = this.target;
-            this.target = this.resolveTarget();
-
-            if (this.target != null) {
-
-                if (entityLivingBase == null && fadeTimer == null) {
-
-                    fadeTimer = new TimerUtil();
-                    fadeTimer.reset();
-                    fadingIn = true;
-                } else if (fadingIn && fadeTimer != null && fadeTimer.getElapsedTime() >= 400) {
-
-                    fadeTimer = null;
-                    fadingIn = false;
-                }
-            } else {
-
-                if (entityLivingBase != null && fadeTimer == null) {
-                    fadeTimer = new TimerUtil();
-                    fadeTimer.reset();
-                    fadingIn = false;
-                    fadingEntity = entityLivingBase;
-                }
-            }
-
-            if (entityLivingBase != null || fadeTimer != null) {
-
-                EntityLivingBase entity = this.target != null ? this.target : fadingEntity;
-                if (entity == null) {
-
-                    return;
-                }
-                HealthInfo playerHealthInfo = this.getHealthInfo(mc.thePlayer);
-                HealthInfo targetHealthInfo = this.getHealthInfo(entity);
-                float playerHealth = playerHealthInfo.health;
-                float abs = targetHealthInfo.absorption;
-                float heal = targetHealthInfo.health;
-
-                if (entity != this.target) {
-                    this.headTexture = null;
-                    this.animTimer.setTime();
-                    this.oldHealth = heal;
-                    this.newHealth = heal;
-                }
-                if (!this.animations.getValue() || this.animTimer.hasTimeElapsed(150L)) {
-                    this.oldHealth = this.newHealth;
-                    this.newHealth = heal;
-                    this.maxHealth = targetHealthInfo.maxHealth;
-                    if (this.oldHealth != this.newHealth) {
-                        this.animTimer.reset();
-                    }
-                }
-                ResourceLocation resourceLocation = this.getSkin(entity);
-                if (resourceLocation != null) {
-                    this.headTexture = resourceLocation;
-                }
-
-            }
-        }
-    }
-
-    private void drawUnfairStyle(EntityLivingBase entity, float health, float abs, float heal, float widgetX, float widgetY) {
-        float elapsedTime = (float) Math.min(Math.max(this.animTimer.getElapsedTime(), 0L), 150L);
-        float lerpedHealthRatio = Math.min(Math.max(RenderUtil.lerpFloat(this.newHealth, this.oldHealth, elapsedTime / 150.0F) / this.maxHealth, 0.0F), 1.0F);
-        Color targetColor = this.getTargetColor(entity);
-        Color healthBarColor = this.color.getValue() == 0 ? ColorUtil.getHealthBlend(lerpedHealthRatio) : targetColor;
-        float healthDeltaRatio = Math.min(Math.max((health - heal + 1.0F) / 2.0F, 0.0F), 1.0F);
-        Color healthDeltaColor = ColorUtil.getHealthBlend(healthDeltaRatio);
-        String targetNameText = ChatColors.formatColor(String.format("&r%s&r", TeamUtil.stripName(entity)));
-        int targetNameWidth = mc.fontRendererObj.getStringWidth(targetNameText);
-        String healthText = ChatColors.formatColor(
-                String.format("&r&f%s%s❤&r", healthFormat.format(heal), abs > 0.0F ? "&6" : "&c")
-        );
-        int healthTextWidth = mc.fontRendererObj.getStringWidth(healthText);
-        String statusText = ChatColors.formatColor(String.format("&r&l%s&r", heal == health ? "D" : (heal < health ? "W" : "L")));
-        int statusTextWidth = mc.fontRendererObj.getStringWidth(statusText);
-        String healthDiffText = ChatColors.formatColor(
-                String.format("&r%s&r", heal == health ? "0.0" : diffFormat.format(health - heal))
-        );
-        int healthDiffWidth = mc.fontRendererObj.getStringWidth(healthDiffText);
-        float barContentWidth = Math.max(
-                (float) targetNameWidth + (this.indicator.getValue() ? 2.0F + (float) statusTextWidth + 2.0F : 0.0F),
-                (float) healthTextWidth + (this.indicator.getValue() ? 2.0F + (float) healthDiffWidth + 2.0F : 0.0F)
-        );
-        float headIconOffset = this.head.getValue() && this.headTexture != null ? 25.0F : 0.0F;
-        float barTotalWidth = Math.max(headIconOffset + 70.0F, headIconOffset + 2.0F + barContentWidth + 2.0F);
-        float posX = widgetX / this.scale.getValue();
-        float posY = widgetY / this.scale.getValue();
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(this.scale.getValue(), this.scale.getValue(), 0.0F);
-        GlStateManager.translate(posX, posY, -450.0F);
-        RenderUtil.enableRenderState();
-        int backgroundColor = new Color(0.0F, 0.0F, 0.0F, (float) this.background.getValue() / 100.0F).getRGB();
-        int outlineColor = this.outline.getValue() ? targetColor.getRGB() : new Color(0, 0, 0, 0).getRGB();
-        RenderUtil.drawOutlineRect(0.0F, 0.0F, barTotalWidth, 27.0F, 1.5F, backgroundColor, outlineColor);
-        RenderUtil.drawRect(headIconOffset + 2.0F, 22.0F, barTotalWidth - 2.0F, 25.0F, ColorUtil.darker(healthBarColor, 0.2F).getRGB());
-        RenderUtil.drawRect(headIconOffset + 2.0F, 22.0F, headIconOffset + 2.0F + lerpedHealthRatio * (barTotalWidth - 2.0F - headIconOffset - 2.0F), 25.0F, healthBarColor.getRGB());
-        RenderUtil.disableRenderState();
-        GlStateManager.disableDepth();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        mc.fontRendererObj.drawString(targetNameText, headIconOffset + 2.0F, 2.0F, -1, this.shadow.getValue());
-        mc.fontRendererObj.drawString(healthText, headIconOffset + 2.0F, 12.0F, -1, this.shadow.getValue());
-        if (this.indicator.getValue()) {
-            mc.fontRendererObj.drawString(statusText, barTotalWidth - 2.0F - (float) statusTextWidth, 2.0F, healthDeltaColor.getRGB(), this.shadow.getValue());
-            mc.fontRendererObj.drawString(healthDiffText, barTotalWidth - 2.0F - (float) healthDiffWidth, 12.0F, ColorUtil.darker(healthDeltaColor, 0.8F).getRGB(), this.shadow.getValue());
-        }
-        if (this.head.getValue() && this.headTexture != null) {
-            GlStateManager.color(1.0F, 1.0F, 1.0F);
-            mc.getTextureManager().bindTexture(this.headTexture);
-            Gui.drawScaledCustomSizeModalRect(2, 2, 8.0F, 8.0F, 8, 8, 23, 23, 64.0F, 64.0F);
-            Gui.drawScaledCustomSizeModalRect(2, 2, 40.0F, 8.0F, 8, 8, 23, 23, 64.0F, 64.0F);
-            GlStateManager.color(1.0F, 1.0F, 1.0F);
-        }
-        GlStateManager.disableBlend();
-        GlStateManager.enableDepth();
-        GlStateManager.popMatrix();
-    }
-
-    private void drawRavenBSStyle(int mode, EntityLivingBase entity, float health, float abs, float heal, float maxHealth, float widgetX, float widgetY) {
-        String playerInfo = entity.getDisplayName().getFormattedText();
-        double healthRatio = heal / maxHealth;
-        if (entity.isDead) {
-            healthRatio = 0;
-        }
-        String healthStr = String.format("%.1f", heal);
-        playerInfo += " §c" + healthStr;
-
-        if (this.indicator.getValue()) {
-            playerInfo += " " + ((healthRatio <= health / mc.thePlayer.getMaxHealth()) ? "§aW" : "§cL");
-        }
-
-        int alpha = 255;
-        if (fadeTimer != null) {
-            long elapsed = fadeTimer.getElapsedTime();
-            if (elapsed < 400) {
-                if (fadingIn) {
-
-                    alpha = (int) ((elapsed / 400.0f) * 255);
-                } else {
-
-                    alpha = (int) (255 - (elapsed / 400.0f) * 255);
-                }
-            } else {
-                alpha = fadingIn ? 255 : 0;
-                if (!fadingIn) {
-                    this.target = null;
-                    fadeTimer = null;
-                    fadingEntity = null;
-                    return;
-                }
-            }
-        }
-
-        playerInfo = this.buildModernPlayerInfo(entity, heal, health);
-
-        TargetHudBounds bounds = this.getModernBounds(playerInfo, widgetX, widgetY);
-        if (bounds == null) {
+        if (!this.isEnabled() || mc.thePlayer == null) {
+            this.target = null;
+            this.clearFade();
             return;
         }
-        final int x = bounds.textX;
-        final int y = bounds.textY;
-        final int n6 = bounds.left;
-        final int n7 = bounds.top;
-        final int n8 = bounds.right;
-        final int n9 = bounds.contentBottom;
 
-        final int maxAlphaOutline = Math.min(alpha, 110);
-        final int maxAlphaBackground = Math.min(alpha, 210);
-
-        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        int gradientLeft = hud.getColor(System.currentTimeMillis()).getRGB();
-        int gradientRight = hud.getColor(System.currentTimeMillis() + 500).getRGB();
-        int[] gradientColors = new int[]{gradientLeft, gradientRight};
-
-        switch (mode) {
-            case 0:
-                if (this.background.getValue() > 0) {
-                    int backgroundAlpha = (int) (this.background.getValue().floatValue() / 100.0F * 255.0F);
-                    RenderUtil.enableRenderState();
-                    RenderUtil.drawRoundedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 8.0F, new Color(0, 0, 0, backgroundAlpha).getRGB());
-                    RenderUtil.disableRenderState();
-                }
-                break;
-            case 1:
-                RenderUtil.drawRoundedGradientOutlinedRectangle((float) n6, (float) n7, (float) n8, (float) (n9 + 13), 10.0f,
-                        RenderUtil.mergeAlpha(Color.black.getRGB(), maxAlphaOutline),
-                        RenderUtil.mergeAlpha(gradientColors[0], alpha),
-                        RenderUtil.mergeAlpha(gradientColors[1], alpha));
-                break;
+        this.updateTargetState();
+        if (this.target == null && this.fadeTimer == null) {
+            return;
         }
 
-        final int n13 = n6 + 6;
-        final int n14 = n8 - 6;
-        final int n15 = n9;
+        EntityLivingBase entity = this.target != null ? this.target : this.fadingEntity;
+        if (entity == null) {
+            return;
+        }
 
-        RenderUtil.drawRoundedRectangle((float) n13, (float) n15, (float) n14, (float) (n15 + 5), 2.0f,
-                RenderUtil.mergeAlpha(Color.black.getRGB(), maxAlphaOutline));
-
-        int mergedGradientLeft = RenderUtil.mergeAlpha(gradientColors[0], maxAlphaBackground);
-        int mergedGradientRight = RenderUtil.mergeAlpha(gradientColors[1], maxAlphaBackground);
-
-        float healthBar = (float) (n14 + (n13 - n14) * (1 - healthRatio));
-
-        if (lastHealthBar != healthBar && lastHealthBar - n13 >= 3) {
-            float diff = lastHealthBar - healthBar;
-            if (diff > 0) {
-                lastHealthBar = lastHealthBar - diff * 0.1f;
-            } else {
-                lastHealthBar = lastHealthBar + (-diff) * 0.1f;
+        HealthInfo targetHealthInfo = this.getHealthInfo(entity);
+        float targetHealth = targetHealthInfo.health;
+        if (entity != this.target) {
+            this.headTexture = null;
+            this.animTimer.setTime();
+            this.oldHealth = targetHealth;
+            this.newHealth = targetHealth;
+        }
+        TargetHUDMode currentMode = this.getCurrentMode();
+        if (!currentMode.shouldAnimateHealth() || this.animTimer.hasTimeElapsed(150L)) {
+            this.oldHealth = this.newHealth;
+            this.newHealth = targetHealth;
+            this.maxHealth = targetHealthInfo.maxHealth;
+            if (this.oldHealth != this.newHealth) {
+                this.animTimer.reset();
             }
-        } else {
-            lastHealthBar = healthBar;
         }
 
-        if (lastHealthBar > n14) {
-            lastHealthBar = n14;
+        ResourceLocation resourceLocation = this.getSkin(entity);
+        if (resourceLocation != null) {
+            this.headTexture = resourceLocation;
         }
-
-        switch (mode) {
-            case 0:
-                RenderUtil.drawRoundedRectangle((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 2.0f,
-                        RenderUtil.darkenColor(mergedGradientRight, 50));
-                RenderUtil.drawRoundedGradientRect((float) n13, (float) n15, healthBar, (float) (n15 + 5), 2.0f,
-                        mergedGradientLeft, mergedGradientLeft, mergedGradientRight, mergedGradientRight);
-                break;
-            case 1:
-                RenderUtil.drawRoundedGradientRect((float) n13, (float) n15, lastHealthBar, (float) (n15 + 5), 2.0f,
-                        mergedGradientLeft, mergedGradientLeft, mergedGradientRight, mergedGradientRight);
-                break;
-        }
-
-        GL11.glPushMatrix();
-        GL11.glEnable(GL11.GL_BLEND);
-        mc.fontRendererObj.drawString(playerInfo, (float) x, (float) y,
-                (new Color(220, 220, 220, 255).getRGB() & 0xFFFFFF) | Math.min(alpha + 15, 255) << 24, true);
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glPopMatrix();
     }
 
     @EventTarget
@@ -418,51 +264,20 @@ public class TargetHUD extends Module {
         }
     }
 
-
     public boolean shouldRenderWidget() {
+        this.updateTargetState();
         return this.isEnabled()
                 && mc.thePlayer != null
                 && !mc.gameSettings.showDebugInfo
-                && (this.resolveTarget() != null || this.fadeTimer != null);
+                && (this.target != null || this.fadeTimer != null && this.fadingEntity != null);
     }
 
     public boolean shouldRenderWidgetEffects() {
-        return this.shouldRenderWidget() && this.style.getValue() == 1 && this.background.getValue() > 0;
+        return this.shouldRenderWidget() && this.getCurrentMode().shouldRenderEffects(this);
     }
 
     public float[] getWidgetSize() {
-        EntityLivingBase entity = this.getRenderableEntity();
-        if (entity == null || mc.thePlayer == null) {
-            return new float[]{120.0F, 36.0F};
-        }
-
-        HealthInfo playerHealthInfo = this.getHealthInfo(mc.thePlayer);
-        HealthInfo targetHealthInfo = this.getHealthInfo(entity);
-        if (this.style.getValue() == 0) {
-            String targetNameText = ChatColors.formatColor(String.format("&r%s&r", TeamUtil.stripName(entity)));
-            int targetNameWidth = mc.fontRendererObj.getStringWidth(targetNameText);
-            String healthText = ChatColors.formatColor(
-                    String.format("&r&f%s%s鉂?r", healthFormat.format(targetHealthInfo.health), targetHealthInfo.absorption > 0.0F ? "&6" : "&c")
-            );
-            int healthTextWidth = mc.fontRendererObj.getStringWidth(healthText);
-            String statusText = ChatColors.formatColor(String.format("&r&l%s&r", targetHealthInfo.health == playerHealthInfo.health ? "D" : (targetHealthInfo.health < playerHealthInfo.health ? "W" : "L")));
-            int statusTextWidth = mc.fontRendererObj.getStringWidth(statusText);
-            String healthDiffText = ChatColors.formatColor(
-                    String.format("&r%s&r", targetHealthInfo.health == playerHealthInfo.health ? "0.0" : diffFormat.format(playerHealthInfo.health - targetHealthInfo.health))
-            );
-            int healthDiffWidth = mc.fontRendererObj.getStringWidth(healthDiffText);
-            float barContentWidth = Math.max(
-                    (float) targetNameWidth + (this.indicator.getValue() ? 2.0F + (float) statusTextWidth + 2.0F : 0.0F),
-                    (float) healthTextWidth + (this.indicator.getValue() ? 2.0F + (float) healthDiffWidth + 2.0F : 0.0F)
-            );
-            float headIconOffset = this.head.getValue() && this.headTexture != null ? 25.0F : 0.0F;
-            float barTotalWidth = Math.max(headIconOffset + 70.0F, headIconOffset + 2.0F + barContentWidth + 2.0F);
-            return new float[]{barTotalWidth * this.scale.getValue(), 27.0F * this.scale.getValue()};
-        }
-
-        String playerInfo = this.buildModernPlayerInfo(entity, targetHealthInfo.health, playerHealthInfo.health);
-        TargetHudBounds bounds = this.getModernBounds(playerInfo, 0.0F, 0.0F);
-        return bounds == null ? new float[]{120.0F, 36.0F} : new float[]{bounds.width(), bounds.height()};
+        return this.getCurrentMode().getSize(this, this.getRenderData());
     }
 
     public boolean shouldFollowPlayer() {
@@ -495,46 +310,25 @@ public class TargetHUD extends Module {
         if (data == null) {
             return;
         }
-        int styleMode = this.style.getValue();
-        if (styleMode == 0) {
-            drawUnfairStyle(data.entity, data.playerHealth, data.absorption, data.targetHealth, x, y);
-        } else {
-            drawRavenBSStyle(styleMode - 1, data.entity, data.playerHealth, data.absorption, data.targetHealth, data.maxHealth, x, y);
-        }
+        this.getCurrentMode().render(this, data, x, y);
     }
 
     public void renderWidgetMask(float partialTicks, float x, float y, int color) {
         if (!this.shouldRenderWidgetEffects()) {
             return;
         }
-        EntityLivingBase entity = this.getRenderableEntity();
-        if (entity == null || mc.thePlayer == null) {
+        RenderData data = this.getRenderData();
+        if (data == null) {
             return;
         }
-        HealthInfo targetHealthInfo = this.getHealthInfo(entity);
-        HealthInfo playerHealthInfo = this.getHealthInfo(mc.thePlayer);
-        TargetHudBounds bounds = this.getModernBounds(
-                this.buildModernPlayerInfo(entity, targetHealthInfo.health, playerHealthInfo.health),
-                x,
-                y
-        );
-        if (bounds == null) {
-            return;
-        }
-        RenderUtil.enableRenderState();
-        RenderUtil.drawRoundedRectangle(bounds.left, bounds.top, bounds.right, bounds.bottom, 8.0F, color);
-        RenderUtil.disableRenderState();
+        this.getCurrentMode().renderMask(this, data, x, y, color);
     }
 
-    private EntityLivingBase getRenderableEntity() {
-        EntityLivingBase entity = this.target != null ? this.target : this.resolveTarget();
-        if (entity == null) {
-            entity = this.fadingEntity;
-        }
-        return entity;
+    public EntityLivingBase getRenderableEntity() {
+        return this.target != null ? this.target : this.fadingEntity;
     }
 
-    private RenderData getRenderData() {
+    public RenderData getRenderData() {
         EntityLivingBase entity = this.getRenderableEntity();
         if (entity == null || mc.thePlayer == null) {
             return null;
@@ -542,6 +336,74 @@ public class TargetHUD extends Module {
         HealthInfo playerHealthInfo = this.getHealthInfo(mc.thePlayer);
         HealthInfo targetHealthInfo = this.getHealthInfo(entity);
         return new RenderData(entity, playerHealthInfo.health, targetHealthInfo.absorption, targetHealthInfo.health, targetHealthInfo.maxHealth);
+    }
+
+    public int getFadeAlpha() {
+        if (this.fadeTimer == null) {
+            return 255;
+        }
+
+        long elapsed = this.fadeTimer.getElapsedTime();
+        if (elapsed < 400L) {
+            return this.fadingIn ? (int) (elapsed / 400.0F * 255.0F) : (int) (255.0F - elapsed / 400.0F * 255.0F);
+        }
+
+        if (!this.fadingIn) {
+            this.target = null;
+            this.fadeTimer = null;
+            this.fadingEntity = null;
+            return 0;
+        }
+
+        return 255;
+    }
+
+    public TargetHudBounds getModernBounds(String playerInfo, float widgetX, float widgetY) {
+        int padding = 8;
+        int targetStrWithPadding = mc.fontRendererObj.getStringWidth(playerInfo) + padding;
+        int textX = Math.round(widgetX) + padding;
+        int textY = Math.round(widgetY) + padding;
+        int left = textX - padding;
+        int top = textY - padding;
+        int right = textX + targetStrWithPadding;
+        int contentBottom = textY + (mc.fontRendererObj.FONT_HEIGHT + 5) - 6 + padding;
+        return new TargetHudBounds(left, top, right, contentBottom, contentBottom + 13, textX, textY);
+    }
+
+    public String buildModernPlayerInfo(EntityLivingBase entity, float targetHealth, float playerHealth, boolean indicator) {
+        String playerInfo = entity.getDisplayName().getFormattedText();
+        playerInfo += " " + FORMAT + "c" + String.format("%.1f", targetHealth);
+
+        if (indicator) {
+            playerInfo += " " + (targetHealth <= playerHealth ? FORMAT + "aW" : FORMAT + "cL");
+        }
+        return playerInfo;
+    }
+
+    public int[] getRavenGradientColors() {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        return new int[]{
+                hud.getColor(System.currentTimeMillis()).getRGB(),
+                hud.getColor(System.currentTimeMillis() + 500L).getRGB()
+        };
+    }
+
+    public float updateRavenHealthBar(float healthBar, int barLeft, int barRight) {
+        if (this.lastHealthBar != healthBar && this.lastHealthBar - barLeft >= 3.0F) {
+            float diff = this.lastHealthBar - healthBar;
+            if (diff > 0.0F) {
+                this.lastHealthBar -= diff * 0.1F;
+            } else {
+                this.lastHealthBar += -diff * 0.1F;
+            }
+        } else {
+            this.lastHealthBar = healthBar;
+        }
+
+        if (this.lastHealthBar > barRight) {
+            this.lastHealthBar = barRight;
+        }
+        return this.lastHealthBar;
     }
 
     private TargetProjection projectEntity(Entity entity) {
@@ -612,38 +474,16 @@ public class TargetHUD extends Module {
         );
     }
 
-    private TargetHudBounds getModernBounds(String playerInfo, float widgetX, float widgetY) {
-        int padding = 8;
-        int targetStrWithPadding = mc.fontRendererObj.getStringWidth(playerInfo) + padding;
-        int textX = Math.round(widgetX) + padding;
-        int textY = Math.round(widgetY) + padding;
-        int left = textX - padding;
-        int top = textY - padding;
-        int right = textX + targetStrWithPadding;
-        int contentBottom = textY + (mc.fontRendererObj.FONT_HEIGHT + 5) - 6 + padding;
-        return new TargetHudBounds(left, top, right, contentBottom, contentBottom + 13, textX, textY);
-    }
+    public static class TargetHudBounds {
+        public final int left;
+        public final int top;
+        public final int right;
+        public final int contentBottom;
+        public final int bottom;
+        public final int textX;
+        public final int textY;
 
-    private String buildModernPlayerInfo(EntityLivingBase entity, float targetHealth, float playerHealth) {
-        String playerInfo = entity.getDisplayName().getFormattedText();
-        playerInfo += " " + FORMAT + "c" + String.format("%.1f", targetHealth);
-
-        if (this.indicator.getValue()) {
-            playerInfo += " " + (targetHealth <= playerHealth ? FORMAT + "aW" : FORMAT + "cL");
-        }
-        return playerInfo;
-    }
-
-    private static class TargetHudBounds {
-        private final int left;
-        private final int top;
-        private final int right;
-        private final int contentBottom;
-        private final int bottom;
-        private final int textX;
-        private final int textY;
-
-        private TargetHudBounds(int left, int top, int right, int contentBottom, int bottom, int textX, int textY) {
+        public TargetHudBounds(int left, int top, int right, int contentBottom, int bottom, int textX, int textY) {
             this.left = left;
             this.top = top;
             this.right = right;
@@ -653,22 +493,22 @@ public class TargetHUD extends Module {
             this.textY = textY;
         }
 
-        private float width() {
+        public float width() {
             return this.right - this.left;
         }
 
-        private float height() {
+        public float height() {
             return this.bottom - this.top;
         }
     }
 
-    private static class TargetProjection {
-        private final float left;
-        private final float top;
-        private final float right;
-        private final float bottom;
+    public static class TargetProjection {
+        public final float left;
+        public final float top;
+        public final float right;
+        public final float bottom;
 
-        private TargetProjection(float left, float top, float right, float bottom) {
+        public TargetProjection(float left, float top, float right, float bottom) {
             this.left = left;
             this.top = top;
             this.right = right;
@@ -676,38 +516,38 @@ public class TargetHUD extends Module {
         }
     }
 
-    private static class TargetPoint {
-        private final float x;
-        private final float y;
-        private final float z;
+    public static class TargetPoint {
+        public final float x;
+        public final float y;
+        public final float z;
 
-        private TargetPoint(float x, float y, float z) {
+        public TargetPoint(float x, float y, float z) {
             this.x = x;
             this.y = y;
             this.z = z;
         }
     }
 
-    private static class HealthInfo {
-        private final float health;
-        private final float absorption;
-        private final float maxHealth;
+    public static class HealthInfo {
+        public final float health;
+        public final float absorption;
+        public final float maxHealth;
 
-        private HealthInfo(float health, float absorption, float maxHealth) {
+        public HealthInfo(float health, float absorption, float maxHealth) {
             this.health = health;
             this.absorption = absorption;
             this.maxHealth = maxHealth;
         }
     }
 
-    private static class RenderData {
-        private final EntityLivingBase entity;
-        private final float playerHealth;
-        private final float absorption;
-        private final float targetHealth;
-        private final float maxHealth;
+    public static class RenderData {
+        public final EntityLivingBase entity;
+        public final float playerHealth;
+        public final float absorption;
+        public final float targetHealth;
+        public final float maxHealth;
 
-        private RenderData(EntityLivingBase entity, float playerHealth, float absorption, float targetHealth, float maxHealth) {
+        public RenderData(EntityLivingBase entity, float playerHealth, float absorption, float targetHealth, float maxHealth) {
             this.entity = entity;
             this.playerHealth = playerHealth;
             this.absorption = absorption;
@@ -715,5 +555,4 @@ public class TargetHUD extends Module {
             this.maxHealth = maxHealth;
         }
     }
-
 }

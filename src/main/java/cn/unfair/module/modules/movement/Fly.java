@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S32PacketConfirmTransaction;
 import cn.unfair.event.EventTarget;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Fly extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final long POLAR_PICKUP_FREEZE_MS = 1000L;
     public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"Vanilla", "Polar"});
     public final FloatProperty hSpeed = new FloatProperty("horizontal-speed", 5.0F, 0.0F, 10.0F);
     public final FloatProperty vSpeed = new FloatProperty("vertical-speed", 3.0F, 0.0F, 10.0F);
@@ -33,6 +35,7 @@ public class Fly extends Module {
     private Entity polarBoat = null;
     private boolean polarAttackedBoat = false;
     private boolean polarMovementCheckDisabled = false;
+    private long polarPickupFreezeUntil = 0L;
 
     public Fly() {
         super("Fly", false);
@@ -46,6 +49,7 @@ public class Fly extends Module {
         this.polarBoat = null;
         this.polarAttackedBoat = false;
         this.polarMovementCheckDisabled = false;
+        this.polarPickupFreezeUntil = 0L;
         this.polarS32Packets.clear();
     }
 
@@ -75,19 +79,49 @@ public class Fly extends Module {
             return;
         }
 
+        if (this.isPolarPickupFreezing()) {
+            this.freezePlayerMotion();
+        }
+
         if (!this.polarAttackedBoat && mc.thePlayer.ridingEntity instanceof EntityBoat) {
             this.polarBoat = mc.thePlayer.ridingEntity;
+            PacketUtil.sendPacket(new C0APacketAnimation());
             PacketUtil.sendPacket(new C02PacketUseEntity(this.polarBoat, C02PacketUseEntity.Action.ATTACK));
             this.polarAttackedBoat = true;
+            this.polarPickupFreezeUntil = System.currentTimeMillis() + POLAR_PICKUP_FREEZE_MS;
+            this.freezePlayerMotion();
         }
 
         if (this.polarAttackedBoat && !this.polarMovementCheckDisabled && this.isPolarBoatGone()) {
             this.polarMovementCheckDisabled = true;
+            this.polarPickupFreezeUntil = System.currentTimeMillis() + POLAR_PICKUP_FREEZE_MS;
+            this.freezePlayerMotion();
         }
+    }
+
+    private boolean isPolarPickupFreezing() {
+        return this.polarPickupFreezeUntil > System.currentTimeMillis();
+    }
+
+    private void freezePlayerMotion() {
+        if (mc.thePlayer == null) {
+            return;
+        }
+        mc.thePlayer.motionX = 0.0D;
+        mc.thePlayer.motionY = 0.0D;
+        mc.thePlayer.motionZ = 0.0D;
     }
 
     @EventTarget
     public void onStrafe(StrafeEvent event) {
+        if (this.isEnabled() && this.mode.getValue() == 1 && this.isPolarPickupFreezing()) {
+            this.freezePlayerMotion();
+            MoveUtil.setSpeed(0.0D);
+            event.setStrafe(0.0F);
+            event.setForward(0.0F);
+            event.setFriction(0.0F);
+            return;
+        }
         if (this.isEnabled() && this.shouldUseVanillaFly()) {
             if (mc.thePlayer.posY % 1.0 != 0.0) {
                 mc.thePlayer.motionY = this.verticalMotion;
@@ -101,6 +135,11 @@ public class Fly extends Module {
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
             this.updatePolarState();
+            if (this.mode.getValue() == 1 && this.isPolarPickupFreezing()) {
+                this.verticalMotion = 0.0D;
+                this.freezePlayerMotion();
+                return;
+            }
             if (!this.shouldUseVanillaFly()) {
                 return;
             }

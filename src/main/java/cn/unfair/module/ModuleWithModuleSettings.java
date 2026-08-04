@@ -23,6 +23,13 @@ public abstract class ModuleWithModuleSettings extends Module {
         this.modeProperty = new ModeProperty(modeName, 0, modeNames);
     }
 
+    public ModuleWithModuleSettings(String name, boolean enabled, boolean hidden, String modeName, SubModule... subModules) {
+        super(name, enabled, hidden);
+        this.subModules = subModules;
+        String[] modeNames = Arrays.stream(subModules).map(Module::getName).toArray(String[]::new);
+        this.modeProperty = new ModeProperty(modeName, 0, modeNames);
+    }
+
     @Override
     public void onEnabled() {
         syncSubModules();
