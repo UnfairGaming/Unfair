@@ -49,7 +49,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
     private final float[] animatedY = new float[6];
     private final float[] animatedW = new float[6];
     private final float[] animatedH = new float[6];
-    private String splashText = "missingno";
+    private String splashText = "Unfair";
 
     @Inject(method = "initGui", at = @At("TAIL"))
     private void onInitGui(CallbackInfo ci) {
@@ -59,7 +59,6 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         this.buttonList.add(new SilentMenuButton(1, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, "Singleplayer"));
         this.buttonList.add(new SilentMenuButton(2, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, "Multiplayer"));
         this.buttonList.add(new SilentMenuButton(ALT_MANAGER_BUTTON_ID, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, "Alt manager"));
-        this.buttonList.add(new SilentMenuButton(5, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, "Language"));
         this.buttonList.add(new SilentMenuButton(0, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, "Options"));
         this.buttonList.add(new SilentMenuButton(4, 0, 0, BUTTON_WIDTH, BUTTON_HEIGHT, "Quit"));
 
@@ -83,7 +82,7 @@ public abstract class MixinGuiMainMenu extends GuiScreen {
         MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
         renderButtonPostProcessing();
 
-        float titleY = this.height / 2.0F + 20.0F - (this.buttonList.size() * BUTTON_HEIGHT) / 2.0F;
+        float titleY = this.height / 2.0F - (this.buttonList.size() * BUTTON_HEIGHT) / 2.0F;
         MainMenuStyle.drawCenteredString(titleFont, "Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
 
         drawMenuButtons(mouseX, mouseY);
