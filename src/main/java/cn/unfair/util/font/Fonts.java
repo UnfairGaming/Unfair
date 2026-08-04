@@ -18,6 +18,7 @@ public enum Fonts {
     genshin("Genshin"),
     tahoma("tahoma"),
     tahomaBold("tahomaBold"),
+    consola("consola"),
     comfortaa("Comfortaa"),
     helveticaNeue("helveticaNeue"),
     esp("esp"); // Got this specifically for the shit font that Augustus uses.

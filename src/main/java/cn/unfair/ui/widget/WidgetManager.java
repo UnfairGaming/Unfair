@@ -7,6 +7,7 @@ import cn.unfair.events.PostProcessBloomEvent;
 import cn.unfair.events.PostProcessBlurEvent;
 import cn.unfair.events.Render2DEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class WidgetManager {
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {
-        if (mc.gameSettings.showDebugInfo) {
+        if (mc.gameSettings.showDebugInfo || mc.currentScreen instanceof GuiChat) {
             return;
         }
         ScaledResolution sr = new ScaledResolution(mc);
