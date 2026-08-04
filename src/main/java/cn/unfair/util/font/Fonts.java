@@ -24,6 +24,7 @@ public enum Fonts {
 
     private final String file;
     private final Map<Float, FontRenderer> fontMap = new HashMap<>();
+    private Font baseFont;
 
     public FontRenderer get(float size) {
         return this.fontMap.computeIfAbsent(size, font -> {
@@ -36,20 +37,20 @@ public enum Fonts {
     }
 
     public FontRenderer create(String file, float size) {
-        Font font;
+        return new FontRenderer(this.getBaseFont(file).deriveFont(Font.PLAIN, size));
+    }
 
-        try {
-            InputStream in = Objects.requireNonNull(
-                    Fonts.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
-            );
-            font = Font.createFont(0, in).deriveFont(Font.PLAIN, size);
+    private Font getBaseFont(String file) {
+        if (this.baseFont != null) {
+            return this.baseFont;
+        }
+        try (InputStream in = Objects.requireNonNull(
+                Fonts.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
+        )) {
+            this.baseFont = Font.createFont(0, in);
+            return this.baseFont;
         } catch (Exception ex) {
             throw new RuntimeException("Failed to create font", ex);
-        }
-        if (font != null) {
-            return new FontRenderer(font);
-        } else {
-            throw new RuntimeException("Failed to create font");
         }
     }
 
