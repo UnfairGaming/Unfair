@@ -1,9 +1,8 @@
 package cn.unfair.util.postprocessing;
 
 import net.minecraft.client.Minecraft;
-import org.lwjgl.opengl.GL20;
 
-public class GlowESPOutlineShader extends Shader {
+public class GlowESPOutlineShader {
     private static final String SHADER = String.join(
             "\n",
             "#version 120",
@@ -11,50 +10,49 @@ public class GlowESPOutlineShader extends Shader {
             "uniform vec2 direction;",
             "uniform sampler2D texture;",
             "uniform float radius;",
+            "uniform vec3 color;",
             "",
             "#define offset direction * texelSize",
             "",
             "void main() {",
             "    vec4 center = texture2D(texture, gl_TexCoord[0].xy);",
-            "    float innerAlpha = center.a;",
-            "    vec3 colorSum = center.rgb * center.a;",
-            "    float colorWeight = center.a;",
+            "    float centerAlpha = center.a;",
+            "    float innerAlpha = centerAlpha;",
+            "    vec3 innerColor = center.rgb * centerAlpha;",
             "",
             "    for (float r = 1.0; r <= radius; r++) {",
-            "        vec4 sample1 = texture2D(texture, gl_TexCoord[0].xy + offset * r);",
-            "        vec4 sample2 = texture2D(texture, gl_TexCoord[0].xy - offset * r);",
-            "        innerAlpha += sample1.a + sample2.a;",
-            "        colorSum += sample1.rgb * sample1.a + sample2.rgb * sample2.a;",
-            "        colorWeight += sample1.a + sample2.a;",
+            "        vec4 current1 = texture2D(texture, gl_TexCoord[0].xy + offset * r);",
+            "        vec4 current2 = texture2D(texture, gl_TexCoord[0].xy - offset * r);",
+            "        innerAlpha += current1.a + current2.a;",
+            "        innerColor += current1.rgb * current1.a + current2.rgb * current2.a;",
             "    }",
             "",
-            "    vec3 color = colorSum / max(colorWeight, 0.001);",
-            "    gl_FragColor = vec4(color, clamp(innerAlpha, 0.0, 1.0)) * step(0.0, -center.a);",
+            "    vec3 sourceColor = innerAlpha > 0.0 ? innerColor / innerAlpha : color;",
+            "    gl_FragColor = vec4(sourceColor, innerAlpha) * step(0.0, -centerAlpha);",
             "}"
     );
 
-    public GlowESPOutlineShader() {
-        super(SHADER);
+    private final ShaderUtils shader = new ShaderUtils(SHADER, true);
+
+    public void use() {
+        this.shader.init();
     }
 
-    @Override
-    public void onLink() {
-        this.setUniform("texture");
-        this.setUniform("radius");
-        this.setUniform("texelSize");
-        this.setUniform("direction");
-    }
-
-    @Override
-    public void onUse() {
-        GL20.glUseProgram(this.programId);
-    }
-
-    public void setup(float directionX, float directionY, float radius) {
+    public void setup(float directionX, float directionY, float radius, java.awt.Color color) {
         Minecraft mc = Minecraft.getMinecraft();
-        GL20.glUniform1i(this.getUniformLocationCached("texture"), 0);
-        GL20.glUniform1f(this.getUniformLocationCached("radius"), radius);
-        GL20.glUniform2f(this.getUniformLocationCached("texelSize"), 1.0F / mc.displayWidth, 1.0F / mc.displayHeight);
-        GL20.glUniform2f(this.getUniformLocationCached("direction"), directionX, directionY);
+        this.shader.setUniformi("texture", 0);
+        this.shader.setUniformf("radius", radius);
+        this.shader.setUniformf("texelSize", 1.0F / mc.displayWidth, 1.0F / mc.displayHeight);
+        this.shader.setUniformf("direction", directionX, directionY);
+        this.shader.setUniformf(
+                "color",
+                color.getRed() / 255.0F,
+                color.getGreen() / 255.0F,
+                color.getBlue() / 255.0F
+        );
+    }
+
+    public void stop() {
+        this.shader.unload();
     }
 }

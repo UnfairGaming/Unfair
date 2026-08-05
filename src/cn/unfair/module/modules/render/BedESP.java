@@ -5,9 +5,13 @@ import net.minecraft.block.BlockBed.EnumPartType;
 import net.minecraft.block.BlockObsidian;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.Render3DEvent;
@@ -20,6 +24,9 @@ import cn.unfair.util.RenderUtil;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class BedESP extends Module {
@@ -31,6 +38,7 @@ public class BedESP extends Module {
     public final PercentProperty opacity;
     public final BooleanProperty outline;
     public final BooleanProperty obsidian;
+    private int lastBedScanTick = -20;
 
     public BedESP() {
         super("BedESP", false, true);
@@ -71,9 +79,56 @@ public class BedESP extends Module {
         return this.mode.getValue() == 1 ? 1.0 : 0.5625;
     }
 
+    private void updateTrackedBeds() {
+        if (mc.theWorld == null || mc.thePlayer == null) {
+            this.beds.clear();
+            return;
+        }
+        if (mc.thePlayer.ticksExisted - this.lastBedScanTick < 20) {
+            return;
+        }
+
+        this.lastBedScanTick = mc.thePlayer.ticksExisted;
+        IChunkProvider chunkProvider = mc.theWorld.getChunkProvider();
+        if (!(chunkProvider instanceof ChunkProviderClient)) {
+            return;
+        }
+
+        Set<BlockPos> foundBeds = new HashSet<>();
+        try {
+            for (Chunk chunk : ((ChunkProviderClient) chunkProvider).getLoadedChunks()) {
+                if (chunk == null || chunk.isEmpty()) {
+                    continue;
+                }
+                for (ExtendedBlockStorage storage : chunk.getBlockStorageArray()) {
+                    if (storage == null || storage.isEmpty()) {
+                        continue;
+                    }
+                    int yBase = storage.getYLocation();
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int x = 0; x < 16; x++) {
+                                IBlockState state = storage.get(x, y, z);
+                                if (state.getBlock() instanceof BlockBed && state.getValue(BlockBed.PART) == EnumPartType.HEAD) {
+                                    foundBeds.add(new BlockPos((chunk.xPosition << 4) + x, yBase + y, (chunk.zPosition << 4) + z));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (ConcurrentModificationException ignored) {
+            return;
+        }
+
+        this.beds.clear();
+        this.beds.addAll(foundBeds);
+    }
+
     @EventTarget
     public void onRender3D(Render3DEvent event) {
         if (this.isEnabled()) {
+            this.updateTrackedBeds();
             RenderUtil.enableRenderState();
             for (BlockPos blockPos : this.beds) {
                 IBlockState state = mc.theWorld.getBlockState(blockPos);
@@ -144,8 +199,14 @@ public class BedESP extends Module {
 
     @Override
     public void onEnabled() {
+        this.lastBedScanTick = -20;
         if (mc.renderGlobal != null) {
             mc.renderGlobal.loadRenderers();
         }
+    }
+
+    @Override
+    public void onDisabled() {
+        this.beds.clear();
     }
 }

@@ -72,6 +72,8 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
             } catch (IOException var11) {
             }
         }
+
+        this.registerLegacySoundAliases();
     }
 
     protected Map<String, SoundList> getSoundMap(InputStream stream) {
@@ -149,6 +151,37 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
 
             soundeventaccessorcomposite.addSoundToEventPool(isoundeventaccessor);
         }
+    }
+
+    private void registerLegacySoundAliases() {
+        this.registerSoundAlias("damage.thorns", "game.player.hurt");
+    }
+
+    private void registerSoundAlias(String alias, String target) {
+        ResourceLocation aliasLocation = ResourceLocation.of(alias);
+
+        if (this.sndRegistry.containsKey(aliasLocation)) {
+            return;
+        }
+
+        ResourceLocation targetLocation = ResourceLocation.of(target);
+        final SoundEventAccessorComposite targetAccessor = this.sndRegistry.getObject(targetLocation);
+
+        if (targetAccessor == null) {
+            return;
+        }
+
+        SoundEventAccessorComposite aliasAccessor = new SoundEventAccessorComposite(aliasLocation, 1.0D, 1.0D, targetAccessor.getSoundCategory());
+        aliasAccessor.addSoundToEventPool(new ISoundEventAccessor<SoundPoolEntry>() {
+            public int getWeight() {
+                return targetAccessor.getWeight();
+            }
+
+            public SoundPoolEntry cloneEntry() {
+                return targetAccessor.cloneEntry();
+            }
+        });
+        this.sndRegistry.registerSound(aliasAccessor);
     }
 
     public SoundEventAccessorComposite getSound(ResourceLocation location) {

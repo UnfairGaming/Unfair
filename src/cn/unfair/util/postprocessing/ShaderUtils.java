@@ -8,7 +8,10 @@ import org.lwjgl.opengl.GL20;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.FloatBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ShaderUtils {
     private static final String DEFAULT_VERTEX = "#version 120\n" +
@@ -18,9 +21,14 @@ public class ShaderUtils {
             "}";
 
     private final int programID;
+    private final Map<String, Integer> uniformLocations = new HashMap<>();
 
     public ShaderUtils(String fragmentName) {
         this(fragmentName, DEFAULT_VERTEX);
+    }
+
+    public ShaderUtils(String fragment, boolean inlineSource) {
+        this(fragment, DEFAULT_VERTEX, inlineSource);
     }
 
     public ShaderUtils(String fragmentName, String vertexSource) {
@@ -61,7 +69,7 @@ public class ShaderUtils {
             case "kawaseUpBloom":
                 return KAWASE_UP_BLOOM;
             default:
-                return name.contains(":") ? loadResource(name) : name;
+                return name.trim().startsWith("#version") || !name.contains(":") ? name : loadResource(name);
         }
     }
 
@@ -87,8 +95,17 @@ public class ShaderUtils {
         GL20.glUseProgram(0);
     }
 
+    private int getUniformLocation(String name) {
+        Integer location = this.uniformLocations.get(name);
+        if (location == null) {
+            location = GL20.glGetUniformLocation(programID, name);
+            this.uniformLocations.put(name, location);
+        }
+        return location;
+    }
+
     public void setUniformf(String name, float... values) {
-        int loc = GL20.glGetUniformLocation(programID, name);
+        int loc = this.getUniformLocation(name);
         switch (values.length) {
             case 1:
                 GL20.glUniform1f(loc, values[0]);
@@ -108,7 +125,7 @@ public class ShaderUtils {
     }
 
     public void setUniformi(String name, int... values) {
-        int loc = GL20.glGetUniformLocation(programID, name);
+        int loc = this.getUniformLocation(name);
         switch (values.length) {
             case 1:
                 GL20.glUniform1i(loc, values[0]);
@@ -125,6 +142,10 @@ public class ShaderUtils {
             default:
                 throw new IllegalArgumentException("Unsupported uniformi size for " + name);
         }
+    }
+
+    public void setUniform1(String name, FloatBuffer values) {
+        GL20.glUniform1(this.getUniformLocation(name), values);
     }
 
     public static void drawQuads(float width, float height) {

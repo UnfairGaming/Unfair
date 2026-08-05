@@ -21,10 +21,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 import cn.unfair.enums.ChatColors;
-import cn.unfair.util.postprocessing.Shader;
+import cn.unfair.util.postprocessing.ShaderUtils;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -118,91 +117,11 @@ public class RenderUtil {
                     "    vec4 texColor = texture2D(tex, gl_TexCoord[0].st) * color;\n" +
                     "    gl_FragColor = vec4(texColor.rgb, texColor.a * smoothedAlpha);\n" +
                     "}";
-    private static final Shader roundedShader = new Shader(ROUNDED_RECT_SRC) {
-        @Override
-        public void onLink() {
-            this.setUniform("location");
-            this.setUniform("rectSize");
-            this.setUniform("screenSize");
-            this.setUniform("color");
-            this.setUniform("radius");
-            this.setUniform("blur");
-        }
-
-        @Override
-        public void onUse() {
-            GL20.glUseProgram(this.programId);
-        }
-    };
-    private static final Shader multiRadiusShader = new Shader(MULTI_RADIUS_SRC) {
-        @Override
-        public void onLink() {
-            this.setUniform("location");
-            this.setUniform("rectSize");
-            this.setUniform("screenSize");
-            this.setUniform("color");
-            this.setUniform("radiusTopLeft");
-            this.setUniform("radiusTopRight");
-            this.setUniform("radiusBottomLeft");
-            this.setUniform("radiusBottomRight");
-        }
-
-        @Override
-        public void onUse() {
-            GL20.glUseProgram(this.programId);
-        }
-    };
-    private static final Shader roundedGradientShader = new Shader(ROUNDED_GRADIENT_SRC) {
-        @Override
-        public void onLink() {
-            this.setUniform("location");
-            this.setUniform("rectSize");
-            this.setUniform("screenSize");
-            this.setUniform("color1");
-            this.setUniform("color2");
-            this.setUniform("color3");
-            this.setUniform("color4");
-            this.setUniform("radius");
-        }
-
-        @Override
-        public void onUse() {
-            GL20.glUseProgram(this.programId);
-        }
-    };
-    private static final Shader roundedGradientOutlineShader = new Shader(ROUNDED_GRADIENT_OUTLINE_SRC) {
-        @Override
-        public void onLink() {
-            this.setUniform("location");
-            this.setUniform("rectSize");
-            this.setUniform("screenSize");
-            this.setUniform("color1");
-            this.setUniform("color2");
-            this.setUniform("radius");
-            this.setUniform("thickness");
-        }
-
-        @Override
-        public void onUse() {
-            GL20.glUseProgram(this.programId);
-        }
-    };
-    private static final Shader roundedTextureShader = new Shader(ROUNDED_TEXTURE_SRC) {
-        @Override
-        public void onLink() {
-            this.setUniform("tex");
-            this.setUniform("location");
-            this.setUniform("rectSize");
-            this.setUniform("screenSize");
-            this.setUniform("color");
-            this.setUniform("radius");
-        }
-
-        @Override
-        public void onUse() {
-            GL20.glUseProgram(this.programId);
-        }
-    };
+    private static final ShaderUtils roundedShader = new ShaderUtils(ROUNDED_RECT_SRC, true);
+    private static final ShaderUtils multiRadiusShader = new ShaderUtils(MULTI_RADIUS_SRC, true);
+    private static final ShaderUtils roundedGradientShader = new ShaderUtils(ROUNDED_GRADIENT_SRC, true);
+    private static final ShaderUtils roundedGradientOutlineShader = new ShaderUtils(ROUNDED_GRADIENT_OUTLINE_SRC, true);
+    private static final ShaderUtils roundedTextureShader = new ShaderUtils(ROUNDED_TEXTURE_SRC, true);
     private static Minecraft mc;
     private static Frustum cameraFrustum;
     private static IntBuffer viewportBuffer;
@@ -947,14 +866,14 @@ public class RenderUtil {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
-        roundedTextureShader.use();
+        roundedTextureShader.init();
         setupRoundedRectUniforms(roundedTextureShader, x, y, size, size);
 
         int sf = getScaleFactor();
-        GL20.glUniform1i(roundedTextureShader.getUniformLocationCached("tex"), 0);
-        GL20.glUniform1f(roundedTextureShader.getUniformLocationCached("radius"), radius * sf);
-        GL20.glUniform4f(
-                roundedTextureShader.getUniformLocationCached("color"),
+        roundedTextureShader.setUniformi("tex", 0);
+        roundedTextureShader.setUniformf("radius", radius * sf);
+        roundedTextureShader.setUniformf(
+                "color",
                 color.getRed() / 255.0F,
                 color.getGreen() / 255.0F,
                 color.getBlue() / 255.0F,
@@ -964,7 +883,7 @@ public class RenderUtil {
         drawTexturedQuads(x, y, size, size, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
         drawTexturedQuads(x, y, size, size, 40.0F / 64.0F, 8.0F / 64.0F, 48.0F / 64.0F, 16.0F / 64.0F);
 
-        roundedTextureShader.stop();
+        roundedTextureShader.unload();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.disableBlend();
         GlStateManager.enableAlpha();
@@ -1018,14 +937,14 @@ public class RenderUtil {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
-        roundedShader.use();
+        roundedShader.init();
         setupRoundedRectUniforms(roundedShader, x, y, width, height);
 
         int sf = getScaleFactor();
-        GL20.glUniform1f(roundedShader.getUniformLocationCached("radius"), radius * sf);
-        GL20.glUniform1i(roundedShader.getUniformLocationCached("blur"), blur ? 1 : 0);
-        GL20.glUniform4f(
-                roundedShader.getUniformLocationCached("color"),
+        roundedShader.setUniformf("radius", radius * sf);
+        roundedShader.setUniformi("blur", blur ? 1 : 0);
+        roundedShader.setUniformf(
+                "color",
                 color.getRed() / 255.0F,
                 color.getGreen() / 255.0F,
                 color.getBlue() / 255.0F,
@@ -1034,7 +953,7 @@ public class RenderUtil {
 
         drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
 
-        roundedShader.stop();
+        roundedShader.unload();
         GlStateManager.disableBlend();
     }
 
@@ -1055,24 +974,24 @@ public class RenderUtil {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
-        multiRadiusShader.use();
+        multiRadiusShader.init();
         setupRoundedRectUniforms(multiRadiusShader, x, y, width, height);
 
         int sf = getScaleFactor();
-        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusTopLeft"), radiusTopLeft * sf);
-        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusTopRight"), radiusTopRight * sf);
-        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusBottomLeft"), radiusBottomLeft * sf);
-        GL20.glUniform1f(multiRadiusShader.getUniformLocationCached("radiusBottomRight"), radiusBottomRight * sf);
+        multiRadiusShader.setUniformf("radiusTopLeft", radiusTopLeft * sf);
+        multiRadiusShader.setUniformf("radiusTopRight", radiusTopRight * sf);
+        multiRadiusShader.setUniformf("radiusBottomLeft", radiusBottomLeft * sf);
+        multiRadiusShader.setUniformf("radiusBottomRight", radiusBottomRight * sf);
 
         float alpha = (color >> 24 & 255) / 255.0F;
         float red = (color >> 16 & 255) / 255.0F;
         float green = (color >> 8 & 255) / 255.0F;
         float blue = (color & 255) / 255.0F;
-        GL20.glUniform4f(multiRadiusShader.getUniformLocationCached("color"), red, green, blue, alpha);
+        multiRadiusShader.setUniformf("color", red, green, blue, alpha);
 
         drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
 
-        multiRadiusShader.stop();
+        multiRadiusShader.unload();
         GlStateManager.disableBlend();
     }
 
@@ -1098,11 +1017,11 @@ public class RenderUtil {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
-        roundedGradientShader.use();
+        roundedGradientShader.init();
         setupRoundedRectUniforms(roundedGradientShader, x, y, width, height);
 
         int sf = getScaleFactor();
-        GL20.glUniform1f(roundedGradientShader.getUniformLocationCached("radius"), radius * sf);
+        roundedGradientShader.setUniformf("radius", radius * sf);
         setShaderColor(roundedGradientShader, "color1", n6);
         setShaderColor(roundedGradientShader, "color2", n7);
         setShaderColor(roundedGradientShader, "color3", n9);
@@ -1110,7 +1029,7 @@ public class RenderUtil {
 
         drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
 
-        roundedGradientShader.stop();
+        roundedGradientShader.unload();
         GlStateManager.disableBlend();
     }
 
@@ -1209,18 +1128,18 @@ public class RenderUtil {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.alphaFunc(516, 0.0F);
 
-        roundedGradientOutlineShader.use();
+        roundedGradientOutlineShader.init();
         setupRoundedRectUniforms(roundedGradientOutlineShader, x, y, width, height);
 
         int sf = getScaleFactor();
-        GL20.glUniform1f(roundedGradientOutlineShader.getUniformLocationCached("radius"), radius * sf);
-        GL20.glUniform1f(roundedGradientOutlineShader.getUniformLocationCached("thickness"), thickness * sf);
+        roundedGradientOutlineShader.setUniformf("radius", radius * sf);
+        roundedGradientOutlineShader.setUniformf("thickness", thickness * sf);
         setShaderColor(roundedGradientOutlineShader, "color1", color1);
         setShaderColor(roundedGradientOutlineShader, "color2", color2);
 
         drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
 
-        roundedGradientOutlineShader.stop();
+        roundedGradientOutlineShader.unload();
         GlStateManager.disableBlend();
     }
 
@@ -1315,19 +1234,19 @@ public class RenderUtil {
         return new ScaledResolution(mc).getScaleFactor();
     }
 
-    private static void setupRoundedRectUniforms(Shader shader, float x, float y, float width, float height) {
+    private static void setupRoundedRectUniforms(ShaderUtils shader, float x, float y, float width, float height) {
         int sf = getScaleFactor();
         float locX = x * sf;
         float locY = y * sf;
 
-        GL20.glUniform2f(shader.getUniformLocationCached("location"), locX, locY);
-        GL20.glUniform2f(shader.getUniformLocationCached("rectSize"), width * sf, height * sf);
-        GL20.glUniform2f(shader.getUniformLocationCached("screenSize"), mc.displayWidth, mc.displayHeight);
+        shader.setUniformf("location", locX, locY);
+        shader.setUniformf("rectSize", width * sf, height * sf);
+        shader.setUniformf("screenSize", mc.displayWidth, mc.displayHeight);
     }
 
-    private static void setShaderColor(Shader shader, String uniform, int color) {
-        GL20.glUniform4f(
-                shader.getUniformLocationCached(uniform),
+    private static void setShaderColor(ShaderUtils shader, String uniform, int color) {
+        shader.setUniformf(
+                uniform,
                 (color >> 16 & 255) / 255.0F,
                 (color >> 8 & 255) / 255.0F,
                 (color & 255) / 255.0F,

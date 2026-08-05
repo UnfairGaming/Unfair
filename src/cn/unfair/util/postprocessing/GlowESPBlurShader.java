@@ -2,19 +2,20 @@ package cn.unfair.util.postprocessing;
 
 import cn.unfair.util.MathUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.OpenGlHelper;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL20;
 
 import java.nio.FloatBuffer;
 
-public class GlowESPBlurShader extends Shader {
+public class GlowESPBlurShader {
     private static final String SHADER = String.join(
             "\n",
             "#version 120",
             "uniform sampler2D textureIn;",
+            "uniform sampler2D textureToCheck;",
             "uniform vec2 texelSize;",
             "uniform vec2 direction;",
+            "uniform vec3 color;",
+            "uniform bool avoidTexture;",
             "uniform float exposure;",
             "uniform float radius;",
             "uniform float weights[256];",
@@ -22,62 +23,80 @@ public class GlowESPBlurShader extends Shader {
             "#define offset direction * texelSize",
             "",
             "void main() {",
-            "    vec4 center = texture2D(textureIn, gl_TexCoord[0].st);",
-            "    float alpha = center.a * weights[0];",
-            "    vec3 colorSum = center.rgb * center.a * weights[0];",
-            "",
-            "    for (float r = 1.0; r <= radius; r++) {",
-            "        vec4 sample1 = texture2D(textureIn, gl_TexCoord[0].st + offset * r);",
-            "        vec4 sample2 = texture2D(textureIn, gl_TexCoord[0].st - offset * r);",
-            "        float weight = weights[int(r)];",
-            "        alpha += sample1.a * weight + sample2.a * weight;",
-            "        colorSum += sample1.rgb * sample1.a * weight + sample2.rgb * sample2.a * weight;",
+            "    if (direction.y == 1.0 && avoidTexture) {",
+            "        if (texture2D(textureToCheck, gl_TexCoord[0].st).a != 0.0) discard;",
             "    }",
             "",
-            "    vec3 color = colorSum / max(alpha, 0.001);",
-            "    float finalAlpha = clamp(mix(alpha, 1.0 - exp(-alpha * exposure), step(0.0, direction.y)), 0.0, 1.0);",
-            "    gl_FragColor = vec4(color, finalAlpha);",
+            "    vec4 center = texture2D(textureIn, gl_TexCoord[0].st);",
+            "    float innerAlpha = center.a * weights[0];",
+            "    vec3 innerColor = center.rgb * center.a * weights[0];",
+            "",
+            "    for (float r = 1.0; r <= radius; r++) {",
+            "        vec4 current1 = texture2D(textureIn, gl_TexCoord[0].st + offset * r);",
+            "        vec4 current2 = texture2D(textureIn, gl_TexCoord[0].st - offset * r);",
+            "        float weight = weights[int(r)];",
+            "        innerAlpha += current1.a * weight;",
+            "        innerAlpha += current2.a * weight;",
+            "        innerColor += current1.rgb * current1.a * weight;",
+            "        innerColor += current2.rgb * current2.a * weight;",
+            "    }",
+            "",
+            "    if (direction.x == 0.0 && avoidTexture) {",
+            "        float maskAlpha = texture2D(textureToCheck, gl_TexCoord[0].st).a;",
+            "        innerAlpha *= 1.0 - maskAlpha;",
+            "        innerColor *= 1.0 - maskAlpha;",
+            "    }",
+            "",
+            "    vec3 sourceColor = innerAlpha > 0.0 ? innerColor / innerAlpha : color;",
+            "    gl_FragColor = vec4(sourceColor, clamp(innerAlpha * exposure, 0.0, 1.0));",
             "}"
     );
 
+    private final ShaderUtils shader = new ShaderUtils(SHADER, true);
     private final FloatBuffer weights = BufferUtils.createFloatBuffer(256);
+    private float lastRadius = -1.0F;
 
-    public GlowESPBlurShader() {
-        super(SHADER);
+    public void use() {
+        this.shader.init();
     }
 
-    @Override
-    public void onLink() {
-        this.setUniform("textureIn");
-        this.setUniform("radius");
-        this.setUniform("texelSize");
-        this.setUniform("direction");
-        this.setUniform("exposure");
-        this.setUniform("weights");
+    public void setup(float directionX, float directionY, float radius, float exposure, java.awt.Color color) {
+        this.setup(directionX, directionY, radius, exposure, color, false);
     }
 
-    @Override
-    public void onUse() {
-        GL20.glUseProgram(this.programId);
-    }
-
-    public void setup(float directionX, float directionY, float radius, float exposure) {
+    public void setup(float directionX, float directionY, float radius, float exposure, java.awt.Color color, boolean avoidTexture) {
         Minecraft mc = Minecraft.getMinecraft();
-        GL20.glUniform1i(this.getUniformLocationCached("textureIn"), 0);
-        GL20.glUniform1f(this.getUniformLocationCached("radius"), radius);
-        GL20.glUniform2f(this.getUniformLocationCached("texelSize"), 1.0F / mc.displayWidth, 1.0F / mc.displayHeight);
-        GL20.glUniform2f(this.getUniformLocationCached("direction"), directionX, directionY);
-        GL20.glUniform1f(this.getUniformLocationCached("exposure"), exposure);
+        this.shader.setUniformi("textureIn", 0);
+        this.shader.setUniformi("textureToCheck", 16);
+        this.shader.setUniformi("avoidTexture", avoidTexture ? 1 : 0);
+        this.shader.setUniformf("radius", radius);
+        this.shader.setUniformf("texelSize", 1.0F / mc.displayWidth, 1.0F / mc.displayHeight);
+        this.shader.setUniformf("direction", directionX, directionY);
+        this.shader.setUniformf("exposure", exposure);
+        this.shader.setUniformf(
+                "color",
+                color.getRed() / 255.0F,
+                color.getGreen() / 255.0F,
+                color.getBlue() / 255.0F
+        );
         this.updateWeights(radius);
     }
 
     private void updateWeights(float radius) {
+        if (this.lastRadius == radius) {
+            return;
+        }
+        this.lastRadius = radius;
         int samples = Math.min(255, Math.max(1, (int) radius));
         this.weights.clear();
         for (int i = 0; i <= samples; i++) {
             this.weights.put(MathUtil.calculateGaussianValue(i, radius / 2.0F));
         }
         this.weights.flip();
-        OpenGlHelper.glUniform1(this.getUniformLocationCached("weights"), this.weights);
+        this.shader.setUniform1("weights", this.weights);
+    }
+
+    public void stop() {
+        this.shader.unload();
     }
 }

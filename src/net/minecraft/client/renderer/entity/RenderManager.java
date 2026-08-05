@@ -389,6 +389,62 @@ public class RenderManager {
         return rendered;
     }
 
+    public boolean renderEntityStaticNoShadow(Entity entity, float partialTicks, boolean hideDebugBox) {
+        float prevRenderYawOffset = 0.0F;
+        float renderYawOffset = 0.0F;
+        float prevRotationYawHead = 0.0F;
+        float rotationYawHead = 0.0F;
+        float prevRotationPitch = 0.0F;
+        float rotationPitch = 0.0F;
+        boolean restoreRotation = entity instanceof EntityPlayerSP && RotationState.isRotated(1);
+
+        if (restoreRotation) {
+            EntityPlayerSP player = (EntityPlayerSP) entity;
+            prevRenderYawOffset = player.prevRenderYawOffset;
+            renderYawOffset = player.renderYawOffset;
+            prevRotationYawHead = player.prevRotationYawHead;
+            rotationYawHead = player.rotationYawHead;
+            prevRotationPitch = player.prevRotationPitch;
+            rotationPitch = player.rotationPitch;
+            player.prevRenderYawOffset = RotationState.getPrevRenderYawOffset();
+            player.renderYawOffset = RotationState.getRenderYawOffset();
+            player.prevRotationYawHead = RotationState.getPrevRotationYawHead();
+            player.rotationYawHead = RotationState.getRotationYawHead();
+            player.prevRotationPitch = RotationState.getPrevRotationPitch();
+            player.rotationPitch = RotationState.getRotationPitch();
+        }
+
+        if (entity.ticksExisted == 0) {
+            entity.lastTickPosX = entity.posX;
+            entity.lastTickPosY = entity.posY;
+            entity.lastTickPosZ = entity.posZ;
+        }
+
+        double d0 = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * (double) partialTicks;
+        double d1 = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * (double) partialTicks;
+        double d2 = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * (double) partialTicks;
+        float f = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
+        int i = entity.getBrightnessForRender(partialTicks);
+
+        int j = i % 65536;
+        int k = i / 65536;
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j / 1.0F, (float) k / 1.0F);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        boolean rendered = this.doRenderEntityNoShadow(entity, d0 - this.renderPosX, d1 - this.renderPosY, d2 - this.renderPosZ, f, partialTicks, hideDebugBox);
+
+        if (restoreRotation) {
+            EntityPlayerSP player = (EntityPlayerSP) entity;
+            player.prevRenderYawOffset = prevRenderYawOffset;
+            player.renderYawOffset = renderYawOffset;
+            player.prevRotationYawHead = prevRotationYawHead;
+            player.rotationYawHead = rotationYawHead;
+            player.prevRotationPitch = prevRotationPitch;
+            player.rotationPitch = rotationPitch;
+        }
+
+        return rendered;
+    }
+
     public void renderWitherSkull(Entity entityIn, float partialTicks) {
         double d0 = entityIn.lastTickPosX + (entityIn.posX - entityIn.lastTickPosX) * (double) partialTicks;
         double d1 = entityIn.lastTickPosY + (entityIn.posY - entityIn.lastTickPosY) * (double) partialTicks;
@@ -407,6 +463,52 @@ public class RenderManager {
 
     public boolean renderEntityWithPosYaw(Entity entityIn, double x, double y, double z, float entityYaw, float partialTicks) {
         return this.doRenderEntity(entityIn, x, y, z, entityYaw, partialTicks, false);
+    }
+
+    public boolean doRenderEntityNoShadow(Entity entity, double x, double y, double z, float entityYaw, float partialTicks, boolean hideDebugBox) {
+        Render<Entity> render = null;
+
+        try {
+            render = this.<Entity>getEntityRenderObject(entity);
+
+            if (render != null && this.renderEngine != null) {
+                try {
+                    if (render instanceof RendererLivingEntity) {
+                        ((RendererLivingEntity) render).setRenderOutlines(this.renderOutlines);
+                    }
+
+                    if (CustomEntityModels.isActive()) {
+                        this.renderRender = render;
+                    }
+
+                    render.doRender(entity, x, y, z, entityYaw, partialTicks);
+                } catch (Throwable throwable2) {
+                    throw new ReportedException(CrashReport.makeCrashReport(throwable2, "Rendering entity in world"));
+                }
+
+                if (this.debugBoundingBox && !entity.isInvisible() && !hideDebugBox) {
+                    try {
+                        this.renderDebugBoundingBox(entity, x, y, z, entityYaw, partialTicks);
+                    } catch (Throwable throwable) {
+                        throw new ReportedException(CrashReport.makeCrashReport(throwable, "Rendering entity hitbox in world"));
+                    }
+                }
+            } else if (this.renderEngine != null) {
+                return false;
+            }
+
+            return true;
+        } catch (Throwable throwable3) {
+            CrashReport crashreport = CrashReport.makeCrashReport(throwable3, "Rendering entity in world");
+            CrashReportCategory crashreportcategory = crashreport.makeCategory("Entity being rendered");
+            entity.addEntityCrashInfo(crashreportcategory);
+            CrashReportCategory crashreportcategory1 = crashreport.makeCategory("Renderer details");
+            crashreportcategory1.addCrashSection("Assigned renderer", render);
+            crashreportcategory1.addCrashSection("Location", CrashReportCategory.getCoordinateInfo(x, y, z));
+            crashreportcategory1.addCrashSection("Rotation", Float.valueOf(entityYaw));
+            crashreportcategory1.addCrashSection("Delta", Float.valueOf(partialTicks));
+            throw new ReportedException(crashreport);
+        }
     }
 
     public boolean doRenderEntity(Entity entity, double x, double y, double z, float entityYaw, float partialTicks, boolean hideDebugBox) {

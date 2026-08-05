@@ -1,10 +1,14 @@
 package net.minecraft.rendering.optimization.entityculling;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.modules.render.ChestESP;
 import net.minecraft.rendering.culling.OcclusionCullingInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.tileentity.TileEntityEnderChest;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
@@ -57,6 +61,7 @@ public class CullTask implements Runnable {
                         Vec3d camera = lastPos;
                         culling.resetCache();
                         boolean noCulling = mc.thePlayer.isSpectator() || mc.gameSettings.thirdPersonView != 0;
+                        boolean chestESPEnabled = isChestESPEnabled();
                         Iterator<TileEntity> iterator = mc.theWorld.loadedTileEntityList.iterator();
                         TileEntity entry;
                         while(iterator.hasNext()) {
@@ -67,6 +72,10 @@ public class CullTask implements Runnable {
                                 // overhead probably than trying to sync stuff up for no really good reason
                             }
                             if(unCullable.contains(entry.getBlockType().getUnlocalizedName())) {
+                                continue;
+                            }
+                            if (chestESPEnabled && (entry instanceof TileEntityChest || entry instanceof TileEntityEnderChest)) {
+                                entry.setCulled(false);
                                 continue;
                             }
                             Cullable cullable = entry;
@@ -136,5 +145,14 @@ public class CullTask implements Runnable {
 
     private boolean isSkippableArmorstand(Entity entity) {
         return entity instanceof EntityArmorStand && ((EntityArmorStand) entity).hasMarker();
+    }
+
+    private boolean isChestESPEnabled() {
+        if (Unfair.moduleManager == null || Unfair.moduleManager.modules == null) {
+            return false;
+        }
+
+        ChestESP chestESP = (ChestESP) Unfair.moduleManager.modules.get(ChestESP.class);
+        return chestESP != null && chestESP.isEnabled();
     }
 }

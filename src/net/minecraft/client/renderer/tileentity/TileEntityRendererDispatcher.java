@@ -1,5 +1,7 @@
 package net.minecraft.client.renderer.tileentity;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.modules.render.ChestESP;
 import com.google.common.collect.Maps;
 import java.util.Map;
 
@@ -165,7 +167,7 @@ public class TileEntityRendererDispatcher {
     }
 
     public void renderTileEntityAt(TileEntity tileEntityIn, double x, double y, double z, float partialTicks, int destroyStage) {
-        if (!tileEntityIn.isForcedVisible() && tileEntityIn.isCulled()) {
+        if (!this.shouldBypassCulling(tileEntityIn) && !tileEntityIn.isForcedVisible() && tileEntityIn.isCulled()) {
             EntityCullingManager.instance.skippedBlockEntities++;
             return;
         }
@@ -185,6 +187,18 @@ public class TileEntityRendererDispatcher {
                 throw new ReportedException(crashreport);
             }
         }
+    }
+
+    private boolean shouldBypassCulling(TileEntity tileEntity) {
+        if (!(tileEntity instanceof TileEntityChest || tileEntity instanceof TileEntityEnderChest)) {
+            return false;
+        }
+        if (Unfair.moduleManager == null || Unfair.moduleManager.modules == null) {
+            return false;
+        }
+
+        ChestESP chestESP = (ChestESP) Unfair.moduleManager.modules.get(ChestESP.class);
+        return chestESP != null && chestESP.isEnabled();
     }
 
     public void setWorld(World worldIn) {

@@ -31,6 +31,10 @@ public class ChunkProviderClient implements IChunkProvider {
         return this.chunkMapping;
     }
 
+    public List<Chunk> getLoadedChunks() {
+        return this.chunkListing;
+    }
+
     /**
      * Reference to the World object.
      */
