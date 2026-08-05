@@ -2,7 +2,6 @@ package cn.unfair.module.modules.render;
 
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
@@ -14,7 +13,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.util.EnumChatFormatting;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -27,7 +25,6 @@ public class Scoreboard extends Module {
     private static final float PADDING_X = 3.0F;
     private static final float PADDING_TOP = 3.0F;
     private static final float PADDING_BOTTOM = 3.0F;
-    private static final float TITLE_GAP = 2.0F;
     private static final float MIN_WIDTH = 70.0F;
     private static final int BACKGROUND_RGB = 8 << 16 | 10 << 8 | 14;
     private static final int TITLE_COLOR = 0xFFF4F6FB;
@@ -193,19 +190,16 @@ public class Scoreboard extends Module {
         for (Score score : renderedScores) {
             ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
             String name = ScorePlayerTeam.formatPlayerName(team, score.getPlayerName());
-            String points = EnumChatFormatting.RED + "" + score.getScorePoints();
-            lines.add(new ScoreboardLine(name, points));
+            lines.add(new ScoreboardLine(name));
         }
         return lines;
     }
 
     private static class ScoreboardLine {
         private final String name;
-        private final String score;
 
-        private ScoreboardLine(String name, String score) {
+        private ScoreboardLine(String name) {
             this.name = name;
-            this.score = score;
         }
     }
 }
