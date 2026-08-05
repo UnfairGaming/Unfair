@@ -4,14 +4,11 @@ import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.Chams;
 import cn.unfair.module.modules.render.ViewClip;
 import cn.unfair.module.modules.render.Xray;
-import java.util.ArrayDeque;
-import java.util.BitSet;
-import java.util.EnumSet;
-import java.util.Queue;
-import java.util.Set;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.IntegerCache;
+
+import java.util.*;
 
 public class VisGraph
 {

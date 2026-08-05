@@ -1,8 +1,8 @@
 package net.minecraft.rendering.optimization.entityculling;
 
-import net.minecraft.rendering.culling.DataProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.rendering.culling.DataProvider;
 import net.minecraft.util.BlockPos;
 
 public class Provider implements DataProvider {

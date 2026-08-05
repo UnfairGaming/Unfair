@@ -81,8 +81,7 @@ public class ReduceVelocity extends SubModule {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (this.isEnabled()) {
             if (event.getType() == EventType.RECEIVE && !event.isCancelled()) {
-                if (event.getPacket() instanceof S12PacketEntityVelocity) {
-                    S12PacketEntityVelocity velocityPacket = (S12PacketEntityVelocity) event.getPacket();
+                if (event.getPacket() instanceof S12PacketEntityVelocity velocityPacket) {
                     if (velocityPacket.getEntityID() == mc.thePlayer.getEntityId()) {
                         knockback = true;
                     }

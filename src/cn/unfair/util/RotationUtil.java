@@ -44,7 +44,7 @@ public class RotationUtil {
     }
 
     public static float[] getRotations(BlockPos blockPos) {
-        return getRotations(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, mc.thePlayer.posX, mc.thePlayer.posY + (double)mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
+        return getRotations(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5, mc.thePlayer.posX, mc.thePlayer.posY + (double) mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
     }
 
     public static float[] getRotations(double rotX, double rotY, double rotZ, double startX, double startY, double startZ) {

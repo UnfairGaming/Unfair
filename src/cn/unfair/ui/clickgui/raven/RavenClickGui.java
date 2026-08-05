@@ -1,5 +1,12 @@
 package cn.unfair.ui.clickgui.raven;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.Category;
+import cn.unfair.module.modules.render.HUD;
+import cn.unfair.ui.clickgui.raven.components.BindComponent;
+import cn.unfair.ui.clickgui.raven.components.CategoryComponent;
+import cn.unfair.ui.clickgui.raven.components.ModuleComponent;
+import cn.unfair.util.AnimationUtil;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -9,18 +16,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-import cn.unfair.Unfair;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.PostProcessBlurEvent;
-import cn.unfair.module.Category;
-import cn.unfair.module.modules.render.ClickGui;
-import cn.unfair.module.modules.render.HUD;
-import cn.unfair.ui.clickgui.raven.components.BindComponent;
-import cn.unfair.ui.clickgui.raven.components.CategoryComponent;
-import cn.unfair.ui.clickgui.raven.components.ModuleComponent;
-import cn.unfair.util.AnimationUtil;
-import cn.unfair.util.RenderUtil;
 
 import java.awt.*;
 import java.io.File;
@@ -48,6 +43,7 @@ public class RavenClickGui extends GuiScreen {
     private long openedTime;
     private int hudColorCached = Color.white.getRGB();
     private long lastHudColorUpdate = 0;
+
     public RavenClickGui() {
         instance = this;
         categories = new ArrayList<>();
@@ -101,7 +97,7 @@ public class RavenClickGui extends GuiScreen {
         // Update cached HUD color every 50ms
         if (System.currentTimeMillis() - lastHudColorUpdate > 50) {
             HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-            hudColorCached = hud.getColor(System.currentTimeMillis()).getRGB();
+            hudColorCached = HUD.getColor(System.currentTimeMillis()).getRGB();
             lastHudColorUpdate = System.currentTimeMillis();
         }
 
@@ -110,12 +106,12 @@ public class RavenClickGui extends GuiScreen {
         int w_c = 30 - this.getLerpValueInt(this.logoSmoothWidthStart, 500.0F, 0, 30, 3);
 
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        int hudColor1 = hud.getColor(System.currentTimeMillis()).getRGB();
-        int hudColor2 = hud.getColor(System.currentTimeMillis() + 300).getRGB();
-        int hudColor3 = hud.getColor(System.currentTimeMillis() + 600).getRGB();
-        int hudColor4 = hud.getColor(System.currentTimeMillis() + 900).getRGB();
-        int hudColor5 = hud.getColor(System.currentTimeMillis() + 1200).getRGB();
-        int hudColor6 = hud.getColor(System.currentTimeMillis() + 1500).getRGB();
+        int hudColor1 = HUD.getColor(System.currentTimeMillis()).getRGB();
+        int hudColor2 = HUD.getColor(System.currentTimeMillis() + 300).getRGB();
+        int hudColor3 = HUD.getColor(System.currentTimeMillis() + 600).getRGB();
+        int hudColor4 = HUD.getColor(System.currentTimeMillis() + 900).getRGB();
+        int hudColor5 = HUD.getColor(System.currentTimeMillis() + 1200).getRGB();
+        int hudColor6 = HUD.getColor(System.currentTimeMillis() + 1500).getRGB();
 
         this.drawCenteredString(this.fontRendererObj, "U", wd + 1 - w_c, h - 25, hudColor6);
         this.drawCenteredString(this.fontRendererObj, "n", wd - w_c, h - 15, hudColor5);
@@ -217,8 +213,7 @@ public class RavenClickGui extends GuiScreen {
         for (CategoryComponent category : categories) {
             if (category.isOpened() && !category.getModules().isEmpty() && category.overRect(mouseX, mouseY)) {
                 for (Component component : category.getModules()) {
-                    if (component instanceof ModuleComponent) {
-                        ModuleComponent moduleComponent = (ModuleComponent) component;
+                    if (component instanceof ModuleComponent moduleComponent) {
                         moduleComponent.onClick(mouseX, mouseY, mouseButton);
                         category.openModule(moduleComponent);
                     }
@@ -333,8 +328,7 @@ public class RavenClickGui extends GuiScreen {
     private boolean binding() {
         for (CategoryComponent c : categories) {
             for (Component component : c.getModules()) {
-                if (component instanceof ModuleComponent) {
-                    ModuleComponent moduleComponent = (ModuleComponent) component;
+                if (component instanceof ModuleComponent moduleComponent) {
                     for (Component setting : moduleComponent.settings) {
                         if (setting instanceof BindComponent && ((BindComponent) setting).isBinding) {
                             return true;

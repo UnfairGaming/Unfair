@@ -1,13 +1,13 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.PercentProperty;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class SpeedMine extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -20,7 +20,7 @@ public class SpeedMine extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             if (!mc.playerController.isInCreativeMode()) {
                 if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectType.BLOCK) {
                     mc.playerController.setBlockHitDelay(Math.min(mc.playerController.getBlockHitDelay(), this.delay.getValue() + 1));

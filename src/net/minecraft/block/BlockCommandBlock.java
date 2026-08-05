@@ -1,6 +1,5 @@
 package net.minecraft.block;
 
-import java.util.Random;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -16,6 +15,8 @@ import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
+
+import java.util.Random;
 
 public class BlockCommandBlock extends BlockContainer
 {

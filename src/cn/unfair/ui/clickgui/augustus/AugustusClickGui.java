@@ -9,13 +9,7 @@ import cn.unfair.module.Category;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.Property;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.property.properties.TextProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -28,52 +22,68 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class AugustusClickGui extends GuiScreen {
     private static final double FLOAT_SLIDER_STEP = 0.01D;
 
     private static final Minecraft mc = Minecraft.getMinecraft();
-
-    private static FontRenderer CACHED_TITLE_FONT;
-    private static FontRenderer CACHED_NORMAL_FONT;
-    private static int CACHED_SCALE = -1;
-
     private static final float SIDEBAR_WIDTH = 90f;
     private static final float CONTENT_TEXT_X_OFFSET = 100f;
     private static final float CONTENT_ACTION_X_OFFSET = 170f;
-
+    private static FontRenderer CACHED_TITLE_FONT;
+    private static FontRenderer CACHED_NORMAL_FONT;
+    private static int CACHED_SCALE = -1;
+    private final Map<Property<?>, Float> sliderAnim = new HashMap<>();
+    private final Map<TextProperty, GuiTextField> textFields = new HashMap<>();
+    private final Map<ColorProperty, ColorPickerState> colorPickers = new HashMap<>();
     private boolean dragging = false;
     private boolean resizing = false;
     private boolean waitingForKey = false;
     private Property<?> draggingSlider = null;
-
     private float dragOffsetX, dragOffsetY;
-
     private float posX, posY;
     private float guiWidth, guiHeight;
     private int lastScreenWidth = -1;
     private int lastScreenHeight = -1;
     private boolean positionInitialized = false;
-
     private float moduleScroll = 0F;
     private float valueScroll = 0F;
-
     private Category selectedCategory = Category.COMBAT;
     private Module selectedModule = null;
-
-    private final Map<Property<?>, Float> sliderAnim = new HashMap<>();
-    private final Map<TextProperty, GuiTextField> textFields = new HashMap<>();
-    private final Map<ColorProperty, ColorPickerState> colorPickers = new HashMap<>();
-
     private FontRenderer titleFont;
     private FontRenderer normalFont;
+
+    public AugustusClickGui() {
+        this.guiWidth = 600;
+        this.guiHeight = 325;
+    }
+
+    private static boolean isHovered(int mouseX, int mouseY, float x, float y, float w, float h) {
+        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+    }
+
+    private static void scissorStart(float x, float y, float w, float h) {
+        ScaledResolution sr = new ScaledResolution(mc);
+        int sf = sr.getScaleFactor();
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor((int) (x * sf), (int) ((sr.getScaledHeight() - (y + h)) * sf), (int) (w * sf), (int) (h * sf));
+    }
+
+    private static void scissorEnd() {
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+    }
+
+    private static String[] getModes(ModeProperty mp) {
+        return mp.getDisplayModes();
+    }
+
+    private static List<Module> getModulesFor(Category c) {
+        return Unfair.moduleManager.getModulesByCategory(c);
+    }
 
     private void ensureFonts() {
         ScaledResolution sr = new ScaledResolution(mc);
@@ -306,18 +316,15 @@ public class AugustusClickGui extends GuiScreen {
 
     private void updateSliderValue(Property<?> property, float mouseX, SliderBounds bounds) {
         float pct = getSliderPercent(mouseX, bounds);
-        if (property instanceof FloatProperty) {
-            FloatProperty fp = (FloatProperty) property;
+        if (property instanceof FloatProperty fp) {
             float min = fp.getMinimum() == null ? 0.0F : fp.getMinimum();
             float max = fp.getMaximum() == null ? 1.0F : fp.getMaximum();
             fp.setValue(getFloatSliderValue(min, max, pct));
-        } else if (property instanceof IntProperty) {
-            IntProperty ip = (IntProperty) property;
+        } else if (property instanceof IntProperty ip) {
             int min = ip.getMinimum();
             int max = ip.getMaximum();
             ip.setValue(pct <= 0.0F ? min : pct >= 1.0F ? max : Math.round(min + (max - min) * pct));
-        } else if (property instanceof PercentProperty) {
-            PercentProperty pp = (PercentProperty) property;
+        } else if (property instanceof PercentProperty pp) {
             int min = pp.getMinimum();
             int max = pp.getMaximum();
             pp.setValue(pct <= 0.0F ? min : pct >= 1.0F ? max : Math.round(min + (max - min) * pct));
@@ -355,33 +362,6 @@ public class AugustusClickGui extends GuiScreen {
             return;
         }
         updateSliderValue(draggingSlider, getPreciseMouseX(), getSliderBounds(draggingSlider.getName(), 0.0F));
-    }
-
-    private static class ColorPickerState {
-        float hue;
-        float sat;
-        float bri;
-        boolean draggingHue;
-        boolean draggingArea;
-    }
-
-    private static class SliderBounds {
-        final float x;
-        final float y;
-        final float width;
-        final float height;
-
-        SliderBounds(float x, float y, float width, float height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-        }
-    }
-
-    public AugustusClickGui() {
-        this.guiWidth = 600;
-        this.guiHeight = 325;
     }
 
     @Override
@@ -537,18 +517,16 @@ public class AugustusClickGui extends GuiScreen {
         float nameX = posX + CONTENT_TEXT_X_OFFSET;
         int nameCol = new Color(200, 200, 200).getRGB();
 
-        if (p instanceof BooleanProperty) {
-            BooleanProperty bp = (BooleanProperty) p;
-            String full = bp.getDisplayName() + ": " + (bp.getValue() ? "true" : "false");
+        if (p instanceof BooleanProperty bp) {
+            String full = bp.getDisplayName() + ": " + (bp.getValue().toString());
             boolean hovered = isHovered(mouseX, mouseY, nameX, y, fw(full), fh());
             normalFont.drawString(bp.getDisplayName() + ": ", nameX, y, nameCol, false);
             int vCol = bp.getValue() ? new Color(0, 180, 0).getRGB() : new Color(180, 0, 0).getRGB();
-            normalFont.drawString(bp.getValue() ? "true" : "false", nameX + fw(bp.getDisplayName() + ": "), y, hovered ? getAccent().getRGB() : vCol, false);
+            normalFont.drawString(bp.getValue().toString(), nameX + fw(bp.getDisplayName() + ": "), y, hovered ? getAccent().getRGB() : vCol, false);
             return y + fh() + 4;
         }
 
-        if (p instanceof TextProperty) {
-            TextProperty tp = (TextProperty) p;
+        if (p instanceof TextProperty tp) {
             normalFont.drawString(tp.getDisplayName() + ": ", nameX, y, nameCol, false);
 
             float boxX = nameX + fw(tp.getDisplayName() + ": ");
@@ -590,8 +568,7 @@ public class AugustusClickGui extends GuiScreen {
             return renderPercentSlider((PercentProperty) p, mouseX, mouseY, y);
         }
 
-        if (p instanceof ModeProperty) {
-            ModeProperty mp = (ModeProperty) p;
+        if (p instanceof ModeProperty mp) {
             normalFont.drawString(mp.getDisplayName() + ": ", nameX, y, nameCol, false);
             float x = nameX + fw(mp.getDisplayName() + ": ");
             String[] modes = getModes(mp);
@@ -927,9 +904,8 @@ public class AugustusClickGui extends GuiScreen {
                 for (Property<?> p : props) {
                     if (!p.isVisible()) continue;
 
-                    if (p instanceof BooleanProperty) {
-                        BooleanProperty bp = (BooleanProperty) p;
-                        String full = bp.getDisplayName() + ": " + (bp.getValue() ? "true" : "false");
+                    if (p instanceof BooleanProperty bp) {
+                        String full = bp.getDisplayName() + ": " + (bp.getValue().toString());
                         if (isHovered(mouseX, mouseY, posX + CONTENT_TEXT_X_OFFSET, py, fw(full), fh())) {
                             bp.setValue(!bp.getValue());
                             return;
@@ -938,8 +914,7 @@ public class AugustusClickGui extends GuiScreen {
                         continue;
                     }
 
-                    if (p instanceof ModeProperty) {
-                        ModeProperty mp = (ModeProperty) p;
+                    if (p instanceof ModeProperty mp) {
                         float x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getDisplayName() + ": ");
                         float yy = py;
                         String[] modes = getModes(mp);
@@ -962,8 +937,7 @@ public class AugustusClickGui extends GuiScreen {
                         continue;
                     }
 
-                    if (p instanceof TextProperty) {
-                        TextProperty tp = (TextProperty) p;
+                    if (p instanceof TextProperty tp) {
                         float boxX = (posX + CONTENT_TEXT_X_OFFSET) + fw(tp.getDisplayName() + ": ");
                         float boxW = 140;
                         float boxH = fh() + 4;
@@ -1009,7 +983,7 @@ public class AugustusClickGui extends GuiScreen {
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (keyCode == 1 && !waitingForKey) {
-            this.mc.displayGuiScreen(null);
+            mc.displayGuiScreen(null);
             return;
         }
 
@@ -1104,21 +1078,6 @@ public class AugustusClickGui extends GuiScreen {
         RenderUtil.drawRoundedRect(posX, posY, guiWidth, 17.0F, 6.0F, 6.0F, 0.0F, 0.0F, color);
     }
 
-    private static boolean isHovered(int mouseX, int mouseY, float x, float y, float w, float h) {
-        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
-    }
-
-    private static void scissorStart(float x, float y, float w, float h) {
-        ScaledResolution sr = new ScaledResolution(mc);
-        int sf = sr.getScaleFactor();
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor((int) (x * sf), (int) ((sr.getScaledHeight() - (y + h)) * sf), (int) (w * sf), (int) (h * sf));
-    }
-
-    private static void scissorEnd() {
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
-    }
-
     private Color getAccent() {
         try {
             return HUD.getColor(System.currentTimeMillis(), 0);
@@ -1127,11 +1086,14 @@ public class AugustusClickGui extends GuiScreen {
         return new Color(140, 170, 255);
     }
 
-    private static String[] getModes(ModeProperty mp) {
-        return mp.getDisplayModes();
+    private static class ColorPickerState {
+        float hue;
+        float sat;
+        float bri;
+        boolean draggingHue;
+        boolean draggingArea;
     }
 
-    private static List<Module> getModulesFor(Category c) {
-        return Unfair.moduleManager.getModulesByCategory(c);
+    private record SliderBounds(float x, float y, float width, float height) {
     }
 }

@@ -31,14 +31,14 @@
  */
 package org.lwjgl.util.glu;
 
-import java.nio.IntBuffer;
-
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
+import java.nio.IntBuffer;
+
 import static org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL12.GL_BGR;
+import static org.lwjgl.opengl.GL12.GL_BGRA;
 import static org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION;
 
 /**

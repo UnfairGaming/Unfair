@@ -1,11 +1,12 @@
 package net.optifine.shaders;
 
+import net.minecraft.src.Config;
+import net.optifine.config.MatchBlock;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import net.minecraft.src.Config;
-import net.optifine.config.MatchBlock;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class BlockAlias

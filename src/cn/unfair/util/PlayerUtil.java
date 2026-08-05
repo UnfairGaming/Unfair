@@ -1,5 +1,7 @@
 package cn.unfair.util;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.modules.movement.KeepSprint;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.client.Minecraft;
@@ -18,8 +20,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
-import cn.unfair.Unfair;
-import cn.unfair.module.modules.movement.KeepSprint;
 
 public class PlayerUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();

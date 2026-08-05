@@ -1,13 +1,13 @@
 package net.minecraft.client.audio;
 
-import java.util.Random;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+
+import java.util.Random;
 
 public class MusicTicker implements ITickable {
     private final Random rand = new Random();

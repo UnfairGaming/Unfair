@@ -7,7 +7,6 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.LeftClickMouseEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
@@ -23,8 +22,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
-
-import java.awt.*;
 
 public class AutoRod extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -177,10 +174,9 @@ public class AutoRod extends Module {
         Vec3 mouseOver = this.getMouseOverHitVec(distance + 1.5D);
 
         for (Object object : mc.theWorld.loadedEntityList) {
-            if (!(object instanceof EntityLivingBase)) {
+            if (!(object instanceof EntityLivingBase entity)) {
                 continue;
             }
-            EntityLivingBase entity = (EntityLivingBase) object;
             if (!this.isValidTarget(entity, distance)) {
                 continue;
             }
@@ -199,20 +195,16 @@ public class AutoRod extends Module {
         if (entity == mc.thePlayer || entity == mc.thePlayer.ridingEntity || entity.deathTime > 0 || entity.isDead) {
             return false;
         }
-        if (!(entity instanceof EntityPlayer)) {
+        if (!(entity instanceof EntityPlayer player)) {
             return false;
         }
         if (this.getDistanceToEntityBox(entity) > distance) {
             return false;
         }
-        EntityPlayer player = (EntityPlayer) entity;
         if (TeamUtil.isFriend(player)) {
             return false;
         }
-        if (TeamUtil.shouldBlockTarget(player)) {
-            return false;
-        }
-        return true;
+        return !TeamUtil.shouldBlockTarget(player);
     }
 
     private void reset() {

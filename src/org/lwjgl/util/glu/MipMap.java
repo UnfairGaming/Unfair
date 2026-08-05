@@ -31,12 +31,13 @@
  */
 package org.lwjgl.util.glu;
 
-import java.nio.ByteBuffer;
-
 import org.lwjgl.BufferUtils;
 
+import java.nio.ByteBuffer;
+
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.util.glu.GLU.*;
+import static org.lwjgl.util.glu.GLU.GLU_INVALID_ENUM;
+import static org.lwjgl.util.glu.GLU.GLU_INVALID_VALUE;
 
 /**
  * MipMap.java

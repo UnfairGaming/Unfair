@@ -5,15 +5,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiLanguage;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -25,6 +19,12 @@ import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.util.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SimpleReloadableResourceManager implements IReloadableResourceManager {
     private static final Logger logger = LogManager.getLogger();

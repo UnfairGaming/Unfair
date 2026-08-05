@@ -1,13 +1,13 @@
 package cn.unfair.module.modules.render;
 
-import cn.unfair.events.LoadWorldEvent;
-import net.minecraft.client.Minecraft;
 import cn.unfair.event.EventTarget;
+import cn.unfair.events.LoadWorldEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.KeyBindUtil;
+import net.minecraft.client.Minecraft;
 
 public class FreeLook extends Module {
     public static FreeLook INSTANCE;

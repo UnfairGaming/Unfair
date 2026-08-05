@@ -1,16 +1,5 @@
 package net.minecraft.client.renderer;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
-import java.net.URL;
-import java.net.Proxy.Type;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.imageio.ImageIO;
-
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.SimpleTexture;
@@ -26,6 +15,16 @@ import net.optifine.shaders.ShadersTex;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadDownloadImageData extends SimpleTexture {
     private static final Logger logger = LogManager.getLogger();

@@ -1,14 +1,5 @@
 package cn.unfair.module.modules.render;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RendererLivingEntity;
-import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.scoreboard.Score;
-import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.scoreboard.Scoreboard;
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.event.EventTarget;
@@ -26,7 +17,16 @@ import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.postprocessing.GlowESPBlurShader;
 import cn.unfair.util.postprocessing.ShaderUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.entity.RendererLivingEntity;
+import net.minecraft.client.shader.Framebuffer;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.Scoreboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
@@ -99,7 +99,8 @@ public class ESP extends Module {
                     int teamColor = TeamUtil.isSameTeam(entityPlayer) ? ChatColors.BLUE.toAwtColor() : ChatColors.RED.toAwtColor();
                     return new Color(teamColor);
                 case 2:
-                    int hudColor = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis()).getRGB();
+                    Unfair.moduleManager.modules.get(HUD.class);
+                    int hudColor = HUD.getColor(System.currentTimeMillis()).getRGB();
                     return new Color(hudColor);
                 default:
                     return new Color(-1);
@@ -260,7 +261,7 @@ public class ESP extends Module {
                     GlStateManager.pushMatrix();
                     GlStateManager.scale(scale, scale, scale);
                     for (EntityPlayer player : renderedEntities) {
-                        mc.entityRenderer.setupCameraTransform(event.getPartialTicks(), 0);
+                        mc.entityRenderer.setupCameraTransform(event.partialTicks(), 0);
                         Vector4d screenPosition = RenderUtil.projectToScreen(player, scaleFactor);
                         mc.entityRenderer.setupOverlayRendering();
                         if (screenPosition != null) {
@@ -304,7 +305,7 @@ public class ESP extends Module {
             this.glowEntities = this.getRenderedPlayers();
             this.framebuffer.framebufferClear();
             this.framebuffer.bindFramebuffer(true);
-            this.renderGlowEntities(event.getPartialTicks());
+            this.renderGlowEntities(event.partialTicks());
             this.framebuffer.unbindFramebuffer();
             mc.getFramebuffer().bindFramebuffer(true);
             GlStateManager.disableLighting();
@@ -328,12 +329,12 @@ public class ESP extends Module {
                         RenderUtil.drawFake2DESP(player, color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F);
                     }
                     if (this.healthBar.getValue() == 2) {
-                        double x = RenderUtil.lerpDouble(player.posX, player.lastTickPosX, event.getPartialTicks())
+                        double x = RenderUtil.lerpDouble(player.posX, player.lastTickPosX, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosX();
-                        double y = RenderUtil.lerpDouble(player.posY, player.lastTickPosY, event.getPartialTicks())
+                        double y = RenderUtil.lerpDouble(player.posY, player.lastTickPosY, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosY()
                                 - 0.1F;
-                        double z = RenderUtil.lerpDouble(player.posZ, player.lastTickPosZ, event.getPartialTicks())
+                        double z = RenderUtil.lerpDouble(player.posZ, player.lastTickPosZ, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosZ();
                         GlStateManager.pushMatrix();
                         GlStateManager.translate(x, y, z);

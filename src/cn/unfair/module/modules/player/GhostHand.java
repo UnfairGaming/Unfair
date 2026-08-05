@@ -1,11 +1,11 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.TeamUtil;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 
 public class GhostHand extends Module {
     public final BooleanProperty teamsOnly = new BooleanProperty("team-only", true);

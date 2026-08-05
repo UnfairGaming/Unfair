@@ -1,8 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import com.google.common.base.CaseFormat;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -13,6 +10,9 @@ import cn.unfair.property.properties.*;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.TimerUtil;
+import com.google.common.base.CaseFormat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
 
 public class BlockHit extends Module {
 
@@ -54,7 +54,7 @@ public class BlockHit extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null) return;
-        if (event.getType() == EventType.PRE) {
+        if (event.type() == EventType.PRE) {
             if (this.mode.getValue() == 0) {
                 if (mc.gameSettings.keyBindAttack.isKeyDown()) {
                     if (mc.thePlayer.isBlocking()) {

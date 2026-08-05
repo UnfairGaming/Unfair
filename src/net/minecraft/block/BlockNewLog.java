@@ -1,7 +1,6 @@
 package net.minecraft.block;
 
 import com.google.common.base.Predicate;
-import java.util.List;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
@@ -10,6 +9,8 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+
+import java.util.List;
 
 public class BlockNewLog extends BlockLog
 {

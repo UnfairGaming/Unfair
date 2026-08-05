@@ -6,12 +6,7 @@ import cn.unfair.event.types.Priority;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -65,7 +60,7 @@ public final class EventManager {
      */
     public static void unregister(Object object) {
         for (final List<MethodData> dataList : REGISTRY_MAP.values()) {
-            dataList.removeIf(data -> data.getSource().equals(object));
+            dataList.removeIf(data -> data.source().equals(object));
         }
         cleanMap(true);
     }
@@ -78,7 +73,7 @@ public final class EventManager {
      */
     public static void unregister(Object object, Class<? extends Event> eventClass) {
         if (REGISTRY_MAP.containsKey(eventClass)) {
-            REGISTRY_MAP.get(eventClass).removeIf(data -> data.getSource().equals(object));
+            REGISTRY_MAP.get(eventClass).removeIf(data -> data.source().equals(object));
             cleanMap(true);
         }
     }
@@ -112,8 +107,8 @@ public final class EventManager {
         //New MethodData from the Method we are registering.
         final MethodData data = new MethodData(object, method, method.getAnnotation(EventTarget.class).value());
         //Set's the method to accessible so that we can also invoke it if it's protected or private.
-        if (!data.getTarget().canAccess(object)) {
-            data.getTarget().setAccessible(true);
+        if (!data.target().canAccess(object)) {
+            data.target().setAccessible(true);
         }
         if (REGISTRY_MAP.containsKey(indexClass)) {
             if (!REGISTRY_MAP.get(indexClass).contains(data)) {
@@ -171,7 +166,7 @@ public final class EventManager {
         List<MethodData> sortedList = new CopyOnWriteArrayList<>();
         for (final byte priority : Priority.VALUE_ARRAY) {
             for (final MethodData data : REGISTRY_MAP.get(indexClass)) {
-                if (data.getPriority() == priority) {
+                if (data.priority() == priority) {
                     sortedList.add(data);
                 }
             }
@@ -221,8 +216,7 @@ public final class EventManager {
     public static Event call(final Event event) {
         List<MethodData> dataList = REGISTRY_MAP.get(event.getClass());
         if (dataList != null) {
-            if (event instanceof EventStoppable) {
-                EventStoppable stoppable = (EventStoppable) event;
+            if (event instanceof EventStoppable stoppable) {
                 for (final MethodData data : dataList) {
                     invoke(data, event);
                     if (stoppable.isStopped()) {
@@ -246,21 +240,17 @@ public final class EventManager {
      */
     private static void invoke(MethodData data, Event argument) {
         try {
-            data.getTarget().invoke(data.getSource(), argument);
+            data.target().invoke(data.source(), argument);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * @author DarkMagician6
-     * @since January 2, 2014
-     */
-    private static final class MethodData {
-        private final Object source;
-        private final Method target;
-        private final byte priority;
-
+         * @author DarkMagician6
+         * @since January 2, 2014
+         */
+        private record MethodData(Object source, Method target, byte priority) {
         /**
          * Sets the values of the data.
          *
@@ -270,37 +260,37 @@ public final class EventManager {
          * @param priority The priority of this Method. Used by the registry to sort
          *                 the data on.
          */
-        public MethodData(Object source, Method target, byte priority) {
-            this.source = source;
-            this.target = target;
-            this.priority = priority;
+        private MethodData {
         }
 
-        /**
-         * Gets the source Object of the data.
-         *
-         * @return Source Object of the targeted Method.
-         */
-        public Object getSource() {
-            return source;
-        }
+            /**
+             * Gets the source Object of the data.
+             *
+             * @return Source Object of the targeted Method.
+             */
+            @Override
+            public Object source() {
+                return source;
+            }
 
-        /**
-         * Gets the targeted Method.
-         *
-         * @return The Method that is listening to certain Event calls.
-         */
-        public Method getTarget() {
-            return target;
-        }
+            /**
+             * Gets the targeted Method.
+             *
+             * @return The Method that is listening to certain Event calls.
+             */
+            @Override
+            public Method target() {
+                return target;
+            }
 
-        /**
-         * Gets the priority value of the targeted Method.
-         *
-         * @return The priority value of the targeted Method.
-         */
-        public byte getPriority() {
-            return priority;
+            /**
+             * Gets the priority value of the targeted Method.
+             *
+             * @return The priority value of the targeted Method.
+             */
+            @Override
+            public byte priority() {
+                return priority;
+            }
         }
-    }
 }

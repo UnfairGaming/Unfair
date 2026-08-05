@@ -1,16 +1,18 @@
 package net.minecraft.client.renderer;
 
 import com.google.common.collect.Maps;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import lombok.Getter;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.*;
+import net.minecraft.client.resources.model.IBakedModel;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.src.Config;
 import net.optifine.CustomItems;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class ItemModelMesher {
     private final Map<Integer, ModelResourceLocation> simpleShapes = Maps.newHashMap();

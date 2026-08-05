@@ -1,7 +1,7 @@
 package cn.unfair.property.properties;
 
-import com.google.gson.JsonObject;
 import cn.unfair.property.Property;
+import com.google.gson.JsonObject;
 
 import java.util.function.BooleanSupplier;
 

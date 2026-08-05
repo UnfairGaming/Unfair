@@ -1,6 +1,5 @@
 package cn.unfair.module.modules.misc;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.Module;
@@ -8,6 +7,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.TextProperty;
 import cn.unfair.util.TimerUtil;
+import net.minecraft.client.Minecraft;
 
 public class Spammer extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

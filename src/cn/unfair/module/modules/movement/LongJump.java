@@ -1,11 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import com.google.common.base.CaseFormat;
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemFireball;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -17,6 +11,12 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
+import com.google.common.base.CaseFormat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemFireball;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 
 public class LongJump extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -91,7 +91,7 @@ public class LongJump extends Module {
     @EventTarget(Priority.HIGHEST)
     public void onTick(TickEvent event) {
         if (this.isEnabled()) {
-            switch (event.getType()) {
+            switch (event.type()) {
                 case PRE:
                     if (this.isAutoMode() && !this.fireballLaunched && this.readyToUseFireball) {
                         int slot = this.findFireballInHotbar();

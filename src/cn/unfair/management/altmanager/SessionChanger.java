@@ -1,8 +1,8 @@
 package cn.unfair.management.altmanager;
 
+import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Session;
-import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 
 public class SessionChanger {
     public static String username = null;

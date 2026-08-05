@@ -1,8 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import net.minecraft.client.Minecraft;
-import org.apache.commons.lang3.RandomUtils;
-import org.lwjgl.input.Keyboard;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
@@ -14,6 +11,9 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.PlayerUtil;
+import net.minecraft.client.Minecraft;
+import org.apache.commons.lang3.RandomUtils;
+import org.lwjgl.input.Keyboard;
 
 import java.util.Objects;
 
@@ -50,7 +50,7 @@ public class Eagle extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             if (this.sneakDelay > 0) {
                 this.sneakDelay--;
             }

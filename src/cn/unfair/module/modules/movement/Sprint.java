@@ -1,13 +1,13 @@
 package cn.unfair.module.modules.movement;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.KeyBindUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
 
 public class Sprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -39,7 +39,7 @@ public class Sprint extends Module {
                 KeyBindUtil.updateKeyState(mc.gameSettings.keyBindSprint.getKeyCode());
                 return;
             }
-            switch (event.getType()) {
+            switch (event.type()) {
                 case PRE:
                     KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
                     break;

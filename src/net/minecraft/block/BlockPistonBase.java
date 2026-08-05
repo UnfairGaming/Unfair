@@ -1,6 +1,5 @@
 package net.minecraft.block;
 
-import java.util.List;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -21,6 +20,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 public class BlockPistonBase extends Block
 {

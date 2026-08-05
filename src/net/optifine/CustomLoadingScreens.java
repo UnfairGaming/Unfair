@@ -1,16 +1,13 @@
 package net.optifine;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import net.minecraft.network.PacketThreadUtil;
 import net.minecraft.src.Config;
 import net.optifine.util.ResUtils;
 import net.optifine.util.StrUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class CustomLoadingScreens

@@ -1,12 +1,5 @@
 package net.optifine;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -16,6 +9,13 @@ import net.minecraft.world.World;
 import net.optifine.render.Blender;
 import net.optifine.util.PropertiesOrdered;
 import net.optifine.util.TextureUtils;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class CustomSky {

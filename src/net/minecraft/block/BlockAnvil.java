@@ -1,6 +1,5 @@
 package net.minecraft.block;
 
-import java.util.List;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -24,6 +23,8 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.IInteractionObject;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 public class BlockAnvil extends BlockFalling
 {

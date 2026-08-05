@@ -1,20 +1,5 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C0APacketAnimation;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.potion.Potion;
-import net.minecraft.util.*;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
-import net.minecraft.world.WorldSettings.GameType;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -31,18 +16,31 @@ import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
 import cn.unfair.util.player.ApsDelayGenerator;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.potion.Potion;
+import net.minecraft.util.*;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.world.WorldSettings.GameType;
+import org.apache.commons.lang3.RandomUtils;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
-import org.apache.commons.lang3.RandomUtils;
 
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private final float[] lastErrors = new float[20];
     private static final double[] placeOffsets = new double[]{0.03125, 0.09375, 0.15625, 0.21875, 0.28125, 0.34375, 0.40625, 0.46875, 0.53125, 0.59375, 0.65625, 0.71875, 0.78125, 0.84375, 0.90625, 0.96875
     };
-    private int errorIndex = 0;
     public final ModeProperty rotationMode = new ModeProperty("rotations", 5, new String[]{"None", "Vanilla", "BackWards", "Strafe", "Test", "Prediction"});
     public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT"});
     public final ModeProperty sprintMode = new ModeProperty("sprint", 0, new String[]{"NONE", "VANILLA"});
@@ -67,6 +65,10 @@ public class Scaffold extends Module {
     public final BooleanProperty swing = new BooleanProperty("swing", true);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
     public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
+    private final float[] lastErrors = new float[20];
+    private final TimerUtil clickTimer = new TimerUtil();
+    private final ApsDelayGenerator apsDelayGenerator = new ApsDelayGenerator();
+    private int errorIndex = 0;
     private int rotationTick = 0;
     private int lastSlot = -1;
     private int blockCount = -1;
@@ -87,8 +89,6 @@ public class Scaffold extends Module {
     private float lastPitchChange = 0;
     private EnumFacing targetFacing = null;
     private boolean easingOut = false;
-    private final TimerUtil clickTimer = new TimerUtil();
-    private final ApsDelayGenerator apsDelayGenerator = new ApsDelayGenerator();
     private long nextClickDelay = 0L;
 
     public Scaffold() {
@@ -155,7 +155,7 @@ public class Scaffold extends Module {
             this.sneakDelay = 0;
             return;
         }
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             if (this.sneakDelay > 0) {
                 this.sneakDelay--;
             }
@@ -1058,11 +1058,11 @@ public class Scaffold extends Module {
         if (this.isEnabled()) {
 
             switch (blockCounterMode.getValue()) {
-                case 0 : {
+                case 0: {
                     break;
                 }
 
-                case 1 : {
+                case 1: {
                     HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
                     float scale = hud.scale.getValue();
                     GlStateManager.pushMatrix();
@@ -1084,7 +1084,7 @@ public class Scaffold extends Module {
                     break;
                 }
 
-                case 2 : {
+                case 2: {
                     HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
                     float scale = hud.scale.getValue();
                     GlStateManager.pushMatrix();
@@ -1096,7 +1096,7 @@ public class Scaffold extends Module {
                             Integer.toString(getBlockCount()),
                             ((new ScaledResolution(mc).getScaledWidth() - mc.fontRendererObj.FONT_HEIGHT * Integer.toString(getBlockCount()).codePointCount(0, Integer.toString(getBlockCount()).length()) * .5F) / 2.0F) / scale,
                             new ScaledResolution(mc).getScaledHeight() / 2.0F - 15F
-                            );
+                    );
                     GlStateManager.disableBlend();
                     GlStateManager.enableDepth();
                     GlStateManager.popMatrix();
@@ -1228,35 +1228,9 @@ public class Scaffold extends Module {
         }
     }
 
-    public static class BlockData {
-        private final BlockPos blockPos;
-        private final EnumFacing facing;
-
-        public BlockData(BlockPos blockPos, EnumFacing enumFacing) {
-            this.blockPos = blockPos;
-            this.facing = enumFacing;
-        }
-
-        public BlockPos blockPos() {
-            return this.blockPos;
-        }
-
-        public EnumFacing facing() {
-            return this.facing;
-        }
+    public record BlockData(BlockPos blockPos, EnumFacing facing) {
     }
 
-    private static class PlacementTarget {
-        private final BlockData blockData;
-        private final Vec3 hitVec;
-        private final float yaw;
-        private final float pitch;
-
-        private PlacementTarget(BlockData blockData, Vec3 hitVec, float yaw, float pitch) {
-            this.blockData = blockData;
-            this.hitVec = hitVec;
-            this.yaw = yaw;
-            this.pitch = pitch;
-        }
+    private record PlacementTarget(BlockData blockData, Vec3 hitVec, float yaw, float pitch) {
     }
 }

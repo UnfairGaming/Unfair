@@ -1,18 +1,17 @@
 package org.lwjgl.input;
 
-import java.awt.event.KeyEvent;
+import org.apache.commons.lang3.StringUtils;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.Sys;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.Display;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
-
-import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.LWJGLException;
-import org.lwjgl.Sys;
-import org.lwjgl.opengl.Display;
 
 public class Keyboard {
 

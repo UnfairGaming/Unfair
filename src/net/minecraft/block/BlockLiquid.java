@@ -1,26 +1,19 @@
 package net.minecraft.block;
 
-import java.util.Random;
-
-import net.minecraft.rendering.optimization.normal.AssociatedMutableBlockPos;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
+import net.minecraft.rendering.optimization.normal.AssociatedMutableBlockPos;
+import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeColorHelper;
+
+import java.util.Random;
 
 public abstract class BlockLiquid extends Block {
     public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 15);

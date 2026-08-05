@@ -18,11 +18,9 @@ import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 
 public class DelayVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
-
+    public final IntProperty delayTicks = new IntProperty("delay-ticks", 2, 1, 5);
     private boolean delayActive = false;
     private boolean delayFlag = false;
-
-    public final IntProperty delayTicks = new IntProperty("delay-ticks", 2, 1, 5);
 
     public DelayVelocity() {
         super("Delay");
@@ -40,14 +38,14 @@ public class DelayVelocity extends SubModule {
     public void onPacket(PacketEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (this.isEnabled() && event.getType() == EventType.RECEIVE && !event.isCancelled()) {
-            if (event.getPacket() instanceof S12PacketEntityVelocity) {
-                S12PacketEntityVelocity packet = (S12PacketEntityVelocity) event.getPacket();
+            if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
                 if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                     LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
-                    if (    !this.delayFlag
+                    if (!this.delayFlag
                             && !this.canDelay()
                             && !isInLiquidOrWeb()
-                            && (!longJump.isEnabled() || !longJump.canStartJump())) {{
+                            && (!longJump.isEnabled() || !longJump.canStartJump())) {
+                        {
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
                             Unfair.delayManager.delayedPacket.offer(packet);
                             event.setCancelled(true);

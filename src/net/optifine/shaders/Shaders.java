@@ -1,7 +1,6 @@
 package net.optifine.shaders;
 
 import com.google.common.base.Charsets;
-import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -18,6 +17,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
+import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.src.Config;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
@@ -28,7 +28,6 @@ import net.optifine.GlErrors;
 import net.optifine.Lang;
 import net.optifine.config.ConnectedParser;
 import net.optifine.expr.IExpressionBool;
-
 import net.optifine.render.GlAlphaState;
 import net.optifine.render.GlBlendState;
 import net.optifine.shaders.config.*;

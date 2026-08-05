@@ -33,12 +33,12 @@ public class PolarVelocity extends SubModule {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!kb || !isEnabled() || BadPacketUtil.bad() || event.getType() != EventType.PRE) return;
         switch (mode.getValue()) {
-            case 0 : {
+            case 0: {
                 // set in EntityPlayer
                 break;
             }
 
-            case 1 : {
+            case 1: {
                 // cancel in Packet Event
                 break;
             }
@@ -51,17 +51,16 @@ public class PolarVelocity extends SubModule {
     public void onPacket(PacketEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (this.isEnabled() && event.getType() == EventType.RECEIVE && !event.isCancelled()) {
-            if (event.getPacket() instanceof S12PacketEntityVelocity) {
-                S12PacketEntityVelocity packet = (S12PacketEntityVelocity) event.getPacket();
+            if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
                 if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                     kb = true;
                     switch (mode.getValue()) {
-                        case 0 : {
+                        case 0: {
                             // set in EntityPlayer
                             break;
                         }
 
-                        case 1 : {
+                        case 1: {
                             if (event.getType() == EventType.RECEIVE) {
                                 RayCastUtil.RayCastResult result = RayCastUtil.rayCast(new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 2.9F);
                                 EntityLivingBase target = KillAura.target.getEntity();

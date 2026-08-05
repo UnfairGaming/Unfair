@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
 
-import java.awt.Color;
+import java.awt.*;
 
 public abstract class Widget {
     protected static final Minecraft mc = Minecraft.getMinecraft();
@@ -33,6 +33,10 @@ public abstract class Widget {
         this.align = align;
         this.width = 80.0F;
         this.height = 20.0F;
+    }
+
+    protected static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     public abstract boolean shouldRender();
@@ -130,10 +134,6 @@ public abstract class Widget {
 
     public boolean isHovered(int mouseX, int mouseY) {
         return mouseX >= this.renderX && mouseX <= this.renderX + this.width && mouseY >= this.renderY && mouseY <= this.renderY + this.height;
-    }
-
-    protected static float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
     }
 
     protected void drawDragFrame(float x, float y, float width, float height, boolean dragging) {

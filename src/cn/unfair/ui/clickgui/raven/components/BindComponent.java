@@ -1,12 +1,12 @@
 package cn.unfair.ui.clickgui.raven.components;
 
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.Component;
 import cn.unfair.ui.clickgui.raven.dataset.BindStage;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,7 +31,8 @@ public class BindComponent implements Component {
     public void draw(AtomicInteger offset) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        this.renderText(this.isBinding ? BindStage.binding : BindStage.bind + ": " + Keyboard.getKeyName(this.parentModule.mod.getKey()), ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis(), offset.get()).getRGB());
+        Unfair.moduleManager.modules.get(HUD.class);
+        this.renderText(this.isBinding ? BindStage.binding : BindStage.bind + ": " + Keyboard.getKeyName(this.parentModule.mod.getKey()), HUD.getColor(System.currentTimeMillis(), offset.get()).getRGB());
         GL11.glPopMatrix();
     }
 

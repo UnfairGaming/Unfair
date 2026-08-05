@@ -1,14 +1,14 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,7 @@ public class AutoSwap extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (!this.isEnabled() || event.getType() != EventType.PRE) {
+        if (!this.isEnabled() || event.type() != EventType.PRE) {
             return;
         }
 

@@ -1,8 +1,8 @@
 package cn.unfair.property;
 
-import com.google.gson.JsonObject;
 import cn.unfair.module.Module;
 import cn.unfair.module.ModuleWithModuleSettings;
+import com.google.gson.JsonObject;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -28,19 +28,6 @@ public abstract class Property<T> {
         this.visibleChecker = visibleChecker;
         this.value = value;
         this.owner = null;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String getDisplayName() {
-        return toDisplayName(this.name);
-    }
-
-    public boolean matchesName(String input) {
-        return normalizeName(this.name).equalsIgnoreCase(normalizeName(input))
-                || normalizeName(this.getDisplayName()).equalsIgnoreCase(normalizeName(input));
     }
 
     protected static String toDisplayName(String value) {
@@ -72,12 +59,24 @@ public abstract class Property<T> {
         return value == null ? "" : value.replace("-", "").replace("_", "").replace(" ", "");
     }
 
+    public String getName() {
+        return this.name;
+    }
+
+    public String getDisplayName() {
+        return toDisplayName(this.name);
+    }
+
+    public boolean matchesName(String input) {
+        return normalizeName(this.name).equalsIgnoreCase(normalizeName(input))
+                || normalizeName(this.getDisplayName()).equalsIgnoreCase(normalizeName(input));
+    }
+
     public abstract String getValuePrompt();
 
     public boolean isVisible() {
         Module visibilitySource = this.visibilityOwner != null ? this.visibilityOwner : this.owner;
-        if (this.visibleModes != null && visibilitySource instanceof ModuleWithModuleSettings) {
-            ModuleWithModuleSettings moduleWithSettings = (ModuleWithModuleSettings) visibilitySource;
+        if (this.visibleModes != null && visibilitySource instanceof ModuleWithModuleSettings moduleWithSettings) {
             String currentMode = moduleWithSettings.modeProperty.getModeString();
             boolean modeVisible = false;
             for (String visibleMode : this.visibleModes) {

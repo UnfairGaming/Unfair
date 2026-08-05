@@ -1,7 +1,7 @@
 package cn.unfair.events;
 
-import net.minecraft.entity.Entity;
 import cn.unfair.event.events.Event;
+import net.minecraft.entity.Entity;
 
 public class AttackEvent implements Event {
     private final Entity target;

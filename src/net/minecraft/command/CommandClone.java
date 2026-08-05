@@ -1,8 +1,6 @@
 package net.minecraft.command;
 
 import com.google.common.collect.Lists;
-import java.util.LinkedList;
-import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
@@ -13,6 +11,9 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.world.NextTickListEntry;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class CommandClone extends CommandBase
 {

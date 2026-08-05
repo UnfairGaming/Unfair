@@ -6,7 +6,9 @@ import net.minecraft.util.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Generates stable surface points used by KillAura's aim-point selector. */
+/**
+ * Generates stable surface points used by KillAura's aim-point selector.
+ */
 public final class PointFinder {
     public static final List<Vec3> hitboxPoints = new ArrayList<>();
     public static final List<Vec3> invalidHitboxPoints = new ArrayList<>();

@@ -1,12 +1,12 @@
 package cn.unfair.management;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MathHelper;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.Render3DEvent;
 import cn.unfair.events.TickEvent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MathHelper;
 
 public class RotationManager {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -66,7 +66,7 @@ public class RotationManager {
 
     @EventTarget(Priority.HIGHEST)
     public void onTick(TickEvent event) {
-        if (event.getType() != EventType.PRE) {
+        if (event.type() != EventType.PRE) {
             return;
         }
         this.applyRotation(1.0F);
@@ -75,6 +75,6 @@ public class RotationManager {
 
     @EventTarget(Priority.HIGHEST)
     public void onRender3D(Render3DEvent event) {
-        this.applyRotation(event.getPartialTicks());
+        this.applyRotation(event.partialTicks());
     }
 }

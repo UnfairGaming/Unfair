@@ -1,8 +1,8 @@
 package org.lwjgl.input;
 
-import java.awt.event.KeyEvent;
-
 import org.lwjgl.glfw.GLFW;
+
+import java.awt.event.KeyEvent;
 
 public class KeyCodes {
 

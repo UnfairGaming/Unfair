@@ -1,9 +1,9 @@
 package cn.unfair.management;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.enums.FloatModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.PlayerUpdateEvent;
+import net.minecraft.client.Minecraft;
 
 import java.util.LinkedHashMap;
 

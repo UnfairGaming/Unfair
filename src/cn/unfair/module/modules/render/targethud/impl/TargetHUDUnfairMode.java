@@ -8,7 +8,7 @@ import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.util.MathHelper;
 
-import java.awt.Color;
+import java.awt.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -32,12 +32,12 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
         float centerX = x + width / 2.0F;
         float centerY = y + height / 2.0F;
 
-        float ratio = MathHelper.clamp_float(data.targetHealth / Math.max(data.maxHealth, 1.0F), 0.0F, 1.0F);
-        float absorptionRatio = Math.min(data.absorption / Math.max(data.maxHealth, 1.0F), 1.0F);
+        float ratio = MathHelper.clamp_float(data.targetHealth() / Math.max(data.maxHealth(), 1.0F), 0.0F, 1.0F);
+        float absorptionRatio = Math.min(data.absorption() / Math.max(data.maxHealth(), 1.0F), 1.0F);
         float space = width - 43.0F;
         int[] colors = targetHUD.getRavenGradientColors();
         float partialTicks = TargetHUD.mc.timer.renderPartialTicks;
-        float hurtTime = data.entity.hurtTime == 0 ? 0.0F : (data.entity.hurtTime - partialTicks) * 0.3F;
+        float hurtTime = data.entity().hurtTime == 0 ? 0.0F : (data.entity().hurtTime - partialTicks) * 0.3F;
 
         if (this.background.getValue() > 0) {
             int backgroundAlpha = (int) (this.background.getValue() / 100.0F * fadeAlpha);
@@ -81,9 +81,9 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
             );
         }
 
-        float targetHp = data.entity.getHealth() + data.entity.getAbsorptionAmount();
+        float targetHp = data.entity().getHealth() + data.entity().getAbsorptionAmount();
         float playerHp = TargetHUD.mc.thePlayer == null ? 0.0F : TargetHUD.mc.thePlayer.getHealth() + TargetHUD.mc.thePlayer.getAbsorptionAmount();
-        String health = String.valueOf(BigDecimal.valueOf(targetHp).setScale(2, RoundingMode.FLOOR).doubleValue()) + "HP";
+        String health = BigDecimal.valueOf(targetHp).setScale(2, RoundingMode.FLOOR).doubleValue() + "HP";
         String diff = this.diffText(playerHp, targetHp);
         FontRenderer nameFont = Fonts.interSemiBold.get(18.0F);
         FontRenderer infoFont = Fonts.interSemiBold.get(13.0F);
@@ -91,7 +91,7 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
         net.minecraft.client.renderer.GlStateManager.translate(centerX, centerY, 0.0F);
         net.minecraft.client.renderer.GlStateManager.scale(scale, scale, 1.0F);
         net.minecraft.client.renderer.GlStateManager.translate(-centerX, -centerY, 0.0F);
-        nameFont.drawStringWithShadow(data.entity.getName(), x + 37.0F, y + 5.0F, RenderUtil.mergeAlpha(Color.WHITE.getRGB(), fadeAlpha));
+        nameFont.drawStringWithShadow(data.entity().getName(), x + 37.0F, y + 5.0F, RenderUtil.mergeAlpha(Color.WHITE.getRGB(), fadeAlpha));
         infoFont.drawStringWithShadow(health, x + 37.0F, y + 17.0F, RenderUtil.mergeAlpha(Color.LIGHT_GRAY.getRGB(), fadeAlpha));
         infoFont.drawStringWithShadow(diff, x + 115.0F - infoFont.getStringWidth(diff), y + 17.0F, RenderUtil.mergeAlpha(Color.LIGHT_GRAY.getRGB(), fadeAlpha));
         net.minecraft.client.renderer.GlStateManager.popMatrix();
@@ -105,7 +105,7 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
                 this.scaleSize(5.0F, scale),
                 playerHp >= targetHp ? new Color(0, 0, 0, 0).getRGB() : new Color(255, 0, 0, (int) (85.0F * progress)).getRGB());
         RenderUtil.renderRoundedPlayerHead(
-                data.entity,
+                data.entity(),
                 this.scaleX(x + 2.5F, centerX, scale),
                 this.scaleY(y + 2.5F, centerY, scale),
                 this.scaleSize(32.0F, scale),

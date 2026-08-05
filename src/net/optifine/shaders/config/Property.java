@@ -1,8 +1,9 @@
 package net.optifine.shaders.config;
 
-import java.util.Properties;
 import net.minecraft.src.Config;
 import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class Property

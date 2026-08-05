@@ -3,8 +3,8 @@ package net.minecraft.client.renderer.vertex;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import org.apache.logging.log4j.LogManager;
-import org.lwjgl.opengl.GL11;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 

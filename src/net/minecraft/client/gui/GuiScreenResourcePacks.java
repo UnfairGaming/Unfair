@@ -6,8 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.*;
 import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
-import org.lwjgl.Sys;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.Sys;
 
 import java.io.File;
 import java.io.IOException;

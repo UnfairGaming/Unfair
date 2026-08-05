@@ -7,22 +7,17 @@ import cn.unfair.events.PacketEvent;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.ModuleWithModuleSettings;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDExhibitionMode;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDUnfairMode;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDNovolineMode;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDRavenLegacyMode;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDRavenModernMode;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDMyauMode;
+import cn.unfair.module.modules.render.targethud.impl.*;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -52,6 +47,10 @@ public class TargetHUD extends ModuleWithModuleSettings {
 
     public final TimerUtil lastAttackTimer = new TimerUtil();
     public final TimerUtil animTimer = new TimerUtil();
+    public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
+    public final BooleanProperty kaOnly = new BooleanProperty("ka-only", true);
+    public final BooleanProperty chatPreview = new BooleanProperty("chat-preview", false);
+    public final BooleanProperty followPlayer = new BooleanProperty("follow-player", false);
     public EntityLivingBase lastTarget = null;
     public EntityLivingBase target = null;
     public ResourceLocation headTexture = null;
@@ -62,7 +61,6 @@ public class TargetHUD extends ModuleWithModuleSettings {
     public TimerUtil fadeTimer = null;
     public boolean fadingIn = false;
     public EntityLivingBase fadingEntity = null;
-
     public TargetHUD() {
         super("TargetHUD", false, true, "mode",
                 new TargetHUDMyauMode(),
@@ -73,11 +71,6 @@ public class TargetHUD extends ModuleWithModuleSettings {
                 new TargetHUDExhibitionMode()
         );
     }
-
-    public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
-    public final BooleanProperty kaOnly = new BooleanProperty("ka-only", true);
-    public final BooleanProperty chatPreview = new BooleanProperty("chat-preview", false);
-    public final BooleanProperty followPlayer = new BooleanProperty("follow-player", false);
 
     public TargetHUDMode getCurrentMode() {
         return (TargetHUDMode) this.getCurrentSubModule();
@@ -247,8 +240,7 @@ public class TargetHUD extends ModuleWithModuleSettings {
 
     @EventTarget
     public void onPacket(PacketEvent event) {
-        if (event.getType() == EventType.SEND && event.getPacket() instanceof C02PacketUseEntity) {
-            C02PacketUseEntity packet = (C02PacketUseEntity) event.getPacket();
+        if (event.getType() == EventType.SEND && event.getPacket() instanceof C02PacketUseEntity packet) {
             if (packet.getAction() != Action.ATTACK) {
                 return;
             }
@@ -382,8 +374,8 @@ public class TargetHUD extends ModuleWithModuleSettings {
     public int[] getRavenGradientColors() {
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         return new int[]{
-                hud.getColor(System.currentTimeMillis()).getRGB(),
-                hud.getColor(System.currentTimeMillis() + 500L).getRGB()
+                HUD.getColor(System.currentTimeMillis()).getRGB(),
+                HUD.getColor(System.currentTimeMillis() + 500L).getRGB()
         };
     }
 
@@ -473,85 +465,27 @@ public class TargetHUD extends ModuleWithModuleSettings {
         );
     }
 
-    public static class TargetHudBounds {
-        public final int left;
-        public final int top;
-        public final int right;
-        public final int contentBottom;
-        public final int bottom;
-        public final int textX;
-        public final int textY;
-
-        public TargetHudBounds(int left, int top, int right, int contentBottom, int bottom, int textX, int textY) {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.contentBottom = contentBottom;
-            this.bottom = bottom;
-            this.textX = textX;
-            this.textY = textY;
-        }
+    public record TargetHudBounds(int left, int top, int right, int contentBottom, int bottom, int textX, int textY) {
 
         public float width() {
-            return this.right - this.left;
+                return this.right - this.left;
+            }
+
+            public float height() {
+                return this.bottom - this.top;
+            }
         }
 
-        public float height() {
-            return this.bottom - this.top;
-        }
+    public record TargetProjection(float left, float top, float right, float bottom) {
     }
 
-    public static class TargetProjection {
-        public final float left;
-        public final float top;
-        public final float right;
-        public final float bottom;
-
-        public TargetProjection(float left, float top, float right, float bottom) {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
-        }
+    public record TargetPoint(float x, float y, float z) {
     }
 
-    public static class TargetPoint {
-        public final float x;
-        public final float y;
-        public final float z;
-
-        public TargetPoint(float x, float y, float z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+    public record HealthInfo(float health, float absorption, float maxHealth) {
     }
 
-    public static class HealthInfo {
-        public final float health;
-        public final float absorption;
-        public final float maxHealth;
-
-        public HealthInfo(float health, float absorption, float maxHealth) {
-            this.health = health;
-            this.absorption = absorption;
-            this.maxHealth = maxHealth;
-        }
-    }
-
-    public static class RenderData {
-        public final EntityLivingBase entity;
-        public final float playerHealth;
-        public final float absorption;
-        public final float targetHealth;
-        public final float maxHealth;
-
-        public RenderData(EntityLivingBase entity, float playerHealth, float absorption, float targetHealth, float maxHealth) {
-            this.entity = entity;
-            this.playerHealth = playerHealth;
-            this.absorption = absorption;
-            this.targetHealth = targetHealth;
-            this.maxHealth = maxHealth;
-        }
+    public record RenderData(EntityLivingBase entity, float playerHealth, float absorption, float targetHealth,
+                             float maxHealth) {
     }
 }

@@ -1,7 +1,5 @@
 package net.optifine.entity.model;
 
-import java.util.HashMap;
-import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelHorse;
@@ -9,6 +7,9 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderHorse;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.passive.EntityHorse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterHorse extends ModelAdapter

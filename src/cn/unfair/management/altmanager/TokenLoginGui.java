@@ -1,5 +1,6 @@
 package cn.unfair.management.altmanager;
 
+import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.client.gui.GuiButton;
@@ -10,7 +11,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

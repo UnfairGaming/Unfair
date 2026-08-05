@@ -16,7 +16,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class TargetHUDMyauMode extends TargetHUDMode {
     public final ModeProperty color = new ModeProperty("color", 0, new String[]{"DEFAULT", "HUD"});
@@ -36,9 +36,9 @@ public class TargetHUDMyauMode extends TargetHUDMode {
     public void render(TargetHUD targetHUD, TargetHUD.RenderData data, float x, float y) {
         float elapsedTime = (float) Math.min(Math.max(targetHUD.animTimer.getElapsedTime(), 0L), 150L);
         float lerpedHealthRatio = Math.min(Math.max(RenderUtil.lerpFloat(targetHUD.newHealth, targetHUD.oldHealth, elapsedTime / 150.0F) / targetHUD.maxHealth, 0.0F), 1.0F);
-        Color targetColor = this.getTargetColor(data.entity);
+        Color targetColor = this.getTargetColor(data.entity());
         Color healthBarColor = this.color.getValue() == 0 ? ColorUtil.getHealthBlend(lerpedHealthRatio) : targetColor;
-        float healthDeltaRatio = Math.min(Math.max((data.playerHealth - data.targetHealth + 1.0F) / 2.0F, 0.0F), 1.0F);
+        float healthDeltaRatio = Math.min(Math.max((data.playerHealth() - data.targetHealth() + 1.0F) / 2.0F, 0.0F), 1.0F);
         Color healthDeltaColor = ColorUtil.getHealthBlend(healthDeltaRatio);
         UnfairText text = this.buildText(targetHUD, data);
         float headIconOffset = this.getHeadIconOffset(targetHUD);
@@ -100,13 +100,13 @@ public class TargetHUDMyauMode extends TargetHUDMode {
     }
 
     private UnfairText buildText(TargetHUD targetHUD, TargetHUD.RenderData data) {
-        String targetNameText = ChatColors.formatColor(String.format("&r%s&r", TeamUtil.stripName(data.entity)));
+        String targetNameText = ChatColors.formatColor(String.format("&r%s&r", TeamUtil.stripName(data.entity())));
         String healthText = ChatColors.formatColor(
-                String.format("&r&f%s%sHP&r", TargetHUD.HEALTH_FORMAT.format(data.targetHealth), data.absorption > 0.0F ? "&6" : "&c")
+                String.format("&r&f%s%sHP&r", TargetHUD.HEALTH_FORMAT.format(data.targetHealth()), data.absorption() > 0.0F ? "&6" : "&c")
         );
-        String statusText = ChatColors.formatColor(String.format("&r&l%s&r", data.targetHealth == data.playerHealth ? "D" : (data.targetHealth < data.playerHealth ? "W" : "L")));
+        String statusText = ChatColors.formatColor(String.format("&r&l%s&r", data.targetHealth() == data.playerHealth() ? "D" : (data.targetHealth() < data.playerHealth() ? "W" : "L")));
         String healthDiffText = ChatColors.formatColor(
-                String.format("&r%s&r", data.targetHealth == data.playerHealth ? "0.0" : TargetHUD.DIFF_FORMAT.format(data.playerHealth - data.targetHealth))
+                String.format("&r%s&r", data.targetHealth() == data.playerHealth() ? "0.0" : TargetHUD.DIFF_FORMAT.format(data.playerHealth() - data.targetHealth()))
         );
         return new UnfairText(targetNameText, healthText, statusText, healthDiffText);
     }
@@ -117,8 +117,7 @@ public class TargetHUDMyauMode extends TargetHUDMode {
     }
 
     private Color getTargetColor(net.minecraft.entity.EntityLivingBase entityLivingBase) {
-        if (entityLivingBase instanceof net.minecraft.entity.player.EntityPlayer) {
-            net.minecraft.entity.player.EntityPlayer player = (net.minecraft.entity.player.EntityPlayer) entityLivingBase;
+        if (entityLivingBase instanceof net.minecraft.entity.player.EntityPlayer player) {
             if (TeamUtil.isFriend(player)) {
                 return Unfair.friendManager.getColor();
             }
@@ -133,7 +132,8 @@ public class TargetHUDMyauMode extends TargetHUDMode {
                 }
                 return TeamUtil.getTeamColor((net.minecraft.entity.player.EntityPlayer) entityLivingBase, 1.0F);
             case 1:
-                int rgb = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis()).getRGB();
+                Unfair.moduleManager.modules.get(HUD.class);
+                int rgb = HUD.getColor(System.currentTimeMillis()).getRGB();
                 return new Color(rgb);
             default:
                 return new Color(-1);

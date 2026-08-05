@@ -1,5 +1,11 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.Render3DEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.RenderUtil;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -11,12 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.item.*;
 import net.minecraft.util.*;
 import org.lwjgl.opengl.GL11;
-import cn.unfair.event.EventTarget;
-import cn.unfair.events.Render3DEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RenderUtil;
 
 import java.awt.*;
 import java.util.ArrayList;

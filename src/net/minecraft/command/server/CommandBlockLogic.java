@@ -1,9 +1,6 @@
 package net.minecraft.command.server;
 
 import io.netty.buffer.ByteBuf;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.Callable;
 import net.minecraft.command.CommandResultStats;
 import net.minecraft.command.ICommandManager;
 import net.minecraft.command.ICommandSender;
@@ -16,6 +13,10 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ReportedException;
 import net.minecraft.world.World;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.Callable;
 
 public abstract class CommandBlockLogic implements ICommandSender
 {

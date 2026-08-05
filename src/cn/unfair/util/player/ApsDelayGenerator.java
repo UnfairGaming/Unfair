@@ -7,6 +7,10 @@ public class ApsDelayGenerator {
     private int burstTicks;
     private int restTicks;
 
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     public long nextDelay(int minAps, int maxAps) {
         int min = Math.min(minAps, maxAps);
         int max = Math.max(minAps, maxAps);
@@ -56,9 +60,5 @@ public class ApsDelayGenerator {
             return -range * RandomUtil.nextDouble(0.3D, 0.75D);
         }
         return 0.0D;
-    }
-
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
     }
 }

@@ -1,11 +1,11 @@
 package cn.unfair.command.commands;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.Session;
-import net.minecraft.util.StringUtils;
 import cn.unfair.Unfair;
 import cn.unfair.command.Command;
 import cn.unfair.util.ChatUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Session;
+import net.minecraft.util.StringUtils;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;

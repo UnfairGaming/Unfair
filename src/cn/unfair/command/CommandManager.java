@@ -1,12 +1,12 @@
 package cn.unfair.command;
 
-import net.minecraft.network.play.client.C01PacketChatMessage;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.util.ChatUtil;
+import net.minecraft.network.play.client.C01PacketChatMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;

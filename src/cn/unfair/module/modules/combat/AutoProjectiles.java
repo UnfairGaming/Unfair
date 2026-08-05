@@ -8,7 +8,6 @@ import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
@@ -64,14 +63,13 @@ public class AutoProjectiles extends Module {
         if (entity == mc.thePlayer || entity.deathTime > 0) {
             return false;
         }
-        if (!(entity instanceof EntityOtherPlayerMP)) {
+        if (!(entity instanceof EntityOtherPlayerMP player)) {
             return false;
         }
         double distance = mc.thePlayer.getDistanceToEntity(entity);
         if (distance > this.maxRange.getValue()) {
             return false;
         }
-        EntityPlayer player = (EntityPlayer) entity;
         if (TeamUtil.isFriend(player)) {
             return false;
         }
@@ -120,8 +118,7 @@ public class AutoProjectiles extends Module {
     private EntityLivingBase getTarget() {
         ArrayList<EntityLivingBase> targets = new ArrayList<>();
         for (Object obj : mc.theWorld.loadedEntityList) {
-            if (obj instanceof EntityLivingBase) {
-                EntityLivingBase entity = (EntityLivingBase) obj;
+            if (obj instanceof EntityLivingBase entity) {
                 if (isValidTarget(entity)) {
                     targets.add(entity);
                 }

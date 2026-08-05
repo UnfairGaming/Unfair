@@ -1,8 +1,8 @@
 package cn.unfair.events;
 
-import net.minecraft.network.Packet;
 import cn.unfair.event.events.callables.EventCancellable;
 import cn.unfair.event.types.EventType;
+import net.minecraft.network.Packet;
 
 public class PacketEvent extends EventCancellable {
     private final EventType type;

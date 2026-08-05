@@ -1,12 +1,7 @@
 package cn.unfair.module.modules.render;
 
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.ColorUtil;
 
 import java.awt.*;

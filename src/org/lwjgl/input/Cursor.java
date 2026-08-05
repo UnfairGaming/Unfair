@@ -15,9 +15,9 @@
  */
 package org.lwjgl.input;
 
-import java.nio.IntBuffer;
-
 import org.lwjgl.LWJGLException;
+
+import java.nio.IntBuffer;
 
 /**
  *

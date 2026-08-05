@@ -1,8 +1,9 @@
 package net.optifine;
 
-import java.util.Properties;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.config.ConnectedParser;
+
+import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class CustomPanoramaProperties

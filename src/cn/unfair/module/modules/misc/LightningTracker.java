@@ -1,12 +1,12 @@
 package cn.unfair.module.modules.misc;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.play.server.S2CPacketSpawnGlobalEntity;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.module.Module;
 import cn.unfair.util.ChatUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.server.S2CPacketSpawnGlobalEntity;
 
 public class LightningTracker extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -42,8 +42,7 @@ public class LightningTracker extends Module {
 
     @EventTarget
     public void onPacket(PacketEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.RECEIVE && event.getPacket() instanceof S2CPacketSpawnGlobalEntity) {
-            S2CPacketSpawnGlobalEntity packet = (S2CPacketSpawnGlobalEntity) event.getPacket();
+        if (this.isEnabled() && event.getType() == EventType.RECEIVE && event.getPacket() instanceof S2CPacketSpawnGlobalEntity packet) {
             if (packet.func_149053_g() == 1) {
                 double x = (double) packet.func_149051_d() / 32.0;
                 double y = (double) packet.func_149050_e() / 32.0;

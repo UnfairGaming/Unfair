@@ -1,6 +1,5 @@
 package cn.unfair.ui.clickgui.raven.components;
 
-import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.Property;
@@ -11,6 +10,7 @@ import cn.unfair.ui.clickgui.raven.dataset.impl.IntSlider;
 import cn.unfair.ui.clickgui.raven.dataset.impl.PercentageSlider;
 import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.RenderUtil;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -47,38 +47,31 @@ public class ModuleComponent implements Component {
         int y = yPos + 12;
         if (!Unfair.propertyManager.properties.get(mod.getClass()).isEmpty()) {
             for (Property<?> baseProperty : Unfair.propertyManager.properties.get(mod.getClass())) {
-                if (baseProperty instanceof BooleanProperty) {
-                    BooleanProperty property = (BooleanProperty) baseProperty;
+                if (baseProperty instanceof BooleanProperty property) {
                     CheckBoxComponent c = new CheckBoxComponent(property, this, y);
                     this.settings.add(c);
                     y += c.getHeight();
-                } else if (baseProperty instanceof FloatProperty) {
-                    FloatProperty property = (FloatProperty) baseProperty;
+                } else if (baseProperty instanceof FloatProperty property) {
                     SliderComponent c = new SliderComponent(new FloatSlider(property), this, y);
                     this.settings.add(c);
                     y += c.getHeight();
-                } else if (baseProperty instanceof IntProperty) {
-                    IntProperty property = (IntProperty) baseProperty;
+                } else if (baseProperty instanceof IntProperty property) {
                     SliderComponent c = new SliderComponent(new IntSlider(property), this, y);
                     this.settings.add(c);
                     y += c.getHeight();
-                } else if (baseProperty instanceof PercentProperty) {
-                    PercentProperty property = (PercentProperty) baseProperty;
+                } else if (baseProperty instanceof PercentProperty property) {
                     SliderComponent c = new SliderComponent(new PercentageSlider(property), this, y);
                     this.settings.add(c);
                     y += c.getHeight();
-                } else if (baseProperty instanceof ModeProperty) {
-                    ModeProperty property = (ModeProperty) baseProperty;
+                } else if (baseProperty instanceof ModeProperty property) {
                     ModeComponent c = new ModeComponent(property, this, y);
                     this.settings.add(c);
                     y += c.getHeight();
-                } else if (baseProperty instanceof ColorProperty) {
-                    ColorProperty property = (ColorProperty) baseProperty;
+                } else if (baseProperty instanceof ColorProperty property) {
                     ColorSliderComponent c = new ColorSliderComponent(property, this, y);
                     this.settings.add(c);
                     y += c.getHeight();
-                } else if (baseProperty instanceof TextProperty) {
-                    TextProperty property = (TextProperty) baseProperty;
+                } else if (baseProperty instanceof TextProperty property) {
                     TextComponent c = new TextComponent(property, this, y);
                     this.settings.add(c);
                     y += c.getHeight();
@@ -148,7 +141,7 @@ public class ModuleComponent implements Component {
             this.category.updateHeight();
         }
 
-        mc.fontRendererObj.drawString(this.mod.getName(), (int) (this.category.getX() + this.category.getWidth() / 2 - mc.fontRendererObj.getStringWidth(this.mod.getName()) / 2), (int) (this.category.getY() + this.yPos + 2), button_rgb);
+        mc.fontRendererObj.drawString(this.mod.getName(), this.category.getX() + this.category.getWidth() / 2 - mc.fontRendererObj.getStringWidth(this.mod.getName()) / 2, this.category.getY() + this.yPos + 2, button_rgb);
         boolean scissorRequired = smoothStartTime > 0L;
         if (scissorRequired) {
             GL11.glPushMatrix();

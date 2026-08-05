@@ -1,8 +1,9 @@
 package net.minecraft.client.renderer.texture;
 
-import java.io.IOException;
 import net.minecraft.client.resources.IResourceManager;
 import net.optifine.shaders.MultiTexID;
+
+import java.io.IOException;
 
 public interface ITextureObject {
     void setBlurMipmap(boolean p_174936_1_, boolean p_174936_2_);

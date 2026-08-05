@@ -8,8 +8,8 @@ import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.src.Config;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ReportedException;
+import net.minecraft.util.ResourceLocation;
 import net.optifine.CustomGuis;
 import net.optifine.EmissiveTextures;
 import net.optifine.RandomEntities;
@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TextureManager implements ITickable, IResourceManagerReloadListener {

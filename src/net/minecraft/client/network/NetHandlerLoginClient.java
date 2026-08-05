@@ -7,9 +7,6 @@ import com.mojang.authlib.exceptions.InvalidCredentialsException;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.math.BigInteger;
-import java.security.PublicKey;
-import javax.crypto.SecretKey;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiScreen;
@@ -26,6 +23,10 @@ import net.minecraft.util.CryptManager;
 import net.minecraft.util.IChatComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import javax.crypto.SecretKey;
+import java.math.BigInteger;
+import java.security.PublicKey;
 
 public class NetHandlerLoginClient implements INetHandlerLoginClient
 {

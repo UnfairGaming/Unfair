@@ -1,5 +1,17 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
+import cn.unfair.enums.ChatColors;
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.Render3DEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.ColorUtil;
+import cn.unfair.util.RenderUtil;
+import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
@@ -20,18 +32,6 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.EnumChatFormatting;
 import org.apache.commons.lang3.StringUtils;
-import cn.unfair.Unfair;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.event.EventTarget;
-import cn.unfair.events.Render3DEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.ColorUtil;
-import cn.unfair.util.RenderUtil;
-import cn.unfair.util.TeamUtil;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -112,12 +112,12 @@ public class NameTags extends Module {
                         && (entity.ignoreFrustumCheck || RenderUtil.isInViewFrustum(entity.getEntityBoundingBox(), 10.0))) {
                     String teamName = TeamUtil.stripName(entity);
                     if (!StringUtils.isBlank(EnumChatFormatting.getTextWithoutFormattingCodes(teamName))) {
-                        double x = RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, event.getPartialTicks())
+                        double x = RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosX();
-                        double y = RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, event.getPartialTicks())
+                        double y = RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosY()
                                 + (double) entity.getEyeHeight();
-                        double z = RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.getPartialTicks())
+                        double z = RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosZ();
                         double distance = mc.getRenderViewEntity().getDistanceToEntity(entity);
                         GlStateManager.pushMatrix();

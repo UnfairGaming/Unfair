@@ -1,9 +1,10 @@
 package net.optifine.util;
 
+import net.minecraft.src.Config;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.src.Config;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class NativeMemory

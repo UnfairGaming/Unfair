@@ -1,7 +1,8 @@
 package net.minecraft.client.resources;
 
-import java.util.UUID;
 import net.minecraft.util.ResourceLocation;
+
+import java.util.UUID;
 
 public class DefaultPlayerSkin
 {

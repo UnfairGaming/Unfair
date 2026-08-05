@@ -1,5 +1,10 @@
 package cn.unfair.management;
 
+import cn.unfair.enums.DelayModules;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.PacketEvent;
+import cn.unfair.events.TickEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.Packet;
@@ -13,11 +18,6 @@ import net.minecraft.network.play.server.S07PacketRespawn;
 import net.minecraft.network.play.server.S19PacketEntityStatus;
 import net.minecraft.network.status.client.C00PacketServerQuery;
 import net.minecraft.network.status.client.C01PacketPing;
-import cn.unfair.enums.DelayModules;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.TickEvent;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -43,8 +43,7 @@ public class DelayManager {
         } else if (packet instanceof S00PacketKeepAlive) {
             return false;
         } else if (!(packet instanceof S01PacketJoinGame) && !(packet instanceof S07PacketRespawn)) {
-            if (packet instanceof S19PacketEntityStatus) {
-                S19PacketEntityStatus s19 = (S19PacketEntityStatus) packet;
+            if (packet instanceof S19PacketEntityStatus s19) {
                 Entity entity = s19.getEntity(mc.theWorld);
                 if (entity != null && (!entity.equals(mc.thePlayer) || s19.getOpCode() != 2)) {
                     return false;
@@ -113,7 +112,7 @@ public class DelayManager {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (event.getType() == EventType.POST) {
+        if (event.type() == EventType.POST) {
             if (!this.isInWorld()) {
                 this.delayModule = DelayModules.NONE;
                 this.delay = 0L;

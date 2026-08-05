@@ -1,14 +1,5 @@
 package cn.unfair.module.modules.render;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockMobSpawner;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.play.server.S22PacketMultiBlockChange;
-import net.minecraft.network.play.server.S22PacketMultiBlockChange.BlockUpdateData;
-import net.minecraft.network.play.server.S23PacketBlockChange;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
-import net.minecraft.util.Vec3i;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.LoadWorldEvent;
@@ -20,6 +11,15 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.RenderUtil;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockMobSpawner;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.server.S22PacketMultiBlockChange;
+import net.minecraft.network.play.server.S22PacketMultiBlockChange.BlockUpdateData;
+import net.minecraft.network.play.server.S23PacketBlockChange;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.Vec3i;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -319,8 +319,7 @@ public class Xray extends Module {
                         this.pendingBlocks.add(new BlockPos(blockUpdateData.getPos()));
                     }
                 }
-            } else if (event.getPacket() instanceof S23PacketBlockChange) {
-                S23PacketBlockChange packet = (S23PacketBlockChange) event.getPacket();
+            } else if (event.getPacket() instanceof S23PacketBlockChange packet) {
                 if (this.isXrayBlock(Block.getIdFromBlock(packet.getBlockState().getBlock()))) {
                     this.pendingBlocks.add(new BlockPos(packet.getBlockPosition()));
                 }

@@ -15,13 +15,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.awt.*;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -29,21 +24,20 @@ import java.util.Locale;
 public class AltManagerGui extends GuiScreen {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final List<Alt> alts = new ArrayList<>();
-    public static String status = "§aIdle";
-    private static File altFile;
-
     private static final int NAME_LIMIT = 16;
     private static final int DARK = new Color(1, 1, 1).getRGB();
     private static final int PANEL = new Color(34, 34, 34).getRGB();
     private static final int LIGHT = new Color(254, 254, 254).getRGB();
     private static final int MUTED = new Color(153, 153, 153).getRGB();
     private static final float BUTTON_RADIUS = 7.0F;
-
+    public static String status = "§aIdle";
+    private static File altFile;
     private final List<Button> buttons = new ArrayList<>();
     private final FontRenderer font14 = Fonts.interRegular.get(14.0F);
     private final FontRenderer font18 = Fonts.interRegular.get(18.0F);
     private final FontRenderer font20 = Fonts.interRegular.get(20.0F);
     private final FontRenderer font22 = Fonts.interMedium.get(22.0F);
+    private final GuiScreen parentScreen;
     private GuiTextField crackedField;
     private GuiTextField tokenField;
     private Alt selected;
@@ -61,7 +55,6 @@ public class AltManagerGui extends GuiScreen {
     private int uiScale = 1;
     private double mouseX;
     private double mouseY;
-    private final GuiScreen parentScreen;
 
     public AltManagerGui() {
         this(new GuiMainMenu());
@@ -258,7 +251,7 @@ public class AltManagerGui extends GuiScreen {
         for (Button button : buttons) {
             bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(button.x, button.y, button.w, button.h, BUTTON_RADIUS));
         }
-        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x, bound.y, bound.w, bound.h, bound.radius), false);
+        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x(), bound.y(), bound.w(), bound.h(), bound.radius()), false);
     }
 
     private void drawDialog() {
@@ -302,7 +295,7 @@ public class AltManagerGui extends GuiScreen {
         List<MainMenuButtonPostProcessor.ButtonBounds> bounds = new ArrayList<>();
         bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), BUTTON_RADIUS));
         bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), BUTTON_RADIUS));
-        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x, bound.y, bound.w, bound.h, bound.radius), false);
+        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x(), bound.y(), bound.w(), bound.h(), bound.radius()), false);
     }
 
     private void drawDialogButton(float x, float y, float w, float h, String text) {
@@ -727,25 +720,10 @@ public class AltManagerGui extends GuiScreen {
         TOKEN_LOGIN
     }
 
-    private static class Button {
-        private final String text;
-        private final int x;
-        private final int y;
-        private final int w;
-        private final int h;
-        private final Runnable action;
-
-        private Button(String text, int x, int y, int w, int h, Runnable action) {
-            this.text = text;
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-            this.action = action;
-        }
+    private record Button(String text, int x, int y, int w, int h, Runnable action) {
 
         private boolean contains(double mouseX, double mouseY) {
-            return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+                return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+            }
         }
-    }
 }

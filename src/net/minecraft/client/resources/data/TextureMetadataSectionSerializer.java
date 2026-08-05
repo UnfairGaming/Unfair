@@ -1,14 +1,11 @@
 package net.minecraft.client.resources.data;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import com.google.gson.*;
+import net.minecraft.util.JsonUtils;
+
 import java.lang.reflect.Type;
 import java.util.List;
-import net.minecraft.util.JsonUtils;
 
 public class TextureMetadataSectionSerializer extends BaseMetadataSectionSerializer<TextureMetadataSection>
 {

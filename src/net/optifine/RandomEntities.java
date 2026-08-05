@@ -1,16 +1,5 @@
 package net.optifine;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.entity.DataWatcher;
@@ -25,6 +14,11 @@ import net.optifine.util.IntegratedServerUtils;
 import net.optifine.util.PropertiesOrdered;
 import net.optifine.util.ResUtils;
 import net.optifine.util.StrUtils;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class RandomEntities {

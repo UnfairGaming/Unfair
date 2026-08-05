@@ -5,14 +5,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.util.concurrent.GenericFutureListener;
-import java.math.BigInteger;
-import java.security.PrivateKey;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.crypto.SecretKey;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.login.INetHandlerLoginServer;
@@ -30,6 +22,14 @@ import net.minecraft.util.ITickable;
 import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import javax.crypto.SecretKey;
+import java.math.BigInteger;
+import java.security.PrivateKey;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
 {

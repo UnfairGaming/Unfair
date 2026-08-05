@@ -1,8 +1,9 @@
 package net.minecraft.client.gui;
 
-import java.io.IOException;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
+
+import java.io.IOException;
 
 public class ScreenChatOptions extends GuiScreen {
     private static final GameSettings.Options[] field_146399_a = new GameSettings.Options[]{GameSettings.Options.CHAT_VISIBILITY, GameSettings.Options.CHAT_COLOR, GameSettings.Options.CHAT_LINKS, GameSettings.Options.CHAT_OPACITY, GameSettings.Options.CHAT_LINKS_PROMPT, GameSettings.Options.CHAT_SCALE, GameSettings.Options.CHAT_HEIGHT_FOCUSED, GameSettings.Options.CHAT_HEIGHT_UNFOCUSED, GameSettings.Options.CHAT_WIDTH, GameSettings.Options.REDUCED_DEBUG_INFO};

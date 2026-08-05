@@ -1,6 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -13,6 +12,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.PlayerUtil;
+import net.minecraft.client.Minecraft;
 
 public class SafeWalk extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

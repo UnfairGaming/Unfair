@@ -1,6 +1,5 @@
 package net.minecraft.block;
 
-import java.util.List;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -11,6 +10,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 public class BlockPressurePlate extends BlockBasePressurePlate
 {

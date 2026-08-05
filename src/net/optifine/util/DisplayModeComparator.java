@@ -1,7 +1,8 @@
 package net.optifine.util;
 
-import java.util.Comparator;
 import org.lwjgl.opengl.DisplayMode;
+
+import java.util.Comparator;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class DisplayModeComparator implements Comparator

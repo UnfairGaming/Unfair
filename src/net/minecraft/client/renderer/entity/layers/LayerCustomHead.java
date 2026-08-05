@@ -1,7 +1,6 @@
 package net.minecraft.client.renderer.entity.layers;
 
 import com.mojang.authlib.GameProfile;
-import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -19,6 +18,8 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.StringUtils;
+
+import java.util.UUID;
 
 public class LayerCustomHead implements LayerRenderer<EntityLivingBase>
 {

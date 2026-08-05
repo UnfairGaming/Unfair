@@ -41,7 +41,7 @@ public class WidgetManager {
                 continue;
             }
             widget.updatePos(sr);
-            widget.render(event.getPartialTicks());
+            widget.render(event.partialTicks());
         }
     }
 
@@ -65,9 +65,9 @@ public class WidgetManager {
                 continue;
             }
             widget.updatePos(sr);
-            widget.render(event.getPartialTicks());
+            widget.render(event.partialTicks());
             widget.updatePos(sr);
-            widget.onChatGUI(sr, event.getMouseX(), event.getMouseY(), draggingWidget == null || draggingWidget == widget);
+            widget.onChatGUI(sr, event.mouseX(), event.mouseY(), draggingWidget == null || draggingWidget == widget);
             if (widget.dragging) {
                 draggingWidget = widget;
             }

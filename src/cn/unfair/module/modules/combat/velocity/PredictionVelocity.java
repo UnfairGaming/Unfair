@@ -110,8 +110,7 @@ public class PredictionVelocity extends SubModule {
         Velocity velocity = velocity();
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (velocity == null || !isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) return;
-        if (event.getPacket() instanceof S12PacketEntityVelocity) {
-            S12PacketEntityVelocity packet = (S12PacketEntityVelocity) event.getPacket();
+        if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
             if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                 LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
                 if (predictTick < 0

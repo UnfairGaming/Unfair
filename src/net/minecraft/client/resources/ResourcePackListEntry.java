@@ -1,9 +1,9 @@
 package net.minecraft.client.resources;
 
-import net.minecraft.rendering.ResPackPreview;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.rendering.ResPackPreview;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;

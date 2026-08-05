@@ -1,10 +1,11 @@
 package net.optifine;
 
+import net.minecraft.client.ClientBrandRetriever;
+import net.minecraft.src.Config;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import net.minecraft.client.ClientBrandRetriever;
-import net.minecraft.src.Config;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class VersionCheckThread extends Thread

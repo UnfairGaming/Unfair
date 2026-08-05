@@ -1,11 +1,5 @@
 package cn.unfair.module.modules.render;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.event.EventTarget;
@@ -18,6 +12,12 @@ import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.RotationUtil;
 import cn.unfair.util.TeamUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 
 import java.awt.*;
 import java.util.stream.Collectors;
@@ -72,7 +72,8 @@ public class Tracers extends Module {
                     int teamColor = TeamUtil.isSameTeam(entityPlayer) ? ChatColors.BLUE.toAwtColor() : ChatColors.RED.toAwtColor();
                     return new Color(teamColor & Color.WHITE.getRGB() | (int) (alpha * 255.0F) << 24, true);
                 case 2:
-                    int color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis()).getRGB();
+                    Unfair.moduleManager.modules.get(HUD.class);
+                    int color = HUD.getColor(System.currentTimeMillis()).getRGB();
                     return new Color(color & Color.WHITE.getRGB() | (int) (alpha * 255.0F) << 24, true);
                 default:
                     return new Color(1.0F, 1.0F, 1.0F, alpha);
@@ -131,9 +132,9 @@ public class Tracers extends Module {
             position = new Vec3(position.xCoord, position.yCoord + (double) mc.getRenderViewEntity().getEyeHeight(), position.zCoord);
             for (EntityPlayer player : TeamUtil.getLoadedEntitiesSorted().stream().filter(entity -> entity instanceof EntityPlayer && this.shouldRender((EntityPlayer) entity)).map(EntityPlayer.class::cast).collect(Collectors.toList())) {
                 Color color = this.getEntityColor(player, (float) this.opacity.getValue() / 100.0F);
-                double x = RenderUtil.lerpDouble(player.posX, player.lastTickPosX, event.getPartialTicks());
-                double y = RenderUtil.lerpDouble(player.posY, player.lastTickPosY, event.getPartialTicks()) - (player.isSneaking() ? 0.125 : 0.0);
-                double z = RenderUtil.lerpDouble(player.posZ, player.lastTickPosZ, event.getPartialTicks());
+                double x = RenderUtil.lerpDouble(player.posX, player.lastTickPosX, event.partialTicks());
+                double y = RenderUtil.lerpDouble(player.posY, player.lastTickPosY, event.partialTicks()) - (player.isSneaking() ? 0.125 : 0.0);
+                double z = RenderUtil.lerpDouble(player.posZ, player.lastTickPosZ, event.partialTicks());
                 RenderUtil.drawLine3D(
                         position,
                         x,
@@ -155,10 +156,10 @@ public class Tracers extends Module {
         if (this.isEnabled() && this.drawArrows.getValue()) {
             for (EntityPlayer player : TeamUtil.getLoadedEntitiesSorted().stream().filter(entity -> entity instanceof EntityPlayer && this.shouldRender((EntityPlayer) entity)).map(EntityPlayer.class::cast).collect(Collectors.toList())) {
                 float yawBetween = RotationUtil.getYawBetween(
-                        RenderUtil.lerpDouble(mc.thePlayer.posX, mc.thePlayer.prevPosX, event.getPartialTicks()),
-                        RenderUtil.lerpDouble(mc.thePlayer.posZ, mc.thePlayer.prevPosZ, event.getPartialTicks()),
-                        RenderUtil.lerpDouble(player.posX, player.prevPosX, event.getPartialTicks()),
-                        RenderUtil.lerpDouble(player.posZ, player.prevPosZ, event.getPartialTicks())
+                        RenderUtil.lerpDouble(mc.thePlayer.posX, mc.thePlayer.prevPosX, event.partialTicks()),
+                        RenderUtil.lerpDouble(mc.thePlayer.posZ, mc.thePlayer.prevPosZ, event.partialTicks()),
+                        RenderUtil.lerpDouble(player.posX, player.prevPosX, event.partialTicks()),
+                        RenderUtil.lerpDouble(player.posZ, player.prevPosZ, event.partialTicks())
                 );
                 if (mc.gameSettings.thirdPersonView == 2) {
                     yawBetween += 180.0F;

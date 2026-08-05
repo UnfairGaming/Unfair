@@ -1,7 +1,5 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.TickEvent;
@@ -10,6 +8,8 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.KeyBindUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class AutoTool extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -26,7 +26,7 @@ public class AutoTool extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             if (this.currentToolSlot != -1 && this.currentToolSlot != mc.thePlayer.inventory.currentItem) {
                 this.currentToolSlot = -1;
                 this.previousSlot = -1;

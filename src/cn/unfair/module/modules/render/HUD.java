@@ -1,10 +1,5 @@
 package cn.unfair.module.modules.render;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.enums.BlinkModules;
 import cn.unfair.enums.ChatColors;
@@ -18,6 +13,11 @@ import cn.unfair.util.ColorUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.*;
@@ -25,10 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class HUD extends Module {
-    private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final float ANIMATION_DURATION = 200.0F;
-    private static final float HUD_FONT_SIZE = 16.0F;
-    private static final String MINECRAFT_FONT = "Minecraft";
     public static final ModeProperty colorMode = new ModeProperty(
             "color", 3, new String[]{"RAINBOW", "CHROMA", "ASTOLFO", "CUSTOM1", "CUSTOM12", "CUSTOM123"}
     );
@@ -38,6 +34,10 @@ public class HUD extends Module {
     public static final ColorProperty custom1 = new ColorProperty("custom-color-1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 3 || colorMode.getValue() == 4 || colorMode.getValue() == 5);
     public static final ColorProperty custom2 = new ColorProperty("custom-color-2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 4 || colorMode.getValue() == 5);
     public static final ColorProperty custom3 = new ColorProperty("custom-color-3", Color.WHITE.getRGB(), () -> colorMode.getValue() == 5);
+    private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final float ANIMATION_DURATION = 200.0F;
+    private static final float HUD_FONT_SIZE = 16.0F;
+    private static final String MINECRAFT_FONT = "Minecraft";
     public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
     public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
     public final PercentProperty background = new PercentProperty("background", 50);
@@ -67,6 +67,59 @@ public class HUD extends Module {
             modes[i + 1] = fonts[i].name();
         }
         return modes;
+    }
+
+    public static float getColorCycle(long long3, long long4) {
+        long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, colorSpeed.getValue()), 1.5F), 3.0));
+        return 1.0F - (float) (Math.abs(long3 - long4 * 300L) % speed) / (float) speed;
+    }
+
+    public static Color getColor(long time) {
+        return getColor(time, 0L);
+    }
+
+    public static Color getColor(long time, long offset) {
+        Color color = Color.white;
+        switch (colorMode.getValue()) {
+            case 0:
+                color = ColorUtil.fromHSB(getColorCycle(time, offset), 1.0F, 1.0F);
+                break;
+            case 1:
+                color = ColorUtil.fromHSB(getColorCycle(time / 3L, 0L), 1.0F, 1.0F);
+                break;
+            case 2:
+                float cycle = getColorCycle(time, offset);
+                if (cycle % 1.0F < 0.5F) {
+                    cycle = 1.0F - cycle % 1.0F;
+                }
+                color = ColorUtil.fromHSB(cycle, 1.0F, 1.0F);
+                break;
+            case 3:
+                color = new Color(custom1.getValue());
+                break;
+            case 4:
+                double cycle1 = getColorCycle(time, offset);
+                color = ColorUtil.interpolate(
+                        (float) (2.0 * Math.abs(cycle1 - Math.floor(cycle1 + 0.5))),
+                        new Color(custom1.getValue()),
+                        new Color(custom2.getValue())
+                );
+                break;
+            case 5:
+                double cycle2 = getColorCycle(time, offset);
+                float floor = (float) (2.0 * Math.abs(cycle2 - Math.floor(cycle2 + 0.5)));
+                if (floor <= 0.5F) {
+                    color = ColorUtil.interpolate(floor * 2.0F, new Color(custom1.getValue()), new Color(custom2.getValue()));
+                } else {
+                    color = ColorUtil.interpolate((floor - 0.5F) * 2.0F, new Color(custom2.getValue()), new Color(custom3.getValue()));
+                }
+        }
+        float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+        return Color.getHSBColor(
+                hsb[0],
+                hsb[1] * (colorSaturation.getValue().floatValue() / 100.0F),
+                hsb[2] * (colorBrightness.getValue().floatValue() / 100.0F)
+        );
     }
 
     private String getModuleName(Module module) {
@@ -167,62 +220,9 @@ public class HUD extends Module {
         )));
     }
 
-    public static float getColorCycle(long long3, long long4) {
-        long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, colorSpeed.getValue()), 1.5F), 3.0));
-        return 1.0F - (float) (Math.abs(long3 - long4 * 300L) % speed) / (float) speed;
-    }
-
-    public static Color getColor(long time) {
-        return getColor(time, 0L);
-    }
-
-    public static Color getColor(long time, long offset) {
-        Color color = Color.white;
-        switch (colorMode.getValue()) {
-            case 0:
-                color = ColorUtil.fromHSB(getColorCycle(time, offset), 1.0F, 1.0F);
-                break;
-            case 1:
-                color = ColorUtil.fromHSB(getColorCycle(time / 3L, 0L), 1.0F, 1.0F);
-                break;
-            case 2:
-                float cycle = getColorCycle(time, offset);
-                if (cycle % 1.0F < 0.5F) {
-                    cycle = 1.0F - cycle % 1.0F;
-                }
-                color = ColorUtil.fromHSB(cycle, 1.0F, 1.0F);
-                break;
-            case 3:
-                color = new Color(custom1.getValue());
-                break;
-            case 4:
-                double cycle1 = getColorCycle(time, offset);
-                color = ColorUtil.interpolate(
-                        (float) (2.0 * Math.abs(cycle1 - Math.floor(cycle1 + 0.5))),
-                        new Color(custom1.getValue()),
-                        new Color(custom2.getValue())
-                );
-                break;
-            case 5:
-                double cycle2 = getColorCycle(time, offset);
-                float floor = (float) (2.0 * Math.abs(cycle2 - Math.floor(cycle2 + 0.5)));
-                if (floor <= 0.5F) {
-                    color = ColorUtil.interpolate(floor * 2.0F, new Color(custom1.getValue()), new Color(custom2.getValue()));
-                } else {
-                    color = ColorUtil.interpolate((floor - 0.5F) * 2.0F, new Color(custom2.getValue()), new Color(custom3.getValue()));
-                }
-        }
-        float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-        return Color.getHSBColor(
-                hsb[0],
-                hsb[1] * (colorSaturation.getValue().floatValue() / 100.0F),
-                hsb[2] * (colorBrightness.getValue().floatValue() / 100.0F)
-        );
-    }
-
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.POST) {
+        if (this.isEnabled() && event.type() == EventType.POST) {
             List<Module> newActiveModules = Unfair.moduleManager.modules.values().stream()
                     .filter(module -> module.isEnabled() && !module.isHidden())
                     .sorted(Comparator.comparingInt(this::getModuleWidth).reversed())
@@ -306,7 +306,7 @@ public class HUD extends Module {
                         (float) (mc.currentScreen.height - 2),
                         1.5F,
                         0,
-                        this.getColor(System.currentTimeMillis()).getRGB()
+                        getColor(System.currentTimeMillis()).getRGB()
                 );
                 RenderUtil.disableRenderState();
             }
@@ -376,7 +376,7 @@ public class HUD extends Module {
                             (float) new ScaledResolution(mc).getScaledWidth() / 2.0F / this.scale.getValue()
                                     - (float) this.getTextWidth(movementText) / 2.0F,
                             (float) new ScaledResolution(mc).getScaledHeight() / 5.0F * 3.0F / this.scale.getValue(),
-                            this.getColor(System.currentTimeMillis(), colorOffset).getRGB() & 16777215 | -1090519040,
+                            getColor(System.currentTimeMillis(), colorOffset).getRGB() & 16777215 | -1090519040,
                             this.shadow.getValue(),
                             true
                     );
@@ -405,7 +405,7 @@ public class HUD extends Module {
             String moduleName = this.getModuleName(module);
             String[] moduleSuffix = this.getModuleSuffix(module);
             float totalWidth = (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1));
-            int color = this.getColor(time, offset).getRGB();
+            int color = getColor(time, offset).getRGB();
 
             boolean isFadingOut = !module.isEnabled();
             float animProgress = this.getAnimationProgress(module, partialTicks);
@@ -650,27 +650,8 @@ public class HUD extends Module {
         }
     }
 
-    private static class HudEntry {
-        private final float left;
-        private final float top;
-        private final float right;
-        private final float bottom;
-        private final boolean leftTop;
-        private final boolean rightTop;
-        private final boolean leftBot;
-        private final boolean rightBot;
-
-        private HudEntry(float left, float top, float right, float bottom,
-                         boolean leftTop, boolean rightTop, boolean leftBot, boolean rightBot) {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
-            this.leftTop = leftTop;
-            this.rightTop = rightTop;
-            this.leftBot = leftBot;
-            this.rightBot = rightBot;
-        }
+    private record HudEntry(float left, float top, float right, float bottom, boolean leftTop, boolean rightTop,
+                            boolean leftBot, boolean rightBot) {
     }
 
     private static class HudAnimation {

@@ -64,9 +64,9 @@ public final class RandomOfflineNameGenerator {
             case 4:
                 return first + "_" + last + random.nextInt(10);
             case 5:
-                return first.substring(0, 1) + last + random.nextInt(1000);
+                return first.charAt(0) + last + random.nextInt(1000);
             case 6:
-                return first + last.substring(0, 1) + random.nextInt(100);
+                return first + last.charAt(0) + random.nextInt(100);
             default:
                 return first + last + random.nextInt(1000);
         }

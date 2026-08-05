@@ -28,6 +28,7 @@ public class ChatUtil {
             ChatUtil.mc.thePlayer.sendChatMessage(string);
         }
     }
+
     public static void dbg(String string) {
         ChatUtil.sendFormatted(Unfair.clientName + string);
     }

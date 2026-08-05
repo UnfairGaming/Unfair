@@ -1,12 +1,12 @@
 package cn.unfair.command.commands;
 
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import cn.unfair.Unfair;
 import cn.unfair.command.Command;
 import cn.unfair.module.Module;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.KeyBindUtil;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.Arrays;

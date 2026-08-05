@@ -1,12 +1,12 @@
 package net.optifine.render;
 
 import lombok.Getter;
-import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.VboRenderList;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.src.Config;
 import net.minecraft.util.EnumWorldBlockLayer;
 import net.optifine.util.LinkedList;

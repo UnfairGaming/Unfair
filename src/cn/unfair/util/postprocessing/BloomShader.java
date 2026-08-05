@@ -18,11 +18,9 @@ public class BloomShader {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ShaderUtils KAWASE_DOWN = new ShaderUtils("kawaseDownBloom");
     private static final ShaderUtils KAWASE_UP = new ShaderUtils("kawaseUpBloom");
-
+    private static final List<Framebuffer> framebufferList = new ArrayList<>();
     private static Framebuffer inputFramebuffer;
     private static int currentIterations;
-
-    private static final List<Framebuffer> framebufferList = new ArrayList<>();
 
     private static Framebuffer ensureInputFramebuffer() {
         if (inputFramebuffer == null || inputFramebuffer.framebufferWidth != mc.displayWidth || inputFramebuffer.framebufferHeight != mc.displayHeight) {

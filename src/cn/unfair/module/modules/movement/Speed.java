@@ -1,6 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.Priority;
@@ -11,6 +10,7 @@ import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.MoveUtil;
+import net.minecraft.client.Minecraft;
 
 public class Speed extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

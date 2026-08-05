@@ -4,14 +4,14 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.SwapItemEvent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.List;
-import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.IntHashMap;
+
+import java.util.List;
+import java.util.Set;
 
 public class KeyBinding implements Comparable<KeyBinding> {
     private static final List<KeyBinding> keybindArray = Lists.newArrayList();

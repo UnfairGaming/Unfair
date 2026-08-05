@@ -1,10 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.projectile.EntityFireball;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C02PacketUseEntity.Action;
-import net.minecraft.network.play.client.C0APacketAnimation;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -18,6 +13,11 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.projectile.EntityFireball;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C02PacketUseEntity.Action;
+import net.minecraft.network.play.client.C0APacketAnimation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public class AntiFireball extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             List<EntityFireball> fireballs = mc.theWorld
                     .loadedEntityList
                     .stream()
@@ -136,7 +136,8 @@ public class AntiFireball extends Module {
                         }
                         break;
                     case 2:
-                        color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                        Unfair.moduleManager.modules.get(HUD.class);
+                        color = HUD.getColor(System.currentTimeMillis());
                 }
                 RenderUtil.enableRenderState();
                 RenderUtil.drawEntityBox(this.target, color.getRed(), color.getGreen(), color.getBlue());

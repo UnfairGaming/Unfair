@@ -7,11 +7,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
-import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.List;
 
 public final class MainMenuButtonPostProcessor {
@@ -91,19 +91,6 @@ public final class MainMenuButtonPostProcessor {
         void renderMask(ButtonBounds bounds);
     }
 
-    public static final class ButtonBounds {
-        public final float x;
-        public final float y;
-        public final float w;
-        public final float h;
-        public final float radius;
-
-        public ButtonBounds(float x, float y, float w, float h, float radius) {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-            this.radius = radius;
-        }
+    public record ButtonBounds(float x, float y, float w, float h, float radius) {
     }
 }

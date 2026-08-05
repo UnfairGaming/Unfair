@@ -4,11 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.potion.Potion;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovementInput;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 
 import java.util.List;
 
@@ -17,6 +13,10 @@ public class SimulatedPlayer {
 
     private final EntityPlayerSP player;
     private final MovementInput movementInput;
+    public float rotationYaw;
+    public boolean onGround;
+    public boolean isCollidedHorizontally;
+    public float fallDistance;
     private AxisAlignedBB box;
     private double posX;
     private double posY;
@@ -26,11 +26,6 @@ public class SimulatedPlayer {
     private double motionZ;
     private boolean isSprinting;
     private int jumpTicks;
-
-    public float rotationYaw;
-    public boolean onGround;
-    public boolean isCollidedHorizontally;
-    public float fallDistance;
 
     private SimulatedPlayer(EntityPlayerSP player, MovementInput movementInput) {
         this.player = player;

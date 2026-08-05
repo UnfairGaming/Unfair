@@ -1,13 +1,13 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.KeyEvent;
 import cn.unfair.module.Module;
 import cn.unfair.util.ChatUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class MCF extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

@@ -8,11 +8,22 @@ import net.minecraft.network.play.client.*;
 public class BadPacketUtil {
     private static boolean slot, attack, swing, block, inventory;
 
+    public static boolean bad() {
+        return bad(true, true, true, true, true);
+    }
+
+    public static boolean bad(final boolean slot, final boolean attack, final boolean swing, final boolean block, final boolean inventory) {
+        return (BadPacketUtil.slot && slot) ||
+                (BadPacketUtil.attack && attack) ||
+                (BadPacketUtil.swing && swing) ||
+                (BadPacketUtil.block && block) ||
+                (BadPacketUtil.inventory && inventory);
+    }
+
     @EventTarget
     public void onPacket(PacketEvent event) {
         if (event.getType() == EventType.SEND && !event.isCancelled()) {
-            if (event.getPacket() instanceof C02PacketUseEntity) {
-                C02PacketUseEntity useEntity = (C02PacketUseEntity) event.getPacket();
+            if (event.getPacket() instanceof C02PacketUseEntity useEntity) {
                 if (useEntity.getAction() == C02PacketUseEntity.Action.ATTACK) {
                     attack = true;
                 }
@@ -29,18 +40,6 @@ public class BadPacketUtil {
                 resetBadPackets();
             }
         }
-    }
-
-    public static boolean bad() {
-        return bad(true, true, true, true, true);
-    }
-
-    public static boolean bad(final boolean slot, final boolean attack, final boolean swing, final boolean block, final boolean inventory) {
-        return (BadPacketUtil.slot && slot) ||
-                (BadPacketUtil.attack && attack) ||
-                (BadPacketUtil.swing && swing) ||
-                (BadPacketUtil.block && block) ||
-                (BadPacketUtil.inventory && inventory);
     }
 
     private void resetBadPackets() {

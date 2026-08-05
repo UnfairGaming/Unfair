@@ -31,11 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
     private static final Logger logger = LogManager.getLogger();
@@ -559,6 +555,6 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         for (int i = 0; i < this.buttonList.size() && i < this.animatedX.length; i++) {
             bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], BUTTON_RADIUS));
         }
-        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x, bound.y, bound.w, bound.h, bound.radius));
+        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x(), bound.y(), bound.w(), bound.h(), bound.radius()));
     }
 }

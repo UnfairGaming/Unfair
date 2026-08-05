@@ -195,11 +195,6 @@ public class Scoreboard extends Module {
         return lines;
     }
 
-    private static class ScoreboardLine {
-        private final String name;
-
-        private ScoreboardLine(String name) {
-            this.name = name;
-        }
+    private record ScoreboardLine(String name) {
     }
 }

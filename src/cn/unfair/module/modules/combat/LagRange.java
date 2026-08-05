@@ -1,16 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C07PacketPlayerDigging;
-import net.minecraft.network.play.client.C07PacketPlayerDigging.Action;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.Vec3;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.Priority;
@@ -28,6 +17,17 @@ import cn.unfair.util.ItemUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.RotationUtil;
 import cn.unfair.util.TeamUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C07PacketPlayerDigging.Action;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 
 import java.awt.*;
 import java.util.List;
@@ -88,7 +88,7 @@ public class LagRange extends Module {
         }
 
         if (this.isEnabled()) {
-            switch (event.getType()) {
+            switch (event.type()) {
                 case PRE:
                     Unfair.lagManager.setDelay(0);
                     this.hasTarget = false;
@@ -183,11 +183,12 @@ public class LagRange extends Module {
                         color = TeamUtil.getTeamColor(mc.thePlayer, 1.0F);
                         break;
                     case 2:
-                        color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                        Unfair.moduleManager.modules.get(HUD.class);
+                        color = HUD.getColor(System.currentTimeMillis());
                 }
-                double x = RenderUtil.lerpDouble(this.currentPosition.xCoord, this.lastPosition.xCoord, event.getPartialTicks());
-                double y = RenderUtil.lerpDouble(this.currentPosition.yCoord, this.lastPosition.yCoord, event.getPartialTicks());
-                double z = RenderUtil.lerpDouble(this.currentPosition.zCoord, this.lastPosition.zCoord, event.getPartialTicks());
+                double x = RenderUtil.lerpDouble(this.currentPosition.xCoord, this.lastPosition.xCoord, event.partialTicks());
+                double y = RenderUtil.lerpDouble(this.currentPosition.yCoord, this.lastPosition.yCoord, event.partialTicks());
+                double z = RenderUtil.lerpDouble(this.currentPosition.zCoord, this.lastPosition.zCoord, event.partialTicks());
                 float size = mc.thePlayer.getCollisionBorderSize();
                 AxisAlignedBB aabb = new AxisAlignedBB(
                         x - (double) mc.thePlayer.width / 2.0,

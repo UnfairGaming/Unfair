@@ -1,8 +1,10 @@
 package cn.unfair.module.modules.combat.velocity;
 
+import cn.unfair.Unfair;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
 import cn.unfair.events.KnockbackEvent;
 import cn.unfair.events.PacketEvent;
-import cn.unfair.Unfair;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.BooleanProperty;
@@ -10,9 +12,6 @@ import cn.unfair.property.properties.PercentProperty;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S19PacketEntityStatus;
 import net.minecraft.network.play.server.S27PacketExplosion;
-
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
 
 public class VanillaVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -90,13 +89,11 @@ public class VanillaVelocity extends SubModule {
         if (velocity == null || !isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) {
             return;
         }
-        if (event.getPacket() instanceof S19PacketEntityStatus) {
-            S19PacketEntityStatus packet = (S19PacketEntityStatus) event.getPacket();
+        if (event.getPacket() instanceof S19PacketEntityStatus packet) {
             if (packet.getEntity(mc.theWorld) == mc.thePlayer && packet.getOpCode() == 2) {
                 allowNext = false;
             }
-        } else if (event.getPacket() instanceof S27PacketExplosion) {
-            S27PacketExplosion packet = (S27PacketExplosion) event.getPacket();
+        } else if (event.getPacket() instanceof S27PacketExplosion packet) {
             if (packet.func_149149_c() != 0.0F || packet.func_149144_d() != 0.0F || packet.func_149147_e() != 0.0F) {
                 pendingExplosion = true;
                 if (this.explosionHorizontal.getValue() == 0 || this.explosionVertical.getValue() == 0) {

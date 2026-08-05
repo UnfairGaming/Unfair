@@ -12,10 +12,12 @@ public class ColorUtil {
         opacity = Math.min(Math.max(opacity, 0.0f), 1.0f);
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), (int) (255 * opacity));
     }
+
     public static Color rainbow(int seconds, int offset, float saturation, float brightness) {
         float hue = ((System.currentTimeMillis() + offset) % (seconds * 1000)) / (float) (seconds * 1000);
         return new Color(Color.HSBtoRGB(hue, saturation, brightness));
     }
+
     public static Color fade(Color color, int index, int count) {
         float[] hsb = new float[3];
         Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsb);

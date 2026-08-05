@@ -1,5 +1,7 @@
 package cn.unfair.util;
 
+import cn.unfair.enums.ChatColors;
+import cn.unfair.util.postprocessing.ShaderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -22,17 +24,14 @@ import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.GLU;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.util.postprocessing.ShaderUtils;
 
-import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -309,9 +308,19 @@ public class RenderUtil {
         tess.draw();
 
         float r, g, b;
-        if (durabilityRatio <= 0.3F) { r=1; g=0; b=0; }
-        else if (durabilityRatio <= 0.6F) { r=1; g=1; b=0; }
-        else { r=0; g=1; b=0; }
+        if (durabilityRatio <= 0.3F) {
+            r = 1;
+            g = 0;
+            b = 0;
+        } else if (durabilityRatio <= 0.6F) {
+            r = 1;
+            g = 1;
+            b = 0;
+        } else {
+            r = 0;
+            g = 1;
+            b = 0;
+        }
 
         wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
         wr.pos(xPos + 2, yPos + 15, 0).color(r, g, b, 1.0F).endVertex();
@@ -849,8 +858,7 @@ public class RenderUtil {
 
     public static void renderPlayerHead(EntityLivingBase entity, float x, float y, float size, Color color) {
         ResourceLocation skin = null;
-        if (entity instanceof EntityPlayer && mc.getNetHandler() != null) {
-            EntityPlayer player = (EntityPlayer) entity;
+        if (entity instanceof EntityPlayer player && mc.getNetHandler() != null) {
             if (mc.getNetHandler().getPlayerInfo(player.getName()) != null) {
                 skin = mc.getNetHandler().getPlayerInfo(player.getName()).getLocationSkin();
             }
@@ -869,8 +877,7 @@ public class RenderUtil {
 
     public static void renderRoundedPlayerHead(EntityLivingBase entity, float x, float y, float size, float radius, Color color) {
         ResourceLocation skin = null;
-        if (entity instanceof EntityPlayer && mc.getNetHandler() != null) {
-            EntityPlayer player = (EntityPlayer) entity;
+        if (entity instanceof EntityPlayer player && mc.getNetHandler() != null) {
             if (mc.getNetHandler().getPlayerInfo(player.getName()) != null) {
                 skin = mc.getNetHandler().getPlayerInfo(player.getName()).getLocationSkin();
             }
@@ -1411,14 +1418,23 @@ public class RenderUtil {
         return (int) (oldValue + (newValue - oldValue) * interpolationValue);
     }
 
-    public static final class EnchantmentData {
-        public final String shortName;
-        public final int maxLevel;
+    public static float[] project2D(float x, float y, float z, int scaleFactor) {
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
+        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportBuffer);
 
-        public EnchantmentData(String shortName, int maxLevel) {
-            this.shortName = shortName;
-            this.maxLevel = maxLevel;
+        if (GLU.gluProject(x, y, z, modelViewBuffer, projectionBuffer, viewportBuffer, vectorBuffer)) {
+            updateScaledResolutionCache();
+            return new float[]{
+                    vectorBuffer.get(0) / scaleFactor,
+                    (cachedScaledHeight - vectorBuffer.get(1) / scaleFactor),
+                    vectorBuffer.get(2)
+            };
         }
+        return null;
+    }
+
+    public record EnchantmentData(String shortName, int maxLevel) {
     }
 
     static final class EnchantmentMap extends HashMap<Integer, EnchantmentData> {
@@ -1449,21 +1465,5 @@ public class RenderUtil {
             this.put(61, new EnchantmentData("LoS", 3));
             this.put(62, new EnchantmentData("Lu", 3));
         }
-    }
-
-    public static float[] project2D(float x, float y, float z, int scaleFactor) {
-        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
-        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
-        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportBuffer);
-
-        if (GLU.gluProject(x, y, z, modelViewBuffer, projectionBuffer, viewportBuffer, vectorBuffer)) {
-            updateScaledResolutionCache();
-            return new float[]{
-                    vectorBuffer.get(0) / scaleFactor,
-                    (cachedScaledHeight - vectorBuffer.get(1) / scaleFactor),
-                    vectorBuffer.get(2)
-            };
-        }
-        return null;
     }
 }

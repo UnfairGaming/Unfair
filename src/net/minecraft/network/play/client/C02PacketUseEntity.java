@@ -1,12 +1,13 @@
 package net.minecraft.network.play.client;
 
-import java.io.IOException;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.INetHandlerPlayServer;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+
+import java.io.IOException;
 
 public class C02PacketUseEntity implements Packet<INetHandlerPlayServer>
 {

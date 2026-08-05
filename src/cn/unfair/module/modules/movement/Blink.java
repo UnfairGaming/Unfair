@@ -21,7 +21,7 @@ public class Blink extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.POST) {
+        if (this.isEnabled() && event.type() == EventType.POST) {
             if (!Unfair.blinkManager.getBlinkingModule().equals(BlinkModules.BLINK)) {
                 this.setEnabled(false);
             } else {

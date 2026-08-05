@@ -9,10 +9,10 @@ import net.minecraft.util.ResourceLocation;
 import net.optifine.Mipmaps;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL14;
-import org.apache.logging.log4j.Logger;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;

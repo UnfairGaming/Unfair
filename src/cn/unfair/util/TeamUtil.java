@@ -1,5 +1,9 @@
 package cn.unfair.util;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.Module;
+import cn.unfair.module.modules.misc.AntiBot;
+import cn.unfair.module.modules.misc.Teams;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.network.NetworkPlayerInfo;
@@ -8,10 +12,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.scoreboard.ScorePlayerTeam;
-import cn.unfair.Unfair;
-import cn.unfair.module.Module;
-import cn.unfair.module.modules.misc.AntiBot;
-import cn.unfair.module.modules.misc.Teams;
 
 import java.awt.*;
 import java.util.List;

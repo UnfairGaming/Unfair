@@ -1,10 +1,10 @@
 package net.minecraft.util;
 
-import java.util.Random;
-import java.util.UUID;
-
 import net.minecraft.rendering.optimization.normal.CompactSineLUT;
 import net.optifine.util.MathUtils;
+
+import java.util.Random;
+import java.util.UUID;
 
 public class MathHelper {
     public static final float SQRT_2 = sqrt_float(2.0F);

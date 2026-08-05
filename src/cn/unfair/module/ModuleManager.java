@@ -154,7 +154,7 @@ public class ModuleManager {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (event.getType() == EventType.PRE) {
+        if (event.type() == EventType.PRE) {
             if (this.sound) {
                 this.sound = false;
                 SoundUtil.playSound("random.click");

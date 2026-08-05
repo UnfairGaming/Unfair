@@ -1,11 +1,11 @@
 package cn.unfair.module.modules.movement;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.GameSettings;
 
 public class AntiAFK extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

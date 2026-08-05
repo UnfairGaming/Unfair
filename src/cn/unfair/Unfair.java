@@ -93,8 +93,7 @@ public class Unfair {
                 }
                 clazz = clazz.getSuperclass();
             }
-            if (module instanceof ModuleWithModuleSettings) {
-                ModuleWithModuleSettings mws = (ModuleWithModuleSettings) module;
+            if (module instanceof ModuleWithModuleSettings mws) {
                 properties.addAll(mws.collectSubModuleProperties());
                 for (Module subModule : mws.getSubModules()) {
                     EventManager.register(subModule);

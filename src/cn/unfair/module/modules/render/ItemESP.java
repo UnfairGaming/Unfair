@@ -1,5 +1,13 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.enums.ChatColors;
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.Render3DEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.RenderUtil;
+import cn.unfair.util.TeamUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -10,14 +18,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.event.EventTarget;
-import cn.unfair.events.Render3DEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RenderUtil;
-import cn.unfair.util.TeamUtil;
 
 import java.awt.*;
 import java.util.LinkedHashMap;
@@ -113,15 +113,14 @@ public class ItemESP extends Module {
             for (Entity entity : TeamUtil.getLoadedEntitiesSorted()) {
                 if (entity.ticksExisted >= 3
                         && (entity.ignoreFrustumCheck || RenderUtil.isInViewFrustum(entity.getEntityBoundingBox(), 0.125))
-                        && entity instanceof EntityItem) {
-                    EntityItem entityItem = (EntityItem) entity;
+                        && entity instanceof EntityItem entityItem) {
                     ItemStack stack = entityItem.getEntityItem();
                     if (stack.stackSize > 0) {
                         int itemId = Item.getIdFromItem(stack.getItem());
                         if (this.shouldHighlightItem(itemId)) {
-                            double x = RenderUtil.lerpDouble(entityItem.posX, entityItem.lastTickPosX, event.getPartialTicks());
-                            double y = RenderUtil.lerpDouble(entityItem.posY, entityItem.lastTickPosY, event.getPartialTicks());
-                            double z = RenderUtil.lerpDouble(entityItem.posZ, entityItem.lastTickPosZ, event.getPartialTicks());
+                            double x = RenderUtil.lerpDouble(entityItem.posX, entityItem.lastTickPosX, event.partialTicks());
+                            double y = RenderUtil.lerpDouble(entityItem.posY, entityItem.lastTickPosY, event.partialTicks());
+                            double z = RenderUtil.lerpDouble(entityItem.posZ, entityItem.lastTickPosZ, event.partialTicks());
                             ItemData data = new ItemData(itemId, x, y, z);
                             Integer id = itemMap.get(data);
                             itemMap.put(new ItemData(itemId, x, y, z), stack.stackSize + (id == null ? 0 : id));

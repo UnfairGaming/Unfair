@@ -1,10 +1,6 @@
 package net.optifine.util;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class PropertiesOrdered extends Properties

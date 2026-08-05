@@ -1,11 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import com.google.common.base.CaseFormat;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C03PacketPlayer;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-import net.minecraft.util.AxisAlignedBB;
 import cn.unfair.Unfair;
 import cn.unfair.enums.BlinkModules;
 import cn.unfair.event.EventTarget;
@@ -18,6 +12,12 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
+import com.google.common.base.CaseFormat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.util.AxisAlignedBB;
 
 public class NoFall extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -42,8 +42,7 @@ public class NoFall extends Module {
         if (event.getType() == EventType.RECEIVE && event.getPacket() instanceof S08PacketPlayerPosLook) {
             this.onDisabled();
         } else if (this.isEnabled() && event.getType() == EventType.SEND && !event.isCancelled()) {
-            if (event.getPacket() instanceof C03PacketPlayer) {
-                C03PacketPlayer packet = (C03PacketPlayer) event.getPacket();
+            if (event.getPacket() instanceof C03PacketPlayer packet) {
                 switch (this.mode.getValue()) {
                     case 0:
                         if (this.slowFalling) {
@@ -109,7 +108,7 @@ public class NoFall extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             if (ServerUtil.hasPlayerCountInfo()) {
                 this.scoreboardResetTimer.reset();
             }

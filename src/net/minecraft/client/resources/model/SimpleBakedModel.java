@@ -2,12 +2,12 @@ package net.minecraft.client.resources.model;
 
 import com.google.common.collect.Lists;
 import lombok.Getter;
-import net.minecraft.util.Deduplicator;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BreakingFour;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.block.model.ModelBlock;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.Deduplicator;
 import net.minecraft.util.EnumFacing;
 
 import java.util.List;

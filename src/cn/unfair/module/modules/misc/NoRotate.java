@@ -1,10 +1,5 @@
 package cn.unfair.module.modules.misc;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.play.client.C03PacketPlayer.C06PacketPlayerPosLook;
-import net.minecraft.network.play.server.S02PacketChat;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook.EnumFlags;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.LoadWorldEvent;
@@ -13,6 +8,11 @@ import cn.unfair.module.Module;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RandomUtil;
 import cn.unfair.util.RotationUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.client.C03PacketPlayer.C06PacketPlayerPosLook;
+import net.minecraft.network.play.server.S02PacketChat;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook.EnumFlags;
 
 public class NoRotate extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -32,12 +32,11 @@ public class NoRotate extends Module {
                         this.reset = true;
                     }
                 }
-                if (event.getPacket() instanceof S08PacketPlayerPosLook) {
+                if (event.getPacket() instanceof S08PacketPlayerPosLook packet) {
                     if (this.reset) {
                         this.reset = false;
                         return;
                     }
-                    S08PacketPlayerPosLook packet = (S08PacketPlayerPosLook) event.getPacket();
                     event.setCancelled(true);
                     double x = packet.getX();
                     double y = packet.getY();

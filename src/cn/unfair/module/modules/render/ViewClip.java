@@ -1,7 +1,7 @@
 package cn.unfair.module.modules.render;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.module.Module;
+import net.minecraft.client.Minecraft;
 
 public class ViewClip extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

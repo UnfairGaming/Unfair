@@ -1,13 +1,13 @@
 package cn.unfair.module.modules.render;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.ModeProperty;
+import net.minecraft.client.Minecraft;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 
 public class FullBright extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -21,7 +21,7 @@ public class FullBright extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.POST) {
+        if (this.isEnabled() && event.type() == EventType.POST) {
             switch (this.mode.getValue()) {
                 case 0:
                     mc.gameSettings.gammaSetting = 1000.0F;

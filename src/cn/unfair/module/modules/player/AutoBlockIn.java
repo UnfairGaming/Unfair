@@ -1,14 +1,5 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.*;
-import org.lwjgl.opengl.GL11;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
@@ -20,6 +11,15 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.MoveUtil;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.*;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.*;
@@ -168,7 +168,7 @@ public class AutoBlockIn extends Module {
     @EventTarget(Priority.HIGH)
     public void onTick(TickEvent event) {
         if (!isEnabled()) return;
-        if (event.getType() != EventType.PRE) return;
+        if (event.type() != EventType.PRE) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
         if (mc.currentScreen != null) {

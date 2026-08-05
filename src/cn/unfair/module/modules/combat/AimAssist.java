@@ -1,9 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -15,6 +11,10 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -69,7 +69,7 @@ public class AimAssist extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.POST && mc.currentScreen == null) {
+        if (this.isEnabled() && event.type() == EventType.POST && mc.currentScreen == null) {
             if (!(Boolean) this.weaponOnly.getValue()
                     || ItemUtil.hasRawUnbreakingEnchant()
                     || this.allowTools.getValue() && ItemUtil.isHoldingTool()) {

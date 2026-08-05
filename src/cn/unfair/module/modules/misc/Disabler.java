@@ -29,10 +29,12 @@ public class Disabler extends Module {
     public Disabler() {
         super("Disabler", false);
     }
+
     @Override
     public String[] getSuffix() {
         return new String[]{mode.getModeString()};
     }
+
     @Override
     public void onEnabled() {
         if (mode.getValue() == 0 && inventory.getValue()) {

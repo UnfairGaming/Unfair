@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.GL13;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class PostProcessing {
     private static final Minecraft mc = Minecraft.getMinecraft();

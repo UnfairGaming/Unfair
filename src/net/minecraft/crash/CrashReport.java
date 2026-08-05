@@ -1,17 +1,6 @@
 package net.minecraft.crash;
 
 import com.google.common.collect.Lists;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Callable;
 import net.minecraft.util.ReportedException;
 import net.minecraft.world.gen.layer.IntCache;
 import net.optifine.CrashReporter;
@@ -19,6 +8,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 public class CrashReport
 {

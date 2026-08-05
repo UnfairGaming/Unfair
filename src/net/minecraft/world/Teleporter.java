@@ -1,9 +1,6 @@
 package net.minecraft.world;
 
 import com.google.common.collect.Lists;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
 import net.minecraft.block.BlockPortal;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.block.state.pattern.BlockPattern;
@@ -13,6 +10,10 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.LongHashMap;
 import net.minecraft.util.MathHelper;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 public class Teleporter
 {

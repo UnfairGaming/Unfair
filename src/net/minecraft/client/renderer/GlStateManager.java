@@ -1,11 +1,5 @@
 package net.minecraft.client.renderer;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.Config;
 import net.optifine.SmartAnimations;
@@ -17,6 +11,12 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
+
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 public class GlStateManager {
     public static final Object RENDER_THREAD_LOCK = new Object();

@@ -1,7 +1,6 @@
 package net.minecraft.client.renderer.entity.layers;
 
 import com.google.common.collect.Maps;
-import java.util.Map;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
@@ -14,6 +13,8 @@ import net.minecraft.util.ResourceLocation;
 import net.optifine.CustomItems;
 import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersRender;
+
+import java.util.Map;
 
 public abstract class LayerArmorBase<T extends ModelBase> implements LayerRenderer<EntityLivingBase>
 {

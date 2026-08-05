@@ -1,9 +1,11 @@
 package net.minecraft.client.shader;
 
-import net.minecraft.rendering.FramebufferCaching;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.GLAllocation;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.rendering.FramebufferCaching;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL30;

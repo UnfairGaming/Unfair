@@ -1,17 +1,17 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.network.play.client.C0BPacketEntityAction;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.network.play.client.C0BPacketEntityAction;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 
 public class MoreKB extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

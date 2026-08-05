@@ -10,23 +10,23 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MathUtil {
     public static final float PI = (float) Math.PI;
     public static final float TO_DEGREES = 180.0F / PI;
-    
+
     public static double interporate(float partialTicks, double old, double current) {
         return old + (current - old) * partialTicks;
     }
-    
+
     public static Vec3 interpolateVec3(Vec3 old, Vec3 current, float partialTicks) {
         return new Vec3(
-            old.xCoord + (current.xCoord - old.xCoord) * partialTicks,
-            old.yCoord + (current.yCoord - old.yCoord) * partialTicks,
-            old.zCoord + (current.zCoord - old.zCoord) * partialTicks
+                old.xCoord + (current.xCoord - old.xCoord) * partialTicks,
+                old.yCoord + (current.yCoord - old.yCoord) * partialTicks,
+                old.zCoord + (current.zCoord - old.zCoord) * partialTicks
         );
     }
-    
+
     public static double interpolateDouble(double old, double current, float partialTicks) {
         return old + (current - old) * partialTicks;
     }
-    
+
     public static float normalize(float value, float min, float max) {
         return (value - min) / (max - min);
     }

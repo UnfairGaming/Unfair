@@ -22,6 +22,7 @@ public class PacketUtil {
         skipSendEvent.add(packet);
         mc.getNetHandler().getNetworkManager().sendPacket(packet, null);
     }
+
     public static void receivePacketNoEvent(Packet<?> packet) {
         if (packet == null)
             return;
@@ -43,6 +44,7 @@ public class PacketUtil {
         } catch (ThreadQuickExitException ignored) {
         }
     }
+
     @SuppressWarnings("unchecked")
     public static <H extends INetHandler> Packet<H> castPacket(Packet<?> packet) throws ClassCastException {
         return (Packet<H>) packet;

@@ -123,8 +123,7 @@ public class TargetESP extends Module {
     @EventTarget
     public void onPacket(PacketEvent event) {
         if (!this.isEnabled()) return;
-        if (event.getType() == EventType.SEND && event.getPacket() instanceof C02PacketUseEntity) {
-            C02PacketUseEntity packet = (C02PacketUseEntity) event.getPacket();
+        if (event.getType() == EventType.SEND && event.getPacket() instanceof C02PacketUseEntity packet) {
             if (packet.getAction() == C02PacketUseEntity.Action.ATTACK) {
                 Entity entity = packet.getEntityFromWorld(mc.theWorld);
                 if (entity == target) {
@@ -135,8 +134,7 @@ public class TargetESP extends Module {
                 return;
             }
             Entity entity = packet.getEntityFromWorld(mc.theWorld);
-            if (entity instanceof EntityLivingBase) {
-                EntityLivingBase newTarget = (EntityLivingBase) entity;
+            if (entity instanceof EntityLivingBase newTarget) {
                 if (target != newTarget) {
                     target = newTarget;
                     lastTime = System.currentTimeMillis();
@@ -214,7 +212,7 @@ public class TargetESP extends Module {
                 double distance = 19;
                 int lenght = 20;
 
-                Vec3 interpolated = interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), event.getPartialTicks());
+                Vec3 interpolated = interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), event.partialTicks());
                 interpolated = new Vec3(interpolated.xCoord, interpolated.yCoord + 0.75f, interpolated.zCoord);
 
                 RenderUtil.setupOrientationMatrix(interpolated.xCoord, interpolated.yCoord + 0.5f, interpolated.zCoord);
@@ -282,10 +280,10 @@ public class TargetESP extends Module {
                 GlStateManager.pushMatrix();
                 GL11.glShadeModel(7425);
                 GL11.glHint(3154, 4354);
-                mc.entityRenderer.setupCameraTransform(event.getPartialTicks(), 2);
-                double x = target.prevPosX + (target.posX - target.prevPosX) * (double) event.getPartialTicks() - mc.getRenderManager().getRenderPosX();
-                double y = target.prevPosY + (target.posY - target.prevPosY) * (double) event.getPartialTicks() - mc.getRenderManager().getRenderPosY();
-                double z = target.prevPosZ + (target.posZ - target.prevPosZ) * (double) event.getPartialTicks() - mc.getRenderManager().getRenderPosZ();
+                mc.entityRenderer.setupCameraTransform(event.partialTicks(), 2);
+                double x = target.prevPosX + (target.posX - target.prevPosX) * (double) event.partialTicks() - mc.getRenderManager().getRenderPosX();
+                double y = target.prevPosY + (target.posY - target.prevPosY) * (double) event.partialTicks() - mc.getRenderManager().getRenderPosY();
+                double z = target.prevPosZ + (target.posZ - target.prevPosZ) * (double) event.partialTicks() - mc.getRenderManager().getRenderPosZ();
                 double xMoved = target.posX - target.prevPosX;
                 double yMoved = target.posY - target.prevPosY;
                 double zMoved = target.posZ - target.prevPosZ;
@@ -305,7 +303,7 @@ public class TargetESP extends Module {
                 Vec3 interpolated = interpolate(
                         new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ),
                         target.getPositionVector(),
-                        event.getPartialTicks()
+                        event.partialTicks()
                 );
 
                 double height = target.height;
@@ -350,8 +348,10 @@ public class TargetESP extends Module {
                     double x2 = Math.sin(angle2) * radius;
                     double z2 = Math.cos(angle2) * radius;
 
-                    Color col1 = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor((int) (i * 360.0 / slices * 10));
-                    Color col2 = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor((int) ((i + 1) * 360.0 / slices * 10));
+                    Unfair.moduleManager.modules.get(HUD.class);
+                    Color col1 = HUD.getColor((int) (i * 360.0 / slices * 10));
+                    Unfair.moduleManager.modules.get(HUD.class);
+                    Color col2 = HUD.getColor((int) ((i + 1) * 360.0 / slices * 10));
                     float r1 = col1.getRed() / 255f;
                     float g1 = col1.getGreen() / 255f;
                     float b1 = col1.getBlue() / 255f;
@@ -387,7 +387,7 @@ public class TargetESP extends Module {
 
     private void ghost2(Render3DEvent event) {
         if (target == null) return;
-        float partialTicks = event.getPartialTicks();
+        float partialTicks = event.partialTicks();
         Vec3 interpolated = interpolate(new Vec3(target.lastTickPosX, target.lastTickPosY, target.lastTickPosZ), target.getPositionVector(), partialTicks);
         interpolated = new Vec3(interpolated.xCoord, interpolated.yCoord + 0.9f, interpolated.zCoord);
         GlStateManager.pushMatrix();
@@ -450,7 +450,7 @@ public class TargetESP extends Module {
     @EventTarget
     public void onShader2D(Shader2DEvent event) {
         if (!this.isEnabled()) return;
-        if (event.getShaderType() == Shader2DEvent.ShaderType.GLOW) {
+        if (event.shaderType() == Shader2DEvent.ShaderType.GLOW) {
             int index = 3;
             if (mode.getValue() == 3 && imageMode.getValue() == 0 && target != null) {
                 float dst = mc.thePlayer.getDistanceToEntity(target);
@@ -465,9 +465,9 @@ public class TargetESP extends Module {
 
     private void points(Render3DEvent event) {
         if (target != null) {
-            double markerX = MathUtil.interporate(event.getPartialTicks(), target.lastTickPosX, target.posX);
-            double markerY = MathUtil.interporate(event.getPartialTicks(), target.lastTickPosY, target.posY) + target.height / 1.6f;
-            double markerZ = MathUtil.interporate(event.getPartialTicks(), target.lastTickPosZ, target.posZ);
+            double markerX = MathUtil.interporate(event.partialTicks(), target.lastTickPosX, target.posX);
+            double markerY = MathUtil.interporate(event.partialTicks(), target.lastTickPosY, target.posY) + target.height / 1.6f;
+            double markerZ = MathUtil.interporate(event.partialTicks(), target.lastTickPosZ, target.posZ);
             float time = (float) ((((System.currentTimeMillis() - lastTime) / 1500F)) + (Math.sin((((System.currentTimeMillis() - lastTime) / 1500F))) / 10f));
             float alpha = 0.5f * 1;
             float pl = 0;
@@ -590,7 +590,7 @@ public class TargetESP extends Module {
 
     private float[] targetESPSPos(EntityLivingBase entity, Render2DEvent event) {
         EntityRenderer entityRenderer = mc.entityRenderer;
-        float partialTicks = event != null ? event.getPartialTicks() : mc.timer.renderPartialTicks;
+        float partialTicks = event != null ? event.partialTicks() : mc.timer.renderPartialTicks;
         double x = interpolate(entity.prevPosX, entity.posX, partialTicks);
         double y = interpolate(entity.prevPosY, entity.posY, partialTicks) + entity.height * 0.4f;
         double z = interpolate(entity.prevPosZ, entity.posZ, partialTicks);

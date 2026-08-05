@@ -4,20 +4,23 @@
  */
 package org.lwjgl.openal;
 
-import org.lwjgl.*;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.*;
 
-import org.jetbrains.annotations.*;
-
 import java.nio.IntBuffer;
-import java.util.*;
-import java.util.function.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.function.IntFunction;
 
 import static org.lwjgl.openal.AL10.*;
-import static org.lwjgl.openal.EXTThreadLocalContext.*;
+import static org.lwjgl.openal.EXTThreadLocalContext.alcGetThreadContext;
 import static org.lwjgl.system.APIUtil.*;
 import static org.lwjgl.system.JNI.*;
-import static org.lwjgl.system.MemoryStack.*;
+import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryUtil.*;
 
 

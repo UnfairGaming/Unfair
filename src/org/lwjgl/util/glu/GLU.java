@@ -31,11 +31,11 @@
  */
 package org.lwjgl.util.glu;
 
-import static org.lwjgl.opengl.GL11.glOrtho;
-
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+
+import static org.lwjgl.opengl.GL11.glOrtho;
 
 
 /**

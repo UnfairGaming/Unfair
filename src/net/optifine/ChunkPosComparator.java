@@ -1,8 +1,9 @@
 package net.optifine;
 
-import java.util.Comparator;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
+
+import java.util.Comparator;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ChunkPosComparator implements Comparator<ChunkCoordIntPair>

@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class ModuleWithModuleSettings extends Module {
-    private final SubModule[] subModules;
     public final ModeProperty modeProperty;
+    private final SubModule[] subModules;
 
     public ModuleWithModuleSettings(String name, boolean enabled, SubModule... subModules) {
         this(name, enabled, "Mode", subModules);
@@ -78,8 +78,7 @@ public abstract class ModuleWithModuleSettings extends Module {
                     field.setAccessible(true);
                     try {
                         Object obj = field.get(subModule);
-                        if (obj instanceof Property<?>) {
-                            Property<?> property = (Property<?>) obj;
+                        if (obj instanceof Property<?> property) {
                             property.setOwner(subModule);
                             property.setVisibilityOwner(this);
                             property.setVisibleModes(subModule.getName());

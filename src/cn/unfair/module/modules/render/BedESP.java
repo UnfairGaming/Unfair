@@ -1,5 +1,14 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.Render3DEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ColorProperty;
+import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.RenderUtil;
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.BlockBed.EnumPartType;
 import net.minecraft.block.BlockObsidian;
@@ -12,15 +21,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import cn.unfair.Unfair;
-import cn.unfair.event.EventTarget;
-import cn.unfair.events.Render3DEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RenderUtil;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -53,7 +53,8 @@ public class BedESP extends Module {
             case 0:
                 return new Color(this.customColor.getValue());
             case 1:
-                return ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                Unfair.moduleManager.modules.get(HUD.class);
+                return HUD.getColor(System.currentTimeMillis());
             default:
                 return new Color(-1);
         }

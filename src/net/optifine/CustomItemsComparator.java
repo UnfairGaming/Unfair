@@ -1,7 +1,8 @@
 package net.optifine;
 
-import java.util.Comparator;
 import net.minecraft.src.Config;
+
+import java.util.Comparator;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class CustomItemsComparator implements Comparator

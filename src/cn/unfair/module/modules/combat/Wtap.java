@@ -1,9 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C02PacketUseEntity.Action;
-import net.minecraft.potion.Potion;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
@@ -12,6 +8,10 @@ import cn.unfair.events.PacketEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.util.TimerUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C02PacketUseEntity.Action;
+import net.minecraft.potion.Potion;
 
 public class Wtap extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

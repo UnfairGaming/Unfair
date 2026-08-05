@@ -1,9 +1,10 @@
 package net.optifine.player;
 
-import java.awt.image.BufferedImage;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.ImageBufferDownload;
 import net.minecraft.util.ResourceLocation;
+
+import java.awt.image.BufferedImage;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class CapeImageBuffer extends ImageBufferDownload

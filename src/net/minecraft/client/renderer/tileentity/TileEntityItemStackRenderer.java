@@ -1,7 +1,6 @@
 package net.minecraft.client.renderer.tileentity;
 
 import com.mojang.authlib.GameProfile;
-import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.init.Blocks;
@@ -14,6 +13,8 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityEnderChest;
 import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.EnumFacing;
+
+import java.util.UUID;
 
 public class TileEntityItemStackRenderer
 {

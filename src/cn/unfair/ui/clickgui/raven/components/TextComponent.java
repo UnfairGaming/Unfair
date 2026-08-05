@@ -1,11 +1,11 @@
 package cn.unfair.ui.clickgui.raven.components;
 
-import org.lwjgl.opengl.GL11;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.property.properties.TextProperty;
-import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.ui.clickgui.raven.Component;
+import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.ui.clickgui.raven.callback.GuiInput;
+import org.lwjgl.opengl.GL11;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

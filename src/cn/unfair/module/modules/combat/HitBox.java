@@ -1,5 +1,18 @@
 package cn.unfair.module.modules.combat;
 
+import cn.unfair.Unfair;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
+import cn.unfair.events.LeftClickMouseEvent;
+import cn.unfair.events.Render3DEvent;
+import cn.unfair.events.TickEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.ColorProperty;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.RenderUtil;
+import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -19,20 +32,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
-import cn.unfair.Unfair;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.event.types.Priority;
-import cn.unfair.events.LeftClickMouseEvent;
-import cn.unfair.events.Render3DEvent;
-import cn.unfair.events.TickEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.RenderUtil;
-import cn.unfair.util.TeamUtil;
 
 import java.awt.*;
 import java.util.List;
@@ -134,8 +133,7 @@ public class HitBox extends Module {
             case 0:
                 return false;
             case 1:
-                if (entity instanceof EntityPlayer) {
-                    EntityPlayer player = (EntityPlayer) entity;
+                if (entity instanceof EntityPlayer player) {
                     if (TeamUtil.isFriend(player)) {
                         return false;
                     }
@@ -157,8 +155,7 @@ public class HitBox extends Module {
                         || entity instanceof EntityVillager
                         || entity instanceof EntityIronGolem;
             case 4:
-                if (entity instanceof EntityPlayer) {
-                    EntityPlayer player = (EntityPlayer) entity;
+                if (entity instanceof EntityPlayer player) {
                     if (TeamUtil.isFriend(player)) {
                         return false;
                     }
@@ -172,7 +169,7 @@ public class HitBox extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             this.calculateMouseOver(1.0F);
         }
     }
@@ -200,12 +197,12 @@ public class HitBox extends Module {
                     float collisionSize = (float) ((double) entity.getCollisionBorderSize() * this.multiplier.getValue());
                     AxisAlignedBB expandedBox = entity.getEntityBoundingBox().expand(collisionSize, collisionSize, collisionSize);
                     AxisAlignedBB offsetBox = new AxisAlignedBB(
-                            expandedBox.minX - entity.posX + (RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, event.getPartialTicks()) - mc.getRenderManager().getRenderPosX()),
-                            expandedBox.minY - entity.posY + (RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, event.getPartialTicks()) - mc.getRenderManager().getRenderPosY()),
-                            expandedBox.minZ - entity.posZ + (RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.getPartialTicks()) - mc.getRenderManager().getRenderPosZ()),
-                            expandedBox.maxX - entity.posX + (RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, event.getPartialTicks()) - mc.getRenderManager().getRenderPosX()),
-                            expandedBox.maxY - entity.posY + (RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, event.getPartialTicks()) - mc.getRenderManager().getRenderPosY()),
-                            expandedBox.maxZ - entity.posZ + (RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.getPartialTicks()) - mc.getRenderManager().getRenderPosZ())
+                            expandedBox.minX - entity.posX + (RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, event.partialTicks()) - mc.getRenderManager().getRenderPosX()),
+                            expandedBox.minY - entity.posY + (RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, event.partialTicks()) - mc.getRenderManager().getRenderPosY()),
+                            expandedBox.minZ - entity.posZ + (RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.partialTicks()) - mc.getRenderManager().getRenderPosZ()),
+                            expandedBox.maxX - entity.posX + (RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, event.partialTicks()) - mc.getRenderManager().getRenderPosX()),
+                            expandedBox.maxY - entity.posY + (RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, event.partialTicks()) - mc.getRenderManager().getRenderPosY()),
+                            expandedBox.maxZ - entity.posZ + (RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.partialTicks()) - mc.getRenderManager().getRenderPosZ())
                     );
                     RenderUtil.drawBoundingBox(offsetBox, renderColor.getRed(), renderColor.getGreen(), renderColor.getBlue(), 150, 1.5F);
                 }

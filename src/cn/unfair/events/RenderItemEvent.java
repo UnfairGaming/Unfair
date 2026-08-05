@@ -5,12 +5,12 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
 
 public class RenderItemEvent extends EventCancellable {
+    private final ItemStack itemToRender;
     private EnumAction enumAction;
     private boolean useItem;
     private float animationProgression;
     private float partialTicks;
     private float swingProgress;
-    private final ItemStack itemToRender;
 
     public RenderItemEvent(EnumAction enumAction, boolean useItem, float animationProgression, float partialTicks, float swingProgress, ItemStack itemToRender) {
         this.enumAction = enumAction;

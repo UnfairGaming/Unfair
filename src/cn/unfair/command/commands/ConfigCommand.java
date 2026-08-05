@@ -1,5 +1,10 @@
 package cn.unfair.command.commands;
 
+import cn.unfair.Unfair;
+import cn.unfair.command.Command;
+import cn.unfair.config.Config;
+import cn.unfair.enums.ChatColors;
+import cn.unfair.util.ChatUtil;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.ClickEvent.Action;
 import net.minecraft.event.HoverEvent;
@@ -9,11 +14,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import cn.unfair.Unfair;
-import cn.unfair.command.Command;
-import cn.unfair.config.Config;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.util.ChatUtil;
 
 import java.awt.*;
 import java.io.File;

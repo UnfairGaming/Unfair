@@ -2,18 +2,18 @@ package net.minecraft.client.audio;
 
 import com.google.common.collect.*;
 import io.netty.util.internal.ThreadLocalRandom;
-import org.apache.logging.log4j.LogManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.lwjgl3.SoundEngine;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.system.MemoryUtil;
 import paulscode.sound.*;
 import paulscode.sound.codecs.CodecJOrbis;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;

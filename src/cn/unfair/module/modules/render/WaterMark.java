@@ -14,7 +14,7 @@ import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class WaterMark extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

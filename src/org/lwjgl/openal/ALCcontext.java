@@ -15,10 +15,9 @@
  */
 package org.lwjgl.openal;
 
-import java.nio.IntBuffer;
-
-import org.lwjgl.openal.ALC10;
 import org.lwjgl.BufferUtils;
+
+import java.nio.IntBuffer;
 
 /**
  * The ALCcontext class represents a context opened in OpenAL space.

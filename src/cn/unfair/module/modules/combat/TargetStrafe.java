@@ -1,9 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.AxisAlignedBB;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -21,6 +17,10 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.AxisAlignedBB;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -78,7 +78,8 @@ public class TargetStrafe extends Module {
                 }
                 return TeamUtil.getTeamColor((EntityPlayer) entityLivingBase, 1.0F);
             case 2:
-                int color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis()).getRGB();
+                Unfair.moduleManager.modules.get(HUD.class);
+                int color = HUD.getColor(System.currentTimeMillis()).getRGB();
                 return new Color(color);
             default:
                 return new Color(-1);
@@ -139,7 +140,7 @@ public class TargetStrafe extends Module {
                         for (int i = 0; i < vpositions.size(); i++) {
                             double distance = mc.thePlayer
                                     .getDistance(
-                                            this.target.posX + (vpositions.get(i)).getX(), mc.thePlayer.posY, this.target.posZ + (vpositions.get(i)).getY()
+                                            this.target.posX + (vpositions.get(i)).x(), mc.thePlayer.posY, this.target.posZ + (vpositions.get(i)).y()
                                     );
                             if (closestIndex == -1 || distance < closestDistance) {
                                 closestDistance = distance;
@@ -151,14 +152,14 @@ public class TargetStrafe extends Module {
                         }
                         int nextIndex = closestIndex + this.direction;
                         nextIndex = this.wrapIndex(nextIndex, vpositions.size());
-                        double nextX = this.target.posX + (vpositions.get(nextIndex)).getX();
-                        double nextZ = this.target.posZ + (vpositions.get(nextIndex)).getY();
+                        double nextX = this.target.posX + (vpositions.get(nextIndex)).x();
+                        double nextZ = this.target.posZ + (vpositions.get(nextIndex)).y();
                         if (this.isInWater(nextX, nextZ)) {
                             this.direction *= -1;
                             nextIndex = closestIndex + this.direction;
                             nextIndex = this.wrapIndex(nextIndex, vpositions.size());
-                            nextX = this.target.posX + (vpositions.get(nextIndex)).getX();
-                            nextZ = this.target.posZ + (vpositions.get(nextIndex)).getY();
+                            nextX = this.target.posX + (vpositions.get(nextIndex)).x();
+                            nextZ = this.target.posZ + (vpositions.get(nextIndex)).y();
                         }
                         double deltaX = nextX - mc.thePlayer.posX;
                         double deltaZ = nextZ - mc.thePlayer.posZ;
@@ -204,21 +205,6 @@ public class TargetStrafe extends Module {
         this.targetYaw = Float.NaN;
     }
 
-    public static class Vec2d {
-        private final double x;
-        private final double y;
-
-        public Vec2d(double x, double y) {
-            this.x = x;
-            this.y = y;
-        }
-
-        public double getX() {
-            return this.x;
-        }
-
-        public double getY() {
-            return this.y;
-        }
+    public record Vec2d(double x, double y) {
     }
 }

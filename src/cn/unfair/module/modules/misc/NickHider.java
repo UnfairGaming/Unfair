@@ -1,10 +1,10 @@
 package cn.unfair.module.modules.misc;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.TextProperty;
+import net.minecraft.client.Minecraft;
 
 import java.util.regex.Matcher;
 

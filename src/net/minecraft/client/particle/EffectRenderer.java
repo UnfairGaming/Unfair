@@ -2,7 +2,6 @@ package net.minecraft.client.particle;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.rendering.ParticleCulling;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -16,6 +15,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.Entity;
+import net.minecraft.rendering.ParticleCulling;
 import net.minecraft.src.Config;
 import net.minecraft.util.*;
 import net.minecraft.world.World;

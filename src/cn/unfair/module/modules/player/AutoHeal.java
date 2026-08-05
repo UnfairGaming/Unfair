@@ -1,11 +1,5 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemSkull;
-import net.minecraft.item.ItemSoup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
-import net.minecraft.potion.Potion;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
@@ -15,6 +9,12 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.TimerUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemSkull;
+import net.minecraft.item.ItemSoup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.potion.Potion;
 
 public class AutoHeal extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -59,7 +59,7 @@ public class AutoHeal extends Module {
         if (!this.isEnabled()) {
             this.prevSlot = -1;
         } else {
-            switch (event.getType()) {
+            switch (event.type()) {
                 case PRE:
                     boolean precent = (float) Math.ceil(mc.thePlayer.getHealth() + mc.thePlayer.getAbsorptionAmount()) / mc.thePlayer.getMaxHealth()
                             <= (float) this.health.getValue() / 100.0F;

@@ -1,5 +1,14 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.enums.ChatColors;
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.Render2DEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.util.RenderUtil;
+import cn.unfair.util.RotationUtil;
+import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -10,15 +19,6 @@ import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.event.EventTarget;
-import cn.unfair.events.Render2DEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.util.RenderUtil;
-import cn.unfair.util.RotationUtil;
-import cn.unfair.util.TeamUtil;
 
 import java.awt.*;
 import java.util.stream.Collectors;
@@ -89,7 +89,7 @@ public class Indicators extends Module {
         }
         for (Entity entity : TeamUtil.getLoadedEntitiesSorted().stream().filter(this::shouldRender).collect(Collectors.toList())) {
             float offset = 10.0f + this.offset.getValue();
-            float yawBetween = RotationUtil.getYawBetween(RenderUtil.lerpDouble(Indicators.mc.thePlayer.posX, Indicators.mc.thePlayer.prevPosX, render2DEvent.getPartialTicks()), RenderUtil.lerpDouble(Indicators.mc.thePlayer.posZ, Indicators.mc.thePlayer.prevPosZ, render2DEvent.getPartialTicks()), RenderUtil.lerpDouble(entity.posX, entity.prevPosX, render2DEvent.getPartialTicks()), RenderUtil.lerpDouble(entity.posZ, entity.prevPosZ, render2DEvent.getPartialTicks()));
+            float yawBetween = RotationUtil.getYawBetween(RenderUtil.lerpDouble(Indicators.mc.thePlayer.posX, Indicators.mc.thePlayer.prevPosX, render2DEvent.partialTicks()), RenderUtil.lerpDouble(Indicators.mc.thePlayer.posZ, Indicators.mc.thePlayer.prevPosZ, render2DEvent.partialTicks()), RenderUtil.lerpDouble(entity.posX, entity.prevPosX, render2DEvent.partialTicks()), RenderUtil.lerpDouble(entity.posZ, entity.prevPosZ, render2DEvent.partialTicks()));
             if (Indicators.mc.gameSettings.thirdPersonView == 2) {
                 yawBetween += 180.0f;
             }

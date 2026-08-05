@@ -1,12 +1,12 @@
 package cn.unfair.util;
 
+import cn.unfair.Unfair;
+import cn.unfair.management.RotationState;
+import cn.unfair.module.modules.combat.TargetStrafe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
-import cn.unfair.Unfair;
-import cn.unfair.management.RotationState;
-import cn.unfair.module.modules.combat.TargetStrafe;
 
 public class MoveUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();

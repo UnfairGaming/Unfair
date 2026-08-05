@@ -1,11 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import com.google.common.base.CaseFormat;
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.ItemEnderPearl;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition;
-import net.minecraft.util.AxisAlignedBB;
 import cn.unfair.Unfair;
 import cn.unfair.enums.BlinkModules;
 import cn.unfair.event.EventTarget;
@@ -17,6 +11,12 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.PlayerUtil;
 import cn.unfair.util.RandomUtil;
+import com.google.common.base.CaseFormat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemEnderPearl;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C03PacketPlayer.C04PacketPlayerPosition;
+import net.minecraft.util.AxisAlignedBB;
 
 public class AntiVoid extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

@@ -52,6 +52,68 @@ public class TickBase extends Module {
         super("TickBase", false);
     }
 
+    private static double getDistanceToEntityBox(Entity entity) {
+        return getCustomDistanceToEntityBox(mc.thePlayer.getPositionEyes(1.0F), entity);
+    }
+
+    private static double getCustomDistanceToEntityBox(Vec3 eyes, Entity entity) {
+        return eyes.distanceTo(RotationUtil.getClosestPointOnBox(eyes, getHitbox(entity)));
+    }
+
+    private static double getCustomDistanceToEntityBox(Vec3 from, Vec3 to) {
+        double xDist = Math.abs(to.xCoord - from.xCoord);
+        double yDist = Math.abs(to.yCoord - from.yCoord);
+        double zDist = Math.abs(to.zCoord - from.zCoord);
+        return MathHelper.sqrt_double(xDist * xDist + yDist * yDist + zDist * zDist);
+    }
+
+    private static double getDistToTargetFromMouseOver(Vec3 eyes, Vec3 look, AxisAlignedBB targetBB) {
+        Vec3 end = eyes.addVector(look.xCoord * 64.0D, look.yCoord * 64.0D, look.zCoord * 64.0D);
+        Vec3 hitVec = null;
+        MovingObjectPosition intercept = targetBB.calculateIntercept(eyes, end);
+
+        if (targetBB.isVecInside(eyes)) {
+            hitVec = intercept == null ? eyes : intercept.hitVec;
+        } else if (intercept != null) {
+            hitVec = intercept.hitVec;
+        }
+
+        return hitVec == null ? Double.MAX_VALUE : eyes.distanceTo(hitVec);
+    }
+
+    private static AxisAlignedBB getHitbox(Entity entity) {
+        float border = entity.getCollisionBorderSize();
+        return entity.getEntityBoundingBox().expand(border, border, border);
+    }
+
+    private static Vec3 getPositionVector(Entity entity) {
+        return new Vec3(entity.posX, entity.posY, entity.posZ);
+    }
+
+    private static Vec3 getMoveDeltaVector(Entity entity) {
+        return subtract(getPositionVector(entity), new Vec3(entity.prevPosX, entity.prevPosY, entity.prevPosZ));
+    }
+
+    private static Vec3 add(Vec3 vec, double x, double y, double z) {
+        return new Vec3(vec.xCoord + x, vec.yCoord + y, vec.zCoord + z);
+    }
+
+    private static Vec3 add(Vec3 a, Vec3 b) {
+        return new Vec3(a.xCoord + b.xCoord, a.yCoord + b.yCoord, a.zCoord + b.zCoord);
+    }
+
+    private static Vec3 subtract(Vec3 a, Vec3 b) {
+        return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
+    }
+
+    private static Vec3 multiply(Vec3 vec, double factor) {
+        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
+    }
+
+    private static AxisAlignedBB offset(AxisAlignedBB box, Vec3 vec) {
+        return box.offset(vec.xCoord, vec.yCoord, vec.zCoord);
+    }
+
     @Override
     public void onEnabled() {
         this.shifted = 0L;
@@ -247,68 +309,6 @@ public class TickBase extends Module {
                 && TeamUtil.isEntityLoaded(entity)
                 && entity instanceof EntityPlayer
                 && !Unfair.friendManager.isFriend(entity.getName());
-    }
-
-    private static double getDistanceToEntityBox(Entity entity) {
-        return getCustomDistanceToEntityBox(mc.thePlayer.getPositionEyes(1.0F), entity);
-    }
-
-    private static double getCustomDistanceToEntityBox(Vec3 eyes, Entity entity) {
-        return eyes.distanceTo(RotationUtil.getClosestPointOnBox(eyes, getHitbox(entity)));
-    }
-
-    private static double getCustomDistanceToEntityBox(Vec3 from, Vec3 to) {
-        double xDist = Math.abs(to.xCoord - from.xCoord);
-        double yDist = Math.abs(to.yCoord - from.yCoord);
-        double zDist = Math.abs(to.zCoord - from.zCoord);
-        return MathHelper.sqrt_double(xDist * xDist + yDist * yDist + zDist * zDist);
-    }
-
-    private static double getDistToTargetFromMouseOver(Vec3 eyes, Vec3 look, AxisAlignedBB targetBB) {
-        Vec3 end = eyes.addVector(look.xCoord * 64.0D, look.yCoord * 64.0D, look.zCoord * 64.0D);
-        Vec3 hitVec = null;
-        MovingObjectPosition intercept = targetBB.calculateIntercept(eyes, end);
-
-        if (targetBB.isVecInside(eyes)) {
-            hitVec = intercept == null ? eyes : intercept.hitVec;
-        } else if (intercept != null) {
-            hitVec = intercept.hitVec;
-        }
-
-        return hitVec == null ? Double.MAX_VALUE : eyes.distanceTo(hitVec);
-    }
-
-    private static AxisAlignedBB getHitbox(Entity entity) {
-        float border = entity.getCollisionBorderSize();
-        return entity.getEntityBoundingBox().expand(border, border, border);
-    }
-
-    private static Vec3 getPositionVector(Entity entity) {
-        return new Vec3(entity.posX, entity.posY, entity.posZ);
-    }
-
-    private static Vec3 getMoveDeltaVector(Entity entity) {
-        return subtract(getPositionVector(entity), new Vec3(entity.prevPosX, entity.prevPosY, entity.prevPosZ));
-    }
-
-    private static Vec3 add(Vec3 vec, double x, double y, double z) {
-        return new Vec3(vec.xCoord + x, vec.yCoord + y, vec.zCoord + z);
-    }
-
-    private static Vec3 add(Vec3 a, Vec3 b) {
-        return new Vec3(a.xCoord + b.xCoord, a.yCoord + b.yCoord, a.zCoord + b.zCoord);
-    }
-
-    private static Vec3 subtract(Vec3 a, Vec3 b) {
-        return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
-    }
-
-    private static Vec3 multiply(Vec3 vec, double factor) {
-        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
-    }
-
-    private static AxisAlignedBB offset(AxisAlignedBB box, Vec3 vec) {
-        return box.offset(vec.xCoord, vec.yCoord, vec.zCoord);
     }
 
     private static class PredictProcess {

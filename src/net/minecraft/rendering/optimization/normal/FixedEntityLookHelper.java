@@ -1,8 +1,8 @@
 package net.minecraft.rendering.optimization.normal;
 
-import net.minecraft.rendering.FastTrig;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.ai.EntityLookHelper;
+import net.minecraft.rendering.FastTrig;
 import net.minecraft.util.MathHelper;
 
 /**

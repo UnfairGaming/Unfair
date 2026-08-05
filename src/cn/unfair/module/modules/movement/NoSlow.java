@@ -1,11 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import com.google.common.base.CaseFormat;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.util.BlockPos;
 import cn.unfair.Unfair;
 import cn.unfair.enums.FloatModules;
 import cn.unfair.event.EventTarget;
@@ -21,6 +15,12 @@ import cn.unfair.util.BlockUtil;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.PlayerUtil;
 import cn.unfair.util.TeamUtil;
+import com.google.common.base.CaseFormat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.util.BlockPos;
 
 public class NoSlow extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

@@ -20,7 +20,7 @@ public class Stuck extends Module {
     private boolean using = false;
 
     public Stuck() {
-        super("Stuck",false,false);
+        super("Stuck", false, false);
     }
 
     @Override
@@ -33,12 +33,12 @@ public class Stuck extends Module {
             savedMotionZ = mc.thePlayer.motionZ;
         }
     }
+
     @EventTarget
     public void onPacket(PacketEvent event) {
         if (this.isEnabled() && event.getType() == EventType.RECEIVE) {
-            if (event.getPacket() instanceof S12PacketEntityVelocity){
-                S12PacketEntityVelocity s12PacketEntityVelocity = (S12PacketEntityVelocity) event.getPacket();
-                if (s12PacketEntityVelocity.getEntityID() == mc.thePlayer.getEntityId()){
+            if (event.getPacket() instanceof S12PacketEntityVelocity s12PacketEntityVelocity) {
+                if (s12PacketEntityVelocity.getEntityID() == mc.thePlayer.getEntityId()) {
                     Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
                     tick = 10;
                     Unfair.delayManager.delayedPacket.offer(s12PacketEntityVelocity);
@@ -47,14 +47,15 @@ public class Stuck extends Module {
             }
         }
     }
+
     @EventTarget
-    public void onTick(TickEvent event){
-        if (using && event.getType() == EventType.PRE) {
-            if (tick == 10){
+    public void onTick(TickEvent event) {
+        if (using && event.type() == EventType.PRE) {
+            if (tick == 10) {
                 this.setEnabled(false);
                 using = true;
             }
-            if (tick == 11){
+            if (tick == 11) {
                 this.setEnabled(true);
                 tick = 0;
             }

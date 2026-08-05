@@ -1,13 +1,13 @@
 package cn.unfair.module.modules.misc;
 
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
 
 public class AntiObbyTrap extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

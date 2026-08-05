@@ -27,6 +27,10 @@ public enum Fonts {
     private final Map<Float, FontRenderer> fontMap = new HashMap<>();
     private Font baseFont;
 
+    Fonts(String file) {
+        this.file = file;
+    }
+
     public FontRenderer get(float size) {
         return this.fontMap.computeIfAbsent(size, font -> {
             try {
@@ -53,9 +57,5 @@ public enum Fonts {
         } catch (Exception ex) {
             throw new RuntimeException("Failed to create font", ex);
         }
-    }
-
-    Fonts(String file) {
-        this.file = file;
     }
 }

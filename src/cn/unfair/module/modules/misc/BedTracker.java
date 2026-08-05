@@ -1,5 +1,20 @@
 package cn.unfair.module.modules.misc;
 
+import cn.unfair.Unfair;
+import cn.unfair.enums.ChatColors;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
+import cn.unfair.events.LoadWorldEvent;
+import cn.unfair.events.PacketEvent;
+import cn.unfair.events.Render2DEvent;
+import cn.unfair.events.TickEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.*;
+import cn.unfair.util.ChatUtil;
+import cn.unfair.util.ColorUtil;
+import cn.unfair.util.SoundUtil;
+import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiScreen;
@@ -16,21 +31,6 @@ import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import org.lwjgl.opengl.GL11;
-import cn.unfair.Unfair;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.event.types.Priority;
-import cn.unfair.events.LoadWorldEvent;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.Render2DEvent;
-import cn.unfair.events.TickEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.*;
-import cn.unfair.util.ChatUtil;
-import cn.unfair.util.ColorUtil;
-import cn.unfair.util.SoundUtil;
-import cn.unfair.util.TeamUtil;
 
 import java.awt.*;
 import java.util.LinkedHashMap;
@@ -131,13 +131,12 @@ public class BedTracker extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.POST && this.isBed(this.bedPos)) {
+        if (this.isEnabled() && event.type() == EventType.POST && this.isBed(this.bedPos)) {
             long millis = System.currentTimeMillis();
             boolean pearl = false;
             boolean marco = false;
             for (Entity entity : mc.theWorld.loadedEntityList) {
-                if (entity instanceof EntityEnderPearl) {
-                    EntityEnderPearl enderPearl = (EntityEnderPearl) entity;
+                if (entity instanceof EntityEnderPearl enderPearl) {
                     if (!this.trackedPearls.contains(enderPearl)) {
                         this.trackedPearls.add(enderPearl);
                         if (this.alertOnPearl.getValue()) {

@@ -2,13 +2,14 @@ package net.minecraft.scoreboard;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumChatFormatting;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumChatFormatting;
 
 public class Scoreboard
 {

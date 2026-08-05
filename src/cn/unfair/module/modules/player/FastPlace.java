@@ -1,12 +1,5 @@
 package cn.unfair.module.modules.player;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemFishingRod;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.TickEvent;
@@ -14,10 +7,13 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.RotationUtil;
-
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
+import net.minecraft.client.Minecraft;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemFishingRod;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class FastPlace extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -54,7 +50,7 @@ public class FastPlace extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             int rightClickDelayTimer = mc.getRightClickDelayTimer();
             if (rightClickDelayTimer == 4) {
                 this.delayMS = this.delayMS + (long) (50.0F * this.delay.getValue());

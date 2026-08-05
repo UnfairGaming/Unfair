@@ -1,9 +1,10 @@
 package net.optifine.util;
 
+import net.minecraft.client.settings.KeyBinding;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import net.minecraft.client.settings.KeyBinding;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class KeyUtils

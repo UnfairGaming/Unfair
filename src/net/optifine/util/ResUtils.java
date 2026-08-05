@@ -1,24 +1,18 @@
 package net.optifine.util;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import net.minecraft.client.resources.AbstractResourcePack;
 import net.minecraft.client.resources.DefaultResourcePack;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.src.Config;
 import net.minecraft.util.ResourceLocation;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ResUtils

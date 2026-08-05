@@ -1,16 +1,17 @@
 package net.minecraft.nbt;
 
 import com.google.common.collect.Maps;
+import net.minecraft.crash.CrashReport;
+import net.minecraft.crash.CrashReportCategory;
+import net.minecraft.util.ReportedException;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Callable;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.util.ReportedException;
 
 public class NBTTagCompound extends NBTBase
 {

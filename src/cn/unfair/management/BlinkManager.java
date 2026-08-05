@@ -1,5 +1,11 @@
 package cn.unfair.management;
 
+import cn.unfair.enums.BlinkModules;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.PacketEvent;
+import cn.unfair.events.TickEvent;
+import cn.unfair.util.PacketUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
 import net.minecraft.network.handshake.client.C00Handshake;
@@ -11,12 +17,6 @@ import net.minecraft.network.play.client.C03PacketPlayer;
 import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.status.client.C00PacketServerQuery;
 import net.minecraft.network.status.client.C01PacketPing;
-import cn.unfair.enums.BlinkModules;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.TickEvent;
-import cn.unfair.util.PacketUtil;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -96,7 +96,7 @@ public class BlinkManager {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (event.getType() == EventType.POST) {
+        if (event.type() == EventType.POST) {
             if (!this.isInWorld()) {
                 this.blinking = false;
                 this.blinkedPackets.clear();

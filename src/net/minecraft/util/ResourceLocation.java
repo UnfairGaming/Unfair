@@ -1,9 +1,8 @@
 package net.minecraft.util;
 
 import lombok.Getter;
-import net.minecraft.util.IdentifierCaches;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.util.HashMap;
 import java.util.Map;

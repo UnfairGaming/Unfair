@@ -1,5 +1,22 @@
 package cn.unfair.module.modules.misc;
 
+import cn.unfair.Unfair;
+import cn.unfair.enums.ChatColors;
+import cn.unfair.enums.DelayModules;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
+import cn.unfair.events.*;
+import cn.unfair.management.RotationState;
+import cn.unfair.module.Module;
+import cn.unfair.module.modules.player.AutoBlockIn;
+import cn.unfair.module.modules.render.BedESP;
+import cn.unfair.module.modules.render.HUD;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.*;
 import com.google.common.base.CaseFormat;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
@@ -28,23 +45,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import org.lwjgl.opengl.GL11;
-import cn.unfair.Unfair;
-import cn.unfair.enums.ChatColors;
-import cn.unfair.enums.DelayModules;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.event.types.Priority;
-import cn.unfair.events.*;
-import cn.unfair.management.RotationState;
-import cn.unfair.module.Module;
-import cn.unfair.module.modules.player.AutoBlockIn;
-import cn.unfair.module.modules.render.BedESP;
-import cn.unfair.module.modules.render.HUD;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -315,7 +315,8 @@ public class BedNuker extends Module {
                 }
                 return ColorUtil.interpolate((progress - 0.5F) / 0.5F, this.colorYellow, this.colorGreen);
             case 2:
-                return ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis());
+                Unfair.moduleManager.modules.get(HUD.class);
+                return HUD.getColor(System.currentTimeMillis());
             default:
                 return new Color(-1);
         }
@@ -331,7 +332,7 @@ public class BedNuker extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
             if (autoBlockIn.isEnabled()) return;
             if (this.targetBed != null) {
@@ -570,16 +571,14 @@ public class BedNuker extends Module {
                 }, 1L, TimeUnit.SECONDS);
             }
             if (this.isEnabled() && this.targetBed != null && this.ignoreVelocity.getValue() == 2 && Unfair.delayManager.getDelayModule() != DelayModules.BED_NUKER) {
-                if (event.getPacket() instanceof S12PacketEntityVelocity) {
-                    S12PacketEntityVelocity packet = (S12PacketEntityVelocity) event.getPacket();
+                if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
                     if (packet.getEntityID() == mc.thePlayer.getEntityId() && packet.getMotionY() > 0) {
                         Unfair.delayManager.delay(DelayModules.BED_NUKER);
                         Unfair.delayManager.delayedPacket.offer(packet);
                         event.setCancelled(true);
                     }
                 }
-                if (event.getPacket() instanceof S27PacketExplosion) {
-                    S27PacketExplosion explosion = (S27PacketExplosion) event.getPacket();
+                if (event.getPacket() instanceof S27PacketExplosion explosion) {
                     if (explosion.func_149149_c() != 0.0F || explosion.func_149144_d() != 0.0F || explosion.func_149147_e() != 0.0F) {
                         Unfair.delayManager.delay(DelayModules.BED_NUKER);
                         Unfair.delayManager.delayedPacket.offer(explosion);

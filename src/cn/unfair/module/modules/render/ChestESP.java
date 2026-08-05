@@ -6,12 +6,7 @@ import cn.unfair.events.Render2DEvent;
 import cn.unfair.events.Render3DEvent;
 import cn.unfair.events.ResizeEvent;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.postprocessing.GlowESPBlurShader;
 import cn.unfair.util.postprocessing.ShaderUtils;
@@ -29,7 +24,7 @@ import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -176,7 +171,7 @@ public class ChestESP extends Module {
     private AxisAlignedBB getChestBox(TileEntity chest) {
         return new AxisAlignedBB(
                 (double) chest.getPos().getX() + 0.0625,
-                (double) chest.getPos().getY(),
+                chest.getPos().getY(),
                 (double) chest.getPos().getZ() + 0.0625,
                 (double) chest.getPos().getX() + 0.9375,
                 (double) chest.getPos().getY() + 0.875,
@@ -266,7 +261,7 @@ public class ChestESP extends Module {
             this.glowChests = renderedChests;
             this.framebuffer.framebufferClear();
             this.framebuffer.bindFramebuffer(true);
-            this.renderGlowChests(event.getPartialTicks());
+            this.renderGlowChests(event.partialTicks());
             this.framebuffer.unbindFramebuffer();
             mc.getFramebuffer().bindFramebuffer(true);
             GlStateManager.disableLighting();

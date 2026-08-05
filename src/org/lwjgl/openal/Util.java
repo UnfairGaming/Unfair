@@ -15,9 +15,6 @@
  */
 package org.lwjgl.openal;
 
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.ALC10;
-
 /**
  * Simple utility class for checking AL/ALC errors
  *

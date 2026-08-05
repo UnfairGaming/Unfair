@@ -1,6 +1,5 @@
 package net.minecraft.item;
 
-import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
@@ -13,6 +12,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
+
+import java.util.List;
 
 public class ItemBlock extends Item
 {

@@ -1,11 +1,5 @@
 package net.optifine.shaders;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import net.minecraft.client.Minecraft;
 import net.minecraft.src.Config;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.config.ConnectedParser;
@@ -13,6 +7,12 @@ import net.optifine.config.MatchBlock;
 import net.optifine.shaders.config.MacroProcessor;
 import net.optifine.util.PropertiesOrdered;
 import net.optifine.util.StrUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class BlockAliases

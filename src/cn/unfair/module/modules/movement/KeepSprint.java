@@ -1,9 +1,9 @@
 package cn.unfair.module.modules.movement;
 
-import net.minecraft.client.Minecraft;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
+import net.minecraft.client.Minecraft;
 
 public class KeepSprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

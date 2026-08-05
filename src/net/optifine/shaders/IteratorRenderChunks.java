@@ -1,10 +1,11 @@
 package net.optifine.shaders;
 
-import java.util.Iterator;
 import net.minecraft.client.renderer.ViewFrustum;
 import net.minecraft.client.renderer.chunk.RenderChunk;
 import net.minecraft.util.BlockPos;
 import net.optifine.BlockPosM;
+
+import java.util.Iterator;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class IteratorRenderChunks implements Iterator<RenderChunk>

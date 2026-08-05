@@ -1,10 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.util.MovingObjectPosition.MovingObjectType;
-import net.minecraft.world.WorldSettings.GameType;
-import org.lwjgl.input.Mouse;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
@@ -17,6 +12,11 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.RandomUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.world.WorldSettings.GameType;
+import org.lwjgl.input.Mouse;
 
 import java.util.Objects;
 
@@ -70,9 +70,8 @@ public class AutoClicker extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && mc.thePlayer != null && event.getType() == EventType.PRE && this.invClick.getValue()) {
-            if (mc.currentScreen instanceof GuiContainer) {
-                GuiContainer screen = ((GuiContainer) mc.currentScreen);
+        if (this.isEnabled() && mc.thePlayer != null && event.type() == EventType.PRE && this.invClick.getValue()) {
+            if (mc.currentScreen instanceof GuiContainer screen) {
                 final int mouseX = Mouse.getEventX() * screen.width / mc.displayWidth;
                 final int mouseY = screen.height - Mouse.getEventY() * screen.height / mc.displayHeight - 1;
                 if (Mouse.isButtonDown(0)) {
@@ -85,7 +84,7 @@ public class AutoClicker extends Module {
                 }
             }
         }
-        if (event.getType() == EventType.PRE) {
+        if (event.type() == EventType.PRE) {
             if (this.clickDelay > 0L) {
                 this.clickDelay -= 50L;
             }

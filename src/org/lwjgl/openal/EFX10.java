@@ -1,7 +1,5 @@
 package org.lwjgl.openal;
 
-import org.lwjgl.openal.EXTEfx;
-
 @SuppressWarnings("unused")
 public class EFX10 {
 

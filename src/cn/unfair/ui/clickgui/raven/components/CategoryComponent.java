@@ -1,5 +1,11 @@
 package cn.unfair.ui.clickgui.raven.components;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.Module;
+import cn.unfair.module.modules.render.HUD;
+import cn.unfair.ui.clickgui.raven.Component;
+import cn.unfair.util.AnimationUtil;
+import cn.unfair.util.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -9,12 +15,6 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
-import cn.unfair.Unfair;
-import cn.unfair.module.Module;
-import cn.unfair.module.modules.render.HUD;
-import cn.unfair.ui.clickgui.raven.Component;
-import cn.unfair.util.AnimationUtil;
-import cn.unfair.util.RenderUtil;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -216,8 +216,8 @@ public class CategoryComponent {
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         RenderUtil.scissor(this.x - 12, this.y - 12, this.width + 24, extra - this.y + 24);
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        int hudColor1 = hud.getColor(System.currentTimeMillis()).getRGB();
-        int hudColor2 = hud.getColor(System.currentTimeMillis() + 500).getRGB();
+        int hudColor1 = HUD.getColor(System.currentTimeMillis()).getRGB();
+        int hudColor2 = HUD.getColor(System.currentTimeMillis() + 500).getRGB();
 
         RenderUtil.drawRoundedGradientOutlinedRectangle(this.x - 2, this.y, this.x + this.width + 2, extra, 5, translucentBackground,
                 hudColor1, hudColor2);

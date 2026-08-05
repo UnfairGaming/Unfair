@@ -1,9 +1,9 @@
 package net.optifine;
 
 import lombok.Getter;
-import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.src.Config;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.util.TextureUtils;

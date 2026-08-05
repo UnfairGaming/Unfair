@@ -1,9 +1,9 @@
 package net.optifine.shaders;
 
 import lombok.Getter;
-import net.minecraft.rendering.MemoryTracker;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.rendering.MemoryTracker;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;

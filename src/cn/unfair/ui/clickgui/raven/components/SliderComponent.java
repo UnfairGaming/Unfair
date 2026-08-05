@@ -1,12 +1,12 @@
 package cn.unfair.ui.clickgui.raven.components;
 
-import net.minecraft.client.gui.Gui;
-import org.lwjgl.opengl.GL11;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.Component;
 import cn.unfair.ui.clickgui.raven.dataset.Slider;
 import cn.unfair.util.RenderUtil;
+import net.minecraft.client.gui.Gui;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -49,7 +49,8 @@ public class SliderComponent implements Component {
         if (sliderEnd - sliderStart > 84) {
             sliderEnd = sliderStart + 84;
         }
-        Gui.drawRect(sliderStart, this.parentModule.category.getY() + this.offsetY + 11, sliderEnd, this.parentModule.category.getY() + this.offsetY + 15, ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis(), offset.get()).getRGB());
+        Unfair.moduleManager.modules.get(HUD.class);
+        Gui.drawRect(sliderStart, this.parentModule.category.getY() + this.offsetY + 11, sliderEnd, this.parentModule.category.getY() + this.offsetY + 15, HUD.getColor(System.currentTimeMillis(), offset.get()).getRGB());
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         mc.fontRendererObj.drawStringWithShadow(this.slider.getName() + ": " + this.slider.getValueString(), (float) ((int) ((float) (this.parentModule.category.getX() + 4) * 2.0F)), (float) ((int) ((float) (this.parentModule.category.getY() + this.offsetY + 3) * 2.0F)), -1);

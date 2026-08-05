@@ -41,7 +41,7 @@ public class Reach extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             this.expanding = this.theRandom.nextDouble() <= (double) this.chance.getValue() / 100.0;
         }
     }

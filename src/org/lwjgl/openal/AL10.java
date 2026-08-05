@@ -5,16 +5,17 @@
  */
 package org.lwjgl.openal;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.NativeType;
 
 import java.nio.*;
 
-import org.lwjgl.system.*;
-
 import static org.lwjgl.system.Checks.*;
 import static org.lwjgl.system.JNI.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.system.MemoryStack.stackGet;
+import static org.lwjgl.system.MemoryUtil.memAddress;
+import static org.lwjgl.system.MemoryUtil.memUTF8Safe;
 
 public class AL10 {
 

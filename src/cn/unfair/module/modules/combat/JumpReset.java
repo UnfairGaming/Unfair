@@ -1,7 +1,5 @@
 package cn.unfair.module.modules.combat;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.potion.Potion;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.KnockbackEvent;
@@ -9,6 +7,8 @@ import cn.unfair.events.LivingUpdateEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.ChatUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.potion.Potion;
 
 public class JumpReset extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

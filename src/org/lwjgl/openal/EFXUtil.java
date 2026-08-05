@@ -6,9 +6,6 @@ package org.lwjgl.openal;
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.openal.EXTEfx.*;
 
-import org.lwjgl.openal.AL10;
-import org.lwjgl.openal.ALC;
-
 /**
  * Utility class for the OpenAL extension AL_EXT_EFX. Provides functions to check for the extension and support of
  * various effects and filters.

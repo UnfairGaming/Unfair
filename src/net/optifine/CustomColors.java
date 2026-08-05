@@ -1,18 +1,5 @@
 package net.optifine;
 
-import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Set;
-import javax.imageio.ImageIO;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRedstoneWire;
 import net.minecraft.block.BlockStem;
@@ -42,13 +29,16 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.optifine.config.ConnectedParser;
 import net.optifine.config.MatchBlock;
 import net.optifine.render.RenderEnv;
-import net.optifine.util.EntityUtils;
-import net.optifine.util.PropertiesOrdered;
-import net.optifine.util.ResUtils;
-import net.optifine.util.StrUtils;
-import net.optifine.util.TextureUtils;
+import net.optifine.util.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class CustomColors

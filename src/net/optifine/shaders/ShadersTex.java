@@ -1,5 +1,16 @@
 package net.optifine.shaders;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.texture.*;
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.rendering.MemoryTracker;
+import net.minecraft.src.Config;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,18 +18,6 @@ import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.minecraft.rendering.MemoryTracker;
-import net.minecraft.client.renderer.texture.*;
-import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.src.Config;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ShadersTex {

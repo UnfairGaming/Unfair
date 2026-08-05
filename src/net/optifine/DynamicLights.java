@@ -1,11 +1,5 @@
 package net.optifine;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.entity.Entity;
@@ -31,6 +25,13 @@ import net.optifine.config.EntityClassLocator;
 import net.optifine.config.IObjectLocator;
 import net.optifine.config.ItemLocator;
 import net.optifine.util.PropertiesOrdered;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class DynamicLights

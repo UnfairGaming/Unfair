@@ -1,5 +1,10 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.RenderLivingEvent;
+import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
@@ -11,11 +16,6 @@ import net.minecraft.entity.passive.EntitySquid;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import org.lwjgl.opengl.GL11;
-import cn.unfair.event.EventTarget;
-import cn.unfair.events.RenderLivingEvent;
-import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.TeamUtil;
 
 public class Chams extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -73,8 +73,8 @@ public class Chams extends Module {
     @EventTarget
     public void onRenderLiving(RenderLivingEvent event) {
         if (this.isEnabled()) {
-            if (this.shouldRenderChams(event.getEntity())) {
-                switch (event.getType()) {
+            if (this.shouldRenderChams(event.entity())) {
+                switch (event.type()) {
                     case PRE:
                         GL11.glEnable(32823);
                         GL11.glPolygonOffset(1.0F, -2500000.0F);

@@ -7,7 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.Color;
+import java.awt.*;
 
 public final class MainMenuStyle {
     public static final int OVERLAY = new Color(1, 1, 1, 20).getRGB();

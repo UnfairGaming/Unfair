@@ -1,10 +1,11 @@
 package net.optifine.shaders;
 
+import net.optifine.util.StrUtils;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import net.optifine.util.StrUtils;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ShaderPackFolder implements IShaderPack

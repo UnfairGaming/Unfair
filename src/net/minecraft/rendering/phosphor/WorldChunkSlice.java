@@ -1,8 +1,8 @@
 package net.minecraft.rendering.phosphor;
 
+import net.minecraft.rendering.phosphor.lighting.LightingEngineHelpers;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.rendering.phosphor.lighting.LightingEngineHelpers;
 
 public class WorldChunkSlice {
     private static final int DIAMETER = 5;

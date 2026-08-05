@@ -19,9 +19,65 @@ public class ShaderUtils {
             "gl_TexCoord[0] = gl_MultiTexCoord0;\n" +
             "gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n" +
             "}";
-
-    private final int programID;
-    private final Map<String, Integer> uniformLocations = new HashMap<>();
+    private static final String KAWASE_DOWN_BLOOM = "#version 120\n" +
+            "uniform sampler2D inTexture;\n" +
+            "uniform vec2 offset, halfpixel, iResolution;\n" +
+            "void main() {\n" +
+            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
+            "    vec4 sum = texture2D(inTexture, gl_TexCoord[0].st);\n" +
+            "    sum.rgb *= sum.a;\n" +
+            "    sum *= 4.0;\n" +
+            "    vec4 smp1 = texture2D(inTexture, uv - halfpixel.xy * offset);\n" +
+            "    smp1.rgb *= smp1.a;\n" +
+            "    sum += smp1;\n" +
+            "    vec4 smp2 = texture2D(inTexture, uv + halfpixel.xy * offset);\n" +
+            "    smp2.rgb *= smp2.a;\n" +
+            "    sum += smp2;\n" +
+            "    vec4 smp3 = texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    smp3.rgb *= smp3.a;\n" +
+            "    sum += smp3;\n" +
+            "    vec4 smp4 = texture2D(inTexture, uv - vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    smp4.rgb *= smp4.a;\n" +
+            "    sum += smp4;\n" +
+            "    vec4 result = sum / 8.0;\n" +
+            "    gl_FragColor = vec4(result.rgb / max(result.a, 0.0001), result.a);\n" +
+            "}";
+    private static final String KAWASE_UP_BLOOM = "#version 120\n" +
+            "uniform sampler2D inTexture, textureToCheck;\n" +
+            "uniform vec2 halfpixel, offset, iResolution;\n" +
+            "uniform vec3 color;\n" +
+            "uniform int check;\n" +
+            "void main() {\n" +
+            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
+            "    vec4 sum = texture2D(inTexture, uv + vec2(-halfpixel.x * 2.0, 0.0) * offset);\n" +
+            "    sum.rgb *= sum.a;\n" +
+            "    vec4 smp1 = texture2D(inTexture, uv + vec2(-halfpixel.x, halfpixel.y) * offset);\n" +
+            "    smp1.rgb *= smp1.a;\n" +
+            "    sum += smp1 * 2.0;\n" +
+            "    vec4 smp2 = texture2D(inTexture, uv + vec2(0.0, halfpixel.y * 2.0) * offset);\n" +
+            "    smp2.rgb *= smp2.a;\n" +
+            "    sum += smp2;\n" +
+            "    vec4 smp3 = texture2D(inTexture, uv + vec2(halfpixel.x, halfpixel.y) * offset);\n" +
+            "    smp3.rgb *= smp3.a;\n" +
+            "    sum += smp3 * 2.0;\n" +
+            "    vec4 smp4 = texture2D(inTexture, uv + vec2(halfpixel.x * 2.0, 0.0) * offset);\n" +
+            "    smp4.rgb *= smp4.a;\n" +
+            "    sum += smp4;\n" +
+            "    vec4 smp5 = texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    smp5.rgb *= smp5.a;\n" +
+            "    sum += smp5 * 2.0;\n" +
+            "    vec4 smp6 = texture2D(inTexture, uv + vec2(0.0, -halfpixel.y * 2.0) * offset);\n" +
+            "    smp6.rgb *= smp6.a;\n" +
+            "    sum += smp6;\n" +
+            "    vec4 smp7 = texture2D(inTexture, uv + vec2(-halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    smp7.rgb *= smp7.a;\n" +
+            "    sum += smp7 * 2.0;\n" +
+            "    vec4 result = sum / 12.0;\n" +
+            "    float alphaMask = texture2D(textureToCheck, gl_TexCoord[0].st).a;\n" +
+            "    float finalAlpha = mix(result.a, result.a * (1.0 - alphaMask), check);\n" +
+            "    vec3 colored = result.rgb / max(result.a, 0.0001) * color;\n" +
+            "    gl_FragColor = vec4(colored, finalAlpha);\n" +
+            "}";
     private static int cachedDisplayWidth = -1;
     private static int cachedDisplayHeight = -1;
     private static int cachedGuiScale = -1;
@@ -29,6 +85,8 @@ public class ShaderUtils {
     private static int cachedScaleFactor = 1;
     private static float cachedScaledWidth = 0.0F;
     private static float cachedScaledHeight = 0.0F;
+    private final int programID;
+    private final Map<String, Integer> uniformLocations = new HashMap<>();
 
     public ShaderUtils(String fragmentName) {
         this(fragmentName, DEFAULT_VERTEX);
@@ -55,6 +113,55 @@ public class ShaderUtils {
         GL20.glDeleteShader(vertexShader);
         GL20.glDeleteShader(fragmentShader);
         this.programID = program;
+    }
+
+    public static void drawQuads(float width, float height) {
+        GL11.glBegin(GL11.GL_QUADS);
+        GL11.glTexCoord2d(0.0, 1.0);
+        GL11.glVertex2d(0.0, 0.0);
+        GL11.glTexCoord2d(0.0, 0.0);
+        GL11.glVertex2d(0.0, height);
+        GL11.glTexCoord2d(1.0, 0.0);
+        GL11.glVertex2d(width, height);
+        GL11.glTexCoord2d(1.0, 1.0);
+        GL11.glVertex2d(width, 0.0);
+        GL11.glEnd();
+    }
+
+    public static void drawQuads() {
+        updateScaledResolutionCache();
+        drawQuads(cachedScaledWidth, cachedScaledHeight);
+    }
+
+    public static void drawFixedQuads() {
+        updateScaledResolutionCache();
+        Minecraft mc = Minecraft.getMinecraft();
+        float width = mc.displayWidth / (float) cachedScaleFactor;
+        float height = mc.displayHeight / (float) cachedScaleFactor;
+        drawQuads(width, height);
+    }
+
+    private static void updateScaledResolutionCache() {
+        Minecraft mc = Minecraft.getMinecraft();
+        int displayWidth = mc.displayWidth;
+        int displayHeight = mc.displayHeight;
+        int guiScale = mc.gameSettings.guiScale;
+        boolean unicode = mc.isUnicode();
+        if (displayWidth == cachedDisplayWidth
+                && displayHeight == cachedDisplayHeight
+                && guiScale == cachedGuiScale
+                && unicode == cachedUnicode) {
+            return;
+        }
+
+        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(mc);
+        cachedDisplayWidth = displayWidth;
+        cachedDisplayHeight = displayHeight;
+        cachedGuiScale = guiScale;
+        cachedUnicode = unicode;
+        cachedScaleFactor = sr.getScaleFactor();
+        cachedScaledWidth = sr.getScaledWidth();
+        cachedScaledHeight = sr.getScaledHeight();
     }
 
     private int createShader(String source, int type) {
@@ -88,7 +195,7 @@ public class ShaderUtils {
             while ((length = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, length);
             }
-            return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+            return outputStream.toString(StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to load shader resource: " + location, e);
         }
@@ -201,114 +308,4 @@ public class ShaderUtils {
         int loc = this.getUniformLocation(name);
         if (loc >= 0) GL20.glUniform1(loc, values);
     }
-
-    public static void drawQuads(float width, float height) {
-        GL11.glBegin(GL11.GL_QUADS);
-        GL11.glTexCoord2d(0.0, 1.0);
-        GL11.glVertex2d(0.0, 0.0);
-        GL11.glTexCoord2d(0.0, 0.0);
-        GL11.glVertex2d(0.0, height);
-        GL11.glTexCoord2d(1.0, 0.0);
-        GL11.glVertex2d(width, height);
-        GL11.glTexCoord2d(1.0, 1.0);
-        GL11.glVertex2d(width, 0.0);
-        GL11.glEnd();
-    }
-
-    public static void drawQuads() {
-        updateScaledResolutionCache();
-        drawQuads(cachedScaledWidth, cachedScaledHeight);
-    }
-
-    public static void drawFixedQuads() {
-        updateScaledResolutionCache();
-        Minecraft mc = Minecraft.getMinecraft();
-        float width = mc.displayWidth / (float) cachedScaleFactor;
-        float height = mc.displayHeight / (float) cachedScaleFactor;
-        drawQuads(width, height);
-    }
-
-    private static void updateScaledResolutionCache() {
-        Minecraft mc = Minecraft.getMinecraft();
-        int displayWidth = mc.displayWidth;
-        int displayHeight = mc.displayHeight;
-        int guiScale = mc.gameSettings.guiScale;
-        boolean unicode = mc.isUnicode();
-        if (displayWidth == cachedDisplayWidth
-                && displayHeight == cachedDisplayHeight
-                && guiScale == cachedGuiScale
-                && unicode == cachedUnicode) {
-            return;
-        }
-
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(mc);
-        cachedDisplayWidth = displayWidth;
-        cachedDisplayHeight = displayHeight;
-        cachedGuiScale = guiScale;
-        cachedUnicode = unicode;
-        cachedScaleFactor = sr.getScaleFactor();
-        cachedScaledWidth = sr.getScaledWidth();
-        cachedScaledHeight = sr.getScaledHeight();
-    }
-
-    private static final String KAWASE_DOWN_BLOOM = "#version 120\n" +
-            "uniform sampler2D inTexture;\n" +
-            "uniform vec2 offset, halfpixel, iResolution;\n" +
-            "void main() {\n" +
-            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
-            "    vec4 sum = texture2D(inTexture, gl_TexCoord[0].st);\n" +
-            "    sum.rgb *= sum.a;\n" +
-            "    sum *= 4.0;\n" +
-            "    vec4 smp1 = texture2D(inTexture, uv - halfpixel.xy * offset);\n" +
-            "    smp1.rgb *= smp1.a;\n" +
-            "    sum += smp1;\n" +
-            "    vec4 smp2 = texture2D(inTexture, uv + halfpixel.xy * offset);\n" +
-            "    smp2.rgb *= smp2.a;\n" +
-            "    sum += smp2;\n" +
-            "    vec4 smp3 = texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
-            "    smp3.rgb *= smp3.a;\n" +
-            "    sum += smp3;\n" +
-            "    vec4 smp4 = texture2D(inTexture, uv - vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
-            "    smp4.rgb *= smp4.a;\n" +
-            "    sum += smp4;\n" +
-            "    vec4 result = sum / 8.0;\n" +
-            "    gl_FragColor = vec4(result.rgb / max(result.a, 0.0001), result.a);\n" +
-            "}";
-
-    private static final String KAWASE_UP_BLOOM = "#version 120\n" +
-            "uniform sampler2D inTexture, textureToCheck;\n" +
-            "uniform vec2 halfpixel, offset, iResolution;\n" +
-            "uniform vec3 color;\n" +
-            "uniform int check;\n" +
-            "void main() {\n" +
-            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
-            "    vec4 sum = texture2D(inTexture, uv + vec2(-halfpixel.x * 2.0, 0.0) * offset);\n" +
-            "    sum.rgb *= sum.a;\n" +
-            "    vec4 smp1 = texture2D(inTexture, uv + vec2(-halfpixel.x, halfpixel.y) * offset);\n" +
-            "    smp1.rgb *= smp1.a;\n" +
-            "    sum += smp1 * 2.0;\n" +
-            "    vec4 smp2 = texture2D(inTexture, uv + vec2(0.0, halfpixel.y * 2.0) * offset);\n" +
-            "    smp2.rgb *= smp2.a;\n" +
-            "    sum += smp2;\n" +
-            "    vec4 smp3 = texture2D(inTexture, uv + vec2(halfpixel.x, halfpixel.y) * offset);\n" +
-            "    smp3.rgb *= smp3.a;\n" +
-            "    sum += smp3 * 2.0;\n" +
-            "    vec4 smp4 = texture2D(inTexture, uv + vec2(halfpixel.x * 2.0, 0.0) * offset);\n" +
-            "    smp4.rgb *= smp4.a;\n" +
-            "    sum += smp4;\n" +
-            "    vec4 smp5 = texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
-            "    smp5.rgb *= smp5.a;\n" +
-            "    sum += smp5 * 2.0;\n" +
-            "    vec4 smp6 = texture2D(inTexture, uv + vec2(0.0, -halfpixel.y * 2.0) * offset);\n" +
-            "    smp6.rgb *= smp6.a;\n" +
-            "    sum += smp6;\n" +
-            "    vec4 smp7 = texture2D(inTexture, uv + vec2(-halfpixel.x, -halfpixel.y) * offset);\n" +
-            "    smp7.rgb *= smp7.a;\n" +
-            "    sum += smp7 * 2.0;\n" +
-            "    vec4 result = sum / 12.0;\n" +
-            "    float alphaMask = texture2D(textureToCheck, gl_TexCoord[0].st).a;\n" +
-            "    float finalAlpha = mix(result.a, result.a * (1.0 - alphaMask), check);\n" +
-            "    vec3 colored = result.rgb / max(result.a, 0.0001) * color;\n" +
-            "    gl_FragColor = vec4(colored, finalAlpha);\n" +
-            "}";
 }

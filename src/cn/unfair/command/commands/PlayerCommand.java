@@ -1,11 +1,11 @@
 package cn.unfair.command.commands;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetworkPlayerInfo;
 import cn.unfair.Unfair;
 import cn.unfair.command.Command;
 import cn.unfair.enums.ChatColors;
 import cn.unfair.util.ChatUtil;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.network.NetworkPlayerInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;

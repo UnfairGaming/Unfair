@@ -1,11 +1,11 @@
 package cn.unfair.config;
 
-import com.google.gson.*;
-import net.minecraft.client.Minecraft;
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.Property;
 import cn.unfair.util.ChatUtil;
+import com.google.gson.*;
+import net.minecraft.client.Minecraft;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -30,10 +30,10 @@ public class Config {
         try {
             file.getParentFile().mkdirs();
             if (newConfig) {
-                mc.getLogger().info(String.format("Created: %s", this.file.getName()));
+                Minecraft.getLogger().info(String.format("Created: %s", this.file.getName()));
             }
         } catch (Exception e) {
-            mc.getLogger().error(e.getMessage());
+            Minecraft.getLogger().error(e.getMessage());
         }
     }
 
@@ -59,7 +59,7 @@ public class Config {
                 try {
                     loadModuleSettings(module, jsonObject.get(module.getName()));
                 } catch (Exception e) {
-                    mc.getLogger().error(
+                    Minecraft.getLogger().error(
                             String.format("Failed to load settings for module %s", module.getName()),
                             e
                     );
@@ -69,7 +69,7 @@ public class Config {
                 try {
                     loadModuleEnabled(module, jsonObject.get(module.getName()));
                 } catch (Exception e) {
-                    mc.getLogger().error(
+                    Minecraft.getLogger().error(
                             String.format("Failed to restore enabled state for module %s", module.getName()),
                             e
                     );
@@ -80,9 +80,9 @@ public class Config {
             ChatUtil.sendFormatted(String.format("%sConfig file not found (&c&o%s&r)&r", Unfair.clientName, file.getName()));
         } catch (JsonSyntaxException e) {
             ChatUtil.sendFormatted(String.format("%sConfig has invalid JSON syntax (&c&o%s&r)&r", Unfair.clientName, file.getName()));
-            mc.getLogger().error("JSON syntax error in config " + file.getName(), e);
+            Minecraft.getLogger().error("JSON syntax error in config " + file.getName(), e);
         } catch (Exception e) {
-            mc.getLogger().error("Error loading config " + file.getName(), e);
+            Minecraft.getLogger().error("Error loading config " + file.getName(), e);
             ChatUtil.sendFormatted(String.format("%sConfig couldn't be loaded (&c&o%s&r)&r", Unfair.clientName, file.getName()));
         }
     }
@@ -106,7 +106,7 @@ public class Config {
             Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             ChatUtil.sendFormatted(String.format("%sConfig has been saved (&a&o%s&r)&r", Unfair.clientName, file.getName()));
         } catch (IOException e) {
-            mc.getLogger().error("Error saving config: " + e.getMessage());
+            Minecraft.getLogger().error("Error saving config: " + e.getMessage());
             ChatUtil.sendFormatted(String.format("%sConfig couldn't be saved (&c&o%s&r)&r", Unfair.clientName, file.getName()));
         }
     }
@@ -126,7 +126,7 @@ public class Config {
                 try {
                     property.read(object);
                 } catch (Exception e) {
-                    mc.getLogger().warn(String.format("Failed to load property %s for module %s", property.getName(), module.getName()));
+                    Minecraft.getLogger().warn(String.format("Failed to load property %s for module %s", property.getName(), module.getName()));
                 }
             }
         }
@@ -154,7 +154,7 @@ public class Config {
                 try {
                     property.write(moduleObject);
                 } catch (Exception e) {
-                    mc.getLogger().warn(String.format("Failed to save property %s for module %s", property.getName(), module.getName()));
+                    Minecraft.getLogger().warn(String.format("Failed to save property %s for module %s", property.getName(), module.getName()));
                 }
             }
         }

@@ -1,5 +1,24 @@
 package cn.unfair.module.modules.combat;
 
+import cn.unfair.Unfair;
+import cn.unfair.enums.BlinkModules;
+import cn.unfair.event.EventManager;
+import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
+import cn.unfair.events.*;
+import cn.unfair.management.RotationState;
+import cn.unfair.module.Module;
+import cn.unfair.module.modules.misc.BedNuker;
+import cn.unfair.module.modules.movement.NoSlow;
+import cn.unfair.module.modules.player.AutoBlockIn;
+import cn.unfair.module.modules.player.AutoHeal;
+import cn.unfair.module.modules.player.Scaffold;
+import cn.unfair.module.modules.render.HUD;
+import cn.unfair.property.properties.*;
+import cn.unfair.util.*;
+import cn.unfair.util.killaura.PointFinder;
+import cn.unfair.util.player.ApsDelayGenerator;
 import com.google.common.base.CaseFormat;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
@@ -25,25 +44,6 @@ import net.minecraft.network.play.client.C02PacketUseEntity.Action;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.WorldSettings.GameType;
-import cn.unfair.Unfair;
-import cn.unfair.enums.BlinkModules;
-import cn.unfair.event.EventManager;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.event.types.Priority;
-import cn.unfair.events.*;
-import cn.unfair.management.RotationState;
-import cn.unfair.module.Module;
-import cn.unfair.module.modules.misc.BedNuker;
-import cn.unfair.module.modules.movement.NoSlow;
-import cn.unfair.module.modules.player.AutoBlockIn;
-import cn.unfair.module.modules.player.AutoHeal;
-import cn.unfair.module.modules.player.Scaffold;
-import cn.unfair.module.modules.render.HUD;
-import cn.unfair.property.properties.*;
-import cn.unfair.util.*;
-import cn.unfair.util.player.ApsDelayGenerator;
-import cn.unfair.util.killaura.PointFinder;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -54,12 +54,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class KillAura extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    public static AttackData target = null;
     public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"SINGLE", "SWITCH"});
     public final ModeProperty sort = new ModeProperty("sort", 0, new String[]{"DISTANCE", "HEALTH", "HURT_TIME", "FOV"});
     public final ModeProperty autoBlock = new ModeProperty(
             "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE", "HYPIXEL_LAG"}
     );
-    private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
     public final BooleanProperty autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
     public final IntProperty autoBlockCPS = new IntProperty("auto-block-aps", 10, 1, 20);
     public final FloatProperty autoBlockRange = new FloatProperty("auto-block-range", 6.0F, 3.0F, 8.0F);
@@ -84,13 +84,13 @@ public class KillAura extends Module {
     public final BooleanProperty blacklistTorso = new BooleanProperty("blacklist-torso", false, this.advancedRotations::getValue);
     public final BooleanProperty blacklistFeet = new BooleanProperty("blacklist-feet", false, this.advancedRotations::getValue);
     public final BooleanProperty blacklistBadHitVec = new BooleanProperty("blacklist-bad-hitvec", false, this.advancedRotations::getValue);
-    public final BooleanProperty blacklistHeuristic = new BooleanProperty("blacklist-heuristic", false, this.advancedRotations::getValue);
     public final FloatProperty badHitVecBuffer = new FloatProperty("bad-hitvec-buffer", 0.5F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && this.blacklistBadHitVec.getValue());
+    public final BooleanProperty blacklistHeuristic = new BooleanProperty("blacklist-heuristic", false, this.advancedRotations::getValue);
     public final FloatProperty heuristicBuffer = new FloatProperty("heuristic-buffer", 0.1F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && this.blacklistHeuristic.getValue());
     public final BooleanProperty dynamicTrim = new BooleanProperty("dynamic-trim", false, this.advancedRotations::getValue);
     public final FloatProperty yTrim = new FloatProperty("y-trim", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && !this.dynamicTrim.getValue());
-    public final FloatProperty xzTrim = new FloatProperty("xz-trim", 0.0F, 0.0F, 0.5F, this.advancedRotations::getValue);
     public final FloatProperty xzRandAdd = new FloatProperty("xz-rand-add", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.dynamicTrim.getValue());
+    public final FloatProperty xzTrim = new FloatProperty("xz-trim", 0.0F, 0.0F, 0.5F, this.advancedRotations::getValue);
     public final BooleanProperty predictionEngine = new BooleanProperty("prediction-engine", false, this.advancedRotations::getValue);
     public final BooleanProperty simulateReactionTime = new BooleanProperty("simulate-reaction-time", false, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue());
     public final IntProperty reactionTimeMin = new IntProperty("reaction-time-min", 0, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
@@ -143,16 +143,19 @@ public class KillAura extends Module {
     public final BooleanProperty golems = new BooleanProperty("golems", false);
     public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX"});
-    public boolean attackDisabled = false;
+    private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
     private final TimerUtil timer = new TimerUtil();
-    public static AttackData target = null;
+    private final ApsDelayGenerator apsDelayGenerator = new ApsDelayGenerator();
+    private final TimerUtil predictionUpdateTimer = new TimerUtil();
+    private final ArrayList<Double> previousTargetMotions = new ArrayList<>();
+    private final ArrayList<Long> jitterClicks = new ArrayList<>();
+    public boolean attackDisabled = false;
     private int switchTick = 0;
     private boolean hitRegistered = false;
     private boolean blockingState = false;
     private boolean isBlocking = false;
     private boolean fakeBlockState = false;
     private long attackDelayMS = 0L;
-    private final ApsDelayGenerator apsDelayGenerator = new ApsDelayGenerator();
     private int blockTick = 0;
     private float serverYaw;
     private float serverPitch;
@@ -174,8 +177,6 @@ public class KillAura extends Module {
     private int predictionTicksExisted;
     private int currentReactionTime;
     private Vec3 predictionLastTrackedMoveDelta = zeroVec();
-    private final TimerUtil predictionUpdateTimer = new TimerUtil();
-    private final ArrayList<Double> previousTargetMotions = new ArrayList<>();
     private float tremorYaw;
     private float tremorPitch;
     private float targetJitterYaw;
@@ -186,7 +187,6 @@ public class KillAura extends Module {
     private float jitterPitch;
     private int lastJitterTick;
     private boolean easingOut;
-    private final ArrayList<Long> jitterClicks = new ArrayList<>();
     private EntityLivingBase overshootTrackedEntity;
     private float overshootYaw;
     private float overshootPitch;
@@ -202,6 +202,102 @@ public class KillAura extends Module {
 
     public KillAura() {
         super("KillAura", false);
+    }
+
+    private static Vec3 interpolate(Vec3 prev, Vec3 current, float partialTicks) {
+        return new Vec3(
+                prev.xCoord + (current.xCoord - prev.xCoord) * partialTicks,
+                prev.yCoord + (current.yCoord - prev.yCoord) * partialTicks,
+                prev.zCoord + (current.zCoord - prev.zCoord) * partialTicks
+        );
+    }
+
+    private static AxisAlignedBB contract(AxisAlignedBB bb, double x, double y, double z) {
+        return new AxisAlignedBB(bb.minX + x, bb.minY + y, bb.minZ + z, bb.maxX - x, bb.maxY - y, bb.maxZ - z);
+    }
+
+    private static Vec3[] vertices(AxisAlignedBB bb) {
+        return new Vec3[]{
+                new Vec3(bb.minX, bb.minY, bb.minZ), new Vec3(bb.minX, bb.minY, bb.maxZ),
+                new Vec3(bb.minX, bb.maxY, bb.minZ), new Vec3(bb.minX, bb.maxY, bb.maxZ),
+                new Vec3(bb.maxX, bb.minY, bb.minZ), new Vec3(bb.maxX, bb.minY, bb.maxZ),
+                new Vec3(bb.maxX, bb.maxY, bb.minZ), new Vec3(bb.maxX, bb.maxY, bb.maxZ)
+        };
+    }
+
+    private static Vec3 center(AxisAlignedBB bb) {
+        return new Vec3((bb.minX + bb.maxX) / 2.0D, (bb.minY + bb.maxY) / 2.0D, (bb.minZ + bb.maxZ) / 2.0D);
+    }
+
+    private static Vec3 getMoveDelta(Entity entity) {
+        return new Vec3(entity.posX - entity.prevPosX, entity.posY - entity.prevPosY, entity.posZ - entity.prevPosZ);
+    }
+
+    private static double getSpeedPosBased(Entity entity) {
+        return Math.hypot(entity.posX - entity.prevPosX, entity.posZ - entity.prevPosZ);
+    }
+
+    private static Vec3 getVectorForRotation(float yaw, float pitch) {
+        float yawRad = -yaw * 0.017453292F - (float) Math.PI;
+        float pitchRad = -pitch * 0.017453292F;
+        float cosYaw = MathHelper.cos(yawRad);
+        float sinYaw = MathHelper.sin(yawRad);
+        float cosPitch = -MathHelper.cos(pitchRad);
+        float sinPitch = MathHelper.sin(pitchRad);
+        return new Vec3(sinYaw * cosPitch, sinPitch, cosYaw * cosPitch);
+    }
+
+    private static float[] rotationsTo(Vec3 target, Vec3 eyes) {
+        double x = target.xCoord - eyes.xCoord;
+        double y = target.yCoord - eyes.yCoord;
+        double z = target.zCoord - eyes.zCoord;
+        double dist = MathHelper.sqrt_double(x * x + z * z);
+        return new float[]{
+                (float) (Math.atan2(z, x) * 180.0D / Math.PI) - 90.0F,
+                (float) (-(Math.atan2(y, dist) * 180.0D / Math.PI))
+        };
+    }
+
+    private static Vec3 add(Vec3 a, Vec3 b) {
+        return new Vec3(a.xCoord + b.xCoord, a.yCoord + b.yCoord, a.zCoord + b.zCoord);
+    }
+
+    private static Vec3 subtract(Vec3 a, Vec3 b) {
+        return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
+    }
+
+    private static Vec3 multiply(Vec3 vec, double factor) {
+        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
+    }
+
+    private static Vec3 flat(Vec3 vec) {
+        return new Vec3(vec.xCoord, 0.0D, vec.zCoord);
+    }
+
+    private static Vec3 zeroVec() {
+        return new Vec3(0.0D, 0.0D, 0.0D);
+    }
+
+    private static double crossLength(Vec3 a, Vec3 b) {
+        double x = a.yCoord * b.zCoord - a.zCoord * b.yCoord;
+        double y = a.zCoord * b.xCoord - a.xCoord * b.zCoord;
+        double z = a.xCoord * b.yCoord - a.yCoord * b.xCoord;
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    private static double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
+        double x = x1 - x2;
+        double y = y1 - y2;
+        double z = z1 - z2;
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    private static float interpolate(float current, float target, float amount) {
+        return current + (target - current) * amount;
+    }
+
+    private static double randomBetween(float min, float max) {
+        return min == max ? min : RandomUtil.nextDouble(Math.min(min, max), Math.max(min, max));
     }
 
     private long getAttackDelay() {
@@ -733,12 +829,12 @@ public class KillAura extends Module {
                         targetRotations = this.advancedRotations.getValue()
                                 ? this.getAdvancedRotations(event.getYaw(), event.getPitch(), randomOffset, smoothFactor)
                                 : RotationUtil.getRotationsToBox(
-                                        target.getBox(),
-                                        event.getYaw(),
-                                        event.getPitch(),
-                                        randomOffset,
-                                        smoothFactor
-                                );
+                                target.getBox(),
+                                event.getYaw(),
+                                event.getPitch(),
+                                randomOffset,
+                                smoothFactor
+                        );
 
                         float finalYaw, finalPitch;
 
@@ -819,7 +915,7 @@ public class KillAura extends Module {
                 this.isBlocking = false;
                 return;
             }
-            switch (event.getType()) {
+            switch (event.type()) {
                 case PRE:
                     if (target == null
                             || !this.isValidTarget(target.getEntity())
@@ -1361,14 +1457,6 @@ public class KillAura extends Module {
         return hittable;
     }
 
-    private static Vec3 interpolate(Vec3 prev, Vec3 current, float partialTicks) {
-        return new Vec3(
-                prev.xCoord + (current.xCoord - prev.xCoord) * partialTicks,
-                prev.yCoord + (current.yCoord - prev.yCoord) * partialTicks,
-                prev.zCoord + (current.zCoord - prev.zCoord) * partialTicks
-        );
-    }
-
     private Vec3 getOffsetVec() {
         double minXZ = -0.5D;
         double maxXZ = 0.5D;
@@ -1477,102 +1565,13 @@ public class KillAura extends Module {
         return new float[]{this.jitterYaw, this.jitterPitch};
     }
 
-    private static AxisAlignedBB contract(AxisAlignedBB bb, double x, double y, double z) {
-        return new AxisAlignedBB(bb.minX + x, bb.minY + y, bb.minZ + z, bb.maxX - x, bb.maxY - y, bb.maxZ - z);
-    }
-
-    private static Vec3[] vertices(AxisAlignedBB bb) {
-        return new Vec3[]{
-                new Vec3(bb.minX, bb.minY, bb.minZ), new Vec3(bb.minX, bb.minY, bb.maxZ),
-                new Vec3(bb.minX, bb.maxY, bb.minZ), new Vec3(bb.minX, bb.maxY, bb.maxZ),
-                new Vec3(bb.maxX, bb.minY, bb.minZ), new Vec3(bb.maxX, bb.minY, bb.maxZ),
-                new Vec3(bb.maxX, bb.maxY, bb.minZ), new Vec3(bb.maxX, bb.maxY, bb.maxZ)
-        };
-    }
-
-    private static Vec3 center(AxisAlignedBB bb) {
-        return new Vec3((bb.minX + bb.maxX) / 2.0D, (bb.minY + bb.maxY) / 2.0D, (bb.minZ + bb.maxZ) / 2.0D);
-    }
-
-    private static Vec3 getMoveDelta(Entity entity) {
-        return new Vec3(entity.posX - entity.prevPosX, entity.posY - entity.prevPosY, entity.posZ - entity.prevPosZ);
-    }
-
-    private static double getSpeedPosBased(Entity entity) {
-        return Math.hypot(entity.posX - entity.prevPosX, entity.posZ - entity.prevPosZ);
-    }
-
-    private static Vec3 getVectorForRotation(float yaw, float pitch) {
-        float yawRad = -yaw * 0.017453292F - (float) Math.PI;
-        float pitchRad = -pitch * 0.017453292F;
-        float cosYaw = MathHelper.cos(yawRad);
-        float sinYaw = MathHelper.sin(yawRad);
-        float cosPitch = -MathHelper.cos(pitchRad);
-        float sinPitch = MathHelper.sin(pitchRad);
-        return new Vec3(sinYaw * cosPitch, sinPitch, cosYaw * cosPitch);
-    }
-
-    private static float[] rotationsTo(Vec3 target, Vec3 eyes) {
-        double x = target.xCoord - eyes.xCoord;
-        double y = target.yCoord - eyes.yCoord;
-        double z = target.zCoord - eyes.zCoord;
-        double dist = MathHelper.sqrt_double(x * x + z * z);
-        return new float[]{
-                (float) (Math.atan2(z, x) * 180.0D / Math.PI) - 90.0F,
-                (float) (-(Math.atan2(y, dist) * 180.0D / Math.PI))
-        };
-    }
-
-    private static Vec3 add(Vec3 a, Vec3 b) {
-        return new Vec3(a.xCoord + b.xCoord, a.yCoord + b.yCoord, a.zCoord + b.zCoord);
-    }
-
-    private static Vec3 subtract(Vec3 a, Vec3 b) {
-        return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
-    }
-
-    private static Vec3 multiply(Vec3 vec, double factor) {
-        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
-    }
-
-    private static Vec3 flat(Vec3 vec) {
-        return new Vec3(vec.xCoord, 0.0D, vec.zCoord);
-    }
-
-    private static Vec3 zeroVec() {
-        return new Vec3(0.0D, 0.0D, 0.0D);
-    }
-
-    private static double crossLength(Vec3 a, Vec3 b) {
-        double x = a.yCoord * b.zCoord - a.zCoord * b.yCoord;
-        double y = a.zCoord * b.xCoord - a.xCoord * b.zCoord;
-        double z = a.xCoord * b.yCoord - a.yCoord * b.xCoord;
-        return Math.sqrt(x * x + y * y + z * z);
-    }
-
-    private static double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
-        double x = x1 - x2;
-        double y = y1 - y2;
-        double z = z1 - z2;
-        return Math.sqrt(x * x + y * y + z * z);
-    }
-
-    private static float interpolate(float current, float target, float amount) {
-        return current + (target - current) * amount;
-    }
-
-    private static double randomBetween(float min, float max) {
-        return min == max ? min : RandomUtil.nextDouble(Math.min(min, max), Math.max(min, max));
-    }
-
     @EventTarget(Priority.LOWEST)
     public void onPacket(PacketEvent event) {
         if (this.isEnabled() && !event.isCancelled()) {
             if (event.getType() == EventType.SEND && event.getPacket() instanceof C0APacketAnimation) {
                 this.jitterClicks.add(System.currentTimeMillis());
             }
-            if (event.getPacket() instanceof C07PacketPlayerDigging) {
-                C07PacketPlayerDigging packet = (C07PacketPlayerDigging) event.getPacket();
+            if (event.getPacket() instanceof C07PacketPlayerDigging packet) {
                 if (packet.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
                     this.blockingState = false;
                 }
@@ -1615,7 +1614,7 @@ public class KillAura extends Module {
                     RenderUtil.disableRenderState();
                 }
                 if (this.advancedRotations.getValue() && this.aimDot.getValue() && this.currentVec != null) {
-                    this.renderAimDot(event.getPartialTicks());
+                    this.renderAimDot(event.partialTicks());
                 }
             }
         }

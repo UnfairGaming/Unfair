@@ -7,53 +7,24 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GLContext;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.LinkedHashMap;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.GL_NEAREST;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBindTexture;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glDeleteTextures;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glGenTextures;
-import static org.lwjgl.opengl.GL11.glPopMatrix;
-import static org.lwjgl.opengl.GL11.glPushMatrix;
-import static org.lwjgl.opengl.GL11.glScaled;
-import static org.lwjgl.opengl.GL11.glTexCoord2d;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glTexParameteri;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.*;
 
 public class FontRenderer {
     private static final int GLYPH_PADDING = 1;
     private static final float LEGACY_DISPLAY_SCALE = 2.0F;
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int[] colorCode = new int[32];
+    private static Font harmonyRegularFont;
+    private static Font harmonyMediumFont;
 
     static {
         for (int i = 0; i < 32; ++i) {
@@ -86,12 +57,71 @@ public class FontRenderer {
             return this.size() > 512;
         }
     };
-    private static Font harmonyRegularFont;
-    private static Font harmonyMediumFont;
 
     public FontRenderer(Font font) {
         this.font = font;
         this.size = font.getSize2D();
+    }
+
+    private static void setFontTextureFilter() {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+
+    private static boolean shouldUseMinecraftFallback(char chr) {
+        return chr == '\u2764'
+                || chr == '\u221A'
+                || chr == '\u00D7'
+                || chr == '\u2713'
+                || chr == '\u2714'
+                || chr == '\u2715'
+                || chr == '\u2716'
+                || chr == '\u2717'
+                || chr == '\u2718';
+    }
+
+    private static Font getHarmonyRegularFont() {
+        if (harmonyRegularFont == null) {
+            harmonyRegularFont = loadFont("HarmonyOS_Sans_SC_Regular");
+        }
+        return harmonyRegularFont;
+    }
+
+    private static Font getHarmonyMediumFont() {
+        if (harmonyMediumFont == null) {
+            harmonyMediumFont = loadFont("HarmonyOS_Sans_SC_Medium");
+        }
+        return harmonyMediumFont;
+    }
+
+    private static Font loadFont(String file) {
+        try (InputStream in = Objects.requireNonNull(
+                FontRenderer.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
+        )) {
+            return Font.createFont(0, in);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to create fallback font: " + file, ex);
+        }
+    }
+
+    private static int getVanillaColor(int color, float alpha) {
+        int alphaByte = Math.max(0, Math.min(255, Math.round(alpha * 255.0F)));
+        return alphaByte << 24 | color & 0x00FFFFFF;
+    }
+
+    private static int getScaleFactor() {
+        return Math.max(1, new ScaledResolution(mc).getScaleFactor());
+    }
+
+    private static boolean isFormattingPrefix(char chr) {
+        return chr == '\u00a7';
+    }
+
+    private static NickHider getNickHider() {
+        if (Unfair.moduleManager == null) {
+            return null;
+        }
+        return (NickHider) Unfair.moduleManager.modules.get(NickHider.class);
     }
 
     public final float drawCenteredString(String text, float x, float y, int color) {
@@ -231,11 +261,6 @@ public class FontRenderer {
         GlStateManager.bindTexture(0);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         return Math.round(offset / (float) scaleFactor);
-    }
-
-    private static void setFontTextureFilter() {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
     public float getMiddleOfBox(float height) {
@@ -440,18 +465,6 @@ public class FontRenderer {
                 || block == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS;
     }
 
-    private static boolean shouldUseMinecraftFallback(char chr) {
-        return chr == '\u2764'
-                || chr == '\u221A'
-                || chr == '\u00D7'
-                || chr == '\u2713'
-                || chr == '\u2714'
-                || chr == '\u2715'
-                || chr == '\u2716'
-                || chr == '\u2717'
-                || chr == '\u2718';
-    }
-
     private boolean useMediumHarmonyFallback() {
         String fontName = this.font.getFontName().toLowerCase();
         return this.font.isBold()
@@ -460,55 +473,11 @@ public class FontRenderer {
                 || fontName.contains("bold");
     }
 
-    private static Font getHarmonyRegularFont() {
-        if (harmonyRegularFont == null) {
-            harmonyRegularFont = loadFont("HarmonyOS_Sans_SC_Regular");
-        }
-        return harmonyRegularFont;
-    }
-
-    private static Font getHarmonyMediumFont() {
-        if (harmonyMediumFont == null) {
-            harmonyMediumFont = loadFont("HarmonyOS_Sans_SC_Medium");
-        }
-        return harmonyMediumFont;
-    }
-
-    private static Font loadFont(String file) {
-        try (InputStream in = Objects.requireNonNull(
-                FontRenderer.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
-        )) {
-            return Font.createFont(0, in);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to create fallback font: " + file, ex);
-        }
-    }
-
-    private static int getVanillaColor(int color, float alpha) {
-        int alphaByte = Math.max(0, Math.min(255, Math.round(alpha * 255.0F)));
-        return alphaByte << 24 | color & 0x00FFFFFF;
-    }
-
     private int resizeToOpenGLSupportResolution(int size) {
         if (GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             return size;
         }
         return Math.max(1, Integer.highestOneBit(size - 1) << 1);
-    }
-
-    private static int getScaleFactor() {
-        return Math.max(1, new ScaledResolution(mc).getScaleFactor());
-    }
-
-    private static boolean isFormattingPrefix(char chr) {
-        return chr == '\u00a7';
-    }
-
-    private static NickHider getNickHider() {
-        if (Unfair.moduleManager == null) {
-            return null;
-        }
-        return (NickHider) Unfair.moduleManager.modules.get(NickHider.class);
     }
 
     public final void close() {

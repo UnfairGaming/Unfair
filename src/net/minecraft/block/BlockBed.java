@@ -1,6 +1,5 @@
 package net.minecraft.block;
 
-import java.util.Random;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -11,14 +10,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+
+import java.util.Random;
 
 public class BlockBed extends BlockDirectional
 {

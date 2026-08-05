@@ -1,15 +1,5 @@
 package cn.unfair.module.modules.player;
 
-import com.google.common.base.CaseFormat;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.network.play.client.C0DPacketCloseWindow;
-import net.minecraft.network.play.client.C0EPacketClickWindow;
-import net.minecraft.network.play.client.C16PacketClientStatus;
-import net.minecraft.network.play.client.C16PacketClientStatus.EnumState;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
@@ -25,6 +15,16 @@ import cn.unfair.ui.clickgui.augustus.AugustusClickGui;
 import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.PacketUtil;
+import com.google.common.base.CaseFormat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.gui.inventory.GuiContainerCreative;
+import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.network.play.client.C0DPacketCloseWindow;
+import net.minecraft.network.play.client.C0EPacketClickWindow;
+import net.minecraft.network.play.client.C16PacketClientStatus;
+import net.minecraft.network.play.client.C16PacketClientStatus.EnumState;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -77,7 +77,7 @@ public class InvWalk extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
-        if (event.getType() == EventType.PRE) {
+        if (event.type() == EventType.PRE) {
             while (!this.clickQueue.isEmpty()) {
                 PacketUtil.sendPacketNoEvent(this.clickQueue.poll());
             }
@@ -116,24 +116,21 @@ public class InvWalk extends Module {
     public void onPacket(PacketEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.SEND) return;
 
-        if (event.getPacket() instanceof C16PacketClientStatus) {
+        if (event.getPacket() instanceof C16PacketClientStatus packet) {
             if (this.mode.getValue() == 1) {
-                C16PacketClientStatus packet = (C16PacketClientStatus) event.getPacket();
                 if (packet.getStatus() == EnumState.OPEN_INVENTORY_ACHIEVEMENT) {
                     event.setCancelled(true);
                     this.pendingStatus = packet;
                 }
             }
-        } else if (!(event.getPacket() instanceof C0EPacketClickWindow)) {
-            if (event.getPacket() instanceof C0DPacketCloseWindow) {
-                C0DPacketCloseWindow packet = (C0DPacketCloseWindow) event.getPacket();
+        } else if (!(event.getPacket() instanceof C0EPacketClickWindow packet)) {
+            if (event.getPacket() instanceof C0DPacketCloseWindow packet) {
                 if (this.pendingStatus != null && packet.getWindowId() == 0) {
                     this.pendingStatus = null;
                     event.setCancelled(true);
                 }
             }
         } else {
-            C0EPacketClickWindow packet = (C0EPacketClickWindow) event.getPacket();
             switch (this.mode.getValue()) {
                 case 1:
                     if (packet.getWindowId() == 0) {
