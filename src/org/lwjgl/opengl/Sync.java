@@ -19,7 +19,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * A hybrid frame limiter using a coarse park followed by a short spin phase.
- *
+ * <p>
  * The old LWJGL2 limiter relied on millisecond sleeps and repeated yields. Those
  * calls are especially coarse on Windows, which makes frame pacing noticeably
  * uneven at high FPS targets.

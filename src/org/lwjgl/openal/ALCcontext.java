@@ -21,7 +21,7 @@ import java.nio.IntBuffer;
 
 /**
  * The ALCcontext class represents a context opened in OpenAL space.
- *
+ * <p>
  * All operations of the AL core API affect a current AL context. Within the scope of AL, the ALC is implied - it is not
  * visible as a handle or function parameter. Only one AL Context per process can be current at a time. Applications
  * maintaining multiple AL Contexts, whether threaded or not, have to set the current context accordingly. Applications
@@ -32,10 +32,14 @@ import java.nio.IntBuffer;
  */
 public final class ALCcontext {
 
-    /** Address of actual context */
+    /**
+     * Address of actual context
+     */
     final long context;
 
-    /** Whether this context is valid */
+    /**
+     * Whether this context is valid
+     */
     private boolean valid;
 
     /**
@@ -46,16 +50,6 @@ public final class ALCcontext {
     ALCcontext(long context) {
         this.context = context;
         this.valid = true;
-    }
-
-    /*
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    public boolean equals(Object context) {
-        if (context instanceof ALCcontext) {
-            return ((ALCcontext) context).context == this.context;
-        }
-        return super.equals(context);
     }
 
     /**
@@ -78,6 +72,16 @@ public final class ALCcontext {
         attribList.put(0); // terminating int
 
         return attribList;
+    }
+
+    /*
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    public boolean equals(Object context) {
+        if (context instanceof ALCcontext) {
+            return ((ALCcontext) context).context == this.context;
+        }
+        return super.equals(context);
     }
 
     /**

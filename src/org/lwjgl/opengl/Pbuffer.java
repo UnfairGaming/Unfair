@@ -15,17 +15,17 @@
  */
 package org.lwjgl.opengl;
 
-import java.nio.IntBuffer;
-
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
+
+import java.nio.IntBuffer;
 
 /**
  * <p/>
  * Pbuffer encapsulates an OpenGL pbuffer.
  * <p/>
- *
+ * <p>
  * This class is thread-safe.
  *
  * @author elias_naur <elias_naur@users.sourceforge.net>
@@ -118,19 +118,18 @@ public final class Pbuffer extends DrawableGL {
      */
     public static final int DEPTH_BUFFER = RenderTexture.WGL_DEPTH_COMPONENT_NV;
 
+    static {
+        Sys.initialize();
+    }
+
     /**
      * Width
      */
     private final int width;
-
     /**
      * Height
      */
     private final int height;
-
-    static {
-        Sys.initialize();
-    }
 
     /**
      * Create an instance of a Pbuffer with a unique OpenGL context. The buffer is single-buffered.
@@ -173,7 +172,7 @@ public final class Pbuffer extends DrawableGL {
      *                        Pbuffer will share with the Display context (if created).
      */
     public Pbuffer(int width, int height, PixelFormat pixel_format, RenderTexture renderTexture,
-            Drawable shared_drawable) throws LWJGLException {
+                   Drawable shared_drawable) throws LWJGLException {
         this(width, height, pixel_format, renderTexture, shared_drawable, null);
     }
 
@@ -200,7 +199,7 @@ public final class Pbuffer extends DrawableGL {
      * @param attribs         The ContextAttribs to use when creating the context. (optional, may be null)
      */
     public Pbuffer(int width, int height, PixelFormat pixel_format, RenderTexture renderTexture,
-            Drawable shared_drawable, ContextAttribs attribs) throws LWJGLException {
+                   Drawable shared_drawable, ContextAttribs attribs) throws LWJGLException {
         if (pixel_format == null) throw new NullPointerException("Pixel format must be non-null");
         this.width = width;
         this.height = height;
@@ -212,7 +211,7 @@ public final class Pbuffer extends DrawableGL {
     }
 
     private static PeerInfo createPbuffer(int width, int height, PixelFormat pixel_format, ContextAttribs attribs,
-            RenderTexture renderTexture) throws LWJGLException {
+                                          RenderTexture renderTexture) throws LWJGLException {
         if (renderTexture == null) {
             // Though null is a perfectly valid argument, Matrox Parhelia drivers expect
             // a 0 terminated list, or else they crash. Supplying NULL or 0, should
@@ -230,6 +229,15 @@ public final class Pbuffer extends DrawableGL {
     }
 
     /**
+     * Gets the Pbuffer capabilities.
+     *
+     * @return a bitmask of Pbuffer capabilities.
+     */
+    public static int getCapabilities() {
+        return Display.getImplementation().getPbufferCapabilities();
+    }
+
+    /**
      * Method to test for validity of the buffer. If this function returns true, the buffer contents is lost. The buffer
      * can still be used, but the results are undefined. The application is expected to release the buffer if needed,
      * destroy it and recreate a new buffer.
@@ -239,15 +247,6 @@ public final class Pbuffer extends DrawableGL {
     public synchronized boolean isBufferLost() {
         checkDestroyed();
         return Display.getImplementation().isBufferLost(peer_info);
-    }
-
-    /**
-     * Gets the Pbuffer capabilities.
-     *
-     * @return a bitmask of Pbuffer capabilities.
-     */
-    public static int getCapabilities() {
-        return Display.getImplementation().getPbufferCapabilities();
     }
 
     // -----------------------------------------------------------------------------------------

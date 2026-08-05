@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 /**
  * The ALCdevice class represents a device opened in OpenAL space.
- *
+ * <p>
  * ALC introduces the notion of a Device. A Device can be, depending on the implementation, a hardware device, or a
  * daemon/OS service/actual server. This mechanism also permits different drivers (and hardware) to coexist within the
  * same system, as well as allowing several applications to share system resources for audio, including a single
@@ -31,14 +31,18 @@ import java.util.HashMap;
  */
 public final class ALCdevice {
 
-    /** Address of actual device */
+    /**
+     * Address of actual device
+     */
     public final long device;
-
-    /** Whether this device is valid */
-    private boolean valid;
-
-    /** List of contexts belonging to the device */
+    /**
+     * List of contexts belonging to the device
+     */
     private final HashMap<Long, ALCcontext> contexts = new HashMap<>();
+    /**
+     * Whether this device is valid
+     */
+    private boolean valid;
 
     /**
      * Creates a new instance of ALCdevice

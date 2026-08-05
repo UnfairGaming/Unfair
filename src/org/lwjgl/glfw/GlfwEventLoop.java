@@ -22,7 +22,8 @@ public final class GlfwEventLoop {
     private static volatile boolean pollingEnabled;
     private static volatile boolean pollRequested;
 
-    private GlfwEventLoop() {}
+    private GlfwEventLoop() {
+    }
 
     public static void initializeCurrentThread() {
         Thread currentThread = Thread.currentThread();

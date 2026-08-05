@@ -159,27 +159,12 @@ public class Keyboard {
     public static final int KEY_SLEEP = 0xDF;
 
     public static final int keyCount;
-
-    public enum KeyState {
-
-        PRESS(true),
-        RELEASE(false),
-        REPEAT(true);
-
-        public final boolean isPressed;
-
-        KeyState(boolean isPressed) {
-            this.isPressed = isPressed;
-        }
-    }
-
-    private static boolean doRepeatEvents = true;
-
     public static final int KEYBOARD_SIZE = Short.MAX_VALUE;
-    public static Queue<KeyEvent> eventQueue = new ArrayBlockingQueue<>(256);
     private static final String[] keyName = new String[Short.MAX_VALUE];
     private static final Map<String, Integer> keyMap = new HashMap<>(Short.MAX_VALUE);
     private static final boolean[] keyDown = new boolean[KEYBOARD_SIZE];
+    public static Queue<KeyEvent> eventQueue = new ArrayBlockingQueue<>(256);
+    private static boolean doRepeatEvents = true;
 
     static {
         // Use reflection to find out key names
@@ -199,7 +184,8 @@ public class Keyboard {
                     keyCounter++;
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         keyCount = keyCounter;
         for (int i = 0; i < keyName.length; i++) {
             if (keyName[i] == null) {
@@ -219,24 +205,27 @@ public class Keyboard {
         }
         try {
             eventQueue.add(event);
-        } catch (IllegalStateException ignored) {}
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     public static void addGlfwKeyEvent(long window, int key, int scancode, int action, int mods, char c) {
         final KeyState state = action == GLFW.GLFW_PRESS ? KeyState.PRESS :
-            action == GLFW.GLFW_RELEASE ? KeyState.RELEASE :
-            action == GLFW.GLFW_REPEAT ? KeyState.REPEAT :
-            KeyState.RELEASE;
+                action == GLFW.GLFW_RELEASE ? KeyState.RELEASE :
+                action == GLFW.GLFW_REPEAT ? KeyState.REPEAT :
+                KeyState.RELEASE;
         addRawKeyEvent(new KeyEvent(KeyCodes.glfwToLwjgl(key), c, state, Sys.getNanoTime()));
     }
 
     public static void addCharEvent(int key, char c) {
         try {
             eventQueue.add(new KeyEvent(KEY_NONE, c, KeyState.PRESS, Sys.getNanoTime()));
-        } catch (IllegalStateException ignored) {}
+        } catch (IllegalStateException ignored) {
+        }
     }
 
-    public static void create() throws LWJGLException {}
+    public static void create() throws LWJGLException {
+    }
 
     public static boolean isKeyDown(int key) {
         return key > KEY_NONE && key < keyDown.length && keyDown[key];
@@ -313,11 +302,25 @@ public class Keyboard {
         return Display.isCreated();
     }
 
-    public static void destroy() {}
+    public static void destroy() {
+    }
 
     public static void resetKeyStates() {
         for (int i = 0; i < keyDown.length; ++i) {
             keyDown[i] = false;
+        }
+    }
+
+    public enum KeyState {
+
+        PRESS(true),
+        RELEASE(false),
+        REPEAT(true);
+
+        public final boolean isPressed;
+
+        KeyState(boolean isPressed) {
+            this.isPressed = isPressed;
         }
     }
 

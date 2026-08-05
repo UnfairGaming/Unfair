@@ -54,14 +54,13 @@ public class Util {
     /**
      * temp IntBuffer of one for getting an int from some GL functions
      */
-    private static IntBuffer scratch = BufferUtils.createIntBuffer(16);
+    private static final IntBuffer scratch = BufferUtils.createIntBuffer(16);
 
     /**
      * Return ceiling of integer division
      *
      * @param a
      * @param b
-     *
      * @return int
      */
     protected static int ceil(int a, int b) {
@@ -72,14 +71,13 @@ public class Util {
      * Normalize vector
      *
      * @param v
-     *
      * @return float[]
      */
     protected static float[] normalize(float[] v) {
         float r;
 
-        r = (float)Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-        if ( r == 0.0 )
+        r = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        if (r == 0.0)
             return v;
 
         r = 1.0f / r;
@@ -108,12 +106,11 @@ public class Util {
      * Method compPerPix.
      *
      * @param format
-     *
      * @return int
      */
     protected static int compPerPix(int format) {
         /* Determine number of components per pixel */
-        switch ( format ) {
+        switch (format) {
             case GL11.GL_COLOR_INDEX:
             case GL11.GL_STENCIL_INDEX:
             case GL11.GL_DEPTH_COMPONENT:
@@ -131,7 +128,7 @@ public class Util {
             case GL11.GL_RGBA:
             case GL_BGRA:
                 return 4;
-            default :
+            default:
                 return -1;
         }
     }
@@ -142,7 +139,6 @@ public class Util {
      * Compute the nearest power of 2 number.  This algorithm is a little strange, but it works quite well.
      *
      * @param value
-     *
      * @return int
      */
     protected static int nearestPower(int value) {
@@ -151,13 +147,13 @@ public class Util {
         i = 1;
 
         /* Error! */
-        if ( value == 0 )
+        if (value == 0)
             return -1;
 
-        for ( ; ; ) {
-            if ( value == 1 ) {
+        for (; ; ) {
+            if (value == 1) {
                 return i;
-            } else if ( value == 3 ) {
+            } else if (value == 3) {
                 return i << 2;
             }
             value >>= 1;
@@ -170,13 +166,12 @@ public class Util {
      *
      * @param format
      * @param type
-     *
      * @return int
      */
     protected static int bytesPerPixel(int format, int type) {
         int n, m;
 
-        switch ( format ) {
+        switch (format) {
             case GL11.GL_COLOR_INDEX:
             case GL11.GL_STENCIL_INDEX:
             case GL11.GL_DEPTH_COMPONENT:
@@ -198,11 +193,11 @@ public class Util {
             case GL_BGRA:
                 n = 4;
                 break;
-            default :
+            default:
                 n = 0;
         }
 
-        switch ( type ) {
+        switch (type) {
             case GL11.GL_UNSIGNED_BYTE:
                 m = 1;
                 break;
@@ -227,12 +222,13 @@ public class Util {
             case GL11.GL_FLOAT:
                 m = 4;
                 break;
-            default :
+            default:
                 m = 0;
         }
 
         return n * m;
     }
+
     public static String translateGLErrorString(int error_code) {
         switch (error_code) {
             case GL11.GL_NO_ERROR:

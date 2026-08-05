@@ -34,11 +34,17 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * The number of bits per pixel, exluding alpha. This parameter is ignored in Display.create().
      */
     private int bpp;
-    /** The number of alpha bits. */
+    /**
+     * The number of alpha bits.
+     */
     private int alpha;
-    /** The number of depth buffer bits */
+    /**
+     * The number of depth buffer bits
+     */
     private int depth;
-    /** The number of stencil bits */
+    /**
+     * The number of stencil bits
+     */
     private int stencil;
     /**
      * The number of samples to use in anti-aliasing. 0 means that anti-aliasing is disabled.
@@ -51,15 +57,25 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * This property is currently a no-op for the MacOS implementation.
      */
     private int colorSamples;
-    /** The number of auxiliary buffers */
+    /**
+     * The number of auxiliary buffers
+     */
     private int num_aux_buffers;
-    /** The number of bits per pixel in the accumulation buffer */
+    /**
+     * The number of bits per pixel in the accumulation buffer
+     */
     private int accum_bpp;
-    /** The number of alpha bits in the accumulation buffer */
+    /**
+     * The number of alpha bits in the accumulation buffer
+     */
     private int accum_alpha;
-    /** Whether this format requires a stereo buffer */
+    /**
+     * Whether this format requires a stereo buffer
+     */
     private boolean stereo;
-    /** Whether this format specifies a floating point format */
+    /**
+     * Whether this format specifies a floating point format
+     */
     private boolean floating_point;
     /**
      * Whether this format specifies a packed floating point format (32 bit unsigned - R11F_G11F_B10F) This property is
@@ -91,12 +107,12 @@ public final class PixelFormat implements PixelFormatLWJGL {
     }
 
     public PixelFormat(int bpp, int alpha, int depth, int stencil, int samples, int num_aux_buffers, int accum_bpp,
-            int accum_alpha, boolean stereo) {
+                       int accum_alpha, boolean stereo) {
         this(bpp, alpha, depth, stencil, samples, num_aux_buffers, accum_bpp, accum_alpha, stereo, false);
     }
 
     public PixelFormat(int bpp, int alpha, int depth, int stencil, int samples, int num_aux_buffers, int accum_bpp,
-            int accum_alpha, boolean stereo, boolean floating_point) {
+                       int accum_alpha, boolean stereo, boolean floating_point) {
         this.bpp = bpp;
         this.alpha = alpha;
         this.depth = depth;
@@ -145,7 +161,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new bits per pixel value.
      *
      * @param bpp the new bits per pixel value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withBitsPerPixel(final int bpp) {
@@ -164,7 +179,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new alpha bits value.
      *
      * @param alpha the new alpha bits value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withAlphaBits(final int alpha) {
@@ -183,7 +197,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new depth bits value.
      *
      * @param depth the new depth bits value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withDepthBits(final int depth) {
@@ -202,7 +215,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new stencil bits value.
      *
      * @param stencil the new stencil bits value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withStencilBits(final int stencil) {
@@ -221,7 +233,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new samples value.
      *
      * @param samples the new samples value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withSamples(final int samples) {
@@ -238,7 +249,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * color samples value needs to be lower than or equal to the {@code samples} property.
      *
      * @param colorSamples the new color samples value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withCoverageSamples(final int colorSamples) {
@@ -252,7 +262,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * @param colorSamples    the new color samples value. This value must be lower than or equal to the coverage
      *                        samples value.
      * @param coverageSamples the new coverage samples value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withCoverageSamples(final int colorSamples, final int coverageSamples) {
@@ -277,7 +286,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * value.
      *
      * @param num_aux_buffers the new auxiliary buffers value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withAuxBuffers(final int num_aux_buffers) {
@@ -298,7 +306,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * accumulation buffer value.
      *
      * @param accum_bpp the new bits per pixel in the accumulation buffer value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withAccumulationBitsPerPixel(final int accum_bpp) {
@@ -319,7 +326,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * accumulation buffer value.
      *
      * @param accum_alpha the new alpha bits in the accumulation buffer value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withAccumulationAlpha(final int accum_alpha) {
@@ -339,7 +345,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new stereo value.
      *
      * @param stereo the new stereo value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withStereo(final boolean stereo) {
@@ -357,7 +362,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * If floating_point is true, floating_point_packed will be reset to false.
      *
      * @param floating_point the new floating point value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withFloatingPoint(final boolean floating_point) {
@@ -372,7 +376,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * value. If floating_point_packed is true, floating_point will be reset to false.
      *
      * @param floating_point_packed the new packed floating point value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withFloatingPointPacked(final boolean floating_point_packed) {
@@ -390,7 +393,6 @@ public final class PixelFormat implements PixelFormatLWJGL {
      * Returns a new PixelFormat object with the same properties as this PixelFormat and the new sRGB value.
      *
      * @param sRGB the new floating point value.
-     *
      * @return the new PixelFormat
      */
     public PixelFormat withSRGB(final boolean sRGB) {

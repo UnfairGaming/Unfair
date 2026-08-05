@@ -17,9 +17,11 @@ package org.lwjgl.opengl;
 
 public final class ContextAttribs {
 
-    public ContextAttribs() {}
+    public ContextAttribs() {
+    }
 
-    public ContextAttribs(final int majorVersion, final int minorVersion) {}
+    public ContextAttribs(final int majorVersion, final int minorVersion) {
+    }
 
     public int getMajorVersion() {
         return 0;

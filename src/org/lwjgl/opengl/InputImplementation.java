@@ -18,19 +18,21 @@ package org.lwjgl.opengl;
 /**
  * This is the input implementation interface. Mouse and Keyboard delegates to implementors of this interface. There is
  * one InputImplementation for each supported platform.
- * 
+ *
  * @author elias_naur
  */
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 import org.lwjgl.LWJGLException;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 public interface InputImplementation {
 
     /*
      * Mouse methods
      */
+
     /** Query of wheel support */
     boolean hasWheel();
 
@@ -106,7 +108,7 @@ public interface InputImplementation {
 
     /** Native cursor handles */
     Object createCursor(int width, int height, int xHotspot, int yHotspot, int numImages, IntBuffer images,
-            IntBuffer delays) throws LWJGLException;
+                        IntBuffer delays) throws LWJGLException;
 
     void destroyCursor(Object cursor_handle);
 

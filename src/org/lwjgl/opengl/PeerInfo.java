@@ -15,10 +15,10 @@
  */
 package org.lwjgl.opengl;
 
-import java.nio.ByteBuffer;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.LWJGLUtil;
+
+import java.nio.ByteBuffer;
 
 /**
  *
@@ -76,5 +76,6 @@ abstract class PeerInfo {
         return handle;
     }
 
-    public void destroy() {}
+    public void destroy() {
+    }
 }

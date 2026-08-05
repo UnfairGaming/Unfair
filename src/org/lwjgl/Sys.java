@@ -1,17 +1,14 @@
 package org.lwjgl;
 
-import static org.lwjgl.glfw.GLFW.glfwInit;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.system.Platform;
 
-import java.awt.Desktop;
+import javax.swing.*;
+import java.awt.*;
 import java.net.URI;
 
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-
-import org.lwjgl.Version;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.system.Platform;
-import org.lwjgl.opengl.Display;
+import static org.lwjgl.glfw.GLFW.glfwInit;
 
 public class Sys {
 
@@ -19,9 +16,12 @@ public class Sys {
         if (!glfwInit()) throw new IllegalStateException("Unable to initialize glfw");
     }
 
-    public static void initialize() {}
+    public static void initialize() {
+    }
 
-    /** Returns the LWJGL version. */
+    /**
+     * Returns the LWJGL version.
+     */
     public static String getVersion() {
         return Version.getVersion();
     }

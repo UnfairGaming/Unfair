@@ -1,34 +1,22 @@
 package org.lwjgl.opengl;
 
-import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.system.MemoryUtil.NULL;
-
-import java.awt.*;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
-import org.lwjgl.glfw.*;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GlfwEventLoop;
-import org.lwjgl.glfw.GLFWCharCallback;
-import org.lwjgl.glfw.GLFWCursorPosCallback;
-import org.lwjgl.glfw.GLFWKeyCallback;
-import org.lwjgl.glfw.GLFWMouseButtonCallback;
-import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.glfw.GLFWWindowFocusCallback;
-import org.lwjgl.glfw.GLFWWindowIconifyCallback;
-import org.lwjgl.glfw.GLFWWindowPosCallback;
-import org.lwjgl.glfw.GLFWWindowRefreshCallback;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.Sys;
+import org.lwjgl.glfw.*;
 import org.lwjgl.input.KeyCodes;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import java.awt.*;
+import java.nio.ByteBuffer;
+
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.system.MemoryUtil.NULL;
+
 public class Display {
 
+    protected static DrawableGL drawable = null;
     private static String windowTitle = "Game";
-
     private static boolean displayCreated = false;
     private static boolean displayFocused = false;
     private static boolean displayVisible = true;
@@ -37,16 +25,12 @@ public class Display {
     private static boolean startFullscreen = false;
     private static boolean displayFullscreen = false;
     private static volatile boolean closeRequested = false;
-
     private static DisplayMode mode = new DisplayMode(1280, 720);
     private static DisplayMode desktopDisplayMode = new DisplayMode(854, 480);
     private static volatile boolean desktopDisplayModeInitialized = false;
-
-    private static int latestEventKey = 0;
-
+    private static final int latestEventKey = 0;
     private static int displayX = 0;
     private static int displayY = 0;
-
     private static boolean displayResized = false;
     private static int displayWidth = 0;
     private static int displayHeight = 0;
@@ -54,13 +38,16 @@ public class Display {
     private static int displayFramebufferHeight = 0;
     private static float displayScaleX = 1.0F;
     private static float displayScaleY = 1.0F;
-
     private static boolean latestResized = false;
     private static int latestWidth = 0;
     private static int latestHeight = 0;
     private static boolean cancelNextChar = false;
     private static Keyboard.KeyEvent ingredientKeyEvent;
     private static ByteBuffer[] savedIcons;
+    private static final int[] savedX = new int[1];
+    private static final int[] savedY = new int[1];
+    private static final int[] savedW = new int[1];
+    private static final int[] savedH = new int[1];
 
     static {
         Sys.initialize(); // init using dummy sys method
@@ -353,9 +340,9 @@ public class Display {
         } else {
             char mappedChar = key == GLFW_KEY_ENTER ? 0x0D :
                     key == GLFW_KEY_ESCAPE ? 0x1B :
-                            key == GLFW_KEY_TAB ? 0x09 :
-                                    key == GLFW_KEY_BACKSPACE ? 0x08 :
-                                            '\0';
+                    key == GLFW_KEY_TAB ? 0x09 :
+                    key == GLFW_KEY_BACKSPACE ? 0x08 :
+                    '\0';
             Keyboard.addGlfwKeyEvent(window, key, scancode, action, mods, mappedChar);
         }
     }
@@ -457,12 +444,12 @@ public class Display {
         closeRequested = false;
     }
 
-    public static void setDisplayMode(DisplayMode dm) {
-        mode = dm;
-    }
-
     public static DisplayMode getDisplayMode() {
         return mode;
+    }
+
+    public static void setDisplayMode(DisplayMode dm) {
+        mode = dm;
     }
 
     public static DisplayMode[] getAvailableDisplayModes() {
@@ -533,13 +520,6 @@ public class Display {
         return displayFramebufferHeight;
     }
 
-    public static void setTitle(String title) {
-        windowTitle = title;
-        if (isCreated()) {
-            GlfwEventLoop.runOnEventThread(() -> glfwSetWindowTitle(getWindow(), title));
-        }
-    }
-
     public static boolean isCloseRequested() {
         return closeRequested;
     }
@@ -581,13 +561,13 @@ public class Display {
         return 0;
     }
 
+    public static boolean isResizable() {
+        return displayResizable;
+    }
+
     public static void setResizable(boolean resizable) {
         displayResizable = resizable;
         // Ignore the request because why would you make the game window non-resizable
-    }
-
-    public static boolean isResizable() {
-        return displayResizable;
     }
 
     public static void setDisplayModeAndFullscreen(DisplayMode mode) {
@@ -595,8 +575,9 @@ public class Display {
         System.out.println("TODO: Implement Display.setDisplayModeAndFullscreen(DisplayMode)");
     }
 
-    private static int savedX[] = new int[1], savedY[] = new int[1];
-    private static int savedW[] = new int[1], savedH[] = new int[1];
+    public static boolean isFullscreen() {
+        return displayFullscreen;
+    }
 
     public static void setFullscreen(boolean fullscreen) {
         final long window = getWindow();
@@ -625,14 +606,6 @@ public class Display {
         });
         displayFullscreen = fullscreen;
         startFullscreen = fullscreen;
-    }
-
-    public static boolean isFullscreen() {
-        return displayFullscreen;
-    }
-
-    public static void setParent(Canvas parent) {
-        // Do nothing as set parent not supported
     }
 
     public static void releaseContext() {
@@ -665,8 +638,19 @@ public class Display {
         return windowTitle;
     }
 
+    public static void setTitle(String title) {
+        windowTitle = title;
+        if (isCreated()) {
+            GlfwEventLoop.runOnEventThread(() -> glfwSetWindowTitle(getWindow(), title));
+        }
+    }
+
     public static Canvas getParent() {
         return null;
+    }
+
+    public static void setParent(Canvas parent) {
+        // Do nothing as set parent not supported
     }
 
     public static float getPixelScaleFactor() {
@@ -689,8 +673,6 @@ public class Display {
     public static void sync(int fps) {
         Sync.sync(fps);
     }
-
-    protected static DrawableGL drawable = null;
 
     public static Drawable getDrawable() {
         return drawable;

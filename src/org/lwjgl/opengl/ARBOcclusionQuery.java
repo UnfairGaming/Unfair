@@ -5,27 +5,29 @@
  */
 package org.lwjgl.opengl;
 
-import java.nio.*;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.NativeType;
 
-import org.lwjgl.system.*;
+import java.nio.IntBuffer;
 
-import static org.lwjgl.system.Checks.*;
-import static org.lwjgl.system.JNI.*;
-import static org.lwjgl.system.MemoryStack.*;
-import static org.lwjgl.system.MemoryUtil.*;
+import static org.lwjgl.system.Checks.CHECKS;
+import static org.lwjgl.system.Checks.check;
+import static org.lwjgl.system.JNI.callPV;
+import static org.lwjgl.system.MemoryStack.stackGet;
+import static org.lwjgl.system.MemoryUtil.memAddress;
 
 /**
  * Native bindings to the <a target="_blank" href="https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_occlusion_query.txt">ARB_occlusion_query</a> extension.
- * 
+ *
  * <p>This extension defines a mechanism whereby an application can query the number of pixels (or, more precisely, samples) drawn by a primitive or group of
  * primitives.</p>
- * 
+ *
  * <p>The primary purpose of such a query (hereafter referred to as an "occlusion query") is to determine the visibility of an object. Typically, the
  * application will render the major occluders in the scene, then perform an occlusion query for the bounding box of each detail object in the scene. Only
  * if said bounding box is visible, i.e., if at least one sample is drawn, should the corresponding object be drawn.</p>
- * 
+ *
  * <p>The earlier <a target="_blank" href="https://www.khronos.org/registry/OpenGL/extensions/HP/HP_occlusion_test.txt">HP_occlusion_test</a> extension defined a similar mechanism, but it had two major shortcomings.</p>
- * 
+ *
  * <ul>
  * <li>It returned the result as a simple {@link GL11#GL_TRUE TRUE}/{@link GL11#GL_FALSE FALSE} result, when in fact it is often useful to know exactly how many samples were drawn.</li>
  * <li>It provided only a simple "stop-and-wait" model for using multiple queries. The application begins an occlusion test and ends it; then, at some
@@ -33,14 +35,14 @@ import static org.lwjgl.system.MemoryUtil.*;
  * application can even begin the next one. This is a very simple model, but its performance is mediocre when an application wishes to perform many
  * queries, and it eliminates most of the opportunities for parallelism between the CPU and GPU.</li>
  * </ul>
- * 
+ *
  * <p>This extension solves both of those problems. It returns as its result the number of samples that pass the depth and stencil tests, and it encapsulates
  * occlusion queries in "query objects" that allow applications to issue many queries before asking for the result of any one. As a result, they can
  * overlap the time it takes for the occlusion query results to be returned with other, more useful work, such as rendering other parts of the scene or
  * performing other computations on the CPU.</p>
- * 
+ *
  * <p>There are many situations where a pixel/sample count, rather than a boolean result, is useful.</p>
- * 
+ *
  * <ul>
  * <li>Objects that are visible but cover only a very small number of pixels can be skipped at a minimal reduction of image quality.</li>
  * <li>Knowing exactly how many pixels an object might cover may help the application decide which level-of-detail model should be used. If only a few
@@ -53,25 +55,31 @@ import static org.lwjgl.system.MemoryUtil.*;
  * lens flare effect or a halo to simulate glare. Pixel counts allow you to compute the percentage of the light source that is visible, and the
  * brightness of these effects can be modulated accordingly.</li>
  * </ul>
- * 
+ *
  * <p>Promoted to core in {@link GL15 OpenGL 1.5}.</p>
  */
 public class ARBOcclusionQuery {
 
-    static { GL.initialize(); }
-
-    /** Accepted by the {@code target} parameter of BeginQueryARB, EndQueryARB, and GetQueryivARB. */
+    /**
+     * Accepted by the {@code target} parameter of BeginQueryARB, EndQueryARB, and GetQueryivARB.
+     */
     public static final int GL_SAMPLES_PASSED_ARB = 0x8914;
-
-    /** Accepted by the {@code pname} parameter of GetQueryivARB. */
+    /**
+     * Accepted by the {@code pname} parameter of GetQueryivARB.
+     */
     public static final int
-        GL_QUERY_COUNTER_BITS_ARB = 0x8864,
-        GL_CURRENT_QUERY_ARB      = 0x8865;
-
-    /** Accepted by the {@code pname} parameter of GetQueryObjectivARB and GetQueryObjectuivARB. */
+            GL_QUERY_COUNTER_BITS_ARB = 0x8864,
+            GL_CURRENT_QUERY_ARB = 0x8865;
+    /**
+     * Accepted by the {@code pname} parameter of GetQueryObjectivARB and GetQueryObjectuivARB.
+     */
     public static final int
-        GL_QUERY_RESULT_ARB           = 0x8866,
-        GL_QUERY_RESULT_AVAILABLE_ARB = 0x8867;
+            GL_QUERY_RESULT_ARB = 0x8866,
+            GL_QUERY_RESULT_AVAILABLE_ARB = 0x8867;
+
+    static {
+        GL.initialize();
+    }
 
     protected ARBOcclusionQuery() {
         throw new UnsupportedOperationException();
@@ -95,10 +103,13 @@ public class ARBOcclusionQuery {
         nglGenQueriesARB(ids.remaining(), memAddress(ids));
     }
 
-    /** Generates query object names. */
+    /**
+     * Generates query object names.
+     */
     @NativeType("void")
     public static int glGenQueriesARB() {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer ids = stack.callocInt(1);
             nglGenQueriesARB(1, memAddress(ids));
@@ -126,9 +137,12 @@ public class ARBOcclusionQuery {
         nglDeleteQueriesARB(ids.remaining(), memAddress(ids));
     }
 
-    /** Deletes named query objects. */
+    /**
+     * Deletes named query objects.
+     */
     public static void glDeleteQueriesARB(@NativeType("GLuint const *") int id) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer ids = stack.ints(id);
             nglDeleteQueriesARB(1, memAddress(ids));
@@ -168,7 +182,9 @@ public class ARBOcclusionQuery {
 
     // --- [ glGetQueryivARB ] ---
 
-    /** Unsafe version of: {@link #glGetQueryivARB GetQueryivARB} */
+    /**
+     * Unsafe version of: {@link #glGetQueryivARB GetQueryivARB}
+     */
     public static native void nglGetQueryivARB(int target, int pname, long params);
 
     /**
@@ -193,7 +209,8 @@ public class ARBOcclusionQuery {
      */
     @NativeType("void")
     public static int glGetQueryiARB(@NativeType("GLenum") int target, @NativeType("GLenum") int pname) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer params = stack.callocInt(1);
             nglGetQueryivARB(target, pname, memAddress(params));
@@ -205,7 +222,9 @@ public class ARBOcclusionQuery {
 
     // --- [ glGetQueryObjectivARB ] ---
 
-    /** Unsafe version of: {@link #glGetQueryObjectivARB GetQueryObjectivARB} */
+    /**
+     * Unsafe version of: {@link #glGetQueryObjectivARB GetQueryObjectivARB}
+     */
     public static native void nglGetQueryObjectivARB(int id, int pname, long params);
 
     /**
@@ -222,10 +241,10 @@ public class ARBOcclusionQuery {
         nglGetQueryObjectivARB(id, pname, memAddress(params));
     }
 
-    
-	public static void glGetQueryObjectuARB(int id, int pname, IntBuffer params) {
-		glGetQueryObjectivARB(id, pname, params);
-	}
+
+    public static void glGetQueryObjectuARB(int id, int pname, IntBuffer params) {
+        glGetQueryObjectivARB(id, pname, params);
+    }
 
     /**
      * Returns the integer value of a query object parameter.
@@ -246,7 +265,8 @@ public class ARBOcclusionQuery {
      */
     @NativeType("void")
     public static int glGetQueryObjectiARB(@NativeType("GLuint") int id, @NativeType("GLenum") int pname) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer params = stack.callocInt(1);
             nglGetQueryObjectivARB(id, pname, memAddress(params));
@@ -258,7 +278,9 @@ public class ARBOcclusionQuery {
 
     // --- [ glGetQueryObjectuivARB ] ---
 
-    /** Unsafe version of: {@link #glGetQueryObjectuivARB GetQueryObjectuivARB} */
+    /**
+     * Unsafe version of: {@link #glGetQueryObjectuivARB GetQueryObjectuivARB}
+     */
     public static native void nglGetQueryObjectuivARB(int id, int pname, long params);
 
     /**
@@ -294,7 +316,8 @@ public class ARBOcclusionQuery {
      */
     @NativeType("void")
     public static int glGetQueryObjectuiARB(@NativeType("GLuint") int id, @NativeType("GLenum") int pname) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer params = stack.callocInt(1);
             nglGetQueryObjectuivARB(id, pname, memAddress(params));
@@ -304,7 +327,9 @@ public class ARBOcclusionQuery {
         }
     }
 
-    /** Array version of: {@link #glGenQueriesARB GenQueriesARB} */
+    /**
+     * Array version of: {@link #glGenQueriesARB GenQueriesARB}
+     */
     public static void glGenQueriesARB(@NativeType("GLuint *") int[] ids) {
         long __functionAddress = GL.getICD().glGenQueriesARB;
         if (CHECKS) {
@@ -313,7 +338,9 @@ public class ARBOcclusionQuery {
         callPV(ids.length, ids, __functionAddress);
     }
 
-    /** Array version of: {@link #glDeleteQueriesARB DeleteQueriesARB} */
+    /**
+     * Array version of: {@link #glDeleteQueriesARB DeleteQueriesARB}
+     */
     public static void glDeleteQueriesARB(@NativeType("GLuint const *") int[] ids) {
         long __functionAddress = GL.getICD().glDeleteQueriesARB;
         if (CHECKS) {
@@ -322,7 +349,9 @@ public class ARBOcclusionQuery {
         callPV(ids.length, ids, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetQueryivARB GetQueryivARB} */
+    /**
+     * Array version of: {@link #glGetQueryivARB GetQueryivARB}
+     */
     public static void glGetQueryivARB(@NativeType("GLenum") int target, @NativeType("GLenum") int pname, @NativeType("GLint *") int[] params) {
         long __functionAddress = GL.getICD().glGetQueryivARB;
         if (CHECKS) {
@@ -332,7 +361,9 @@ public class ARBOcclusionQuery {
         callPV(target, pname, params, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetQueryObjectivARB GetQueryObjectivARB} */
+    /**
+     * Array version of: {@link #glGetQueryObjectivARB GetQueryObjectivARB}
+     */
     public static void glGetQueryObjectivARB(@NativeType("GLuint") int id, @NativeType("GLenum") int pname, @NativeType("GLint *") int[] params) {
         long __functionAddress = GL.getICD().glGetQueryObjectivARB;
         if (CHECKS) {
@@ -342,7 +373,9 @@ public class ARBOcclusionQuery {
         callPV(id, pname, params, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetQueryObjectuivARB GetQueryObjectuivARB} */
+    /**
+     * Array version of: {@link #glGetQueryObjectuivARB GetQueryObjectuivARB}
+     */
     public static void glGetQueryObjectuivARB(@NativeType("GLuint") int id, @NativeType("GLenum") int pname, @NativeType("GLuint *") int[] params) {
         long __functionAddress = GL.getICD().glGetQueryObjectuivARB;
         if (CHECKS) {

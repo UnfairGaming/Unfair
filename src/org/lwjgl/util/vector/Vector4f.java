@@ -70,6 +70,70 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
         set(x, y, z, w);
     }
 
+    /**
+     * Add a vector to another vector and place the result in a destination
+     * vector.
+     *
+     * @param left  The LHS vector
+     * @param right The RHS vector
+     * @param dest  The destination vector, or null if a new vector is to be created
+     * @return the sum of left and right in dest
+     */
+    public static Vector4f add(Vector4f left, Vector4f right, Vector4f dest) {
+        if (dest == null)
+            return new Vector4f(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
+        else {
+            dest.set(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
+            return dest;
+        }
+    }
+
+    /**
+     * Subtract a vector from another vector and place the result in a destination
+     * vector.
+     *
+     * @param left  The LHS vector
+     * @param right The RHS vector
+     * @param dest  The destination vector, or null if a new vector is to be created
+     * @return left minus right in dest
+     */
+    public static Vector4f sub(Vector4f left, Vector4f right, Vector4f dest) {
+        if (dest == null)
+            return new Vector4f(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
+        else {
+            dest.set(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
+            return dest;
+        }
+    }
+
+    /**
+     * The dot product of two vectors is calculated as
+     * v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w
+     *
+     * @param left  The LHS vector
+     * @param right The RHS vector
+     * @return left dot right
+     */
+    public static float dot(Vector4f left, Vector4f right) {
+        return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
+    }
+
+    /**
+     * Calculate the angle between two vectors, in radians
+     *
+     * @param a A vector
+     * @param b The other vector
+     * @return the angle between the two vectors, in radians
+     */
+    public static float angle(Vector4f a, Vector4f b) {
+        float dls = dot(a, b) / (a.length() * b.length());
+        if (dls < -1f)
+            dls = -1f;
+        else if (dls > 1.0f)
+            dls = 1.0f;
+        return (float) Math.acos(dls);
+    }
+
     /* (non-Javadoc)
      * @see org.lwjgl.util.vector.WritableVector2f#set(float, float)
      */
@@ -99,6 +163,7 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
 
     /**
      * Load from another Vector4f
+     *
      * @param src The source vector
      * @return this
      */
@@ -119,6 +184,7 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
 
     /**
      * Translate a vector
+     *
      * @param x The translation in x
      * @param y the translation in y
      * @return this
@@ -132,42 +198,8 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
     }
 
     /**
-     * Add a vector to another vector and place the result in a destination
-     * vector.
-     * @param left The LHS vector
-     * @param right The RHS vector
-     * @param dest The destination vector, or null if a new vector is to be created
-     * @return the sum of left and right in dest
-     */
-    public static Vector4f add(Vector4f left, Vector4f right, Vector4f dest) {
-        if (dest == null)
-            return new Vector4f(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
-        else {
-            dest.set(left.x + right.x, left.y + right.y, left.z + right.z, left.w + right.w);
-            return dest;
-        }
-    }
-
-    /**
-     * Subtract a vector from another vector and place the result in a destination
-     * vector.
-     * @param left The LHS vector
-     * @param right The RHS vector
-     * @param dest The destination vector, or null if a new vector is to be created
-     * @return left minus right in dest
-     */
-    public static Vector4f sub(Vector4f left, Vector4f right, Vector4f dest) {
-        if (dest == null)
-            return new Vector4f(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
-        else {
-            dest.set(left.x - right.x, left.y - right.y, left.z - right.z, left.w - right.w);
-            return dest;
-        }
-    }
-
-
-    /**
      * Negate a vector
+     *
      * @return this
      */
     public Vector negate() {
@@ -180,6 +212,7 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
 
     /**
      * Negate a vector and place the result in a destination vector.
+     *
      * @param dest The destination vector or null if a new vector is to be created
      * @return the negated vector
      */
@@ -193,9 +226,9 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
         return dest;
     }
 
-
     /**
      * Normalise this vector and place the result in another vector.
+     *
      * @param dest The destination vector, or null if a new vector is to be created
      * @return the normalised vector
      */
@@ -208,32 +241,6 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
             dest.set(x / l, y / l, z / l, w / l);
 
         return dest;
-    }
-
-    /**
-     * The dot product of two vectors is calculated as
-     * v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w
-     * @param left The LHS vector
-     * @param right The RHS vector
-     * @return left dot right
-     */
-    public static float dot(Vector4f left, Vector4f right) {
-        return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
-    }
-
-    /**
-     * Calculate the angle between two vectors, in radians
-     * @param a A vector
-     * @param b The other vector
-     * @return the angle between the two vectors, in radians
-     */
-    public static float angle(Vector4f a, Vector4f b) {
-        float dls = dot(a, b) / (a.length() * b.length());
-        if (dls < -1f)
-            dls = -1f;
-        else if (dls > 1.0f)
-            dls = 1.0f;
-        return (float)Math.acos(dls);
     }
 
     /* (non-Javadoc)
@@ -283,14 +290,8 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
     }
 
     /**
-     * @return y
-     */
-    public final float getY() {
-        return y;
-    }
-
-    /**
      * Set X
+     *
      * @param x
      */
     public final void setX(float x) {
@@ -298,21 +299,20 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
     }
 
     /**
+     * @return y
+     */
+    public final float getY() {
+        return y;
+    }
+
+    /**
      * Set Y
+     *
      * @param y
      */
     public final void setY(float y) {
         this.y = y;
     }
-
-    /**
-     * Set Z
-     * @param z
-     */
-    public void setZ(float z) {
-        this.z = z;
-    }
-
 
     /* (Overrides)
      * @see org.lwjgl.vector.ReadableVector3f#getZ()
@@ -322,11 +322,12 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
     }
 
     /**
-     * Set W
-     * @param w
+     * Set Z
+     *
+     * @param z
      */
-    public void setW(float w) {
-        this.w = w;
+    public void setZ(float z) {
+        this.z = z;
     }
 
     /* (Overrides)
@@ -336,14 +337,21 @@ public class Vector4f extends Vector implements ReadableVector4f, WritableVector
         return w;
     }
 
+    /**
+     * Set W
+     *
+     * @param w
+     */
+    public void setW(float w) {
+        this.w = w;
+    }
+
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        Vector4f other = (Vector4f)obj;
+        Vector4f other = (Vector4f) obj;
 
-        if (x == other.x && y == other.y && z == other.z && w == other.w) return true;
-
-        return false;
+        return x == other.x && y == other.y && z == other.z && w == other.w;
     }
 }

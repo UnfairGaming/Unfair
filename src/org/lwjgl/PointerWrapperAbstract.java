@@ -54,13 +54,9 @@ public abstract class PointerWrapperAbstract implements PointerWrapper {
 
     public boolean equals(final Object o) {
         if (this == o) return true;
-        if (!(o instanceof PointerWrapperAbstract)) return false;
+        if (!(o instanceof PointerWrapperAbstract that)) return false;
 
-        final PointerWrapperAbstract that = (PointerWrapperAbstract) o;
-
-        if (pointer != that.pointer) return false;
-
-        return true;
+        return pointer == that.pointer;
     }
 
     public int hashCode() {

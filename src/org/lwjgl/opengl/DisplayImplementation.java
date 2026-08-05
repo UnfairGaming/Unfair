@@ -18,15 +18,16 @@ package org.lwjgl.opengl;
 /**
  * This is the Display implementation interface. Display delegates to implementors of this interface. There is one
  * DisplayImplementation for each supported platform.
- * 
+ *
  * @author elias_naur
  */
-import java.awt.Canvas;
+
+import org.lwjgl.LWJGLException;
+
+import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-
-import org.lwjgl.LWJGLException;
 
 interface DisplayImplementation extends InputImplementation {
 
@@ -56,7 +57,7 @@ interface DisplayImplementation extends InputImplementation {
     /**
      * Get the driver adapter string. This is a unique string describing the actual card's hardware, eg. "Geforce2",
      * "PS2", "Radeon9700". If the adapter cannot be determined, this function returns null.
-     * 
+     *
      * @return a String
      */
     String getAdapter();
@@ -64,7 +65,7 @@ interface DisplayImplementation extends InputImplementation {
     /**
      * Get the driver version. This is a vendor/adapter specific version string. If the version cannot be determined,
      * this function returns null.
-     * 
+     *
      * @return a String
      */
     String getVersion();
@@ -90,7 +91,7 @@ interface DisplayImplementation extends InputImplementation {
 
     /**
      * Create the native PeerInfo.
-     * 
+     *
      * @throws LWJGLException
      */
     PeerInfo createPeerInfo(PixelFormat pixel_format, ContextAttribs attribs) throws LWJGLException;
@@ -122,7 +123,7 @@ interface DisplayImplementation extends InputImplementation {
      * Method to create a Pbuffer
      */
     PeerInfo createPbuffer(int width, int height, PixelFormat pixel_format, ContextAttribs attribs,
-            IntBuffer pixelFormatCaps, IntBuffer pBufferAttribs) throws LWJGLException;
+                           IntBuffer pixelFormatCaps, IntBuffer pBufferAttribs) throws LWJGLException;
 
     void setPbufferAttrib(PeerInfo handle, int attrib, int value);
 

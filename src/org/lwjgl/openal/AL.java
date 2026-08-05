@@ -26,18 +26,17 @@ import static org.lwjgl.system.MemoryUtil.*;
 
 public final class AL {
 
+    private static final ThreadLocal<ALCapabilities> capabilitiesTLS = new ThreadLocal<>();
     @Nullable
     private static ALCapabilities processCaps;
-
-    private static final ThreadLocal<ALCapabilities> capabilitiesTLS = new ThreadLocal<>();
-
     private static ICD icd = new ICDStatic();
 
     private static long _contextPtr;
     private static long _devicePtr;
     private static boolean _created;
 
-    private AL() {}
+    private AL() {
+    }
 
     public static boolean isCreated() {
         return _created;
@@ -66,7 +65,7 @@ public final class AL {
 
                 ALCCapabilities deviceCaps = ALC.createCapabilities(_devicePtr);
                 if (contextFrequency == -1) {
-                    _contextPtr = ALC10.alcCreateContext(_devicePtr, (IntBuffer)null);
+                    _contextPtr = ALC10.alcCreateContext(_devicePtr, (IntBuffer) null);
                 } else {
                     MemoryStack stack = MemoryStack.stackPush();
                     long var8 = _devicePtr;
@@ -89,7 +88,7 @@ public final class AL {
         create(null, 44100, 60, false);
     }
 
-    private static final IntBuffer createAttributeList(int contextFrequency, int contextRefresh, int contextSynchronized, MemoryStack stack) {
+    private static IntBuffer createAttributeList(int contextFrequency, int contextRefresh, int contextSynchronized, MemoryStack stack) {
         IntBuffer buffer = stack.callocInt(7);
         buffer.put(0, 4103);
         buffer.put(1, contextFrequency);
@@ -124,20 +123,20 @@ public final class AL {
         setCurrentProcess(null);
     }
 
-    
+
     public static void setCurrentProcess(@Nullable ALCapabilities caps) {
         processCaps = caps;
-        capabilitiesTLS.set(null); 
+        capabilitiesTLS.set(null);
         icd.set(caps);
     }
 
-    
+
     public static void setCurrentThread(@Nullable ALCapabilities caps) {
         capabilitiesTLS.set(caps);
         icd.set(caps);
     }
 
-    
+
     public static ALCapabilities getCapabilities() {
         ALCapabilities caps = capabilitiesTLS.get();
         if (caps == null) {
@@ -150,24 +149,23 @@ public final class AL {
     private static ALCapabilities checkCapabilities(@Nullable ALCapabilities caps) {
         if (caps == null) {
             throw new IllegalStateException(
-                "No ALCapabilities instance set for the current thread or process. Possible solutions:\n" +
-                "\ta) Call AL.createCapabilities() after making a context current.\n" +
-                "\tb) Call AL.setCurrentProcess() or AL.setCurrentThread() if an ALCapabilities instance already exists."
+                    "No ALCapabilities instance set for the current thread or process. Possible solutions:\n" +
+                            "\ta) Call AL.createCapabilities() after making a context current.\n" +
+                            "\tb) Call AL.setCurrentProcess() or AL.setCurrentThread() if an ALCapabilities instance already exists."
             );
         }
         return caps;
     }
 
-    
+
     public static ALCapabilities createCapabilities(ALCCapabilities alcCaps) {
         return createCapabilities(alcCaps, null);
     }
 
-    
+
     public static ALCapabilities createCapabilities(ALCCapabilities alcCaps, @Nullable IntFunction<PointerBuffer> bufferFactory) {
-        
-        
-        
+
+
         long alGetProcAddress = ALC.getFunctionProvider().getFunctionAddress(NULL, "alGetProcAddress");
         if (alGetProcAddress == NULL) {
             throw new RuntimeException("A core AL function is missing. Make sure that the OpenAL library has been loaded correctly.");
@@ -181,8 +179,8 @@ public final class AL {
             return address;
         };
 
-        long GetString          = functionProvider.getFunctionAddress("alGetString");
-        long GetError           = functionProvider.getFunctionAddress("alGetError");
+        long GetString = functionProvider.getFunctionAddress("alGetString");
+        long GetError = functionProvider.getFunctionAddress("alGetError");
         long IsExtensionPresent = functionProvider.getFunctionAddress("alIsExtensionPresent");
         if (GetString == NULL || GetError == NULL || IsExtensionPresent == NULL) {
             throw new IllegalStateException("Core OpenAL functions could not be found. Make sure that the OpenAL library has been loaded correctly.");
@@ -199,7 +197,7 @@ public final class AL {
         int minorVersion = apiVersion.minor;
 
         int[][] AL_VERSIONS = {
-            {0, 1}  
+                {0, 1}
         };
 
         Set<String> supportedExtensions = new HashSet<>(32);
@@ -213,7 +211,7 @@ public final class AL {
             }
         }
 
-        
+
         String extensionsString = memASCIISafe(invokeP(AL_EXTENSIONS, GetString));
         if (extensionsString != null) {
             MemoryStack stack = stackGet();
@@ -249,13 +247,15 @@ public final class AL {
         return ALC.check(icd.get());
     }
 
-    
+
     private interface ICD {
-        default void set(@Nullable ALCapabilities caps) {}
+        default void set(@Nullable ALCapabilities caps) {
+        }
+
         @Nullable ALCapabilities get();
     }
 
-    
+
     private static class ICDStatic implements ICD {
 
         @Nullable
@@ -268,7 +268,7 @@ public final class AL {
                 tempCaps = caps;
             } else if (caps != null && caps != tempCaps && ThreadLocalUtil.areCapabilitiesDifferent(tempCaps.addresses, caps.addresses)) {
                 apiLog("[WARNING] Incompatible context detected. Falling back to thread/process lookup for AL contexts.");
-                icd = AL::getCapabilities; 
+                icd = AL::getCapabilities;
             }
         }
 
@@ -278,7 +278,7 @@ public final class AL {
         }
 
         private static final class WriteOnce {
-            
+
             static final ALCapabilities caps;
 
             static {

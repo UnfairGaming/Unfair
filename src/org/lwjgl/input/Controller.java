@@ -2,71 +2,71 @@ package org.lwjgl.input;
 
 public interface Controller {
 
-    public abstract int getAxisCount();
+    int getAxisCount();
 
-    public abstract String getAxisName(int arg0);
+    String getAxisName(int arg0);
 
-    public abstract float getAxisValue(int arg0);
+    float getAxisValue(int arg0);
 
-    public abstract int getButtonCount();
+    int getButtonCount();
 
-    public abstract String getButtonName(int arg0);
+    String getButtonName(int arg0);
 
-    public abstract float getDeadZone(int arg0);
+    float getDeadZone(int arg0);
 
-    public abstract int getIndex();
+    int getIndex();
 
-    public abstract String getName();
+    String getName();
 
-    public abstract float getPovX();
+    float getPovX();
 
-    public abstract float getPovY();
+    float getPovY();
 
-    public abstract float getRXAxisDeadZone();
+    float getRXAxisDeadZone();
 
-    public abstract float getRXAxisValue();
+    void setRXAxisDeadZone(float arg0);
 
-    public abstract float getRYAxisDeadZone();
+    float getRXAxisValue();
 
-    public abstract float getRYAxisValue();
+    float getRYAxisDeadZone();
 
-    public abstract float getRZAxisDeadZone();
+    void setRYAxisDeadZone(float arg0);
 
-    public abstract float getRZAxisValue();
+    float getRYAxisValue();
 
-    public abstract int getRumblerCount();
+    float getRZAxisDeadZone();
 
-    public abstract String getRumblerName(int arg0);
+    void setRZAxisDeadZone(float arg0);
 
-    public abstract float getXAxisDeadZone();
+    float getRZAxisValue();
 
-    public abstract float getXAxisValue();
+    int getRumblerCount();
 
-    public abstract float getYAxisDeadZone();
+    String getRumblerName(int arg0);
 
-    public abstract float getYAxisValue();
+    float getXAxisDeadZone();
 
-    public abstract float getZAxisDeadZone();
+    void setXAxisDeadZone(float arg0);
 
-    public abstract float getZAxisValue();
+    float getXAxisValue();
 
-    public abstract boolean isButtonPressed(int arg0);
+    float getYAxisDeadZone();
 
-    public abstract void poll();
+    void setYAxisDeadZone(float arg0);
 
-    public abstract void setDeadZone(int arg0, float arg1);
+    float getYAxisValue();
 
-    public abstract void setRXAxisDeadZone(float arg0);
+    float getZAxisDeadZone();
 
-    public abstract void setRYAxisDeadZone(float arg0);
+    void setZAxisDeadZone(float arg0);
 
-    public abstract void setRZAxisDeadZone(float arg0);
+    float getZAxisValue();
 
-    public abstract void setRumblerStrength(int arg0, float arg1);
+    boolean isButtonPressed(int arg0);
 
-    public abstract void setXAxisDeadZone(float arg0);
+    void poll();
 
-    public abstract void setYAxisDeadZone(float arg0);
+    void setDeadZone(int arg0, float arg1);
 
-    public abstract void setZAxisDeadZone(float arg0);
+    void setRumblerStrength(int arg0, float arg1);
 }

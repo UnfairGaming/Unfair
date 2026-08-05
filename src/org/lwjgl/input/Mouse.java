@@ -15,35 +15,30 @@ public class Mouse {
 
     // Fields for reflection compatibility with lwjgl2
     public static final int EVENT_SIZE = 1 + 1 + 4 + 4 + 4 + 8;
-    private static ByteBuffer buttons = BufferUtils.createByteBuffer(32);
-    private static IntBuffer coord_buffer = BufferUtils.createIntBuffer(32);
-    private static ByteBuffer readBuffer = BufferUtils.createByteBuffer(32);
-
+    private static final boolean[] buttonDown = new boolean[8];
+    // Used for our config screen for ease of access
+    public static double totalScrollAmount = 0.0;
+    static double fractionalWheelPosition = 0.0;
+    private static final ByteBuffer buttons = BufferUtils.createByteBuffer(32);
+    private static final IntBuffer coord_buffer = BufferUtils.createIntBuffer(32);
+    private static final ByteBuffer readBuffer = BufferUtils.createByteBuffer(32);
     private static boolean grabbed = false;
-
     private static int lastEventX = 0;
     private static int lastEventY = 0;
-
     private static int latestX = 0;
     private static int latestY = 0;
-
     private static int x = 0;
     private static int y = 0;
-    private static final boolean[] buttonDown = new boolean[8];
-
     private static int dx = 0, dy = 0, dwheel = 0;
-
-    private static EventQueue queue = new EventQueue(128);
-
-    private static int[] buttonEvents = new int[queue.getMaxEvents()];
-    private static boolean[] buttonEventStates = new boolean[queue.getMaxEvents()];
-    private static int[] xEvents = new int[queue.getMaxEvents()];
-    private static int[] yEvents = new int[queue.getMaxEvents()];
-    private static int[] wheelEvents = new int[queue.getMaxEvents()];
-    private static int[] lastxEvents = new int[queue.getMaxEvents()];
-    private static int[] lastyEvents = new int[queue.getMaxEvents()];
-    private static long[] nanoTimeEvents = new long[queue.getMaxEvents()];
-
+    private static final EventQueue queue = new EventQueue(128);
+    private static final int[] buttonEvents = new int[queue.getMaxEvents()];
+    private static final boolean[] buttonEventStates = new boolean[queue.getMaxEvents()];
+    private static final int[] xEvents = new int[queue.getMaxEvents()];
+    private static final int[] yEvents = new int[queue.getMaxEvents()];
+    private static final int[] wheelEvents = new int[queue.getMaxEvents()];
+    private static final int[] lastxEvents = new int[queue.getMaxEvents()];
+    private static final int[] lastyEvents = new int[queue.getMaxEvents()];
+    private static final long[] nanoTimeEvents = new long[queue.getMaxEvents()];
     private static boolean clipPostionToDisplay = true;
     private static int ignoreNextDelta = 0;
     private static int ignoreNextMove = 0;
@@ -107,10 +102,6 @@ public class Mouse {
         queue.add();
     }
 
-    static double fractionalWheelPosition = 0.0;
-    // Used for our config screen for ease of access
-    public static double totalScrollAmount = 0.0;
-
     public static void addWheelEvent(double delta) {
         final int lastWheel = (int) fractionalWheelPosition;
         fractionalWheelPosition += delta;
@@ -151,10 +142,15 @@ public class Mouse {
         y = latestY;
     }
 
-    public static void create() throws LWJGLException {}
+    public static void create() throws LWJGLException {
+    }
 
     public static boolean isCreated() {
         return Display.isCreated();
+    }
+
+    public static boolean isGrabbed() {
+        return grabbed;
     }
 
     public static void setGrabbed(boolean grab) {
@@ -193,10 +189,6 @@ public class Mouse {
             dx = 0;
             dy = 0;
         }
-    }
-
-    public static boolean isGrabbed() {
-        return grabbed;
     }
 
     public static boolean isButtonDown(int button) {
@@ -269,10 +261,6 @@ public class Mouse {
         return 8; // max mouse buttons supported by GLFW
     }
 
-    public static void setClipMouseCoordinatesToWindow(boolean clip) {
-        clipPostionToDisplay = clip;
-    }
-
     public static void setCursorPosition(int new_x, int new_y) {
         if (grabbed) {
             return;
@@ -286,7 +274,8 @@ public class Mouse {
         return null;
     }
 
-    public static void destroy() {}
+    public static void destroy() {
+    }
 
     public static void resetButtonStates() {
         for (int i = 0; i < buttonDown.length; ++i) {
@@ -316,6 +305,10 @@ public class Mouse {
 
     public static boolean isClipMouseCoordinatesToWindow() {
         return clipPostionToDisplay;
+    }
+
+    public static void setClipMouseCoordinatesToWindow(boolean clip) {
+        clipPostionToDisplay = clip;
     }
 
     public static boolean isInsideWindow() {

@@ -15,35 +15,37 @@
  */
 package org.lwjgl.opengl;
 
-import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
-import static org.lwjgl.glfw.GLFW.GLFW_VISIBLE;
-import static org.lwjgl.glfw.GLFW.glfwWindowHint;
-import static org.lwjgl.opengl.GL11.*;
-
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GlfwEventLoop;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.LWJGLUtil;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GlfwEventLoop;
 
-/** @author Spasi */
+import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.*;
+
+/**
+ * @author Spasi
+ */
 public class DrawableGL implements DrawableLWJGL {
 
-    /** The PixelFormat used to create the drawable. */
+    /**
+     * The PixelFormat used to create the drawable.
+     */
     protected PixelFormat pixel_format;
 
-    /** Handle to the native GL rendering context */
+    /**
+     * Handle to the native GL rendering context
+     */
     protected PeerInfo peer_info;
 
-    /** The OpenGL Context. */
+    /**
+     * The OpenGL Context.
+     */
     protected ContextGL context;
 
     protected DrawableGL() {
         context = new ContextGL(Display.getWindow(), false);
-    }
-
-    public void setPixelFormat(final PixelFormatLWJGL pf) throws LWJGLException {
-        throw new UnsupportedOperationException();
     }
 
     public void setPixelFormat(final PixelFormatLWJGL pf, final ContextAttribs attribs) throws LWJGLException {
@@ -53,6 +55,10 @@ public class DrawableGL implements DrawableLWJGL {
 
     public PixelFormatLWJGL getPixelFormat() {
         return pixel_format;
+    }
+
+    public void setPixelFormat(final PixelFormatLWJGL pf) throws LWJGLException {
+        throw new UnsupportedOperationException();
     }
 
     public ContextGL getContext() {

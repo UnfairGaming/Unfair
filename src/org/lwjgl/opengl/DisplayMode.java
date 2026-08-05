@@ -26,9 +26,13 @@ package org.lwjgl.opengl;
  */
 public final class DisplayMode {
 
-    /** properties of the display mode */
+    /**
+     * properties of the display mode
+     */
     private final int width, height, bpp, freq;
-    /** If true, this instance can be used for fullscreen modes */
+    /**
+     * If true, this instance can be used for fullscreen modes
+     */
     private final boolean fullscreen;
 
     /**
@@ -56,7 +60,9 @@ public final class DisplayMode {
         this.fullscreen = fullscreen;
     }
 
-    /** True if this instance can be used for fullscreen modes */
+    /**
+     * True if this instance can be used for fullscreen modes
+     */
     public boolean isFullscreenCapable() {
         return fullscreen;
     }
@@ -83,11 +89,9 @@ public final class DisplayMode {
      * @see Object#equals(Object)
      */
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof DisplayMode)) {
+        if (obj == null || !(obj instanceof DisplayMode dm)) {
             return false;
         }
-
-        DisplayMode dm = (DisplayMode) obj;
 
         return dm.width == width && dm.height == height && dm.bpp == bpp && dm.freq == freq;
     }
@@ -107,15 +111,14 @@ public final class DisplayMode {
      * @see Object#toString()
      */
     public String toString() {
-        StringBuilder sb = new StringBuilder(32);
-        sb.append(width);
-        sb.append(" x ");
-        sb.append(height);
-        sb.append(" x ");
-        sb.append(bpp);
-        sb.append(" @");
-        sb.append(freq);
-        sb.append("Hz");
-        return sb.toString();
+        String sb = width +
+                " x " +
+                height +
+                " x " +
+                bpp +
+                " @" +
+                freq +
+                "Hz";
+        return sb;
     }
 }

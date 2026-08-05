@@ -26,17 +26,16 @@ public class OpenGLException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    /** Constructor for OpenGLException. */
+    /**
+     * Constructor for OpenGLException.
+     */
     public OpenGLException(int gl_error_code) {
         this(createErrorMessage(gl_error_code));
     }
 
-    private static String createErrorMessage(int gl_error_code) {
-        String error_string = Util.translateGLErrorString(gl_error_code);
-        return error_string + " (" + gl_error_code + ")";
-    }
-
-    /** Constructor for OpenGLException. */
+    /**
+     * Constructor for OpenGLException.
+     */
     public OpenGLException() {
         super();
     }
@@ -67,5 +66,10 @@ public class OpenGLException extends RuntimeException {
      */
     public OpenGLException(Throwable cause) {
         super(cause);
+    }
+
+    private static String createErrorMessage(int gl_error_code) {
+        String error_string = Util.translateGLErrorString(gl_error_code);
+        return error_string + " (" + gl_error_code + ")";
     }
 }

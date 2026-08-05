@@ -15,13 +15,15 @@
  */
 package org.lwjgl.opengl;
 
-import static org.lwjgl.opengl.GL11.*;
+import org.lwjgl.BufferUtils;
 
 import java.nio.IntBuffer;
 
-import org.lwjgl.BufferUtils;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 
-/** This class represents the state necessary for render-to-texture. */
+/**
+ * This class represents the state necessary for render-to-texture.
+ */
 public final class RenderTexture {
 
     // ----------------------------------------------------------------------------------
@@ -29,43 +31,11 @@ public final class RenderTexture {
     // ----------------------------------------------------------------------------------
 
     /*
-     * Accepted by the <piAttributes> parameter of wglGetPixelFormatAttribivARB, wglGetPixelFormatAttribfvARB, and the
-     * <piAttribIList> and <pfAttribIList> parameters of wglChoosePixelFormatARB:
-     */
-    private static final int WGL_BIND_TO_TEXTURE_RGB_ARB = 0x2070;
-    private static final int WGL_BIND_TO_TEXTURE_RGBA_ARB = 0x2071;
-
-    /*
-     * Accepted by the <piAttribList> parameter of wglCreatePbufferARB and by the <iAttribute> parameter of
-     * wglQueryPbufferARB:
-     */
-    private static final int WGL_TEXTURE_FORMAT_ARB = 0x2072;
-    private static final int WGL_TEXTURE_TARGET_ARB = 0x2073;
-    private static final int WGL_MIPMAP_TEXTURE_ARB = 0x2074;
-
-    /*
-     * Accepted as a value in the <piAttribList> parameter of wglCreatePbufferARB and returned in the value parameter of
-     * wglQueryPbufferARB when <iAttribute> is WGL_TEXTURE_FORMAT_ARB:
-     */
-    private static final int WGL_TEXTURE_RGB_ARB = 0x2075;
-    private static final int WGL_TEXTURE_RGBA_ARB = 0x2076;
-
-    /*
-     * Accepted as a value in the <piAttribList> parameter of wglCreatePbufferARB and returned in the value parameter of
-     * wglQueryPbufferARB when <iAttribute> is WGL_TEXTURE_TARGET_ARB:
-     */
-    private static final int WGL_TEXTURE_CUBE_MAP_ARB = 0x2078;
-    private static final int WGL_TEXTURE_1D_ARB = 0x2079;
-    private static final int WGL_TEXTURE_2D_ARB = 0x207A;
-    private static final int WGL_NO_TEXTURE_ARB = 0x2077;
-
-    /*
      * Accepted by the <piAttribList> parameter of wglSetPbufferAttribARB and by the <iAttribute> parameter of
      * wglQueryPbufferARB:
      */
     static final int WGL_MIPMAP_LEVEL_ARB = 0x207B;
     static final int WGL_CUBE_MAP_FACE_ARB = 0x207C;
-
     /*
      * Accepted as a value in the <piAttribList> parameter of wglSetPbufferAttribARB and returned in the value parameter
      * of wglQueryPbufferARB when <iAttribute> is WGL_CUBE_MAP_FACE_ARB:
@@ -76,7 +46,6 @@ public final class RenderTexture {
     static final int WGL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB = 0x2080;
     static final int WGL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB = 0x2081;
     static final int WGL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB = 0x2082;
-
     /*
      * Accepted by the <iBuffer> parameter of wglBindTexImageARB and wglReleaseTexImageARB:
      */
@@ -84,6 +53,39 @@ public final class RenderTexture {
     static final int WGL_FRONT_RIGHT_ARB = 0x2084;
     static final int WGL_BACK_LEFT_ARB = 0x2085;
     static final int WGL_BACK_RIGHT_ARB = 0x2086;
+    /*
+     * Accepted by the <iBuffer> parameter of wglBindTexImageARB:
+     */
+    static final int WGL_DEPTH_COMPONENT_NV = 0x20A7;
+    /*
+     * Accepted by the <piAttributes> parameter of wglGetPixelFormatAttribivARB, wglGetPixelFormatAttribfvARB, and the
+     * <piAttribIList> and <pfAttribIList> parameters of wglChoosePixelFormatARB:
+     */
+    private static final int WGL_BIND_TO_TEXTURE_RGB_ARB = 0x2070;
+    private static final int WGL_BIND_TO_TEXTURE_RGBA_ARB = 0x2071;
+    /*
+     * Accepted by the <piAttribList> parameter of wglCreatePbufferARB and by the <iAttribute> parameter of
+     * wglQueryPbufferARB:
+     */
+    private static final int WGL_TEXTURE_FORMAT_ARB = 0x2072;
+    private static final int WGL_TEXTURE_TARGET_ARB = 0x2073;
+    private static final int WGL_MIPMAP_TEXTURE_ARB = 0x2074;
+    /*
+     * Accepted as a value in the <piAttribList> parameter of wglCreatePbufferARB and returned in the value parameter of
+     * wglQueryPbufferARB when <iAttribute> is WGL_TEXTURE_FORMAT_ARB:
+     */
+    private static final int WGL_TEXTURE_RGB_ARB = 0x2075;
+    private static final int WGL_TEXTURE_RGBA_ARB = 0x2076;
+    /*
+     * Accepted as a value in the <piAttribList> parameter of wglCreatePbufferARB and returned in the value parameter of
+     * wglQueryPbufferARB when <iAttribute> is WGL_TEXTURE_TARGET_ARB:
+     */
+    private static final int WGL_TEXTURE_CUBE_MAP_ARB = 0x2078;
+    /**
+     * The TEXTURE_CUBE_MAP target.
+     */
+    public static final int RENDER_TEXTURE_CUBE_MAP = WGL_TEXTURE_CUBE_MAP_ARB;
+    private static final int WGL_TEXTURE_1D_ARB = 0x2079;
 
     /*
      * private static final int WGL_AUX0_ARB = 0x2087; private static final int WGL_AUX1_ARB = 0x2088; private static
@@ -96,60 +98,51 @@ public final class RenderTexture {
     // -------------------------------------------------------------------------------------------
     // ----------------------------- WGL_NV_render_texture_rectangle -----------------------------
     // -------------------------------------------------------------------------------------------
+    /**
+     * The TEXTURE_1D target.
+     */
+    public static final int RENDER_TEXTURE_1D = WGL_TEXTURE_1D_ARB;
+    private static final int WGL_TEXTURE_2D_ARB = 0x207A;
+    /**
+     * The TEXTURE_2D target.
+     */
+    public static final int RENDER_TEXTURE_2D = WGL_TEXTURE_2D_ARB;
 
+    // ---------------------------------------------------------------------------------------
+    // ----------------------------- WGL_NV_render_depth_texture -----------------------------
+    // ---------------------------------------------------------------------------------------
+    private static final int WGL_NO_TEXTURE_ARB = 0x2077;
     /*
      * Accepted by the <piAttributes> parameter of wglGetPixelFormatAttribivARB, wglGetPixelFormatAttribfvARB, and the
      * <piAttribIList> and <pfAttribIList> parameters of wglChoosePixelFormatARB:
      */
     private static final int WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV = 0x20A0;
     private static final int WGL_BIND_TO_TEXTURE_RECTANGLE_RGBA_NV = 0x20A1;
-
     /*
      * Accepted as a value in the <piAttribList> parameter of wglCreatePbufferARB and returned in the value parameter of
      * wglQueryPbufferARB when <iAttribute> is WGL_TEXTURE_TARGET_ARB:
      */
     private static final int WGL_TEXTURE_RECTANGLE_NV = 0x20A2;
-
-    // ---------------------------------------------------------------------------------------
-    // ----------------------------- WGL_NV_render_depth_texture -----------------------------
-    // ---------------------------------------------------------------------------------------
-
+    /**
+     * The TEXTURE_RECTANGLE target.
+     */
+    public static final int RENDER_TEXTURE_RECTANGLE = WGL_TEXTURE_RECTANGLE_NV;
     /*
      * Accepted by the <piAttributes> parameter of wglGetPixelFormatAttribivARB, wglGetPixelFormatAttribfvARB, and the
      * <piAttribIList> and <pfAttribIList> parameters of wglChoosePixelFormatARB:
      */
     private static final int WGL_BIND_TO_TEXTURE_DEPTH_NV = 0x20A3;
     private static final int WGL_BIND_TO_TEXTURE_RECTANGLE_DEPTH_NV = 0x20A4;
-
     /*
      * Accepted by the <piAttribList> parameter of wglCreatePbufferARB and by the <iAttribute> parameter of
      * wglQueryPbufferARB:
      */
     private static final int WGL_DEPTH_TEXTURE_FORMAT_NV = 0x20A5;
-
     /*
      * Accepted as a value in the <piAttribList> parameter of wglCreatePbufferARB and returned in the value parameter of
      * wglQueryPbufferARB when <iAttribute> is WGL_DEPTH_TEXTURE_FORMAT_NV:
      */
     private static final int WGL_TEXTURE_DEPTH_COMPONENT_NV = 0x20A6;
-
-    /*
-     * Accepted by the <iBuffer> parameter of wglBindTexImageARB:
-     */
-    static final int WGL_DEPTH_COMPONENT_NV = 0x20A7;
-
-    /** The TEXTURE_1D target. */
-    public static final int RENDER_TEXTURE_1D = WGL_TEXTURE_1D_ARB;
-
-    /** The TEXTURE_2D target. */
-    public static final int RENDER_TEXTURE_2D = WGL_TEXTURE_2D_ARB;
-
-    /** The TEXTURE_RECTANGLE target. */
-    public static final int RENDER_TEXTURE_RECTANGLE = WGL_TEXTURE_RECTANGLE_NV;
-
-    /** The TEXTURE_CUBE_MAP target. */
-    public static final int RENDER_TEXTURE_CUBE_MAP = WGL_TEXTURE_CUBE_MAP_ARB;
-
     IntBuffer pixelFormatCaps;
     IntBuffer pBufferAttribs;
 
@@ -172,7 +165,7 @@ public final class RenderTexture {
      * @param mipmaps     - How many mipmap levels to allocate on the P-buffer.
      */
     public RenderTexture(boolean useRGB, boolean useRGBA, boolean useDepth, boolean isRectangle, int target,
-            int mipmaps) {
+                         int mipmaps) {
         if (useRGB && useRGBA) throw new IllegalArgumentException("A RenderTexture can't be both RGB and RGBA.");
 
         if (mipmaps < 0) throw new IllegalArgumentException("The mipmap levels can't be negative.");

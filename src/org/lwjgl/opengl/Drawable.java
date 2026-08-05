@@ -25,7 +25,9 @@ import org.lwjgl.PointerBuffer;
  */
 public interface Drawable {
 
-    /** Returns true if the Drawable's context is current in the current thread. */
+    /**
+     * Returns true if the Drawable's context is current in the current thread.
+     */
     boolean isCurrent() throws LWJGLException;
 
     /**
@@ -43,7 +45,9 @@ public interface Drawable {
      */
     void releaseContext() throws LWJGLException;
 
-    /** Destroys the Drawable. */
+    /**
+     * Destroys the Drawable.
+     */
     void destroy();
 
     /**

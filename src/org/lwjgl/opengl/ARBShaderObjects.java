@@ -5,18 +5,20 @@
  */
 package org.lwjgl.opengl;
 
-import org.jetbrains.annotations.*;
-
-import java.nio.*;
-
-import org.lwjgl.*;
-
-import org.lwjgl.system.*;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.APIUtil;
+import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.system.NativeType;
+
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import static org.lwjgl.system.Checks.*;
 import static org.lwjgl.system.JNI.*;
-import static org.lwjgl.system.MemoryStack.*;
+import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryUtil.*;
 
 /**
@@ -43,51 +45,58 @@ import static org.lwjgl.system.MemoryUtil.*;
  */
 public class ARBShaderObjects {
 
-    static { GL.initialize(); }
-
-    /** Accepted by the {@code pname} argument of GetHandleARB. */
+    /**
+     * Accepted by the {@code pname} argument of GetHandleARB.
+     */
     public static final int GL_PROGRAM_OBJECT_ARB = 0x8B40;
-
-    /** Accepted by the {@code pname} parameter of GetObjectParameter{fi}vARB. */
+    /**
+     * Accepted by the {@code pname} parameter of GetObjectParameter{fi}vARB.
+     */
     public static final int
-        GL_OBJECT_TYPE_ARB                      = 0x8B4E,
-        GL_OBJECT_SUBTYPE_ARB                   = 0x8B4F,
-        GL_OBJECT_DELETE_STATUS_ARB             = 0x8B80,
-        GL_OBJECT_COMPILE_STATUS_ARB            = 0x8B81,
-        GL_OBJECT_LINK_STATUS_ARB               = 0x8B82,
-        GL_OBJECT_VALIDATE_STATUS_ARB           = 0x8B83,
-        GL_OBJECT_INFO_LOG_LENGTH_ARB           = 0x8B84,
-        GL_OBJECT_ATTACHED_OBJECTS_ARB          = 0x8B85,
-        GL_OBJECT_ACTIVE_UNIFORMS_ARB           = 0x8B86,
-        GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB = 0x8B87,
-        GL_OBJECT_SHADER_SOURCE_LENGTH_ARB      = 0x8B88;
-
-    /** Returned by the {@code params} parameter of GetObjectParameter{fi}vARB. */
+            GL_OBJECT_TYPE_ARB = 0x8B4E,
+            GL_OBJECT_SUBTYPE_ARB = 0x8B4F,
+            GL_OBJECT_DELETE_STATUS_ARB = 0x8B80,
+            GL_OBJECT_COMPILE_STATUS_ARB = 0x8B81,
+            GL_OBJECT_LINK_STATUS_ARB = 0x8B82,
+            GL_OBJECT_VALIDATE_STATUS_ARB = 0x8B83,
+            GL_OBJECT_INFO_LOG_LENGTH_ARB = 0x8B84,
+            GL_OBJECT_ATTACHED_OBJECTS_ARB = 0x8B85,
+            GL_OBJECT_ACTIVE_UNIFORMS_ARB = 0x8B86,
+            GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB = 0x8B87,
+            GL_OBJECT_SHADER_SOURCE_LENGTH_ARB = 0x8B88;
+    /**
+     * Returned by the {@code params} parameter of GetObjectParameter{fi}vARB.
+     */
     public static final int GL_SHADER_OBJECT_ARB = 0x8B48;
-
-    /** Returned by the {@code type} parameter of GetActiveUniformARB. */
+    /**
+     * Returned by the {@code type} parameter of GetActiveUniformARB.
+     */
     public static final int
-        GL_FLOAT_VEC2_ARB             = 0x8B50,
-        GL_FLOAT_VEC3_ARB             = 0x8B51,
-        GL_FLOAT_VEC4_ARB             = 0x8B52,
-        GL_INT_VEC2_ARB               = 0x8B53,
-        GL_INT_VEC3_ARB               = 0x8B54,
-        GL_INT_VEC4_ARB               = 0x8B55,
-        GL_BOOL_ARB                   = 0x8B56,
-        GL_BOOL_VEC2_ARB              = 0x8B57,
-        GL_BOOL_VEC3_ARB              = 0x8B58,
-        GL_BOOL_VEC4_ARB              = 0x8B59,
-        GL_FLOAT_MAT2_ARB             = 0x8B5A,
-        GL_FLOAT_MAT3_ARB             = 0x8B5B,
-        GL_FLOAT_MAT4_ARB             = 0x8B5C,
-        GL_SAMPLER_1D_ARB             = 0x8B5D,
-        GL_SAMPLER_2D_ARB             = 0x8B5E,
-        GL_SAMPLER_3D_ARB             = 0x8B5F,
-        GL_SAMPLER_CUBE_ARB           = 0x8B60,
-        GL_SAMPLER_1D_SHADOW_ARB      = 0x8B61,
-        GL_SAMPLER_2D_SHADOW_ARB      = 0x8B62,
-        GL_SAMPLER_2D_RECT_ARB        = 0x8B63,
-        GL_SAMPLER_2D_RECT_SHADOW_ARB = 0x8B64;
+            GL_FLOAT_VEC2_ARB = 0x8B50,
+            GL_FLOAT_VEC3_ARB = 0x8B51,
+            GL_FLOAT_VEC4_ARB = 0x8B52,
+            GL_INT_VEC2_ARB = 0x8B53,
+            GL_INT_VEC3_ARB = 0x8B54,
+            GL_INT_VEC4_ARB = 0x8B55,
+            GL_BOOL_ARB = 0x8B56,
+            GL_BOOL_VEC2_ARB = 0x8B57,
+            GL_BOOL_VEC3_ARB = 0x8B58,
+            GL_BOOL_VEC4_ARB = 0x8B59,
+            GL_FLOAT_MAT2_ARB = 0x8B5A,
+            GL_FLOAT_MAT3_ARB = 0x8B5B,
+            GL_FLOAT_MAT4_ARB = 0x8B5C,
+            GL_SAMPLER_1D_ARB = 0x8B5D,
+            GL_SAMPLER_2D_ARB = 0x8B5E,
+            GL_SAMPLER_3D_ARB = 0x8B5F,
+            GL_SAMPLER_CUBE_ARB = 0x8B60,
+            GL_SAMPLER_1D_SHADOW_ARB = 0x8B61,
+            GL_SAMPLER_2D_SHADOW_ARB = 0x8B62,
+            GL_SAMPLER_2D_RECT_ARB = 0x8B63,
+            GL_SAMPLER_2D_RECT_SHADOW_ARB = 0x8B64;
+
+    static {
+        GL.initialize();
+    }
 
     protected ARBShaderObjects() {
         throw new UnsupportedOperationException();
@@ -182,10 +191,11 @@ public class ARBShaderObjects {
      * @param string    an array of pointers to one or more, optionally null terminated, character strings that make up the source code
      */
     public static void glShaderSourceARB(@NativeType("GLhandleARB") int shaderObj, @NativeType("GLcharARB const **") CharSequence... string) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             long stringAddress = APIUtil.apiArrayi(stack, MemoryUtil::memUTF8, string);
-            nglShaderSourceARB(shaderObj, string.length, stringAddress, stringAddress - (string.length << 2));
+            nglShaderSourceARB(shaderObj, string.length, stringAddress, stringAddress - ((long) string.length << 2));
             APIUtil.apiArrayFree(stringAddress, string.length);
         } finally {
             stack.setPointer(stackPointer);
@@ -203,7 +213,8 @@ public class ARBShaderObjects {
      * @param string    an array of pointers to one or more, optionally null terminated, character strings that make up the source code
      */
     public static void glShaderSourceARB(@NativeType("GLhandleARB") int shaderObj, @NativeType("GLcharARB const **") CharSequence string) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             long stringAddress = APIUtil.apiArrayi(stack, MemoryUtil::memUTF8, string);
             nglShaderSourceARB(shaderObj, 1, stringAddress, stringAddress - 4);
@@ -625,7 +636,9 @@ public class ARBShaderObjects {
 
     // --- [ glGetObjectParameterfvARB ] ---
 
-    /** Unsafe version of: {@link #glGetObjectParameterfvARB GetObjectParameterfvARB} */
+    /**
+     * Unsafe version of: {@link #glGetObjectParameterfvARB GetObjectParameterfvARB}
+     */
     public static native void nglGetObjectParameterfvARB(int obj, int pname, long params);
 
     /**
@@ -644,7 +657,9 @@ public class ARBShaderObjects {
 
     // --- [ glGetObjectParameterivARB ] ---
 
-    /** Unsafe version of: {@link #glGetObjectParameterivARB GetObjectParameterivARB} */
+    /**
+     * Unsafe version of: {@link #glGetObjectParameterivARB GetObjectParameterivARB}
+     */
     public static native void nglGetObjectParameterivARB(int obj, int pname, long params);
 
     /**
@@ -674,7 +689,8 @@ public class ARBShaderObjects {
      */
     @NativeType("void")
     public static int glGetObjectParameteriARB(@NativeType("GLhandleARB") int obj, @NativeType("GLenum") int pname) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer params = stack.callocInt(1);
             nglGetObjectParameterivARB(obj, pname, memAddress(params));
@@ -738,7 +754,8 @@ public class ARBShaderObjects {
      */
     @NativeType("void")
     public static String glGetInfoLogARB(@NativeType("GLhandleARB") int obj, @NativeType("GLsizei") int maxLength) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         ByteBuffer infoLog = memAlloc(maxLength);
         try {
             IntBuffer length = stack.ints(0);
@@ -798,7 +815,9 @@ public class ARBShaderObjects {
 
     // --- [ glGetUniformLocationARB ] ---
 
-    /** Unsafe version of: {@link #glGetUniformLocationARB GetUniformLocationARB} */
+    /**
+     * Unsafe version of: {@link #glGetUniformLocationARB GetUniformLocationARB}
+     */
     public static native int nglGetUniformLocationARB(int programObj, long name);
 
     /**
@@ -843,7 +862,8 @@ public class ARBShaderObjects {
      */
     @NativeType("GLint")
     public static int glGetUniformLocationARB(@NativeType("GLhandleARB") int programObj, @NativeType("GLcharARB const *") CharSequence name) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             stack.nUTF8(name, true);
             long nameEncoded = stack.getPointerAddress();
@@ -939,7 +959,8 @@ public class ARBShaderObjects {
             check(size, 1);
             check(type, 1);
         }
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer length = stack.ints(0);
             ByteBuffer name = stack.malloc(maxLength);
@@ -986,7 +1007,9 @@ public class ARBShaderObjects {
 
     // --- [ glGetUniformfvARB ] ---
 
-    /** Unsafe version of: {@link #glGetUniformfvARB GetUniformfvARB} */
+    /**
+     * Unsafe version of: {@link #glGetUniformfvARB GetUniformfvARB}
+     */
     public static native void nglGetUniformfvARB(int programObj, int location, long params);
 
     /**
@@ -1011,7 +1034,8 @@ public class ARBShaderObjects {
      */
     @NativeType("void")
     public static float glGetUniformfARB(@NativeType("GLhandleARB") int programObj, @NativeType("GLint") int location) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             FloatBuffer params = stack.callocFloat(1);
             nglGetUniformfvARB(programObj, location, memAddress(params));
@@ -1023,7 +1047,9 @@ public class ARBShaderObjects {
 
     // --- [ glGetUniformivARB ] ---
 
-    /** Unsafe version of: {@link #glGetUniformivARB GetUniformivARB} */
+    /**
+     * Unsafe version of: {@link #glGetUniformivARB GetUniformivARB}
+     */
     public static native void nglGetUniformivARB(int programObj, int location, long params);
 
     /**
@@ -1048,7 +1074,8 @@ public class ARBShaderObjects {
      */
     @NativeType("void")
     public static int glGetUniformiARB(@NativeType("GLhandleARB") int programObj, @NativeType("GLint") int location) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         try {
             IntBuffer params = stack.callocInt(1);
             nglGetUniformivARB(programObj, location, memAddress(params));
@@ -1098,7 +1125,8 @@ public class ARBShaderObjects {
      */
     @NativeType("void")
     public static String glGetShaderSourceARB(@NativeType("GLhandleARB") int obj, @NativeType("GLsizei") int maxLength) {
-        MemoryStack stack = stackGet(); int stackPointer = stack.getPointer();
+        MemoryStack stack = stackGet();
+        int stackPointer = stack.getPointer();
         ByteBuffer source = memAlloc(maxLength);
         try {
             IntBuffer length = stack.ints(0);
@@ -1124,7 +1152,9 @@ public class ARBShaderObjects {
         return glGetShaderSourceARB(obj, glGetObjectParameteriARB(obj, GL_OBJECT_SHADER_SOURCE_LENGTH_ARB));
     }
 
-    /** Array version of: {@link #glShaderSourceARB ShaderSourceARB} */
+    /**
+     * Array version of: {@link #glShaderSourceARB ShaderSourceARB}
+     */
     public static void glShaderSourceARB(@NativeType("GLhandleARB") int shaderObj, @NativeType("GLcharARB const **") PointerBuffer string, @Nullable @NativeType("GLint const *") int[] length) {
         long __functionAddress = GL.getICD().glShaderSourceARB;
         if (CHECKS) {
@@ -1134,7 +1164,9 @@ public class ARBShaderObjects {
         callPPV(shaderObj, string.remaining(), memAddress(string), length, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform1fvARB Uniform1fvARB} */
+    /**
+     * Array version of: {@link #glUniform1fvARB Uniform1fvARB}
+     */
     public static void glUniform1fvARB(@NativeType("GLint") int location, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniform1fvARB;
         if (CHECKS) {
@@ -1143,7 +1175,9 @@ public class ARBShaderObjects {
         callPV(location, value.length, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform2fvARB Uniform2fvARB} */
+    /**
+     * Array version of: {@link #glUniform2fvARB Uniform2fvARB}
+     */
     public static void glUniform2fvARB(@NativeType("GLint") int location, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniform2fvARB;
         if (CHECKS) {
@@ -1152,7 +1186,9 @@ public class ARBShaderObjects {
         callPV(location, value.length >> 1, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform3fvARB Uniform3fvARB} */
+    /**
+     * Array version of: {@link #glUniform3fvARB Uniform3fvARB}
+     */
     public static void glUniform3fvARB(@NativeType("GLint") int location, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniform3fvARB;
         if (CHECKS) {
@@ -1161,7 +1197,9 @@ public class ARBShaderObjects {
         callPV(location, value.length / 3, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform4fvARB Uniform4fvARB} */
+    /**
+     * Array version of: {@link #glUniform4fvARB Uniform4fvARB}
+     */
     public static void glUniform4fvARB(@NativeType("GLint") int location, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniform4fvARB;
         if (CHECKS) {
@@ -1170,7 +1208,9 @@ public class ARBShaderObjects {
         callPV(location, value.length >> 2, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform1ivARB Uniform1ivARB} */
+    /**
+     * Array version of: {@link #glUniform1ivARB Uniform1ivARB}
+     */
     public static void glUniform1ivARB(@NativeType("GLint") int location, @NativeType("GLint const *") int[] value) {
         long __functionAddress = GL.getICD().glUniform1ivARB;
         if (CHECKS) {
@@ -1179,7 +1219,9 @@ public class ARBShaderObjects {
         callPV(location, value.length, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform2ivARB Uniform2ivARB} */
+    /**
+     * Array version of: {@link #glUniform2ivARB Uniform2ivARB}
+     */
     public static void glUniform2ivARB(@NativeType("GLint") int location, @NativeType("GLint const *") int[] value) {
         long __functionAddress = GL.getICD().glUniform2ivARB;
         if (CHECKS) {
@@ -1188,7 +1230,9 @@ public class ARBShaderObjects {
         callPV(location, value.length >> 1, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform3ivARB Uniform3ivARB} */
+    /**
+     * Array version of: {@link #glUniform3ivARB Uniform3ivARB}
+     */
     public static void glUniform3ivARB(@NativeType("GLint") int location, @NativeType("GLint const *") int[] value) {
         long __functionAddress = GL.getICD().glUniform3ivARB;
         if (CHECKS) {
@@ -1197,7 +1241,9 @@ public class ARBShaderObjects {
         callPV(location, value.length / 3, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniform4ivARB Uniform4ivARB} */
+    /**
+     * Array version of: {@link #glUniform4ivARB Uniform4ivARB}
+     */
     public static void glUniform4ivARB(@NativeType("GLint") int location, @NativeType("GLint const *") int[] value) {
         long __functionAddress = GL.getICD().glUniform4ivARB;
         if (CHECKS) {
@@ -1206,7 +1252,9 @@ public class ARBShaderObjects {
         callPV(location, value.length >> 2, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniformMatrix2fvARB UniformMatrix2fvARB} */
+    /**
+     * Array version of: {@link #glUniformMatrix2fvARB UniformMatrix2fvARB}
+     */
     public static void glUniformMatrix2fvARB(@NativeType("GLint") int location, @NativeType("GLboolean") boolean transpose, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniformMatrix2fvARB;
         if (CHECKS) {
@@ -1215,7 +1263,9 @@ public class ARBShaderObjects {
         callPV(location, value.length >> 2, transpose, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniformMatrix3fvARB UniformMatrix3fvARB} */
+    /**
+     * Array version of: {@link #glUniformMatrix3fvARB UniformMatrix3fvARB}
+     */
     public static void glUniformMatrix3fvARB(@NativeType("GLint") int location, @NativeType("GLboolean") boolean transpose, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniformMatrix3fvARB;
         if (CHECKS) {
@@ -1224,7 +1274,9 @@ public class ARBShaderObjects {
         callPV(location, value.length / 9, transpose, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glUniformMatrix4fvARB UniformMatrix4fvARB} */
+    /**
+     * Array version of: {@link #glUniformMatrix4fvARB UniformMatrix4fvARB}
+     */
     public static void glUniformMatrix4fvARB(@NativeType("GLint") int location, @NativeType("GLboolean") boolean transpose, @NativeType("GLfloat const *") float[] value) {
         long __functionAddress = GL.getICD().glUniformMatrix4fvARB;
         if (CHECKS) {
@@ -1233,7 +1285,9 @@ public class ARBShaderObjects {
         callPV(location, value.length >> 4, transpose, value, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetObjectParameterfvARB GetObjectParameterfvARB} */
+    /**
+     * Array version of: {@link #glGetObjectParameterfvARB GetObjectParameterfvARB}
+     */
     public static void glGetObjectParameterfvARB(@NativeType("GLhandleARB") int obj, @NativeType("GLenum") int pname, @NativeType("GLfloat *") float[] params) {
         long __functionAddress = GL.getICD().glGetObjectParameterfvARB;
         if (CHECKS) {
@@ -1243,7 +1297,9 @@ public class ARBShaderObjects {
         callPV(obj, pname, params, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetObjectParameterivARB GetObjectParameterivARB} */
+    /**
+     * Array version of: {@link #glGetObjectParameterivARB GetObjectParameterivARB}
+     */
     public static void glGetObjectParameterivARB(@NativeType("GLhandleARB") int obj, @NativeType("GLenum") int pname, @NativeType("GLint *") int[] params) {
         long __functionAddress = GL.getICD().glGetObjectParameterivARB;
         if (CHECKS) {
@@ -1253,7 +1309,9 @@ public class ARBShaderObjects {
         callPV(obj, pname, params, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetInfoLogARB GetInfoLogARB} */
+    /**
+     * Array version of: {@link #glGetInfoLogARB GetInfoLogARB}
+     */
     public static void glGetInfoLogARB(@NativeType("GLhandleARB") int obj, @Nullable @NativeType("GLsizei *") int[] length, @NativeType("GLcharARB *") ByteBuffer infoLog) {
         long __functionAddress = GL.getICD().glGetInfoLogARB;
         if (CHECKS) {
@@ -1263,7 +1321,9 @@ public class ARBShaderObjects {
         callPPV(obj, infoLog.remaining(), length, memAddress(infoLog), __functionAddress);
     }
 
-    /** Array version of: {@link #glGetAttachedObjectsARB GetAttachedObjectsARB} */
+    /**
+     * Array version of: {@link #glGetAttachedObjectsARB GetAttachedObjectsARB}
+     */
     public static void glGetAttachedObjectsARB(@NativeType("GLhandleARB") int containerObj, @Nullable @NativeType("GLsizei *") int[] count, @NativeType("GLhandleARB *") int[] obj) {
         long __functionAddress = GL.getICD().glGetAttachedObjectsARB;
         if (CHECKS) {
@@ -1273,7 +1333,9 @@ public class ARBShaderObjects {
         callPPV(containerObj, obj.length, count, obj, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetActiveUniformARB GetActiveUniformARB} */
+    /**
+     * Array version of: {@link #glGetActiveUniformARB GetActiveUniformARB}
+     */
     public static void glGetActiveUniformARB(@NativeType("GLhandleARB") int programObj, @NativeType("GLuint") int index, @Nullable @NativeType("GLsizei *") int[] length, @NativeType("GLint *") int[] size, @NativeType("GLenum *") int[] type, @NativeType("GLcharARB *") ByteBuffer name) {
         long __functionAddress = GL.getICD().glGetActiveUniformARB;
         if (CHECKS) {
@@ -1285,7 +1347,9 @@ public class ARBShaderObjects {
         callPPPPV(programObj, index, name.remaining(), length, size, type, memAddress(name), __functionAddress);
     }
 
-    /** Array version of: {@link #glGetUniformfvARB GetUniformfvARB} */
+    /**
+     * Array version of: {@link #glGetUniformfvARB GetUniformfvARB}
+     */
     public static void glGetUniformfvARB(@NativeType("GLhandleARB") int programObj, @NativeType("GLint") int location, @NativeType("GLfloat *") float[] params) {
         long __functionAddress = GL.getICD().glGetUniformfvARB;
         if (CHECKS) {
@@ -1295,7 +1359,9 @@ public class ARBShaderObjects {
         callPV(programObj, location, params, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetUniformivARB GetUniformivARB} */
+    /**
+     * Array version of: {@link #glGetUniformivARB GetUniformivARB}
+     */
     public static void glGetUniformivARB(@NativeType("GLhandleARB") int programObj, @NativeType("GLint") int location, @NativeType("GLint *") int[] params) {
         long __functionAddress = GL.getICD().glGetUniformivARB;
         if (CHECKS) {
@@ -1305,7 +1371,9 @@ public class ARBShaderObjects {
         callPV(programObj, location, params, __functionAddress);
     }
 
-    /** Array version of: {@link #glGetShaderSourceARB GetShaderSourceARB} */
+    /**
+     * Array version of: {@link #glGetShaderSourceARB GetShaderSourceARB}
+     */
     public static void glGetShaderSourceARB(@NativeType("GLhandleARB") int obj, @Nullable @NativeType("GLsizei *") int[] length, @NativeType("GLcharARB *") ByteBuffer source) {
         long __functionAddress = GL.getICD().glGetShaderSourceARB;
         if (CHECKS) {

@@ -15,21 +15,33 @@
  */
 package org.lwjgl.opengl;
 
+import org.lwjgl.LWJGLException;
+import org.lwjgl.PointerBuffer;
+
 import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.PointerBuffer;
-
 public class AWTGLCanvas extends Canvas implements Drawable, ComponentListener, HierarchyListener {
 
     private static final long serialVersionUID = 1L;
 
-    public void setPixelFormat(final PixelFormatLWJGL pf) throws LWJGLException {
-        throw new UnsupportedOperationException();
+    public AWTGLCanvas() throws LWJGLException {
+    }
+
+    public AWTGLCanvas(PixelFormat pixel_format) throws LWJGLException {
+    }
+
+    public AWTGLCanvas(GraphicsDevice device, PixelFormat pixel_format) throws LWJGLException {
+    }
+
+    public AWTGLCanvas(GraphicsDevice device, PixelFormat pixel_format, Drawable drawable) throws LWJGLException {
+    }
+
+    public AWTGLCanvas(GraphicsDevice device, PixelFormat pixel_format, Drawable drawable, ContextAttribs attribs)
+            throws LWJGLException {
     }
 
     public void setPixelFormat(final PixelFormatLWJGL pf, final ContextAttribs attribs) throws LWJGLException {
@@ -40,6 +52,10 @@ public class AWTGLCanvas extends Canvas implements Drawable, ComponentListener, 
         return null;
     }
 
+    public void setPixelFormat(final PixelFormatLWJGL pf) throws LWJGLException {
+        throw new UnsupportedOperationException();
+    }
+
     public ContextGL getContext() {
         return null;
     }
@@ -48,70 +64,85 @@ public class AWTGLCanvas extends Canvas implements Drawable, ComponentListener, 
         return null;
     }
 
-    public void checkGLError() {}
+    public void checkGLError() {
+    }
 
-    public void initContext(final float r, final float g, final float b) {}
+    public void initContext(final float r, final float g, final float b) {
+    }
 
-    public AWTGLCanvas() throws LWJGLException {}
+    public void addNotify() {
+    }
 
-    public AWTGLCanvas(PixelFormat pixel_format) throws LWJGLException {}
+    public void removeNotify() {
+    }
 
-    public AWTGLCanvas(GraphicsDevice device, PixelFormat pixel_format) throws LWJGLException {}
+    public void setSwapInterval(int swap_interval) {
+    }
 
-    public AWTGLCanvas(GraphicsDevice device, PixelFormat pixel_format, Drawable drawable) throws LWJGLException {}
+    public void setVSyncEnabled(boolean enabled) {
+    }
 
-    public AWTGLCanvas(GraphicsDevice device, PixelFormat pixel_format, Drawable drawable, ContextAttribs attribs)
-            throws LWJGLException {}
-
-    public void addNotify() {}
-
-    public void removeNotify() {}
-
-    public void setSwapInterval(int swap_interval) {}
-
-    public void setVSyncEnabled(boolean enabled) {}
-
-    public void swapBuffers() throws LWJGLException {}
+    public void swapBuffers() throws LWJGLException {
+    }
 
     public boolean isCurrent() throws LWJGLException {
         return false;
     }
 
-    public void makeCurrent() throws LWJGLException {}
+    public void makeCurrent() throws LWJGLException {
+    }
 
-    public void releaseContext() throws LWJGLException {}
+    public void releaseContext() throws LWJGLException {
+    }
 
-    public final void destroy() {}
+    public final void destroy() {
+    }
 
-    public final void setCLSharingProperties(final PointerBuffer properties) throws LWJGLException {}
+    public final void setCLSharingProperties(final PointerBuffer properties) throws LWJGLException {
+    }
 
-    protected void initGL() {}
+    protected void initGL() {
+    }
 
-    protected void paintGL() {}
+    protected void paintGL() {
+    }
 
-    public final void paint(Graphics g) {}
+    public final void paint(Graphics g) {
+    }
 
-    protected void exceptionOccurred(LWJGLException exception) {}
+    protected void exceptionOccurred(LWJGLException exception) {
+    }
 
-    public void update(Graphics g) {}
+    public void update(Graphics g) {
+    }
 
-    public void componentShown(ComponentEvent e) {}
+    public void componentShown(ComponentEvent e) {
+    }
 
-    public void componentHidden(ComponentEvent e) {}
+    public void componentHidden(ComponentEvent e) {
+    }
 
-    public void componentResized(ComponentEvent e) {}
+    public void componentResized(ComponentEvent e) {
+    }
 
-    public void componentMoved(ComponentEvent e) {}
+    public void componentMoved(ComponentEvent e) {
+    }
 
-    public void setLocation(int x, int y) {}
+    public void setLocation(int x, int y) {
+    }
 
-    public void setLocation(Point p) {}
+    public void setLocation(Point p) {
+    }
 
-    public void setSize(Dimension d) {}
+    public void setSize(Dimension d) {
+    }
 
-    public void setSize(int width, int height) {}
+    public void setSize(int width, int height) {
+    }
 
-    public void setBounds(int x, int y, int width, int height) {}
+    public void setBounds(int x, int y, int width, int height) {
+    }
 
-    public void hierarchyChanged(HierarchyEvent e) {}
+    public void hierarchyChanged(HierarchyEvent e) {
+    }
 }

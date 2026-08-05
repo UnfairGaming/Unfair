@@ -24,8 +24,11 @@ package org.lwjgl.openal;
  */
 public final class Util {
 
-    /** No c'tor */
-    private Util() {}
+    /**
+     * No c'tor
+     */
+    private Util() {
+    }
 
     /**
      * Checks for any ALC errors and throws an unchecked exception on errors

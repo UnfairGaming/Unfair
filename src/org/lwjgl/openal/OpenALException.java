@@ -42,7 +42,7 @@ public class OpenALException extends RuntimeException {
 
     /**
      * Constructor for OpenALException.
-     * 
+     *
      * @param message
      */
     public OpenALException(String message) {
@@ -51,7 +51,7 @@ public class OpenALException extends RuntimeException {
 
     /**
      * Constructor for OpenALException.
-     * 
+     *
      * @param message
      * @param cause
      */
@@ -61,7 +61,7 @@ public class OpenALException extends RuntimeException {
 
     /**
      * Constructor for OpenALException.
-     * 
+     *
      * @param cause
      */
     public OpenALException(Throwable cause) {

@@ -28,19 +28,29 @@ import java.nio.IntBuffer;
  */
 public class Cursor {
 
-    /** 1 bit transparency for native cursor */
+    /**
+     * 1 bit transparency for native cursor
+     */
     public static final int CURSOR_ONE_BIT_TRANSPARENCY = 1;
 
-    /** 8 bit alhpa native cursor */
+    /**
+     * 8 bit alhpa native cursor
+     */
     public static final int CURSOR_8_BIT_ALPHA = 2;
 
-    /** animation native cursor */
+    /**
+     * animation native cursor
+     */
     public static final int CURSOR_ANIMATION = 4;
 
-    /** First element to display */
+    /**
+     * First element to display
+     */
     private final CursorElement[] cursors;
 
-    /** Index into list of cursors */
+    /**
+     * Index into list of cursors
+     */
     private int index;
 
     private boolean destroyed;
@@ -104,7 +114,7 @@ public class Cursor {
      * Creates the actual cursor, using a platform specific class
      */
     private static CursorElement[] createCursors(int width, int height, int xHotspot, int yHotspot, int numImages,
-            IntBuffer images, IntBuffer delays) throws LWJGLException {
+                                                 IntBuffer images, IntBuffer delays) throws LWJGLException {
         // TODO
         return null;
     }
@@ -196,7 +206,7 @@ public class Cursor {
 
     /**
      * Determines whether this cursor has timed out
-     * 
+     *
      * @return true if the this cursor has timed out, false if not
      */
     protected boolean hasTimedOut() {
@@ -217,13 +227,19 @@ public class Cursor {
      */
     private static class CursorElement {
 
-        /** Handle to cursor */
+        /**
+         * Handle to cursor
+         */
         final Object cursorHandle;
 
-        /** How long a delay this element should have */
+        /**
+         * How long a delay this element should have
+         */
         final long delay;
 
-        /** Absolute time this element times out */
+        /**
+         * Absolute time this element times out
+         */
         long timeout;
 
         CursorElement(Object cursorHandle, long delay, long timeout) {

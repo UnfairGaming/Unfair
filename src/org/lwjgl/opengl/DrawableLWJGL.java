@@ -24,11 +24,11 @@ import org.lwjgl.LWJGLException;
  */
 interface DrawableLWJGL extends Drawable {
 
-    void setPixelFormat(PixelFormatLWJGL pf) throws LWJGLException;
-
     void setPixelFormat(PixelFormatLWJGL pf, ContextAttribs attribs) throws LWJGLException;
 
     PixelFormatLWJGL getPixelFormat();
+
+    void setPixelFormat(PixelFormatLWJGL pf) throws LWJGLException;
 
     /**
      * [INTERNAL USE ONLY] Returns the Drawable's Context.
