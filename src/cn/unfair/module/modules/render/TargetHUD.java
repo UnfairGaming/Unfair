@@ -9,7 +9,7 @@ import cn.unfair.module.ModuleWithModuleSettings;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.render.targethud.impl.TargetHUDExhibitionMode;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
-import cn.unfair.module.modules.render.targethud.impl.TargetHUDNewMode;
+import cn.unfair.module.modules.render.targethud.impl.TargetHUDUnfairMode;
 import cn.unfair.module.modules.render.targethud.impl.TargetHUDNovolineMode;
 import cn.unfair.module.modules.render.targethud.impl.TargetHUDRavenLegacyMode;
 import cn.unfair.module.modules.render.targethud.impl.TargetHUDRavenModernMode;
@@ -68,7 +68,7 @@ public class TargetHUD extends ModuleWithModuleSettings {
                 new TargetHUDMyauMode(),
                 new TargetHUDRavenModernMode(),
                 new TargetHUDRavenLegacyMode(),
-                new TargetHUDNewMode(),
+                new TargetHUDUnfairMode(),
                 new TargetHUDNovolineMode(),
                 new TargetHUDExhibitionMode()
         );

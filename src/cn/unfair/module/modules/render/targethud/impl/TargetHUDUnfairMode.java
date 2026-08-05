@@ -12,11 +12,11 @@ import java.awt.Color;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class TargetHUDNewMode extends TargetHUDMode {
+public class TargetHUDUnfairMode extends TargetHUDMode {
     public final PercentProperty background = new PercentProperty("background", 65);
 
-    public TargetHUDNewMode() {
-        super("New");
+    public TargetHUDUnfairMode() {
+        super("Unfair");
     }
 
     @Override
