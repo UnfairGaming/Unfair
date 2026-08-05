@@ -21,6 +21,7 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 import static org.lwjgl.opengl.GL11.*;
 
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GlfwEventLoop;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.LWJGLUtil;
 import org.lwjgl.PointerBuffer;
@@ -62,8 +63,10 @@ public class DrawableGL implements DrawableLWJGL {
 
     public ContextGL createSharedContext() throws LWJGLException {
         synchronized (GlobalLock.lock) {
-            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-            long hiddenWindow = GLFW.glfwCreateWindow(16, 16, "MC - Shared Drawable", 0, this.context.glfwWindow);
+            long hiddenWindow = GlfwEventLoop.callOnEventThread(() -> {
+                glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+                return GLFW.glfwCreateWindow(16, 16, "MC - Shared Drawable", 0, this.context.glfwWindow);
+            });
             if (hiddenWindow == 0) {
                 throw new LWJGLException("Couldn't create shared context hidden window");
             }

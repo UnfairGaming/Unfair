@@ -9,6 +9,8 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Session;
+import org.lwjgl.Sys;
+import org.lwjgl.glfw.GlfwEventLoop;
 import org.lwjgl.system.Configuration;
 
 import java.io.File;
@@ -18,6 +20,7 @@ import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.Proxy.Type;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
     public static final long startupTime = System.currentTimeMillis();
@@ -128,9 +131,32 @@ public class Main {
                 Minecraft.stopIntegratedServer();
             }
         });
-        Thread.currentThread().setName("Client thread");
-        Minecraft minecraft = new Minecraft(gameconfiguration);
-        minecraft.run();
+        Thread.currentThread().setName("GLFW Event Thread");
+        GlfwEventLoop.initializeCurrentThread();
+        Sys.initialize();
+
+        AtomicReference<Throwable> clientFailure = new AtomicReference<>();
+        Thread clientThread = new Thread(() -> {
+            try {
+                Minecraft minecraft = new Minecraft(gameconfiguration);
+                minecraft.run();
+            } catch (Throwable throwable) {
+                clientFailure.set(throwable);
+            }
+        }, "Client thread");
+
+        GlfwEventLoop.runEventLoop(clientThread);
+
+        Throwable throwable = clientFailure.get();
+        if (throwable instanceof RuntimeException) {
+            throw (RuntimeException) throwable;
+        }
+        if (throwable instanceof Error) {
+            throw (Error) throwable;
+        }
+        if (throwable != null) {
+            throw new RuntimeException("Client thread failed", throwable);
+        }
     }
 
     private static boolean isNullOrEmpty(String str) {

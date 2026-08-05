@@ -16,6 +16,7 @@
 package org.lwjgl.opengl;
 
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GlfwEventLoop;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.PointerBuffer;
@@ -72,7 +73,8 @@ public final class ContextGL implements Context {
 
     public synchronized void destroy() throws LWJGLException {
         if (shared && glfwWindow > 0) {
-            GLFW.glfwDestroyWindow(glfwWindow);
+            long window = glfwWindow;
+            GlfwEventLoop.runOnEventThread(() -> GLFW.glfwDestroyWindow(window));
             glfwWindow = -1;
         }
     }

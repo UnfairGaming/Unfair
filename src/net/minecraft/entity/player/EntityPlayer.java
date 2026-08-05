@@ -2276,7 +2276,14 @@ public abstract class EntityPlayer extends EntityLivingBase {
      */
     public String getName()
     {
-        return this.gameProfile.getName();
+        String name = this.gameProfile.getName();
+        if (name == null || name.isEmpty())
+        {
+            UUID uuid = this.gameProfile.getId();
+            return uuid == null ? "unknown" : uuid.toString();
+        }
+
+        return name;
     }
 
     /**

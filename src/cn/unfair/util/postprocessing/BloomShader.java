@@ -29,7 +29,7 @@ public class BloomShader {
             if (inputFramebuffer != null) {
                 inputFramebuffer.deleteFramebuffer();
             }
-            inputFramebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+            inputFramebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
             inputFramebuffer.setFramebufferFilter(GL_LINEAR);
         }
         return inputFramebuffer;
@@ -40,7 +40,6 @@ public class BloomShader {
         GL11.glClearColor(0, 0, 0, 0);
         fb.forceBind(true);
         fb.framebufferClearNoBinding();
-        fb.forceBind(true);
         return fb;
     }
 
@@ -48,12 +47,14 @@ public class BloomShader {
         framebufferList.forEach(Framebuffer::deleteFramebuffer);
         framebufferList.clear();
 
-        Framebuffer full = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+        Framebuffer full = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
         full.setFramebufferFilter(GL_LINEAR);
         framebufferList.add(full);
 
         for (int i = 1; i <= iterations; i++) {
-            Framebuffer currentBuffer = new Framebuffer((int) (mc.displayWidth / Math.pow(2, i)), (int) (mc.displayHeight / Math.pow(2, i)), true);
+            int width = Math.max(1, mc.displayWidth >> i);
+            int height = Math.max(1, mc.displayHeight >> i);
+            Framebuffer currentBuffer = new Framebuffer(width, height, false);
             currentBuffer.setFramebufferFilter(GL_LINEAR);
             GlStateManager.bindTexture(currentBuffer.framebufferTexture);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL14.GL_MIRRORED_REPEAT);
@@ -89,7 +90,6 @@ public class BloomShader {
         Framebuffer lastBuffer = framebufferList.get(0);
         lastBuffer.forceBind(true);
         lastBuffer.framebufferClearNoBinding();
-        lastBuffer.forceBind(true);
         KAWASE_UP.init();
         KAWASE_UP.setUniformf("offset", offset, offset);
         KAWASE_UP.setUniformf("halfpixel", 1.0f / lastBuffer.framebufferWidth, 1.0f / lastBuffer.framebufferHeight);
@@ -118,7 +118,6 @@ public class BloomShader {
     private static void renderDownFBO(Framebuffer fb, int texture, float offset) {
         fb.forceBind(true);
         fb.framebufferClearNoBinding();
-        fb.forceBind(true);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         KAWASE_DOWN.init();
         KAWASE_DOWN.setUniformf("offset", offset, offset);
@@ -133,7 +132,6 @@ public class BloomShader {
     private static void renderUpFBO(Framebuffer fb, int texture, float offset, Color color) {
         fb.forceBind(true);
         fb.framebufferClearNoBinding();
-        fb.forceBind(true);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         KAWASE_UP.init();
         KAWASE_UP.setUniformf("offset", offset, offset);

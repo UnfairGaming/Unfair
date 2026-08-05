@@ -39,6 +39,10 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 public class RenderUtil {
+    private static final ResourceLocation INVENTORY_TEXTURE = new ResourceLocation("textures/gui/container/inventory.png");
+    private static final int SKEET_OUTER_COLOR = 0xE6121212;
+    private static final int SKEET_MIDDLE_COLOR = 0xFF2A2A2A;
+    private static final int SKEET_INNER_COLOR = 0xFF171717;
     private static final String ROUNDED_RECT_SRC =
             "#version 120\n" +
                     "uniform vec2 location, rectSize, screenSize;\n" +
@@ -128,6 +132,13 @@ public class RenderUtil {
     private static FloatBuffer modelViewBuffer;
     private static FloatBuffer projectionBuffer;
     private static FloatBuffer vectorBuffer;
+    private static int cachedScaleDisplayWidth = -1;
+    private static int cachedScaleDisplayHeight = -1;
+    private static int cachedScaleGuiScale = -1;
+    private static boolean cachedScaleUnicode = false;
+    private static int cachedScaleFactor = 1;
+    private static int cachedScaledWidth = 0;
+    private static int cachedScaledHeight = 0;
     private static Map<Integer, EnchantmentData> enchantmentMap;
 
     static {
@@ -335,7 +346,7 @@ public class RenderUtil {
         GlStateManager.clear(256);
         GlStateManager.pushMatrix();
         GlStateManager.scale(1.0f, 1.0f, -0.01f);
-        mc.getTextureManager().bindTexture(new ResourceLocation("textures/gui/container/inventory.png"));
+        mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
         Gui.drawModalRectWithCustomSizedTexture(x, y, n3 % 8 * 18, 198 + (double) n3 / 8 * 18, 18, 18, 256.0f, 256.0f);
         GlStateManager.popMatrix();
         GlStateManager.enableAlpha();
@@ -576,17 +587,17 @@ public class RenderUtil {
     }
 
     public static void drawFramebuffer(Framebuffer framebuffer) {
-        ScaledResolution scaledResolution = new ScaledResolution(mc);
+        updateScaledResolutionCache();
         GlStateManager.bindTexture(framebuffer.framebufferTexture);
         GL11.glBegin(GL11.GL_QUADS);
         GL11.glTexCoord2d(0.0, 1.0);
         GL11.glVertex2d(0.0, 0.0);
         GL11.glTexCoord2d(0.0, 0.0);
-        GL11.glVertex2d(0.0, scaledResolution.getScaledHeight());
+        GL11.glVertex2d(0.0, cachedScaledHeight);
         GL11.glTexCoord2d(1.0, 0.0);
-        GL11.glVertex2d(scaledResolution.getScaledWidth(), scaledResolution.getScaledHeight());
+        GL11.glVertex2d(cachedScaledWidth, cachedScaledHeight);
         GL11.glTexCoord2d(1.0, 1.0);
-        GL11.glVertex2d(scaledResolution.getScaledWidth(), 0.0);
+        GL11.glVertex2d(cachedScaledWidth, 0.0);
         GL11.glEnd();
     }
 
@@ -736,31 +747,46 @@ public class RenderUtil {
     }
 
     public static Vector4d projectToScreen(Entity entity, double screenScale) {
-        Vector4d vector4d;
-        {
-            double d3 = RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, RenderUtil.mc.timer.renderPartialTicks);
-            double d4 = RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, RenderUtil.mc.timer.renderPartialTicks);
-            double d5 = RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, RenderUtil.mc.timer.renderPartialTicks);
-            AxisAlignedBB axisAlignedBB = entity.getEntityBoundingBox().expand(0.1f, 0.1f, 0.1f).offset(d3 - entity.posX, d4 - entity.posY, d5 - entity.posZ);
-            vector4d = null;
-            for (Vector3d vector3d : new Vector3d[]{new Vector3d(axisAlignedBB.minX, axisAlignedBB.minY, axisAlignedBB.minZ), new Vector3d(axisAlignedBB.minX, axisAlignedBB.maxY, axisAlignedBB.minZ), new Vector3d(axisAlignedBB.maxX, axisAlignedBB.minY, axisAlignedBB.minZ), new Vector3d(axisAlignedBB.maxX, axisAlignedBB.maxY, axisAlignedBB.minZ), new Vector3d(axisAlignedBB.minX, axisAlignedBB.minY, axisAlignedBB.maxZ), new Vector3d(axisAlignedBB.minX, axisAlignedBB.maxY, axisAlignedBB.maxZ), new Vector3d(axisAlignedBB.maxX, axisAlignedBB.minY, axisAlignedBB.maxZ), new Vector3d(axisAlignedBB.maxX, axisAlignedBB.maxY, axisAlignedBB.maxZ)}) {
-                GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
-                GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
-                GL11.glGetInteger(GL11.GL_VIEWPORT, viewportBuffer);
-                if (!GLU.gluProject((float) (vector3d.x - mc.getRenderManager().getRenderPosX()), (float) (vector3d.y - mc.getRenderManager().getRenderPosY()), (float) (vector3d.z - mc.getRenderManager().getRenderPosZ()), modelViewBuffer, projectionBuffer, viewportBuffer, vectorBuffer))
-                    continue;
-                vector3d = new Vector3d((double) vectorBuffer.get(0) / screenScale, (double) ((float) Display.getHeight() - vectorBuffer.get(1)) / screenScale, vectorBuffer.get(2));
-                if (!(vector3d.z >= 0.0) || !(vector3d.z < 1.0)) continue;
-                if (vector4d == null) {
-                    vector4d = new Vector4d(vector3d.x, vector3d.y, vector3d.z, 0.0);
-                }
-                vector4d.x = Math.min(vector3d.x, vector4d.x);
-                vector4d.y = Math.min(vector3d.y, vector4d.y);
-                vector4d.z = Math.max(vector3d.x, vector4d.z);
-                vector4d.w = Math.max(vector3d.y, vector4d.w);
+        double d3 = RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, RenderUtil.mc.timer.renderPartialTicks);
+        double d4 = RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, RenderUtil.mc.timer.renderPartialTicks);
+        double d5 = RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, RenderUtil.mc.timer.renderPartialTicks);
+        AxisAlignedBB bb = entity.getEntityBoundingBox().expand(0.1f, 0.1f, 0.1f).offset(d3 - entity.posX, d4 - entity.posY, d5 - entity.posZ);
+
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
+        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportBuffer);
+
+        Vector4d bounds = null;
+        double renderX = mc.getRenderManager().getRenderPosX();
+        double renderY = mc.getRenderManager().getRenderPosY();
+        double renderZ = mc.getRenderManager().getRenderPosZ();
+
+        for (int i = 0; i < 8; i++) {
+            double cornerX = (i & 2) == 0 ? bb.minX : bb.maxX;
+            double cornerY = (i & 1) == 0 ? bb.minY : bb.maxY;
+            double cornerZ = (i & 4) == 0 ? bb.minZ : bb.maxZ;
+            if (!GLU.gluProject((float) (cornerX - renderX), (float) (cornerY - renderY), (float) (cornerZ - renderZ), modelViewBuffer, projectionBuffer, viewportBuffer, vectorBuffer)) {
+                continue;
+            }
+
+            double projectedX = vectorBuffer.get(0) / screenScale;
+            double projectedY = (Display.getHeight() - vectorBuffer.get(1)) / screenScale;
+            double projectedZ = vectorBuffer.get(2);
+            if (projectedZ < 0.0 || projectedZ >= 1.0) {
+                continue;
+            }
+
+            if (bounds == null) {
+                bounds = new Vector4d(projectedX, projectedY, projectedX, projectedY);
+            } else {
+                bounds.x = Math.min(projectedX, bounds.x);
+                bounds.y = Math.min(projectedY, bounds.y);
+                bounds.z = Math.max(projectedX, bounds.z);
+                bounds.w = Math.max(projectedY, bounds.w);
             }
         }
-        return vector4d;
+
+        return bounds;
     }
 
     public static boolean isInViewFrustum(AxisAlignedBB axisAlignedBB, double expand) {
@@ -802,11 +828,11 @@ public class RenderUtil {
     }
 
     public static void scissor(double x, double y, double width, double height) {
-        ScaledResolution sr = new ScaledResolution(mc);
-        int scale = sr.getScaleFactor();
+        updateScaledResolutionCache();
+        int scale = cachedScaleFactor;
 
         int scaledX = (int) (x * scale);
-        int scaledY = (int) ((sr.getScaledHeight() - (y + height)) * scale);
+        int scaledY = (int) ((cachedScaledHeight - (y + height)) * scale);
         int scaledWidth = (int) (width * scale);
         int scaledHeight = (int) (height * scale);
 
@@ -919,16 +945,48 @@ public class RenderUtil {
     }
 
     public static void drawSkeetRect(float x, float y, float width, float height) {
-        drawRect(x, y, x + width, y + height, new Color(18, 18, 18, 230).getRGB());
-        drawRect(x + 1.0F, y + 1.0F, x + width - 1.0F, y + height - 1.0F, new Color(42, 42, 42, 255).getRGB());
-        drawRect(x + 2.0F, y + 2.0F, x + width - 2.0F, y + height - 2.0F, new Color(23, 23, 23, 255).getRGB());
+        drawRect(x, y, x + width, y + height, SKEET_OUTER_COLOR);
+        drawRect(x + 1.0F, y + 1.0F, x + width - 1.0F, y + height - 1.0F, SKEET_MIDDLE_COLOR);
+        drawRect(x + 2.0F, y + 2.0F, x + width - 2.0F, y + height - 2.0F, SKEET_INNER_COLOR);
     }
 
     public static void drawRoundedRect(float x, float y, float width, float height, float radius, boolean blur, Color color) {
         if (width <= 0.0F || height <= 0.0F || color.getAlpha() <= 0) {
             return;
         }
+        drawRoundedRect(
+                x,
+                y,
+                width,
+                height,
+                radius,
+                blur,
+                color.getRed() / 255.0F,
+                color.getGreen() / 255.0F,
+                color.getBlue() / 255.0F,
+                color.getAlpha() / 255.0F
+        );
+    }
 
+    private static void drawRoundedRect(float x, float y, float width, float height, float radius, boolean blur, int color) {
+        if (width <= 0.0F || height <= 0.0F || ((color >> 24) & 0xFF) <= 0) {
+            return;
+        }
+        drawRoundedRect(
+                x,
+                y,
+                width,
+                height,
+                radius,
+                blur,
+                (color >> 16 & 255) / 255.0F,
+                (color >> 8 & 255) / 255.0F,
+                (color & 255) / 255.0F,
+                (color >> 24 & 255) / 255.0F
+        );
+    }
+
+    private static void drawRoundedRect(float x, float y, float width, float height, float radius, boolean blur, float red, float green, float blue, float alpha) {
         radius = Math.min(radius, Math.min(width, height) / 2.0F);
 
         GlStateManager.resetColor();
@@ -945,10 +1003,10 @@ public class RenderUtil {
         roundedShader.setUniformi("blur", blur ? 1 : 0);
         roundedShader.setUniformf(
                 "color",
-                color.getRed() / 255.0F,
-                color.getGreen() / 255.0F,
-                color.getBlue() / 255.0F,
-                color.getAlpha() / 255.0F
+                red,
+                green,
+                blue,
+                alpha
         );
 
         drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
@@ -999,7 +1057,7 @@ public class RenderUtil {
         if (x2 <= x || y2 <= y) {
             return;
         }
-        drawRoundedRect(x, y, x2 - x, y2 - y, radius, false, new Color(color, true));
+        drawRoundedRect(x, y, x2 - x, y2 - y, radius, false, color);
     }
 
     public static void drawRoundedGradientRect(float x, float y, float x2, float y2, float radius, final int n6, final int n7, final int n8, final int n9) {
@@ -1231,7 +1289,8 @@ public class RenderUtil {
     }
 
     private static int getScaleFactor() {
-        return new ScaledResolution(mc).getScaleFactor();
+        updateScaledResolutionCache();
+        return cachedScaleFactor;
     }
 
     private static void setupRoundedRectUniforms(ShaderUtils shader, float x, float y, float width, float height) {
@@ -1242,6 +1301,28 @@ public class RenderUtil {
         shader.setUniformf("location", locX, locY);
         shader.setUniformf("rectSize", width * sf, height * sf);
         shader.setUniformf("screenSize", mc.displayWidth, mc.displayHeight);
+    }
+
+    private static void updateScaledResolutionCache() {
+        int displayWidth = mc.displayWidth;
+        int displayHeight = mc.displayHeight;
+        int guiScale = mc.gameSettings.guiScale;
+        boolean unicode = mc.isUnicode();
+        if (displayWidth == cachedScaleDisplayWidth
+                && displayHeight == cachedScaleDisplayHeight
+                && guiScale == cachedScaleGuiScale
+                && unicode == cachedScaleUnicode) {
+            return;
+        }
+
+        ScaledResolution sr = new ScaledResolution(mc);
+        cachedScaleDisplayWidth = displayWidth;
+        cachedScaleDisplayHeight = displayHeight;
+        cachedScaleGuiScale = guiScale;
+        cachedScaleUnicode = unicode;
+        cachedScaleFactor = sr.getScaleFactor();
+        cachedScaledWidth = sr.getScaledWidth();
+        cachedScaledHeight = sr.getScaledHeight();
     }
 
     private static void setShaderColor(ShaderUtils shader, String uniform, int color) {
@@ -1290,19 +1371,23 @@ public class RenderUtil {
     }
 
     public static Framebuffer createFrameBuffer(Framebuffer framebuffer, boolean depth) {
+        boolean created = false;
         if (needsNewFramebuffer(framebuffer)) {
             if (framebuffer != null) {
                 framebuffer.deleteFramebuffer();
             }
             framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, depth);
             framebuffer.setFramebufferFilter(GL_LINEAR);
+            created = true;
         }
-        glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        if (created) {
+            glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
         return framebuffer;
     }
 
@@ -1367,31 +1452,18 @@ public class RenderUtil {
     }
 
     public static float[] project2D(float x, float y, float z, int scaleFactor) {
-        IntBuffer viewport = createIntBuffer(16);
-        FloatBuffer modelView = createFloatBuffer(16);
-        FloatBuffer projection = createFloatBuffer(16);
-        FloatBuffer result = createFloatBuffer(4);
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
+        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportBuffer);
 
-        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelView);
-        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projection);
-        GL11.glGetInteger(GL11.GL_VIEWPORT, viewport);
-
-        if (GLU.gluProject(x, y, z, modelView, projection, viewport, result)) {
-            ScaledResolution sr = new ScaledResolution(mc);
+        if (GLU.gluProject(x, y, z, modelViewBuffer, projectionBuffer, viewportBuffer, vectorBuffer)) {
+            updateScaledResolutionCache();
             return new float[]{
-                    result.get(0) / scaleFactor,
-                    (sr.getScaledHeight() - result.get(1) / scaleFactor),
-                    result.get(2)
+                    vectorBuffer.get(0) / scaleFactor,
+                    (cachedScaledHeight - vectorBuffer.get(1) / scaleFactor),
+                    vectorBuffer.get(2)
             };
         }
         return null;
-    }
-
-    private static IntBuffer createIntBuffer(int size) {
-        return org.lwjgl.BufferUtils.createIntBuffer(size);
-    }
-
-    private static FloatBuffer createFloatBuffer(int size) {
-        return org.lwjgl.BufferUtils.createFloatBuffer(size);
     }
 }

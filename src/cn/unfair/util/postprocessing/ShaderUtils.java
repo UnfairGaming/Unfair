@@ -22,6 +22,13 @@ public class ShaderUtils {
 
     private final int programID;
     private final Map<String, Integer> uniformLocations = new HashMap<>();
+    private static int cachedDisplayWidth = -1;
+    private static int cachedDisplayHeight = -1;
+    private static int cachedGuiScale = -1;
+    private static boolean cachedUnicode = false;
+    private static int cachedScaleFactor = 1;
+    private static float cachedScaledWidth = 0.0F;
+    private static float cachedScaledHeight = 0.0F;
 
     public ShaderUtils(String fragmentName) {
         this(fragmentName, DEFAULT_VERTEX);
@@ -104,8 +111,31 @@ public class ShaderUtils {
         return location;
     }
 
+    public void setUniformf(String name, float v0) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform1f(loc, v0);
+    }
+
+    public void setUniformf(String name, float v0, float v1) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform2f(loc, v0, v1);
+    }
+
+    public void setUniformf(String name, float v0, float v1, float v2) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform3f(loc, v0, v1, v2);
+    }
+
+    public void setUniformf(String name, float v0, float v1, float v2, float v3) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform4f(loc, v0, v1, v2, v3);
+    }
+
     public void setUniformf(String name, float... values) {
         int loc = this.getUniformLocation(name);
+        if (loc < 0) {
+            return;
+        }
         switch (values.length) {
             case 1:
                 GL20.glUniform1f(loc, values[0]);
@@ -124,8 +154,31 @@ public class ShaderUtils {
         }
     }
 
+    public void setUniformi(String name, int v0) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform1i(loc, v0);
+    }
+
+    public void setUniformi(String name, int v0, int v1) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform2i(loc, v0, v1);
+    }
+
+    public void setUniformi(String name, int v0, int v1, int v2) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform3i(loc, v0, v1, v2);
+    }
+
+    public void setUniformi(String name, int v0, int v1, int v2, int v3) {
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform4i(loc, v0, v1, v2, v3);
+    }
+
     public void setUniformi(String name, int... values) {
         int loc = this.getUniformLocation(name);
+        if (loc < 0) {
+            return;
+        }
         switch (values.length) {
             case 1:
                 GL20.glUniform1i(loc, values[0]);
@@ -145,7 +198,8 @@ public class ShaderUtils {
     }
 
     public void setUniform1(String name, FloatBuffer values) {
-        GL20.glUniform1(this.getUniformLocation(name), values);
+        int loc = this.getUniformLocation(name);
+        if (loc >= 0) GL20.glUniform1(loc, values);
     }
 
     public static void drawQuads(float width, float height) {
@@ -162,16 +216,39 @@ public class ShaderUtils {
     }
 
     public static void drawQuads() {
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(Minecraft.getMinecraft());
-        drawQuads(sr.getScaledWidth(), sr.getScaledHeight());
+        updateScaledResolutionCache();
+        drawQuads(cachedScaledWidth, cachedScaledHeight);
     }
 
     public static void drawFixedQuads() {
-        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(Minecraft.getMinecraft());
-        int factor = sr.getScaleFactor();
-        float width = (float) (Minecraft.getMinecraft().displayWidth / factor);
-        float height = (float) (Minecraft.getMinecraft().displayHeight / factor);
+        updateScaledResolutionCache();
+        Minecraft mc = Minecraft.getMinecraft();
+        float width = mc.displayWidth / (float) cachedScaleFactor;
+        float height = mc.displayHeight / (float) cachedScaleFactor;
         drawQuads(width, height);
+    }
+
+    private static void updateScaledResolutionCache() {
+        Minecraft mc = Minecraft.getMinecraft();
+        int displayWidth = mc.displayWidth;
+        int displayHeight = mc.displayHeight;
+        int guiScale = mc.gameSettings.guiScale;
+        boolean unicode = mc.isUnicode();
+        if (displayWidth == cachedDisplayWidth
+                && displayHeight == cachedDisplayHeight
+                && guiScale == cachedGuiScale
+                && unicode == cachedUnicode) {
+            return;
+        }
+
+        net.minecraft.client.gui.ScaledResolution sr = new net.minecraft.client.gui.ScaledResolution(mc);
+        cachedDisplayWidth = displayWidth;
+        cachedDisplayHeight = displayHeight;
+        cachedGuiScale = guiScale;
+        cachedUnicode = unicode;
+        cachedScaleFactor = sr.getScaleFactor();
+        cachedScaledWidth = sr.getScaledWidth();
+        cachedScaledHeight = sr.getScaledHeight();
     }
 
     private static final String KAWASE_DOWN_BLOOM = "#version 120\n" +

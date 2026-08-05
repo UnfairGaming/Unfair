@@ -6,6 +6,7 @@ import java.nio.IntBuffer;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GlfwEventLoop;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.opengl.Display;
@@ -159,10 +160,10 @@ public class Mouse {
         if (grabbed == grab) {
             return;
         }
-        GLFW.glfwSetInputMode(
+        GlfwEventLoop.runOnEventThread(() -> GLFW.glfwSetInputMode(
                 Display.getWindow(),
                 GLFW.GLFW_CURSOR,
-                grab ? GLFW.GLFW_CURSOR_DISABLED : GLFW.GLFW_CURSOR_NORMAL);
+                grab ? GLFW.GLFW_CURSOR_DISABLED : GLFW.GLFW_CURSOR_NORMAL));
         grabbed = grab;
         if (!grab) {
             // The old cursor position is sent instead of the new one in the events following mouse ungrab.
@@ -275,7 +276,7 @@ public class Mouse {
         if (grabbed) {
             return;
         }
-        GLFW.glfwSetCursorPos(Display.getWindow(), new_x, new_y);
+        GlfwEventLoop.runOnEventThread(() -> GLFW.glfwSetCursorPos(Display.getWindow(), new_x, new_y));
         addMoveEvent(new_x, new_y);
     }
 

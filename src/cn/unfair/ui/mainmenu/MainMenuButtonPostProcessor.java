@@ -4,7 +4,6 @@ import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.PostProcessing;
 import cn.unfair.util.StencilUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.shader.Framebuffer;
@@ -51,8 +50,7 @@ public final class MainMenuButtonPostProcessor {
                     renderer.renderMask(bound);
                 }
                 StencilUtil.erase(true);
-                ScaledResolution sr = new ScaledResolution(mc);
-                cn.unfair.util.postprocessing.PostProcessing.drawBlur(0.0F, 0.0F, sr.getScaledWidth(), sr.getScaledHeight(), pp.blurIterations.getValue(), pp.blurOffset.getValue());
+                cn.unfair.util.postprocessing.PostProcessing.drawBlurFullScreen(pp.blurIterations.getValue(), pp.blurOffset.getValue());
                 StencilUtil.dispose();
                 mc.getFramebuffer().bindFramebuffer(false);
             }

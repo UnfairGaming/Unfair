@@ -8,7 +8,6 @@ import cn.unfair.events.PostProcessBlurEvent;
 import cn.unfair.module.modules.render.PostProcessing;
 import cn.unfair.util.StencilUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.GL11;
@@ -43,8 +42,7 @@ public class PostProcessingRenderer {
                         GL11.glDisable(GL11.GL_CULL_FACE);
                     }
 
-                    ScaledResolution sr = new ScaledResolution(mc);
-                    cn.unfair.util.postprocessing.PostProcessing.drawBlur(0, 0, sr.getScaledWidth(), sr.getScaledHeight(), pp.blurIterations.getValue(), pp.blurOffset.getValue());
+                    cn.unfair.util.postprocessing.PostProcessing.drawBlurFullScreen(pp.blurIterations.getValue(), pp.blurOffset.getValue());
                 } finally {
                     StencilUtil.dispose();
                     if (cullWasEnabled) {

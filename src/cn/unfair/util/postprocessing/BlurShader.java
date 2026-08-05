@@ -69,14 +69,14 @@ public class BlurShader {
             if (pass1 != null) {
                 pass1.deleteFramebuffer();
             }
-            pass1 = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+            pass1 = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
             pass1.setFramebufferFilter(GL11.GL_LINEAR);
         }
         if (pass2 == null || pass2.framebufferWidth != mc.displayWidth || pass2.framebufferHeight != mc.displayHeight) {
             if (pass2 != null) {
                 pass2.deleteFramebuffer();
             }
-            pass2 = new Framebuffer(mc.displayWidth, mc.displayHeight, true);
+            pass2 = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
             pass2.setFramebufferFilter(GL11.GL_LINEAR);
         }
     }
@@ -89,6 +89,11 @@ public class BlurShader {
     }
 
     public static int render(int inputTexture, float radius, float x, float y, float w, float h, int screenW, int screenH) {
+        radius = Math.max(0.0f, radius);
+        if (radius <= 0.0f) {
+            return inputTexture;
+        }
+
         ensureFramebuffers();
         ShaderUtils s = ensureShader();
 
@@ -96,14 +101,13 @@ public class BlurShader {
         GL11.glClearColor(0, 0, 0, 0);
         pass1.forceBind(true);
         pass1.framebufferClearNoBinding();
-        pass1.forceBind(true);
         s.init();
         s.setUniformi("DiffuseSampler", 0);
         s.setUniformf("InSize", screenW, screenH);
         s.setUniformf("BlurDir", 1.0f, 0.0f);
         s.setUniformf("BlurXY", x, screenH - y - h);
         s.setUniformf("BlurCoord", w, h);
-        s.setUniformf("Radius", Math.max(0.0f, radius));
+        s.setUniformf("Radius", radius);
         GlStateManager.bindTexture(inputTexture);
         ShaderUtils.drawQuads();
         s.unload();
@@ -112,14 +116,13 @@ public class BlurShader {
         GL11.glClearColor(0, 0, 0, 0);
         pass2.forceBind(true);
         pass2.framebufferClearNoBinding();
-        pass2.forceBind(true);
         s.init();
         s.setUniformi("DiffuseSampler", 0);
         s.setUniformf("InSize", screenW, screenH);
         s.setUniformf("BlurDir", 0.0f, 1.0f);
         s.setUniformf("BlurXY", x, screenH - y - h);
         s.setUniformf("BlurCoord", w, h);
-        s.setUniformf("Radius", Math.max(0.0f, radius));
+        s.setUniformf("Radius", radius);
         GlStateManager.bindTexture(pass1.framebufferTexture);
         ShaderUtils.drawQuads();
         s.unload();

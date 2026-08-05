@@ -269,7 +269,6 @@ public class ChestESP extends Module {
             this.renderGlowChests(event.getPartialTicks());
             this.framebuffer.unbindFramebuffer();
             mc.getFramebuffer().bindFramebuffer(true);
-            this.renderGlowChests(event.getPartialTicks());
             GlStateManager.disableLighting();
         }
 
