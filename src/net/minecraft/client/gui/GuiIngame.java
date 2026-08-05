@@ -445,7 +445,7 @@ public class GuiIngame extends Gui {
             }
 
             int i = (int) ((scaledRes.getScaledWidth() - this.getFontRenderer().getStringWidth(s)) / 2);
-            int j = scaledRes.getScaledHeight() - 59;
+            int j = scaledRes.getScaledHeight() - 59 - this.getSelectedItemHealthOffset();
 
             if (!this.mc.playerController.shouldDrawHUD()) {
                 j += 14;
@@ -468,6 +468,19 @@ public class GuiIngame extends Gui {
         }
 
         this.mc.mcProfiler.endSection();
+    }
+
+    private int getSelectedItemHealthOffset() {
+        if (!this.mc.playerController.shouldDrawHUD() || !(this.mc.getRenderViewEntity() instanceof EntityPlayer entityplayer)) {
+            return 0;
+        }
+
+        IAttributeInstance maxHealth = entityplayer.getEntityAttribute(SharedMonsterAttributes.maxHealth);
+        float health = maxHealth == null ? entityplayer.getMaxHealth() : (float) maxHealth.getAttributeValue();
+        float absorption = entityplayer.getAbsorptionAmount();
+        int rows = MathHelper.ceiling_float_int((health + absorption) / 2.0F / 10.0F);
+        int rowHeight = Math.max(10 - (rows - 2), 3);
+        return Math.max(rows - 1, 0) * rowHeight;
     }
 
     public void renderDemo(ScaledResolution scaledRes) {
