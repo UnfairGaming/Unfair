@@ -11,10 +11,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Map;
 
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -124,6 +126,12 @@ public class FontRenderer implements IResourceManagerReloadListener {
     private final float[] charWidthFloat = new float[256];
     private boolean blend = false;
     private final GlBlendState oldBlendState = new GlBlendState();
+    private final Map<String, Integer> stringWidthCache = new LinkedHashMap<String, Integer>(256, 0.75F, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Integer> eldest) {
+            return this.size() > 512;
+        }
+    };
 
     public FontRenderer(GameSettings gameSettingsIn, ResourceLocation location, TextureManager textureManagerIn, boolean unicode) {
         this.gameSettings = gameSettingsIn;
@@ -169,6 +177,9 @@ public class FontRenderer implements IResourceManagerReloadListener {
         this.locationFontTexture = FontUtils.getHdFontLocation(this.locationFontTextureBase);
 
         Arrays.fill(unicodePageLocations, null);
+        synchronized (this.stringWidthCache) {
+            this.stringWidthCache.clear();
+        }
 
         this.readFontTexture();
         this.readGlyphSizes();
@@ -625,6 +636,16 @@ public class FontRenderer implements IResourceManagerReloadListener {
             return 0;
         } else {
             text = this.transformString(text);
+            String cacheKey = (this.unicodeFlag ? "1" : "0") + '\u0000' + text;
+
+            synchronized (this.stringWidthCache) {
+                Integer cachedWidth = this.stringWidthCache.get(cacheKey);
+
+                if (cachedWidth != null) {
+                    return cachedWidth;
+                }
+            }
+
             float f = 0.0F;
             boolean flag = false;
 
@@ -656,7 +677,13 @@ public class FontRenderer implements IResourceManagerReloadListener {
                 }
             }
 
-            return Math.round(f);
+            int width = Math.round(f);
+
+            synchronized (this.stringWidthCache) {
+                this.stringWidthCache.put(cacheKey, width);
+            }
+
+            return width;
         }
     }
 

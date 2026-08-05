@@ -180,6 +180,7 @@ public class Keyboard {
     public static Queue<KeyEvent> eventQueue = new ArrayBlockingQueue<>(256);
     private static final String[] keyName = new String[Short.MAX_VALUE];
     private static final Map<String, Integer> keyMap = new HashMap<>(Short.MAX_VALUE);
+    private static final boolean[] keyDown = new boolean[KEYBOARD_SIZE];
 
     static {
         // Use reflection to find out key names
@@ -214,6 +215,9 @@ public class Keyboard {
         if (event == null || (event.state == KeyState.REPEAT && !doRepeatEvents)) {
             return;
         }
+        if (event.key > KEY_NONE && event.key < keyDown.length) {
+            keyDown[event.key] = event.state.isPressed;
+        }
         try {
             eventQueue.add(event);
         } catch (IllegalStateException ignored) {}
@@ -236,7 +240,7 @@ public class Keyboard {
     public static void create() throws LWJGLException {}
 
     public static boolean isKeyDown(int key) {
-        return GLFW.glfwGetKey(Display.getWindow(), KeyCodes.lwjglToGlfw(key)) == GLFW.GLFW_PRESS;
+        return key > KEY_NONE && key < keyDown.length && keyDown[key];
     }
 
     public static void poll() {
@@ -311,6 +315,12 @@ public class Keyboard {
     }
 
     public static void destroy() {}
+
+    public static void resetKeyStates() {
+        for (int i = 0; i < keyDown.length; ++i) {
+            keyDown[i] = false;
+        }
+    }
 
     public static final class KeyEvent {
 

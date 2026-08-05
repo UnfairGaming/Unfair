@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL14;
 import org.apache.logging.log4j.Logger;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -164,14 +165,26 @@ public class TextureUtil {
         int k = 4194304 / width;
         setTextureBlurred(blur);
         setTextureClamped(clamp);
+        int[] sourceData = null;
+
+        if (img.getType() == BufferedImage.TYPE_INT_ARGB
+                && img.getRaster().getDataBuffer() instanceof DataBufferInt dataBufferInt
+                && img.getRaster().getSampleModel() instanceof java.awt.image.SinglePixelPackedSampleModel sampleModel
+                && sampleModel.getScanlineStride() == width) {
+            sourceData = dataBufferInt.getData();
+        }
 
         synchronized (dataBuffer) {
             for (int l = 0; l < width * height; l += width * k) {
                 int i1 = l / width;
                 int j1 = Math.min(k, height - i1);
                 int k1 = width * j1;
-                img.getRGB(0, i1, width, j1, textureData, 0, width);
-                copyToBuffer(textureData, k1, dataBuffer);
+                if (sourceData != null) {
+                    copyToBufferPos(sourceData, i1 * width, k1, dataBuffer);
+                } else {
+                    img.getRGB(0, i1, width, j1, textureData, 0, width);
+                    copyToBuffer(textureData, k1, dataBuffer);
+                }
                 GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, xOffset, yOffset + i1, width, j1, GL12.GL_BGRA, GL12.GL_UNSIGNED_INT_8_8_8_8_REV, dataBuffer);
             }
         }

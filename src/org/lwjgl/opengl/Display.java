@@ -48,6 +48,8 @@ public class Display {
     private static int displayHeight = 0;
     private static int displayFramebufferWidth = 0;
     private static int displayFramebufferHeight = 0;
+    private static float displayScaleX = 1.0F;
+    private static float displayScaleY = 1.0F;
 
     private static boolean latestResized = false;
     private static int latestWidth = 0;
@@ -238,6 +240,10 @@ public class Display {
             @Override
             public void invoke(long window, boolean focused) {
                 displayFocused = focused;
+                if (!focused) {
+                    Keyboard.resetKeyStates();
+                    Mouse.resetButtonStates();
+                }
             }
         };
 
@@ -247,6 +253,15 @@ public class Display {
             @Override
             public void invoke(long window, boolean iconified) {
                 displayVisible = !iconified;
+            }
+        };
+
+        Window.windowContentScaleCallback = new GLFWWindowContentScaleCallback() {
+
+            @Override
+            public void invoke(long window, float xscale, float yscale) {
+                displayScaleX = xscale;
+                displayScaleY = yscale;
             }
         };
 
@@ -296,6 +311,11 @@ public class Display {
         GLFW.glfwGetFramebufferSize(Window.handle, fbw, fbh);
         displayFramebufferWidth = fbw.get(0);
         displayFramebufferHeight = fbh.get(0);
+        float[] xScale = new float[1];
+        float[] yScale = new float[1];
+        glfwGetWindowContentScale(Window.handle, xScale, yScale);
+        displayScaleX = xScale[0];
+        displayScaleY = yScale[0];
 
         displayX = (monitorWidth - mode.getWidth()) / 2;
         displayY = (monitorHeight - mode.getHeight()) / 2;
@@ -383,6 +403,8 @@ public class Display {
     }
 
     public static void destroy() {
+        Keyboard.resetKeyStates();
+        Mouse.resetButtonStates();
         Window.releaseCallbacks();
         glfwDestroyWindow(Window.handle);
 
@@ -577,13 +599,7 @@ public class Display {
     }
 
     public static float getPixelScaleFactor() {
-        if (!isCreated()) {
-            return 1.0f;
-        }
-        float[] xScale = new float[1];
-        float[] yScale = new float[1];
-        glfwGetWindowContentScale(getWindow(), xScale, yScale);
-        return Math.max(xScale[0], yScale[0]);
+        return isCreated() ? Math.max(displayScaleX, displayScaleY) : 1.0F;
     }
 
     public static void setSwapInterval(int value) {
@@ -624,6 +640,7 @@ public class Display {
         static GLFWScrollCallback scrollCallback;
         static GLFWWindowFocusCallback windowFocusCallback;
         static GLFWWindowIconifyCallback windowIconifyCallback;
+        static GLFWWindowContentScaleCallback windowContentScaleCallback;
         static GLFWWindowSizeCallback windowSizeCallback;
         static GLFWWindowPosCallback windowPosCallback;
         static GLFWWindowRefreshCallback windowRefreshCallback;
@@ -637,6 +654,7 @@ public class Display {
             GLFW.glfwSetScrollCallback(handle, scrollCallback);
             GLFW.glfwSetWindowFocusCallback(handle, windowFocusCallback);
             GLFW.glfwSetWindowIconifyCallback(handle, windowIconifyCallback);
+            GLFW.glfwSetWindowContentScaleCallback(handle, windowContentScaleCallback);
             GLFW.glfwSetWindowSizeCallback(handle, windowSizeCallback);
             GLFW.glfwSetWindowPosCallback(handle, windowPosCallback);
             GLFW.glfwSetWindowRefreshCallback(handle, windowRefreshCallback);
@@ -651,6 +669,7 @@ public class Display {
             scrollCallback.free();
             windowFocusCallback.free();
             windowIconifyCallback.free();
+            windowContentScaleCallback.free();
             windowSizeCallback.free();
             windowPosCallback.free();
             windowRefreshCallback.free();

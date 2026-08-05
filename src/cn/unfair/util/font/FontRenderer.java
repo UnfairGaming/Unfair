@@ -19,6 +19,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.LinkedHashMap;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,6 +80,12 @@ public class FontRenderer {
     private final Map<Integer, FontAtlas> atlases = new HashMap<>();
     private final Map<Integer, FontAtlas> harmonyRegularAtlases = new HashMap<>();
     private final Map<Integer, FontAtlas> harmonyMediumAtlases = new HashMap<>();
+    private final Map<String, Integer> stringWidthCache = new LinkedHashMap<String, Integer>(256, 0.75F, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Integer> eldest) {
+            return this.size() > 512;
+        }
+    };
     private static Font harmonyRegularFont;
     private static Font harmonyMediumFont;
 
@@ -244,7 +251,24 @@ public class FontRenderer {
         if (text == null) {
             return 0;
         }
-        return this.getStringWidth(text, getScaleFactor());
+        int scaleFactor = getScaleFactor();
+        String cacheKey = scaleFactor + "\u0000" + text;
+
+        synchronized (this.stringWidthCache) {
+            Integer cachedWidth = this.stringWidthCache.get(cacheKey);
+
+            if (cachedWidth != null) {
+                return cachedWidth;
+            }
+        }
+
+        int width = this.getStringWidth(text, scaleFactor);
+
+        synchronized (this.stringWidthCache) {
+            this.stringWidthCache.put(cacheKey, width);
+        }
+
+        return width;
     }
 
     public final float getStringVisualCenterOffset(String text) {

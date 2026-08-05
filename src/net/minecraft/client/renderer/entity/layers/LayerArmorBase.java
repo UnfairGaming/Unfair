@@ -158,15 +158,9 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
     }
 
     private ResourceLocation getArmorResource(ItemArmor p_177178_1_, boolean p_177178_2_, String p_177178_3_) {
-        String s = String.format("textures/models/armor/%s_layer_%d%s.png", new Object[]{p_177178_1_.getArmorMaterial().getName(), Integer.valueOf(p_177178_2_ ? 2 : 1), p_177178_3_ == null ? "" : String.format("_%s", new Object[]{p_177178_3_})});
-        ResourceLocation resourcelocation = (ResourceLocation) ARMOR_TEXTURE_RES_MAP.get(s);
-
-        if (resourcelocation == null) {
-            resourcelocation = ResourceLocation.of(s);
-            ARMOR_TEXTURE_RES_MAP.put(s, resourcelocation);
-        }
-
-        return resourcelocation;
+        String suffix = p_177178_3_ == null ? "" : "_" + p_177178_3_;
+        String path = "textures/models/armor/" + p_177178_1_.getArmorMaterial().getName() + "_layer_" + (p_177178_2_ ? 2 : 1) + suffix + ".png";
+        return (ResourceLocation) ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
     }
 
     protected abstract void initArmor();
@@ -188,14 +182,8 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
             s = s.substring(i + 1);
         }
 
-        String s2 = String.format("%s:textures/models/armor/%s_layer_%d%s.png", new Object[]{s1, s, this.isSlotForLeggings(p_getArmorResource_3_) ? 2 : 1, p_getArmorResource_4_ == null ? "" : String.format("_%s", new Object[]{p_getArmorResource_4_})});
-        ResourceLocation resourcelocation = (ResourceLocation) ARMOR_TEXTURE_RES_MAP.get(s2);
-
-        if (resourcelocation == null) {
-            resourcelocation = ResourceLocation.of(s2);
-            ARMOR_TEXTURE_RES_MAP.put(s2, resourcelocation);
-        }
-
-        return resourcelocation;
+        String suffix = p_getArmorResource_4_ == null ? "" : "_" + p_getArmorResource_4_;
+        String path = s1 + ":textures/models/armor/" + s + "_layer_" + (this.isSlotForLeggings(p_getArmorResource_3_) ? 2 : 1) + suffix + ".png";
+        return (ResourceLocation) ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
     }
 }

@@ -27,6 +27,7 @@ public class Mouse {
 
     private static int x = 0;
     private static int y = 0;
+    private static final boolean[] buttonDown = new boolean[8];
 
     private static int dx = 0, dy = 0, dwheel = 0;
 
@@ -83,6 +84,9 @@ public class Mouse {
     }
 
     public static void addButtonEvent(int button, boolean pressed) {
+        if (button >= 0 && button < buttonDown.length) {
+            buttonDown[button] = pressed;
+        }
         lastxEvents[queue.getNextPos()] = lastEventX;
         lastyEvents[queue.getNextPos()] = lastEventY;
         lastEventX = latestX;
@@ -194,7 +198,7 @@ public class Mouse {
     }
 
     public static boolean isButtonDown(int button) {
-        return GLFW.glfwGetMouseButton(Display.getWindow(), button) == GLFW.GLFW_PRESS;
+        return button >= 0 && button < buttonDown.length && buttonDown[button];
     }
 
     public static boolean next() {
@@ -281,6 +285,12 @@ public class Mouse {
     }
 
     public static void destroy() {}
+
+    public static void resetButtonStates() {
+        for (int i = 0; i < buttonDown.length; ++i) {
+            buttonDown[i] = false;
+        }
+    }
 
     public static int getButtonIndex(String buttonName) {
         if (buttonName.matches("BUTTON[0-9]+")) {
