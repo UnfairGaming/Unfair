@@ -108,6 +108,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
     private Integer unfairSpoofedSlot;
     private ItemStack unfairSavedItemInUse;
     private Integer unfairSavedItemInUseCount;
+    private boolean unfairHasSavedItemInUse;
     private final IResourceManager resourceManager;
     private final Random random = new Random();
     private float farPlaneDistance;
@@ -448,9 +449,10 @@ public class EntityRenderer implements IResourceManagerReloadListener {
             KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
 
             if (killAura.isEnabled() && killAura.isBlocking()) {
+                this.unfairHasSavedItemInUse = true;
                 this.unfairSavedItemInUse = this.mc.thePlayer.getItemInUse();
-                this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
                 this.unfairSavedItemInUseCount = this.mc.thePlayer.getItemInUseCount();
+                this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
                 this.mc.thePlayer.setItemInUseCount(69000);
             }
         }
@@ -467,9 +469,10 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         }
 
         if (includeBlocking) {
-            if (this.unfairSavedItemInUse != null) {
+            if (this.unfairHasSavedItemInUse) {
                 this.mc.thePlayer.setItemInUse(this.unfairSavedItemInUse);
                 this.unfairSavedItemInUse = null;
+                this.unfairHasSavedItemInUse = false;
             }
 
             if (this.unfairSavedItemInUseCount != null) {

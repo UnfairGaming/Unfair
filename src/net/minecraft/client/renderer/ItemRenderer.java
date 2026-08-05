@@ -381,19 +381,22 @@ public class ItemRenderer {
 
             if (this.itemToRender != null)
             {
-                if (this.itemToRender.getItem() instanceof ItemMap)
+                ItemStack renderedStack = this.itemToRender;
+                EnumAction enumaction = renderedStack.getItemUseAction();
+                boolean useItem = abstractclientplayer.getItemInUseCount() > 0;
+                RenderItemEvent event = new RenderItemEvent(enumaction, useItem, f, partialTicks, f1, renderedStack);
+                EventManager.call(event);
+                enumaction = event.getEnumAction();
+                useItem = event.isUseItem();
+                f = event.getAnimationProgression();
+                f1 = event.getSwingProgress();
+
+                if (renderedStack.getItem() instanceof ItemMap)
                 {
                     this.renderItemMap(abstractclientplayer, f2, f, f1);
                 }
-                else if (abstractclientplayer.getItemInUseCount() > 0)
+                else if (useItem)
                 {
-                    EnumAction enumaction = this.itemToRender.getItemUseAction();
-                    RenderItemEvent event = new RenderItemEvent(enumaction, true, f, partialTicks, f1, this.itemToRender);
-                    EventManager.call(event);
-                    enumaction = event.getEnumAction();
-                    f = event.getAnimationProgression();
-                    f1 = event.getSwingProgress();
-
                     if (!event.isCancelled()) switch (enumaction)
                     {
                         case NONE:
@@ -418,18 +421,13 @@ public class ItemRenderer {
                 }
                 else
                 {
-                    RenderItemEvent event = new RenderItemEvent(this.itemToRender.getItemUseAction(), false, f, partialTicks, f1, this.itemToRender);
-                    EventManager.call(event);
-                    f = event.getAnimationProgression();
-                    f1 = event.getSwingProgress();
-
                     if (!event.isCancelled()) {
                         this.doItemUsedTransformations(f1);
                         this.transformFirstPersonItem(f, f1);
                     }
                 }
 
-                this.renderItem(abstractclientplayer, this.itemToRender, ItemCameraTransforms.TransformType.FIRST_PERSON);
+                this.renderItem(abstractclientplayer, renderedStack, ItemCameraTransforms.TransformType.FIRST_PERSON);
             }
             else if (!abstractclientplayer.isInvisible())
             {

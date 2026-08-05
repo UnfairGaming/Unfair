@@ -622,7 +622,7 @@ public class KillAura extends Module {
         return mc.thePlayer != null && (mc.thePlayer.isUsingItem() || this.blockingState) && ItemUtil.isHoldingSword();
     }
 
-    @EventTarget(Priority.LOWEST) //DO NOT CHANGE else if you want to recode raytrace
+    @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
         if (this.easingOut && event.getType() == EventType.PRE) {
             float targetYaw = event.getNewYaw();
