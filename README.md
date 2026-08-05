@@ -1,6 +1,6 @@
 # Unfair-MCP
 
-本项目使用 Gradle 构建，编译基线为 Java 17。源码与资源沿用原目录结构，均位于 `src/`。
+本项目使用 Gradle 构建，编译基线为 Java 25。
 
 ## 构建
 
@@ -23,14 +23,6 @@ Linux/macOS:
 ```powershell
 .\gradlew.bat run
 ```
-
-`run` 任务以 `src/` 为工作目录，以兼容现有的资源目录和 `test_natives/` 相对路径。
-
-## 外部库
-
-Lombok、fastutil、JavaCV、JavaCPP、FFmpeg 和 LWJGL 已完成一次性升级并保存在
-`libs/client/` 与 `libs/lwjgl/`。Gradle 不配置远程仓库，编译与运行只读取
-`libs/` 中的本地 JAR，不会自动检查或下载新版本。
 
 当前固定版本：
 

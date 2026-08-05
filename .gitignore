@@ -4,3 +4,4 @@ build/
 out/
 run/
 *.class
+/.idea/
