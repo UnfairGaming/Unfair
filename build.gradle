@@ -1,0 +1,96 @@
+plugins {
+    id 'application'
+    id 'java'
+}
+
+group = 'net.minecraft'
+version = '1.0.0'
+
+base {
+    archivesName = 'Unfair-MCP'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        resources {
+            srcDirs = ['src']
+            exclude '**/*.java'
+        }
+    }
+    test {
+        java.srcDirs = []
+        resources.srcDirs = []
+    }
+}
+
+def lombokVersion = '1.18.46'
+def javacvVersion = '1.5.13'
+def ffmpegVersion = '8.0.1-1.5.13'
+def fastutilVersion = '8.5.19'
+def lwjglVersion = '3.4.2'
+
+dependencies {
+    implementation fileTree(dir: 'libs/minecraft', include: ['*.jar'])
+    implementation fileTree(dir: 'libs/lwjgl', include: ['*.jar'])
+    implementation fileTree(dir: 'libs/client', include: ['*.jar'], exclude: ['lombok-*.jar'])
+
+    compileOnly fileTree(dir: 'libs/client', include: ['lombok-*.jar'])
+    annotationProcessor fileTree(dir: 'libs/client', include: ['lombok-*.jar'])
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+    options.compilerArgs += ['-Xlint:deprecation', '-Xlint:unchecked']
+}
+
+application {
+    mainClass = 'Start'
+}
+
+tasks.named('run', JavaExec) {
+    workingDir = layout.projectDirectory.dir('run').asFile
+    jvmArgs '-Xmx2G'
+}
+
+tasks.named('jar', Jar) {
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
+tasks.register('verifyLocalLibraries') {
+    group = 'verification'
+    description = 'Checks that the required local library directories are populated.'
+
+    doLast {
+        def requiredFiles = [
+                "libs/client/lombok-${lombokVersion}.jar",
+                "libs/client/fastutil-${fastutilVersion}.jar",
+                "libs/client/javacv-${javacvVersion}.jar",
+                "libs/client/javacpp-${javacvVersion}.jar",
+                "libs/client/ffmpeg-${ffmpegVersion}.jar",
+                "libs/lwjgl/lwjgl-${lwjglVersion}.jar"
+        ]
+        def missingFiles = requiredFiles.findAll { !file(it).isFile() }
+
+        if (!missingFiles.isEmpty()) {
+            throw new GradleException(
+                    "Missing local libraries:\n - ${missingFiles.join('\n - ')}\n" +
+                            "Restore the checked-in files under libs/."
+            )
+        }
+    }
+}
+
+tasks.named('compileJava') {
+    dependsOn 'verifyLocalLibraries'
+}

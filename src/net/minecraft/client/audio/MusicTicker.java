@@ -1,0 +1,74 @@
+package net.minecraft.client.audio;
+
+import java.util.Random;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
+
+public class MusicTicker implements ITickable {
+    private final Random rand = new Random();
+    private final Minecraft mc;
+    private ISound currentMusic;
+    private int timeUntilNextMusic = 100;
+
+    public MusicTicker(Minecraft mcIn) {
+        this.mc = mcIn;
+    }
+
+    /**
+     * Like the old updateEntity(), except more generic.
+     */
+    public void update() {
+        MusicTicker.MusicType musicticker$musictype = this.mc.getAmbientMusicType();
+
+        if (this.currentMusic != null) {
+            if (!musicticker$musictype.getMusicLocation().equals(this.currentMusic.getSoundLocation())) {
+                this.mc.getSoundHandler().stopSound(this.currentMusic);
+                this.timeUntilNextMusic = MathHelper.getRandomIntegerInRange(this.rand, 0, musicticker$musictype.getMinDelay() / 2);
+            }
+
+            if (!this.mc.getSoundHandler().isSoundPlaying(this.currentMusic)) {
+                this.currentMusic = null;
+                this.timeUntilNextMusic = Math.min(MathHelper.getRandomIntegerInRange(this.rand, musicticker$musictype.getMinDelay(), musicticker$musictype.getMaxDelay()), this.timeUntilNextMusic);
+            }
+        }
+
+        if (this.currentMusic == null && this.timeUntilNextMusic-- <= 0) {
+            this.func_181558_a(musicticker$musictype);
+        }
+    }
+
+    public void func_181558_a(MusicTicker.MusicType p_181558_1_) {
+        this.currentMusic = PositionedSoundRecord.create(p_181558_1_.getMusicLocation());
+        this.mc.getSoundHandler().playSound(this.currentMusic);
+        this.timeUntilNextMusic = Integer.MAX_VALUE;
+    }
+
+    public void func_181557_a() {
+        if (this.currentMusic != null) {
+            this.mc.getSoundHandler().stopSound(this.currentMusic);
+            this.currentMusic = null;
+            this.timeUntilNextMusic = 0;
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public enum MusicType {
+        MENU(ResourceLocation.of("minecraft:music.menu"), 20, 600),
+        GAME(ResourceLocation.of("minecraft:music.game"), 12000, 24000),
+        CREATIVE(ResourceLocation.of("minecraft:music.game.creative"), 1200, 3600),
+        CREDITS(ResourceLocation.of("minecraft:music.game.end.credits"), Integer.MAX_VALUE, Integer.MAX_VALUE),
+        NETHER(ResourceLocation.of("minecraft:music.game.nether"), 1200, 3600),
+        END_BOSS(ResourceLocation.of("minecraft:music.game.end.dragon"), 0, 0),
+        END(ResourceLocation.of("minecraft:music.game.end"), 6000, 24000);
+
+        private final ResourceLocation musicLocation;
+        private final int minDelay;
+        private final int maxDelay;
+    }
+}
