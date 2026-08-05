@@ -1,7 +1,6 @@
 package net.minecraft.client.gui;
 
 import cn.unfair.management.altmanager.AltManagerGui;
-import cn.unfair.ui.mainmenu.MainMenuButtonPostProcessor;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.ui.mainmenu.SilentMenuButton;
 import cn.unfair.util.font.FontRenderer;
@@ -436,7 +435,6 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         this.removeExternalButtons();
         this.layoutButtons();
         MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
-        this.renderButtonPostProcessing();
 
         float titleY = this.height / 2.0F - (this.buttonList.size() * BUTTON_HEIGHT) / 2.0F;
         MainMenuStyle.drawCenteredString(this.titleFont, "Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
@@ -548,13 +546,5 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
 
     private boolean inside(double mx, double my, float x, float y, float w, float h) {
         return mx >= x && mx <= x + w && my >= y && my <= y + h;
-    }
-
-    private void renderButtonPostProcessing() {
-        List<MainMenuButtonPostProcessor.ButtonBounds> bounds = new ArrayList<>();
-        for (int i = 0; i < this.buttonList.size() && i < this.animatedX.length; i++) {
-            bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], BUTTON_RADIUS));
-        }
-        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x(), bound.y(), bound.w(), bound.h(), bound.radius()));
     }
 }

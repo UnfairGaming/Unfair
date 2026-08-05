@@ -6,6 +6,7 @@ import cn.unfair.util.postprocessing.ShaderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 import java.awt.*;
 
@@ -40,10 +41,12 @@ public final class MainMenuStyle {
     }
 
     public static void drawButton(float x, float y, float w, float h, float radius, boolean hovered) {
+        resetGuiState();
         RenderUtil.drawRoundedRectangle(x, y, x + w, y + h, radius, hovered ? BUTTON_HOVER_COLOR : BUTTON_COLOR);
     }
 
     public static void drawButtonMask(float x, float y, float w, float h, float radius) {
+        resetGuiState();
         RenderUtil.drawRoundedRectangle(x, y, x + w, y + h, radius, BUTTON_MASK_COLOR);
     }
 
@@ -55,5 +58,17 @@ public final class MainMenuStyle {
         float textX = x + width / 2.0F - font.getStringVisualCenterOffset(text);
         float textY = y + font.getMiddleOfBox(height);
         font.drawString(text, Math.round(textX), Math.round(textY), color);
+    }
+
+    private static void resetGuiState() {
+        GL20.glUseProgram(0);
+        GlStateManager.resetColor();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.disableDepth();
+        GlStateManager.disableCull();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
     }
 }

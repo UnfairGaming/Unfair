@@ -1,7 +1,6 @@
 package cn.unfair.management.altmanager;
 
 import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
-import cn.unfair.ui.mainmenu.MainMenuButtonPostProcessor;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
@@ -178,7 +177,6 @@ public class AltManagerGui extends GuiScreen {
         drawBackgroundTint();
         drawHeader();
         drawList();
-        renderToolbarPostProcessing();
         drawToolbar();
         drawDialog();
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -246,14 +244,6 @@ public class AltManagerGui extends GuiScreen {
         }
     }
 
-    private void renderToolbarPostProcessing() {
-        List<MainMenuButtonPostProcessor.ButtonBounds> bounds = new ArrayList<>();
-        for (Button button : buttons) {
-            bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(button.x, button.y, button.w, button.h, BUTTON_RADIUS));
-        }
-        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x(), bound.y(), bound.w(), bound.h(), bound.radius()), false);
-    }
-
     private void drawDialog() {
         if (dialog == Dialog.NONE) {
             return;
@@ -286,16 +276,8 @@ public class AltManagerGui extends GuiScreen {
                     oauthStatus.toLowerCase(Locale.ROOT).contains("fail") ? new Color(255, 85, 85).getRGB() : new Color(235, 245, 245).getRGB());
         }
 
-        renderDialogButtonPostProcessing(x, y);
         drawDialogButton(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), "Login");
         drawDialogButton(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), "Cancel");
-    }
-
-    private void renderDialogButtonPostProcessing(float x, float y) {
-        List<MainMenuButtonPostProcessor.ButtonBounds> bounds = new ArrayList<>();
-        bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), BUTTON_RADIUS));
-        bounds.add(new MainMenuButtonPostProcessor.ButtonBounds(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), BUTTON_RADIUS));
-        MainMenuButtonPostProcessor.render(bounds, bound -> MainMenuStyle.drawButtonMask(bound.x(), bound.y(), bound.w(), bound.h(), bound.radius()), false);
     }
 
     private void drawDialogButton(float x, float y, float w, float h, String text) {
