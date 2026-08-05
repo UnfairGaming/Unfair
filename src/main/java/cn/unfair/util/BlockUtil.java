@@ -12,7 +12,7 @@ public class BlockUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public static boolean isReplaceable(BlockPos blockPos) {
-        return BlockUtil.isReplaceable(BlockUtil.mc.theWorld.getBlockState(blockPos).getBlock());
+        return isReplaceable(BlockUtil.mc.theWorld.getBlockState(blockPos).getBlock());
     }
 
     public static boolean isReplaceable(Block block) {
@@ -22,7 +22,7 @@ public class BlockUtil {
     }
 
     public static boolean isInteractable(BlockPos blockPos) {
-        return BlockUtil.isInteractable(BlockUtil.mc.theWorld.getBlockState(blockPos).getBlock());
+        return isInteractable(BlockUtil.mc.theWorld.getBlockState(blockPos).getBlock());
     }
 
     public static boolean isInteractable(Block block) {

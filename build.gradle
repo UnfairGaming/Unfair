@@ -18,11 +18,10 @@ java {
 sourceSets {
     main {
         java {
-            srcDirs = ['src']
+            srcDirs = ['src/main/java']
         }
         resources {
-            srcDirs = ['src']
-            exclude '**/*.java'
+            srcDirs = ['src/main/resources']
         }
     }
     test {
