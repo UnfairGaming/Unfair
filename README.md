@@ -1,4 +1,4 @@
-# Unfair-MCP
+# Unfair
 
 本项目使用 Gradle 构建，编译基线为 Java 25。
 
