@@ -67,7 +67,7 @@ public abstract class Module {
         this.setEnabled(enabled);
         if (this.enabled == enabled) {
             if (((HUD) Unfair.moduleManager.modules.get(HUD.class)).toggleSound.getValue()) {
-                Unfair.moduleManager.playSound();
+                Unfair.moduleManager.playSound(enabled);
             }
             return true;
         } else {

@@ -126,7 +126,10 @@ public class ModuleManager {
         return categoryModules;
     }
 
-    public void playSound() {
+    private boolean enableSound;
+
+    public void playSound(boolean enabled) {
+        this.enableSound = enabled;
         this.sound = true;
     }
 
@@ -157,7 +160,7 @@ public class ModuleManager {
         if (event.type() == EventType.PRE) {
             if (this.sound) {
                 this.sound = false;
-                SoundUtil.playSound("random.click");
+                SoundUtil.playSound(this.enableSound ? "unfair.toggle.enable" : "unfair.toggle.disable");
             }
         }
     }

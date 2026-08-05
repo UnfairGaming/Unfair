@@ -1,0 +1,18 @@
+{
+  "unfair.toggle.enable": {
+    "category": "master",
+    "sounds": [
+      {
+        "name": "unfair/sound/enable"
+      }
+    ]
+  },
+  "unfair.toggle.disable": {
+    "category": "master",
+    "sounds": [
+      {
+        "name": "unfair/sound/disable"
+      }
+    ]
+  }
+}

@@ -1038,13 +1038,18 @@ public class KillAura extends Module {
             Vec3 stablePoint = this.getStablePoint(entity, bb);
             hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint)));
             if (this.blacklistBadHitVec.getValue() || this.blacklistHeuristic.getValue()) {
+                List<Vec3> filteredFallback = new ArrayList<>(hitboxPoints);
                 Vec3 badHitVec = hitboxPoints.stream().min(Comparator.comparingDouble(point -> point.distanceTo(eyes))).orElse(center(bb));
                 if (this.blacklistHeuristic.getValue()) {
-                    hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) < this.heuristicBuffer.getValue()
-                            || Math.abs(point.yCoord - badHitVec.yCoord) < this.heuristicBuffer.getValue() / 2.0F);
+                    double height = Math.max(bb.maxY - bb.minY, 1.0E-4D);
+                    double cappedBuffer = Math.min(this.heuristicBuffer.getValue(), height * 0.25D);
+                    hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) < cappedBuffer);
                 }
                 if (this.blacklistBadHitVec.getValue()) {
                     hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) > this.badHitVecBuffer.getValue());
+                }
+                if (hitboxPoints.isEmpty()) {
+                    hitboxPoints.addAll(filteredFallback);
                 }
                 hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint)));
             }
@@ -1412,7 +1417,7 @@ public class KillAura extends Module {
         if (this.blacklistHead.getValue() && head) return true;
         if (this.blacklistTorso.getValue() && torso) return true;
         if (this.blacklistFeet.getValue() && feet) return true;
-        return this.blacklistHeuristic.getValue() && Math.abs(point.yCoord - center(bb).yCoord - 0.2D) < this.heuristicBuffer.getValue() / 2.0F;
+        return false;
     }
 
     private boolean canSeePoint(Vec3 point, AxisAlignedBB bb, double pred, boolean outOfRange) {
