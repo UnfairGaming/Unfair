@@ -133,7 +133,7 @@ public class AugustusClickGui extends GuiScreen {
     }
 
     private float modePropertyHeight(ModeProperty mp, float y) {
-        float x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getName() + ": ");
+        float x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getDisplayName() + ": ");
         float yy = y;
         String[] modes = getModes(mp);
         for (int i = 0; i < modes.length; i++) {
@@ -142,7 +142,7 @@ public class AugustusClickGui extends GuiScreen {
                 x += fw(", ");
             }
             if (x > posX + guiWidth - 60) {
-                x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getName() + ": ");
+                x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getDisplayName() + ": ");
                 yy += fh() + 2;
             }
         }
@@ -539,19 +539,19 @@ public class AugustusClickGui extends GuiScreen {
 
         if (p instanceof BooleanProperty) {
             BooleanProperty bp = (BooleanProperty) p;
-            String full = bp.getName() + ": " + (bp.getValue() ? "true" : "false");
+            String full = bp.getDisplayName() + ": " + (bp.getValue() ? "true" : "false");
             boolean hovered = isHovered(mouseX, mouseY, nameX, y, fw(full), fh());
-            normalFont.drawString(bp.getName() + ": ", nameX, y, nameCol, false);
+            normalFont.drawString(bp.getDisplayName() + ": ", nameX, y, nameCol, false);
             int vCol = bp.getValue() ? new Color(0, 180, 0).getRGB() : new Color(180, 0, 0).getRGB();
-            normalFont.drawString(bp.getValue() ? "true" : "false", nameX + fw(bp.getName() + ": "), y, hovered ? getAccent().getRGB() : vCol, false);
+            normalFont.drawString(bp.getValue() ? "true" : "false", nameX + fw(bp.getDisplayName() + ": "), y, hovered ? getAccent().getRGB() : vCol, false);
             return y + fh() + 4;
         }
 
         if (p instanceof TextProperty) {
             TextProperty tp = (TextProperty) p;
-            normalFont.drawString(tp.getName() + ": ", nameX, y, nameCol, false);
+            normalFont.drawString(tp.getDisplayName() + ": ", nameX, y, nameCol, false);
 
-            float boxX = nameX + fw(tp.getName() + ": ");
+            float boxX = nameX + fw(tp.getDisplayName() + ": ");
             float boxW = 140;
             float boxH = fh() + 4;
             float boxY = y - 2;
@@ -592,8 +592,8 @@ public class AugustusClickGui extends GuiScreen {
 
         if (p instanceof ModeProperty) {
             ModeProperty mp = (ModeProperty) p;
-            normalFont.drawString(mp.getName() + ": ", nameX, y, nameCol, false);
-            float x = nameX + fw(mp.getName() + ": ");
+            normalFont.drawString(mp.getDisplayName() + ": ", nameX, y, nameCol, false);
+            float x = nameX + fw(mp.getDisplayName() + ": ");
             String[] modes = getModes(mp);
             for (int i = 0; i < modes.length; i++) {
                 String mode = modes[i];
@@ -606,7 +606,7 @@ public class AugustusClickGui extends GuiScreen {
                     x += fw(", ");
                 }
                 if (x > posX + guiWidth - 60) {
-                    x = nameX + fw(mp.getName() + ": ");
+                    x = nameX + fw(mp.getDisplayName() + ": ");
                     y += fh() + 2;
                 }
             }
@@ -617,16 +617,16 @@ public class AugustusClickGui extends GuiScreen {
             return renderColorPicker((ColorProperty) p, mouseX, mouseY, y);
         }
 
-        normalFont.drawString(p.getName() + ":", nameX, y, nameCol, false);
+        normalFont.drawString(p.getDisplayName() + ":", nameX, y, nameCol, false);
         return y + fh() + 4;
     }
 
     private float renderFloatSlider(FloatProperty fp, int mouseX, int mouseY, float y) {
         float nameX = posX + CONTENT_TEXT_X_OFFSET;
         int nameCol = new Color(200, 200, 200).getRGB();
-        normalFont.drawString(fp.getName() + ": ", nameX, y, nameCol, false);
+        normalFont.drawString(fp.getDisplayName() + ": ", nameX, y, nameCol, false);
 
-        SliderBounds bounds = getSliderBounds(fp.getName(), y);
+        SliderBounds bounds = getSliderBounds(fp.getDisplayName(), y);
         float sliderX = bounds.x;
         float sliderY = bounds.y;
         float sliderW = bounds.width;
@@ -654,9 +654,9 @@ public class AugustusClickGui extends GuiScreen {
     private float renderIntSlider(IntProperty ip, int mouseX, int mouseY, float y) {
         float nameX = posX + CONTENT_TEXT_X_OFFSET;
         int nameCol = new Color(200, 200, 200).getRGB();
-        normalFont.drawString(ip.getName() + ": ", nameX, y, nameCol, false);
+        normalFont.drawString(ip.getDisplayName() + ": ", nameX, y, nameCol, false);
 
-        SliderBounds bounds = getSliderBounds(ip.getName(), y);
+        SliderBounds bounds = getSliderBounds(ip.getDisplayName(), y);
         float sliderX = bounds.x;
         float sliderY = bounds.y;
         float sliderW = bounds.width;
@@ -684,9 +684,9 @@ public class AugustusClickGui extends GuiScreen {
     private float renderPercentSlider(PercentProperty pp, int mouseX, int mouseY, float y) {
         float nameX = posX + CONTENT_TEXT_X_OFFSET;
         int nameCol = new Color(200, 200, 200).getRGB();
-        normalFont.drawString(pp.getName() + ": ", nameX, y, nameCol, false);
+        normalFont.drawString(pp.getDisplayName() + ": ", nameX, y, nameCol, false);
 
-        SliderBounds bounds = getSliderBounds(pp.getName(), y);
+        SliderBounds bounds = getSliderBounds(pp.getDisplayName(), y);
         float sliderX = bounds.x;
         float sliderY = bounds.y;
         float sliderW = bounds.width;
@@ -714,7 +714,7 @@ public class AugustusClickGui extends GuiScreen {
     private float renderColorPicker(ColorProperty cp, int mouseX, int mouseY, float y) {
         float nameX = posX + CONTENT_TEXT_X_OFFSET;
         int nameCol = new Color(200, 200, 200).getRGB();
-        normalFont.drawString(cp.getName() + ": ", nameX, y, nameCol, false);
+        normalFont.drawString(cp.getDisplayName() + ": ", nameX, y, nameCol, false);
 
         ColorPickerState st = colorPickers.computeIfAbsent(cp, k -> {
             ColorPickerState s = new ColorPickerState();
@@ -929,7 +929,7 @@ public class AugustusClickGui extends GuiScreen {
 
                     if (p instanceof BooleanProperty) {
                         BooleanProperty bp = (BooleanProperty) p;
-                        String full = bp.getName() + ": " + (bp.getValue() ? "true" : "false");
+                        String full = bp.getDisplayName() + ": " + (bp.getValue() ? "true" : "false");
                         if (isHovered(mouseX, mouseY, posX + CONTENT_TEXT_X_OFFSET, py, fw(full), fh())) {
                             bp.setValue(!bp.getValue());
                             return;
@@ -940,7 +940,7 @@ public class AugustusClickGui extends GuiScreen {
 
                     if (p instanceof ModeProperty) {
                         ModeProperty mp = (ModeProperty) p;
-                        float x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getName() + ": ");
+                        float x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getDisplayName() + ": ");
                         float yy = py;
                         String[] modes = getModes(mp);
                         for (int i = 0; i < modes.length; i++) {
@@ -954,7 +954,7 @@ public class AugustusClickGui extends GuiScreen {
                                 x += fw(", ");
                             }
                             if (x > posX + guiWidth - 60) {
-                                x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getName() + ": ");
+                                x = posX + CONTENT_TEXT_X_OFFSET + fw(mp.getDisplayName() + ": ");
                                 yy += fh() + 2;
                             }
                         }
@@ -964,7 +964,7 @@ public class AugustusClickGui extends GuiScreen {
 
                     if (p instanceof TextProperty) {
                         TextProperty tp = (TextProperty) p;
-                        float boxX = (posX + CONTENT_TEXT_X_OFFSET) + fw(tp.getName() + ": ");
+                        float boxX = (posX + CONTENT_TEXT_X_OFFSET) + fw(tp.getDisplayName() + ": ");
                         float boxW = 140;
                         float boxH = fh() + 4;
                         float boxY = py - 2;
@@ -989,7 +989,7 @@ public class AugustusClickGui extends GuiScreen {
 
                     if (p instanceof FloatProperty || p instanceof IntProperty || p instanceof PercentProperty) {
                         if (mouseButton == 0) {
-                            SliderBounds bounds = getSliderBounds(p.getName(), py);
+                            SliderBounds bounds = getSliderBounds(p.getDisplayName(), py);
                             if (isHovered(mouseX, mouseY, bounds.x, bounds.y, bounds.width, bounds.height)) {
                                 draggingSlider = p;
                                 updateSliderValue(p, mouseX, bounds);
@@ -1128,13 +1128,7 @@ public class AugustusClickGui extends GuiScreen {
     }
 
     private static String[] getModes(ModeProperty mp) {
-        try {
-            java.lang.reflect.Field f = ModeProperty.class.getDeclaredField("modes");
-            f.setAccessible(true);
-            return (String[]) f.get(mp);
-        } catch (Exception ignored) {
-        }
-        return new String[]{mp.getModeString()};
+        return mp.getDisplayModes();
     }
 
     private static List<Module> getModulesFor(Category c) {

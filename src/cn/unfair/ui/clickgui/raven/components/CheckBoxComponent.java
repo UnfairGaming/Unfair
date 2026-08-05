@@ -30,7 +30,7 @@ public class CheckBoxComponent implements Component {
     public void draw(AtomicInteger offset) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        mc.fontRendererObj.drawString(this.property.getName().replace("-", " ") + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
+        mc.fontRendererObj.drawString(this.property.getDisplayName() + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
         GL11.glPopMatrix();
     }
 
@@ -76,7 +76,7 @@ public class CheckBoxComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         mc.fontRendererObj.drawString(
-                (this.property.getValue() ? "[+]  " : "[-]  ") + this.property.getName(),
+                (this.property.getValue() ? "[+]  " : "[-]  ") + this.property.getDisplayName(),
                 (float) ((this.module.category.getX() + 4) * 2),
                 (float) ((this.module.category.getModuleY() + this.offsetY + 4) * 2),
                 this.property.getValue() ? (new Color(20, 255, 0)).getRGB() : -1,

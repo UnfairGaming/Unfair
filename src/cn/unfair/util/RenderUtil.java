@@ -24,7 +24,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 import cn.unfair.enums.ChatColors;
-import cn.unfair.util.shader.Shader;
+import cn.unfair.util.postprocessing.Shader;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;

@@ -7,7 +7,6 @@ public class Shader2DEvent implements Event {
     
     public enum ShaderType {
         GLOW,
-        OUTLINE,
         BLUR,
         SHADOW
     }

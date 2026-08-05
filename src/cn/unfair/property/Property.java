@@ -34,6 +34,44 @@ public abstract class Property<T> {
         return this.name;
     }
 
+    public String getDisplayName() {
+        return toDisplayName(this.name);
+    }
+
+    public boolean matchesName(String input) {
+        return normalizeName(this.name).equalsIgnoreCase(normalizeName(input))
+                || normalizeName(this.getDisplayName()).equalsIgnoreCase(normalizeName(input));
+    }
+
+    protected static String toDisplayName(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+
+        String normalized = value.replace('_', ' ').replace('-', ' ');
+        StringBuilder builder = new StringBuilder(normalized.length());
+        boolean upperNext = true;
+        for (int i = 0; i < normalized.length(); i++) {
+            char c = normalized.charAt(i);
+            if (Character.isWhitespace(c)) {
+                if (builder.length() > 0 && builder.charAt(builder.length() - 1) != ' ') {
+                    builder.append(' ');
+                }
+                upperNext = true;
+            } else if (upperNext) {
+                builder.append(Character.toUpperCase(c));
+                upperNext = false;
+            } else {
+                builder.append(Character.toLowerCase(c));
+            }
+        }
+        return builder.toString().trim();
+    }
+
+    protected static String normalizeName(String value) {
+        return value == null ? "" : value.replace("-", "").replace("_", "").replace(" ", "");
+    }
+
     public abstract String getValuePrompt();
 
     public boolean isVisible() {

@@ -17,34 +17,51 @@ import cn.unfair.events.Render3DEvent;
 import cn.unfair.events.ResizeEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.ColorUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
-import cn.unfair.util.shader.GlowShader;
-import cn.unfair.util.shader.OutlineShader;
+import cn.unfair.util.postprocessing.GlowESPBlurShader;
+import cn.unfair.util.postprocessing.GlowESPMaskShader;
+import cn.unfair.util.postprocessing.GlowESPOutlineShader;
+import cn.unfair.util.postprocessing.ShaderUtils;
+import net.minecraft.client.renderer.OpenGlHelper;
+import org.lwjgl.opengl.GL11;
 
 import javax.vecmath.Vector4d;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 2, new String[]{"NONE", "2D", "3D", "OUTLINE", "FAKECORNER", "FAKE2D"});
+    private static final int MODE_2D = 1;
+    private static final int MODE_3D = 2;
+    private static final int MODE_GLOW = 3;
+    private static final int MODE_FAKE_CORNER = 4;
+    private static final int MODE_FAKE_2D = 5;
+    public final ModeProperty mode = new ModeProperty("mode", 2, new String[]{"NONE", "2D", "3D", "GLOW", "FAKECORNER", "FAKE2D"});
     public final ModeProperty color = new ModeProperty("color", 0, new String[]{"DEFAULT", "TEAMS", "HUD"});
     public final ModeProperty healthBar = new ModeProperty("health-bar", 0, new String[]{"NONE", "2D", "RAVEN"});
     public final ModeProperty health = new ModeProperty("health", 0, new String[]{"ENTITY", "TAB"});
+    public final FloatProperty glowExposure = new FloatProperty("glow-exposure", 2.2F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
+    public final IntProperty glowRadius = new IntProperty("glow-radius", 4, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
     public final BooleanProperty players = new BooleanProperty("players", true);
     public final BooleanProperty friends = new BooleanProperty("friends", true);
     public final BooleanProperty enemies = new BooleanProperty("enemies", true);
     public final BooleanProperty self = new BooleanProperty("self", false);
     public final BooleanProperty bots = new BooleanProperty("bots", false);
-    private final OutlineShader outlineRenderer = new OutlineShader();
-    private final GlowShader glowShader = new GlowShader();
+    private final GlowESPMaskShader maskShader = new GlowESPMaskShader();
+    private final GlowESPOutlineShader outlineShader = new GlowESPOutlineShader();
+    private final GlowESPBlurShader blurShader = new GlowESPBlurShader();
     private Framebuffer framebuffer = null;
-    private boolean outline = true;
-    private boolean glow = true;
+    private Framebuffer outlineFrameBuffer = null;
+    private Framebuffer glowFrameBuffer = null;
+    private List<EntityPlayer> glowEntities = new ArrayList<>();
+    private boolean renderingGlowEntities = false;
 
     public ESP() {
         super("ESP", false, true);
@@ -119,64 +136,123 @@ public class ESP extends Module {
         return entityPlayer.getHealth();
     }
 
-    public boolean isOutlineEnabled() {
-        return this.outline;
-    }
-
-    public boolean isGlowEnabled() {
-        return this.glow;
+    public boolean isRenderingGlowEntities() {
+        return this.renderingGlowEntities;
     }
 
     @EventTarget
     public void onResize(ResizeEvent event) {
+        this.deleteGlowFramebuffers();
+    }
+
+    private void createGlowFramebuffers() {
+        this.framebuffer = RenderUtil.createFrameBuffer(this.framebuffer, true);
+        this.outlineFrameBuffer = RenderUtil.createFrameBuffer(this.outlineFrameBuffer, true);
+        this.glowFrameBuffer = RenderUtil.createFrameBuffer(this.glowFrameBuffer, true);
+    }
+
+    private void deleteGlowFramebuffers() {
         if (this.framebuffer != null) {
             this.framebuffer.deleteFramebuffer();
+            this.framebuffer = null;
         }
-        this.framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
+        if (this.outlineFrameBuffer != null) {
+            this.outlineFrameBuffer.deleteFramebuffer();
+            this.outlineFrameBuffer = null;
+        }
+        if (this.glowFrameBuffer != null) {
+            this.glowFrameBuffer.deleteFramebuffer();
+            this.glowFrameBuffer = null;
+        }
+    }
+
+    private List<EntityPlayer> getRenderedPlayers() {
+        return TeamUtil.getLoadedEntitiesSorted()
+                .stream()
+                .filter(entity -> entity instanceof EntityPlayer && this.shouldRenderPlayer((EntityPlayer) entity))
+                .map(EntityPlayer.class::cast)
+                .collect(Collectors.toList());
+    }
+
+    private void renderGlowEntities(float partialTicks) {
+        if (this.glowEntities.isEmpty()) {
+            return;
+        }
+
+        boolean shadow = mc.gameSettings.entityShadows;
+        mc.gameSettings.entityShadows = false;
+        this.renderingGlowEntities = true;
+        this.maskShader.use();
+        try {
+            for (EntityPlayer player : this.glowEntities) {
+                this.maskShader.setColor(this.getEntityColor(player));
+                boolean invisible = player.isInvisible();
+                player.setInvisible(false);
+                mc.getRenderManager().renderEntityStatic(player, partialTicks, false);
+                player.setInvisible(invisible);
+            }
+        } finally {
+            this.maskShader.stop();
+            this.renderingGlowEntities = false;
+            mc.gameSettings.entityShadows = shadow;
+        }
+    }
+
+    private void renderGlowPass() {
+        if (this.framebuffer == null || this.outlineFrameBuffer == null || this.glowFrameBuffer == null || this.glowEntities.isEmpty()) {
+            return;
+        }
+
+        GlStateManager.pushMatrix();
+        GlStateManager.pushAttrib();
+        GlStateManager.enableAlpha();
+        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
+        GlStateManager.enableBlend();
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+
+        float radius = this.glowRadius.getValue();
+        this.outlineFrameBuffer.framebufferClear();
+        this.outlineFrameBuffer.bindFramebuffer(true);
+        this.outlineShader.use();
+        this.outlineShader.setup(0.0F, 1.0F, radius / 1.5F);
+        RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
+        ShaderUtils.drawQuads();
+        this.outlineShader.setup(1.0F, 0.0F, radius / 1.5F);
+        RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
+        ShaderUtils.drawQuads();
+        this.outlineShader.stop();
+        this.outlineFrameBuffer.unbindFramebuffer();
+
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        this.glowFrameBuffer.framebufferClear();
+        this.glowFrameBuffer.bindFramebuffer(true);
+        this.blurShader.use();
+        this.blurShader.setup(1.0F, 0.0F, radius, this.glowExposure.getValue());
+        RenderUtil.bindTexture(this.outlineFrameBuffer.framebufferTexture);
+        ShaderUtils.drawQuads();
+        this.blurShader.stop();
+        this.glowFrameBuffer.unbindFramebuffer();
+
+        mc.getFramebuffer().bindFramebuffer(true);
+        this.blurShader.use();
+        this.blurShader.setup(0.0F, 1.0F, radius, this.glowExposure.getValue());
+        RenderUtil.bindTexture(this.glowFrameBuffer.framebufferTexture);
+        ShaderUtils.drawQuads();
+        this.blurShader.stop();
+        RenderUtil.bindTexture(0);
+        GlStateManager.popAttrib();
+        GlStateManager.popMatrix();
     }
 
     @EventTarget(Priority.HIGH)
     public void onRender(Render2DEvent event) {
-        if (this.isEnabled() && (this.mode.getValue() == 1 || this.mode.getValue() == 3 || this.healthBar.getValue() == 1)) {
-            List<EntityPlayer> renderedEntities = TeamUtil.getLoadedEntitiesSorted().stream().filter(entity -> entity instanceof EntityPlayer && this.shouldRenderPlayer((EntityPlayer) entity)).map(EntityPlayer.class::cast).collect(Collectors.toList());
+        if (this.isEnabled() && (this.mode.getValue() == MODE_2D || this.mode.getValue() == MODE_GLOW || this.healthBar.getValue() == 1)) {
+            if (this.mode.getValue() == MODE_GLOW) {
+                this.renderGlowPass();
+            }
+            List<EntityPlayer> renderedEntities = this.getRenderedPlayers();
             if (!renderedEntities.isEmpty()) {
-                if (this.mode.getValue() == 3) {
-                    GlStateManager.pushMatrix();
-                    GlStateManager.pushAttrib();
-                    if (this.framebuffer == null) {
-                        this.framebuffer = new Framebuffer(mc.displayWidth, mc.displayHeight, false);
-                    }
-                    this.framebuffer.bindFramebuffer(false);
-                    mc.entityRenderer.setupCameraTransform(event.getPartialTicks(), 0);
-                    boolean shadow = mc.gameSettings.entityShadows;
-                    mc.gameSettings.entityShadows = false;
-                    this.outline = false;
-                    this.glow = false;
-                    this.glowShader.use();
-                    for (EntityPlayer player : renderedEntities) {
-                        Color entityColor = this.getEntityColor(player);
-                        this.glowShader.W(entityColor);
-                        boolean invisible = player.isInvisible();
-                        player.setInvisible(false);
-                        mc.getRenderManager().renderEntityStatic(player, event.getPartialTicks(), true);
-                        player.setInvisible(invisible);
-                    }
-                    this.glowShader.stop();
-                    this.glow = true;
-                    this.outline = true;
-                    mc.gameSettings.entityShadows = shadow;
-                    mc.entityRenderer.disableLightmap();
-                    mc.entityRenderer.setupOverlayRendering();
-                    mc.getFramebuffer().bindFramebuffer(false);
-                    this.outlineRenderer.use();
-                    RenderUtil.drawFramebuffer(this.framebuffer);
-                    this.outlineRenderer.stop();
-                    this.framebuffer.framebufferClear();
-                    mc.getFramebuffer().bindFramebuffer(false);
-                    GlStateManager.popAttrib();
-                    GlStateManager.popMatrix();
-                }
-                if (this.mode.getValue() == 1 || this.healthBar.getValue() == 1) {
+                if (this.mode.getValue() == MODE_2D || this.healthBar.getValue() == 1) {
                     RenderUtil.enableRenderState();
                     double scaleFactor = new ScaledResolution(mc).getScaleFactor();
                     double scale = scaleFactor / Math.pow(scaleFactor, 2.0);
@@ -191,7 +267,7 @@ public class ESP extends Module {
                             float y = (float) screenPosition.y;
                             float z = (float) screenPosition.z;
                             float w = (float) screenPosition.w;
-                            if (this.mode.getValue() == 1) {
+                            if (this.mode.getValue() == MODE_2D) {
                                 int color = this.getEntityColor(player).getRGB();
                                 // Draw outer glow (slightly darker/wider)
                                 int glowAlpha = (color >> 24) & 0xFF;
@@ -222,20 +298,31 @@ public class ESP extends Module {
 
     @EventTarget
     public void onRender(Render3DEvent event) {
-        if (this.isEnabled() && (this.mode.getValue() == 2 || this.mode.getValue() == 4 || this.mode.getValue() == 5 || this.healthBar.getValue() == 2)) {
+        if (this.isEnabled() && this.mode.getValue() == MODE_GLOW) {
+            this.createGlowFramebuffers();
+            this.glowEntities = this.getRenderedPlayers();
+            this.framebuffer.framebufferClear();
+            this.framebuffer.bindFramebuffer(true);
+            this.renderGlowEntities(event.getPartialTicks());
+            this.framebuffer.unbindFramebuffer();
+            mc.getFramebuffer().bindFramebuffer(true);
+            GlStateManager.disableLighting();
+        }
+
+        if (this.isEnabled() && (this.mode.getValue() == MODE_3D || this.mode.getValue() == MODE_FAKE_CORNER || this.mode.getValue() == MODE_FAKE_2D || this.healthBar.getValue() == 2)) {
             RenderUtil.enableRenderState();
-            for (EntityPlayer player : TeamUtil.getLoadedEntitiesSorted().stream().filter(entity -> entity instanceof EntityPlayer && this.shouldRenderPlayer((EntityPlayer) entity)).map(EntityPlayer.class::cast).collect(Collectors.toList())) {
+            for (EntityPlayer player : this.getRenderedPlayers()) {
                 if (player.ignoreFrustumCheck || RenderUtil.isInViewFrustum(player.getEntityBoundingBox(), 0.1F)) {
-                    if (this.mode.getValue() == 2) {
+                    if (this.mode.getValue() == MODE_3D) {
                         Color color = this.getEntityColor(player);
                         RenderUtil.drawEntityBoundingBox(player, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), 1.5F, 0.1F);
                         GlStateManager.resetColor();
                     }
-                    if (this.mode.getValue() == 4) {
+                    if (this.mode.getValue() == MODE_FAKE_CORNER) {
                         Color color = this.getEntityColor(player);
                         RenderUtil.drawCornerESP(player, color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F);
                     }
-                    if (this.mode.getValue() == 5) {
+                    if (this.mode.getValue() == MODE_FAKE_2D) {
                         Color color = this.getEntityColor(player);
                         RenderUtil.drawFake2DESP(player, color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F);
                     }

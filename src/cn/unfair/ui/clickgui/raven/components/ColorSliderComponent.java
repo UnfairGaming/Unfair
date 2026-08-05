@@ -48,7 +48,7 @@ public class ColorSliderComponent implements Component {
     private void drawLabel(int x, int y) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5, 0.5, 0.5);
-        String text = property.getName().replace("-", " ") + ": " + ChatColors.formatColor(property.formatValue());
+        String text = property.getDisplayName() + ": " + ChatColors.formatColor(property.formatValue());
         mc.fontRendererObj.drawString(text, x * 2, (parentModule.category.getY() + offsetY + 3) * 2, -1);
         GL11.glPopMatrix();
     }
@@ -192,7 +192,7 @@ public class ColorSliderComponent implements Component {
         // Draw label
         GL11.glPushMatrix();
         GL11.glScaled(0.5, 0.5, 0.5);
-        mc.fontRendererObj.drawString(property.getName(), x * 2, (y + 3) * 2, -1);
+        mc.fontRendererObj.drawString(property.getDisplayName(), x * 2, (y + 3) * 2, -1);
         GL11.glPopMatrix();
 
         // Update color values from property

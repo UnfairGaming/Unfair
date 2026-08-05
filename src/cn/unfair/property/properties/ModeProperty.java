@@ -19,7 +19,11 @@ public class ModeProperty extends Property<Integer> {
 
     @Override
     public String getValuePrompt() {
-        return String.join(", ", this.modes);
+        String[] displayModes = new String[this.modes.length];
+        for (int i = 0; i < this.modes.length; i++) {
+            displayModes[i] = this.getDisplayModeString(i);
+        }
+        return String.join(", ", displayModes);
     }
 
     public String getModeString() {
@@ -27,17 +31,34 @@ public class ModeProperty extends Property<Integer> {
         return index >= 0 && index < this.modes.length ? this.modes[index] : "";
     }
 
+    public String getDisplayModeString() {
+        return this.getDisplayModeString(this.getValue());
+    }
+
+    public String getDisplayModeString(int index) {
+        return index >= 0 && index < this.modes.length ? toDisplayName(this.modes[index]) : "";
+    }
+
+    public String[] getDisplayModes() {
+        String[] displayModes = new String[this.modes.length];
+        for (int i = 0; i < this.modes.length; i++) {
+            displayModes[i] = this.getDisplayModeString(i);
+        }
+        return displayModes;
+    }
+
     @Override
     public String formatValue() {
-        String index = this.getModeString();
+        String index = this.getDisplayModeString();
         return index.isEmpty() ? "&4?" : String.format("&9%s", index);
     }
 
     @Override
     public boolean parseString(String string) {
-        String valueStr = string.replace("_", "");
+        String valueStr = normalizeName(string);
         for (int i = 0; i < this.modes.length; i++) {
-            if (valueStr.equalsIgnoreCase(this.modes[i].replace("_", ""))) {
+            if (valueStr.equalsIgnoreCase(normalizeName(this.modes[i]))
+                    || valueStr.equalsIgnoreCase(normalizeName(this.getDisplayModeString(i)))) {
                 return this.setValue(i);
             }
         }

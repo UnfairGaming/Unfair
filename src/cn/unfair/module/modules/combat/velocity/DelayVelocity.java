@@ -20,7 +20,7 @@ public class DelayVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     private boolean delayActive = false;
-    private boolean reverseFlag = false;
+    private boolean delayFlag = false;
 
     public final IntProperty delayTicks = new IntProperty("delay-ticks", 2, 1, 5);
 
@@ -44,14 +44,14 @@ public class DelayVelocity extends SubModule {
                 S12PacketEntityVelocity packet = (S12PacketEntityVelocity) event.getPacket();
                 if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                     LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
-                    if (    !this.reverseFlag
+                    if (    !this.delayFlag
                             && !this.canDelay()
                             && !isInLiquidOrWeb()
                             && (!longJump.isEnabled() || !longJump.canStartJump())) {{
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
                             Unfair.delayManager.delayedPacket.offer(packet);
                             event.setCancelled(true);
-                            this.reverseFlag = true;
+                            this.delayFlag = true;
                         }
                     }
                 }
@@ -63,14 +63,14 @@ public class DelayVelocity extends SubModule {
     public void onUpdate(UpdateEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (event.getType() == EventType.POST) {
-            if (this.reverseFlag
+            if (this.delayFlag
                     && (
                     this.canDelay()
                             || isInLiquidOrWeb()
                             || Unfair.delayManager.getDelay() >= (long) this.delayTicks.getValue()
             )) {
                 Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
-                this.reverseFlag = false;
+                this.delayFlag = false;
             }
             if (this.delayActive) {
                 MoveUtil.setSpeed(MoveUtil.getSpeed(), MoveUtil.getMoveYaw());

@@ -10,7 +10,7 @@ public class PropertyManager {
 
     public Property<?> getProperty(Module module, String string) {
         for (Property<?> property : properties.get(module.getClass())) {
-            if (property.getName().replace("-", "").equalsIgnoreCase(string.replace("-", ""))) {
+            if (property.matchesName(string)) {
                 return property;
             }
         }

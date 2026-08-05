@@ -29,7 +29,7 @@ public class ModuleCommand extends Command {
                                 "%s%s: &o%s&r is set to %s&r (%s)&r",
                                 Unfair.clientName,
                                 module.getName(),
-                                property.getName(),
+                                property.getDisplayName(),
                                 property.formatValue(),
                                 property.getValuePrompt()
                         )
@@ -39,14 +39,14 @@ public class ModuleCommand extends Command {
                 try {
                     if (property.parseString(newValue)) {
                         ChatUtil.sendFormatted(
-                                String.format("%s%s: &o%s&r has been set to %s&r", Unfair.clientName, module.getName(), property.getName(), property.formatValue())
+                                String.format("%s%s: &o%s&r has been set to %s&r", Unfair.clientName, module.getName(), property.getDisplayName(), property.formatValue())
                         );
                         return;
                     }
                 } catch (Exception e) {
                 }
                 ChatUtil.sendFormatted(
-                        String.format("%sInvalid value for property &o%s&r (%s)&r", Unfair.clientName, property.getName(), property.getValuePrompt())
+                        String.format("%sInvalid value for property &o%s&r (%s)&r", Unfair.clientName, property.getDisplayName(), property.getValuePrompt())
                 );
             }
         } else {
@@ -56,7 +56,7 @@ public class ModuleCommand extends Command {
                 if (!visible.isEmpty()) {
                     ChatUtil.sendFormatted(String.format("%s%s:&r", Unfair.clientName, module.formatModule()));
                     for (Property<?> property : visible) {
-                        ChatUtil.sendFormatted(String.format("&7»&r %s: %s&r", property.getName(), property.formatValue()));
+                        ChatUtil.sendFormatted(String.format("&7»&r %s: %s&r", property.getDisplayName(), property.formatValue()));
                     }
                     return;
                 }

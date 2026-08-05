@@ -33,7 +33,7 @@ public class IntSlider extends Slider {
 
     @Override
     public String getName() {
-        return property.getName().replace("-", " ");
+        return property.getDisplayName();
     }
 
     @Override

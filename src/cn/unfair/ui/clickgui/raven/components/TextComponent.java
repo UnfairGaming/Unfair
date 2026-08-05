@@ -30,7 +30,7 @@ public class TextComponent implements Component {
     public void draw(AtomicInteger offset) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        mc.fontRendererObj.drawString(this.property.getName().replace("-", " ") + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
+        mc.fontRendererObj.drawString(this.property.getDisplayName() + ": " + ChatColors.formatColor(this.property.formatValue()), (float) ((this.module.category.getX() + 4) * 2), (float) ((this.module.category.getY() + this.offsetY + 5) * 2), -1, false);
         GL11.glPopMatrix();
     }
 
@@ -76,7 +76,7 @@ public class TextComponent implements Component {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
         mc.fontRendererObj.drawString(
-                this.property.getName().replace("-", " ") + ": " + this.property.getValue(),
+                this.property.getDisplayName() + ": " + this.property.getValue(),
                 (float) ((this.module.category.getX() + 4) * 2),
                 (float) ((this.module.category.getModuleY() + this.offsetY + 4) * 2), -1, false);
         GL11.glPopMatrix();
@@ -91,7 +91,7 @@ public class TextComponent implements Component {
     @Override
     public void onClick(int x, int y, int mouse) {
         if (this.isHovered(x, y) && mouse == 0 && this.module.isOpened) {
-            GuiInput.prompt(property.getName().replace("-", " "), property.getValue(), property::setValue, RavenClickGui.getInstance());
+            GuiInput.prompt(property.getDisplayName(), property.getValue(), property::setValue, RavenClickGui.getInstance());
         }
     }
 

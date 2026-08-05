@@ -1,4 +1,4 @@
-package cn.unfair.util.shader;
+package cn.unfair.util.postprocessing;
 
 import org.lwjgl.opengl.GL20;
 

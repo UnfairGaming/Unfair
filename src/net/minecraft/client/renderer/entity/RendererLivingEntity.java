@@ -654,7 +654,7 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
 
             ESP esp = (ESP) Unfair.moduleManager.modules.get(ESP.class);
 
-            if (esp.isEnabled() && !esp.isOutlineEnabled()) {
+            if (esp.isEnabled() && esp.isRenderingGlowEntities()) {
                 return false;
             }
         }

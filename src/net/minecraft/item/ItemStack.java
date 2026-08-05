@@ -863,7 +863,7 @@ public final class ItemStack
         if (Unfair.moduleManager != null) {
             ESP esp = (ESP) Unfair.moduleManager.modules.get(ESP.class);
 
-            if (esp.isEnabled() && !esp.isGlowEnabled()) {
+            if (esp.isEnabled() && esp.isRenderingGlowEntities()) {
                 return false;
             }
         }
