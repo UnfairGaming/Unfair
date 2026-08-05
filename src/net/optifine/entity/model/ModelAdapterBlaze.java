@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.entity.RenderBlaze;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.monster.EntityBlaze;
 import net.minecraft.src.Config;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterBlaze extends ModelAdapter
@@ -35,7 +34,7 @@ public class ModelAdapterBlaze extends ModelAdapter
 
             if (modelPart.equals("head"))
             {
-                return (ModelRenderer)Reflector.getFieldValue(modelblaze, Reflector.ModelBlaze_blazeHead);
+                return modelblaze.blazeHead;
             }
             else
             {
@@ -43,7 +42,7 @@ public class ModelAdapterBlaze extends ModelAdapter
 
                 if (modelPart.startsWith(s))
                 {
-                    ModelRenderer[] amodelrenderer = (ModelRenderer[])((ModelRenderer[])Reflector.getFieldValue(modelblaze, Reflector.ModelBlaze_blazeSticks));
+                    ModelRenderer[] amodelrenderer = modelblaze.blazeSticks;
 
                     if (amodelrenderer == null)
                     {

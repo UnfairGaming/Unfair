@@ -12,7 +12,7 @@ public class RenderBoat extends Render<EntityBoat>
     private static final ResourceLocation boatTextures = ResourceLocation.of("textures/entity/boat.png");
 
     /** instance of ModelBoat for rendering */
-    protected ModelBase modelBoat = new ModelBoat();
+    public ModelBase modelBoat = new ModelBoat();
 
     public RenderBoat(RenderManager renderManagerIn)
     {

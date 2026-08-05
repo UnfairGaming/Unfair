@@ -13,7 +13,7 @@ public class RenderWitherSkull extends Render<EntityWitherSkull>
     private static final ResourceLocation witherTextures = ResourceLocation.of("textures/entity/wither/wither.png");
 
     /** The Skeleton's head model. */
-    private final ModelSkeletonHead skeletonHeadModel = new ModelSkeletonHead();
+    public ModelSkeletonHead skeletonHeadModel = new ModelSkeletonHead();
 
     public RenderWitherSkull(RenderManager renderManagerIn)
     {

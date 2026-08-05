@@ -83,6 +83,16 @@ public class EntityHorse extends EntityAnimal implements IInvBasic
     private int gallopTime;
     private String texturePrefix;
     private String[] horseTexturesArray = new String[3];
+
+    public static String[] getHorseTextures()
+    {
+        return horseTextures;
+    }
+
+    public static String[] getHorseTextureAbbreviations()
+    {
+        return HORSE_TEXTURES_ABBR;
+    }
     private boolean field_175508_bO = false;
 
     public EntityHorse(World worldIn)

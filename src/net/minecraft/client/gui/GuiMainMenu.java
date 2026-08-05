@@ -66,6 +66,10 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
      */
     private String splashText;
 
+    public void setSplashText(String splashText) {
+        this.splashText = splashText;
+    }
+
     /**
      * Timer used to rotate the panorama, increases every tick.
      */

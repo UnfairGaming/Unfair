@@ -6,8 +6,8 @@ import net.minecraft.util.MathHelper;
 public class ModelWitch extends ModelVillager
 {
     public boolean field_82900_g;
-    private ModelRenderer field_82901_h = (new ModelRenderer(this)).setTextureSize(64, 128);
-    private ModelRenderer witchHat;
+    public ModelRenderer field_82901_h = (new ModelRenderer(this)).setTextureSize(64, 128);
+    public ModelRenderer witchHat;
 
     public ModelWitch(float p_i46361_1_)
     {

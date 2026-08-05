@@ -6,9 +6,7 @@ import net.minecraft.client.model.ModelSign;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySignRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.src.Config;
 import net.minecraft.tileentity.TileEntitySign;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterSign extends ModelAdapter
@@ -58,16 +56,8 @@ public class ModelAdapterSign extends ModelAdapter
                 tileentityspecialrenderer.setRendererDispatcher(tileentityrendererdispatcher);
             }
 
-            if (!Reflector.TileEntitySignRenderer_model.exists())
-            {
-                Config.warn("Field not found: TileEntitySignRenderer.model");
-                return null;
-            }
-            else
-            {
-                Reflector.setFieldValue(tileentityspecialrenderer, Reflector.TileEntitySignRenderer_model, modelBase);
-                return tileentityspecialrenderer;
-            }
+            ((TileEntitySignRenderer)tileentityspecialrenderer).model = (ModelSign)modelBase;
+            return tileentityspecialrenderer;
         }
     }
 }

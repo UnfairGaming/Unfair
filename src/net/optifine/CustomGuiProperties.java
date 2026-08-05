@@ -33,8 +33,6 @@ import net.optifine.config.Matches;
 import net.optifine.config.NbtTagValue;
 import net.optifine.config.RangeListInt;
 import net.optifine.config.VillagerProfession;
-import net.optifine.reflect.Reflector;
-import net.optifine.reflect.ReflectorField;
 import net.optifine.util.StrUtils;
 import net.optifine.util.TextureUtils;
 
@@ -390,12 +388,11 @@ public class CustomGuiProperties
 
     private static IWorldNameable getWorldNameable(GuiScreen screen)
     {
-        return (IWorldNameable)(screen instanceof GuiBeacon ? getWorldNameable(screen, Reflector.GuiBeacon_tileBeacon) : (screen instanceof GuiBrewingStand ? getWorldNameable(screen, Reflector.GuiBrewingStand_tileBrewingStand) : (screen instanceof GuiChest ? getWorldNameable(screen, Reflector.GuiChest_lowerChestInventory) : (screen instanceof GuiDispenser ? ((GuiDispenser)screen).dispenserInventory : (screen instanceof GuiEnchantment ? getWorldNameable(screen, Reflector.GuiEnchantment_nameable) : (screen instanceof GuiFurnace ? getWorldNameable(screen, Reflector.GuiFurnace_tileFurnace) : (screen instanceof GuiHopper ? getWorldNameable(screen, Reflector.GuiHopper_hopperInventory) : null)))))));
+        return (IWorldNameable)(screen instanceof GuiBeacon ? asWorldNameable(((GuiBeacon)screen).getTileBeacon()) : (screen instanceof GuiBrewingStand ? asWorldNameable(((GuiBrewingStand)screen).getTileBrewingStand()) : (screen instanceof GuiChest ? asWorldNameable(((GuiChest)screen).getLowerChestInventory()) : (screen instanceof GuiDispenser ? ((GuiDispenser)screen).dispenserInventory : (screen instanceof GuiEnchantment ? ((GuiEnchantment)screen).getNameable() : (screen instanceof GuiFurnace ? asWorldNameable(((GuiFurnace)screen).getTileFurnace()) : (screen instanceof GuiHopper ? asWorldNameable(((GuiHopper)screen).getHopperInventory()) : null)))))));
     }
 
-    private static IWorldNameable getWorldNameable(GuiScreen screen, ReflectorField fieldInventory)
+    private static IWorldNameable asWorldNameable(Object object)
     {
-        Object object = Reflector.getFieldValue(screen, fieldInventory);
         return !(object instanceof IWorldNameable) ? null : (IWorldNameable)object;
     }
 
@@ -542,7 +539,7 @@ public class CustomGuiProperties
             if (this.professions != null)
             {
                 int i = entityvillager.getProfession();
-                int j = Reflector.getFieldValueInt(entityvillager, Reflector.EntityVillager_careerId, -1);
+                int j = entityvillager.getCareerId();
 
                 if (j < 0)
                 {

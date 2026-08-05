@@ -17,10 +17,12 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -75,6 +77,10 @@ public class FontRenderer {
     private final Font font;
     private final float size;
     private final Map<Integer, FontAtlas> atlases = new HashMap<>();
+    private final Map<Integer, FontAtlas> harmonyRegularAtlases = new HashMap<>();
+    private final Map<Integer, FontAtlas> harmonyMediumAtlases = new HashMap<>();
+    private static Font harmonyRegularFont;
+    private static Font harmonyMediumFont;
 
     public FontRenderer(Font font) {
         this.font = font;
@@ -99,7 +105,11 @@ public class FontRenderer {
     }
 
     protected final int drawChar(char chr, float x, float y) {
-        return getAtlas(getScaleFactor()).drawChar(chr, x, y);
+        if (shouldUseMinecraftFallback(chr)) {
+            mc.fontRendererObj.drawString(String.valueOf(chr), x, y, -1, false);
+            return mc.fontRendererObj.getStringWidth(String.valueOf(chr));
+        }
+        return getAtlasForChar(chr, getScaleFactor()).drawChar(chr, x, y);
     }
 
     public int drawString(String str, float x, float y, int color) {
@@ -120,7 +130,6 @@ public class FontRenderer {
         }
 
         int scaleFactor = getScaleFactor();
-        FontAtlas atlas = getAtlas(scaleFactor);
         x = Math.round(x * scaleFactor);
         y = Math.round(y * scaleFactor);
 
@@ -143,6 +152,7 @@ public class FontRenderer {
         GlStateManager.enableBlend();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        FontAtlas activeAtlas = null;
         int activeRegion = -1;
         boolean drawing = false;
         int length = str.length();
@@ -152,6 +162,7 @@ public class FontRenderer {
                 if (drawing) {
                     glEnd();
                     drawing = false;
+                    activeAtlas = null;
                     activeRegion = -1;
                 }
                 color = "0123456789abcdef".indexOf(str.charAt(++i));
@@ -168,19 +179,43 @@ public class FontRenderer {
                 continue;
             }
 
+            if (shouldUseMinecraftFallback(chr)) {
+                if (drawing) {
+                    glEnd();
+                    drawing = false;
+                    activeAtlas = null;
+                    activeRegion = -1;
+                }
+                glPopMatrix();
+                mc.fontRendererObj.drawString(String.valueOf(chr), (x + offset) / (float) scaleFactor, y / (float) scaleFactor, getVanillaColor(color, a), false);
+                offset += mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * scaleFactor;
+                GlStateManager.color(r, g, b, a);
+                glPushMatrix();
+                glScaled(1.0D / scaleFactor, 1.0D / scaleFactor, 1.0D / scaleFactor);
+                GlStateManager.enableTexture2D();
+                GlStateManager.enableBlend();
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                continue;
+            }
+
+            FontAtlas charAtlas = getAtlasForChar(chr, scaleFactor);
             int region = chr >> 8;
             if (!drawing) {
+                activeAtlas = charAtlas;
                 activeRegion = region;
-                GlStateManager.bindTexture(atlas.getOrGenerateCharTexture(activeRegion));
+                GlStateManager.bindTexture(activeAtlas.getOrGenerateCharTexture(activeRegion));
                 setFontTextureFilter();
                 glBegin(GL_QUADS);
                 drawing = true;
-            }
-            int oldRegion = activeRegion;
-            offset += atlas.drawCharBatched(chr, x + offset, y, activeRegion);
-            if (region != oldRegion) {
+            } else if (activeAtlas != charAtlas || activeRegion != region) {
+                glEnd();
+                activeAtlas = charAtlas;
                 activeRegion = region;
+                GlStateManager.bindTexture(activeAtlas.getOrGenerateCharTexture(activeRegion));
+                setFontTextureFilter();
+                glBegin(GL_QUADS);
             }
+            offset += activeAtlas.drawCharInCurrentBatch(chr, x + offset, y);
         }
         if (drawing) {
             glEnd();
@@ -230,7 +265,6 @@ public class FontRenderer {
         if (text == null) {
             return 0;
         }
-        FontAtlas atlas = getAtlas(scaleFactor);
         int width = 0;
         int size = text.length();
         int i = 0;
@@ -238,8 +272,10 @@ public class FontRenderer {
             char chr = text.charAt(i);
             if (isFormattingPrefix(chr)) {
                 ++i;
+            } else if (shouldUseMinecraftFallback(chr)) {
+                width += mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * scaleFactor;
             } else {
-                width += atlas.getOrGenerateCharWidthMap(chr >> 8)[chr & 0xFF];
+                width += getAtlasForChar(chr, scaleFactor).getOrGenerateCharWidthMap(chr >> 8)[chr & 0xFF];
             }
             ++i;
         }
@@ -348,10 +384,85 @@ public class FontRenderer {
         scaleFactor = Math.max(1, scaleFactor);
         FontAtlas atlas = this.atlases.get(scaleFactor);
         if (atlas == null) {
-            atlas = new FontAtlas(scaleFactor);
+            atlas = new FontAtlas(this.font, scaleFactor);
             this.atlases.put(scaleFactor, atlas);
         }
         return atlas;
+    }
+
+    private FontAtlas getAtlasForChar(char chr, int scaleFactor) {
+        if (!shouldUseHarmonyFallback(chr)) {
+            return this.getAtlas(scaleFactor);
+        }
+
+        scaleFactor = Math.max(1, scaleFactor);
+        Map<Integer, FontAtlas> atlasMap = this.useMediumHarmonyFallback() ? this.harmonyMediumAtlases : this.harmonyRegularAtlases;
+        FontAtlas atlas = atlasMap.get(scaleFactor);
+        if (atlas == null) {
+            Font fallbackFont = this.useMediumHarmonyFallback() ? getHarmonyMediumFont() : getHarmonyRegularFont();
+            atlas = new FontAtlas(fallbackFont, scaleFactor);
+            atlasMap.put(scaleFactor, atlas);
+        }
+        return atlas;
+    }
+
+    private boolean shouldUseHarmonyFallback(char chr) {
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(chr);
+        return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+                || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+                || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
+                || block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+                || block == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+                || block == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS;
+    }
+
+    private static boolean shouldUseMinecraftFallback(char chr) {
+        return chr == '\u2764'
+                || chr == '\u221A'
+                || chr == '\u00D7'
+                || chr == '\u2713'
+                || chr == '\u2714'
+                || chr == '\u2715'
+                || chr == '\u2716'
+                || chr == '\u2717'
+                || chr == '\u2718';
+    }
+
+    private boolean useMediumHarmonyFallback() {
+        String fontName = this.font.getFontName().toLowerCase();
+        return this.font.isBold()
+                || fontName.contains("medium")
+                || fontName.contains("semibold")
+                || fontName.contains("bold");
+    }
+
+    private static Font getHarmonyRegularFont() {
+        if (harmonyRegularFont == null) {
+            harmonyRegularFont = loadFont("HarmonyOS_Sans_SC_Regular");
+        }
+        return harmonyRegularFont;
+    }
+
+    private static Font getHarmonyMediumFont() {
+        if (harmonyMediumFont == null) {
+            harmonyMediumFont = loadFont("HarmonyOS_Sans_SC_Medium");
+        }
+        return harmonyMediumFont;
+    }
+
+    private static Font loadFont(String file) {
+        try (InputStream in = Objects.requireNonNull(
+                FontRenderer.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
+        )) {
+            return Font.createFont(0, in);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to create fallback font: " + file, ex);
+        }
+    }
+
+    private static int getVanillaColor(int color, float alpha) {
+        int alphaByte = Math.max(0, Math.min(255, Math.round(alpha * 255.0F)));
+        return alphaByte << 24 | color & 0x00FFFFFF;
     }
 
     private int resizeToOpenGLSupportResolution(int size) {
@@ -380,6 +491,12 @@ public class FontRenderer {
         for (FontAtlas atlas : this.atlases.values()) {
             atlas.delete();
         }
+        for (FontAtlas atlas : this.harmonyRegularAtlases.values()) {
+            atlas.delete();
+        }
+        for (FontAtlas atlas : this.harmonyMediumAtlases.values()) {
+            atlas.delete();
+        }
     }
 
     private class FontAtlas {
@@ -401,9 +518,9 @@ public class FontRenderer {
         private ByteBuffer atlasBuffer;
         private int[] atlasPixels;
 
-        private FontAtlas(int scaleFactor) {
+        private FontAtlas(Font sourceFont, int scaleFactor) {
             this.scaleFactor = scaleFactor;
-            this.scaledFont = font.deriveFont(Font.PLAIN, size * scaleFactor / LEGACY_DISPLAY_SCALE);
+            this.scaledFont = sourceFont.deriveFont(Font.PLAIN, size * scaleFactor / LEGACY_DISPLAY_SCALE);
             Arrays.fill(this.textures, -1);
             Rectangle2D maxBounds = this.scaledFont.getMaxCharBounds(this.context);
             this.fontWidth = (int) Math.ceil(maxBounds.getWidth());
@@ -442,16 +559,9 @@ public class FontRenderer {
             glVertex2f(x + width, y);
         }
 
-        private int drawCharBatched(char chr, float x, float y, int activeRegion) {
-            int region = chr >> 8;
+        private int drawCharInCurrentBatch(char chr, float x, float y) {
             int id = chr & 0xFF;
-            int width = getOrGenerateCharWidthMap(region)[id];
-            if (region != activeRegion) {
-                glEnd();
-                GlStateManager.bindTexture(getOrGenerateCharTexture(region));
-                setFontTextureFilter();
-                glBegin(GL_QUADS);
-            }
+            int width = getOrGenerateCharWidthMap(chr >> 8)[id];
             drawCharQuad(id, width, x, y);
             return width;
         }
@@ -527,11 +637,14 @@ public class FontRenderer {
                     continue;
                 }
 
+                FontAtlas charAtlas = getAtlasForChar(chr, this.scaleFactor);
                 int region = chr >> 8;
                 int id = chr & 0xFF;
-                int advance = getOrGenerateCharWidthMap(region)[id];
+                int advance = shouldUseMinecraftFallback(chr)
+                        ? mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * this.scaleFactor
+                        : charAtlas.getOrGenerateCharWidthMap(region)[id];
                 this.widthChar[0] = chr;
-                Rectangle2D bounds = this.scaledFont.createGlyphVector(this.context, this.widthChar).getVisualBounds();
+                Rectangle2D bounds = charAtlas.scaledFont.createGlyphVector(this.context, this.widthChar).getVisualBounds();
                 float glyphLeft = penX + Math.max(0.0F, (float) bounds.getX());
                 float glyphRight = penX + Math.min(advance, (float) (bounds.getX() + bounds.getWidth()));
                 if (glyphRight > glyphLeft) {

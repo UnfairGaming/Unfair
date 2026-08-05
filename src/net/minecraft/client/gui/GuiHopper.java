@@ -28,6 +28,11 @@ public class GuiHopper extends GuiContainer
         this.ySize = 133;
     }
 
+    public IInventory getHopperInventory()
+    {
+        return this.hopperInventory;
+    }
+
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items). Args : mouseX, mouseY
      */

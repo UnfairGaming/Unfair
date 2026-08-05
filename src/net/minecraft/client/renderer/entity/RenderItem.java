@@ -58,7 +58,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3i;
 import net.optifine.CustomColors;
 import net.optifine.CustomItems;
-import net.optifine.reflect.ReflectorForge;
 import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersRender;
 
@@ -532,7 +531,7 @@ public class RenderItem implements IResourceManagerReloadListener {
                 GlStateManager.enableBlend();
             }
 
-            if (ReflectorForge.isItemDamaged(stack)) {
+            if (stack.isItemDamaged()) {
                 int j1 = (int) Math.round(13.0D - (double) stack.getItemDamage() * 13.0D / (double) stack.getMaxDamage());
                 int i = (int) Math.round(255.0D - (double) stack.getItemDamage() * 255.0D / (double) stack.getMaxDamage());
                 GlStateManager.disableLighting();

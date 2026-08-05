@@ -311,7 +311,9 @@ public class GuiIngame extends Gui {
 
         ScoreObjective scoreobjective1 = scoreobjective != null ? scoreobjective : scoreboard.getObjectiveInDisplaySlot(1);
 
-        if (scoreobjective1 != null) {
+        cn.unfair.module.modules.render.Scoreboard customScoreboard = Unfair.moduleManager == null ? null : (cn.unfair.module.modules.render.Scoreboard) Unfair.moduleManager.getModule(cn.unfair.module.modules.render.Scoreboard.class);
+
+        if (scoreobjective1 != null && (customScoreboard == null || !customScoreboard.shouldReplaceVanilla())) {
             this.renderScoreboard(scoreobjective1, scaledresolution);
         }
 

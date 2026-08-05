@@ -17,8 +17,8 @@ public class TileEntityChestRenderer extends TileEntitySpecialRenderer<TileEntit
     private static final ResourceLocation textureTrapped = ResourceLocation.of("textures/entity/chest/trapped.png");
     private static final ResourceLocation textureChristmas = ResourceLocation.of("textures/entity/chest/christmas.png");
     private static final ResourceLocation textureNormal = ResourceLocation.of("textures/entity/chest/normal.png");
-    private ModelChest simpleChest = new ModelChest();
-    private ModelChest largeChest = new ModelLargeChest();
+    public ModelChest simpleChest = new ModelChest();
+    public ModelChest largeChest = new ModelLargeChest();
     private boolean isChristmas;
 
     public TileEntityChestRenderer()

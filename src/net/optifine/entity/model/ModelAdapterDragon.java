@@ -7,7 +7,6 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderDragon;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.boss.EntityDragon;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterDragon extends ModelAdapter
@@ -31,7 +30,7 @@ public class ModelAdapterDragon extends ModelAdapter
         else
         {
             ModelDragon modeldragon = (ModelDragon)model;
-            return modelPart.equals("head") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 0) : (modelPart.equals("spine") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 1) : (modelPart.equals("jaw") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 2) : (modelPart.equals("body") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 3) : (modelPart.equals("rear_leg") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 4) : (modelPart.equals("front_leg") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 5) : (modelPart.equals("rear_leg_tip") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 6) : (modelPart.equals("front_leg_tip") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 7) : (modelPart.equals("rear_foot") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 8) : (modelPart.equals("front_foot") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 9) : (modelPart.equals("wing") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 10) : (modelPart.equals("wing_tip") ? (ModelRenderer)Reflector.getFieldValue(modeldragon, Reflector.ModelDragon_ModelRenderers, 11) : null)))))))))));
+            return modelPart.equals("head") ? modeldragon.head : (modelPart.equals("spine") ? modeldragon.spine : (modelPart.equals("jaw") ? modeldragon.jaw : (modelPart.equals("body") ? modeldragon.body : (modelPart.equals("rear_leg") ? modeldragon.rearLeg : (modelPart.equals("front_leg") ? modeldragon.frontLeg : (modelPart.equals("rear_leg_tip") ? modeldragon.rearLegTip : (modelPart.equals("front_leg_tip") ? modeldragon.frontLegTip : (modelPart.equals("rear_foot") ? modeldragon.rearFoot : (modelPart.equals("front_foot") ? modeldragon.frontFoot : (modelPart.equals("wing") ? modeldragon.wing : (modelPart.equals("wing_tip") ? modeldragon.wingTip : null)))))))))));
         }
     }
 

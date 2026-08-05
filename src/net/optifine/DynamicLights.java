@@ -30,7 +30,6 @@ import net.optifine.config.ConnectedParser;
 import net.optifine.config.EntityClassLocator;
 import net.optifine.config.IObjectLocator;
 import net.optifine.config.ItemLocator;
-import net.optifine.reflect.ReflectorForge;
 import net.optifine.util.PropertiesOrdered;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
@@ -104,7 +103,7 @@ public class DynamicLights
         initialized = true;
         mapEntityLightLevels.clear();
         mapItemLightLevels.clear();
-        String[] astring = ReflectorForge.getForgeModIds();
+        String[] astring = new String[0];
 
         for (int i = 0; i < astring.length; ++i)
         {

@@ -8,7 +8,7 @@ public class ModelEnderMite extends ModelBase
     private static final int[][] field_178716_a = new int[][] {{4, 3, 2}, {6, 4, 5}, {3, 3, 1}, {1, 2, 1}};
     private static final int[][] field_178714_b = new int[][] {{0, 0}, {0, 5}, {0, 14}, {0, 18}};
     private static final int field_178715_c = field_178716_a.length;
-    private final ModelRenderer[] field_178713_d;
+    public final ModelRenderer[] field_178713_d;
 
     public ModelEnderMite()
     {

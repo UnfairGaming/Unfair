@@ -9,7 +9,6 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderOcelot;
 import net.minecraft.entity.passive.EntityOcelot;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterOcelot extends ModelAdapter
@@ -40,13 +39,29 @@ public class ModelAdapterOcelot extends ModelAdapter
             if (map.containsKey(modelPart))
             {
                 int i = ((Integer)map.get(modelPart)).intValue();
-                return (ModelRenderer)Reflector.getFieldValue(modelocelot, Reflector.ModelOcelot_ModelRenderers, i);
+                return getModelRenderer(modelocelot, i);
             }
             else
             {
                 return null;
             }
         }
+    }
+
+    private static ModelRenderer getModelRenderer(ModelOcelot modelocelot, int index)
+    {
+        return switch (index)
+        {
+            case 0 -> modelocelot.ocelotBackLeftLeg;
+            case 1 -> modelocelot.ocelotBackRightLeg;
+            case 2 -> modelocelot.ocelotFrontLeftLeg;
+            case 3 -> modelocelot.ocelotFrontRightLeg;
+            case 4 -> modelocelot.ocelotTail;
+            case 5 -> modelocelot.ocelotTail2;
+            case 6 -> modelocelot.ocelotHead;
+            case 7 -> modelocelot.ocelotBody;
+            default -> null;
+        };
     }
 
     public String[] getModelRendererNames()

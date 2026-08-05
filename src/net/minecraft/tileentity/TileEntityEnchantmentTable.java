@@ -144,6 +144,11 @@ public class TileEntityEnchantmentTable extends TileEntity implements ITickable,
         return this.customName != null && !this.customName.isEmpty();
     }
 
+    public String getCustomName()
+    {
+        return this.customName;
+    }
+
     public void setCustomName(String customNameIn)
     {
         this.customName = customNameIn;

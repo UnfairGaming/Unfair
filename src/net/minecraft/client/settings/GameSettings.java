@@ -42,7 +42,6 @@ import net.optifine.DynamicLights;
 import net.optifine.Lang;
 import net.optifine.NaturalTextures;
 import net.optifine.RandomEntities;
-import net.optifine.reflect.Reflector;
 import net.optifine.shaders.Shaders;
 import net.optifine.util.KeyUtils;
 import org.apache.commons.io.IOUtils;

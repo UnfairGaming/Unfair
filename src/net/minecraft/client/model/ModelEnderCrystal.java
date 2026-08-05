@@ -6,13 +6,13 @@ import net.minecraft.entity.Entity;
 public class ModelEnderCrystal extends ModelBase
 {
     /** The cube model for the Ender Crystal. */
-    private ModelRenderer cube;
+    public ModelRenderer cube;
 
     /** The glass model for the Ender Crystal. */
-    private ModelRenderer glass = new ModelRenderer(this, "glass");
+    public ModelRenderer glass = new ModelRenderer(this, "glass");
 
     /** The base model for the Ender Crystal. */
-    private ModelRenderer base;
+    public ModelRenderer base;
 
     public ModelEnderCrystal(float p_i1170_1_, boolean p_i1170_2_)
     {

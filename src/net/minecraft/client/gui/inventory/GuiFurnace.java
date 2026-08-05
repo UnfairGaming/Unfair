@@ -22,6 +22,11 @@ public class GuiFurnace extends GuiContainer
         this.tileFurnace = furnaceInv;
     }
 
+    public IInventory getTileFurnace()
+    {
+        return this.tileFurnace;
+    }
+
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items). Args : mouseX, mouseY
      */

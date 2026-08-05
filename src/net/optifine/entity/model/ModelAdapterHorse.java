@@ -9,7 +9,6 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderHorse;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.passive.EntityHorse;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterHorse extends ModelAdapter
@@ -45,13 +44,60 @@ public class ModelAdapterHorse extends ModelAdapter
             if (map.containsKey(modelPart))
             {
                 int i = ((Integer)map.get(modelPart)).intValue();
-                return (ModelRenderer)Reflector.getFieldValue(modelhorse, Reflector.ModelHorse_ModelRenderers, i);
+                return getModelRenderer(modelhorse, i);
             }
             else
             {
                 return null;
             }
         }
+    }
+
+    private static ModelRenderer getModelRenderer(ModelHorse modelhorse, int index)
+    {
+        return switch (index)
+        {
+            case 0 -> modelhorse.head;
+            case 1 -> modelhorse.field_178711_b;
+            case 2 -> modelhorse.field_178712_c;
+            case 3 -> modelhorse.horseLeftEar;
+            case 4 -> modelhorse.horseRightEar;
+            case 5 -> modelhorse.muleLeftEar;
+            case 6 -> modelhorse.muleRightEar;
+            case 7 -> modelhorse.neck;
+            case 8 -> modelhorse.horseFaceRopes;
+            case 9 -> modelhorse.mane;
+            case 10 -> modelhorse.body;
+            case 11 -> modelhorse.tailBase;
+            case 12 -> modelhorse.tailMiddle;
+            case 13 -> modelhorse.tailTip;
+            case 14 -> modelhorse.backLeftLeg;
+            case 15 -> modelhorse.backLeftShin;
+            case 16 -> modelhorse.backLeftHoof;
+            case 17 -> modelhorse.backRightLeg;
+            case 18 -> modelhorse.backRightShin;
+            case 19 -> modelhorse.backRightHoof;
+            case 20 -> modelhorse.frontLeftLeg;
+            case 21 -> modelhorse.frontLeftShin;
+            case 22 -> modelhorse.frontLeftHoof;
+            case 23 -> modelhorse.frontRightLeg;
+            case 24 -> modelhorse.frontRightShin;
+            case 25 -> modelhorse.frontRightHoof;
+            case 26 -> modelhorse.muleLeftChest;
+            case 27 -> modelhorse.muleRightChest;
+            case 28 -> modelhorse.horseSaddleBottom;
+            case 29 -> modelhorse.horseSaddleFront;
+            case 30 -> modelhorse.horseSaddleBack;
+            case 31 -> modelhorse.horseLeftSaddleRope;
+            case 32 -> modelhorse.horseLeftSaddleMetal;
+            case 33 -> modelhorse.horseRightSaddleRope;
+            case 34 -> modelhorse.horseRightSaddleMetal;
+            case 35 -> modelhorse.horseLeftFaceMetal;
+            case 36 -> modelhorse.horseRightFaceMetal;
+            case 37 -> modelhorse.horseLeftRein;
+            case 38 -> modelhorse.horseRightRein;
+            default -> null;
+        };
     }
 
     public String[] getModelRendererNames()

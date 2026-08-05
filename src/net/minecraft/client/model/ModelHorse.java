@@ -8,59 +8,59 @@ import net.minecraft.util.MathHelper;
 
 public class ModelHorse extends ModelBase
 {
-    private ModelRenderer head;
-    private ModelRenderer field_178711_b;
-    private ModelRenderer field_178712_c;
-    private ModelRenderer horseLeftEar;
-    private ModelRenderer horseRightEar;
+    public ModelRenderer head;
+    public ModelRenderer field_178711_b;
+    public ModelRenderer field_178712_c;
+    public ModelRenderer horseLeftEar;
+    public ModelRenderer horseRightEar;
 
     /** The left ear box for the mule model. */
-    private ModelRenderer muleLeftEar;
+    public ModelRenderer muleLeftEar;
 
     /** The right ear box for the mule model. */
-    private ModelRenderer muleRightEar;
-    private ModelRenderer neck;
+    public ModelRenderer muleRightEar;
+    public ModelRenderer neck;
 
     /** The box for the horse's ropes on its face. */
-    private ModelRenderer horseFaceRopes;
-    private ModelRenderer mane;
-    private ModelRenderer body;
-    private ModelRenderer tailBase;
-    private ModelRenderer tailMiddle;
-    private ModelRenderer tailTip;
-    private ModelRenderer backLeftLeg;
-    private ModelRenderer backLeftShin;
-    private ModelRenderer backLeftHoof;
-    private ModelRenderer backRightLeg;
-    private ModelRenderer backRightShin;
-    private ModelRenderer backRightHoof;
-    private ModelRenderer frontLeftLeg;
-    private ModelRenderer frontLeftShin;
-    private ModelRenderer frontLeftHoof;
-    private ModelRenderer frontRightLeg;
-    private ModelRenderer frontRightShin;
-    private ModelRenderer frontRightHoof;
+    public ModelRenderer horseFaceRopes;
+    public ModelRenderer mane;
+    public ModelRenderer body;
+    public ModelRenderer tailBase;
+    public ModelRenderer tailMiddle;
+    public ModelRenderer tailTip;
+    public ModelRenderer backLeftLeg;
+    public ModelRenderer backLeftShin;
+    public ModelRenderer backLeftHoof;
+    public ModelRenderer backRightLeg;
+    public ModelRenderer backRightShin;
+    public ModelRenderer backRightHoof;
+    public ModelRenderer frontLeftLeg;
+    public ModelRenderer frontLeftShin;
+    public ModelRenderer frontLeftHoof;
+    public ModelRenderer frontRightLeg;
+    public ModelRenderer frontRightShin;
+    public ModelRenderer frontRightHoof;
 
     /** The left chest box on the mule model. */
-    private ModelRenderer muleLeftChest;
+    public ModelRenderer muleLeftChest;
 
     /** The right chest box on the mule model. */
-    private ModelRenderer muleRightChest;
-    private ModelRenderer horseSaddleBottom;
-    private ModelRenderer horseSaddleFront;
-    private ModelRenderer horseSaddleBack;
-    private ModelRenderer horseLeftSaddleRope;
-    private ModelRenderer horseLeftSaddleMetal;
-    private ModelRenderer horseRightSaddleRope;
-    private ModelRenderer horseRightSaddleMetal;
+    public ModelRenderer muleRightChest;
+    public ModelRenderer horseSaddleBottom;
+    public ModelRenderer horseSaddleFront;
+    public ModelRenderer horseSaddleBack;
+    public ModelRenderer horseLeftSaddleRope;
+    public ModelRenderer horseLeftSaddleMetal;
+    public ModelRenderer horseRightSaddleRope;
+    public ModelRenderer horseRightSaddleMetal;
 
     /** The left metal connected to the horse's face ropes. */
-    private ModelRenderer horseLeftFaceMetal;
+    public ModelRenderer horseLeftFaceMetal;
 
     /** The right metal connected to the horse's face ropes. */
-    private ModelRenderer horseRightFaceMetal;
-    private ModelRenderer horseLeftRein;
-    private ModelRenderer horseRightRein;
+    public ModelRenderer horseRightFaceMetal;
+    public ModelRenderer horseLeftRein;
+    public ModelRenderer horseRightRein;
 
     public ModelHorse()
     {

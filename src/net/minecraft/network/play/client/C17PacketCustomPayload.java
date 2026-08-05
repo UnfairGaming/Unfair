@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.ThreadQuickExitException;
 import net.minecraft.network.play.INetHandlerPlayServer;
 
 public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
@@ -58,7 +59,24 @@ public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
      */
     public void processPacket(INetHandlerPlayServer handler)
     {
-        handler.processVanilla250Packet(this);
+        boolean shouldRelease = true;
+
+        try
+        {
+            handler.processVanilla250Packet(this);
+        }
+        catch (ThreadQuickExitException threadquickexitexception)
+        {
+            shouldRelease = false;
+            throw threadquickexitexception;
+        }
+        finally
+        {
+            if (shouldRelease)
+            {
+                this.releaseData();
+            }
+        }
     }
 
     public String getChannelName()
@@ -69,5 +87,13 @@ public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
     public PacketBuffer getBufferData()
     {
         return this.data;
+    }
+
+    public void releaseData()
+    {
+        if (this.data != null && this.data.refCnt() > 0)
+        {
+            this.data.release();
+        }
     }
 }

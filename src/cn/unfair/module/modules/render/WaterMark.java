@@ -26,7 +26,6 @@ public class WaterMark extends Module {
 
     public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
     public final PercentProperty background = new PercentProperty("background", 0);
-    public final BooleanProperty round = new BooleanProperty("round", true, () -> this.background.getValue() > 0);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
     public final BooleanProperty showVersion = new BooleanProperty("version", true);
     public final BooleanProperty showFps = new BooleanProperty("fps", false);
@@ -112,22 +111,14 @@ public class WaterMark extends Module {
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        if (this.round.getValue()) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
-        } else {
-            RenderUtil.drawRect(left, top, right, bottom, color);
-        }
+        RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
     }
 
     private void drawBackgroundMask(float left, float top, float right, float bottom, int color) {
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        if (this.round.getValue()) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
-        } else {
-            RenderUtil.drawRect(left, top, right, bottom, color);
-        }
+        RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
     }
 
     public float[] getWidgetSize() {

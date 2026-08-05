@@ -339,6 +339,10 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
     private final Queue<FutureTask<?>> scheduledTasks = Queues.newArrayDeque();
     private final Thread mcThread = Thread.currentThread();
 
+    public DefaultResourcePack getDefaultResourcePack() {
+        return this.mcDefaultResourcePack;
+    }
+
     /**
      * The BlockRenderDispatcher instance that will be used based off gamesettings
      */
@@ -634,8 +638,8 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
             InputStream inputstream1 = null;
 
             try {
-                inputstream = Minecraft.class.getResourceAsStream("/assets/minecraft/sayori/icon_16x16.png");
-                inputstream1 = Minecraft.class.getResourceAsStream("/assets/minecraft/sayori/icon_32x32.png");
+                inputstream = Minecraft.class.getResourceAsStream("/assets/minecraft/unfair/icon/icon_16x16.png");
+                inputstream1 = Minecraft.class.getResourceAsStream("/assets/minecraft/unfair/icon/icon_32x32.png");
 
                 if (inputstream != null && inputstream1 != null) {
                     Display.setIcon(new ByteBuffer[]{this.readImageToBuffer(inputstream), this.readImageToBuffer(inputstream1)});

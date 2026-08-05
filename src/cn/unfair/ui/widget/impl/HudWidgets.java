@@ -10,5 +10,6 @@ public final class HudWidgets {
         Unfair.widgetManager.register(new WatermarkWidget());
         Unfair.widgetManager.register(new ModuleListWidget());
         Unfair.widgetManager.register(new TargetHUDWidget());
+        Unfair.widgetManager.register(new ScoreboardWidget());
     }
 }

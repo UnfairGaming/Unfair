@@ -91,9 +91,6 @@ import net.optifine.GlErrors;
 import net.optifine.Lagometer;
 import net.optifine.RandomEntities;
 import net.optifine.gui.GuiChatOF;
-import net.optifine.reflect.Reflector;
-import net.optifine.reflect.ReflectorForge;
-import net.optifine.reflect.ReflectorResolver;
 import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersRender;
 import net.optifine.util.MemoryMonitor;
@@ -1016,7 +1013,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 }
 
                 flag = this.mc.getRenderViewEntity() instanceof EntityLivingBase && ((EntityLivingBase) this.mc.getRenderViewEntity()).isPlayerSleeping();
-                boolean flag1 = !ReflectorForge.renderFirstPersonHand(this.mc.renderGlobal, p_renderHand_1_, p_renderHand_2_);
+                boolean flag1 = true;
 
                 if (flag1 && this.mc.gameSettings.thirdPersonView == 0 && !flag && !this.mc.gameSettings.hideGUI && !this.mc.playerController.isSpectator()) {
                     this.enableLightmap();
@@ -1397,7 +1394,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 Block block = iblockstate.getBlock();
 
                 if (this.mc.playerController.getCurrentGameType() == WorldSettings.GameType.SPECTATOR) {
-                    flag = ReflectorForge.blockHasTileEntity(iblockstate) && this.mc.theWorld.getTileEntity(blockpos) instanceof IInventory;
+                    flag = block.hasTileEntity() && this.mc.theWorld.getTileEntity(blockpos) instanceof IInventory;
                 } else {
                     flag = itemstack != null && (itemstack.canDestroy(block) || itemstack.canPlaceOn(block));
                 }
@@ -2355,7 +2352,6 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         GlErrors.frameStart();
 
         if (!this.initialized) {
-            ReflectorResolver.resolve();
             TextureUtils.registerResourceListener();
 
             if (Config.getBitsOs() == 64 && Config.getBitsJre() == 32) {
@@ -2438,7 +2434,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 return;
             }
 
-            Reflector.setFieldValue(p_updateMainMenu_1_, Reflector.GuiMainMenu_splashText, s);
+            p_updateMainMenu_1_.setSplashText(s);
         } catch (Throwable var6) {
         }
     }

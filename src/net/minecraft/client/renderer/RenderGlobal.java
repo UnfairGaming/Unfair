@@ -32,6 +32,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
@@ -101,7 +102,6 @@ import net.optifine.Lagometer;
 import net.optifine.RandomEntities;
 import net.optifine.SmartAnimations;
 import net.optifine.model.BlockModelUtils;
-import net.optifine.reflect.Reflector;
 import net.optifine.render.ChunkVisibility;
 import net.optifine.render.CloudRenderer;
 import net.optifine.render.RenderEnv;
@@ -2792,7 +2792,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             } else {
                 if (ichunkprovider != this.worldChunkProvider) {
                     this.worldChunkProvider = ichunkprovider;
-                    this.worldChunkProviderMap = (LongHashMap) Reflector.getFieldValue(ichunkprovider, Reflector.ChunkProviderClient_chunkMapping);
+                    this.worldChunkProviderMap = ichunkprovider instanceof ChunkProviderClient ? ((ChunkProviderClient)ichunkprovider).getChunkStorage() : null;
                 }
 
                 return this.worldChunkProviderMap == null ? 0 : this.worldChunkProviderMap.getNumHashElements();

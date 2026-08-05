@@ -8,6 +8,7 @@ import net.minecraft.client.gui.ScaledResolution;
 
 public class TargetHUDWidget extends Widget {
     private TargetHUD activeTargetHUD;
+    private boolean followPositionVisible = true;
 
     public TargetHUDWidget() {
         super("TargetHUD", WidgetAlign.CENTER | WidgetAlign.MIDDLE);
@@ -34,6 +35,7 @@ public class TargetHUDWidget extends Widget {
         TargetHUD targetHUD = (TargetHUD) Unfair.moduleManager.getModule(TargetHUD.class);
         if (targetHUD == null) return;
         this.updateBounds(targetHUD);
+        if (!this.followPositionVisible) return;
         targetHUD.renderWidgetMask(partialTicks, this.renderX, this.renderY, 0xFF000000);
     }
 
@@ -47,6 +49,7 @@ public class TargetHUDWidget extends Widget {
         TargetHUD targetHUD = (TargetHUD) Unfair.moduleManager.getModule(TargetHUD.class);
         if (targetHUD == null) return;
         this.updateBounds(targetHUD);
+        if (!this.followPositionVisible) return;
         targetHUD.renderWidgetMask(partialTicks, this.renderX, this.renderY, 0xFFFFFFFF);
     }
 
@@ -55,6 +58,7 @@ public class TargetHUDWidget extends Widget {
         TargetHUD targetHUD = (TargetHUD) Unfair.moduleManager.getModule(TargetHUD.class);
         if (targetHUD == null) return;
         this.updateBounds(targetHUD);
+        if (!this.followPositionVisible) return;
         targetHUD.renderWidget(partialTicks, this.renderX, this.renderY);
     }
 
@@ -69,14 +73,26 @@ public class TargetHUDWidget extends Widget {
     @Override
     public void updatePos(ScaledResolution sr) {
         super.updatePos(sr);
+        this.followPositionVisible = true;
         if (this.activeTargetHUD == null) {
             return;
         }
-        float[] followPosition = this.activeTargetHUD.getFollowPosition(this.width, this.height);
-        if (followPosition == null) {
+        if (!this.activeTargetHUD.shouldFollowPlayer()) {
             return;
         }
-        this.renderX = clamp(followPosition[0], 0.0F, Math.max(0.0F, sr.getScaledWidth() - this.width));
-        this.renderY = clamp(followPosition[1], 0.0F, Math.max(0.0F, sr.getScaledHeight() - this.height));
+        float[] followPosition = this.activeTargetHUD.getFollowPosition(this.width, this.height);
+        if (followPosition == null || !this.isOnScreen(followPosition[0], followPosition[1], sr)) {
+            this.followPositionVisible = false;
+            return;
+        }
+        this.renderX = followPosition[0];
+        this.renderY = followPosition[1];
+    }
+
+    private boolean isOnScreen(float x, float y, ScaledResolution sr) {
+        return x >= 0.0F
+                && y >= 0.0F
+                && x + this.width <= sr.getScaledWidth()
+                && y + this.height <= sr.getScaledHeight();
     }
 }

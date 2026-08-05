@@ -6,9 +6,7 @@ import net.minecraft.client.model.ModelSkeletonHead;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySkullRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.src.Config;
 import net.minecraft.tileentity.TileEntitySkull;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterHeadSkeleton extends ModelAdapter
@@ -58,16 +56,8 @@ public class ModelAdapterHeadSkeleton extends ModelAdapter
                 tileentityspecialrenderer.setRendererDispatcher(tileentityrendererdispatcher);
             }
 
-            if (!Reflector.TileEntitySkullRenderer_humanoidHead.exists())
-            {
-                Config.warn("Field not found: TileEntitySkullRenderer.humanoidHead");
-                return null;
-            }
-            else
-            {
-                Reflector.setFieldValue(tileentityspecialrenderer, Reflector.TileEntitySkullRenderer_humanoidHead, modelBase);
-                return tileentityspecialrenderer;
-            }
+            ((TileEntitySkullRenderer)tileentityspecialrenderer).humanoidHead = (ModelSkeletonHead)modelBase;
+            return tileentityspecialrenderer;
         }
     }
 }

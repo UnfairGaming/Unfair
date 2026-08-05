@@ -24,8 +24,8 @@ public class TileEntitySkullRenderer extends TileEntitySpecialRenderer<TileEntit
     private static final ResourceLocation ZOMBIE_TEXTURES = ResourceLocation.of("textures/entity/zombie/zombie.png");
     private static final ResourceLocation CREEPER_TEXTURES = ResourceLocation.of("textures/entity/creeper/creeper.png");
     public static TileEntitySkullRenderer instance;
-    private final ModelSkeletonHead skeletonHead = new ModelSkeletonHead(0, 0, 64, 32);
-    private final ModelSkeletonHead humanoidHead = new ModelHumanoidHead();
+    public ModelSkeletonHead skeletonHead = new ModelSkeletonHead(0, 0, 64, 32);
+    public ModelSkeletonHead humanoidHead = new ModelHumanoidHead();
 
     public void renderTileEntityAt(TileEntitySkull te, double x, double y, double z, float partialTicks, int destroyStage)
     {

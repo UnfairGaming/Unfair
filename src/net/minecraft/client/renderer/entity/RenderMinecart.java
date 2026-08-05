@@ -16,7 +16,7 @@ public class RenderMinecart<T extends EntityMinecart> extends Render<T>
     private static final ResourceLocation minecartTextures = ResourceLocation.of("textures/entity/minecart.png");
 
     /** instance of ModelMinecart for rendering */
-    protected ModelBase modelMinecart = new ModelMinecart();
+    public ModelBase modelMinecart = new ModelMinecart();
 
     public RenderMinecart(RenderManager renderManagerIn)
     {

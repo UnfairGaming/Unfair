@@ -23,7 +23,7 @@ public class TileEntitySignRenderer extends TileEntitySpecialRenderer<TileEntity
     private static final ResourceLocation SIGN_TEXTURE = ResourceLocation.of("textures/entity/sign.png");
 
     /** The ModelSign instance for use in this renderer */
-    private final ModelSign model = new ModelSign();
+    public ModelSign model = new ModelSign();
     private static double textRenderDistanceSq = 4096.0D;
 
     public void renderTileEntityAt(TileEntitySign te, double x, double y, double z, float partialTicks, int destroyStage)

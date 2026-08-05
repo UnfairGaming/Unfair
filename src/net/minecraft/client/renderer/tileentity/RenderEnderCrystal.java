@@ -12,7 +12,7 @@ import net.minecraft.util.ResourceLocation;
 public class RenderEnderCrystal extends Render<EntityEnderCrystal>
 {
     private static final ResourceLocation enderCrystalTextures = ResourceLocation.of("textures/entity/endercrystal/endercrystal.png");
-    private ModelBase modelEnderCrystal = new ModelEnderCrystal(0.0F, true);
+    public ModelBase modelEnderCrystal = new ModelEnderCrystal(0.0F, true);
 
     public RenderEnderCrystal(RenderManager renderManagerIn)
     {

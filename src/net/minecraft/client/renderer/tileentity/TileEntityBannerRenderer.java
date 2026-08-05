@@ -20,7 +20,7 @@ public class TileEntityBannerRenderer extends TileEntitySpecialRenderer<TileEnti
 {
     private static final Map<String, TileEntityBannerRenderer.TimedBannerTexture> DESIGNS = Maps.<String, TileEntityBannerRenderer.TimedBannerTexture>newHashMap();
     private static final ResourceLocation BANNERTEXTURES = ResourceLocation.of("textures/entity/banner_base.png");
-    private ModelBanner bannerModel = new ModelBanner();
+    public ModelBanner bannerModel = new ModelBanner();
 
     public void renderTileEntityAt(TileEntityBanner te, double x, double y, double z, float partialTicks, int destroyStage)
     {

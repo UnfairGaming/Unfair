@@ -9,7 +9,6 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderRabbit;
 import net.minecraft.entity.passive.EntityRabbit;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterRabbit extends ModelAdapter
@@ -40,13 +39,33 @@ public class ModelAdapterRabbit extends ModelAdapter
             if (map.containsKey(modelPart))
             {
                 int i = ((Integer)map.get(modelPart)).intValue();
-                return (ModelRenderer)Reflector.getFieldValue(modelrabbit, Reflector.ModelRabbit_renderers, i);
+                return getModelRenderer(modelrabbit, i);
             }
             else
             {
                 return null;
             }
         }
+    }
+
+    private static ModelRenderer getModelRenderer(ModelRabbit modelrabbit, int index)
+    {
+        return switch (index)
+        {
+            case 0 -> modelrabbit.rabbitLeftFoot;
+            case 1 -> modelrabbit.rabbitRightFoot;
+            case 2 -> modelrabbit.rabbitLeftThigh;
+            case 3 -> modelrabbit.rabbitRightThigh;
+            case 4 -> modelrabbit.rabbitBody;
+            case 5 -> modelrabbit.rabbitLeftArm;
+            case 6 -> modelrabbit.rabbitRightArm;
+            case 7 -> modelrabbit.rabbitHead;
+            case 8 -> modelrabbit.rabbitRightEar;
+            case 9 -> modelrabbit.rabbitLeftEar;
+            case 10 -> modelrabbit.rabbitTail;
+            case 11 -> modelrabbit.rabbitNose;
+            default -> null;
+        };
     }
 
     public String[] getModelRendererNames()

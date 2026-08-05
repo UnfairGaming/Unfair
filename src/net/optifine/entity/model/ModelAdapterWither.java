@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderWither;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.src.Config;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterWither extends ModelAdapter
@@ -36,7 +35,7 @@ public class ModelAdapterWither extends ModelAdapter
 
             if (modelPart.startsWith(s))
             {
-                ModelRenderer[] amodelrenderer1 = (ModelRenderer[])((ModelRenderer[])Reflector.getFieldValue(modelwither, Reflector.ModelWither_bodyParts));
+                ModelRenderer[] amodelrenderer1 = modelwither.field_82905_a;
 
                 if (amodelrenderer1 == null)
                 {
@@ -56,7 +55,7 @@ public class ModelAdapterWither extends ModelAdapter
 
                 if (modelPart.startsWith(s1))
                 {
-                    ModelRenderer[] amodelrenderer = (ModelRenderer[])((ModelRenderer[])Reflector.getFieldValue(modelwither, Reflector.ModelWither_heads));
+                    ModelRenderer[] amodelrenderer = modelwither.field_82904_b;
 
                     if (amodelrenderer == null)
                     {

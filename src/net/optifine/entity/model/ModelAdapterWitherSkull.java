@@ -7,8 +7,6 @@ import net.minecraft.client.model.ModelSkeletonHead;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.RenderWitherSkull;
 import net.minecraft.entity.projectile.EntityWitherSkull;
-import net.minecraft.src.Config;
-import net.optifine.reflect.Reflector;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class ModelAdapterWitherSkull extends ModelAdapter
@@ -46,16 +44,8 @@ public class ModelAdapterWitherSkull extends ModelAdapter
         RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
         RenderWitherSkull renderwitherskull = new RenderWitherSkull(rendermanager);
 
-        if (!Reflector.RenderWitherSkull_model.exists())
-        {
-            Config.warn("Field not found: RenderWitherSkull_model");
-            return null;
-        }
-        else
-        {
-            Reflector.setFieldValue(renderwitherskull, Reflector.RenderWitherSkull_model, modelBase);
-            renderwitherskull.shadowSize = shadowSize;
-            return renderwitherskull;
-        }
+        renderwitherskull.skeletonHeadModel = (ModelSkeletonHead)modelBase;
+        renderwitherskull.shadowSize = shadowSize;
+        return renderwitherskull;
     }
 }

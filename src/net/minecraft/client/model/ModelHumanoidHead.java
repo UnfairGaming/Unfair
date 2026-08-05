@@ -4,7 +4,7 @@ import net.minecraft.entity.Entity;
 
 public class ModelHumanoidHead extends ModelSkeletonHead
 {
-    private final ModelRenderer head = new ModelRenderer(this, 32, 0);
+    public final ModelRenderer head = new ModelRenderer(this, 32, 0);
 
     public ModelHumanoidHead()
     {

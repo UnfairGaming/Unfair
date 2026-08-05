@@ -21,6 +21,11 @@ public class GuiBrewingStand extends GuiContainer
         this.tileBrewingStand = p_i45506_2_;
     }
 
+    public IInventory getTileBrewingStand()
+    {
+        return this.tileBrewingStand;
+    }
+
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items). Args : mouseX, mouseY
      */

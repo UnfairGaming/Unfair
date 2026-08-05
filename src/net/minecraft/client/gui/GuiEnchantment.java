@@ -62,6 +62,11 @@ public class GuiEnchantment extends GuiContainer
         this.field_175380_I = p_i45502_3_;
     }
 
+    public IWorldNameable getNameable()
+    {
+        return this.field_175380_I;
+    }
+
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items). Args : mouseX, mouseY
      */

@@ -37,6 +37,11 @@ public class GuiBeacon extends GuiContainer
         this.ySize = 219;
     }
 
+    public IInventory getTileBeacon()
+    {
+        return this.tileBeacon;
+    }
+
     /**
      * Adds the buttons (and other controls) to the screen in question. Called when the GUI is displayed and when the
      * window resizes, the buttonList is cleared beforehand.

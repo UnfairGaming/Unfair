@@ -100,6 +100,26 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc
         this(worldIn, 0);
     }
 
+    public int getCareerId()
+    {
+        return this.careerId;
+    }
+
+    public void setCareerId(int careerId)
+    {
+        this.careerId = careerId;
+    }
+
+    public int getCareerLevel()
+    {
+        return this.careerLevel;
+    }
+
+    public void setCareerLevel(int careerLevel)
+    {
+        this.careerLevel = careerLevel;
+    }
+
     public EntityVillager(World worldIn, int professionId)
     {
         super(worldIn);

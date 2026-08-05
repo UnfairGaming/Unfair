@@ -7,8 +7,8 @@ import net.minecraft.util.MathHelper;
 
 public class ModelWither extends ModelBase
 {
-    private ModelRenderer[] field_82905_a;
-    private ModelRenderer[] field_82904_b;
+    public ModelRenderer[] field_82905_a;
+    public ModelRenderer[] field_82904_b;
 
     public ModelWither(float p_i46302_1_)
     {

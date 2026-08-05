@@ -30,6 +30,11 @@ public class GuiChest extends GuiContainer
         this.ySize = j + this.inventoryRows * 18;
     }
 
+    public IInventory getLowerChestInventory()
+    {
+        return this.lowerChestInventory;
+    }
+
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items). Args : mouseX, mouseY
      */

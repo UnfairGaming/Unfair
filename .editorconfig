@@ -1,0 +1,4 @@
+root = true
+
+[*.{java,xml,json,properties,mcmeta,lang,txt,gradle}]
+charset = utf-8
