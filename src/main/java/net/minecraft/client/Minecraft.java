@@ -6,6 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.init.Initializer;
 import cn.unfair.module.modules.combat.NoHitDelay;
+import cn.unfair.util.RenderUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -119,6 +120,9 @@ import java.util.concurrent.FutureTask;
 
 public class Minecraft implements IThreadListener, IPlayerUsage {
     private static final Logger logger = LogManager.getLogger();
+    private static final ResourceLocation UNFAIR_SPLASH_TEXTURE = ResourceLocation.of("unfair/image/splash.png");
+    private static final int UNFAIR_SPLASH_BACKGROUND = 0xFFA3A5A2;
+    private static final int UNFAIR_SPLASH_SIZE = 250;
     // private static final ResourceLocation locationMojangPng = ResourceLocation.of("textures/gui/title/mojang.png");
     public static final boolean isRunningOnMac = Util.getOSType() == Util.EnumOS.OSX;
 
@@ -472,7 +476,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         this.renderEngine = new TextureManager(this.mcResourceManager);
 
         this.mcResourceManager.registerReloadListener(this.renderEngine);
-        // this.drawSplashScreen(this.renderEngine);
+        this.drawSplashScreen(this.renderEngine);
 
         this.skinManager = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"));
         this.saveLoader = new AnvilSaveConverter(new File(this.mcDataDir, "saves"));
@@ -771,7 +775,6 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         this.displayHeight = displaymode.getHeight();
     }
 
-    /*
     private void drawSplashScreen(TextureManager textureManagerInstance) {
         ScaledResolution scaledresolution = new ScaledResolution(this);
         int i = scaledresolution.getScaleFactor();
@@ -787,30 +790,19 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         GlStateManager.disableFog();
         GlStateManager.disableDepth();
         GlStateManager.enableTexture2D();
-        InputStream inputstream = null;
-
-        try {
-            inputstream = this.mcDefaultResourcePack.getInputStream(locationMojangPng);
-            this.mojangLogo = textureManagerInstance.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(inputstream)));
-            textureManagerInstance.bindTexture(this.mojangLogo);
-        } catch (IOException ioexception) {
-            logger.error("Unable to load logo: " + locationMojangPng, ioexception);
-        } finally {
-            IOUtils.closeQuietly(inputstream);
-        }
-
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
-        worldrenderer.pos(0.0D, this.displayHeight, 0.0D).tex(0.0D, 0.0D).color(255, 255, 255, 255).endVertex();
-        worldrenderer.pos(this.displayWidth, this.displayHeight, 0.0D).tex(0.0D, 0.0D).color(255, 255, 255, 255).endVertex();
-        worldrenderer.pos(this.displayWidth, 0.0D, 0.0D).tex(0.0D, 0.0D).color(255, 255, 255, 255).endVertex();
-        worldrenderer.pos(0.0D, 0.0D, 0.0D).tex(0.0D, 0.0D).color(255, 255, 255, 255).endVertex();
-        tessellator.draw();
+        Gui.drawRect(0, 0, scaledresolution.getScaledWidth(), scaledresolution.getScaledHeight(), UNFAIR_SPLASH_BACKGROUND);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        int j = 256;
-        int k = 256;
-        this.draw((scaledresolution.getScaledWidth() - j) / 2, (scaledresolution.getScaledHeight() - k) / 2, 0, 0, j, k, 255, 255, 255, 255);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        RenderUtil.drawImage(
+                UNFAIR_SPLASH_TEXTURE,
+                (scaledresolution.getScaledWidth() - UNFAIR_SPLASH_SIZE) / 2.0F,
+                (scaledresolution.getScaledHeight() - UNFAIR_SPLASH_SIZE) / 2.0F,
+                UNFAIR_SPLASH_SIZE,
+                UNFAIR_SPLASH_SIZE,
+                -1
+        );
+        GlStateManager.disableBlend();
         GlStateManager.disableLighting();
         GlStateManager.disableFog();
         framebuffer.unbindFramebuffer();
@@ -819,8 +811,6 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         GlStateManager.alphaFunc(516, 0.1F);
         this.updateDisplay();
     }
-
-     */
 
     /**
      * Draw with the WorldRenderer
