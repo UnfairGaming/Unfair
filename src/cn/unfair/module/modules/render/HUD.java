@@ -639,7 +639,7 @@ public class HUD extends Module {
                     entry.right,
                     entry.bottom,
                     color,
-                    2.0,
+                    2.0F,
                     entry.leftTop,
                     entry.rightTop,
                     entry.leftBot,

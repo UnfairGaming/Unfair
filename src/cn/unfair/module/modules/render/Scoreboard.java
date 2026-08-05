@@ -24,9 +24,9 @@ import java.util.List;
 public class Scoreboard extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final float FONT_SIZE = 16.0F;
-    private static final float PADDING_X = 5.0F;
-    private static final float PADDING_TOP = 4.0F;
-    private static final float PADDING_BOTTOM = 5.0F;
+    private static final float PADDING_X = 3.0F;
+    private static final float PADDING_TOP = 3.0F;
+    private static final float PADDING_BOTTOM = 3.0F;
     private static final float TITLE_GAP = 2.0F;
     private static final float MIN_WIDTH = 70.0F;
     private static final int BACKGROUND_RGB = 8 << 16 | 10 << 8 | 14;
@@ -91,7 +91,7 @@ public class Scoreboard extends Module {
                 TITLE_COLOR
         );
 
-        float lineY = y + PADDING_TOP + this.getFontHeight() + TITLE_GAP;
+        float lineY = y + PADDING_TOP + this.getFontHeight();
         for (int i = lines.size() - 1; i >= 0; i--) {
             ScoreboardLine line = lines.get(i);
             this.drawString(line.name, x + PADDING_X, lineY, TEXT_COLOR);
@@ -122,7 +122,7 @@ public class Scoreboard extends Module {
             width = Math.max(width, lineWidth);
         }
         this.cachedWidth = Math.max(MIN_WIDTH, width + PADDING_X * 2.0F);
-        this.cachedHeight = PADDING_TOP + this.getFontHeight() + TITLE_GAP + lines.size() * this.getLineHeight() + PADDING_BOTTOM;
+        this.cachedHeight = PADDING_TOP + this.getFontHeight() + lines.size() * this.getLineHeight() + PADDING_BOTTOM;
     }
 
     private void drawBackground(float x, float y, int color) {
