@@ -850,7 +850,10 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
         double d1 = viewEntity.posY - this.frustumUpdatePosY;
         double d2 = viewEntity.posZ - this.frustumUpdatePosZ;
 
-        if (this.frustumUpdatePosChunkX != viewEntity.chunkCoordX || this.frustumUpdatePosChunkY != viewEntity.chunkCoordY || this.frustumUpdatePosChunkZ != viewEntity.chunkCoordZ || d0 * d0 + d1 * d1 + d2 * d2 > 16.0D) {
+        boolean playerChangedChunk = this.frustumUpdatePosChunkX != viewEntity.chunkCoordX
+                || this.frustumUpdatePosChunkY != viewEntity.chunkCoordY
+                || this.frustumUpdatePosChunkZ != viewEntity.chunkCoordZ;
+        if (playerChangedChunk || d0 * d0 + d1 * d1 + d2 * d2 > 16.0D) {
             this.frustumUpdatePosX = viewEntity.posX;
             this.frustumUpdatePosY = viewEntity.posY;
             this.frustumUpdatePosZ = viewEntity.posZ;
@@ -858,6 +861,12 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             this.frustumUpdatePosChunkY = viewEntity.chunkCoordY;
             this.frustumUpdatePosChunkZ = viewEntity.chunkCoordZ;
             this.viewFrustum.updateChunkPositions(viewEntity.posX, viewEntity.posZ);
+
+            if (playerChangedChunk) {
+                for (net.minecraft.client.renderer.chunk.RenderChunk renderChunk : this.viewFrustum.renderChunks) {
+                    renderChunk.setNeedsUpdate(true);
+                }
+            }
         }
 
         if (Config.isDynamicLights()) {

@@ -2,8 +2,16 @@ package net.minecraft.client.renderer.chunk;
 
 import com.google.common.collect.Sets;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockBasePressurePlate;
+import net.minecraft.block.BlockButton;
 import net.minecraft.block.BlockCactus;
+import net.minecraft.block.BlockDeadBush;
+import net.minecraft.block.BlockDoublePlant;
+import net.minecraft.block.BlockFlower;
+import net.minecraft.block.BlockLever;
 import net.minecraft.block.BlockRedstoneWire;
+import net.minecraft.block.BlockTallGrass;
+import net.minecraft.block.BlockTorch;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -36,6 +44,7 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class RenderChunk {
+    private static final double DISTANT_DECORATION_DISTANCE_SQ = 48.0D * 48.0D;
     private final World world;
     private final RenderGlobal renderGlobal;
     public static int renderChunksUpdated;
@@ -189,6 +198,10 @@ public class RenderChunk {
                 IBlockState iblockstate = chunkcacheof.getBlockState(blockposm);
                 Block block = iblockstate.getBlock();
 
+                if (isDistantDecoration(block, blockposm)) {
+                    continue;
+                }
+
                 if (block.isOpaqueCube())
                 {
                     lvt_10_1_.func_178606_a(blockposm);
@@ -294,6 +307,28 @@ public class RenderChunk {
         {
             this.lockCompileTask.unlock();
         }
+    }
+
+    private static boolean isDistantDecoration(Block block, BlockPos pos) {
+        if (!(block instanceof BlockTorch
+                || block instanceof BlockButton
+                || block instanceof BlockLever
+                || block instanceof BlockBasePressurePlate
+                || block instanceof BlockTallGrass
+                || block instanceof BlockDoublePlant
+                || block instanceof BlockDeadBush
+                || block instanceof BlockFlower)) {
+            return false;
+        }
+
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null) {
+            return false;
+        }
+
+        double dx = pos.getX() + 0.5D - mc.thePlayer.posX;
+        double dz = pos.getZ() + 0.5D - mc.thePlayer.posZ;
+        return dx * dx + dz * dz > DISTANT_DECORATION_DISTANCE_SQ;
     }
 
     protected void finishCompileTask()
