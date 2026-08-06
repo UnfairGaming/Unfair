@@ -6,6 +6,7 @@ import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.modules.misc.NickHider;
 import cn.unfair.module.modules.player.AutoBlockIn;
 import cn.unfair.module.modules.player.Scaffold;
+import cn.unfair.module.modules.render.Animations;
 import cn.unfair.util.postprocessing.PostProcessingRenderer;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -320,7 +321,8 @@ public class GuiIngame extends Gui {
         GlStateManager.popMatrix();
         scoreobjective1 = scoreboard.getObjectiveInDisplaySlot(0);
 
-        if (this.mc.gameSettings.keyBindPlayerList.isKeyDown() && (!this.mc.isIntegratedServerRunning() || this.mc.thePlayer.sendQueue.getPlayerInfoMap().size() > 1 || scoreobjective1 != null)) {
+        if (this.mc.gameSettings.keyBindPlayerList.isKeyDown()
+                && (!this.mc.isIntegratedServerRunning() || this.mc.thePlayer.sendQueue.getPlayerInfoMap().size() > 1 || scoreobjective1 != null)) {
             this.overlayPlayerList.updatePlayerList(true);
             this.overlayPlayerList.renderPlayerlist(i, scoreboard, scoreobjective1);
         } else {
@@ -558,7 +560,9 @@ public class GuiIngame extends Gui {
     private void renderPlayerStats(ScaledResolution scaledRes) {
         if (this.mc.getRenderViewEntity() instanceof EntityPlayer entityplayer) {
             int i = MathHelper.ceiling_float_int(entityplayer.getHealth());
-            boolean flag = this.healthUpdateCounter > (long) this.updateCounter && (this.healthUpdateCounter - (long) this.updateCounter) / 3L % 2L == 1L;
+            boolean flag = !Animations.oldHeartsEnabled()
+                    && this.healthUpdateCounter > (long) this.updateCounter
+                    && (this.healthUpdateCounter - (long) this.updateCounter) / 3L % 2L == 1L;
 
             if (i < this.playerHealth && entityplayer.hurtResistantTime > 0) {
                 this.lastSystemTime = Minecraft.getSystemTime();

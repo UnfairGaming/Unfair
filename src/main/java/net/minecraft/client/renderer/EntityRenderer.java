@@ -1,5 +1,6 @@
 package net.minecraft.client.renderer;
 
+import cn.unfair.module.modules.render.Animations;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.PickEvent;
@@ -1755,12 +1756,16 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 this.renderHand(partialTicks, pass);
             }
 
-            this.renderWorldDirections(partialTicks);
+            if (!Animations.oldDebugEnabled()) {
+                this.renderWorldDirections(partialTicks);
+            }
         }
 
         if (flag) {
             Shaders.endRender();
         }
+
+        Animations.performLegacyBlockBreak();
     }
 
     private void renderCloudsCheck(RenderGlobal renderGlobalIn, float partialTicks, int pass) {

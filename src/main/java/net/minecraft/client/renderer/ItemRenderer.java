@@ -2,6 +2,7 @@ package net.minecraft.client.renderer;
 
 import cn.unfair.event.EventManager;
 import cn.unfair.events.RenderItemEvent;
+import cn.unfair.module.modules.render.Animations;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -21,6 +22,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBow;
+import net.minecraft.item.ItemCarrotOnAStick;
+import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
 import net.minecraft.src.Config;
@@ -303,6 +307,18 @@ public class ItemRenderer {
     public void transformFirstPersonItem(float equipProgress, float swingProgress)
     {
         GlStateManager.translate(0.56F, -0.52F, -0.71999997F);
+        ItemStack stack = this.itemToRender;
+        if (stack != null) {
+            if (Animations.oldRodEnabled()
+                    && (stack.getItem() instanceof ItemFishingRod || stack.getItem() instanceof ItemCarrotOnAStick)) {
+                GlStateManager.translate(0.08F, -0.027F, -0.33F);
+                GlStateManager.scale(0.93F, 1.0F, 1.0F);
+            }
+            if (Animations.oldBowEnabled() && this.mc.thePlayer.getItemInUseCount() > 0
+                    && stack.getItem() instanceof ItemBow) {
+                GlStateManager.translate(-0.01F, 0.05F, -0.06F);
+            }
+        }
         GlStateManager.translate(0.0F, equipProgress * -0.6F, 0.0F);
         GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
         float f = MathHelper.sin(swingProgress * swingProgress * (float)Math.PI);
@@ -311,6 +327,12 @@ public class ItemRenderer {
         GlStateManager.rotate(f1 * -20.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(f1 * -80.0F, 1.0F, 0.0F, 0.0F);
         GlStateManager.scale(0.4F, 0.4F, 0.4F);
+    }
+
+    public void transformFirstPersonItemEat(float equipProgress, float swingProgress)
+    {
+        GlStateManager.scale(0.8F, 0.8F, 0.8F);
+        GlStateManager.translate(-0.2F, -0.1F, 0.0F);
     }
 
     /**

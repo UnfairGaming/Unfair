@@ -1,5 +1,6 @@
 package net.minecraft.entity.player;
 
+import cn.unfair.module.modules.render.Animations;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.combat.velocity.PolarVelocity;
 import cn.unfair.module.modules.movement.KeepSprint;
@@ -2361,9 +2362,12 @@ public abstract class EntityPlayer extends EntityLivingBase {
             f = 0.2F;
         }
 
-        if (this.isSneaking())
+        if (this.isSneaking() && !Animations.oldSneakEnabled())
         {
             f -= 0.08F;
+        }
+        else if (this.isSneaking()) {
+            f = 1.54F;
         }
 
         return f;

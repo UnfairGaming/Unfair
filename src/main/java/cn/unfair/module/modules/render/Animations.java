@@ -3,6 +3,7 @@ package cn.unfair.module.modules.render;
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.RenderItemEvent;
 import cn.unfair.events.SwingAnimationEvent;
+import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemMap;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MathHelper;
 import org.lwjgl.opengl.GL11;
 
@@ -33,9 +35,51 @@ public class Animations extends Module {
     public final FloatProperty z = new FloatProperty("Z", 0.0F, -2.0F, 2.0F);
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.1F, 2.0F);
     public final BooleanProperty alwaysShow = new BooleanProperty("Always Show", false);
+    public final BooleanProperty oldBlockHit = new BooleanProperty("1.7 Blockhit", true);
+    public final BooleanProperty oldRod = new BooleanProperty("1.7 Rod", true);
+    public final BooleanProperty oldBow = new BooleanProperty("1.7 Bow", true);
+    public final BooleanProperty oldDamage = new BooleanProperty("1.7 Damage", true);
+    public final BooleanProperty oldHearts = new BooleanProperty("1.7 Hearts", true);
+    public final BooleanProperty oldSneak = new BooleanProperty("1.7 Sneak", true);
+    public final BooleanProperty oldBlockBreak = new BooleanProperty("1.7 Blockbreak", true);
+    public final BooleanProperty oldDebug = new BooleanProperty("1.7 Debug Menu", true);
+    public final BooleanProperty oldEat = new BooleanProperty("1.7 Eat", true);
+    public final BooleanProperty oldPlayerList = new BooleanProperty("1.7 Playerlist", false);
 
     public Animations() {
         super("Animations", false, true);
+    }
+
+    private static Animations instance() {
+        if (Unfair.moduleManager == null) return null;
+        return (Animations) Unfair.moduleManager.getModule(Animations.class);
+    }
+
+    public static boolean legacyEnabled(BooleanProperty property) {
+        Animations animations = instance();
+        return animations != null && animations.isEnabled() && property.getValue();
+    }
+
+    public static boolean oldRodEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldRod); }
+    public static boolean oldBowEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldBow); }
+    public static boolean oldDamageEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldDamage); }
+    public static boolean oldHeartsEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldHearts); }
+    public static boolean oldSneakEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldSneak); }
+    public static boolean oldBlockBreakEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldBlockBreak); }
+    public static boolean oldDebugEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldDebug); }
+    public static boolean oldPlayerListEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldPlayerList); }
+
+    public static void performLegacyBlockBreak() {
+        Animations animations = instance();
+        if (animations == null || !animations.isEnabled() || !animations.oldBlockBreak.getValue()
+                || mc.thePlayer == null || mc.objectMouseOver == null
+                || mc.thePlayer.getItemInUseCount() == 0
+                || !mc.gameSettings.keyBindAttack.isKeyDown()
+                || !mc.gameSettings.keyBindUseItem.isKeyDown()
+                || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+            return;
+        }
+        mc.thePlayer.swingItem();
     }
 
     @EventTarget
@@ -54,6 +98,11 @@ public class Animations extends Module {
         ItemRenderer accessor = itemRenderer;
         float animationProgression = alwaysShow.getValue() && event.isUseItem() ? 0.0F : event.getAnimationProgression();
         float swingProgress = event.getSwingProgress();
+        if (event.isUseItem() && oldBlockHit.getValue() && itemAction == EnumAction.BLOCK) {
+            swingProgress = event.getSwingProgress();
+        } else if (event.isUseItem() && itemAction == EnumAction.BLOCK) {
+            swingProgress = 0.0F;
+        }
         float convertedProgress = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) PI2);
 
         if (event.isUseItem() && itemAction == EnumAction.BLOCK) {
@@ -61,6 +110,13 @@ public class Animations extends Module {
                 GlStateManager.translate(x.getValue(), y.getValue(), z.getValue());
             }
             renderBlockAnimation(accessor, animationProgression, swingProgress, convertedProgress, scaleValue);
+            event.setCancelled(true);
+        } else if (event.isUseItem() && (itemAction == EnumAction.EAT || itemAction == EnumAction.DRINK)
+                && oldEat.getValue()) {
+            itemRenderer.performDrinking(mc.thePlayer, event.getPartialTicks());
+            itemRenderer.transformFirstPersonItem(animationProgression,
+                    oldBlockHit.getValue() ? swingProgress : 0.0F);
+            itemRenderer.transformFirstPersonItemEat(animationProgression, 0.0F);
             event.setCancelled(true);
         } else if (!event.isUseItem()) {
             renderSwingAnimation(accessor, animationProgression, swingProgress, scaleValue);
