@@ -1,5 +1,6 @@
 package cn.unfair.ui.mainmenu;
 
+import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.postprocessing.ShaderUtils;
@@ -18,8 +19,6 @@ public final class MainMenuStyle {
     public static final int WHITE_208 = new Color(255, 255, 255, 208).getRGB();
     public static final int WHITE_170 = new Color(255, 255, 255, 170).getRGB();
     private static final int ANDROID_BACKGROUND_COLOR = 0xFFA3A5A2;
-    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
-
     private static ShaderUtils backgroundShader;
 
     private MainMenuStyle() {
@@ -28,7 +27,7 @@ public final class MainMenuStyle {
     public static void drawBackground(int width, int height, float partialTicks) {
         GlStateManager.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-        if (ANDROID_RUNTIME) {
+        if (AndroidUtil.isAndroid()) {
             RenderUtil.drawRect(0.0D, 0.0D, width, height, ANDROID_BACKGROUND_COLOR);
             return;
         }

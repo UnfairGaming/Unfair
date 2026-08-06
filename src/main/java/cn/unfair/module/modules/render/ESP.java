@@ -12,6 +12,7 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.ColorUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
@@ -39,7 +40,6 @@ import java.util.stream.Collectors;
 
 public class ESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
     private static final int MODE_2D = 1;
     private static final int MODE_3D = 2;
     private static final int MODE_GLOW = 3;
@@ -66,7 +66,7 @@ public class ESP extends Module {
     public ESP() {
         super("ESP", false, true);
         try {
-            if (ANDROID_RUNTIME) {
+            if (AndroidUtil.isAndroid()) {
                 this.glowAvailable = false;
                 return;
             }

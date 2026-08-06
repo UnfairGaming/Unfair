@@ -3,6 +3,7 @@ package cn.unfair.module.modules.render.targethud.impl;
 import cn.unfair.module.modules.render.TargetHUD;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
 import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -104,14 +105,21 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
                 this.scaleY(y + 34.65F, centerY, scale),
                 this.scaleSize(5.0F, scale),
                 playerHp >= targetHp ? new Color(0, 0, 0, 0).getRGB() : new Color(255, 0, 0, (int) (85.0F * progress)).getRGB());
-        RenderUtil.renderRoundedPlayerHead(
-                data.entity(),
-                this.scaleX(x + 2.5F, centerX, scale),
-                this.scaleY(y + 2.5F, centerY, scale),
-                this.scaleSize(32.0F, scale),
-                this.scaleSize(5.0F, scale),
-                headColor
-        );
+        float headX = this.scaleX(x + 2.5F, centerX, scale);
+        float headY = this.scaleY(y + 2.5F, centerY, scale);
+        float headSize = this.scaleSize(32.0F, scale);
+        if (AndroidUtil.isAndroid()) {
+            RenderUtil.renderPlayerHead(data.entity(), headX, headY, headSize, headColor);
+        } else {
+            RenderUtil.renderRoundedPlayerHead(
+                    data.entity(),
+                    headX,
+                    headY,
+                    headSize,
+                    this.scaleSize(5.0F, scale),
+                    headColor
+            );
+        }
     }
 
     @Override

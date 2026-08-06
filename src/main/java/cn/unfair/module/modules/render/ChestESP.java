@@ -7,6 +7,7 @@ import cn.unfair.events.Render3DEvent;
 import cn.unfair.events.ResizeEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
+import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.postprocessing.GlowESPBlurShader;
 import cn.unfair.util.postprocessing.ShaderUtils;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 
 public class ChestESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
     private static final int MODE_DEFAULT = 0;
     private static final int MODE_GLOW = 1;
     public final ModeProperty mode;
@@ -57,7 +57,7 @@ public class ChestESP extends Module {
         this.glowExposure = new FloatProperty("glow-exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
         this.glowRadius = new IntProperty("glow-radius", 5, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
         try {
-            if (ANDROID_RUNTIME) {
+            if (AndroidUtil.isAndroid()) {
                 this.glowAvailable = false;
                 return;
             }

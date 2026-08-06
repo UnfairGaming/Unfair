@@ -6,6 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.PostProcessBloomEvent;
 import cn.unfair.events.PostProcessBlurEvent;
 import cn.unfair.module.modules.render.PostProcessing;
+import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.StencilUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -18,7 +19,7 @@ public class PostProcessingRenderer {
     private static Framebuffer bloomBuffer;
 
     public static void render2D(float partialTicks) {
-        if (PostProcessing.ANDROID_RUNTIME) {
+        if (AndroidUtil.isAndroid()) {
             return;
         }
         if (Unfair.moduleManager == null) {

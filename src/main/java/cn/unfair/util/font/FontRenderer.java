@@ -76,7 +76,187 @@ public class FontRenderer {
                 || chr == '\u2715'
                 || chr == '\u2716'
                 || chr == '\u2717'
-                || chr == '\u2718';
+                || chr == '\u2718'
+                || isEmojiBmp(chr);
+    }
+
+    private static boolean isEmojiBmp(char chr) {
+        return chr == '\u00A9'
+                || chr == '\u00AE'
+                || chr == '\u203C'
+                || chr == '\u2049'
+                || chr == '\u2122'
+                || chr == '\u2139'
+                || chr == '\u2194'
+                || chr == '\u2195'
+                || chr == '\u2196'
+                || chr == '\u2197'
+                || chr == '\u2198'
+                || chr == '\u2199'
+                || chr == '\u21A9'
+                || chr == '\u21AA'
+                || chr == '\u231A'
+                || chr == '\u231B'
+                || chr == '\u2328'
+                || chr == '\u23CF'
+                || chr == '\u23E9'
+                || chr == '\u23EA'
+                || chr == '\u23EB'
+                || chr == '\u23EC'
+                || chr == '\u23F0'
+                || chr == '\u23F3'
+                || chr == '\u24C2'
+                || chr == '\u25AA'
+                || chr == '\u25AB'
+                || chr == '\u25B6'
+                || chr == '\u25C0'
+                || chr == '\u25FB'
+                || chr == '\u25FC'
+                || chr == '\u25FD'
+                || chr == '\u25FE'
+                || chr == '\u2600'
+                || chr == '\u2601'
+                || chr == '\u2602'
+                || chr == '\u2603'
+                || chr == '\u2604'
+                || chr == '\u260E'
+                || chr == '\u2611'
+                || chr == '\u2614'
+                || chr == '\u2615'
+                || chr == '\u2618'
+                || chr == '\u261D'
+                || chr == '\u2620'
+                || chr == '\u2622'
+                || chr == '\u2623'
+                || chr == '\u2626'
+                || chr == '\u262A'
+                || chr == '\u262F'
+                || chr == '\u2638'
+                || chr == '\u2639'
+                || chr == '\u263A'
+                || chr == '\u2640'
+                || chr == '\u2642'
+                || chr == '\u2648'
+                || chr == '\u2649'
+                || chr == '\u264A'
+                || chr == '\u264B'
+                || chr == '\u264C'
+                || chr == '\u264D'
+                || chr == '\u264E'
+                || chr == '\u264F'
+                || chr == '\u2650'
+                || chr == '\u2651'
+                || chr == '\u2652'
+                || chr == '\u2653'
+                || chr == '\u265F'
+                || chr == '\u2660'
+                || chr == '\u2663'
+                || chr == '\u2665'
+                || chr == '\u2666'
+                || chr == '\u267B'
+                || chr == '\u267E'
+                || chr == '\u267F'
+                || chr == '\u2692'
+                || chr == '\u2693'
+                || chr == '\u2694'
+                || chr == '\u2695'
+                || chr == '\u2696'
+                || chr == '\u2697'
+                || chr == '\u2699'
+                || chr == '\u269B'
+                || chr == '\u269C'
+                || chr == '\u26A0'
+                || chr == '\u26A1'
+                || chr == '\u26A7'
+                || chr == '\u26AA'
+                || chr == '\u26AB'
+                || chr == '\u26B0'
+                || chr == '\u26B1'
+                || chr == '\u26BD'
+                || chr == '\u26BE'
+                || chr == '\u26C4'
+                || chr == '\u26C5'
+                || chr == '\u26C8'
+                || chr == '\u26CE'
+                || chr == '\u26CF'
+                || chr == '\u26D1'
+                || chr == '\u26D3'
+                || chr == '\u26D4'
+                || chr == '\u26E9'
+                || chr == '\u26EA'
+                || chr == '\u26F0'
+                || chr == '\u26F1'
+                || chr == '\u26F2'
+                || chr == '\u26F3'
+                || chr == '\u26F4'
+                || chr == '\u26F5'
+                || chr == '\u26FA'
+                || chr == '\u26FD'
+                || chr == '\u2702'
+                || chr == '\u2705'
+                || chr == '\u2708'
+                || chr == '\u2709'
+                || chr == '\u270A'
+                || chr == '\u270B'
+                || chr == '\u270C'
+                || chr == '\u270D'
+                || chr == '\u270F'
+                || chr == '\u2712'
+                || chr == '\u2714'
+                || chr == '\u2716'
+                || chr == '\u2728'
+                || chr == '\u2733'
+                || chr == '\u2734'
+                || chr == '\u2744'
+                || chr == '\u2747'
+                || chr == '\u274C'
+                || chr == '\u274E'
+                || chr == '\u2753'
+                || chr == '\u2754'
+                || chr == '\u2755'
+                || chr == '\u2757'
+                || chr == '\u2795'
+                || chr == '\u2796'
+                || chr == '\u2797'
+                || chr == '\u27A1'
+                || chr == '\u27B0'
+                || chr == '\u27BF'
+                || chr == '\u2934'
+                || chr == '\u2935'
+                || chr == '\u3030'
+                || chr == '\u303D'
+                || chr == '\u3297'
+                || chr == '\u3299'
+                || chr == '\uFE0E'
+                || chr == '\uFE0F'
+                || chr == '\u200D'
+                || chr >= '\u2190' && chr <= '\u21FF'
+                || chr >= '\u2300' && chr <= '\u23FF'
+                || chr >= '\u25AA' && chr <= '\u25FF'
+                || chr >= '\u2600' && chr <= '\u27BF'
+                || chr >= '\u2B00' && chr <= '\u2BFF';
+    }
+
+    private static boolean isEmojiCodePoint(int codePoint) {
+        return codePoint >= 0x1F000 && codePoint <= 0x1FAFF
+                || codePoint >= 0x1FC00 && codePoint <= 0x1FFFD;
+    }
+
+    private static boolean shouldUseMinecraftFallback(int codePoint) {
+        return codePoint > Character.MAX_VALUE && isEmojiCodePoint(codePoint);
+    }
+
+    private static boolean shouldUseMinecraftFallback(String text, int index) {
+        int codePoint = text.codePointAt(index);
+        return codePoint > Character.MAX_VALUE
+                ? shouldUseMinecraftFallback(codePoint)
+                : shouldUseMinecraftFallback((char) codePoint);
+    }
+
+    private static boolean shouldSkipEmoji(String text, int index) {
+        int codePoint = text.codePointAt(index);
+        return codePoint <= Character.MAX_VALUE && isEmojiBmp((char) codePoint)
+                && !shouldUseMinecraftFallback((char) codePoint);
     }
 
     private static Font getHarmonyRegularFont() {
@@ -142,7 +322,7 @@ public class FontRenderer {
 
     protected final int drawChar(char chr, float x, float y) {
         if (shouldUseMinecraftFallback(chr)) {
-            mc.fontRendererObj.drawString(String.valueOf(chr), x, y, -1, false);
+            mc.fontRendererObj.drawString(String.valueOf(chr), x, y + 1.0F, -1, false);
             return mc.fontRendererObj.getStringWidth(String.valueOf(chr));
         }
         return getAtlasForChar(chr, getScaleFactor()).drawChar(chr, x, y);
@@ -215,22 +395,31 @@ public class FontRenderer {
                 continue;
             }
 
-            if (shouldUseMinecraftFallback(chr)) {
+            if (shouldUseMinecraftFallback(str, i)) {
                 if (drawing) {
                     glEnd();
                     drawing = false;
                     activeAtlas = null;
                     activeRegion = -1;
                 }
+                int codePointLength = Character.charCount(str.codePointAt(i));
+                String fallbackText = str.substring(i, i + codePointLength);
                 glPopMatrix();
-                mc.fontRendererObj.drawString(String.valueOf(chr), (x + offset) / (float) scaleFactor, y / (float) scaleFactor, getVanillaColor(color, a), false);
-                offset += mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * scaleFactor;
+                mc.fontRendererObj.drawString(fallbackText, (x + offset) / (float) scaleFactor, (y + 1.0F * scaleFactor) / (float) scaleFactor, getVanillaColor(color, a), false);
+                offset += mc.fontRendererObj.getStringWidth(fallbackText) * scaleFactor;
                 GlStateManager.color(r, g, b, a);
                 glPushMatrix();
                 glScaled(1.0D / scaleFactor, 1.0D / scaleFactor, 1.0D / scaleFactor);
                 GlStateManager.enableTexture2D();
                 GlStateManager.enableBlend();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                if (codePointLength > 1) {
+                    i++;
+                }
+                continue;
+            }
+
+            if (shouldSkipEmoji(str, i)) {
                 continue;
             }
 
@@ -320,8 +509,13 @@ public class FontRenderer {
             char chr = text.charAt(i);
             if (isFormattingPrefix(chr)) {
                 ++i;
-            } else if (shouldUseMinecraftFallback(chr)) {
-                width += mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * scaleFactor;
+            } else if (shouldUseMinecraftFallback(text, i)) {
+                int codePointLength = Character.charCount(text.codePointAt(i));
+                width += mc.fontRendererObj.getStringWidth(text.substring(i, i + codePointLength)) * scaleFactor;
+                if (codePointLength > 1) {
+                    ++i;
+                }
+            } else if (shouldSkipEmoji(text, i)) {
             } else {
                 width += getAtlasForChar(chr, scaleFactor).getOrGenerateCharWidthMap(chr >> 8)[chr & 0xFF];
             }
@@ -630,12 +824,27 @@ public class FontRenderer {
                     continue;
                 }
 
+                if (shouldUseMinecraftFallback(text, i)) {
+                    int codePointLength = Character.charCount(text.codePointAt(i));
+                    int advance = mc.fontRendererObj.getStringWidth(text.substring(i, i + codePointLength)) * this.scaleFactor;
+                    left = Math.min(left, penX);
+                    right = Math.max(right, penX + advance);
+                    penX += advance;
+                    if (codePointLength > 1) {
+                        ++i;
+                    }
+                    ++i;
+                    continue;
+                }
+
+                if (shouldSkipEmoji(text, i)) {
+                    continue;
+                }
+
                 FontAtlas charAtlas = getAtlasForChar(chr, this.scaleFactor);
                 int region = chr >> 8;
                 int id = chr & 0xFF;
-                int advance = shouldUseMinecraftFallback(chr)
-                        ? mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * this.scaleFactor
-                        : charAtlas.getOrGenerateCharWidthMap(region)[id];
+                int advance = charAtlas.getOrGenerateCharWidthMap(region)[id];
                 left = Math.min(left, penX);
                 right = Math.max(right, penX + advance);
                 penX += advance;

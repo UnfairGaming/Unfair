@@ -6,6 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.RenderLivingEvent;
 import cn.unfair.module.modules.render.ESP;
 import cn.unfair.module.modules.render.NameTags;
+import cn.unfair.util.AndroidUtil;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -37,7 +38,6 @@ import java.util.List;
 
 public abstract class RendererLivingEntity<T extends EntityLivingBase> extends Render<T>
 {
-    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
     private static final Logger logger = LogManager.getLogger();
     private static final DynamicTexture textureBrightness = new DynamicTexture(16, 16);
     private static final FloatBuffer shaderBrightnessBuffer = GLAllocation.createDirectFloatBuffer(4);
@@ -68,7 +68,7 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
     }
 
     public static boolean setShaderBrightness(Color color) {
-        if (ANDROID_RUNTIME) {
+        if (AndroidUtil.isAndroid()) {
             return false;
         }
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);

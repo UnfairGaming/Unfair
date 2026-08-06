@@ -43,83 +43,88 @@ public class RenderUtil {
     private static final int SKEET_MIDDLE_COLOR = 0xFF2A2A2A;
     private static final int SKEET_INNER_COLOR = 0xFF171717;
     private static final String ROUNDED_RECT_SRC =
-            "#version 120\n" +
-                    "uniform vec2 location, rectSize, screenSize;\n" +
-                    "uniform vec4 color;\n" +
-                    "uniform float radius;\n" +
-                    "uniform bool blur;\n" +
-                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
-                    "void main() {\n" +
-                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
-                    "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = screenPos - location - rectHalf;\n" +
-                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
-                    "    gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);\n" +
-                    "}";
+            """
+                    #version 120
+                    uniform vec2 location, rectSize, screenSize;
+                    uniform vec4 color;
+                    uniform float radius;
+                    uniform bool blur;
+                    float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }
+                    void main() {
+                        vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);
+                        vec2 rectHalf = rectSize * 0.5;
+                        vec2 pos = screenPos - location - rectHalf;
+                        float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));
+                        gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);
+                    }""";
     private static final String MULTI_RADIUS_SRC =
-            "#version 120\n" +
-                    "uniform vec2 location, rectSize, screenSize;\n" +
-                    "uniform vec4 color;\n" +
-                    "uniform float radiusTopLeft, radiusTopRight, radiusBottomLeft, radiusBottomRight;\n" +
-                    "float roundedBoxSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
-                    "void main() {\n" +
-                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
-                    "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = screenPos - location - rectHalf;\n" +
-                    "    float r = (pos.x > 0.0) ? ((pos.y < 0.0) ? radiusTopRight : radiusBottomRight) : ((pos.y < 0.0) ? radiusTopLeft : radiusBottomLeft);\n" +
-                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundedBoxSDF(pos, rectHalf - r - 0.25, r));\n" +
-                    "    gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);\n" +
-                    "}";
+            """
+                    #version 120
+                    uniform vec2 location, rectSize, screenSize;
+                    uniform vec4 color;
+                    uniform float radiusTopLeft, radiusTopRight, radiusBottomLeft, radiusBottomRight;
+                    float roundedBoxSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }
+                    void main() {
+                        vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);
+                        vec2 rectHalf = rectSize * 0.5;
+                        vec2 pos = screenPos - location - rectHalf;
+                        float r = (pos.x > 0.0) ? ((pos.y < 0.0) ? radiusTopRight : radiusBottomRight) : ((pos.y < 0.0) ? radiusTopLeft : radiusBottomLeft);
+                        float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundedBoxSDF(pos, rectHalf - r - 0.25, r));
+                        gl_FragColor = vec4(color.rgb, color.a * smoothedAlpha);
+                    }""";
     private static final String ROUNDED_GRADIENT_SRC =
-            "#version 120\n" +
-                    "uniform vec2 location, rectSize, screenSize;\n" +
-                    "uniform vec4 color1, color2, color3, color4;\n" +
-                    "uniform float radius;\n" +
-                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
-                    "void main() {\n" +
-                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
-                    "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = screenPos - location - rectHalf;\n" +
-                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
-                    "    vec2 uv = gl_TexCoord[0].st;\n" +
-                    "    vec4 left = mix(color1, color2, uv.y);\n" +
-                    "    vec4 right = mix(color3, color4, uv.y);\n" +
-                    "    vec4 gradColor = mix(left, right, uv.x);\n" +
-                    "    gl_FragColor = vec4(gradColor.rgb, gradColor.a * smoothedAlpha);\n" +
-                    "}";
+            """
+                    #version 120
+                    uniform vec2 location, rectSize, screenSize;
+                    uniform vec4 color1, color2, color3, color4;
+                    uniform float radius;
+                    float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }
+                    void main() {
+                        vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);
+                        vec2 rectHalf = rectSize * 0.5;
+                        vec2 pos = screenPos - location - rectHalf;
+                        float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));
+                        vec2 uv = gl_TexCoord[0].st;
+                        vec4 left = mix(color1, color2, uv.y);
+                        vec4 right = mix(color3, color4, uv.y);
+                        vec4 gradColor = mix(left, right, uv.x);
+                        gl_FragColor = vec4(gradColor.rgb, gradColor.a * smoothedAlpha);
+                    }""";
     private static final String ROUNDED_GRADIENT_OUTLINE_SRC =
-            "#version 120\n" +
-                    "uniform vec2 location, rectSize, screenSize;\n" +
-                    "uniform vec4 color1, color2;\n" +
-                    "uniform float radius, thickness;\n" +
-                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
-                    "void main() {\n" +
-                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
-                    "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = screenPos - location - rectHalf;\n" +
-                    "    float outer = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
-                    "    float innerRadius = max(radius - thickness, 0.0);\n" +
-                    "    vec2 innerHalf = max(rectHalf - thickness, vec2(0.0));\n" +
-                    "    float inner = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, innerHalf - innerRadius - 0.25, innerRadius));\n" +
-                    "    float outlineAlpha = outer * (1.0 - inner);\n" +
-                    "    vec4 gradColor = mix(color1, color2, gl_TexCoord[0].st.x);\n" +
-                    "    gl_FragColor = vec4(gradColor.rgb, gradColor.a * outlineAlpha);\n" +
-                    "}";
+            """
+                    #version 120
+                    uniform vec2 location, rectSize, screenSize;
+                    uniform vec4 color1, color2;
+                    uniform float radius, thickness;
+                    float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }
+                    void main() {
+                        vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);
+                        vec2 rectHalf = rectSize * 0.5;
+                        vec2 pos = screenPos - location - rectHalf;
+                        float outer = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));
+                        float innerRadius = max(radius - thickness, 0.0);
+                        vec2 innerHalf = max(rectHalf - thickness, vec2(0.0));
+                        float inner = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, innerHalf - innerRadius - 0.25, innerRadius));
+                        float outlineAlpha = outer * (1.0 - inner);
+                        vec4 gradColor = mix(color1, color2, gl_TexCoord[0].st.x);
+                        gl_FragColor = vec4(gradColor.rgb, gradColor.a * outlineAlpha);
+                    }""";
     private static final String ROUNDED_TEXTURE_SRC =
-            "#version 120\n" +
-                    "uniform sampler2D tex;\n" +
-                    "uniform vec2 location, rectSize, screenSize;\n" +
-                    "uniform vec4 color;\n" +
-                    "uniform float radius;\n" +
-                    "float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }\n" +
-                    "void main() {\n" +
-                    "    vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);\n" +
-                    "    vec2 rectHalf = rectSize * 0.5;\n" +
-                    "    vec2 pos = screenPos - location - rectHalf;\n" +
-                    "    float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));\n" +
-                    "    vec4 texColor = texture2D(tex, gl_TexCoord[0].st) * color;\n" +
-                    "    gl_FragColor = vec4(texColor.rgb, texColor.a * smoothedAlpha);\n" +
-                    "}";
+            """
+                    #version 120
+                    uniform sampler2D tex;
+                    uniform vec2 location, rectSize, screenSize;
+                    uniform vec4 color;
+                    uniform float radius;
+                    float roundSDF(vec2 p, vec2 b, float r) { return length(max(abs(p) - b, 0.0)) - r; }
+                    void main() {
+                        vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);
+                        vec2 rectHalf = rectSize * 0.5;
+                        vec2 pos = screenPos - location - rectHalf;
+                        float smoothedAlpha = 1.0 - smoothstep(0.0, 1.0, roundSDF(pos, rectHalf - radius - 0.25, radius));
+                        vec4 texColor = texture2D(tex, gl_TexCoord[0].st) * color;
+                        gl_FragColor = vec4(texColor.rgb, texColor.a * smoothedAlpha);
+                    }""";
     private static final ShaderUtils roundedShader = new ShaderUtils(ROUNDED_RECT_SRC, true);
     private static final ShaderUtils multiRadiusShader = new ShaderUtils(MULTI_RADIUS_SRC, true);
     private static final ShaderUtils roundedGradientShader = new ShaderUtils(ROUNDED_GRADIENT_SRC, true);
