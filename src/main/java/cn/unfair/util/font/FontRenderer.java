@@ -10,7 +10,6 @@ import org.lwjgl.opengl.GLContext;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -515,9 +514,8 @@ public class FontRenderer {
             this.scaleFactor = scaleFactor;
             this.scaledFont = sourceFont.deriveFont(Font.PLAIN, size * scaleFactor / LEGACY_DISPLAY_SCALE);
             Arrays.fill(this.textures, -1);
-            Rectangle2D maxBounds = this.scaledFont.getMaxCharBounds(this.context);
-            this.fontWidth = (int) Math.ceil(maxBounds.getWidth());
-            this.fontHeight = (int) Math.ceil(maxBounds.getHeight());
+            this.fontWidth = Math.max(1, (int) Math.ceil(this.scaledFont.getSize2D() * 1.5F));
+            this.fontHeight = Math.max(1, (int) Math.ceil(this.scaledFont.getSize2D() * 1.25F));
             this.cellWidth = this.fontWidth + GLYPH_PADDING * 2;
             this.cellHeight = this.fontHeight + GLYPH_PADDING * 2;
             this.textureWidth = resizeToOpenGLSupportResolution(this.cellWidth * 16);
@@ -568,8 +566,7 @@ public class FontRenderer {
             g.fillRect(0, 0, this.textureWidth, this.textureHeight);
             g.setComposite(AlphaComposite.SrcOver);
 
-            FontMetrics fontMetrics = g.getFontMetrics();
-            int ascent = fontMetrics.getAscent();
+            int ascent = Math.max(1, (int) Math.ceil(this.fontHeight * 0.8F));
             for (int y = 0; y < 16; y++) {
                 for (int x = 0; x < 16; x++) {
                     this.atlasChar[0] = (char) ((y << 4 | x) | offset);
@@ -611,7 +608,10 @@ public class FontRenderer {
             byte[] widthmap = new byte[256];
             for (int i = 0; i < widthmap.length; i++) {
                 this.widthChar[0] = (char) (i | offset);
-                widthmap[i] = (byte) Math.ceil(this.scaledFont.getStringBounds(this.widthChar, 0, 1, this.context).getWidth());
+                widthmap[i] = (byte) Math.ceil(this.scaledFont
+                        .createGlyphVector(this.context, this.widthChar)
+                        .getGlyphMetrics(0)
+                        .getAdvance());
             }
             return widthmap;
         }
@@ -636,14 +636,8 @@ public class FontRenderer {
                 int advance = shouldUseMinecraftFallback(chr)
                         ? mc.fontRendererObj.getStringWidth(String.valueOf(chr)) * this.scaleFactor
                         : charAtlas.getOrGenerateCharWidthMap(region)[id];
-                this.widthChar[0] = chr;
-                Rectangle2D bounds = charAtlas.scaledFont.createGlyphVector(this.context, this.widthChar).getVisualBounds();
-                float glyphLeft = penX + Math.max(0.0F, (float) bounds.getX());
-                float glyphRight = penX + Math.min(advance, (float) (bounds.getX() + bounds.getWidth()));
-                if (glyphRight > glyphLeft) {
-                    left = Math.min(left, glyphLeft);
-                    right = Math.max(right, glyphRight);
-                }
+                left = Math.min(left, penX);
+                right = Math.max(right, penX + advance);
                 penX += advance;
                 ++i;
             }

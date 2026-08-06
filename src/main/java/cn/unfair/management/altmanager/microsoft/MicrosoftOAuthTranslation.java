@@ -26,9 +26,13 @@ public class MicrosoftOAuthTranslation {
 
     static void browse(String url) {
         try {
+            if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported()) {
+                System.err.println("Cannot open browser in headless environment: " + url);
+                return;
+            }
             System.out.println("Opening browser to: " + url);
             Desktop.getDesktop().browse(new URI(url));
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException | URISyntaxException | HeadlessException e) {
             System.err.println("Failed to open browser: " + e.getMessage());
             e.printStackTrace();
         }

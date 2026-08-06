@@ -40,7 +40,8 @@ public class ChestESP extends Module {
     public final BooleanProperty tracers;
     public final FloatProperty glowExposure;
     public final IntProperty glowRadius;
-    private final GlowESPBlurShader blurShader = new GlowESPBlurShader();
+    private GlowESPBlurShader blurShader;
+    private boolean glowAvailable;
     private Framebuffer framebuffer = null;
     private Framebuffer glowFrameBuffer = null;
     private List<TileEntity> glowChests = new ArrayList<>();
@@ -53,6 +54,14 @@ public class ChestESP extends Module {
         this.tracers = new BooleanProperty("tracers", false);
         this.glowExposure = new FloatProperty("glow-exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
         this.glowRadius = new IntProperty("glow-radius", 5, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
+        try {
+            this.blurShader = new GlowESPBlurShader();
+            this.glowAvailable = true;
+        } catch (RuntimeException exception) {
+            this.glowAvailable = false;
+            System.err.println("ChestESP glow shader unavailable; falling back to default ESP.");
+            exception.printStackTrace();
+        }
     }
 
     private Color getColor() {
@@ -131,7 +140,11 @@ public class ChestESP extends Module {
     }
 
     private void renderGlowPass() {
-        if (this.framebuffer == null || this.glowFrameBuffer == null || this.glowChests.isEmpty()) {
+        if (!this.glowAvailable
+                || this.blurShader == null
+                || this.framebuffer == null
+                || this.glowFrameBuffer == null
+                || this.glowChests.isEmpty()) {
             return;
         }
 
@@ -240,7 +253,7 @@ public class ChestESP extends Module {
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {
-        if (this.isEnabled() && this.mode.getValue() == MODE_GLOW) {
+        if (this.isEnabled() && this.mode.getValue() == MODE_GLOW && this.glowAvailable) {
             this.renderGlowPass();
         }
     }
@@ -256,7 +269,7 @@ public class ChestESP extends Module {
             this.glowChests = renderedChests;
             return;
         }
-        if (this.mode.getValue() == MODE_GLOW) {
+        if (this.mode.getValue() == MODE_GLOW && this.glowAvailable) {
             this.createGlowFramebuffers();
             this.glowChests = renderedChests;
             this.framebuffer.framebufferClear();
@@ -267,7 +280,7 @@ public class ChestESP extends Module {
             GlStateManager.disableLighting();
         }
 
-        if (this.mode.getValue() == MODE_DEFAULT || this.tracers.getValue()) {
+        if (this.mode.getValue() == MODE_DEFAULT || !this.glowAvailable || this.tracers.getValue()) {
             RenderUtil.enableRenderState();
             Color color = this.getColor();
             for (TileEntity chest : renderedChests) {

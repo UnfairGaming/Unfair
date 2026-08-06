@@ -53,12 +53,11 @@ public class Sys {
     }
 
     public static boolean openURL(String url) {
-        if (!Desktop.isDesktopSupported()) return false;
-
-        Desktop desktop = Desktop.getDesktop();
-        if (!desktop.isSupported(Desktop.Action.BROWSE)) return false;
+        if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported()) return false;
 
         try {
+            Desktop desktop = Desktop.getDesktop();
+            if (!desktop.isSupported(Desktop.Action.BROWSE)) return false;
             desktop.browse(new URI(url));
             return true;
         } catch (Exception ex) {
@@ -67,12 +66,21 @@ public class Sys {
     }
 
     public static void alert(String title, String message) {
+        if (GraphicsEnvironment.isHeadless()) {
+            LWJGLUtil.log(title + ": " + message);
+            return;
+        }
+
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             LWJGLUtil.log("Caught exception while setting LAF: " + e);
         }
-        JOptionPane.showMessageDialog(null, message, title, JOptionPane.WARNING_MESSAGE);
+        try {
+            JOptionPane.showMessageDialog(null, message, title, JOptionPane.WARNING_MESSAGE);
+        } catch (HeadlessException e) {
+            LWJGLUtil.log(title + ": " + message);
+        }
     }
 
     public static boolean is64Bit() {

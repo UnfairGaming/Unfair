@@ -75,14 +75,18 @@ tasks.named('run', JavaExec) {
 }
 
 tasks.named('jar', Jar) {
+    def bundledLibraries = files(
+            fileTree(dir: 'libs/minecraft', include: ['*.jar']),
+            fileTree(dir: 'libs/client', include: ['*.jar'], exclude: ['lombok-*.jar'])
+    )
+
     manifest {
         attributes 'Main-Class': application.mainClass.get()
     }
 
-    from {
-        sourceSets.main.output
-        configurations.lwjglRuntime.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+    from sourceSets.main.output
+    from bundledLibraries.collect { zipTree(it) }
+    from configurations.lwjglRuntime.collect { it.isDirectory() ? it : zipTree(it) }
 
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'

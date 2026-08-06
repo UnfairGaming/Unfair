@@ -748,13 +748,13 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
         if (Unfair.moduleManager != null) {
             NameTags nameTags = (NameTags) Unfair.moduleManager.modules.get(NameTags.class);
 
-            if (nameTags.isEnabled() && nameTags.shouldRenderTags(entity)) {
+            if (nameTags != null && nameTags.isEnabled() && nameTags.shouldRenderTags(entity)) {
                 return false;
             }
 
             ESP esp = (ESP) Unfair.moduleManager.modules.get(ESP.class);
 
-            if (esp.isEnabled() && esp.isRenderingGlowEntities()) {
+            if (esp != null && esp.isEnabled() && esp.isRenderingGlowEntities()) {
                 return false;
             }
         }

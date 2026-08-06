@@ -165,15 +165,57 @@ public class ShaderUtils {
     }
 
     private int createShader(String source, int type) {
+        int shader = compileShader(source, type);
+        if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) != 0) {
+            return shader;
+        }
+
+        String originalInfo = GL20.glGetShaderInfoLog(shader, 1024);
+        GL20.glDeleteShader(shader);
+
+        String fallbackSource = prepareSource(source);
+        if (!fallbackSource.equals(source)) {
+            shader = compileShader(fallbackSource, type);
+            if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) != 0) {
+                return shader;
+            }
+
+            String fallbackInfo = GL20.glGetShaderInfoLog(shader, 1024);
+            GL20.glDeleteShader(shader);
+            throw new IllegalStateException(
+                    "Failed to compile shader.\nOriginal: " + originalInfo + "\nGLES2 fallback: " + fallbackInfo
+            );
+        }
+
+        throw new IllegalStateException("Failed to compile shader: " + originalInfo);
+    }
+
+    private static int compileShader(String source, int type) {
         int shader = GL20.glCreateShader(type);
         GL20.glShaderSource(shader, source);
         GL20.glCompileShader(shader);
-        if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) == 0) {
-            String info = GL20.glGetShaderInfoLog(shader, 1024);
-            GL20.glDeleteShader(shader);
-            throw new IllegalStateException("Failed to compile shader: " + info);
-        }
         return shader;
+    }
+
+    private static String prepareSource(String source) {
+        String prepared = source
+                .replace("gl_TexCoord[0].st", "texCoord")
+                .replace("gl_TexCoord[0].xy", "texCoord")
+                .replace("gl_TexCoord[0] = gl_MultiTexCoord0", "texCoord = gl_MultiTexCoord0.st");
+
+        boolean usesTexCoord = !prepared.equals(source);
+        if (usesTexCoord && !prepared.contains("varying vec2 texCoord;")) {
+            int versionEnd = prepared.indexOf('\n');
+            if (versionEnd >= 0) {
+                prepared = prepared.substring(0, versionEnd + 1)
+                        + "varying vec2 texCoord;\n"
+                        + prepared.substring(versionEnd + 1);
+            } else {
+                prepared = "varying vec2 texCoord;\n" + prepared;
+            }
+        }
+
+        return prepared;
     }
 
     private String loadFragment(String name) {

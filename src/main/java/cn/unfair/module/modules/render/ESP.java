@@ -54,7 +54,8 @@ public class ESP extends Module {
     public final BooleanProperty enemies = new BooleanProperty("enemies", true);
     public final BooleanProperty self = new BooleanProperty("self", false);
     public final BooleanProperty bots = new BooleanProperty("bots", false);
-    private final GlowESPBlurShader blurShader = new GlowESPBlurShader();
+    private GlowESPBlurShader blurShader;
+    private boolean glowAvailable;
     private Framebuffer framebuffer = null;
     private Framebuffer glowFrameBuffer = null;
     private List<EntityPlayer> glowEntities = new ArrayList<>();
@@ -62,6 +63,14 @@ public class ESP extends Module {
 
     public ESP() {
         super("ESP", false, true);
+        try {
+            this.blurShader = new GlowESPBlurShader();
+            this.glowAvailable = true;
+        } catch (RuntimeException exception) {
+            this.glowAvailable = false;
+            System.err.println("ESP glow shader unavailable; falling back to 2D ESP.");
+            exception.printStackTrace();
+        }
     }
 
     private boolean shouldRenderPlayer(EntityPlayer entityPlayer) {
@@ -206,7 +215,11 @@ public class ESP extends Module {
     }
 
     private void renderGlowPass() {
-        if (this.framebuffer == null || this.glowFrameBuffer == null || this.glowEntities.isEmpty()) {
+        if (!this.glowAvailable
+                || this.blurShader == null
+                || this.framebuffer == null
+                || this.glowFrameBuffer == null
+                || this.glowEntities.isEmpty()) {
             return;
         }
 
@@ -245,16 +258,18 @@ public class ESP extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onRender(Render2DEvent event) {
-        if (this.isEnabled() && (this.mode.getValue() == MODE_2D || this.mode.getValue() == MODE_GLOW || this.healthBar.getValue() == 1)) {
-            if (this.mode.getValue() == MODE_GLOW) {
+        boolean glowMode = this.mode.getValue() == MODE_GLOW;
+        boolean fallbackTo2D = glowMode && !this.glowAvailable;
+        if (this.isEnabled() && (this.mode.getValue() == MODE_2D || glowMode || this.healthBar.getValue() == 1)) {
+            if (glowMode && this.glowAvailable) {
                 this.renderGlowPass();
             }
-            if (this.mode.getValue() == MODE_GLOW && this.healthBar.getValue() != 1) {
+            if (glowMode && this.glowAvailable && this.healthBar.getValue() != 1) {
                 return;
             }
             List<EntityPlayer> renderedEntities = this.getRenderedPlayers();
             if (!renderedEntities.isEmpty()) {
-                if (this.mode.getValue() == MODE_2D || this.healthBar.getValue() == 1) {
+                if (this.mode.getValue() == MODE_2D || fallbackTo2D || this.healthBar.getValue() == 1) {
                     RenderUtil.enableRenderState();
                     double scaleFactor = new ScaledResolution(mc).getScaleFactor();
                     double scale = scaleFactor / Math.pow(scaleFactor, 2.0);
@@ -269,7 +284,7 @@ public class ESP extends Module {
                             float y = (float) screenPosition.y;
                             float z = (float) screenPosition.z;
                             float w = (float) screenPosition.w;
-                            if (this.mode.getValue() == MODE_2D) {
+                            if (this.mode.getValue() == MODE_2D || fallbackTo2D) {
                                 int color = this.getEntityColor(player).getRGB();
                                 // Draw outer glow (slightly darker/wider)
                                 int glowAlpha = (color >> 24) & 0xFF;
@@ -300,7 +315,7 @@ public class ESP extends Module {
 
     @EventTarget
     public void onRender(Render3DEvent event) {
-        if (this.isEnabled() && this.mode.getValue() == MODE_GLOW) {
+        if (this.isEnabled() && this.mode.getValue() == MODE_GLOW && this.glowAvailable) {
             this.createGlowFramebuffers();
             this.glowEntities = this.getRenderedPlayers();
             this.framebuffer.framebufferClear();

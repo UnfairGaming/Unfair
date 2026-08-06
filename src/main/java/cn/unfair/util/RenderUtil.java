@@ -124,7 +124,7 @@ public class RenderUtil {
     private static final ShaderUtils multiRadiusShader = new ShaderUtils(MULTI_RADIUS_SRC, true);
     private static final ShaderUtils roundedGradientShader = new ShaderUtils(ROUNDED_GRADIENT_SRC, true);
     private static final ShaderUtils roundedGradientOutlineShader = new ShaderUtils(ROUNDED_GRADIENT_OUTLINE_SRC, true);
-    private static final ShaderUtils roundedTextureShader = new ShaderUtils(ROUNDED_TEXTURE_SRC, true);
+    private static ShaderUtils roundedTextureShader;
     private static Minecraft mc;
     private static Frustum cameraFrustum;
     private static IntBuffer viewportBuffer;
@@ -915,6 +915,15 @@ public class RenderUtil {
         }
         if (skin == null) {
             return;
+        }
+
+        if (roundedTextureShader == null) {
+            try {
+                roundedTextureShader = new ShaderUtils(ROUNDED_TEXTURE_SRC, true);
+            } catch (IllegalStateException ignored) {
+                renderPlayerHead(entity, x, y, size, color);
+                return;
+            }
         }
 
         radius = Math.min(radius, size / 2.0F);

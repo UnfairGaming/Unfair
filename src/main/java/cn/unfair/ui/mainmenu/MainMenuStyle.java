@@ -17,6 +17,8 @@ public final class MainMenuStyle {
     public static final int BUTTON_MASK_COLOR = new Color(255, 255, 255, 205).getRGB();
     public static final int WHITE_208 = new Color(255, 255, 255, 208).getRGB();
     public static final int WHITE_170 = new Color(255, 255, 255, 170).getRGB();
+    private static final int ANDROID_BACKGROUND_COLOR = 0xFFA3A5A2;
+    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
 
     private static ShaderUtils backgroundShader;
 
@@ -26,6 +28,11 @@ public final class MainMenuStyle {
     public static void drawBackground(int width, int height, float partialTicks) {
         GlStateManager.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+        if (ANDROID_RUNTIME) {
+            RenderUtil.drawRect(0.0D, 0.0D, width, height, ANDROID_BACKGROUND_COLOR);
+            return;
+        }
+
         if (backgroundShader == null) {
             backgroundShader = new ShaderUtils("minecraft:shaders/dark_mainmenu.fsh");
         }

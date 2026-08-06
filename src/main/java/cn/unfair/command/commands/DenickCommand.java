@@ -9,9 +9,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
+import net.minecraft.client.gui.GuiScreen;
 
 import java.awt.*;
-import java.awt.datatransfer.StringSelection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -48,7 +48,7 @@ public class DenickCommand extends Command {
                             )
                     );
                     if (!uuid.isEmpty() && !uuid.equals("?")) {
-                        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(uuid), null);
+                        GuiScreen.setClipboardString(uuid);
                     }
                 } else {
                     ChatUtil.sendRaw(
