@@ -23,3 +23,8 @@ Linux/macOS:
 ```powershell
 .\gradlew.bat run
 ```
+
+## 鸣谢
+
+bzdhyp / zzz 的 MCP 与 Augustus Click Gui
+Un1336 / Falling Star / Fall1ng Star 的开发

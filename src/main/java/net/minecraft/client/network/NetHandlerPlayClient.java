@@ -36,6 +36,8 @@ import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.entity.projectile.*;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.AnimalChest;
 import net.minecraft.inventory.Container;
@@ -74,6 +76,10 @@ import java.util.Map.Entry;
 
 public class NetHandlerPlayClient implements INetHandlerPlayClient {
     private static final Logger logger = LogManager.getLogger();
+    private String lastChatMessage;
+    private int lastChatMessageCount;
+    private int lastChatLineId;
+    private int nextChatLineId = 1;
 
     /**
      * The NetworkManager instance used to communicate with the server (used only by handlePlayerPosLook to update
@@ -617,7 +623,44 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         if (packetIn.getType() == 2) {
             this.gameController.ingameGUI.setRecordPlaying(packetIn.getChatComponent(), false);
         } else {
-            this.gameController.ingameGUI.getChatGUI().printChatMessage(packetIn.getChatComponent());
+            IChatComponent chatComponent = packetIn.getChatComponent();
+            String unformattedText = StringUtils.stripControlCodes(chatComponent.getUnformattedText());
+            boolean repeated = unformattedText.equals(this.lastChatMessage);
+
+            if (repeated) {
+                ++this.lastChatMessageCount;
+            } else {
+                this.lastChatMessage = unformattedText;
+                this.lastChatMessageCount = 1;
+                this.lastChatLineId = this.nextChatLineId++;
+            }
+
+            if (repeated && this.lastChatMessageCount > 1) {
+                chatComponent.appendSibling(new ChatComponentText(
+                        EnumChatFormatting.GRAY + " [x" + this.lastChatMessageCount + "]"
+                ));
+            }
+
+            if (!unformattedText.replace(" ", "").isEmpty()) {
+                ChatComponentText copyText = new ChatComponentText(
+                        EnumChatFormatting.DARK_GRAY + Character.toString((char) Integer.parseInt("270D", 16))
+                );
+                ChatStyle style = new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(
+                                HoverEvent.Action.SHOW_TEXT,
+                                new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")
+                        ))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unformattedText));
+                copyText.setChatStyle(style);
+
+                chatComponent.appendSibling(new ChatComponentText(EnumChatFormatting.RESET + " "));
+                chatComponent.appendSibling(copyText);
+            }
+
+            this.gameController.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(
+                    chatComponent,
+                    this.lastChatLineId
+            );
         }
     }
 
