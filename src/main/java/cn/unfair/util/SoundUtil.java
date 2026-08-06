@@ -15,4 +15,12 @@ public class SoundUtil {
             soundHandler.playSound(positionedSoundRecord);
         }
     }
+
+    public static void playSound(ResourceLocation soundLocation) {
+        SoundHandler soundHandler = mc.getSoundHandler();
+        if (soundHandler != null) {
+            PositionedSoundRecord positionedSoundRecord = PositionedSoundRecord.create(soundLocation);
+            soundHandler.playSound(positionedSoundRecord);
+        }
+    }
 }

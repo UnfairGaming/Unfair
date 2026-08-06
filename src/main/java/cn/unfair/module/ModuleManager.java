@@ -9,6 +9,7 @@ import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.SoundUtil;
+import net.minecraft.util.ResourceLocation;
 
 import java.io.File;
 import java.net.JarURLConnection;
@@ -160,7 +161,9 @@ public class ModuleManager {
         if (event.type() == EventType.PRE) {
             if (this.sound) {
                 this.sound = false;
-                SoundUtil.playSound(this.enableSound ? "unfair.toggle.enable" : "unfair.toggle.disable");
+                SoundUtil.playSound(ResourceLocation.of(this.enableSound
+                        ? "minecraft:unfair/sound/enable.ogg"
+                        : "minecraft:unfair/sound/disable.ogg"));
             }
         }
     }

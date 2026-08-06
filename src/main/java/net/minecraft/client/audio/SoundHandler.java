@@ -111,7 +111,11 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
 
             switch (soundlist$soundentry.getSoundEntryType()) {
                 case FILE:
-                    ResourceLocation resourcelocation1 = ResourceLocation.of(s1, "sounds/" + resourcelocation.getResourcePath() + ".ogg");
+                    ResourceLocation resourcelocation1 = s.contains(":")
+                            ? (resourcelocation.getResourcePath().endsWith(".ogg")
+                            ? resourcelocation
+                            : ResourceLocation.of(resourcelocation.getResourceDomain(), resourcelocation.getResourcePath() + ".ogg"))
+                            : ResourceLocation.of(s1, "sounds/" + resourcelocation.getResourcePath() + ".ogg");
                     InputStream inputstream = null;
 
                     try {
@@ -185,7 +189,23 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
     }
 
     public SoundEventAccessorComposite getSound(ResourceLocation location) {
-        return this.sndRegistry.getObject(location);
+        SoundEventAccessorComposite accessor = this.sndRegistry.getObject(location);
+
+        if (accessor != null) {
+            return accessor;
+        }
+
+        if (!location.getResourcePath().endsWith(".ogg")) {
+            return null;
+        }
+
+        try (InputStream inputStream = this.mcResourceManager.getResource(location).getInputStream()) {
+            SoundEventAccessorComposite directAccessor = new SoundEventAccessorComposite(location, 1.0D, 1.0D, SoundCategory.MASTER);
+            directAccessor.addSoundToEventPool(new SoundEventAccessor(new SoundPoolEntry(location, 1.0D, 1.0D, false), 1));
+            return directAccessor;
+        } catch (IOException ignored) {
+            return null;
+        }
     }
 
     /**

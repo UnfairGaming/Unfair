@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 public class Unfair {
     public static String clientName = "&l[&b&lUnfair&f&l]&r ";
-    public static String version = "B17";
+    public static String version = "B18";
     public static RotationManager rotationManager;
     public static FloatManager floatManager;
     public static BlinkManager blinkManager;

@@ -33,12 +33,24 @@ sourceSets {
 def lombokVersion = '1.18.46'
 def fastutilVersion = '8.5.19'
 
-dependencies {
-    implementation fileTree(dir: 'libs/minecraft', include: ['*.jar'])
-    implementation fileTree(dir: 'libs/lwjgl', include: ['*.jar'])
-    implementation fileTree(dir: 'libs/client', include: ['*.jar'], exclude: ['lombok-*.jar'])
+// 创建一个可解析的配置来专门处理LWJGL库
+configurations {
+    lwjglRuntime {
+        canBeResolved = true
+        canBeConsumed = false
+        extendsFrom implementation
+    }
+}
 
+dependencies {
+    // 这些库只用于编译，不打包进JAR
+    compileOnly fileTree(dir: 'libs/minecraft', include: ['*.jar'])
+    compileOnly fileTree(dir: 'libs/client', include: ['*.jar'], exclude: ['lombok-*.jar'])
     compileOnly fileTree(dir: 'libs/client', include: ['lombok-*.jar'])
+
+    // 只有LWJGL会被打包进JAR
+    implementation fileTree(dir: 'libs/lwjgl', include: ['*.jar'])
+
     annotationProcessor fileTree(dir: 'libs/client', include: ['lombok-*.jar'])
 }
 
@@ -61,6 +73,20 @@ tasks.named('jar', Jar) {
     manifest {
         attributes 'Main-Class': application.mainClass.get()
     }
+
+    // 只打包代码和LWJGL库
+    from {
+        // 包含编译后的class文件
+        sourceSets.main.output
+        // 只包含LWJGL库（通过lwjglRuntime配置解析）
+        configurations.lwjglRuntime.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.register('verifyLocalLibraries') {
