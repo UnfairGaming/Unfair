@@ -411,10 +411,7 @@ public class WorldServer extends World implements IThreadListener {
                 nextticklistentry.setPriority(priority);
             }
 
-            if (!this.pendingTickListEntriesHashSet.contains(nextticklistentry)) {
-                this.pendingTickListEntriesHashSet.add(nextticklistentry);
-                this.pendingTickListEntriesTreeSet.add(nextticklistentry);
-            }
+            this.addPendingTickListEntry(nextticklistentry);
         }
     }
 
@@ -426,10 +423,28 @@ public class WorldServer extends World implements IThreadListener {
             nextticklistentry.setScheduledTime((long) delay + this.worldInfo.getWorldTotalTime());
         }
 
-        if (!this.pendingTickListEntriesHashSet.contains(nextticklistentry)) {
-            this.pendingTickListEntriesHashSet.add(nextticklistentry);
-            this.pendingTickListEntriesTreeSet.add(nextticklistentry);
+        this.addPendingTickListEntry(nextticklistentry);
+    }
+
+    private void addPendingTickListEntry(NextTickListEntry entry) {
+        if (this.pendingTickListEntriesHashSet.add(entry) && !this.pendingTickListEntriesTreeSet.add(entry)) {
+            this.pendingTickListEntriesHashSet.remove(entry);
+            logger.warn("Skipped duplicate scheduled block update: {}", entry);
         }
+    }
+
+    private void resyncPendingTickListEntries() {
+        if (this.pendingTickListEntriesTreeSet.size() == this.pendingTickListEntriesHashSet.size()) {
+            return;
+        }
+
+        logger.warn("Resyncing scheduled block update list (tree: {}, set: {})", this.pendingTickListEntriesTreeSet.size(), this.pendingTickListEntriesHashSet.size());
+        Set<NextTickListEntry> entries = Sets.newHashSet(this.pendingTickListEntriesHashSet);
+        entries.addAll(this.pendingTickListEntriesTreeSet);
+        this.pendingTickListEntriesHashSet.clear();
+        this.pendingTickListEntriesHashSet.addAll(entries);
+        this.pendingTickListEntriesTreeSet.clear();
+        this.pendingTickListEntriesTreeSet.addAll(entries);
     }
 
     /**
@@ -461,60 +476,57 @@ public class WorldServer extends World implements IThreadListener {
         if (this.worldInfo.getTerrainType() == WorldType.DEBUG_WORLD) {
             return false;
         } else {
+            this.resyncPendingTickListEntries();
             int i = this.pendingTickListEntriesTreeSet.size();
 
-            if (i != this.pendingTickListEntriesHashSet.size()) {
-                throw new IllegalStateException("TickNextTick list out of synch");
-            } else {
-                if (i > 1000) {
-                    i = 1000;
-                }
-
-                this.theProfiler.startSection("cleaning");
-
-                for (int j = 0; j < i; ++j) {
-                    NextTickListEntry nextticklistentry = this.pendingTickListEntriesTreeSet.first();
-
-                    if (!p_72955_1_ && nextticklistentry.scheduledTime > this.worldInfo.getWorldTotalTime()) {
-                        break;
-                    }
-
-                    this.pendingTickListEntriesTreeSet.remove(nextticklistentry);
-                    this.pendingTickListEntriesHashSet.remove(nextticklistentry);
-                    this.pendingTickListEntriesThisTick.add(nextticklistentry);
-                }
-
-                this.theProfiler.endSection();
-                this.theProfiler.startSection("ticking");
-                Iterator<NextTickListEntry> iterator = this.pendingTickListEntriesThisTick.iterator();
-
-                while (iterator.hasNext()) {
-                    NextTickListEntry nextticklistentry1 = iterator.next();
-                    iterator.remove();
-                    int k = 0;
-
-                    if (this.isAreaLoaded(nextticklistentry1.position.add(-k, -k, -k), nextticklistentry1.position.add(k, k, k))) {
-                        IBlockState iblockstate = this.getBlockState(nextticklistentry1.position);
-
-                        if (iblockstate.getBlock().getMaterial() != Material.air && Block.isEqualTo(iblockstate.getBlock(), nextticklistentry1.getBlock())) {
-                            try {
-                                iblockstate.getBlock().updateTick(this, nextticklistentry1.position, iblockstate, this.rand);
-                            } catch (Throwable throwable) {
-                                CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Exception while ticking a block");
-                                CrashReportCategory crashreportcategory = crashreport.makeCategory("Block being ticked");
-                                CrashReportCategory.addBlockInfo(crashreportcategory, nextticklistentry1.position, iblockstate);
-                                throw new ReportedException(crashreport);
-                            }
-                        }
-                    } else {
-                        this.scheduleUpdate(nextticklistentry1.position, nextticklistentry1.getBlock(), 0);
-                    }
-                }
-
-                this.theProfiler.endSection();
-                this.pendingTickListEntriesThisTick.clear();
-                return !this.pendingTickListEntriesTreeSet.isEmpty();
+            if (i > 1000) {
+                i = 1000;
             }
+
+            this.theProfiler.startSection("cleaning");
+
+            for (int j = 0; j < i; ++j) {
+                NextTickListEntry nextticklistentry = this.pendingTickListEntriesTreeSet.first();
+
+                if (!p_72955_1_ && nextticklistentry.scheduledTime > this.worldInfo.getWorldTotalTime()) {
+                    break;
+                }
+
+                this.pendingTickListEntriesTreeSet.remove(nextticklistentry);
+                this.pendingTickListEntriesHashSet.remove(nextticklistentry);
+                this.pendingTickListEntriesThisTick.add(nextticklistentry);
+            }
+
+            this.theProfiler.endSection();
+            this.theProfiler.startSection("ticking");
+            Iterator<NextTickListEntry> iterator = this.pendingTickListEntriesThisTick.iterator();
+
+            while (iterator.hasNext()) {
+                NextTickListEntry nextticklistentry1 = iterator.next();
+                iterator.remove();
+                int k = 0;
+
+                if (this.isAreaLoaded(nextticklistentry1.position.add(-k, -k, -k), nextticklistentry1.position.add(k, k, k))) {
+                    IBlockState iblockstate = this.getBlockState(nextticklistentry1.position);
+
+                    if (iblockstate.getBlock().getMaterial() != Material.air && Block.isEqualTo(iblockstate.getBlock(), nextticklistentry1.getBlock())) {
+                        try {
+                            iblockstate.getBlock().updateTick(this, nextticklistentry1.position, iblockstate, this.rand);
+                        } catch (Throwable throwable) {
+                            CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Exception while ticking a block");
+                            CrashReportCategory crashreportcategory = crashreport.makeCategory("Block being ticked");
+                            CrashReportCategory.addBlockInfo(crashreportcategory, nextticklistentry1.position, iblockstate);
+                            throw new ReportedException(crashreport);
+                        }
+                    }
+                } else {
+                    this.scheduleUpdate(nextticklistentry1.position, nextticklistentry1.getBlock(), 0);
+                }
+            }
+
+            this.theProfiler.endSection();
+            this.pendingTickListEntriesThisTick.clear();
+            return !this.pendingTickListEntriesTreeSet.isEmpty();
         }
     }
 
@@ -545,7 +557,10 @@ public class WorldServer extends World implements IThreadListener {
 
                 if (blockpos.getX() >= structureBB.minX && blockpos.getX() < structureBB.maxX && blockpos.getZ() >= structureBB.minZ && blockpos.getZ() < structureBB.maxZ) {
                     if (p_175712_2_) {
-                        this.pendingTickListEntriesHashSet.remove(nextticklistentry);
+                        if (i == 0) {
+                            this.pendingTickListEntriesHashSet.remove(nextticklistentry);
+                        }
+
                         iterator.remove();
                     }
 

@@ -35,6 +35,11 @@ def fastutilVersion = '8.5.19'
 
 // 创建一个可解析的配置来专门处理LWJGL库
 configurations {
+    localRuntime {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+
     lwjglRuntime {
         canBeResolved = true
         canBeConsumed = false
@@ -44,6 +49,8 @@ configurations {
 
 dependencies {
     // 这些库只用于编译，不打包进JAR
+    localRuntime fileTree(dir: 'libs/minecraft', include: ['*.jar'])
+    localRuntime fileTree(dir: 'libs/client', include: ['*.jar'], exclude: ['lombok-*.jar'])
     compileOnly fileTree(dir: 'libs/minecraft', include: ['*.jar'])
     compileOnly fileTree(dir: 'libs/client', include: ['*.jar'], exclude: ['lombok-*.jar'])
     compileOnly fileTree(dir: 'libs/client', include: ['lombok-*.jar'])
@@ -66,6 +73,7 @@ application {
 
 tasks.named('run', JavaExec) {
     workingDir = layout.projectDirectory.dir('run').asFile
+    classpath += configurations.localRuntime
     jvmArgs '-Xmx2G'
 }
 

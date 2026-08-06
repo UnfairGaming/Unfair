@@ -1645,7 +1645,7 @@ public class KillAura extends Module {
         );
 
         RenderUtil.enableRenderState();
-        RenderUtil.drawFilledBox(dotBox, color.getRed(), color.getGreen(), color.getBlue());
+        RenderUtil.drawFilledBox(dotBox, color.getRed(), color.getGreen(), color.getBlue(), 180);
         RenderUtil.disableRenderState();
     }
 
