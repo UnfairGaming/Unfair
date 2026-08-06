@@ -7,6 +7,7 @@ import cn.unfair.util.ColorUtil;
 import java.awt.*;
 
 public class PostProcessing extends Module {
+    public static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
     public final BooleanProperty blur = new BooleanProperty("blur", true);
     public final IntProperty blurIterations = new IntProperty("blur-iterations", 2, 1, 10);
     public final IntProperty blurOffset = new IntProperty("blur-offset", 5, 1, 10);

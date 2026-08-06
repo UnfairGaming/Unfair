@@ -18,6 +18,9 @@ public class PostProcessingRenderer {
     private static Framebuffer bloomBuffer;
 
     public static void render2D(float partialTicks) {
+        if (PostProcessing.ANDROID_RUNTIME) {
+            return;
+        }
         if (Unfair.moduleManager == null) {
             return;
         }

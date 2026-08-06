@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 public class ESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
     private static final int MODE_2D = 1;
     private static final int MODE_3D = 2;
     private static final int MODE_GLOW = 3;
@@ -64,6 +65,10 @@ public class ESP extends Module {
     public ESP() {
         super("ESP", false, true);
         try {
+            if (ANDROID_RUNTIME) {
+                this.glowAvailable = false;
+                return;
+            }
             this.blurShader = new GlowESPBlurShader();
             this.glowAvailable = true;
         } catch (RuntimeException exception) {

@@ -37,6 +37,7 @@ import java.util.List;
 
 public abstract class RendererLivingEntity<T extends EntityLivingBase> extends Render<T>
 {
+    private static final boolean ANDROID_RUNTIME = System.getProperty("os.version", "").startsWith("Android-");
     private static final Logger logger = LogManager.getLogger();
     private static final DynamicTexture textureBrightness = new DynamicTexture(16, 16);
     private static final FloatBuffer shaderBrightnessBuffer = GLAllocation.createDirectFloatBuffer(4);
@@ -67,6 +68,9 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
     }
 
     public static boolean setShaderBrightness(Color color) {
+        if (ANDROID_RUNTIME) {
+            return false;
+        }
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GlStateManager.enableTexture2D();
         GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, OpenGlHelper.GL_COMBINE);
