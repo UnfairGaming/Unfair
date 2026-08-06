@@ -27,7 +27,11 @@ public class ResourcePackListEntryDefault extends ResourcePackListEntry {
 
         try {
             BufferedImage packImage = this.field_148320_d.getPackImage();
-            dynamictexture = new DynamicTexture(packImage);
+            if (packImage == null) {
+                dynamictexture = TextureUtil.missingTexture;
+            } else {
+                dynamictexture = new DynamicTexture(packImage);
+            }
 
             if (packImage instanceof AutoCloseable)
                 ((AutoCloseable) packImage).close();

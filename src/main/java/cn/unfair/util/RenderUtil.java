@@ -896,6 +896,8 @@ public class RenderUtil {
         GlStateManager.alphaFunc(516, 0.0F);
 
         mc.getTextureManager().bindTexture(skin);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
 
@@ -913,8 +915,8 @@ public class RenderUtil {
                 color.getAlpha() / 255.0F
         );
 
-        drawTexturedQuads(x, y, size, size, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
-        drawTexturedQuads(x, y, size, size, 40.0F / 64.0F, 8.0F / 64.0F, 48.0F / 64.0F, 16.0F / 64.0F);
+        drawTexturedQuads(x - 1.0F, y - 1.0F, size + 2.0F, size + 2.0F, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
+        drawTexturedQuads(x - 1.0F, y - 1.0F, size + 2.0F, size + 2.0F, 40.0F / 64.0F, 8.0F / 64.0F, 48.0F / 64.0F, 16.0F / 64.0F);
 
         roundedTextureShader.unload();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
