@@ -114,7 +114,7 @@ public class AugustusClickGui extends GuiScreen {
     }
 
     private float sliderValueY(float sliderY) {
-        return (float) Math.floor(sliderY + (sliderBoxHeight() - fh()) / 2.0F) + 2.0F;
+        return (float) Math.floor(sliderY + (sliderBoxHeight() - fh()) / 2.0F);
     }
 
     private float valueHeaderHeight(float initialValueY) {
@@ -337,6 +337,17 @@ public class AugustusClickGui extends GuiScreen {
         if (right > left) {
             RenderUtil.drawRect(left, sliderY + 2.0F, right, sliderY + sliderH - 2.0F, getAccent().getRGB());
         }
+    }
+
+    private void drawSliderValue(String value, float sliderX, float sliderY, float sliderW) {
+        float centerX = sliderX + (sliderW + 1.0F) / 2.0F;
+        normalFont.drawString(
+                value,
+                centerX - normalFont.getStringVisualCenterOffset(value),
+                sliderValueY(sliderY),
+                new Color(200, 200, 200).getRGB(),
+                false
+        );
     }
 
     private float getFloatSliderValue(float min, float max, float percent) {
@@ -623,7 +634,7 @@ public class AugustusClickGui extends GuiScreen {
         drawSliderProgress(sliderX, sliderY, sliderH, curLen);
 
         String v = String.format(Locale.ROOT, "%.2f", val);
-        normalFont.drawString(v, sliderX + sliderW / 2F - fw(v) / 2F, sliderValueY(sliderY), new Color(200, 200, 200).getRGB(), false);
+        drawSliderValue(v, sliderX, sliderY, sliderW);
 
         return y + fh() + 6;
     }
@@ -653,7 +664,7 @@ public class AugustusClickGui extends GuiScreen {
         drawSliderProgress(sliderX, sliderY, sliderH, curLen);
 
         String v = String.valueOf(ip.getValue());
-        normalFont.drawString(v, sliderX + sliderW / 2F - fw(v) / 2F, sliderValueY(sliderY), new Color(200, 200, 200).getRGB(), false);
+        drawSliderValue(v, sliderX, sliderY, sliderW);
 
         return y + fh() + 6;
     }
@@ -683,7 +694,7 @@ public class AugustusClickGui extends GuiScreen {
         drawSliderProgress(sliderX, sliderY, sliderH, curLen);
 
         String v = pp.getValue() + "%";
-        normalFont.drawString(v, sliderX + sliderW / 2F - fw(v) / 2F, sliderValueY(sliderY), new Color(200, 200, 200).getRGB(), false);
+        drawSliderValue(v, sliderX, sliderY, sliderW);
 
         return y + fh() + 6;
     }
