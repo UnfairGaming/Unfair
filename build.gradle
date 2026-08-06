@@ -31,10 +31,7 @@ sourceSets {
 }
 
 def lombokVersion = '1.18.46'
-def javacvVersion = '1.5.13'
-def ffmpegVersion = '8.0.1-1.5.13'
 def fastutilVersion = '8.5.19'
-def lwjglVersion = '3.4.2'
 
 dependencies {
     implementation fileTree(dir: 'libs/minecraft', include: ['*.jar'])
@@ -73,11 +70,7 @@ tasks.register('verifyLocalLibraries') {
     doLast {
         def requiredFiles = [
                 "libs/client/lombok-${lombokVersion}.jar",
-                "libs/client/fastutil-${fastutilVersion}.jar",
-                "libs/client/javacv-${javacvVersion}.jar",
-                "libs/client/javacpp-${javacvVersion}.jar",
-                "libs/client/ffmpeg-${ffmpegVersion}.jar",
-                "libs/lwjgl/lwjgl-${lwjglVersion}.jar"
+                "libs/client/fastutil-${fastutilVersion}.jar"
         ]
         def missingFiles = requiredFiles.findAll { !file(it).isFile() }
 
