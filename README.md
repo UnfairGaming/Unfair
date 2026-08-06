@@ -26,7 +26,7 @@ Linux/macOS:
 
 ## 鸣谢
 
-bzdhyp / zzz 的 MCP 与 Augustus Click Gui
+bzdhyp / zzz 的深度优化后的 MCP 与 Augustus Click Gui
 Un1336 / Falling Star / Fall1ng Star 的开发
 Phosphor https://github.com/momenbasel/Phosphor
 

@@ -9,8 +9,6 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -24,6 +22,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -438,11 +438,12 @@ public class TargetESP extends Module {
         if (!this.isEnabled()) return;
         int index = 3;
         if (mode.getValue() == 3 && target != null) {
-            float dst = mc.thePlayer.getDistanceToEntity(target);
-            float[] pos = targetESPSPos(target, event);
-            if (pos != null) {
-                drawTargetESP2D(pos[0], pos[1],
-                        (1.0f - MathHelper.clamp_float(Math.abs(dst - 6.0f) / 60.0f, 0.0f, 0.75f)) * 1, index);
+            mc.entityRenderer.setupCameraTransform(event.partialTicks(), 0);
+            ProjectionUtil.Projection projection = ProjectionUtil.projectEntity(target);
+            mc.entityRenderer.setupOverlayRendering();
+            if (projection != null) {
+                drawTargetESP2D(projection.centerX(), projection.centerY(),
+                        getImageScale(projection), index);
             }
         }
     }
@@ -453,14 +454,17 @@ public class TargetESP extends Module {
         if (event.shaderType() == Shader2DEvent.ShaderType.GLOW) {
             int index = 3;
             if (mode.getValue() == 3 && imageMode.getValue() == 0 && target != null) {
-                float dst = mc.thePlayer.getDistanceToEntity(target);
-                float[] pos = targetESPSPos(target, null);
-                if (pos != null) {
-                    drawTargetESP2D(pos[0], pos[1],
-                            (1.0f - MathHelper.clamp_float(Math.abs(dst - 6.0f) / 60.0f, 0.0f, 0.75f)) * 1, index);
+                ProjectionUtil.Projection projection = ProjectionUtil.projectEntity(target);
+                if (projection != null) {
+                    drawTargetESP2D(projection.centerX(), projection.centerY(),
+                            getImageScale(projection), index);
                 }
             }
         }
+    }
+
+    private float getImageScale(ProjectionUtil.Projection projection) {
+        return MathHelper.clamp_float(projection.height() / 180.0F, 0.25F, 1.2F);
     }
 
     private void points(Render3DEvent event) {
@@ -544,82 +548,65 @@ public class TargetESP extends Module {
         float y2 = renderY + size;
 
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x, y, 0);
-        GlStateManager.rotate((float) rotate, 0, 0, 1);
-        GlStateManager.translate(-x, -y, 0);
-        GL11.glDisable(3008);
-        GlStateManager.depthMask(false);
-        GlStateManager.enableBlend();
-        GlStateManager.shadeModel(7425);
-        GlStateManager.tryBlendFuncSeparate(770, 1, 1, 0);
-        Color HUDColor = getInterfaceColor();
-        float alpha = getAlpha();
-        GL11.glColor4f(HUDColor.getRed() / 255.0f, HUDColor.getGreen() / 255.0f, HUDColor.getBlue() / 255.0f, alpha);
-        switch (imageMode.getValue()) {
-            case 0:
-                RenderUtil.drawImage(rectangle, renderX, renderY, x2, y2, color, color2, color3, color4);
-                break;
-            case 1:
-                RenderUtil.drawImage(quadstapple, renderX, renderY, x2, y2, color, color2, color3, color4);
-                break;
-            case 2:
-                RenderUtil.drawImage(trianglestapple, renderX, renderY, x2, y2, color, color2, color3, color4);
-                break;
-            case 3:
-                RenderUtil.drawImage(trianglestipple, renderX, renderY, x2, y2, color, color2, color3, color4);
-                break;
-            case 4:
-                RenderUtil.drawImage(aim, renderX, renderY, x2, y2, color, color2, color3, color4);
-                break;
-            case 5:
-                if (customImage != null) {
-                    RenderUtil.drawImage(customImage, renderX, renderY, x2, y2, color, color2, color3, color4);
-                } else {
+        GlStateManager.pushAttrib();
+        try {
+            GlStateManager.translate(x, y, 0);
+            GlStateManager.rotate((float) rotate, 0, 0, 1);
+            GlStateManager.translate(-x, -y, 0);
+            GlStateManager.disableAlpha();
+            GlStateManager.depthMask(false);
+            GlStateManager.enableBlend();
+            GlStateManager.shadeModel(7425);
+            GlStateManager.tryBlendFuncSeparate(770, 1, 1, 0);
+            Color HUDColor = getInterfaceColor();
+            float alpha = getAlpha();
+            GlStateManager.color(
+                    HUDColor.getRed() / 255.0f,
+                    HUDColor.getGreen() / 255.0f,
+                    HUDColor.getBlue() / 255.0f,
+                    alpha
+            );
+            switch (imageMode.getValue()) {
+                case 0:
                     RenderUtil.drawImage(rectangle, renderX, renderY, x2, y2, color, color2, color3, color4);
-                }
-                break;
-        }
-
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.resetColor();
-        GlStateManager.shadeModel(7424);
-        GlStateManager.depthMask(true);
-        GL11.glEnable(3008);
-        GlStateManager.popMatrix();
-    }
-
-    private float[] targetESPSPos(EntityLivingBase entity, Render2DEvent event) {
-        EntityRenderer entityRenderer = mc.entityRenderer;
-        float partialTicks = event != null ? event.partialTicks() : mc.timer.renderPartialTicks;
-        double x = interpolate(entity.prevPosX, entity.posX, partialTicks);
-        double y = interpolate(entity.prevPosY, entity.posY, partialTicks) + entity.height * 0.4f;
-        double z = interpolate(entity.prevPosZ, entity.posZ, partialTicks);
-        double width = entity.width / 2.0f;
-        double height = entity.height / 4.0f;
-        AxisAlignedBB bb = new AxisAlignedBB(x - width, y - height, z - width, x + width, y + height, z + width);
-        final double[][] vectors = {{bb.minX, bb.minY, bb.minZ},
-                {bb.minX, bb.maxY, bb.minZ},
-                {bb.minX, bb.maxY, bb.maxZ},
-                {bb.minX, bb.minY, bb.maxZ},
-                {bb.maxX, bb.minY, bb.minZ},
-                {bb.maxX, bb.maxY, bb.minZ},
-                {bb.maxX, bb.maxY, bb.maxZ},
-                {bb.maxX, bb.minY, bb.maxZ}};
-        entityRenderer.setupCameraTransform(partialTicks, 0);
-        float[] projection;
-        final float[] position = new float[]{Float.MAX_VALUE, Float.MAX_VALUE, -1.0F, -1.0F};
-        for (final double[] vec : vectors) {
-            projection = RenderUtil.project2D((float) (vec[0] - mc.getRenderManager().getRenderPosX()), (float) (vec[1] - mc.getRenderManager().getRenderPosY()), (float) (vec[2] - mc.getRenderManager().getRenderPosZ()), new ScaledResolution(mc).getScaleFactor());
-            if (projection != null && projection[2] >= 0.0F && projection[2] < 1.0F) {
-                position[0] = Math.min(projection[0], position[0]);
-                position[1] = Math.min(projection[1], position[1]);
-                position[2] = Math.max(projection[0], position[2]);
-                position[3] = Math.max(projection[1], position[3]);
+                    break;
+                case 1:
+                    RenderUtil.drawImage(quadstapple, renderX, renderY, x2, y2, color, color2, color3, color4);
+                    break;
+                case 2:
+                    RenderUtil.drawImage(trianglestapple, renderX, renderY, x2, y2, color, color2, color3, color4);
+                    break;
+                case 3:
+                    RenderUtil.drawImage(trianglestipple, renderX, renderY, x2, y2, color, color2, color3, color4);
+                    break;
+                case 4:
+                    RenderUtil.drawImage(aim, renderX, renderY, x2, y2, color, color2, color3, color4);
+                    break;
+                case 5:
+                    if (customImage != null) {
+                        RenderUtil.drawImage(customImage, renderX, renderY, x2, y2, color, color2, color3, color4);
+                    } else {
+                        RenderUtil.drawImage(rectangle, renderX, renderY, x2, y2, color, color2, color3, color4);
+                    }
+                    break;
             }
+        } finally {
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+            GlStateManager.resetColor();
+            GlStateManager.shadeModel(7424);
+            GlStateManager.depthMask(true);
+            GlStateManager.enableAlpha();
+            GlStateManager.popAttrib();
+            GlStateManager.popMatrix();
+            GL20.glUseProgram(0);
+            GL13.glActiveTexture(GL13.GL_TEXTURE0);
+            GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
+            GlStateManager.bindTexture(0);
+            GlStateManager.resetColor();
+            GlStateManager.enableTexture2D();
+            GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+            GlStateManager.disableBlend();
         }
-        entityRenderer.setupOverlayRendering();
-        float centerX = (position[0] + position[2]) / 2.0f;
-        float centerY = (position[1] + position[3]) / 2.0f;
-        return new float[]{centerX, centerY};
     }
+
 }

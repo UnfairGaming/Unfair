@@ -11,13 +11,12 @@ import cn.unfair.module.modules.render.targethud.TargetHUDMode;
 import cn.unfair.module.modules.render.targethud.impl.*;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.ProjectionUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.network.NetworkPlayerInfo;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
@@ -27,14 +26,10 @@ import net.minecraft.network.play.client.C02PacketUseEntity.Action;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.util.glu.GLU;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -282,14 +277,14 @@ public class TargetHUD extends ModuleWithModuleSettings {
             return null;
         }
 
-        TargetProjection projection = this.projectEntity(entity);
+        ProjectionUtil.Projection projection = ProjectionUtil.projectEntity(entity);
         if (projection == null) {
             return null;
         }
 
         return new float[]{
-                projection.right + FOLLOW_PLAYER_X_PADDING,
-                projection.bottom - (projection.bottom - projection.top) / 2.0F - height / 2.0F
+                projection.right() + FOLLOW_PLAYER_X_PADDING,
+                projection.bottom() - (projection.bottom() - projection.top()) / 2.0F - height / 2.0F
         };
     }
 
@@ -397,74 +392,6 @@ public class TargetHUD extends ModuleWithModuleSettings {
         return this.lastHealthBar;
     }
 
-    private TargetProjection projectEntity(Entity entity) {
-        if (entity == null) {
-            return null;
-        }
-
-        RenderManager renderManager = mc.getRenderManager();
-        float partialTicks = mc.timer.renderPartialTicks;
-        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks - renderManager.getRenderPosX();
-        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks - renderManager.getRenderPosY();
-        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks - renderManager.getRenderPosZ();
-        double width = (entity.width + 0.14D) / 2.0D;
-        double height = entity.height + (entity.isSneaking() ? -0.1D : 0.2D) + 0.01D;
-        AxisAlignedBB aabb = new AxisAlignedBB(x - width, y, z - width, x + width, y + height, z + width);
-        List<double[]> vectors = Arrays.asList(
-                new double[]{aabb.minX, aabb.minY, aabb.minZ},
-                new double[]{aabb.minX, aabb.maxY, aabb.minZ},
-                new double[]{aabb.maxX, aabb.minY, aabb.minZ},
-                new double[]{aabb.maxX, aabb.maxY, aabb.minZ},
-                new double[]{aabb.minX, aabb.minY, aabb.maxZ},
-                new double[]{aabb.minX, aabb.maxY, aabb.maxZ},
-                new double[]{aabb.maxX, aabb.minY, aabb.maxZ},
-                new double[]{aabb.maxX, aabb.maxY, aabb.maxZ}
-        );
-
-        int scaleFactor = new net.minecraft.client.gui.ScaledResolution(mc).getScaleFactor();
-        TargetProjection projection = null;
-        for (double[] vector : vectors) {
-            TargetPoint projected = this.projectPoint(scaleFactor, vector[0], vector[1], vector[2]);
-            if (projected == null || projected.z < 0.0F || projected.z >= 1.0F) {
-                continue;
-            }
-
-            if (projection == null) {
-                projection = new TargetProjection(projected.x, projected.y, projected.x, projected.y);
-            } else {
-                projection = new TargetProjection(
-                        Math.min(projected.x, projection.left),
-                        Math.min(projected.y, projection.top),
-                        Math.max(projected.x, projection.right),
-                        Math.max(projected.y, projection.bottom)
-                );
-            }
-        }
-
-        return projection;
-    }
-
-    private TargetPoint projectPoint(int scaleFactor, double x, double y, double z) {
-        if (!GLU.gluProject(
-                (float) x,
-                (float) y,
-                (float) z,
-                ActiveRenderInfo.getModelView(),
-                ActiveRenderInfo.getProjection(),
-                ActiveRenderInfo.getViewport(),
-                ActiveRenderInfo.getObjectCoords()
-        )) {
-            return null;
-        }
-
-        java.nio.FloatBuffer objectCoords = ActiveRenderInfo.getObjectCoords();
-        return new TargetPoint(
-                objectCoords.get(0) / scaleFactor,
-                (Display.getHeight() - objectCoords.get(1)) / scaleFactor,
-                objectCoords.get(2)
-        );
-    }
-
     public record TargetHudBounds(int left, int top, int right, int contentBottom, int bottom, int textX, int textY) {
 
         public float width() {
@@ -475,12 +402,6 @@ public class TargetHUD extends ModuleWithModuleSettings {
                 return this.bottom - this.top;
             }
         }
-
-    public record TargetProjection(float left, float top, float right, float bottom) {
-    }
-
-    public record TargetPoint(float x, float y, float z) {
-    }
 
     public record HealthInfo(float health, float absorption, float maxHealth) {
     }

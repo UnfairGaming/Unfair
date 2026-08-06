@@ -29,6 +29,7 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
 
 import javax.vecmath.Vector4d;
 import java.awt.*;
@@ -230,35 +231,48 @@ public class ESP extends Module {
 
         GlStateManager.pushMatrix();
         GlStateManager.pushAttrib();
-        GlStateManager.enableAlpha();
-        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
-        GlStateManager.enableBlend();
-        OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+        try {
+            GlStateManager.enableAlpha();
+            GlStateManager.alphaFunc(GL11.GL_GREATER, 0.0F);
+            GlStateManager.enableBlend();
+            OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
 
-        float radius = this.glowRadius.getValue();
-        Color glowColor = this.getGlowColor();
-        this.glowFrameBuffer.framebufferClear();
-        this.glowFrameBuffer.bindFramebuffer(true);
-        this.blurShader.use();
-        this.blurShader.setup(2.0F, 0.0F, radius, this.glowExposure.getValue(), glowColor);
-        RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
-        ShaderUtils.drawQuads();
-        this.blurShader.stop();
-        this.glowFrameBuffer.unbindFramebuffer();
+            float radius = this.glowRadius.getValue();
+            Color glowColor = this.getGlowColor();
+            this.glowFrameBuffer.framebufferClear();
+            this.glowFrameBuffer.bindFramebuffer(true);
+            this.blurShader.use();
+            this.blurShader.setup(2.0F, 0.0F, radius, this.glowExposure.getValue(), glowColor);
+            RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
+            ShaderUtils.drawQuads();
+            this.blurShader.stop();
+            this.glowFrameBuffer.unbindFramebuffer();
 
-        mc.getFramebuffer().bindFramebuffer(true);
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
-        this.blurShader.use();
-        this.blurShader.setup(0.0F, 2.0F, radius, this.glowExposure.getValue(), glowColor, true);
-        RenderUtil.bindTexture(this.glowFrameBuffer.framebufferTexture);
-        GL13.glActiveTexture(GL13.GL_TEXTURE16);
-        RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        ShaderUtils.drawQuads();
-        this.blurShader.stop();
-        RenderUtil.bindTexture(0);
-        GlStateManager.popAttrib();
-        GlStateManager.popMatrix();
+            mc.getFramebuffer().bindFramebuffer(true);
+            OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+            this.blurShader.use();
+            this.blurShader.setup(0.0F, 2.0F, radius, this.glowExposure.getValue(), glowColor, true);
+            RenderUtil.bindTexture(this.glowFrameBuffer.framebufferTexture);
+            GL13.glActiveTexture(GL13.GL_TEXTURE16);
+            RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
+            GL13.glActiveTexture(GL13.GL_TEXTURE0);
+            ShaderUtils.drawQuads();
+            this.blurShader.stop();
+        } finally {
+            this.glowFrameBuffer.unbindFramebuffer();
+            mc.getFramebuffer().bindFramebuffer(true);
+            this.blurShader.stop();
+            GL13.glActiveTexture(GL13.GL_TEXTURE0);
+            GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+            RenderUtil.bindTexture(0);
+            GL20.glUseProgram(0);
+            GlStateManager.resetColor();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableAlpha();
+            GlStateManager.disableBlend();
+            GlStateManager.popAttrib();
+            GlStateManager.popMatrix();
+        }
     }
 
     @EventTarget(Priority.HIGH)
