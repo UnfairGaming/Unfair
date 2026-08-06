@@ -29,7 +29,7 @@ public class PostProcessing extends Module {
     }
 
     private float getBloomColorCycle(long time, long offset) {
-        long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, this.bloomColorSpeed.getValue()), 1.5F), 3.0));
+        long speed = (long) (3000.0 / Math.pow(Math.clamp(this.bloomColorSpeed.getValue(), 0.5F, 1.5F), 3.0));
         return 1.0F - (float) (Math.abs(time - offset * 300L) % speed) / (float) speed;
     }
 

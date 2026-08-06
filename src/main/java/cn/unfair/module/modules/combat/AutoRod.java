@@ -109,7 +109,7 @@ public class AutoRod extends Module {
         }
 
         this.predictionSize = this.basePrediction.getValue()
-                + Math.min(Math.max((this.getDistanceToEntityBox(this.currentTarget) - this.minRange.getValue()) * 3.0D, 0.0D), 8.0D);
+                + Math.clamp((this.getDistanceToEntityBox(this.currentTarget) - this.minRange.getValue()) * 3.0D, 0.0D, 8.0D);
 
         Vec3 playerEyes = mc.thePlayer.getPositionEyes(1.0F).add(this.getFlatMoveDelta(mc.thePlayer, this.predictionSize));
         Vec3 targetEyes = this.currentTarget.getPositionEyes(1.0F).add(this.getFlatMoveDelta(this.currentTarget, this.predictionSize));

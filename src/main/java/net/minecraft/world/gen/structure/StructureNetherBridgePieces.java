@@ -274,7 +274,7 @@ public class StructureNetherBridgePieces
             for (int j = 0; j <= 9; ++j)
             {
                 int k = Math.max(1, 7 - j);
-                int l = Math.min(Math.max(k + 5, 14 - j), 13);
+                int l = Math.clamp(k + 5, 14 - j, 13);
                 int i1 = j;
                 this.fillWithBlocks(worldIn, structureBoundingBoxIn, 0, 0, j, 4, k, j, Blocks.nether_brick.getDefaultState(), Blocks.nether_brick.getDefaultState(), false);
                 this.fillWithBlocks(worldIn, structureBoundingBoxIn, 1, k + 1, j, 3, l - 1, j, Blocks.air.getDefaultState(), Blocks.air.getDefaultState(), false);

@@ -8,7 +8,7 @@ public class SwapItemEvent extends EventCancellable {
 
     public SwapItemEvent(int slot, int offset) {
         this.slot = slot;
-        this.offset = Math.min(Math.max(offset, -1), 1);
+        this.offset = Math.clamp(offset, -1, 1);
     }
 
     public int setSlot(int integer) {

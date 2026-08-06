@@ -70,7 +70,7 @@ public class HUD extends Module {
     }
 
     public static float getColorCycle(long long3, long long4) {
-        long speed = (long) (3000.0 / Math.pow(Math.min(Math.max(0.5F, colorSpeed.getValue()), 1.5F), 3.0));
+        long speed = (long) (3000.0 / Math.pow(Math.clamp(colorSpeed.getValue(), 0.5F, 1.5F), 3.0));
         return 1.0F - (float) (Math.abs(long3 - long4 * 300L) % speed) / (float) speed;
     }
 
@@ -213,11 +213,11 @@ public class HUD extends Module {
         if (animation == null) {
             return module.isEnabled() && !module.isHidden() ? 1.0F : 0.0F;
         }
-        return Math.max(0.0F, Math.min(1.0F, RenderUtil.lerpFloat(
+        return Math.clamp(RenderUtil.lerpFloat(
                 animation.currentProgress,
                 animation.lastProgress,
                 partialTicks
-        )));
+        ), 0.0F, 1.0F);
     }
 
     @EventTarget
@@ -432,7 +432,7 @@ public class HUD extends Module {
             } else {
                 int animatedColor = color;
                 if (animProgress < 1.0F) {
-                    int alpha = Math.max(0, Math.min(255, (int) (animProgress * 255.0F)));
+                    int alpha = Math.clamp((int) (animProgress * 255.0F), 0, 255);
                     animatedColor = (color & 0x00FFFFFF) | (alpha << 24);
                 }
 
@@ -704,7 +704,7 @@ public class HUD extends Module {
         private void tick(boolean forwards) {
             this.lastProgress = this.currentProgress;
             this.currentProgress += forwards ? this.step : -this.step;
-            this.currentProgress = Math.max(0.0F, Math.min(1.0F, this.currentProgress));
+            this.currentProgress = Math.clamp(this.currentProgress, 0.0F, 1.0F);
 
             this.lastIndex = this.currentIndex;
             this.currentIndex += (this.targetIndex - this.currentIndex) * 0.35F;

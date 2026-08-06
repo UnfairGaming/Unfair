@@ -70,7 +70,7 @@ public class SliderComponent implements Component {
         this.y = this.parentModule.category.getY() + this.offsetY;
         this.x = this.parentModule.category.getX();
 
-        double d = Math.min(this.parentModule.category.getWidth() - 8, Math.max(0, mousePosX - this.x));
+        double d = Math.clamp(mousePosX - this.x, 0, this.parentModule.category.getWidth() - 8);
         this.sliderWidth = (double) (this.parentModule.category.getWidth() - 8) *
                 (this.slider.getInput() - this.slider.getMin()) /
                 (this.slider.getMax() - this.slider.getMin());
@@ -88,7 +88,7 @@ public class SliderComponent implements Component {
                     rawValue = Math.round(rawValue / increment) * increment;
                 }
                 double n = roundToPrecision(rawValue, 1);
-                n = Math.max(this.slider.getMin(), Math.min(this.slider.getMax(), n));
+                n = Math.clamp(n, this.slider.getMin(), this.slider.getMax());
                 this.slider.setValue(n);
             }
         }
@@ -168,7 +168,7 @@ public class SliderComponent implements Component {
                 (this.slider.getInput() - this.slider.getMin()) /
                 (this.slider.getMax() - this.slider.getMin());
         if (this.dragging) {
-            double d = Math.min(this.parentModule.category.getWidth() - 8, Math.max(0, x - this.x));
+            double d = Math.clamp(x - this.x, 0, this.parentModule.category.getWidth() - 8);
             if (d == 0.0D) {
                 this.slider.setValue(this.slider.getMin());
             } else {
@@ -180,7 +180,7 @@ public class SliderComponent implements Component {
                     rawValue = Math.round(rawValue / increment) * increment;
                 }
                 double n = roundToPrecision(rawValue, 1);
-                n = Math.max(this.slider.getMin(), Math.min(this.slider.getMax(), n));
+                n = Math.clamp(n, this.slider.getMin(), this.slider.getMax());
                 this.slider.setValue(n);
             }
         }

@@ -534,7 +534,7 @@ public class KillAura extends Module {
             this.serverPitch = targetPitch;
         }
 
-        this.serverPitch = Math.max(-90.0F, Math.min(90.0F, this.serverPitch));
+        this.serverPitch = Math.clamp(this.serverPitch, -90.0F, 90.0F);
 
         if (this.gcdFix.getValue() && this.advancedRotations.getValue()) {
             float[] fixed = this.applyGcdFix(this.serverYaw, this.serverPitch, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
@@ -997,10 +997,8 @@ public class KillAura extends Module {
         EntityLivingBase entity = target.getEntity();
         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
         AxisAlignedBB bb = this.getAdvancedBox(entity);
-        double speedShrinkFactor = Math.min(
-                this.xzTrim.getValue(),
-                Math.max(getSpeedPosBased(mc.thePlayer) * 0.5D, getSpeedPosBased(entity) * 0.5D)
-        ) + this.xzRandShrinkThing * this.xzRandAdd.getValue();
+        double speedShrinkFactor = Math.clamp(getSpeedPosBased(mc.thePlayer) * 0.5D, getSpeedPosBased(entity) * 0.5D,
+                this.xzTrim.getValue()) + this.xzRandShrinkThing * this.xzRandAdd.getValue();
         this.finalXZTrim = this.dynamicTrim.getValue() ? speedShrinkFactor : this.xzTrim.getValue();
         double finalYTrim = this.dynamicTrim.getValue() ? Math.abs(mc.thePlayer.motionY) : this.yTrim.getValue();
         bb = contract(bb, this.finalXZTrim, finalYTrim, this.finalXZTrim);
@@ -1242,13 +1240,13 @@ public class KillAura extends Module {
         double speed = getSpeedPosBased(entity);
 
         if (dist > this.attackRange.getValue()) {
-            this.predictionTargetOffset = (float) Math.min(Math.max((dist - this.attackRange.getValue()) * 3.0D, 0.0D), 8.0D);
+            this.predictionTargetOffset = (float) Math.clamp((dist - this.attackRange.getValue()) * 3.0D, 0.0D, 8.0D);
             shouldPredict = true;
         }
 
         if (speed > 0.4D) {
             double extra = Math.random() * RandomUtil.nextFloat(0.9F, 1.1F);
-            float predictedOffset = (float) (-Math.min(Math.max(dist, 0.0D), 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? extra : -extra));
+            float predictedOffset = (float) (-Math.clamp(dist, 0.0D, 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? extra : -extra));
             this.predictionTargetOffset = interpolate(this.predictionTargetOffset, predictedOffset, 0.05F);
             shouldPredict = true;
         }

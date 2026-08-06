@@ -239,8 +239,8 @@ public class OcclusionCullingInstance {
         double t5 = (b[2] - rayOrigin.z) * rInv.z;
         double t6 = (b[2] + 1 - rayOrigin.z) * rInv.z;
 
-        double tmin = Math.max(Math.max(Math.min(t1, t2), Math.min(t3, t4)), Math.min(t5, t6));
-        double tmax = Math.min(Math.min(Math.max(t1, t2), Math.max(t3, t4)), Math.max(t5, t6));
+        double tmin = Math.clamp(t5, Math.clamp(t1, Math.min(t3, t4), t2), t6);
+        double tmax = Math.clamp(t5, t6, Math.clamp(t1, t2, Math.max(t3, t4)));
 
         // if tmax > 0, ray (line) is intersecting AABB, but the whole AABB is behind us
         if (tmax > 0) {

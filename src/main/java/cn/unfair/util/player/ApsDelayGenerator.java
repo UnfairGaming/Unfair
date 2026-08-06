@@ -8,7 +8,7 @@ public class ApsDelayGenerator {
     private int restTicks;
 
     private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(max, min, value);
     }
 
     public long nextDelay(int minAps, int maxAps) {

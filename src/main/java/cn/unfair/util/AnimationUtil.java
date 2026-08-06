@@ -18,9 +18,9 @@ public class AnimationUtil {
             return 1.0F;
         }
         float normalizedDuration = Math.max(1.0F, duration);
-        float elapsed = Math.min(normalizedDuration, Math.max(0.0F, elapsed(startTime)));
+        float elapsed = Math.clamp(elapsed(startTime), 0.0F, normalizedDuration);
         float progress = elapsed / normalizedDuration;
-        return ease(Math.min(1.0F, Math.max(0.0F, progress)), easing);
+        return ease(Math.clamp(progress, 0.0F, 1.0F), easing);
     }
 
     public static float value(float begin, float end, long startTime, float duration, float partialTicks, int easing) {

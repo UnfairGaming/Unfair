@@ -87,7 +87,7 @@ public class GlowESPBlurShader {
             return;
         }
         this.lastRadius = radius;
-        int samples = Math.min(255, Math.max(1, (int) radius));
+        int samples = Math.clamp((int) radius, 1, 255);
         this.weights.clear();
         for (int i = 0; i <= samples; i++) {
             this.weights.put(MathUtil.calculateGaussianValue(i, radius / 2.0F));

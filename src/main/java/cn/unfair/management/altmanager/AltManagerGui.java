@@ -680,11 +680,11 @@ public class AltManagerGui extends GuiScreen {
     }
 
     private float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(max, min, value);
     }
 
     private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(max, min, value);
     }
 
     private boolean inside(double mx, double my, float x, float y, float w, float h) {

@@ -1708,6 +1708,9 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         GlStateManager.alphaFunc(516, 0.1F);
         this.setupFog(0, partialTicks);
         GlStateManager.enableBlend();
+        // Transparent blocks still need depth testing so walls occlude glass and water.
+        GlStateManager.enableDepth();
+        GlStateManager.depthFunc(515);
         GlStateManager.depthMask(false);
         this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
         GlStateManager.shadeModel(7425);
@@ -1724,6 +1727,8 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         }
 
         GlStateManager.shadeModel(7424);
+        GlStateManager.enableDepth();
+        GlStateManager.depthFunc(515);
         GlStateManager.depthMask(true);
         GlStateManager.enableCull();
         GlStateManager.disableBlend();

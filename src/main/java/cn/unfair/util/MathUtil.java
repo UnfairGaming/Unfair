@@ -9,7 +9,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class MathUtil {
     public static final float PI = (float) Math.PI;
-    public static final float TO_DEGREES = 180.0F / PI;
 
     public static double interporate(float partialTicks, double old, double current) {
         return old + (current - old) * partialTicks;

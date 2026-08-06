@@ -34,11 +34,11 @@ public class TargetHUDMyauMode extends TargetHUDMode {
 
     @Override
     public void render(TargetHUD targetHUD, TargetHUD.RenderData data, float x, float y) {
-        float elapsedTime = (float) Math.min(Math.max(targetHUD.animTimer.getElapsedTime(), 0L), 150L);
-        float lerpedHealthRatio = Math.min(Math.max(RenderUtil.lerpFloat(targetHUD.newHealth, targetHUD.oldHealth, elapsedTime / 150.0F) / targetHUD.maxHealth, 0.0F), 1.0F);
+        float elapsedTime = (float) Math.clamp(targetHUD.animTimer.getElapsedTime(), 0L, 150L);
+        float lerpedHealthRatio = Math.clamp(RenderUtil.lerpFloat(targetHUD.newHealth, targetHUD.oldHealth, elapsedTime / 150.0F) / targetHUD.maxHealth, 0.0F, 1.0F);
         Color targetColor = this.getTargetColor(data.entity());
         Color healthBarColor = this.color.getValue() == 0 ? ColorUtil.getHealthBlend(lerpedHealthRatio) : targetColor;
-        float healthDeltaRatio = Math.min(Math.max((data.playerHealth() - data.targetHealth() + 1.0F) / 2.0F, 0.0F), 1.0F);
+        float healthDeltaRatio = Math.clamp((data.playerHealth() - data.targetHealth() + 1.0F) / 2.0F, 0.0F, 1.0F);
         Color healthDeltaColor = ColorUtil.getHealthBlend(healthDeltaRatio);
         UnfairText text = this.buildText(targetHUD, data);
         float headIconOffset = this.getHeadIconOffset(targetHUD);

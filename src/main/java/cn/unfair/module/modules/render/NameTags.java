@@ -125,7 +125,7 @@ public class NameTags extends Module {
                         GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
                         float view = mc.gameSettings.thirdPersonView == 2 ? -1.0F : 1.0F;
                         GlStateManager.rotate(mc.getRenderManager().playerViewX, view, 0.0F, 0.0F);
-                        double scale = Math.pow(Math.min(Math.max(this.autoScale.getValue() ? distance : 0.0, 6.0), 128.0), 0.75) * 0.0075;
+                        double scale = Math.pow(Math.clamp(this.autoScale.getValue() ? distance : 0.0, 6.0, 128.0), 0.75) * 0.0075;
                         GlStateManager.scale(-scale * (double) this.scale.getValue(), -scale * (double) this.scale.getValue(), 1.0);
                         String distanceText = "";
                         switch (this.distanceMode.getValue()) {
@@ -138,7 +138,7 @@ public class NameTags extends Module {
                         float health = ((EntityLivingBase) entity).getHealth();
                         float absorption = ((EntityLivingBase) entity).getAbsorptionAmount();
                         float max = ((EntityLivingBase) entity).getMaxHealth();
-                        float percent = Math.min(Math.max((health + absorption) / max, 0.0F), 1.0F);
+                        float percent = Math.clamp((health + absorption) / max, 0.0F, 1.0F);
                         String healText = "";
                         switch (this.healthMode.getValue()) {
                             case 1:

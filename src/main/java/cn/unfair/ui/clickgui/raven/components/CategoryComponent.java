@@ -404,7 +404,7 @@ public class CategoryComponent {
 
     private void clampTargetModuleY() {
         int minModuleY = this.y - Math.max(0, this.totalContentHeight - this.visibleContentHeight);
-        this.targetModuleY = Math.max(minModuleY, Math.min(this.targetModuleY, this.y));
+        this.targetModuleY = Math.clamp(this.targetModuleY, minModuleY, this.y);
     }
 
     private float mcPartialTicks() {

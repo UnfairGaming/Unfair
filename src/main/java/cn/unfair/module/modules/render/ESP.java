@@ -317,7 +317,7 @@ public class ESP extends Module {
                             }
                             if (this.healthBar.getValue() == 1) {
                                 float heal = this.getHealthPoints(player) + player.getAbsorptionAmount();
-                                float percent = Math.min(Math.max(heal / player.getMaxHealth(), 0.0F), 1.0F);
+                                float percent = Math.clamp(heal / player.getMaxHealth(), 0.0F, 1.0F);
                                 float box = (z - x) * 0.08F;
                                 Color healthColor = ColorUtil.getHealthBlend(percent);
                                 RenderUtil.drawLine(x - box, y, x - box, w, 3.0F, ColorUtil.darker(healthColor, 0.2F).getRGB());
@@ -374,7 +374,7 @@ public class ESP extends Module {
                         GlStateManager.translate(x, y, z);
                         GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
                         float heal = this.getHealthPoints(player) + player.getAbsorptionAmount();
-                        float percent = Math.min(Math.max(heal / player.getMaxHealth(), 0.0F), 1.0F);
+                        float percent = Math.clamp(heal / player.getMaxHealth(), 0.0F, 1.0F);
                         Color healthColor = ColorUtil.getHealthBlend(percent);
                         float height = player.height + 0.2F;
                         RenderUtil.drawRect3D(0.57250005F, -0.027500002F, 0.7275F, height + 0.027500002F, Color.black.getRGB());

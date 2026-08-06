@@ -86,7 +86,7 @@ public class BlockUtil {
 
     public static Vec3 getClickVec(BlockPos blockPos, EnumFacing enumFacing) {
         Block block = BlockUtil.mc.theWorld.getBlockState(blockPos).getBlock();
-        Vec3 vec3 = new Vec3((double) blockPos.getX() + Math.min(Math.max(RandomUtil.nextDouble(0.0, 1.0), block.getBlockBoundsMinX()), block.getBlockBoundsMaxX()), (double) blockPos.getY() + Math.min(Math.max(RandomUtil.nextDouble(0.0, 1.0), block.getBlockBoundsMinY()), block.getBlockBoundsMaxY()), (double) blockPos.getZ() + Math.min(Math.max(RandomUtil.nextDouble(0.0, 1.0), block.getBlockBoundsMinZ()), block.getBlockBoundsMaxZ()));
+        Vec3 vec3 = new Vec3((double) blockPos.getX() + Math.clamp(RandomUtil.nextDouble(0.0, 1.0), block.getBlockBoundsMinX(), block.getBlockBoundsMaxX()), (double) blockPos.getY() + Math.clamp(RandomUtil.nextDouble(0.0, 1.0), block.getBlockBoundsMinY(), block.getBlockBoundsMaxY()), (double) blockPos.getZ() + Math.clamp(RandomUtil.nextDouble(0.0, 1.0), block.getBlockBoundsMinZ(), block.getBlockBoundsMaxZ()));
         switch (enumFacing) {
             default: {
                 return new Vec3(vec3.xCoord, (double) blockPos.getY() + block.getBlockBoundsMinY(), vec3.zCoord);

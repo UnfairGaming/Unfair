@@ -2356,9 +2356,9 @@ public class LegitTelly extends Module {
     boolean isWithinReach(Entity player, int[] pos) {
         if (pos == null) return false;
         Vec3 eyes = getEyes(player);
-        double cx = Math.max(pos[0], Math.min(eyes.x, pos[0] + 1.0));
-        double cy = Math.max(pos[1], Math.min(eyes.y, pos[1] + 1.0));
-        double cz = Math.max(pos[2], Math.min(eyes.z, pos[2] + 1.0));
+        double cx = Math.clamp(eyes.x, pos[0], pos[0] + 1.0);
+        double cy = Math.clamp(eyes.y, pos[1], pos[1] + 1.0);
+        double cz = Math.clamp(eyes.z, pos[2], pos[2] + 1.0);
         double dx = eyes.x - cx;
         double dy = eyes.y - cy;
         double dz = eyes.z - cz;
@@ -2507,8 +2507,8 @@ public class LegitTelly extends Module {
     }
 
     Vec3 getSupportFaceHitVec(int[] supportPos, int placeFace, double primaryOffset, double secondaryOffset) {
-        double primary = Math.max(0.001, Math.min(0.999, primaryOffset));
-        double secondary = Math.max(0.001, Math.min(0.999, secondaryOffset));
+        double primary = Math.clamp(primaryOffset, 0.001, 0.999);
+        double secondary = Math.clamp(secondaryOffset, 0.001, 0.999);
         if (placeFace == 2) return new Vec3(supportPos[0] + primary, supportPos[1] + secondary, supportPos[2] + 0.001);
         if (placeFace == 3) return new Vec3(supportPos[0] + primary, supportPos[1] + secondary, supportPos[2] + 0.999);
         if (placeFace == 5) return new Vec3(supportPos[0] + 0.999, supportPos[1] + primary, supportPos[2] + secondary);
@@ -2524,7 +2524,7 @@ public class LegitTelly extends Module {
         double horizontal = Math.sqrt(dx * dx + dz * dz);
         double dy = hitVec.y - eyes.y;
         float pitch = (float) (-Math.toDegrees(Math.atan2(dy, horizontal)));
-        return Math.max(-89.0f, Math.min(89.0f, pitch));
+        return Math.clamp(pitch, -89.0f, 89.0f);
     }
 
     List<int[]> getBelowTargets(Entity player, float yaw, float pitch) {

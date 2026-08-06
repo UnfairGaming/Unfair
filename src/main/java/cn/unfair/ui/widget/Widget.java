@@ -36,7 +36,7 @@ public abstract class Widget {
     }
 
     protected static float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(max, min, value);
     }
 
     public abstract boolean shouldRender();

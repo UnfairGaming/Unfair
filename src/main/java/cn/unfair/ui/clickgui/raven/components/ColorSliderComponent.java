@@ -100,7 +100,7 @@ public class ColorSliderComponent implements Component {
     }
 
     private void drawSliderPointer(int x, int y, int width, float value) {
-        int posX = x + (int) (width * Math.max(0, Math.min(1, value)));
+        int posX = x + (int) (width * Math.clamp(value, 0, 1));
         Gui.drawRect(posX - 1, y, posX, y + 4, new Color(0, 0, 0, 200).getRGB());
     }
 
@@ -125,7 +125,7 @@ public class ColorSliderComponent implements Component {
 
     private float clampValue(int mouseX, int baseX, int width) {
         float value = (float) (mouseX - baseX) / width;
-        return Math.max(0, Math.min(1, value));
+        return Math.clamp(value, 0, 1);
     }
 
     private void updateColor() {
@@ -235,15 +235,15 @@ public class ColorSliderComponent implements Component {
         int width = parentModule.category.getWidth() - 8;
 
         if (draggingHue) {
-            float newHue = Math.max(0, Math.min(1, (mouseX - x) / (float) width));
+            float newHue = Math.clamp((mouseX - x) / (float) width, 0, 1);
             hue = newHue;
             updateColor();
         } else if (draggingSat) {
-            float newSat = Math.max(0, Math.min(1, (mouseX - x) / (float) width));
+            float newSat = Math.clamp((mouseX - x) / (float) width, 0, 1);
             saturation = newSat;
             updateColor();
         } else if (draggingBri) {
-            float newBri = Math.max(0, Math.min(1, (mouseX - x) / (float) width));
+            float newBri = Math.clamp((mouseX - x) / (float) width, 0, 1);
             brightness = newBri;
             updateColor();
         }

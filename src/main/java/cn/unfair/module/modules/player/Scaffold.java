@@ -833,7 +833,7 @@ public class Scaffold extends Module {
         }
         float speedMultiplier = Math.min(1.2F, distance);
         float currentSpeed = baseSpeed * speedMultiplier;
-        return Math.min(45.0F, Math.max(10.0F, currentSpeed));
+        return Math.clamp(currentSpeed, 10.0F, 45.0F);
     }
 
     private float getPredictedYaw() {

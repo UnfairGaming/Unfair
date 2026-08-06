@@ -1454,7 +1454,7 @@ public class RenderUtil {
     }
 
     public static Color interpolateColorC(Color color1, Color color2, float amount) {
-        amount = Math.min(1, Math.max(0, amount));
+        amount = Math.clamp(amount, 0, 1);
         return new Color(interpolateInt(color1.getRed(), color2.getRed(), amount),
                 interpolateInt(color1.getGreen(), color2.getGreen(), amount),
                 interpolateInt(color1.getBlue(), color2.getBlue(), amount),
@@ -1463,22 +1463,6 @@ public class RenderUtil {
 
     private static int interpolateInt(int oldValue, int newValue, double interpolationValue) {
         return (int) (oldValue + (newValue - oldValue) * interpolationValue);
-    }
-
-    public static float[] project2D(float x, float y, float z, int scaleFactor) {
-        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
-        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
-        GL11.glGetInteger(GL11.GL_VIEWPORT, viewportBuffer);
-
-        if (GLU.gluProject(x, y, z, modelViewBuffer, projectionBuffer, viewportBuffer, vectorBuffer)) {
-            updateScaledResolutionCache();
-            return new float[]{
-                    vectorBuffer.get(0) / scaleFactor,
-                    (cachedScaledHeight - vectorBuffer.get(1) / scaleFactor),
-                    vectorBuffer.get(2)
-            };
-        }
-        return null;
     }
 
     public record EnchantmentData(String shortName, int maxLevel) {

@@ -12,7 +12,7 @@ public class RotationUtil {
     }
 
     public static float clampAngle(float angle, float maxAngle) {
-        maxAngle = Math.max(0.0f, Math.min(180.0f, maxAngle));
+        maxAngle = Math.clamp(maxAngle, 0.0f, 180.0f);
         if (angle > maxAngle) {
             angle = maxAngle;
         } else if (angle < -maxAngle) {
@@ -22,7 +22,7 @@ public class RotationUtil {
     }
 
     public static float smoothAngle(float angle, float smoothFactor) {
-        return angle * (0.5f + 0.5f * (1.0f - Math.max(0.0f, Math.min(1.0f, smoothFactor + RandomUtil.nextFloat(-0.1f, 0.1f)))));
+        return angle * (0.5f + 0.5f * (1.0f - Math.clamp(smoothFactor + RandomUtil.nextFloat(-0.1f, 0.1f), 0.0f, 1.0f)));
     }
 
     public static float quantizeAngle(float angle) {

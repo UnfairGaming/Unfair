@@ -171,7 +171,7 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
     }
 
     private float easeOutBack(float progress) {
-        float t = Math.max(0.0F, Math.min(1.0F, progress)) - 1.0F;
+        float t = Math.clamp(progress, 0.0F, 1.0F) - 1.0F;
         float c = 1.70158F;
         return t * t * ((c + 1.0F) * t + c) + 1.0F;
     }

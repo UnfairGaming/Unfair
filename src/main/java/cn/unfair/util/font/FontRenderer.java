@@ -284,7 +284,7 @@ public class FontRenderer {
     }
 
     private static int getVanillaColor(int color, float alpha) {
-        int alphaByte = Math.max(0, Math.min(255, Math.round(alpha * 255.0F)));
+        int alphaByte = Math.clamp(Math.round(alpha * 255.0F), 0, 255);
         return alphaByte << 24 | color & 0x00FFFFFF;
     }
 
