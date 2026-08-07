@@ -16,6 +16,8 @@ import cn.unfair.module.modules.render.NoHurtCam;
 import cn.unfair.module.modules.render.ViewClip;
 import com.google.common.base.Predicates;
 import com.google.gson.JsonSyntaxException;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.material.Material;
@@ -550,7 +552,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
             double d2 = distance;
 
             for (final Entity entity1 : list) {
-                final float f1 = entity1.getCollisionBorderSize() + ((entity instanceof EntityPlayer && !entity.isInvisible()) ? expand : 0);
+                final float f1 = entity1.getCollisionBorderSize() + (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8) ? 0 : expand);
                 final AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().expand(f1, f1, f1);
                 final MovingObjectPosition movingobjectposition = axisalignedbb.calculateIntercept(vec3, vec32);
 
@@ -580,7 +582,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 }
             }
 
-            if (pointedEntity != null && flag && vec33 != null && vec3.distanceTo(vec33) >  reach) {
+            if (pointedEntity != null && flag && vec33 != null && vec3.distanceTo(vec33) > (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= 47 ? reach : reach - 0.1F)) {
                 pointedEntity = null;
                 mc.objectMouseOver = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, vec33, null, new BlockPos(vec33));
             }

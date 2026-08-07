@@ -4,9 +4,32 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
+import cn.unfair.module.modules.misc.ViaVersionFix;
 import cn.unfair.util.PacketUtil;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.viaversion.viabackwards.protocol.v1_19to1_18_2.Protocol1_19To1_18_2;
+import com.viaversion.viabackwards.protocol.v1_20_2to1_20.Protocol1_20_2To1_20;
+import com.viaversion.viabackwards.protocol.v1_20to1_19_4.Protocol1_20To1_19_4;
+import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
+import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.minecraft.BlockPosition;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.api.type.Types;
+import com.viaversion.viaversion.connection.UserConnectionImpl;
+import com.viaversion.viaversion.protocol.ProtocolPipelineImpl;
+import com.viaversion.viaversion.protocols.v1_18_2to1_19.packet.ServerboundPackets1_19;
+import com.viaversion.viaversion.protocols.v1_19_3to1_19_4.packet.ServerboundPackets1_19_4;
+import com.viaversion.viaversion.protocols.v1_20to1_20_2.packet.ServerboundPackets1_20_2;
+import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
+import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
+import de.florianmichael.vialoadingbase.netty.event.CompressionReorderEvent;
+import de.florianmichael.viamcp.MCPVLBPipeline;
+import de.florianmichael.viamcp.ViaMCP;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
@@ -23,6 +46,15 @@ import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.play.client.C16PacketClientStatus;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.CPacketConfirmTeleport;
+import net.minecraft.network.play.client.CPacketPlayerTryUseItem;
+import net.minecraft.network.play.client.CPacketSwapItemWithOffHand;
+import net.minecraft.network.play.client.ServerBoundInteractAttack;
+import net.minecraft.network.play.client.ServerBoundPlayerAction;
+import net.minecraft.network.play.client.ServerBoundPlayerCommand;
+import net.minecraft.network.play.client.ServerBoundSwing;
+import net.minecraft.network.play.client.ServerBoundUseItem;
 import net.minecraft.util.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Validate;
@@ -34,8 +66,12 @@ import org.apache.logging.log4j.MarkerManager;
 import javax.crypto.SecretKey;
 import java.net.InetAddress;
 import java.net.SocketAddress;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.viaversion.viaversion.api.protocol.version.ProtocolVersion.v1_8;
 
 public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
     private static final Logger logger = LogManager.getLogger();
@@ -160,6 +196,10 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
     }
 
     public void sendPacket(Packet<?> packetIn) {
+        if (this.handleNewPackets(packetIn)) {
+            return;
+        }
+
         if (this.shouldCancelSendPacket(packetIn)) {
             return;
         }
@@ -182,6 +222,10 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
 
     @SafeVarargs
     public final void sendPacket(Packet<?> packetIn, GenericFutureListener<? extends Future<? super Void>> listener, GenericFutureListener<? extends Future<? super Void>>... listeners) {
+        if (this.handleNewPackets(packetIn)) {
+            return;
+        }
+
         if (this.shouldCancelSendPacket(packetIn)) {
             return;
         }
@@ -374,6 +418,12 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                 }
 
                 p_initChannel_1_.pipeline().addLast("timeout", new ReadTimeoutHandler(30)).addLast("splitter", new MessageDeserializer2()).addLast("decoder", new MessageDeserializer(EnumPacketDirection.CLIENTBOUND)).addLast("prepender", new MessageSerializer2()).addLast("encoder", new MessageSerializer(EnumPacketDirection.SERVERBOUND)).addLast("packet_handler", networkmanager);
+
+                if (p_initChannel_1_ instanceof SocketChannel && ViaLoadingBase.getInstance().getTargetVersion().getVersion() != ViaMCP.NATIVE_VERSION) {
+                    UserConnection user = new UserConnectionImpl(p_initChannel_1_, true);
+                    new ProtocolPipelineImpl(user);
+                    p_initChannel_1_.pipeline().addLast(new MCPVLBPipeline(user));
+                }
             }
         }).channel(oclass).connect(address, serverPort).syncUninterruptibly();
         return networkmanager;
@@ -391,6 +441,142 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
             }
         }).channel(LocalChannel.class).connect(address).syncUninterruptibly();
         return networkmanager;
+    }
+
+    private boolean handleNewPackets(Packet<?> packet) {
+        boolean isHighVersion = ViaLoadingBase.getInstance().getTargetVersion().getVersion() > v1_8.getVersion();
+
+        if (packet instanceof ViaPacket) {
+            if (isHighVersion) {
+                Iterator<UserConnection> iterator = Via.getManager().getConnectionManager().getConnections().iterator();
+
+                if (iterator.hasNext()) {
+                    UserConnection connection = iterator.next();
+
+                    try {
+                        if (packet instanceof CPacketPlayerTryUseItem useItemPacket) {
+                            PacketWrapper useItem = PacketWrapper.create(ServerboundPackets1_9.USE_ITEM, null, connection);
+                            useItem.write(Types.VAR_INT, useItemPacket.getHand());
+                            useItem.sendToServer(Protocol1_9To1_8.class);
+                        } else if (packet instanceof CPacketSwapItemWithOffHand) {
+                            ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
+                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                                PacketWrapper swap = PacketWrapper.create(ServerboundPackets1_21_2.PLAYER_ACTION, null, connection);
+                                swap.write(Types.VAR_INT, 6);
+                                swap.write(Types.BLOCK_POSITION1_14, new BlockPosition(0, 0, 0));
+                                swap.write(Types.VAR_INT, 0);
+                                swap.write(Types.VAR_INT, ViaVersionFix.sequence());
+                                swap.sendToServer(Protocol1_21_2To1_21.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+                                PacketWrapper swap = PacketWrapper.create(ServerboundPackets1_20_2.PLAYER_ACTION, null, connection);
+                                swap.write(Types.VAR_INT, 6);
+                                swap.write(Types.BLOCK_POSITION1_14, new BlockPosition(0, 0, 0));
+                                swap.write(Types.VAR_INT, 0);
+                                swap.write(Types.VAR_INT, ViaVersionFix.sequence());
+                                swap.sendToServer(Protocol1_20_2To1_20.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_19_4)) {
+                                PacketWrapper swap = PacketWrapper.create(ServerboundPackets1_19_4.PLAYER_ACTION, null, connection);
+                                swap.write(Types.VAR_INT, 6);
+                                swap.write(Types.BLOCK_POSITION1_14, new BlockPosition(0, 0, 0));
+                                swap.write(Types.VAR_INT, 0);
+                                swap.write(Types.VAR_INT, ViaVersionFix.sequence());
+                                swap.sendToServer(Protocol1_20To1_19_4.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_19)) {
+                                PacketWrapper swap = PacketWrapper.create(ServerboundPackets1_19.PLAYER_ACTION, null, connection);
+                                swap.write(Types.VAR_INT, 6);
+                                swap.write(Types.BLOCK_POSITION1_14, new BlockPosition(0, 0, 0));
+                                swap.write(Types.VAR_INT, 0);
+                                swap.write(Types.VAR_INT, ViaVersionFix.sequence());
+                                swap.sendToServer(Protocol1_19To1_18_2.class);
+                            } else {
+                                PacketWrapper swap = PacketWrapper.create(ServerboundPackets1_9.PLAYER_ACTION, null, connection);
+                                swap.write(Types.VAR_INT, 6);
+                                swap.write(Types.BLOCK_POSITION1_8, new BlockPosition(0, 0, 0));
+                                swap.write(Types.BYTE, (byte) 0);
+                                swap.sendToServer(Protocol1_9To1_8.class);
+                            }
+                        } else if (packet instanceof CPacketConfirmTeleport confirmTeleportPacket) {
+                            Collection<UserConnection> connections = Via.getManager().getConnectionManager().getConnections();
+                            if (!connections.isEmpty()) {
+                                PacketWrapper packetWrapper = PacketWrapper.create(ServerboundPackets1_9.ACCEPT_TELEPORTATION, connections.iterator().next());
+                                packetWrapper.write(Types.VAR_INT, confirmTeleportPacket.getTeleportId());
+                                packetWrapper.sendToServer(Protocol1_9To1_8.class);
+                            } else {
+                                logger.warn("No ViaVersion connections available when handling player position look packet");
+                            }
+                        } else if (packet instanceof ServerBoundUseItem useItem) {
+                            ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
+                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+                                PacketWrapper use = PacketWrapper.create(ServerboundPackets1_20_2.USE_ITEM, null, connection);
+                                use.write(Types.VAR_INT, useItem.getHand().ordinal());
+                                use.write(Types.VAR_INT, ViaVersionFix.sequence());
+                                use.sendToServer(Protocol1_20_2To1_20.class);
+                            } else {
+                                PacketWrapper use = PacketWrapper.create(ServerboundPackets1_19.USE_ITEM, null, connection);
+                                use.write(Types.VAR_INT, useItem.getHand().ordinal());
+                                use.write(Types.VAR_INT, ViaVersionFix.sequence());
+                                use.sendToServer(Protocol1_19To1_18_2.class);
+                            }
+                        } else if (packet instanceof ServerBoundInteractAttack attack) {
+                            ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
+                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                                PacketWrapper interact = PacketWrapper.create(ServerboundPackets1_21_2.INTERACT, null, connection);
+                                interact.write(Types.VAR_INT, attack.getEntityId());
+                                interact.write(Types.VAR_INT, 1);
+                                interact.write(Types.BOOLEAN, false);
+                                interact.sendToServer(Protocol1_21_2To1_21.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+                                PacketWrapper interact = PacketWrapper.create(ServerboundPackets1_20_2.INTERACT, null, connection);
+                                interact.write(Types.VAR_INT, attack.getEntityId());
+                                interact.write(Types.VAR_INT, 1);
+                                interact.write(Types.BOOLEAN, false);
+                                interact.sendToServer(Protocol1_20_2To1_20.class);
+                            } else {
+                                PacketWrapper interact = PacketWrapper.create(ServerboundPackets1_19.INTERACT, null, connection);
+                                interact.write(Types.VAR_INT, attack.getEntityId());
+                                interact.write(Types.VAR_INT, 1);
+                                interact.write(Types.BOOLEAN, false);
+                                interact.sendToServer(Protocol1_19To1_18_2.class);
+                            }
+                        } else if (packet instanceof ServerBoundSwing swing) {
+                            ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
+                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                                PacketWrapper swingPacket = PacketWrapper.create(ServerboundPackets1_21_2.SWING, null, connection);
+                                swingPacket.write(Types.VAR_INT, swing.getHand().ordinal());
+                                swingPacket.sendToServer(Protocol1_21_2To1_21.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+                                PacketWrapper swingPacket = PacketWrapper.create(ServerboundPackets1_20_2.SWING, null, connection);
+                                swingPacket.write(Types.VAR_INT, swing.getHand().ordinal());
+                                swingPacket.sendToServer(Protocol1_20_2To1_20.class);
+                            } else {
+                                PacketWrapper swingPacket = PacketWrapper.create(ServerboundPackets1_19.SWING, null, connection);
+                                swingPacket.write(Types.VAR_INT, swing.getHand().ordinal());
+                                swingPacket.sendToServer(Protocol1_19To1_18_2.class);
+                            }
+                        } else if (packet instanceof ServerBoundPlayerAction action) {
+                            PacketWrapper packetWrapper = PacketWrapper.create(ServerboundPackets1_19.PLAYER_ACTION, connection);
+                            packetWrapper.write(Types.VAR_INT, action.getAction().ordinal());
+                            packetWrapper.write(Types.BLOCK_POSITION1_14, new BlockPosition(action.getPos().getX(), action.getPos().getY(), action.getPos().getZ()));
+                            packetWrapper.write(Types.BYTE, (byte) action.getFacing().ordinal());
+                            packetWrapper.write(Types.VAR_INT, action.getAction() == C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK ? 0 : ViaVersionFix.sequence());
+                            packetWrapper.sendToServer(Protocol1_19To1_18_2.class);
+                        } else if (packet instanceof ServerBoundPlayerCommand command) {
+                            PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_19.PLAYER_COMMAND, connection);
+                            wrapper.write(Types.VAR_INT, command.getId());
+                            wrapper.write(Types.VAR_INT, command.getAction().ordinal());
+                            wrapper.write(Types.VAR_INT, command.getData());
+                            wrapper.sendToServer(Protocol1_19To1_18_2.class);
+                        }
+                    } catch (Exception exception) {
+                        logger.error("Failed to send ViaVersion packet", exception);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -468,6 +654,8 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                 this.channel.pipeline().remove("compress");
             }
         }
+
+        this.channel.pipeline().fireUserEventTriggered(new CompressionReorderEvent());
     }
 
     public void checkDisconnected() {

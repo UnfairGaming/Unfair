@@ -10,6 +10,15 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.NoSlow;
 import cn.unfair.module.modules.player.AntiDebuff;
+import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.api.type.Types;
+import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
@@ -112,6 +121,7 @@ public class EntityPlayerSP extends AbstractClientPlayer {
     private float overridePitch = Float.NaN;
     private float pendingYaw = Float.NaN;
     private float pendingPitch = Float.NaN;
+    private MovementState lastState;
     private int horseJumpPowerCounter;
     @Getter
     private float horseJumpPower;
@@ -132,6 +142,7 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         this.statWriter = statFile;
         this.mc = mcIn;
         this.dimension = 0;
+        this.lastState = new MovementState(false, false, false, false, false, false, false);
     }
 
     /**
@@ -181,6 +192,24 @@ public class EntityPlayerSP extends AbstractClientPlayer {
 
             super.onUpdate();
 
+            if (mc.thePlayer != null) {
+                MovementState newState = new MovementState(mc.thePlayer.movementInput.moveForward > 0.0F,
+                        mc.thePlayer.movementInput.moveForward < 0.0F,
+                        mc.thePlayer.movementInput.moveStrafe > 0.0F,
+                        mc.thePlayer.movementInput.moveStrafe < 0.0F,
+                        mc.thePlayer.movementInput.jump,
+                        mc.thePlayer.movementInput.sneak,
+                        mc.gameSettings.keyBindSprint.isKeyDown());
+
+                if (!this.lastState.equals(newState) && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                    UserConnection connection = Via.getManager().getConnectionManager().getConnections().iterator().next();
+                    PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_21_2.PLAYER_INPUT, connection);
+                    wrapper.write(Types.BYTE, newState.toByte());
+                    wrapper.sendToServer(Protocol1_21_2To1_21.class);
+                    this.lastState = newState;
+                }
+            }
+
             if (!Float.isNaN(this.overrideYaw) && !Float.isNaN(this.overridePitch)) {
                 this.rotationYaw = this.overrideYaw;
                 this.rotationPitch = this.overridePitch;
@@ -217,10 +246,14 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         boolean flag = this.isSprinting();
 
         if (flag != this.serverSprintState) {
-            if (flag) {
-                this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SPRINTING));
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                this.sendQueue.addToSendQueue(new ServerBoundPlayerCommand(this.getEntityId(), flag ? ServerBoundPlayerCommand.Action.START_SPRINTING : ServerBoundPlayerCommand.Action.STOP_SPRINTING));
             } else {
-                this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SPRINTING));
+                if (flag) {
+                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SPRINTING));
+                } else {
+                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SPRINTING));
+                }
             }
 
             this.serverSprintState = flag;
@@ -229,10 +262,14 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         boolean flag1 = this.isSneaking();
 
         if (flag1 != this.serverSneakState) {
-            if (flag1) {
-                this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SNEAKING));
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                this.sendQueue.addToSendQueue(new ServerBoundPlayerCommand(this.mc.thePlayer.getEntityId(), flag1 ? ServerBoundPlayerCommand.Action.PRESS_SHIFT_KEY : ServerBoundPlayerCommand.Action.RELEASE_SHIFT_KEY));
             } else {
-                this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SNEAKING));
+                if (flag1) {
+                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SNEAKING));
+                } else {
+                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SNEAKING));
+                }
             }
 
             this.serverSneakState = flag1;
@@ -249,7 +286,13 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             double d3 = yaw - this.lastReportedYaw;
             double d4 = pitch - this.lastReportedPitch;
 
-            boolean flag2 = d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || this.positionUpdateTicks >= 20;
+            if (ViaProtocol.newerThan1_8()) {
+                ++this.positionUpdateTicks;
+            }
+
+            boolean flag2 = ViaProtocol.newerThanOrEqualTo1_18()
+                    ? d0 * d0 + d1 * d1 + d2 * d2 > (2.0E-4D * 2.0E-4D) || this.positionUpdateTicks >= 20
+                    : d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || this.positionUpdateTicks >= 20;
             boolean flag3 = d3 != 0.0D || d4 != 0.0D;
 
             if (this.ridingEntity == null) {
@@ -267,7 +310,9 @@ public class EntityPlayerSP extends AbstractClientPlayer {
                 flag2 = false;
             }
 
-            ++this.positionUpdateTicks;
+            if (!ViaProtocol.newerThan1_8()) {
+                ++this.positionUpdateTicks;
+            }
 
             if (flag2) {
                 this.lastReportedPosX = this.posX;
@@ -292,6 +337,9 @@ public class EntityPlayerSP extends AbstractClientPlayer {
     public EntityItem dropOneItem(boolean dropAll) {
         C07PacketPlayerDigging.Action c07packetplayerdigging$action = dropAll ? C07PacketPlayerDigging.Action.DROP_ALL_ITEMS : C07PacketPlayerDigging.Action.DROP_ITEM;
         this.sendQueue.addToSendQueue(new C07PacketPlayerDigging(c07packetplayerdigging$action, BlockPos.ORIGIN, EnumFacing.DOWN));
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+            this.swingItem();
+        }
         return null;
     }
 
@@ -691,6 +739,13 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             this.sprintToggleTimer = 0;
         }
 
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_14)) {
+            jumpMovementFactor = 0.02F;
+            if (this.isSprinting()) {
+                jumpMovementFactor = (float) ((double) jumpMovementFactor + 0.005999999865889549D);
+            }
+        }
+
         this.pushOutOfBlocks(this.posX - (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ + (double) this.width * 0.35D);
         this.pushOutOfBlocks(this.posX - (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ - (double) this.width * 0.35D);
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ - (double) this.width * 0.35D);
@@ -709,7 +764,13 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             this.setSprinting(true);
         }
 
-        if (this.isSprinting() && (this.movementInput.moveForward < f || this.isCollidedHorizontally || !flag3)) {
+        boolean collidedBlockingSprint = this.isCollidedHorizontally
+                && (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_14) || !this.isCollidingWithWall);
+
+        boolean waterBlockingSprint = this.isInWater()
+                && ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_13);
+
+        if (this.isSprinting() && (this.movementInput.moveForward < f || collidedBlockingSprint || !flag3 || waterBlockingSprint)) {
             this.setSprinting(false);
         }
 
@@ -770,6 +831,13 @@ public class EntityPlayerSP extends AbstractClientPlayer {
 
         EventManager.call(new LivingUpdateEvent());
         super.onLivingUpdate();
+
+        if (ViaProtocol.newerThanOrEqualTo1_14()) {
+            this.jumpMovementFactor = 0.02F;
+            if (isSprinting()) {
+                this.jumpMovementFactor = (float) (this.jumpMovementFactor + 0.005999999865889549D);
+            }
+        }
 
         if (this.onGround && this.capabilities.isFlying && !this.mc.playerController.isSpectatorMode()) {
             this.capabilities.isFlying = false;

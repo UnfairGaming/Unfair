@@ -5,6 +5,16 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.mojang.authlib.GameProfile;
+import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.api.type.Types;
+import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
+import cn.unfair.util.via.ViaProtocol;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
+import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;
 import net.minecraft.block.Block;
 import net.minecraft.client.ClientBrandRetriever;
@@ -509,7 +519,13 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
 
         entityplayer.setPositionAndRotation(d0, d1, d2, f, f1);
-        this.netManager.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(entityplayer.posX, entityplayer.getEntityBoundingBox().minY, entityplayer.posZ, entityplayer.rotationYaw, entityplayer.rotationPitch, false));
+        if (ViaProtocol.newerThanOrEqualTo1_9()) {
+            UserConnection userConnection = Via.getManager().getConnectionManager().getConnections().iterator().next();
+            PacketWrapper packetWrapper = PacketWrapper.create(ServerboundPackets1_9.ACCEPT_TELEPORTATION, userConnection);
+            packetWrapper.write(Types.VAR_INT, packetIn.getTeleportId());
+            packetWrapper.sendToServer(Protocol1_9To1_8.class);
+        }
+        this.netManager.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(d0, d1, d2, f, f1, false));
 
         if (!this.doneLoadingTerrain) {
             this.gameController.thePlayer.prevPosX = this.gameController.thePlayer.posX;
@@ -930,6 +946,11 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleConfirmTransaction(S32PacketConfirmTransaction packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+            this.addToSendQueue(new C0FPacketConfirmTransaction(packetIn.getWindowId(), (short) ViaMCP.INSTANCE.TransactionCount, false));
+            return;
+        }
+
         Container container = null;
         EntityPlayer entityplayer = this.gameController.thePlayer;
 

@@ -7,6 +7,7 @@ import cn.unfair.module.modules.movement.KeepSprint;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.BlockDirectional;
@@ -1795,13 +1796,16 @@ public abstract class EntityPlayer extends EntityLivingBase {
         super.jump();
         this.triggerAchievement(StatList.jumpStat);
 
+        float sprintExhaustion = ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= 47 ? 0.8F : 0.2F;
+        float exhaustion = ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= 47 ? 0.2F : 0.05F;
+
         if (this.isSprinting())
         {
-            this.addExhaustion(0.8F);
+            this.addExhaustion(sprintExhaustion);
         }
         else
         {
-            this.addExhaustion(0.2F);
+            this.addExhaustion(exhaustion);
         }
     }
 

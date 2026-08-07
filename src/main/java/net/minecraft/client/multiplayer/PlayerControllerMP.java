@@ -4,12 +4,48 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.CancelUseEvent;
 import cn.unfair.events.WindowClickEvent;
+import cn.unfair.module.modules.misc.ViaVersionFix;
+import cn.unfair.util.via.BlockStatePredictionHandler;
+import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viabackwards.protocol.v1_19_1to1_19.Protocol1_19_1To1_19;
+import com.viaversion.viabackwards.protocol.v1_19_3to1_19_1.Protocol1_19_3To1_19_1;
+import com.viaversion.viabackwards.protocol.v1_19_4to1_19_3.Protocol1_19_4To1_19_3;
+import com.viaversion.viabackwards.protocol.v1_19to1_18_2.Protocol1_19To1_18_2;
+import com.viaversion.viabackwards.protocol.v1_20_5to1_20_3.Protocol1_20_5To1_20_3;
+import com.viaversion.viabackwards.protocol.v1_20to1_19_4.Protocol1_20To1_19_4;
+import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
+import com.viaversion.viabackwards.protocol.v1_21_4to1_21_2.Protocol1_21_4To1_21_2;
+import com.viaversion.viabackwards.protocol.v1_21_5to1_21_4.Protocol1_21_5To1_21_4;
+import com.viaversion.viabackwards.protocol.v1_21_6to1_21_5.Protocol1_21_6To1_21_5;
+import com.viaversion.viabackwards.protocol.v1_21_7to1_21_6.Protocol1_21_7To1_21_6;
+import com.viaversion.viabackwards.protocol.v1_21to1_20_5.Protocol1_21To1_20_5;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.connection.ProtocolInfo;
+import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.minecraft.BlockPosition;
+import com.viaversion.viaversion.api.protocol.Protocol;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.api.type.Types;
+import com.viaversion.viaversion.protocol.packet.PacketWrapperImpl;
+import com.viaversion.viaversion.protocols.v1_18_2to1_19.packet.ServerboundPackets1_19;
+import com.viaversion.viaversion.protocols.v1_19_1to1_19_3.packet.ServerboundPackets1_19_3;
+import com.viaversion.viaversion.protocols.v1_19_3to1_19_4.packet.ServerboundPackets1_19_4;
+import com.viaversion.viaversion.protocols.v1_19to1_19_1.packet.ServerboundPackets1_19_1;
+import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.packet.ServerboundPackets1_20_5;
+import com.viaversion.viaversion.protocols.v1_21_2to1_21_4.packet.ServerboundPackets1_21_4;
+import com.viaversion.viaversion.protocols.v1_21_4to1_21_5.packet.ServerboundPackets1_21_5;
+import com.viaversion.viaversion.protocols.v1_21_5to1_21_6.packet.ServerboundPackets1_21_6;
+import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
+import de.florianmichael.vialoadingbase.netty.handler.VLBViaDecodeHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityHorse;
@@ -223,7 +259,12 @@ public class PlayerControllerMP
         {
             if (this.currentGameType.isCreative())
             {
-                this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, loc, face));
+                if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                    BlockStatePredictionHandler.isC08 = false;
+                    this.netClientHandler.addToSendQueue(new ServerBoundPlayerAction(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, loc, face));
+                } else {
+                    this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, loc, face));
+                }
                 clickBlockCreative(this.mc, this, loc, face);
                 this.blockHitDelay = 5;
             }
@@ -231,10 +272,19 @@ public class PlayerControllerMP
             {
                 if (this.isHittingBlock)
                 {
-                    this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, this.currentBlock, face));
+                    if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                        BlockStatePredictionHandler.isC08 = false;
+                        this.netClientHandler.addToSendQueue(new ServerBoundPlayerAction(C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, this.currentBlock, face));
+                    } else {
+                        this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, this.currentBlock, face));
+                    }
                 }
 
-                this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, loc, face));
+                if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                    this.netClientHandler.addToSendQueue(new ServerBoundPlayerAction(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, loc, face));
+                } else {
+                    this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, loc, face));
+                }
                 Block block1 = this.mc.theWorld.getBlockState(loc).getBlock();
                 boolean flag = block1.getMaterial() != Material.air;
 
@@ -269,7 +319,11 @@ public class PlayerControllerMP
     {
         if (this.isHittingBlock)
         {
-            this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, this.currentBlock, EnumFacing.DOWN));
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                this.netClientHandler.addToSendQueue(new ServerBoundPlayerAction(C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, this.currentBlock, EnumFacing.DOWN));
+            } else {
+                this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK, this.currentBlock, EnumFacing.DOWN));
+            }
             this.isHittingBlock = false;
             this.curBlockDamageMP = 0.0F;
             this.mc.theWorld.sendBlockBreakProgress(this.mc.thePlayer.getEntityId(), this.currentBlock, -1);
@@ -288,7 +342,12 @@ public class PlayerControllerMP
         else if (this.currentGameType.isCreative() && this.mc.theWorld.getWorldBorder().contains(posBlock))
         {
             this.blockHitDelay = 5;
-            this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, posBlock, directionFacing));
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                BlockStatePredictionHandler.isC08 = false;
+                this.netClientHandler.addToSendQueue(new ServerBoundPlayerAction(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, posBlock, directionFacing));
+            } else {
+                this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, posBlock, directionFacing));
+            }
             clickBlockCreative(this.mc, this, posBlock, directionFacing);
             return true;
         }
@@ -315,7 +374,12 @@ public class PlayerControllerMP
                 if (this.curBlockDamageMP >= 1.0F)
                 {
                     this.isHittingBlock = false;
-                    this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, posBlock, directionFacing));
+                    if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                        BlockStatePredictionHandler.isC08 = false;
+                        this.netClientHandler.addToSendQueue(new ServerBoundPlayerAction(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, posBlock, directionFacing));
+                    } else {
+                        this.netClientHandler.addToSendQueue(new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, posBlock, directionFacing));
+                    }
                     this.onPlayerDestroyBlock(posBlock, directionFacing);
                     this.curBlockDamageMP = 0.0F;
                     this.stepSoundTickCounter = 0.0F;
@@ -415,7 +479,24 @@ public class PlayerControllerMP
                 }
             }
 
-            this.netClientHandler.addToSendQueue(new C08PacketPlayerBlockPlacement(hitPos, side.getIndex(), player.inventory.getCurrentItem(), f, f1, f2));
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                BlockStatePredictionHandler.isC08 = true;
+                UserConnection userConnection = getViaUserConnection();
+                if (userConnection != null) {
+                    PacketWrapper packetWrapperCreate = PacketWrapper.create(ServerboundPackets1_19.USE_ITEM_ON, userConnection);
+                    packetWrapperCreate.write(Types.VAR_INT, 0);
+                    packetWrapperCreate.write(Types.BLOCK_POSITION1_14, new BlockPosition(hitPos.getX(), hitPos.getY(), hitPos.getZ()));
+                    packetWrapperCreate.write(Types.VAR_INT, side.ordinal());
+                    packetWrapperCreate.write(Types.FLOAT, f);
+                    packetWrapperCreate.write(Types.FLOAT, f1);
+                    packetWrapperCreate.write(Types.FLOAT, f2);
+                    packetWrapperCreate.write(Types.BOOLEAN, false);
+                    packetWrapperCreate.write(Types.VAR_INT, ViaVersionFix.sequence());
+                    packetWrapperCreate.sendToServer(Protocol1_19To1_18_2.class);
+                }
+            } else {
+                this.netClientHandler.addToSendQueue(new C08PacketPlayerBlockPlacement(hitPos, side.getIndex(), player.inventory.getCurrentItem(), f, f1, f2));
+            }
 
             if (!flag && this.currentGameType != WorldSettings.GameType.SPECTATOR)
             {
@@ -444,6 +525,18 @@ public class PlayerControllerMP
         }
     }
 
+    private UserConnection getViaUserConnection() {
+        if (Via.getManager() == null || Via.getManager().getConnectionManager() == null) {
+            return null;
+        }
+
+        try {
+            return Via.getManager().getConnectionManager().getConnections().iterator().next();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /**
      * Notifies the server of things like consuming food, etc...
      */
@@ -456,7 +549,12 @@ public class PlayerControllerMP
         else
         {
             this.syncCurrentPlayItem();
-            this.netClientHandler.addToSendQueue(new C08PacketPlayerBlockPlacement(playerIn.inventory.getCurrentItem()));
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                BlockStatePredictionHandler.isC08 = true;
+                this.netClientHandler.addToSendQueue(new ServerBoundUseItem(EnumHand.MAIN_HAND));
+            } else {
+                this.netClientHandler.addToSendQueue(new C08PacketPlayerBlockPlacement(playerIn.inventory.getCurrentItem()));
+            }
             int i = itemStackIn.stackSize;
             ItemStack itemstack = itemStackIn.useItemRightClick(worldIn, playerIn);
 
@@ -495,7 +593,11 @@ public class PlayerControllerMP
         }
 
         this.syncCurrentPlayItem();
-        this.netClientHandler.addToSendQueue(new C02PacketUseEntity(targetEntity, C02PacketUseEntity.Action.ATTACK));
+        if (ViaProtocol.newerThanOrEqualTo1_19()) {
+            this.netClientHandler.addToSendQueue(new ServerBoundInteractAttack(targetEntity));
+        } else {
+            this.netClientHandler.addToSendQueue(new C02PacketUseEntity(targetEntity, C02PacketUseEntity.Action.ATTACK));
+        }
 
         if (this.currentGameType != WorldSettings.GameType.SPECTATOR) {
             playerIn.attackTargetEntityWithCurrentItem(targetEntity);
@@ -541,7 +643,78 @@ public class PlayerControllerMP
 
         short short1 = playerIn.openContainer.getNextTransactionID(playerIn.inventory);
         ItemStack itemstack = playerIn.openContainer.slotClick(slotId, mouseButtonClicked, mode, playerIn);
-        this.netClientHandler.addToSendQueue(new C0EPacketClickWindow(windowId, slotId, mouseButtonClicked, mode, itemstack, short1));
+
+        ProtocolVersion targetVersion = ViaLoadingBase.getInstance().getTargetVersion();
+        if (ViaProtocol.newerThanOrEqualTo1_19() && ViaProtocol.olderThanOrEqualTo1_20_5() && !(this.mc.currentScreen instanceof GuiContainer)) {
+            try {
+                UserConnection userConnection = Via.getManager().getConnectionManager().getConnections().iterator().next();
+                Class<? extends Protocol> protocolClass = null;
+                PacketWrapperImpl packetWrapper = null;
+
+                if (targetVersion == ProtocolVersion.v1_21_7) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_21_6.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_21_7To1_21_6.class;
+                } else if (targetVersion == ProtocolVersion.v1_21_6) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_21_6.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_21_6To1_21_5.class;
+                } else if (targetVersion == ProtocolVersion.v1_21_5) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_21_5.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_21_5To1_21_4.class;
+                } else if (targetVersion == ProtocolVersion.v1_21_4) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_21_4.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_21_4To1_21_2.class;
+                } else if (targetVersion == ProtocolVersion.v1_21_2) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_21_2.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_21_2To1_21.class;
+                } else if (targetVersion == ProtocolVersion.v1_21) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_20_5.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_21To1_20_5.class;
+                } else if (targetVersion == ProtocolVersion.v1_20_5) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_20_5.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_20_5To1_20_3.class;
+                } else if (targetVersion == ProtocolVersion.v1_20) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_19_4.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_20To1_19_4.class;
+                } else if (targetVersion == ProtocolVersion.v1_19_4) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_19_4.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_19_4To1_19_3.class;
+                } else if (targetVersion == ProtocolVersion.v1_19_3) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_19_3.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_19_3To1_19_1.class;
+                } else if (targetVersion == ProtocolVersion.v1_19_1) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_19_1.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_19_1To1_19.class;
+                } else if (targetVersion == ProtocolVersion.v1_19) {
+                    packetWrapper = (PacketWrapperImpl) PacketWrapper.create(ServerboundPackets1_19.CONTAINER_CLICK, userConnection);
+                    protocolClass = Protocol1_19To1_18_2.class;
+                }
+
+                int stateId = VLBViaDecodeHandler.stateId;
+                ProtocolInfo protocolInfo = userConnection.getProtocolInfo();
+
+                if (packetWrapper != null && protocolClass != null) {
+                    packetWrapper.write(Types.BYTE, (byte) windowId);
+                    packetWrapper.write(Types.VAR_INT, stateId);
+                    packetWrapper.write(Types.SHORT, (short) slotId);
+                    packetWrapper.write(Types.BYTE, (byte) mouseButtonClicked);
+                    packetWrapper.write(Types.VAR_INT, mode);
+                    packetWrapper.write(Types.VAR_INT, 0);
+                    packetWrapper.write(Types.BYTE, (byte) 0);
+
+                    if (protocolInfo.getPipeline().contains(protocolClass)) {
+                        packetWrapper.sendToServer(protocolClass);
+                    }
+                } else {
+                    this.netClientHandler.addToSendQueue(new C0EPacketClickWindow(windowId, slotId, mouseButtonClicked, mode, itemstack, short1));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                this.netClientHandler.addToSendQueue(new C0EPacketClickWindow(windowId, slotId, mouseButtonClicked, mode, itemstack, short1));
+            }
+        } else {
+            this.netClientHandler.addToSendQueue(new C0EPacketClickWindow(windowId, slotId, mouseButtonClicked, mode, itemstack, short1));
+        }
+
         return itemstack;
     }
 

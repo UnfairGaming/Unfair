@@ -13,6 +13,7 @@ import cn.unfair.property.Property;
 import cn.unfair.property.PropertyManager;
 import cn.unfair.ui.widget.WidgetManager;
 import cn.unfair.ui.widget.impl.HudWidgets;
+import de.florianmichael.viamcp.ViaMCP;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,6 +40,12 @@ public class Unfair {
     }
 
     public void init() {
+        new Thread(() -> {
+            ViaMCP.create();
+            ViaMCP.INSTANCE.initAsyncSlider();
+            ViaMCP.INSTANCE.getAsyncVersionSlider().setVersion(ViaMCP.NATIVE_VERSION);
+        }).start();
+
         rotationManager = new RotationManager();
         floatManager = new FloatManager();
         blinkManager = new BlinkManager();

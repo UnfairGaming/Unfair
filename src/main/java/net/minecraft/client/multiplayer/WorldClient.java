@@ -1,5 +1,6 @@
 package net.minecraft.client.multiplayer;
 
+import cn.unfair.util.via.BlockStatePredictionHandler;
 import com.google.common.collect.Sets;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -12,6 +13,7 @@ import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -22,6 +24,8 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.*;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -49,10 +53,12 @@ public class WorldClient extends World
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Set<ChunkCoordIntPair> previousActiveChunkSet = Sets.<ChunkCoordIntPair>newHashSet();
     private boolean playerUpdate = false;
+    public final BlockStatePredictionHandler predictionHandler;
 
     public WorldClient(NetHandlerPlayClient netHandler, WorldSettings settings, int dimension, EnumDifficulty difficulty, Profiler profilerIn)
     {
         super(new SaveHandlerMP(), new WorldInfo(settings, "MpServer"), Objects.requireNonNull(WorldProvider.getProviderForDimension(dimension)), profilerIn, true);
+        this.predictionHandler = new BlockStatePredictionHandler();
         this.sendQueue = netHandler;
         this.getWorldInfo().setDifficulty(difficulty);
         this.provider.registerWorld(this);
@@ -287,6 +293,15 @@ public class WorldClient extends World
         int j = pos.getY();
         int k = pos.getZ();
         this.invalidateBlockReceiveRegion(i, j, k, i, j, k);
+
+        try (BlockStatePredictionHandler blockStatePredictionHandler = this.predictionHandler)
+        {
+            if (blockStatePredictionHandler.updateKnownServerState(pos, state))
+            {
+                return false;
+            }
+        }
+
         return super.setBlockState(pos, state, 3);
     }
 
@@ -530,5 +545,32 @@ public class WorldClient extends World
     public boolean isPlayerUpdate()
     {
         return this.playerUpdate;
+    }
+
+    public void syncBlockState(BlockPos pos, IBlockState newState, Vec3 playerPos)
+    {
+        IBlockState oldState = this.getBlockState(pos);
+
+        if (!oldState.equals(newState))
+        {
+            this.setBlockState(pos, newState, 3);
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+
+            if (player != null && player.worldObj == this)
+            {
+                AxisAlignedBB blockBB = newState.getBlock().getCollisionBoundingBox(this, pos, newState);
+
+                if (blockBB != null)
+                {
+                    blockBB = blockBB.offset(pos.getX(), pos.getY(), pos.getZ());
+                    AxisAlignedBB playerBB = player.getEntityBoundingBox();
+
+                    if (playerBB.intersectsWith(blockBB))
+                    {
+                        player.setPositionAndUpdate(playerPos.xCoord, playerPos.yCoord, playerPos.zCoord);
+                    }
+                }
+            }
+        }
     }
 }

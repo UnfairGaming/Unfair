@@ -14,7 +14,6 @@ import cn.unfair.util.postprocessing.ShaderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.tileentity.TileEntity;
@@ -44,6 +43,7 @@ public class ChestESP extends Module {
     public final IntProperty glowRadius;
     private GlowESPBlurShader blurShader;
     private boolean glowAvailable;
+    private boolean renderingGlowChests = false;
     private Framebuffer framebuffer = null;
     private Framebuffer glowFrameBuffer = null;
     private List<TileEntity> glowChests = new ArrayList<>();
@@ -99,6 +99,10 @@ public class ChestESP extends Module {
         this.glowChests.clear();
     }
 
+    public boolean isRenderingGlowChests() {
+        return this.renderingGlowChests;
+    }
+
     private void createGlowFramebuffers() {
         if (this.framebuffer != null
                 && this.glowFrameBuffer != null
@@ -129,7 +133,13 @@ public class ChestESP extends Module {
         }
 
         Color color = this.getColor();
-        RendererLivingEntity.setShaderBrightness(color);
+        this.renderingGlowChests = true;
+        GlStateManager.color(
+                color.getRed() / 255.0F,
+                color.getGreen() / 255.0F,
+                color.getBlue() / 255.0F,
+                1.0F
+        );
         try {
             for (TileEntity chest : this.glowChests) {
                 TileEntityRendererDispatcher.instance.renderTileEntityAt(
@@ -141,7 +151,8 @@ public class ChestESP extends Module {
                 );
             }
         } finally {
-            RendererLivingEntity.unsetShaderBrightness();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            this.renderingGlowChests = false;
         }
     }
 

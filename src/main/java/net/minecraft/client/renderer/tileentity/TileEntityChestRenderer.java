@@ -1,5 +1,7 @@
 package net.minecraft.client.renderer.tileentity;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.modules.render.ChestESP;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.client.model.ModelChest;
@@ -117,7 +119,9 @@ public class TileEntityChestRenderer extends TileEntitySpecialRenderer<TileEntit
             GlStateManager.pushMatrix();
             GlStateManager.enableRescaleNormal();
 
-            if (destroyStage < 0)
+            boolean chestESPGlow = this.isChestESPGlowRendering();
+
+            if (destroyStage < 0 && !chestESPGlow)
             {
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             }
@@ -187,7 +191,11 @@ public class TileEntityChestRenderer extends TileEntitySpecialRenderer<TileEntit
             modelchest.renderAll();
             GlStateManager.disableRescaleNormal();
             GlStateManager.popMatrix();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+            if (!chestESPGlow)
+            {
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            }
 
             if (destroyStage >= 0)
             {
@@ -196,5 +204,16 @@ public class TileEntityChestRenderer extends TileEntitySpecialRenderer<TileEntit
                 GlStateManager.matrixMode(5888);
             }
         }
+    }
+
+    private boolean isChestESPGlowRendering()
+    {
+        if (Unfair.moduleManager == null || Unfair.moduleManager.modules == null)
+        {
+            return false;
+        }
+
+        ChestESP chestESP = (ChestESP)Unfair.moduleManager.modules.get(ChestESP.class);
+        return chestESP != null && chestESP.isRenderingGlowChests();
     }
 }

@@ -9,6 +9,8 @@ import cn.unfair.module.modules.movement.Jesus;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
@@ -1402,8 +1404,9 @@ public abstract class EntityLivingBase extends Entity {
 
         if (this.isSprinting()) {
             float f = (this instanceof EntityPlayerSP && RotationState.isActived() ? RotationState.getSmoothedYaw() : this.rotationYaw) * 0.017453292F;
-            this.motionX -= MathHelper.sin(f) * 0.2F;
-            this.motionZ += MathHelper.cos(f) * 0.2F;
+            double jumpMotion = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_14) ? 0.20000000298023224D : 0.2F;
+            this.motionX -= MathHelper.sin(f) * jumpMotion;
+            this.motionZ += MathHelper.cos(f) * jumpMotion;
         }
 
         this.isAirBorne = true;
@@ -1427,26 +1430,33 @@ public abstract class EntityLivingBase extends Entity {
         if (this.isServerWorld()) {
             if (!this.isInWater() || this instanceof EntityPlayer && ((EntityPlayer) this).capabilities.isFlying) {
                 if (!this.isInLava() || this instanceof EntityPlayer && ((EntityPlayer) this).capabilities.isFlying) {
-                    float f4 = 0.91F;
+                    boolean isNewPhysics = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_14);
+                    BlockPos groundPos1 = getBlockPosWithDefaultOffset();
+                    float groundSlipperiness = this.worldObj.getBlockState(groundPos1).getBlock().slipperiness;
+                    float baseFriction = 0.91F;
 
                     if (this.onGround) {
-                        f4 = this.worldObj.getBlockState(new BlockPos(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.getEntityBoundingBox().minY) - 1, MathHelper.floor_double(this.posZ))).getBlock().slipperiness * 0.91F;
+                        baseFriction = groundSlipperiness * 0.91F;
                     }
 
-                    float f = 0.16277136F / (f4 * f4 * f4);
-                    float f5;
+                    float effectiveFriction = isNewPhysics ? groundSlipperiness : baseFriction;
+                    float moveFactor;
 
                     if (this.onGround) {
-                        f5 = this.getAIMoveSpeed() * f;
+                        float frictionDivisor = isNewPhysics ? 0.21600002F : 0.16277136F;
+                        moveFactor = this.getAIMoveSpeed() * (frictionDivisor / (effectiveFriction * effectiveFriction * effectiveFriction));
                     } else {
-                        f5 = this.jumpMovementFactor;
+                        moveFactor = this.jumpMovementFactor;
                     }
 
-                    this.moveFlyingWithStrafeEvent(strafe, forward, f5);
-                    f4 = 0.91F;
+                    this.moveFlyingWithStrafeEvent(strafe, forward, moveFactor);
+
+                    BlockPos groundPos2 = getBlockPosWithDefaultOffset();
+                    float updatedSlipperiness = this.worldObj.getBlockState(groundPos2).getBlock().slipperiness;
+                    float finalFriction = 0.91F;
 
                     if (this.onGround) {
-                        f4 = this.worldObj.getBlockState(new BlockPos(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.getEntityBoundingBox().minY) - 1, MathHelper.floor_double(this.posZ))).getBlock().slipperiness * 0.91F;
+                        finalFriction = updatedSlipperiness * 0.91F;
                     }
 
                     if (this.isOnLadder()) {
@@ -1468,34 +1478,42 @@ public abstract class EntityLivingBase extends Entity {
 
                     this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
-                    if (this.isCollidedHorizontally && this.isOnLadder()) {
+                    if ((this.isCollidedHorizontally || (isNewPhysics && this.isJumping)) && this.isOnLadder()) {
                         this.motionY = 0.2D;
                     }
 
-                    if (this.worldObj.isRemote && (!this.worldObj.isBlockLoaded(new BlockPos((int) this.posX, 0, (int) this.posZ)) || !this.worldObj.getChunkFromBlockCoords(new BlockPos((int) this.posX, 0, (int) this.posZ)).isLoaded())) {
-                        if (this.posY > 0.0D) {
-                            this.motionY = -0.1D;
-                        } else {
-                            this.motionY = 0.0D;
-                        }
-                    } else {
+                    if (!this.worldObj.isRemote ||
+                            (this.worldObj.isBlockLoaded(new BlockPos((int) this.posX, 0, (int) this.posZ)) &&
+                                    this.worldObj.getChunkFromBlockCoords(new BlockPos((int) this.posX, 0, (int) this.posZ)).isLoaded())) {
                         this.motionY -= 0.08D;
+                    } else if (this.posY > 0.0D) {
+                        this.motionY = -0.1D;
+                    } else {
+                        this.motionY = 0.0D;
                     }
 
-                    this.motionY *= 0.9800000190734863D;
-                    this.motionX *= f4;
-                    this.motionZ *= f4;
+                    this.motionY *= 0.98D;
+                    this.motionX *= finalFriction;
+                    this.motionZ *= finalFriction;
                 } else {
                     double d1 = this.posY;
                     this.moveFlyingWithStrafeEvent(strafe, forward, 0.02F);
                     this.moveEntity(this.motionX, this.motionY, this.motionZ);
                     this.motionX *= 0.5D;
-                    this.motionY *= 0.5D;
                     this.motionZ *= 0.5D;
-                    this.motionY -= 0.02D;
+                    boolean isNewLava = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13);
+                    if (!isNewLava) {
+                        this.motionY *= 0.5D;
+                    } else if (this.jumpVelocityInLava == null || this.jumpVelocityInLava <= 0.4D) {
+                        this.motionY *= 0.5D;
+                    }
+
+                    if (!isNewLava) {
+                        this.motionY -= 0.02D;
+                    }
 
                     if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + 0.6000000238418579D - this.posY + d1, this.motionZ)) {
-                        this.motionY = 0.30000001192092896D;
+                        this.motionY = 0.3D;
                     }
                 }
             } else {
@@ -1530,7 +1548,12 @@ public abstract class EntityLivingBase extends Entity {
                 this.motionX *= f1;
                 this.motionY *= 0.800000011920929D;
                 this.motionZ *= f1;
-                this.motionY -= 0.02D;
+
+                if (!ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+                    this.motionY -= 0.02D;
+                } else if (!isSprinting()) {
+                    this.motionY -= 0.005D;
+                }
 
                 if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + 0.6000000238418579D - this.posY + d0, this.motionZ)) {
                     this.motionY = 0.30000001192092896D;
@@ -1763,15 +1786,16 @@ public abstract class EntityLivingBase extends Entity {
             this.motionZ *= 0.98D;
         }
 
-        if (Math.abs(this.motionX) < 0.005D) {
+        double minimumMotion = ViaLoadingBase.getInstance().getTargetVersion().getVersion() > 47 ? 0.003D : 0.005D;
+        if (Math.abs(this.motionX) < minimumMotion) {
             this.motionX = 0.0D;
         }
 
-        if (Math.abs(this.motionY) < 0.005D) {
+        if (Math.abs(this.motionY) < minimumMotion) {
             this.motionY = 0.0D;
         }
 
-        if (Math.abs(this.motionZ) < 0.005D) {
+        if (Math.abs(this.motionZ) < minimumMotion) {
             this.motionZ = 0.0D;
         }
 

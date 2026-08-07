@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
@@ -33,7 +34,7 @@ public class BlockFarmland extends Block
 
     public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
     {
-        return new AxisAlignedBB((double)pos.getX(), (double)pos.getY(), (double)pos.getZ(), (double)(pos.getX() + 1), (double)(pos.getY() + 1), (double)(pos.getZ() + 1));
+        return new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= 47 ? 1 : 0.9375), pos.getZ() + 1);
     }
 
     /**

@@ -8,6 +8,7 @@ import cn.unfair.init.Initializer;
 import cn.unfair.module.modules.combat.NoHitDelay;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.SoundUtil;
+import cn.unfair.util.via.ViaProtocol;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -19,6 +20,17 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
+import com.viaversion.viabackwards.protocol.v1_20_3to1_20_2.Protocol1_20_3To1_20_2;
+import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.api.type.Types;
+import com.viaversion.viaversion.protocols.v1_20to1_20_2.packet.ServerboundConfigurationPackets1_20_2;
+import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
+import de.florianmichael.viamcp.ViaMCP;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
@@ -58,6 +70,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.boss.BossStatus;
 import net.minecraft.entity.item.*;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Bootstrap;
 import net.minecraft.init.Items;
@@ -1325,7 +1338,9 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         }
 
         if (this.leftClickCounter <= 0) {
-            this.thePlayer.swingItem();
+            if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > ProtocolVersion.v1_8.getVersion()) {
+                AttackOrder.sendConditionalSwing(this.objectMouseOver);
+            }
 
             if (this.objectMouseOver == null) {
                 logger.error("Null returned as 'hitResult', this shouldn't happen!");
@@ -1336,11 +1351,15 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
             } else {
                 switch (this.objectMouseOver.typeOfHit) {
                     case ENTITY:
-                        this.playerController.attackEntity(this.thePlayer, this.objectMouseOver.entityHit);
+                        AttackOrder.sendFixedAttack(this.thePlayer, this.objectMouseOver.entityHit);
                         break;
 
                     case BLOCK:
                         BlockPos blockpos = this.objectMouseOver.getBlockPos();
+
+                        if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= ProtocolVersion.v1_8.getVersion()) {
+                            this.thePlayer.swingItem();
+                        }
 
                         if (this.theWorld.getBlockState(blockpos).getBlock().getMaterial() != Material.air) {
                             this.playerController.clickBlock(blockpos, this.objectMouseOver.sideHit);
@@ -1348,10 +1367,18 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                         }
 
                     case MISS:
+                        if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= ProtocolVersion.v1_8.getVersion()) {
+                            this.thePlayer.swingItem();
+                        }
+
                     default:
                         if (this.playerController.isNotCreative()) {
                             this.leftClickCounter = 10;
                         }
+                }
+
+                if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() > ProtocolVersion.v1_8.getVersion()) {
+                    AttackOrder.sendConditionalSwing(this.objectMouseOver);
                 }
             }
         }
@@ -1504,6 +1531,36 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
      * Runs the current tick.
      */
     public void runTick() throws IOException {
+        if (ViaMCP.INSTANCE != null && ViaMCP.INSTANCE.user != null) {
+            try {
+                PacketWrapper packetBrand = PacketWrapper.create(ServerboundConfigurationPackets1_20_2.CUSTOM_PAYLOAD, ViaMCP.INSTANCE.user);
+                packetBrand.write(Types.STRING, "minecraft:brand");
+                packetBrand.write(Types.STRING, "vanilla");
+                packetBrand.sendToServer(Protocol1_20_3To1_20_2.class);
+
+                packetBrand = PacketWrapper.create(ServerboundConfigurationPackets1_20_2.CLIENT_INFORMATION, ViaMCP.INSTANCE.user);
+                packetBrand.write(Types.STRING, this.gameSettings.language.toLowerCase());
+                packetBrand.write(Types.BYTE, (byte) this.gameSettings.renderDistanceChunks);
+                packetBrand.write(Types.VAR_INT, this.gameSettings.chatVisibility.ordinal());
+                packetBrand.write(Types.BOOLEAN, this.gameSettings.chatColours);
+
+                int mask = 0;
+                for (EnumPlayerModelParts part : this.gameSettings.getModelParts()) {
+                    mask |= part.getPartMask();
+                }
+
+                packetBrand.write(Types.UNSIGNED_BYTE, (short) mask);
+                packetBrand.write(Types.VAR_INT, 1);
+                packetBrand.write(Types.BOOLEAN, true);
+                packetBrand.write(Types.BOOLEAN, true);
+                packetBrand.sendToServer(Protocol1_20_3To1_20_2.class);
+            } catch (Exception exception) {
+                System.out.println("ViaVersion packet transformation failed (expected during connection setup): " + exception.getMessage());
+            } finally {
+                ViaMCP.INSTANCE.user = null;
+            }
+        }
+
         boolean callTickEvents = this.theWorld != null && this.thePlayer != null;
 
         if (callTickEvents) {
@@ -1877,6 +1934,11 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         } else if (this.myNetworkManager != null) {
             this.mcProfiler.endStartSection("pendingConnection");
             this.myNetworkManager.processReceivedPackets();
+        }
+
+        if (ViaLoadingBase.getInstance() != null && ViaProtocol.newerThanOrEqualTo1_21_2() && this.thePlayer != null && this.theWorld != null && Via.getManager().getConnectionManager() != null && !Via.getManager().getConnectionManager().getConnections().isEmpty()) {
+            PacketWrapper packetWrapper = PacketWrapper.create(ServerboundPackets1_21_2.CLIENT_TICK_END, null, Via.getManager().getConnectionManager().getConnections().iterator().next());
+            packetWrapper.sendToServer(Protocol1_21_2To1_21.class);
         }
 
         this.mcProfiler.endSection();

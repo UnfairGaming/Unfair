@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -27,6 +29,19 @@ public class BlockBed extends BlockDirectional
         super(Material.cloth);
         this.setDefaultState(this.blockState.getBaseState().withProperty(PART, BlockBed.EnumPartType.FOOT).withProperty(OCCUPIED, Boolean.valueOf(false)));
         this.setBedBounds();
+    }
+
+    @Override
+    public void onLanded(World worldIn, Entity entityIn) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_12)) {
+            return;
+        }
+
+        if (entityIn.isSneaking()) {
+            super.onLanded(worldIn, entityIn);
+        } else if (entityIn.motionY < 0.0D) {
+            entityIn.motionY *= -0.6600000262260437D;
+        }
     }
 
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)

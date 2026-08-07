@@ -5,6 +5,8 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.KnockbackEvent;
 import cn.unfair.events.SafeWalkEvent;
 import cn.unfair.module.modules.render.FreeLook;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.*;
@@ -43,6 +45,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -133,6 +136,7 @@ public abstract class Entity implements ICommandSender, Cullable {
      * True if after a move this entity has collided with something on X- or Z-axis
      */
     public boolean isCollidedHorizontally;
+    public boolean isCollidingWithWall;
 
     public boolean inView;
     public int outOfViewTicks;
@@ -303,6 +307,9 @@ public abstract class Entity implements ICommandSender, Cullable {
     private long lasttime = 0;
     private boolean culled = false;
     private boolean outOfCamera = false;
+    public Double jumpVelocityInLava;
+    public Double liquidDetectionFlag;
+    private final Optional<BlockPos> cachedPos = Optional.empty();
 
     @Override
     public void setTimeout() {
@@ -325,6 +332,31 @@ public abstract class Entity implements ICommandSender, Cullable {
     public boolean isCulled() {
         if(!EntityCullingManager.enabled)return false;
         return culled;
+    }
+
+    protected boolean isCollidingHorizontally() {
+        return false;
+    }
+
+    public BlockPos getBlockPosWithSmallOffset() {
+        return getBlockPosWithOffset(0.2F);
+    }
+
+    public BlockPos getBlockPosWithDefaultOffset() {
+        return getBlockPosWithOffset(0.500001F);
+    }
+
+    protected BlockPos getBlockPosWithOffset(float offsetY) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_20) || this.cachedPos.isEmpty()) {
+            return new BlockPos(this.posX, this.posY - offsetY, this.posZ);
+        }
+
+        BlockPos blockPos = this.cachedPos.get();
+        if (offsetY <= 1.0E-5F) {
+            return blockPos;
+        }
+
+        return blockPos.down(MathHelper.floor_float(offsetY));
     }
 
     @Override
@@ -543,7 +575,13 @@ public abstract class Entity implements ICommandSender, Cullable {
         }
 
         this.spawnRunningParticles();
+        this.jumpVelocityInLava = null;
+        this.liquidDetectionFlag = null;
         this.handleWaterMovement();
+
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+            this.worldObj.handleMaterialAcceleration(getEntityBoundingBox().contract(0.001D, 0.001D, 0.001D), Material.lava, this, this.worldObj.provider.doesWaterVaporize() ? 0.007D : 0.0023333333333333335D);
+        }
 
         if (this.worldObj.isRemote) {
             this.fire = 0;
@@ -727,17 +765,31 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
             boolean flag1 = this.onGround || d4 != y && d4 < 0.0D;
 
-            for (AxisAlignedBB axisalignedbb2 : list1) {
-                x = axisalignedbb2.calculateXOffset(this.getEntityBoundingBox(), x);
+            if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_13_2) && Math.abs(x) < Math.abs(z)) {
+                for (AxisAlignedBB axisalignedbb13 : list1) {
+                    z = axisalignedbb13.calculateZOffset(this.getEntityBoundingBox(), z);
+                }
+
+                this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, 0.0D, z));
+
+                for (AxisAlignedBB axisalignedbb2 : list1) {
+                    x = axisalignedbb2.calculateXOffset(this.getEntityBoundingBox(), x);
+                }
+
+                this.setEntityBoundingBox(this.getEntityBoundingBox().offset(x, 0.0D, 0.0D));
+            } else {
+                for (AxisAlignedBB axisalignedbb2 : list1) {
+                    x = axisalignedbb2.calculateXOffset(this.getEntityBoundingBox(), x);
+                }
+
+                this.setEntityBoundingBox(this.getEntityBoundingBox().offset(x, 0.0D, 0.0D));
+
+                for (AxisAlignedBB axisalignedbb13 : list1) {
+                    z = axisalignedbb13.calculateZOffset(this.getEntityBoundingBox(), z);
+                }
+
+                this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, 0.0D, z));
             }
-
-            this.setEntityBoundingBox(this.getEntityBoundingBox().offset(x, 0.0D, 0.0D));
-
-            for (AxisAlignedBB axisalignedbb13 : list1) {
-                z = axisalignedbb13.calculateZOffset(this.getEntityBoundingBox(), z);
-            }
-
-            this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, 0.0D, z));
 
             if (this.stepHeight > 0.0F && flag1 && (d3 != x || d5 != z)) {
                 double d11 = x;
@@ -827,6 +879,7 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.isCollidedHorizontally = d3 != x || d5 != z;
             this.isCollidedVertically = d4 != y;
             this.onGround = this.isCollidedVertically && d4 < 0.0D;
+            this.isCollidingWithWall = this.isCollidedHorizontally && this.isCollidingHorizontally();
             this.isCollided = this.isCollidedHorizontally || this.isCollidedVertically;
             int i = MathHelper.floor_double(this.posX);
             int j = MathHelper.floor_double(this.posY - 0.20000000298023224D);
@@ -1073,7 +1126,7 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Returns if this entity is in water and will end up adding the waters velocity to the entity
      */
     public boolean handleWaterMovement() {
-        if (this.worldObj.handleMaterialAcceleration(this.getEntityBoundingBox().expand(0.0D, -0.4000000059604645D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this)) {
+        if (this.worldObj.handleMaterialAcceleration(this.getEntityBoundingBox().expand(0.0D, ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_13) ? -0.4000000059604645D : 0.0D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this, 0.014D)) {
             if (!this.inWater && !this.firstUpdate) {
                 this.resetHeight();
             }
@@ -1160,14 +1213,24 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     public boolean isInLava() {
-        return this.worldObj.isMaterialInBB(this.getEntityBoundingBox().expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
+        return ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_13) ? this.worldObj.isMaterialInBB(this.getEntityBoundingBox().expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava) : !this.firstUpdate && this.liquidDetectionFlag != null && !(this.liquidDetectionFlag <= 0.0D);
     }
 
     /**
      * Used in both water and by flying objects
      */
     public void moveFlying(float strafe, float forward, float friction) {
+        boolean player = this == Minecraft.getMinecraft().thePlayer;
         float rotationYaw = this.rotationYaw;
+
+        if (player) {
+            boolean newerThanOrEqualTo1_14 = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_14);
+            if (newerThanOrEqualTo1_14 && !this.onGround && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_19_4) && !isInWater() && !isInLava()) {
+                friction = Minecraft.getMinecraft().thePlayer.capabilities.isFlying
+                        ? isSprinting() ? 0.1F : 0.05F
+                        : isSprinting() ? 0.025999999F : 0.02F;
+            }
+        }
 
         float f = strafe * strafe + forward * forward;
 
@@ -1873,7 +1936,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     public float getCollisionBorderSize() {
-        return 0.1F;
+        return ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8) ? 0 : 0.1F;
     }
 
     /**

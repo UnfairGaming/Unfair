@@ -121,7 +121,7 @@ public abstract class BlockLiquid extends Block {
         return 0;
     }
 
-    protected Vec3 getFlowVector(IBlockAccess worldIn, BlockPos pos) {
+    public Vec3 getFlowVector(IBlockAccess worldIn, BlockPos pos) {
         Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
         int i = this.getEffectiveFlowDecay(worldIn, pos);
 

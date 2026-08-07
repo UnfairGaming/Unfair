@@ -6,6 +6,9 @@ import cn.unfair.module.modules.movement.Jesus;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
+import de.florianmichael.viamcp.fixes.FixedSoundEngine;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import net.minecraft.block.*;
@@ -392,20 +395,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
      * Sets a block to air, but also plays the sound and particles and can spawn drops
      */
     public boolean destroyBlock(BlockPos pos, boolean dropBlock) {
-        IBlockState iblockstate = this.getBlockState(pos);
-        Block block = iblockstate.getBlock();
-
-        if (block.getMaterial() == Material.air) {
-            return false;
-        } else {
-            this.playAuxSFX(2001, pos, Block.getStateId(iblockstate));
-
-            if (dropBlock) {
-                block.dropBlockAsItem(this, pos, iblockstate, 0);
-            }
-
-            return this.setBlockState(pos, Blocks.air.getDefaultState(), 3);
-        }
+        return FixedSoundEngine.destroyBlock(this, pos, dropBlock);
     }
 
     /**
@@ -1835,6 +1825,12 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
      * handles the acceleration of an object whilst in water. Not sure if it is used elsewhere.
      */
     public boolean handleMaterialAcceleration(AxisAlignedBB bb, Material materialIn, Entity entityIn) {
+        return this.handleMaterialAcceleration(bb, materialIn, entityIn, 0.014D);
+    }
+
+    public boolean handleMaterialAcceleration(AxisAlignedBB bb, Material materialIn, Entity entityIn, double velocityFactor) {
+        boolean newerThanOrEqualTo1_13 = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13);
+
         int i = MathHelper.floor_double(bb.minX);
         int j = MathHelper.floor_double(bb.maxX + 1.0D);
         int k = MathHelper.floor_double(bb.minY);
@@ -1846,6 +1842,8 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
             return false;
         } else {
             boolean flag = false;
+            double maxLiquidHeight = 0.0D;
+            int liquidBlockCount = 0;
             Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
             BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
@@ -1861,23 +1859,55 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
 
                             if ((double) l >= d0) {
                                 flag = true;
-                                vec3 = block.modifyAcceleration(this, blockpos$mutableblockpos, entityIn, vec3);
+                                maxLiquidHeight = Math.max(d0 - bb.minY, maxLiquidHeight);
+                                Vec3 flowVector = ((BlockLiquid) block).getFlowVector(this, blockpos$mutableblockpos);
+
+                                if (newerThanOrEqualTo1_13 && maxLiquidHeight < 0.4D) {
+                                    flowVector = this.scaleVector(flowVector, maxLiquidHeight);
+                                }
+
+                                vec3 = vec3.add(flowVector);
+                                ++liquidBlockCount;
                             }
                         }
                     }
                 }
             }
 
-            if (vec3.lengthVector() > 0.0D && this.isPushedByWaterForAcceleration(entityIn)) {
-                vec3 = vec3.normalize();
-                double d1 = 0.014D;
-                entityIn.motionX += vec3.xCoord * d1;
-                entityIn.motionY += vec3.yCoord * d1;
-                entityIn.motionZ += vec3.zCoord * d1;
+            if (vec3.lengthVector() > 0.0D && entityIn.isPushedByWater()) {
+                if (newerThanOrEqualTo1_13 && liquidBlockCount > 0) {
+                    vec3 = this.scaleVector(vec3, 1.0D / (double) liquidBlockCount);
+                }
+
+                vec3 = this.scaleVector(vec3, velocityFactor);
+
+                if (newerThanOrEqualTo1_13) {
+                    double motionThreshold = 0.003D;
+                    double flowThreshold = motionThreshold * 1.5D;
+                    if (Math.abs(entityIn.motionX) < motionThreshold &&
+                            Math.abs(entityIn.motionZ) < motionThreshold &&
+                            vec3.lengthVector() < flowThreshold) {
+                        vec3 = this.scaleVector(vec3.normalize(), flowThreshold);
+                    }
+                }
+
+                entityIn.motionX += vec3.xCoord;
+                entityIn.motionY += vec3.yCoord;
+                entityIn.motionZ += vec3.zCoord;
+            }
+
+            if (materialIn == Material.water) {
+                entityIn.jumpVelocityInLava = maxLiquidHeight;
+            } else if (materialIn == Material.lava) {
+                entityIn.liquidDetectionFlag = maxLiquidHeight;
             }
 
             return flag;
         }
+    }
+
+    private Vec3 scaleVector(Vec3 vec, double scale) {
+        return new Vec3(vec.xCoord * scale, vec.yCoord * scale, vec.zCoord * scale);
     }
 
     /**
@@ -2965,7 +2995,12 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
     }
 
     public void addBlockEvent(BlockPos pos, Block blockIn, int eventID, int eventParam) {
-        blockIn.onBlockEventReceived(this, pos, this.getBlockState(pos), eventID, eventParam);
+        IBlockState state = this.getBlockState(pos);
+        if (state.getBlock() != blockIn) {
+            return;
+        }
+
+        blockIn.onBlockEventReceived(this, pos, state, eventID, eventParam);
     }
 
     /**

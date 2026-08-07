@@ -997,8 +997,11 @@ public class KillAura extends Module {
         EntityLivingBase entity = target.getEntity();
         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
         AxisAlignedBB bb = this.getAdvancedBox(entity);
-        double speedShrinkFactor = Math.clamp(getSpeedPosBased(mc.thePlayer) * 0.5D, getSpeedPosBased(entity) * 0.5D,
-                this.xzTrim.getValue()) + this.xzRandShrinkThing * this.xzRandAdd.getValue();
+        double speedTrim = getSpeedPosBased(entity) * 0.5D;
+        double configuredTrim = this.xzTrim.getValue();
+        double minTrim = Math.min(speedTrim, configuredTrim);
+        double maxTrim = Math.max(speedTrim, configuredTrim);
+        double speedShrinkFactor = Math.clamp(getSpeedPosBased(mc.thePlayer) * 0.5D, minTrim, maxTrim) + this.xzRandShrinkThing * this.xzRandAdd.getValue();
         this.finalXZTrim = this.dynamicTrim.getValue() ? speedShrinkFactor : this.xzTrim.getValue();
         double finalYTrim = this.dynamicTrim.getValue() ? Math.abs(mc.thePlayer.motionY) : this.yTrim.getValue();
         bb = contract(bb, this.finalXZTrim, finalYTrim, this.finalXZTrim);

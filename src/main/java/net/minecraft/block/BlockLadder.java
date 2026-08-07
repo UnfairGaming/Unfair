@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -45,23 +46,44 @@ public class BlockLadder extends Block
         {
             float f = 0.125F;
 
-            switch ((EnumFacing)iblockstate.getValue(FACING))
-            {
-                case NORTH:
-                    this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
-                    break;
+            if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= 47) {
+                switch ((EnumFacing)iblockstate.getValue(FACING))
+                {
+                    case NORTH:
+                        this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
+                        break;
 
-                case SOUTH:
-                    this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, f);
-                    break;
+                    case SOUTH:
+                        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, f);
+                        break;
 
-                case WEST:
-                    this.setBlockBounds(1.0F - f, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
-                    break;
+                    case WEST:
+                        this.setBlockBounds(1.0F - f, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+                        break;
 
-                case EAST:
-                default:
-                    this.setBlockBounds(0.0F, 0.0F, 0.0F, f, 1.0F, 1.0F);
+                    case EAST:
+                    default:
+                        this.setBlockBounds(0.0F, 0.0F, 0.0F, f, 1.0F, 1.0F);
+                }
+            } else {
+                switch ((EnumFacing)iblockstate.getValue(FACING))
+                {
+                    case NORTH:
+                        this.setBlockBounds(0.0F, 0.0F, 0.8125F, 1.0F, 1.0F, 1.0F);
+                        break;
+
+                    case SOUTH:
+                        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.1875F);
+                        break;
+
+                    case WEST:
+                        this.setBlockBounds(0.8125F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+                        break;
+
+                    case EAST:
+                    default:
+                        this.setBlockBounds(0.0F, 0.0F, 0.0F, 0.1875F, 1.0F, 1.0F);
+                }
             }
         }
     }
