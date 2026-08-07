@@ -11,7 +11,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.KeyBindUtil;
-import cn.unfair.util.RandomUtil;
+import cn.unfair.util.player.CpsDelayGenerator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
@@ -36,13 +36,14 @@ public class AutoClicker extends Module {
     private boolean blockHitPending = false;
     private long blockHitDelay = 0L;
     private int ticks = 0;
+    private final CpsDelayGenerator cpsDelayGenerator = new CpsDelayGenerator();
 
     public AutoClicker() {
         super("AutoClicker", false);
     }
 
     private long getNextClickDelay() {
-        return 1000L / RandomUtil.nextLong(this.minCPS.getValue(), this.maxCPS.getValue());
+        return this.cpsDelayGenerator.nextDelay(this.minCPS.getValue(), this.maxCPS.getValue());
     }
 
     private long getBlockHitDelay() {
@@ -141,6 +142,7 @@ public class AutoClicker extends Module {
     public void onEnabled() {
         this.clickDelay = 0L;
         this.blockHitDelay = 0L;
+        this.cpsDelayGenerator.reset();
     }
 
     @Override
