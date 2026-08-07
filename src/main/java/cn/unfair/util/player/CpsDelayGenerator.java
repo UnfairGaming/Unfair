@@ -2,7 +2,7 @@ package cn.unfair.util.player;
 
 import cn.unfair.util.RandomUtil;
 
-public class ApsDelayGenerator {
+public class CpsDelayGenerator {
     private double tempo;
     private int burstTicks;
     private int restTicks;

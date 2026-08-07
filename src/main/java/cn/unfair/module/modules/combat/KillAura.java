@@ -18,7 +18,7 @@ import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
 import cn.unfair.util.killaura.PointFinder;
-import cn.unfair.util.player.ApsDelayGenerator;
+import cn.unfair.util.player.CpsDelayGenerator;
 import com.google.common.base.CaseFormat;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
@@ -145,7 +145,7 @@ public class KillAura extends Module {
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX"});
     private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
     private final TimerUtil timer = new TimerUtil();
-    private final ApsDelayGenerator apsDelayGenerator = new ApsDelayGenerator();
+    private final CpsDelayGenerator cpsDelayGenerator = new CpsDelayGenerator();
     private final TimerUtil predictionUpdateTimer = new TimerUtil();
     private final ArrayList<Double> previousTargetMotions = new ArrayList<>();
     private final ArrayList<Long> jitterClicks = new ArrayList<>();
@@ -301,7 +301,7 @@ public class KillAura extends Module {
     }
 
     private long getAttackDelay() {
-        return this.isBlocking ? this.apsDelayGenerator.nextDelay(this.autoBlockCPS.getValue(), this.autoBlockCPS.getValue()) : this.apsDelayGenerator.nextDelay(this.minCPS.getValue(), this.maxCPS.getValue());
+        return this.isBlocking ? this.cpsDelayGenerator.nextDelay(this.autoBlockCPS.getValue(), this.autoBlockCPS.getValue()) : this.cpsDelayGenerator.nextDelay(this.minCPS.getValue(), this.maxCPS.getValue());
     }
 
     private boolean performAttack(float yaw, float pitch) {
@@ -1721,7 +1721,7 @@ public class KillAura extends Module {
         this.switchTick = 0;
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
-        this.apsDelayGenerator.reset();
+        this.cpsDelayGenerator.reset();
         this.blockTick = 0;
 
         this.serverYaw = mc.thePlayer != null ? mc.thePlayer.rotationYaw : 0.0F;
