@@ -407,41 +407,37 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
             return;
         }
 
-        //noinspection LoopStatementThatDoesntLoop
-        while (true) {
-            try {
-                while (this.running) {
-                    if (!this.hasCrashed || this.crashReporter == null) {
-                        try {
-                            this.runGameLoop();
-                        } catch (OutOfMemoryError error) {
-                            this.freeMemory();
-                            this.displayGuiScreen(new GuiMemoryErrorScreen());
-                            System.gc();
-                        }
-                    } else {
-                        this.displayCrashReport(this.crashReporter);
+        try {
+            while (this.running) {
+                if (!this.hasCrashed || this.crashReporter == null) {
+                    try {
+                        this.runGameLoop();
+                    } catch (OutOfMemoryError error) {
+                        this.freeMemory();
+                        this.displayGuiScreen(new GuiMemoryErrorScreen());
+                        System.gc();
+                    } catch (ReportedException reportedexception) {
+                        this.addGraphicsAndWorldToCrashReport(reportedexception.getCrashReport());
+                        this.freeMemory();
+                        logger.fatal("Reported exception thrown!", reportedexception);
+                        this.displayCrashScreen(reportedexception.getCrashReport());
+                    } catch (Throwable throwable1) {
+                        CrashReport crashreport1 = this.addGraphicsAndWorldToCrashReport(new CrashReport("Unexpected error", throwable1));
+                        this.freeMemory();
+                        logger.fatal("Unreported exception thrown!", throwable1);
+                        this.displayCrashScreen(crashreport1);
                     }
+                } else {
+                    CrashReport crashreport2 = this.crashReporter;
+                    this.hasCrashed = false;
+                    this.crashReporter = null;
+                    this.freeMemory();
+                    this.displayCrashScreen(crashreport2);
                 }
-            } catch (MinecraftError error) {
-                break;
-            } catch (ReportedException reportedexception) {
-                this.addGraphicsAndWorldToCrashReport(reportedexception.getCrashReport());
-                this.freeMemory();
-                logger.fatal("Reported exception thrown!", reportedexception);
-                this.displayCrashReport(reportedexception.getCrashReport());
-                break;
-            } catch (Throwable throwable1) {
-                CrashReport crashreport1 = this.addGraphicsAndWorldToCrashReport(new CrashReport("Unexpected error", throwable1));
-                this.freeMemory();
-                logger.fatal("Unreported exception thrown!", throwable1);
-                this.displayCrashReport(crashreport1);
-                break;
-            } finally {
-                this.shutdownMinecraftApplet();
             }
-
-            return;
+        } catch (MinecraftError ignored) {
+        } finally {
+            this.shutdownMinecraftApplet();
         }
     }
 
@@ -673,19 +669,40 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
      * Wrapper around displayCrashReportInternal
      */
     public void displayCrashReport(CrashReport crashReportIn) {
+        System.exit(this.outputCrashReport(crashReportIn));
+    }
+
+    private void displayCrashScreen(CrashReport crashReportIn) {
+        this.outputCrashReport(crashReportIn);
+        this.hasCrashed = false;
+        this.crashReporter = null;
+        this.debugCrashKeyPressTime = -1L;
+
+        if (this.gameSettings != null) {
+            this.gameSettings.showDebugInfo = false;
+        }
+
+        if (this.ingameGUI != null) {
+            this.ingameGUI.getChatGUI().clearChatMessages();
+        }
+
+        this.displayGuiScreen(new GuiCrashScreen(crashReportIn));
+    }
+
+    private int outputCrashReport(CrashReport crashReportIn) {
         File file1 = new File(getMinecraft().mcDataDir, "crash-reports");
         File file2 = new File(file1, "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-client.txt");
         Bootstrap.printToSYSOUT(crashReportIn.getCompleteReport());
 
         if (crashReportIn.getFile() != null) {
             Bootstrap.printToSYSOUT("#@!@# Game crashed! Crash report saved to: #@!@# " + crashReportIn.getFile());
-            System.exit(-1);
+            return -1;
         } else if (crashReportIn.saveToFile(file2)) {
             Bootstrap.printToSYSOUT("#@!@# Game crashed! Crash report saved to: #@!@# " + file2.getAbsolutePath());
-            System.exit(-1);
+            return -1;
         } else {
             Bootstrap.printToSYSOUT("#@?@# Game crashed! Crash report could not be saved. #@?@#");
-            System.exit(-2);
+            return -2;
         }
     }
 
