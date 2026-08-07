@@ -1,6 +1,6 @@
 package cn.unfair.util.player;
 
-import cn.unfair.util.RandomUtil;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class CpsDelayGenerator {
     private double tempo;
@@ -11,6 +11,20 @@ public class CpsDelayGenerator {
         return Math.clamp(value, min, max);
     }
 
+    private static double nextGaussian() {
+        return ThreadLocalRandom.current().nextGaussian();
+    }
+
+    private static double nextGaussianBetween(double min, double max) {
+        double center = (min + max) / 2.0D;
+        double deviation = Math.max(0.0001D, (max - min) / 6.0D);
+        return clamp(center + nextGaussian() * deviation, min, max);
+    }
+
+    private static double nextGaussianChance() {
+        return clamp(0.5D + nextGaussian() * 0.15D, 0.0D, 1.0D);
+    }
+
     public long nextDelay(int minCps, int maxCps) {
         int min = Math.min(minCps, maxCps);
         int max = Math.max(minCps, maxCps);
@@ -18,11 +32,11 @@ public class CpsDelayGenerator {
         double range = Math.max(0.35D, (max - min) / 2.0D);
 
         this.updateState();
-        this.tempo += RandomUtil.nextDouble(-0.18D, 0.18D);
+        this.tempo += nextGaussian() * 0.18D;
         this.tempo *= 0.72D;
 
-        double bias = (RandomUtil.nextDouble(0.0D, 1.0D) - RandomUtil.nextDouble(0.0D, 1.0D)) * range;
-        double micro = RandomUtil.nextDouble(-0.45D, 0.45D);
+        double bias = nextGaussian() * range * 0.42D;
+        double micro = nextGaussian() * 0.22D;
         double state = this.getStateOffset(range);
         double cps = center + bias + micro + this.tempo + state;
 
@@ -30,7 +44,7 @@ public class CpsDelayGenerator {
         double upper = max + Math.max(0.75D, range * 0.45D);
         cps = clamp(cps, lower, upper);
 
-        double delay = 1000.0D / cps + RandomUtil.nextDouble(-7.0D, 7.0D);
+        double delay = 1000.0D / cps + nextGaussian() * 4.0D;
         return Math.max(1L, Math.round(delay));
     }
 
@@ -45,19 +59,19 @@ public class CpsDelayGenerator {
             this.restTicks--;
         } else if (this.burstTicks > 0) {
             this.burstTicks--;
-        } else if (RandomUtil.nextDouble(0.0D, 1.0D) < 0.14D) {
-            this.burstTicks = RandomUtil.nextInt(2, 5);
-        } else if (RandomUtil.nextDouble(0.0D, 1.0D) < 0.08D) {
-            this.restTicks = RandomUtil.nextInt(1, 3);
+        } else if (nextGaussianChance() > 0.72D) {
+            this.burstTicks = (int) Math.round(nextGaussianBetween(2.0D, 5.0D));
+        } else if (nextGaussianChance() < 0.28D) {
+            this.restTicks = (int) Math.round(nextGaussianBetween(1.0D, 3.0D));
         }
     }
 
     private double getStateOffset(double range) {
         if (this.burstTicks > 0) {
-            return range * RandomUtil.nextDouble(0.25D, 0.6D);
+            return range * nextGaussianBetween(0.25D, 0.6D);
         }
         if (this.restTicks > 0) {
-            return -range * RandomUtil.nextDouble(0.3D, 0.75D);
+            return -range * nextGaussianBetween(0.3D, 0.75D);
         }
         return 0.0D;
     }
