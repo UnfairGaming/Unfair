@@ -13,11 +13,9 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.projectile.EntityFireball;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C02PacketUseEntity.Action;
-import net.minecraft.network.play.client.C0APacketAnimation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -44,14 +42,6 @@ public class AntiFireball extends Module {
     private boolean isValidTarget(EntityFireball entityFireball) {
         return !entityFireball.getEntityBoundingBox().hasNaN() && RotationUtil.distanceToEntity(entityFireball) <= (double) this.range.getValue() + 3.0
                 && RotationUtil.angleToEntity(entityFireball) <= (float) this.fov.getValue();
-    }
-
-    private void doAttackAnimation() {
-        if (this.swing.getValue()) {
-            mc.thePlayer.swingItem();
-        } else {
-            PacketUtil.sendPacket(new C0APacketAnimation());
-        }
     }
 
     @EventTarget
@@ -96,9 +86,12 @@ public class AntiFireball extends Module {
                     event.setPervRotation(this.moveFix.getValue() != 0 ? rotations[0] : mc.thePlayer.rotationYaw, 0);
                 }
                 if (!Unfair.playerStateManager.attacking && !Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
-                    this.doAttackAnimation();
                     if (RotationUtil.distanceToEntity(this.target) <= (double) this.range.getValue().floatValue()) {
-                        PacketUtil.sendPacket(new C02PacketUseEntity(this.target, Action.ATTACK));
+                        if (this.swing.getValue()) {
+                            AttackOrder.sendFixedPacketAttack(this.target);
+                        } else {
+                            AttackOrder.sendFixedPacketAttackAndSwing(this.target);
+                        }
                         PlayerUtil.attackEntity(this.target);
                     }
                 }

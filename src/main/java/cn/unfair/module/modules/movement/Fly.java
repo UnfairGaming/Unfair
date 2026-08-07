@@ -12,12 +12,11 @@ import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.TeamUtil;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
 import net.minecraft.network.play.server.S32PacketConfirmTransaction;
 
@@ -85,8 +84,7 @@ public class Fly extends Module {
 
         if (!this.polarAttackedBoat && mc.thePlayer.ridingEntity instanceof EntityBoat) {
             this.polarBoat = mc.thePlayer.ridingEntity;
-            PacketUtil.sendPacket(new C0APacketAnimation());
-            PacketUtil.sendPacket(new C02PacketUseEntity(this.polarBoat, C02PacketUseEntity.Action.ATTACK));
+            AttackOrder.sendFixedPacketAttackAndSwing(this.polarBoat);
             this.polarAttackedBoat = true;
             this.polarPickupFreezeUntil = System.currentTimeMillis() + POLAR_PICKUP_FREEZE_MS;
             this.freezePlayerMotion();

@@ -11,11 +11,10 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
@@ -64,8 +63,7 @@ public class ReduceVelocity extends SubModule {
         }
 
         if (target != null) {
-            mc.getNetHandler().addToSendQueue(new C0APacketAnimation());
-            mc.getNetHandler().addToSendQueue(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+            AttackOrder.sendFixedPacketAttackAndSwing(target);
 
             mc.thePlayer.motionX *= 0.6D;
             mc.thePlayer.motionZ *= 0.6D;

@@ -14,14 +14,12 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
-import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.potion.Potion;
 
@@ -183,8 +181,7 @@ public class PredictionVelocity extends SubModule {
     private void doReduce() {
         if (target == null) return;
         if (cn.unfair.util.BadPacketUtil.bad()) return;
-        PacketUtil.sendPacket(new C0APacketAnimation());
-        PacketUtil.sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+        AttackOrder.sendFixedPacketAttackAndSwing(target);
         mc.thePlayer.motionX *= 0.6D;
         mc.thePlayer.motionZ *= 0.6D;
         mc.thePlayer.setSprinting(false);

@@ -20,6 +20,7 @@ import cn.unfair.util.*;
 import cn.unfair.util.killaura.PointFinder;
 import cn.unfair.util.player.CpsDelayGenerator;
 import com.google.common.base.CaseFormat;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
@@ -312,7 +313,6 @@ public class KillAura extends Module {
                 return false;
             } else {
                 this.attackDelayMS = this.attackDelayMS + this.getAttackDelay();
-                mc.thePlayer.swingItem();
                 if ((this.rotations.getValue() != 0 || !this.isBoxInAttackRange(target.getBox()))
                         && this.getAttackHitVec(yaw, pitch, this.attackRange.getValue()) == null) {
                     return false;
@@ -320,7 +320,7 @@ public class KillAura extends Module {
                     AttackEvent event = new AttackEvent(target.getEntity());
                     EventManager.call(event);
                     mc.playerController.syncCurrentPlayItem();
-                    PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), Action.ATTACK));
+                    AttackOrder.sendFixedPacketAttack(target.getEntity());
                     if (mc.playerController.getCurrentGameType() != GameType.SPECTATOR) {
                         PlayerUtil.attackEntity(target.getEntity());
                     }
