@@ -1,7 +1,6 @@
 package net.minecraft.block;
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import de.florianmichael.vialoadingbase.ViaLoadingBase;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -59,7 +58,7 @@ public class BlockAnvil extends BlockFalling
 
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5)
+        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_20())
         {
             addModernCollisionBox(pos, mask, list, 2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
             EnumFacing facing = (EnumFacing)state.getValue(FACING);

@@ -6,6 +6,7 @@ import cn.unfair.events.StrafeEvent;
 import cn.unfair.events.SwingAnimationEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.Jesus;
+import cn.unfair.util.via.ViaProtocol;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
@@ -1746,6 +1747,10 @@ public abstract class EntityLivingBase extends Entity {
             return fallback;
         }
 
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_4)) {
+            return fallback;
+        }
+
         BlockPos support = ((ModernPlayerPhysics) player).viaforge$getMainSupportingBlock();
         if (support == null) {
             return fallback;
@@ -1775,19 +1780,38 @@ public abstract class EntityLivingBase extends Entity {
     }
 
     private static float viaforge$getModernBlockSpeedFactor(EntityPlayerSP player, BlockPos support) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_15)
+                || player.capabilities.isFlying) {
+            return 1.0F;
+        }
+
+        Block inBlock = player.worldObj.getBlockState(new BlockPos(player.posX, player.posY, player.posZ)).getBlock();
+        float inBlockSpeedFactor = viaforge$getBlockSpeedFactor(inBlock);
+        if (inBlockSpeedFactor != 1.0F || inBlock.getMaterial() == Material.water) {
+            return inBlockSpeedFactor;
+        }
+
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_4)) {
+            return viaforge$getBlockSpeedFactor(player.worldObj.getBlockState(new BlockPos(player.posX, player.posY - 0.5000001D, player.posZ)).getBlock());
+        }
+
         if (support == null) {
             return 1.0F;
         }
 
-        Block supportBlock = player.worldObj.getBlockState(support).getBlock();
-        if (supportBlock == Blocks.soul_sand) {
+        return viaforge$getBlockSpeedFactor(player.worldObj.getBlockState(support).getBlock());
+    }
+
+    private static float viaforge$getBlockSpeedFactor(Block block) {
+        if (block == Blocks.soul_sand) {
             return 0.4F;
         }
+
         return 1.0F;
     }
 
     private static boolean viaforge$isModernTarget() {
-        return ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5;
+        return ViaProtocol.newerThanOrEqualTo1_14();
     }
 
     /**

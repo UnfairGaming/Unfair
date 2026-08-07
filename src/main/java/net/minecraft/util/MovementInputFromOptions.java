@@ -1,6 +1,5 @@
 package net.minecraft.util;
 
-import cn.unfair.util.via.ViaProtocol;
 import cn.unfair.util.via.ModernPlayerPhysics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -33,11 +32,10 @@ public class MovementInputFromOptions extends MovementInput {
             --this.moveStrafe;
         }
 
-        boolean wasSneaking = this.sneak;
         this.jump = this.gameSettings.keyBindJump.isKeyDown();
         this.sneak = this.gameSettings.keyBindSneak.isKeyDown();
 
-        if (ViaProtocol.newerThanOrEqualTo1_14() ? (ViaProtocol.newerThanOrEqualTo1_15() ? wasSneaking : this.sneak || wasSneaking) : this.sneak) {
+        if (this.sneak) {
             this.moveStrafe = (float) ((double) this.moveStrafe * 0.3D);
             this.moveForward = (float) ((double) this.moveForward * 0.3D);
         }

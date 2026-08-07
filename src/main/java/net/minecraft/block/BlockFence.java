@@ -59,7 +59,7 @@ public class BlockFence extends Block
         boolean flag2 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.WEST) : this.canConnectTo(worldIn, pos.west());
         boolean flag3 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.EAST) : this.canConnectTo(worldIn, pos.east());
 
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.targetProtocolVersion() == ProtocolVersion.v1_20_5.getVersion())
+        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_9())
         {
             addModernCollisionBox(pos, mask, list, 6.0D, 0.0D, 6.0D, 10.0D, 24.0D, 10.0D);
 
@@ -222,8 +222,12 @@ public class BlockFence extends Block
 
         if (block instanceof BlockFence)
         {
-            return block.blockMaterial == this.blockMaterial
-                    || block != Blocks.nether_brick_fence && this != Blocks.nether_brick_fence;
+            if (block == this)
+            {
+                return true;
+            }
+
+            return block != Blocks.nether_brick_fence && this != Blocks.nether_brick_fence;
         }
 
         if (block instanceof BlockStairs)
@@ -243,6 +247,9 @@ public class BlockFence extends Block
         }
 
         if (block.getMaterial() == Material.gourd
+                || block == Blocks.enchanting_table
+                || block == Blocks.glass
+                || block == Blocks.stained_glass
                 || block instanceof BlockTrapDoor
                 || block instanceof BlockPistonBase
                 || block instanceof BlockPistonExtension
@@ -251,8 +258,7 @@ public class BlockFence extends Block
                 || block == Blocks.cauldron
                 || block == Blocks.glowstone
                 || block == Blocks.sea_lantern
-                || block == Blocks.ice
-                || block == Blocks.packed_ice)
+                || block == Blocks.ice)
         {
             return false;
         }

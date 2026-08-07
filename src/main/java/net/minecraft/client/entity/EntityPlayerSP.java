@@ -321,7 +321,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
                     ? d0 * d0 + d1 * d1 + d2 * d2 > (2.0E-4D * 2.0E-4D) || this.positionUpdateTicks >= 20
                     : d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || this.positionUpdateTicks >= 20;
             if (this.isModernTarget()) {
-                flag2 = d0 * d0 + d1 * d1 + d2 * d2 > 4.0E-8D || this.positionUpdateTicks >= 19;
+                flag2 = d0 * d0 + d1 * d1 + d2 * d2 > 4.0E-8D || this.positionUpdateTicks >= 20;
             }
             boolean flag3 = d3 != 0.0D || d4 != 0.0D;
 
@@ -1167,7 +1167,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     private boolean isModernTarget() {
-        return ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5;
+        return ViaProtocol.newerThanOrEqualTo1_14();
     }
 
     private boolean usesModernSneakPose() {

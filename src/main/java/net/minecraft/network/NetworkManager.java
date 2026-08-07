@@ -594,12 +594,26 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                             packetWrapper.sendToServer(Protocol1_19To1_18_2.class);
                         } else if (packet instanceof ServerBoundPlayerCommand command) {
                             ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
-                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_5)) {
+                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                                PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_21_2.PLAYER_COMMAND, null, connection);
+                                wrapper.write(Types.VAR_INT, command.getId());
+                                wrapper.write(Types.VAR_INT, command.getAction().ordinal());
+                                wrapper.write(Types.VAR_INT, command.getData());
+                                wrapper.sendToServer(Protocol1_21_2To1_21.class);
+                                return true;
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_5)) {
                                 PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_20_5.PLAYER_COMMAND, null, connection);
                                 wrapper.write(Types.VAR_INT, command.getId());
                                 wrapper.write(Types.VAR_INT, command.getAction().ordinal());
                                 wrapper.write(Types.VAR_INT, command.getData());
                                 wrapper.sendToServer(Protocol1_20_5To1_20_3.class);
+                                return true;
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+                                PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_20_2.PLAYER_COMMAND, null, connection);
+                                wrapper.write(Types.VAR_INT, command.getId());
+                                wrapper.write(Types.VAR_INT, command.getAction().ordinal());
+                                wrapper.write(Types.VAR_INT, command.getData());
+                                wrapper.sendToServer(Protocol1_20_2To1_20.class);
                                 return true;
                             }
                             PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_19.PLAYER_COMMAND, connection);

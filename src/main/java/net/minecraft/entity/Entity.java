@@ -7,6 +7,7 @@ import cn.unfair.events.SafeWalkEvent;
 import cn.unfair.module.modules.render.FreeLook;
 import cn.unfair.util.via.ModernFluidPhysics;
 import cn.unfair.util.via.ModernPlayerPhysics;
+import cn.unfair.util.via.ViaProtocol;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
@@ -1599,7 +1600,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     private static boolean viaforge$isModernTarget() {
-        return ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5;
+        return ViaProtocol.newerThanOrEqualTo1_14();
     }
 
     public int getBrightnessForRender(float partialTicks) {
