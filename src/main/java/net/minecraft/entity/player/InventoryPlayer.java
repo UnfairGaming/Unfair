@@ -1,5 +1,6 @@
 package net.minecraft.entity.player;
 
+import cn.unfair.util.via.ModernOffhandInventory;
 import net.minecraft.block.Block;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
@@ -17,7 +18,7 @@ import net.minecraft.util.ReportedException;
 
 import java.util.concurrent.Callable;
 
-public class InventoryPlayer implements IInventory
+public class InventoryPlayer implements IInventory, ModernOffhandInventory
 {
     /**
      * An array of 36 item stacks indicating the main player inventory (including the visible bar).
@@ -33,6 +34,7 @@ public class InventoryPlayer implements IInventory
     /** The player whose inventory this is. */
     public EntityPlayer player;
     private ItemStack itemStack;
+    private ItemStack offhandItem;
 
     /**
      * Set true whenever the inventory changes. Nothing sets it false so you will have to write your own code to check
@@ -475,6 +477,30 @@ public class InventoryPlayer implements IInventory
      */
     public ItemStack decrStackSize(int index, int count)
     {
+        if (index == 45)
+        {
+            if (this.offhandItem == null)
+            {
+                return null;
+            }
+
+            if (this.offhandItem.stackSize <= count)
+            {
+                ItemStack itemstack1 = this.offhandItem;
+                this.offhandItem = null;
+                return itemstack1;
+            }
+
+            ItemStack itemstack = this.offhandItem.splitStack(count);
+
+            if (this.offhandItem.stackSize == 0)
+            {
+                this.offhandItem = null;
+            }
+
+            return itemstack;
+        }
+
         ItemStack[] aitemstack = this.mainInventory;
 
         if (index >= this.mainInventory.length)
@@ -514,6 +540,13 @@ public class InventoryPlayer implements IInventory
      */
     public ItemStack removeStackFromSlot(int index)
     {
+        if (index == 45)
+        {
+            ItemStack itemstack = this.offhandItem;
+            this.offhandItem = null;
+            return itemstack;
+        }
+
         ItemStack[] aitemstack = this.mainInventory;
 
         if (index >= this.mainInventory.length)
@@ -539,6 +572,12 @@ public class InventoryPlayer implements IInventory
      */
     public void setInventorySlotContents(int index, ItemStack stack)
     {
+        if (index == 45)
+        {
+            this.offhandItem = stack;
+            return;
+        }
+
         ItemStack[] aitemstack = this.mainInventory;
 
         if (index >= aitemstack.length)
@@ -622,6 +661,7 @@ public class InventoryPlayer implements IInventory
                 {
                     this.armorInventory[j - 100] = itemstack;
                 }
+
             }
         }
     }
@@ -639,6 +679,11 @@ public class InventoryPlayer implements IInventory
      */
     public ItemStack getStackInSlot(int index)
     {
+        if (index == 45)
+        {
+            return this.offhandItem;
+        }
+
         ItemStack[] aitemstack = this.mainInventory;
 
         if (index >= aitemstack.length)
@@ -844,6 +889,11 @@ public class InventoryPlayer implements IInventory
      */
     public boolean isItemValidForSlot(int index, ItemStack stack)
     {
+        if (index == 45)
+        {
+            return true;
+        }
+
         return true;
     }
 
@@ -862,6 +912,9 @@ public class InventoryPlayer implements IInventory
             this.armorInventory[j] = ItemStack.copyItemStack(playerInventory.armorInventory[j]);
         }
 
+        if (playerInventory instanceof ModernOffhandInventory) {
+            this.offhandItem = ((ModernOffhandInventory) playerInventory).viaforge$getOffhand();
+        }
         this.currentItem = playerInventory.currentItem;
     }
 
@@ -890,5 +943,19 @@ public class InventoryPlayer implements IInventory
         {
             this.armorInventory[j] = null;
         }
+
+        this.offhandItem = null;
+    }
+
+    @Override
+    public ItemStack viaforge$getOffhand()
+    {
+        return this.offhandItem;
+    }
+
+    @Override
+    public void viaforge$setOffhand(ItemStack stack)
+    {
+        this.offhandItem = stack;
     }
 }

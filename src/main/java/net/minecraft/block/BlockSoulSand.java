@@ -3,11 +3,14 @@ package net.minecraft.block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 
 public class BlockSoulSand extends Block
 {
@@ -28,6 +31,10 @@ public class BlockSoulSand extends Block
      */
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
     {
+        if (entityIn instanceof EntityPlayerSP && ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5) {
+            return;
+        }
+
         entityIn.motionX *= 0.4D;
         entityIn.motionZ *= 0.4D;
     }

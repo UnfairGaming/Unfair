@@ -1,5 +1,7 @@
 package net.minecraft.client.renderer.entity.layers;
 
+import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.ModernOffhandInventory;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
@@ -66,6 +68,42 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
             minecraft.getItemRenderer().renderItem(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON);
             GlStateManager.popMatrix();
         }
+
+        if (!ModernOffhandInteraction.isModernTarget() || !(entitylivingbaseIn instanceof EntityPlayer)) {
+            return;
+        }
+
+        ItemStack offhand = ((ModernOffhandInventory) ((EntityPlayer) entitylivingbaseIn).inventory).viaforge$getOffhand();
+        if (offhand == null || !(this.livingEntityRenderer.getMainModel() instanceof ModelBiped)) {
+            return;
+        }
+
+        GlStateManager.pushMatrix();
+        if (this.livingEntityRenderer.getMainModel().isChild) {
+            float f = 0.5F;
+            GlStateManager.translate(0.0F, 0.625F, 0.0F);
+            GlStateManager.rotate(-20.0F, 1.0F, 0.0F, 0.0F);
+            GlStateManager.scale(f, f, f);
+        }
+
+        ((ModelBiped)this.livingEntityRenderer.getMainModel()).bipedLeftArm.postRender(0.0625F);
+        GlStateManager.translate(0.0625F, 0.4375F, 0.0625F);
+
+        if (offhand.getItem() instanceof ItemBlock && Block.getBlockFromItem(offhand.getItem()).getRenderType() == 2)
+        {
+            GlStateManager.translate(0.0F, 0.1875F, -0.3125F);
+            GlStateManager.rotate(20.0F, 1.0F, 0.0F, 0.0F);
+            GlStateManager.rotate(-45.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.scale(-0.375F, -0.375F, 0.375F);
+        }
+
+        if (entitylivingbaseIn.isSneaking())
+        {
+            GlStateManager.translate(0.0F, 0.203125F, 0.0F);
+        }
+
+        Minecraft.getMinecraft().getItemRenderer().renderItem(entitylivingbaseIn, offhand, ItemCameraTransforms.TransformType.THIRD_PERSON);
+        GlStateManager.popMatrix();
     }
 
     public boolean shouldCombineTextures()

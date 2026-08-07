@@ -5,6 +5,8 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.KnockbackEvent;
 import cn.unfair.events.SafeWalkEvent;
 import cn.unfair.module.modules.render.FreeLook;
+import cn.unfair.util.via.ModernFluidPhysics;
+import cn.unfair.util.via.ModernPlayerPhysics;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
@@ -22,7 +24,17 @@ import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnchantmentProtection;
 import net.minecraft.entity.effect.EntityLightningBolt;
+import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.monster.EntityIronGolem;
+import net.minecraft.entity.monster.EntitySkeleton;
+import net.minecraft.entity.monster.EntitySlime;
+import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.entity.passive.EntityHorse;
+import net.minecraft.entity.passive.EntityRabbit;
+import net.minecraft.entity.passive.EntitySquid;
+import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.HoverEvent;
@@ -44,6 +56,7 @@ import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -58,6 +71,11 @@ public abstract class Entity implements ICommandSender, Cullable {
     private int entityId;
     public double renderDistanceWeight;
     public float movementYaw, velocityYaw, lastMovementYaw;
+    private double viaforge$modernStepDesiredY;
+    private boolean viaforge$modernStepDownAdjusted;
+    private double viaforge$moveStartX;
+    private double viaforge$moveStartZ;
+    private int viaforge$lastModernFluidTick = Integer.MIN_VALUE;
 
     /**
      * Blocks entities from spawning when they do their AABB check to make sure the spot is clear of entities that can
@@ -451,6 +469,11 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Sets the width and height of the entity. Args: width, height
      */
     protected void setSize(float width, float height) {
+        if (viaforge$isModernTarget()) {
+            width = this.viaforge$modernEntityWidth(width);
+            height = this.viaforge$modernEntityHeight(height);
+        }
+
         if (width != this.width || height != this.height) {
             float f = this.width;
             this.width = width;
@@ -579,7 +602,8 @@ public abstract class Entity implements ICommandSender, Cullable {
         this.liquidDetectionFlag = null;
         this.handleWaterMovement();
 
-        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13)
+                && (!(this instanceof EntityPlayerSP) || !viaforge$isModernTarget())) {
             this.worldObj.handleMaterialAcceleration(getEntityBoundingBox().contract(0.001D, 0.001D, 0.001D), Material.lava, this, this.worldObj.provider.doesWaterVaporize() ? 0.007D : 0.0023333333333333335D);
         }
 
@@ -680,6 +704,13 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Tries to moves the entity by the passed in displacement. Args: x, y, z
      */
     public void moveEntity(double x, double y, double z) {
+        this.viaforge$modernStepDesiredY = this.isInWeb ? y * 0.05F : y;
+        this.viaforge$modernStepDownAdjusted = false;
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            this.viaforge$moveStartX = this.posX;
+            this.viaforge$moveStartZ = this.posZ;
+        }
+
         if (this.noClip) {
             this.setEntityBoundingBox(this.getEntityBoundingBox().offset(x, y, z));
             this.resetPositionToBB();
@@ -765,7 +796,13 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
             boolean flag1 = this.onGround || d4 != y && d4 < 0.0D;
 
-            if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_13_2) && Math.abs(x) < Math.abs(z)) {
+            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                AxisAlignedBB afterY = this.getEntityBoundingBox();
+                ModernCollisionResult result = viaforge$collideHorizontalModern(afterY, list1, x, z);
+                x = result.x;
+                z = result.z;
+                this.setEntityBoundingBox(result.box);
+            } else if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_13_2) && Math.abs(x) < Math.abs(z)) {
                 for (AxisAlignedBB axisalignedbb13 : list1) {
                     z = axisalignedbb13.calculateZOffset(this.getEntityBoundingBox(), z);
                 }
@@ -809,19 +846,25 @@ public abstract class Entity implements ICommandSender, Cullable {
 
                 axisalignedbb4 = axisalignedbb4.offset(0.0D, d9, 0.0D);
                 double d15 = d3;
-
-                for (AxisAlignedBB axisalignedbb7 : list) {
-                    d15 = axisalignedbb7.calculateXOffset(axisalignedbb4, d15);
-                }
-
-                axisalignedbb4 = axisalignedbb4.offset(d15, 0.0D, 0.0D);
                 double d16 = d5;
+                if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                    ModernCollisionResult result = viaforge$collideHorizontalModern(axisalignedbb4, list, d15, d16);
+                    d15 = result.x;
+                    d16 = result.z;
+                    axisalignedbb4 = result.box;
+                } else {
+                    for (AxisAlignedBB axisalignedbb7 : list) {
+                        d15 = axisalignedbb7.calculateXOffset(axisalignedbb4, d15);
+                    }
 
-                for (AxisAlignedBB axisalignedbb8 : list) {
-                    d16 = axisalignedbb8.calculateZOffset(axisalignedbb4, d16);
+                    axisalignedbb4 = axisalignedbb4.offset(d15, 0.0D, 0.0D);
+
+                    for (AxisAlignedBB axisalignedbb8 : list) {
+                        d16 = axisalignedbb8.calculateZOffset(axisalignedbb4, d16);
+                    }
+
+                    axisalignedbb4 = axisalignedbb4.offset(0.0D, 0.0D, d16);
                 }
-
-                axisalignedbb4 = axisalignedbb4.offset(0.0D, 0.0D, d16);
                 AxisAlignedBB axisalignedbb14 = this.getEntityBoundingBox();
                 double d17 = y;
 
@@ -831,19 +874,25 @@ public abstract class Entity implements ICommandSender, Cullable {
 
                 axisalignedbb14 = axisalignedbb14.offset(0.0D, d17, 0.0D);
                 double d18 = d3;
-
-                for (AxisAlignedBB axisalignedbb10 : list) {
-                    d18 = axisalignedbb10.calculateXOffset(axisalignedbb14, d18);
-                }
-
-                axisalignedbb14 = axisalignedbb14.offset(d18, 0.0D, 0.0D);
                 double d19 = d5;
+                if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                    ModernCollisionResult result = viaforge$collideHorizontalModern(axisalignedbb14, list, d18, d19);
+                    d18 = result.x;
+                    d19 = result.z;
+                    axisalignedbb14 = result.box;
+                } else {
+                    for (AxisAlignedBB axisalignedbb10 : list) {
+                        d18 = axisalignedbb10.calculateXOffset(axisalignedbb14, d18);
+                    }
 
-                for (AxisAlignedBB axisalignedbb11 : list) {
-                    d19 = axisalignedbb11.calculateZOffset(axisalignedbb14, d19);
+                    axisalignedbb14 = axisalignedbb14.offset(d18, 0.0D, 0.0D);
+
+                    for (AxisAlignedBB axisalignedbb11 : list) {
+                        d19 = axisalignedbb11.calculateZOffset(axisalignedbb14, d19);
+                    }
+
+                    axisalignedbb14 = axisalignedbb14.offset(0.0D, 0.0D, d19);
                 }
-
-                axisalignedbb14 = axisalignedbb14.offset(0.0D, 0.0D, d19);
                 double d20 = d15 * d15 + d16 * d16;
                 double d10 = d18 * d18 + d19 * d19;
 
@@ -860,6 +909,10 @@ public abstract class Entity implements ICommandSender, Cullable {
                 }
 
                 for (AxisAlignedBB axisalignedbb12 : list) {
+                    if (!this.viaforge$modernStepDownAdjusted && this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                        this.viaforge$modernStepDownAdjusted = true;
+                        y += this.viaforge$modernStepDesiredY;
+                    }
                     y = axisalignedbb12.calculateYOffset(this.getEntityBoundingBox(), y);
                 }
 
@@ -973,7 +1026,52 @@ public abstract class Entity implements ICommandSender, Cullable {
                 this.fire = -this.fireResistance;
             }
 
+            this.viaforge$updateMainSupportingBlock();
+
             this.worldObj.theProfiler.endSection();
+        }
+    }
+
+    private static ModernCollisionResult viaforge$collideHorizontalModern(AxisAlignedBB startBox, List<AxisAlignedBB> collisions, double x, double z) {
+        double xThenZX = x;
+        AxisAlignedBB xThenZBox = startBox;
+        for (AxisAlignedBB collision : collisions) {
+            xThenZX = collision.calculateXOffset(xThenZBox, xThenZX);
+        }
+        xThenZBox = xThenZBox.offset(xThenZX, 0.0D, 0.0D);
+        double xThenZZ = z;
+        for (AxisAlignedBB collision : collisions) {
+            xThenZZ = collision.calculateZOffset(xThenZBox, xThenZZ);
+        }
+        xThenZBox = xThenZBox.offset(0.0D, 0.0D, xThenZZ);
+
+        double zThenXZ = z;
+        AxisAlignedBB zThenXBox = startBox;
+        for (AxisAlignedBB collision : collisions) {
+            zThenXZ = collision.calculateZOffset(zThenXBox, zThenXZ);
+        }
+        zThenXBox = zThenXBox.offset(0.0D, 0.0D, zThenXZ);
+        double zThenXX = x;
+        for (AxisAlignedBB collision : collisions) {
+            zThenXX = collision.calculateXOffset(zThenXBox, zThenXX);
+        }
+        zThenXBox = zThenXBox.offset(zThenXX, 0.0D, 0.0D);
+
+        if (zThenXX * zThenXX + zThenXZ * zThenXZ > xThenZX * xThenZX + xThenZZ * xThenZZ) {
+            return new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox);
+        }
+        return new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
+    }
+
+    private static final class ModernCollisionResult {
+        private final double x;
+        private final double z;
+        private final AxisAlignedBB box;
+
+        private ModernCollisionResult(double x, double z, AxisAlignedBB box) {
+            this.x = x;
+            this.z = z;
+            this.box = box;
         }
     }
 
@@ -1126,6 +1224,10 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Returns if this entity is in water and will end up adding the waters velocity to the entity
      */
     public boolean handleWaterMovement() {
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            return this.viaforge$modernFluidBaseTick((EntityPlayerSP) this);
+        }
+
         if (this.worldObj.handleMaterialAcceleration(this.getEntityBoundingBox().expand(0.0D, ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_13) ? -0.4000000059604645D : 0.0D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this, 0.014D)) {
             if (!this.inWater && !this.firstUpdate) {
                 this.resetHeight();
@@ -1197,6 +1299,16 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Checks if the current block the entity is within of the specified material type
      */
     public boolean isInsideOfMaterial(Material materialIn) {
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget() && (materialIn == Material.water || materialIn == Material.lava)) {
+            EntityPlayerSP player = (EntityPlayerSP) this;
+            double eyeY = player.posY + (double) ((ModernPlayerPhysics) player).viaforge$getModernEyeHeight() - 0.1111111119389534D;
+            BlockPos eyePosition = new BlockPos(player.posX, eyeY, player.posZ);
+            float height = materialIn == Material.water
+                    ? ModernFluidPhysics.getWaterHeight(player.worldObj, eyePosition)
+                    : ModernFluidPhysics.getLavaHeight(player.worldObj, eyePosition);
+            return (double) eyePosition.getY() + (double) height > eyeY;
+        }
+
         double d0 = this.posY + (double) this.getEyeHeight();
         BlockPos blockpos = new BlockPos(this.posX, d0, this.posZ);
         IBlockState iblockstate = this.worldObj.getBlockState(blockpos);
@@ -1213,6 +1325,10 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     public boolean isInLava() {
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            return ((ModernPlayerPhysics) this).viaforge$isTouchingModernLava();
+        }
+
         return ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_13) ? this.worldObj.isMaterialInBB(this.getEntityBoundingBox().expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava) : !this.firstUpdate && this.liquidDetectionFlag != null && !(this.liquidDetectionFlag <= 0.0D);
     }
 
@@ -1220,6 +1336,22 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Used in both water and by flying objects
      */
     public void moveFlying(float strafe, float forward, float friction) {
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            double lengthSquared = (double) strafe * (double) strafe + (double) forward * (double) forward;
+            if (lengthSquared >= 1.0E-7D) {
+                double scale = lengthSquared > 1.0D ? (double) friction / Math.sqrt(lengthSquared) : friction;
+                double scaledStrafe = (double) strafe * scale;
+                double scaledForward = (double) forward * scale;
+                float yaw = this.rotationYaw * ((float) Math.PI / 180.0F);
+                float sin = MathHelper.sin(yaw);
+                float cos = MathHelper.cos(yaw);
+
+                this.motionX += scaledStrafe * (double) cos - scaledForward * (double) sin;
+                this.motionZ += scaledForward * (double) cos + scaledStrafe * (double) sin;
+            }
+            return;
+        }
+
         boolean player = this == Minecraft.getMinecraft().thePlayer;
         float rotationYaw = this.rotationYaw;
 
@@ -1249,6 +1381,225 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.motionX += strafe * f2 - forward * f1;
             this.motionZ += forward * f2 + strafe * f1;
         }
+    }
+
+    private boolean viaforge$modernFluidBaseTick(EntityPlayerSP player) {
+        ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+        if (this.viaforge$lastModernFluidTick == player.ticksExisted) {
+            return this.inWater;
+        }
+        this.viaforge$lastModernFluidTick = player.ticksExisted;
+
+        AxisAlignedBB box = player.getEntityBoundingBox().contract(0.001D, 0.001D, 0.001D);
+        int minX = MathHelper.floor_double(box.minX);
+        int maxX = MathHelper.ceiling_double_int(box.maxX);
+        int minY = MathHelper.floor_double(box.minY);
+        int maxY = MathHelper.ceiling_double_int(box.maxY);
+        int minZ = MathHelper.floor_double(box.minZ);
+        int maxZ = MathHelper.ceiling_double_int(box.maxZ);
+
+        boolean touchingWater = false;
+        boolean touchingLava = false;
+        double waterHeight = 0.0D;
+        double lavaHeight = 0.0D;
+        Vec3 waterFlow = new Vec3(0.0D, 0.0D, 0.0D);
+        Vec3 lavaFlow = new Vec3(0.0D, 0.0D, 0.0D);
+        int waterFlowCount = 0;
+        int lavaFlowCount = 0;
+
+        for (int blockX = minX; blockX < maxX; blockX++) {
+            for (int blockY = minY; blockY < maxY; blockY++) {
+                for (int blockZ = minZ; blockZ < maxZ; blockZ++) {
+                    BlockPos position = new BlockPos(blockX, blockY, blockZ);
+                    Block block = player.worldObj.getBlockState(position).getBlock();
+                    Material material = block.getMaterial();
+                    if (material != Material.water && material != Material.lava) {
+                        continue;
+                    }
+
+                    float fluidHeight = ModernFluidPhysics.getFluidHeight(player.worldObj, position, material);
+                    double surfaceY = blockY + (double) fluidHeight;
+                    if (fluidHeight == 0.0F || surfaceY < box.minY) {
+                        continue;
+                    }
+
+                    boolean water = material == Material.water;
+                    if (water) {
+                        touchingWater = true;
+                        waterHeight = Math.max(surfaceY - box.minY, waterHeight);
+                    } else {
+                        touchingLava = true;
+                        lavaHeight = Math.max(surfaceY - box.minY, lavaHeight);
+                    }
+
+                    if (block instanceof BlockLiquid && player.isPushedByWater()) {
+                        Vec3 blockFlow = ModernFluidPhysics.getFlow(player.worldObj, position, material);
+                        double trackedHeight = water ? waterHeight : lavaHeight;
+                        if (trackedHeight < 0.4D) {
+                            blockFlow = new Vec3(blockFlow.xCoord * trackedHeight, blockFlow.yCoord * trackedHeight, blockFlow.zCoord * trackedHeight);
+                        }
+                        if (water) {
+                            waterFlow = waterFlow.add(blockFlow);
+                            waterFlowCount++;
+                        } else {
+                            lavaFlow = lavaFlow.add(blockFlow);
+                            lavaFlowCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        viaforge$applyModernFluidPush(player, waterFlow, waterFlowCount, 0.014D);
+        viaforge$applyModernFluidPush(player, lavaFlow, lavaFlowCount, player.worldObj.provider.doesWaterVaporize() ? 0.007D : 0.0023333333333333335D);
+
+        physics.viaforge$setModernWaterHeight(waterHeight);
+        physics.viaforge$setModernLavaHeight(lavaHeight);
+        physics.viaforge$setTouchingModernLava(touchingLava);
+        if (touchingWater) {
+            if (!this.inWater && !this.firstUpdate) {
+                this.resetHeight();
+            }
+            this.fallDistance = 0.0F;
+            this.inWater = true;
+            this.fire = 0;
+        } else {
+            this.inWater = false;
+        }
+        return this.inWater;
+    }
+
+    private static void viaforge$applyModernFluidPush(EntityPlayerSP player, Vec3 accumulatedFlow, int flowCount, double multiplier) {
+        if (flowCount == 0 || accumulatedFlow.lengthVector() * accumulatedFlow.lengthVector() < 1.0E-5D) {
+            return;
+        }
+
+        Vec3 flow = new Vec3(accumulatedFlow.xCoord / flowCount, accumulatedFlow.yCoord / flowCount, accumulatedFlow.zCoord / flowCount);
+        flow = new Vec3(flow.xCoord * multiplier, flow.yCoord * multiplier, flow.zCoord * multiplier);
+        if (Math.abs(player.motionX) < 0.003D
+                && Math.abs(player.motionZ) < 0.003D
+                && flow.lengthVector() < 0.0045000000000000005D) {
+            Vec3 normalized = flow.normalize();
+            flow = new Vec3(normalized.xCoord * 0.0045000000000000005D, normalized.yCoord * 0.0045000000000000005D, normalized.zCoord * 0.0045000000000000005D);
+        }
+        player.motionX += flow.xCoord;
+        player.motionY += flow.yCoord;
+        player.motionZ += flow.zCoord;
+    }
+
+    private void viaforge$updateMainSupportingBlock() {
+        if (!(this instanceof EntityPlayerSP) || !viaforge$isModernTarget()) {
+            return;
+        }
+
+        EntityPlayerSP player = (EntityPlayerSP) this;
+        ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+        if (!player.onGround) {
+            physics.viaforge$setMainSupportingBlock(null, false);
+            return;
+        }
+
+        AxisAlignedBB box = player.getEntityBoundingBox();
+        AxisAlignedBB below = new AxisAlignedBB(box.minX, box.minY - 1.0E-6D, box.minZ, box.maxX, box.minY, box.maxZ);
+        BlockPos support = viaforge$findSupportingBlock(player, below);
+        if (support == null
+                && !(physics.viaforge$wasSupportingBlockOnGround()
+                && physics.viaforge$getMainSupportingBlock() == null)) {
+            support = viaforge$findSupportingBlock(player, below.offset(this.viaforge$moveStartX - player.posX, 0.0D, this.viaforge$moveStartZ - player.posZ));
+        }
+        physics.viaforge$setMainSupportingBlock(support, true);
+    }
+
+    private static BlockPos viaforge$findSupportingBlock(EntityPlayerSP player, AxisAlignedBB search) {
+        int minX = MathHelper.floor_double(search.minX);
+        int maxX = MathHelper.floor_double(search.maxX);
+        int minY = MathHelper.floor_double(search.minY);
+        int maxY = MathHelper.floor_double(search.maxY);
+        int minZ = MathHelper.floor_double(search.minZ);
+        int maxZ = MathHelper.floor_double(search.maxZ);
+        List<AxisAlignedBB> collisions = new ArrayList<>();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+
+        for (int blockX = minX; blockX <= maxX; blockX++) {
+            for (int blockY = minY; blockY <= maxY; blockY++) {
+                for (int blockZ = minZ; blockZ <= maxZ; blockZ++) {
+                    BlockPos candidate = new BlockPos(blockX, blockY, blockZ);
+                    IBlockState state = player.worldObj.getBlockState(candidate);
+                    collisions.clear();
+                    state.getBlock().addCollisionBoxesToList(player.worldObj, candidate, state, search, collisions, player);
+                    if (collisions.isEmpty()) {
+                        continue;
+                    }
+
+                    double dx = player.posX - ((double) blockX + 0.5D);
+                    double dy = player.posY - ((double) blockY + 0.5D);
+                    double dz = player.posZ - ((double) blockZ + 0.5D);
+                    double distance = dx * dx + dy * dy + dz * dz;
+                    if (distance < bestDistance
+                            || distance == bestDistance
+                            && (best == null || viaforge$hasSupportingPriority(candidate, best))) {
+                        best = candidate;
+                        bestDistance = distance;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    private static boolean viaforge$hasSupportingPriority(BlockPos first, BlockPos second) {
+        if (first.getY() < second.getY()) {
+            return true;
+        }
+        int deltaX = second.getX() - first.getX();
+        int deltaZ = second.getZ() - first.getZ();
+        int horizontalSum = deltaX + deltaZ;
+        return horizontalSum == 0 ? deltaX < 0 : horizontalSum < 0;
+    }
+
+    private float viaforge$modernEntityWidth(float width) {
+        if (this instanceof EntityRabbit) {
+            return width * (0.4F / 0.6F);
+        } else if (this instanceof EntitySquid) {
+            return width * (0.8F / 0.95F);
+        } else if (this instanceof EntityHorse) {
+            return width * (1.3964844F / 1.4F);
+        } else if (this instanceof EntityBoat) {
+            return width * (1.375F / 1.5F);
+        } else if (this instanceof EntitySkeleton && width > 0.7F) {
+            return width * (0.7F / 0.72F);
+        } else if (this instanceof EntitySlime) {
+            return width * (0.52F / 0.51000005F);
+        }
+        return width;
+    }
+
+    private float viaforge$modernEntityHeight(float height) {
+        if (this instanceof EntityRabbit) {
+            return height * (0.5F / 0.7F);
+        } else if (this instanceof EntitySquid) {
+            return height * (0.8F / 0.95F);
+        } else if (this instanceof EntityBoat) {
+            return height * (0.5625F / 0.6F);
+        } else if (this instanceof EntityCow) {
+            return height * (1.4F / 1.3F);
+        } else if (this instanceof EntityIronGolem) {
+            return height * (2.7F / 2.9F);
+        } else if (this instanceof EntitySkeleton) {
+            return height > 2.2F ? height * (2.4F / 2.535F) : height * (1.99F / 1.95F);
+        } else if (this instanceof EntityWolf) {
+            return height * (0.85F / 0.8F);
+        } else if (this instanceof EntityVillager) {
+            return height * (1.95F / 1.8F);
+        } else if (this instanceof EntitySlime) {
+            return height * (0.52F / 0.51000005F);
+        }
+        return height;
+    }
+
+    private static boolean viaforge$isModernTarget() {
+        return ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5;
     }
 
     public int getBrightnessForRender(float partialTicks) {

@@ -13,6 +13,11 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
 import cn.unfair.util.via.ViaProtocol;
+import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.ModernOffhandInventory;
+import cn.unfair.util.via.ModernOffhandStorage;
+import cn.unfair.util.via.ModernPlayerPhysics;
+import cn.unfair.util.via.ModernSequenceStorage;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;
@@ -162,6 +167,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         this.gameController.playerController.setGameType(packetIn.getGameType());
         this.gameController.gameSettings.sendSettingsToServer();
         this.netManager.sendPacket(new C17PacketCustomPayload("MC|Brand", (new PacketBuffer(Unpooled.buffer())).writeString(ClientBrandRetriever.getClientModName())));
+        this.resetModernSequenceStorage();
     }
 
     /**
@@ -860,6 +866,25 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         this.gameController.setDimensionAndSpawnPlayer(packetIn.getDimensionID());
         this.gameController.playerController.setGameType(packetIn.getGameType());
+        this.resetModernSequenceStorage();
+    }
+
+    private void resetModernSequenceStorage() {
+        if (!ModernOffhandInteraction.isModernTarget()) {
+            return;
+        }
+
+        UserConnection connection = ViaMCP.INSTANCE != null ? ViaMCP.INSTANCE.user : null;
+        if (connection == null) {
+            return;
+        }
+
+        ModernSequenceStorage storage = connection.get(ModernSequenceStorage.class);
+        if (storage == null) {
+            connection.put(new ModernSequenceStorage());
+        } else {
+            storage.reset();
+        }
     }
 
     /**
@@ -917,6 +942,10 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         if (packetIn.func_149175_c() == -1) {
             entityplayer.inventory.setItemStack(packetIn.func_149174_e());
+        } else if (ModernOffhandInteraction.isModernTarget()
+                && (packetIn.func_149175_c() == 0 || packetIn.func_149175_c() == ModernOffhandStorage.CLIENT_WINDOW_ID)
+                && packetIn.func_149173_d() == 45) {
+            ((ModernOffhandInventory) entityplayer.inventory).viaforge$setOffhand(packetIn.func_149174_e());
         } else {
             boolean flag = false;
 
@@ -935,6 +964,18 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
                 entityplayer.inventoryContainer.putStackInSlot(packetIn.func_149173_d(), packetIn.func_149174_e());
             } else if (packetIn.func_149175_c() == entityplayer.openContainer.windowId && (packetIn.func_149175_c() != 0 || !flag)) {
                 entityplayer.openContainer.putStackInSlot(packetIn.func_149173_d(), packetIn.func_149174_e());
+            }
+        }
+
+        if (ModernOffhandInteraction.isModernTarget()
+                && this.gameController.thePlayer != null
+                && !this.gameController.thePlayer.isUsingItem()) {
+            int window = packetIn.func_149175_c();
+            int slot = packetIn.func_149173_d();
+            boolean mainHandUpdate = window == 0 && slot == this.gameController.thePlayer.inventory.currentItem + 36;
+            boolean offhandUpdate = window == ModernOffhandStorage.CLIENT_WINDOW_ID && slot == 45;
+            if (mainHandUpdate || offhandUpdate) {
+                ((ModernPlayerPhysics) this.gameController.thePlayer).viaforge$confirmServerItemUseFinished();
             }
         }
     }
@@ -975,6 +1016,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         if (packetIn.func_148911_c() == 0) {
             entityplayer.inventoryContainer.putStacksInSlots(packetIn.getItemStacks());
+            if (ModernOffhandInteraction.isModernTarget() && packetIn.getItemStacks().length > 45) {
+                ((ModernOffhandInventory) entityplayer.inventory).viaforge$setOffhand(packetIn.getItemStacks()[45]);
+            }
         } else if (packetIn.func_148911_c() == entityplayer.openContainer.windowId) {
             entityplayer.openContainer.putStacksInSlots(packetIn.getItemStacks());
         }

@@ -18,6 +18,7 @@
 
 package de.florianmichael.vialoadingbase.netty.handler;
 
+import cn.unfair.util.via.ModernSequenceEncodeHandler;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.exception.CancelCodecException;
 import com.viaversion.viaversion.exception.CancelEncoderException;
@@ -48,6 +49,7 @@ public class VLBViaEncodeHandler extends MessageToMessageEncoder<ByteBuf> {
         ByteBuf transformedBuf = ctx.alloc().buffer().writeBytes(bytebuf);
         try {
             user.transformOutgoing(transformedBuf, CancelEncoderException::generate);
+            ModernSequenceEncodeHandler.patchSequence(user, transformedBuf);
 
             out.add(transformedBuf.retain());
         } finally {

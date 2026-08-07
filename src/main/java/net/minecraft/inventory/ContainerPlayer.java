@@ -1,5 +1,6 @@
 package net.minecraft.inventory;
 
+import cn.unfair.util.via.ModernOffhandInteraction;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
@@ -64,6 +65,11 @@ public class ContainerPlayer extends Container
         for (int i1 = 0; i1 < 9; ++i1)
         {
             this.addSlotToContainer(new Slot(playerInventory, i1, 8 + i1 * 18, 142));
+        }
+
+        if (ModernOffhandInteraction.isModernTarget() && player.worldObj.isRemote)
+        {
+            this.addSlotToContainer(new Slot(playerInventory, 45, 77, 62));
         }
 
         this.onCraftMatrixChanged(this.craftMatrix);
@@ -157,6 +163,13 @@ public class ContainerPlayer extends Container
             else if (index >= 36 && index < 45)
             {
                 if (!this.mergeItemStack(itemstack1, 9, 36, false))
+                {
+                    return null;
+                }
+            }
+            else if (index == 45)
+            {
+                if (!this.mergeItemStack(itemstack1, 9, 45, false))
                 {
                     return null;
                 }

@@ -3,6 +3,9 @@ package net.minecraft.client.renderer;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.RenderItemEvent;
 import cn.unfair.module.modules.render.Animations;
+import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.ModernOffhandInventory;
+import cn.unfair.util.via.ModernOffhandPlayer;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -457,8 +460,62 @@ public class ItemRenderer {
             }
 
             GlStateManager.popMatrix();
+            this.renderOffhandItemInFirstPerson(partialTicks);
             GlStateManager.disableRescaleNormal();
             RenderHelper.disableStandardItemLighting();
+        }
+    }
+
+    private void renderOffhandItemInFirstPerson(float partialTicks) {
+        if (!ModernOffhandInteraction.isModernTarget()
+                || this.mc == null
+                || this.mc.thePlayer == null
+                || this.mc.gameSettings.thirdPersonView != 0) {
+            return;
+        }
+
+        ItemStack stack = ((ModernOffhandInventory) this.mc.thePlayer.inventory).viaforge$getOffhand();
+        if (stack == null) {
+            return;
+        }
+
+        ItemStack previousItemToRender = this.itemToRender;
+        GlStateManager.enableRescaleNormal();
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.pushMatrix();
+        try {
+            this.itemToRender = stack;
+            GlStateManager.disableCull();
+            GlStateManager.scale(-1.0F, 1.0F, 1.0F);
+            this.applyOffhandUseTransform(stack, partialTicks);
+            this.renderItem(this.mc.thePlayer, stack, ItemCameraTransforms.TransformType.FIRST_PERSON);
+        } finally {
+            this.itemToRender = previousItemToRender;
+            GlStateManager.popMatrix();
+            GlStateManager.enableCull();
+            GlStateManager.disableRescaleNormal();
+            RenderHelper.disableStandardItemLighting();
+        }
+    }
+
+    private void applyOffhandUseTransform(ItemStack stack, float partialTicks) {
+        float swingProgress = ((ModernOffhandPlayer) this.mc.thePlayer).viaforge$getOffhandSwingProgress(partialTicks);
+        if (!this.mc.thePlayer.isUsingItem()
+                || this.mc.thePlayer.getItemInUse() != stack
+                || this.mc.thePlayer.getItemInUseCount() <= 0) {
+            this.transformFirstPersonItem(0.0F, swingProgress);
+            return;
+        }
+
+        EnumAction action = stack.getItemUseAction();
+        if (action == EnumAction.EAT || action == EnumAction.DRINK) {
+            this.performDrinking(this.mc.thePlayer, partialTicks);
+        }
+        this.transformFirstPersonItem(0.0F, swingProgress);
+        if (action == EnumAction.BLOCK) {
+            this.doBlockTransformations();
+        } else if (action == EnumAction.BOW) {
+            this.doBowTransformations(partialTicks, this.mc.thePlayer);
         }
     }
 

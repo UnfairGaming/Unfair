@@ -25,6 +25,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.network.play.client.ServerBoundInteractAttack;
+import net.minecraft.network.play.client.ServerBoundSwing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.MovingObjectPosition;
 
 public class AttackOrder {
@@ -40,7 +43,6 @@ public class AttackOrder {
             mc.playerController.attackEntity(entityIn, target);
         } else {
             mc.playerController.attackEntity(entityIn, target);
-            mc.thePlayer.swingItem();
         }
     }
 
@@ -48,6 +50,10 @@ public class AttackOrder {
         if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_8)) {
             mc.thePlayer.swingItem();
             mc.getNetHandler().getNetworkManager().sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+        } else if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_19)) {
+            mc.getNetHandler().getNetworkManager().sendPacket(new ServerBoundInteractAttack(target));
+            mc.getNetHandler().getNetworkManager().sendPacket(new ServerBoundSwing(EnumHand.MAIN_HAND));
+            mc.thePlayer.swingClientSide();
         } else {
             mc.getNetHandler().getNetworkManager().sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
             mc.thePlayer.swingItem();
@@ -58,6 +64,10 @@ public class AttackOrder {
         if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_8)) {
             mc.getNetHandler().getNetworkManager().sendPacket(new C0APacketAnimation());
             mc.getNetHandler().getNetworkManager().sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+        } else if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_19)) {
+            mc.getNetHandler().getNetworkManager().sendPacket(new ServerBoundInteractAttack(target));
+            mc.getNetHandler().getNetworkManager().sendPacket(new ServerBoundSwing(EnumHand.MAIN_HAND));
+            mc.thePlayer.swingClientSide();
         } else {
             mc.getNetHandler().getNetworkManager().sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
             mc.getNetHandler().getNetworkManager().sendPacket(new C0APacketAnimation());

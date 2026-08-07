@@ -6,6 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.init.Initializer;
 import cn.unfair.module.modules.combat.NoHitDelay;
+import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.SoundUtil;
 import cn.unfair.util.via.ViaProtocol;
@@ -1389,6 +1390,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
      */
     @SuppressWarnings("incomplete-switch")
     private void rightClickMouse() {
+        ModernOffhandInteraction.beginRightClick();
         RightClickMouseEvent event = new RightClickMouseEvent();
         EventManager.call(event);
 
@@ -1419,7 +1421,9 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
 
                             if (this.playerController.onPlayerRightClick(this.thePlayer, this.theWorld, itemstack, blockpos, this.objectMouseOver.sideHit, this.objectMouseOver.hitVec)) {
                                 flag = false;
-                                this.thePlayer.swingItem();
+                                if (!ModernOffhandInteraction.wasClientOffhandAction()) {
+                                    this.thePlayer.swingItem();
+                                }
                             }
 
                             if (itemstack == null) {
@@ -1440,6 +1444,8 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 ItemStack itemstack1 = this.thePlayer.inventory.getCurrentItem();
 
                 if (itemstack1 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, itemstack1)) {
+                    this.entityRenderer.itemRenderer.resetEquippedProgress2();
+                } else if (itemstack1 == null && ModernOffhandInteraction.hasOffhand(this.thePlayer) && ModernOffhandInteraction.sendUseItem(this.thePlayer)) {
                     this.entityRenderer.itemRenderer.resetEquippedProgress2();
                 }
             }
@@ -1854,6 +1860,12 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
             }
 
             this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.isKeyDown() && this.inGameHasFocus);
+
+            if (this.currentScreen == null
+                    && this.playerController != null
+                    && this.gameSettings.keyBindSwapOffhand.isPressed()) {
+                ModernOffhandInteraction.sendSwapItemWithOffhand(this.thePlayer);
+            }
         }
 
         if (this.theWorld != null) {
@@ -2621,6 +2633,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 }
             }
         }
+
     }
 
     public void setRenderViewEntity(Entity viewingEntity) {

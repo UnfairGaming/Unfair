@@ -1,6 +1,9 @@
 package net.minecraft.util;
 
 import cn.unfair.util.via.ViaProtocol;
+import cn.unfair.util.via.ModernPlayerPhysics;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.GameSettings;
 
 public class MovementInputFromOptions extends MovementInput {
@@ -37,6 +40,11 @@ public class MovementInputFromOptions extends MovementInput {
         if (ViaProtocol.newerThanOrEqualTo1_14() ? (ViaProtocol.newerThanOrEqualTo1_15() ? wasSneaking : this.sneak || wasSneaking) : this.sneak) {
             this.moveStrafe = (float) ((double) this.moveStrafe * 0.3D);
             this.moveForward = (float) ((double) this.moveForward * 0.3D);
+        }
+
+        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
+        if (player instanceof ModernPlayerPhysics) {
+            ((ModernPlayerPhysics) player).viaforge$updateModernMovementInput(this);
         }
     }
 }

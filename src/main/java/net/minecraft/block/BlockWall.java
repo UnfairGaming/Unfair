@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -63,10 +65,11 @@ public class BlockWall extends Block
 
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
-        boolean flag = this.canConnectTo(worldIn, pos.north());
-        boolean flag1 = this.canConnectTo(worldIn, pos.south());
-        boolean flag2 = this.canConnectTo(worldIn, pos.west());
-        boolean flag3 = this.canConnectTo(worldIn, pos.east());
+        boolean modernTarget = ViaProtocol.newerThanOrEqualTo1_9();
+        boolean flag = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.NORTH) : this.canConnectTo(worldIn, pos.north());
+        boolean flag1 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH) : this.canConnectTo(worldIn, pos.south());
+        boolean flag2 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.WEST) : this.canConnectTo(worldIn, pos.west());
+        boolean flag3 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.EAST) : this.canConnectTo(worldIn, pos.east());
         float f = 0.25F;
         float f1 = 0.75F;
         float f2 = 0.25F;
@@ -116,10 +119,112 @@ public class BlockWall extends Block
         return super.getCollisionBoundingBox(worldIn, pos, state);
     }
 
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, net.minecraft.entity.Entity collidingEntity)
+    {
+        if (!ViaProtocol.newerThanOrEqualTo1_13())
+        {
+            super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
+            return;
+        }
+
+        boolean north = this.canConnectToModern(worldIn, pos, EnumFacing.NORTH);
+        boolean south = this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH);
+        boolean west = this.canConnectToModern(worldIn, pos, EnumFacing.WEST);
+        boolean east = this.canConnectToModern(worldIn, pos, EnumFacing.EAST);
+
+        if (this.shouldHaveModernPost(worldIn, pos, north, south, west, east))
+        {
+            this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.25F, 0.0F, 0.25F, 0.75F, 1.5F, 0.75F);
+        }
+
+        if (north)
+        {
+            this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.3125F, 0.0F, 0.0F, 0.6875F, 1.5F, 0.6875F);
+        }
+
+        if (south)
+        {
+            this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.3125F, 0.0F, 0.3125F, 0.6875F, 1.5F, 1.0F);
+        }
+
+        if (west)
+        {
+            this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.0F, 0.0F, 0.3125F, 0.6875F, 1.5F, 0.6875F);
+        }
+
+        if (east)
+        {
+            this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.3125F, 0.0F, 0.3125F, 1.0F, 1.5F, 0.6875F);
+        }
+    }
+
     public boolean canConnectTo(IBlockAccess worldIn, BlockPos pos)
     {
         Block block = worldIn.getBlockState(pos).getBlock();
         return block == Blocks.barrier ? false : (block != this && !(block instanceof BlockFenceGate) ? (block.blockMaterial.isOpaque() && block.isFullCube() ? block.blockMaterial != Material.gourd : false) : true);
+    }
+
+    private boolean canConnectToModern(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
+    {
+        BlockPos neighbor = pos.offset(direction);
+        IBlockState state = worldIn.getBlockState(neighbor);
+        Block block = state.getBlock();
+        int protocol = ViaProtocol.targetProtocolVersion();
+
+        if (block == Blocks.barrier)
+        {
+            return protocol >= ProtocolVersion.v1_9.getVersion() && protocol <= ProtocolVersion.v1_11_1.getVersion();
+        }
+
+        if (block instanceof BlockWall)
+        {
+            return true;
+        }
+
+        if (block instanceof BlockFenceGate)
+        {
+            if (protocol <= ProtocolVersion.v1_11_1.getVersion())
+            {
+                return true;
+            }
+
+            EnumFacing gateFacing = (EnumFacing)state.getValue(BlockFenceGate.FACING);
+            return gateFacing.getAxis() != direction.getAxis();
+        }
+
+        if (block.getMaterial() == Material.leaves
+                || block.getMaterial() == Material.gourd
+                || block instanceof BlockTrapDoor
+                || block instanceof BlockPistonBase
+                || block instanceof BlockPistonExtension
+                || block == Blocks.farmland
+                || block == Blocks.beacon
+                || block == Blocks.cauldron
+                || block == Blocks.glowstone
+                || block == Blocks.sea_lantern
+                || block == Blocks.ice
+                || block == Blocks.packed_ice)
+        {
+            return false;
+        }
+
+        return block.isFullCube() && block.isBlockSolid(worldIn, neighbor, direction.getOpposite());
+    }
+
+    private boolean shouldHaveModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east)
+    {
+        if (!worldIn.isAirBlock(pos.up()))
+        {
+            return true;
+        }
+
+        return (!north || !south || west || east) && (!west || !east || north || south);
+    }
+
+    private void addWallCollisionBox(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+    {
+        this.setBlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
+        super.addCollisionBoxesToList(worldIn, pos, state, mask, list, null);
     }
 
     /**
@@ -169,6 +274,15 @@ public class BlockWall extends Block
      */
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
     {
+        if (ViaProtocol.newerThanOrEqualTo1_9())
+        {
+            boolean north = this.canConnectToModern(worldIn, pos, EnumFacing.NORTH);
+            boolean south = this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH);
+            boolean west = this.canConnectToModern(worldIn, pos, EnumFacing.WEST);
+            boolean east = this.canConnectToModern(worldIn, pos, EnumFacing.EAST);
+            return state.withProperty(UP, Boolean.valueOf(this.shouldHaveModernPost(worldIn, pos, north, south, west, east))).withProperty(NORTH, Boolean.valueOf(north)).withProperty(EAST, Boolean.valueOf(east)).withProperty(SOUTH, Boolean.valueOf(south)).withProperty(WEST, Boolean.valueOf(west));
+        }
+
         return state.withProperty(UP, Boolean.valueOf(!worldIn.isAirBlock(pos.up()))).withProperty(NORTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.north()))).withProperty(EAST, Boolean.valueOf(this.canConnectTo(worldIn, pos.east()))).withProperty(SOUTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.south()))).withProperty(WEST, Boolean.valueOf(this.canConnectTo(worldIn, pos.west())));
     }
 

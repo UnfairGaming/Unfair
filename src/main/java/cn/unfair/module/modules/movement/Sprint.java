@@ -5,6 +5,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.KeyBindUtil;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -41,6 +42,14 @@ public class Sprint extends Module {
             }
             switch (event.type()) {
                 case PRE:
+                    if ((ViaProtocol.newerThanOrEqualTo1_9() && mc.gameSettings.keyBindSneak.isKeyDown())
+                            || (ViaProtocol.newerThanOrEqualTo1_13() && mc.thePlayer.isInWater())) {
+                        this.wasSprinting = false;
+                        mc.thePlayer.setSprinting(false);
+                        KeyBindUtil.updateKeyState(mc.gameSettings.keyBindSprint.getKeyCode());
+                        break;
+                    }
+
                     KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), true);
                     break;
                 case POST:

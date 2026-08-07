@@ -10,6 +10,10 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.NoSlow;
 import cn.unfair.module.modules.player.AntiDebuff;
+import cn.unfair.util.via.ModernFluidPhysics;
+import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.ModernOffhandPlayer;
+import cn.unfair.util.via.ModernPlayerPhysics;
 import cn.unfair.util.via.ViaProtocol;
 import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
 import com.viaversion.viaversion.api.Via;
@@ -21,6 +25,7 @@ import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPacke
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.MovingSoundMinecartRiding;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -46,7 +51,7 @@ import net.minecraft.util.*;
 import net.minecraft.world.IInteractionObject;
 import net.minecraft.world.World;
 
-public class EntityPlayerSP extends AbstractClientPlayer {
+public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayerPhysics, ModernOffhandPlayer {
     public final NetHandlerPlayClient sendQueue;
     private final StatFileWriter statWriter;
 
@@ -117,6 +122,28 @@ public class EntityPlayerSP extends AbstractClientPlayer {
     public float renderArmPitch;
     public float prevRenderArmYaw;
     public float prevRenderArmPitch;
+    private boolean offhandSwinging;
+    private int offhandSwingTicks;
+    private float offhandSwingProgress;
+    private float previousOffhandSwingProgress;
+    private boolean modernSwimming;
+    private boolean wasModernSwimming;
+    private boolean modernSubmergedInWater;
+    private boolean wasEyeInWater;
+    private boolean wasSprintingBeforeInput;
+    private BlockPos mainSupportingBlock;
+    private boolean supportingBlockOnGround;
+    private float modernEyeHeight = 1.62F;
+    private boolean slowMovementFromPreviousPose;
+    private double modernWaterHeight;
+    private double modernLavaHeight;
+    private boolean touchingModernLava;
+    private boolean usingItemAtPreviousTick;
+    private boolean usingItemAtTickStart;
+    private boolean carryItemUseSlowdown;
+    private boolean localItemUseFinished;
+    private boolean serverItemUseFinished;
+    private int itemUseFinishGraceTicks;
     private float overrideYaw = Float.NaN;
     private float overridePitch = Float.NaN;
     private float pendingYaw = Float.NaN;
@@ -243,7 +270,7 @@ public class EntityPlayerSP extends AbstractClientPlayer {
      * called every tick when the player is on foot. Performs all the things that normally happen during movement.
      */
     public void onUpdateWalkingPlayer() {
-        boolean flag = this.isSprinting();
+        boolean flag = this.isSprinting() && this.shouldReportSprintingToServer();
 
         if (flag != this.serverSprintState) {
             if (ViaProtocol.newerThanOrEqualTo1_19()) {
@@ -293,6 +320,9 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             boolean flag2 = ViaProtocol.newerThanOrEqualTo1_18()
                     ? d0 * d0 + d1 * d1 + d2 * d2 > (2.0E-4D * 2.0E-4D) || this.positionUpdateTicks >= 20
                     : d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || this.positionUpdateTicks >= 20;
+            if (this.isModernTarget()) {
+                flag2 = d0 * d0 + d1 * d1 + d2 * d2 > 4.0E-8D || this.positionUpdateTicks >= 19;
+            }
             boolean flag3 = d3 != 0.0D || d4 != 0.0D;
 
             if (this.ridingEntity == null) {
@@ -329,6 +359,11 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             mc.thePlayer.rotationYawHead = yaw;
             mc.thePlayer.rotationPitchHead = pitch;
         }
+    }
+
+    private boolean shouldReportSprintingToServer() {
+        return !this.isModernTarget()
+                || !this.isInWater();
     }
 
     /**
@@ -676,6 +711,9 @@ public class EntityPlayerSP extends AbstractClientPlayer {
      * use this to react to sunlight and start to burn.
      */
     public void onLivingUpdate() {
+        this.updateModernSwimmingStateHead();
+        this.updateModernSneakingPose();
+
         if (this.sprintingTicksLeft > 0) {
             --this.sprintingTicksLeft;
 
@@ -732,6 +770,7 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         boolean flag2 = this.movementInput.moveForward >= f;
         this.movementInput.updatePlayerMoveState();
         EventManager.call(new MoveInputEvent());
+        boolean currentlySneaking = this.movementInput.sneak;
 
         if (this.isUsingItemForSlowdown() && !this.isRiding()) {
             this.movementInput.moveStrafe *= 0.2F;
@@ -752,7 +791,7 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         this.pushOutOfBlocks(this.posX + (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ + (double) this.width * 0.35D);
         boolean flag3 = (float) this.getFoodStats().getFoodLevel() > 6.0F || this.capabilities.allowFlying;
 
-        if (this.onGround && !flag1 && !flag2 && this.movementInput.moveForward >= f && !this.isSprinting() && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness)) {
+        if (this.onGround && !currentlySneaking && !flag2 && this.movementInput.moveForward >= f && !this.isSprinting() && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness)) {
             if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.isKeyDown()) {
                 this.sprintToggleTimer = 7;
             } else {
@@ -760,7 +799,7 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             }
         }
 
-        if (!this.isSprinting() && this.movementInput.moveForward >= f && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown()) {
+        if (!this.isSprinting() && !currentlySneaking && this.movementInput.moveForward >= f && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness) && this.mc.gameSettings.keyBindSprint.isKeyDown()) {
             this.setSprinting(true);
         }
 
@@ -770,7 +809,9 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         boolean waterBlockingSprint = this.isInWater()
                 && ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_13);
 
-        if (this.isSprinting() && (this.movementInput.moveForward < f || collidedBlockingSprint || !flag3 || waterBlockingSprint)) {
+        boolean sneakingBlockingSprint = ViaProtocol.newerThanOrEqualTo1_9() && currentlySneaking;
+
+        if (this.isSprinting() && (this.movementInput.moveForward < f || collidedBlockingSprint || !flag3 || waterBlockingSprint || sneakingBlockingSprint)) {
             this.setSprinting(false);
         }
 
@@ -832,6 +873,27 @@ public class EntityPlayerSP extends AbstractClientPlayer {
         EventManager.call(new LivingUpdateEvent());
         super.onLivingUpdate();
 
+        this.previousOffhandSwingProgress = this.offhandSwingProgress;
+        if (!ModernOffhandInteraction.isModernTarget()) {
+            this.offhandSwinging = false;
+            this.offhandSwingTicks = 0;
+            this.offhandSwingProgress = 0.0F;
+            this.previousOffhandSwingProgress = 0.0F;
+        } else
+        if (this.offhandSwinging) {
+            ++this.offhandSwingTicks;
+            if (this.offhandSwingTicks >= 6) {
+                this.offhandSwingTicks = 0;
+                this.offhandSwinging = false;
+            }
+        } else {
+            this.offhandSwingTicks = 0;
+        }
+        this.offhandSwingProgress = (float) this.offhandSwingTicks / 6.0F;
+        if (this.isModernTarget()) {
+            this.usingItemAtPreviousTick = this.usingItemAtTickStart;
+        }
+
         if (ViaProtocol.newerThanOrEqualTo1_14()) {
             this.jumpMovementFactor = 0.02F;
             if (isSprinting()) {
@@ -843,6 +905,273 @@ public class EntityPlayerSP extends AbstractClientPlayer {
             this.capabilities.isFlying = false;
             this.sendPlayerAbilities();
         }
+    }
+
+    @Override
+    public void viaforge$swingOffhand() {
+        if (!this.offhandSwinging || this.offhandSwingTicks >= 3) {
+            this.offhandSwingTicks = 0;
+            this.offhandSwingProgress = 0.0F;
+            this.previousOffhandSwingProgress = 0.0F;
+            this.offhandSwinging = true;
+        }
+    }
+
+    @Override
+    public float viaforge$getOffhandSwingProgress(float partialTicks) {
+        float delta = this.offhandSwingProgress - this.previousOffhandSwingProgress;
+        if (delta < 0.0F) {
+            delta += 1.0F;
+        }
+        return this.previousOffhandSwingProgress + delta * partialTicks;
+    }
+
+    @Override
+    public float getEyeHeight() {
+        return this.usesModernSneakPose() || this.isModernTarget() ? this.modernEyeHeight : super.getEyeHeight();
+    }
+
+    private void updateModernSwimmingStateHead() {
+        if (!this.isModernTarget()) {
+            this.modernSwimming = false;
+            this.wasModernSwimming = false;
+            this.modernSubmergedInWater = false;
+            this.wasEyeInWater = false;
+            this.wasSprintingBeforeInput = false;
+            this.mainSupportingBlock = null;
+            this.supportingBlockOnGround = false;
+            this.modernEyeHeight = 1.62F;
+            this.slowMovementFromPreviousPose = false;
+            this.modernWaterHeight = 0.0D;
+            this.modernLavaHeight = 0.0D;
+            this.touchingModernLava = false;
+            this.usingItemAtPreviousTick = false;
+            this.usingItemAtTickStart = false;
+            this.carryItemUseSlowdown = false;
+            this.localItemUseFinished = false;
+            this.serverItemUseFinished = false;
+            this.itemUseFinishGraceTicks = 0;
+            return;
+        }
+
+        this.wasModernSwimming = false;
+        this.wasSprintingBeforeInput = this.isSprinting();
+        this.usingItemAtTickStart = this.isUsingItem();
+        if (this.localItemUseFinished) {
+            this.itemUseFinishGraceTicks = this.serverItemUseFinished ? 0 : 2;
+            this.localItemUseFinished = false;
+        }
+        if (this.serverItemUseFinished) {
+            this.itemUseFinishGraceTicks = 0;
+            this.serverItemUseFinished = false;
+        }
+        this.carryItemUseSlowdown = this.itemUseFinishGraceTicks > 0
+                || this.usingItemAtPreviousTick
+                && !this.usingItemAtTickStart
+                && Minecraft.getMinecraft().gameSettings.keyBindUseItem.isKeyDown();
+        if (this.itemUseFinishGraceTicks > 0) {
+            this.itemUseFinishGraceTicks--;
+        }
+    }
+
+    @Override
+    public void viaforge$updateModernMovementInput(MovementInput input) {
+        if (!this.isModernTarget()) {
+            return;
+        }
+
+        if (input.sneak && !this.slowMovementFromPreviousPose) {
+            input.moveStrafe /= 0.3F;
+            input.moveForward /= 0.3F;
+        } else if (!input.sneak && this.slowMovementFromPreviousPose) {
+            input.moveStrafe *= 0.3F;
+            input.moveForward *= 0.3F;
+        }
+
+        if (this.carryItemUseSlowdown) {
+            input.moveStrafe *= 0.2F;
+            input.moveForward *= 0.2F;
+        }
+
+        this.updateSwimmingAndPose();
+
+        if ((this.isUsingItem() || this.carryItemUseSlowdown) && !this.isRiding()) {
+            this.setSprinting(false);
+        }
+
+        if (this.isSprinting()
+                && this.isInWater()) {
+            this.setSprinting(false);
+        }
+
+        if (this.isInWater()
+                && input.sneak
+                && !this.capabilities.isFlying
+                && !this.isRiding()) {
+            this.motionY -= 0.04F;
+        }
+
+        this.jumpMovementFactor = this.isSprinting() ? 0.025999999F : 0.02F;
+    }
+
+    private void updateSwimmingAndPose() {
+        boolean eyeInWater = this.isModernEyeInWater();
+        this.modernSubmergedInWater = eyeInWater;
+        this.modernSwimming = false;
+        this.wasEyeInWater = eyeInWater;
+
+        float desiredHeight;
+        boolean canCrouch = this.canUseHeight(1.5F);
+        boolean canStand = this.canUseHeight(1.8F);
+        if (this.isSneaking() || !canStand) {
+            desiredHeight = 1.5F;
+            this.modernEyeHeight = 1.27F;
+        } else {
+            desiredHeight = 1.8F;
+            this.modernEyeHeight = 1.62F;
+        }
+        this.setModernHeight(desiredHeight);
+
+        this.slowMovementFromPreviousPose = !this.capabilities.isFlying
+                && !this.isRiding()
+                && !this.modernSwimming
+                && canCrouch
+                && (this.isSneaking() || !canStand);
+    }
+
+    private void updateModernSneakingPose() {
+        if (this.isModernTarget() || !this.usesModernSneakPose()) {
+            return;
+        }
+
+        float crouchingHeight = ViaProtocol.newerThanOrEqualTo1_14() ? 1.5F : 1.65F;
+        float crouchingEyeHeight = ViaProtocol.newerThanOrEqualTo1_14() ? 1.27F : 1.54F;
+        boolean canCrouch = this.canUseHeight(crouchingHeight);
+        boolean canStand = this.canUseHeight(1.8F);
+
+        if ((this.isSneaking() || !canStand) && canCrouch) {
+            this.modernEyeHeight = crouchingEyeHeight;
+            this.setModernHeight(crouchingHeight);
+        } else {
+            this.modernEyeHeight = 1.62F;
+            this.setModernHeight(1.8F);
+        }
+    }
+
+    private boolean canUseHeight(float height) {
+        AxisAlignedBB box = this.getEntityBoundingBox();
+        AxisAlignedBB requested = new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX, box.minY + height, box.maxZ);
+        return this.worldObj.getCollidingBoundingBoxes(this, requested).isEmpty();
+    }
+
+    private void setModernHeight(float height) {
+        if (this.height == height) {
+            return;
+        }
+
+        AxisAlignedBB box = this.getEntityBoundingBox();
+        this.height = height;
+        this.setEntityBoundingBox(new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX, box.minY + height, box.maxZ));
+    }
+
+    private boolean isModernEyeInWater() {
+        double eyeY = this.posY + (double) this.modernEyeHeight - 0.1111111119389534D;
+        BlockPos eyePosition = new BlockPos(this.posX, eyeY, this.posZ);
+        return (double) eyePosition.getY() + (double) ModernFluidPhysics.getWaterHeight(this.worldObj, eyePosition) > eyeY;
+    }
+
+    @Override
+    public boolean viaforge$isModernSwimming() {
+        return false;
+    }
+
+    @Override
+    public boolean viaforge$wasModernSwimming() {
+        return false;
+    }
+
+    @Override
+    public boolean viaforge$isModernSubmergedInWater() {
+        return this.modernSubmergedInWater;
+    }
+
+    @Override
+    public void viaforge$setModernSubmergedInWater(boolean submerged) {
+        this.modernSubmergedInWater = submerged;
+    }
+
+    @Override
+    public boolean viaforge$wasModernEyeInWater() {
+        return this.wasEyeInWater;
+    }
+
+    @Override
+    public float viaforge$getModernEyeHeight() {
+        return this.modernEyeHeight;
+    }
+
+    @Override
+    public double viaforge$getModernWaterHeight() {
+        return this.modernWaterHeight;
+    }
+
+    @Override
+    public void viaforge$setModernWaterHeight(double height) {
+        this.modernWaterHeight = height;
+    }
+
+    @Override
+    public double viaforge$getModernLavaHeight() {
+        return this.modernLavaHeight;
+    }
+
+    @Override
+    public void viaforge$setModernLavaHeight(double height) {
+        this.modernLavaHeight = height;
+    }
+
+    @Override
+    public boolean viaforge$isTouchingModernLava() {
+        return this.touchingModernLava;
+    }
+
+    @Override
+    public void viaforge$setTouchingModernLava(boolean touching) {
+        this.touchingModernLava = touching;
+    }
+
+    @Override
+    public BlockPos viaforge$getMainSupportingBlock() {
+        return this.mainSupportingBlock;
+    }
+
+    @Override
+    public boolean viaforge$wasSupportingBlockOnGround() {
+        return this.supportingBlockOnGround;
+    }
+
+    @Override
+    public void viaforge$setMainSupportingBlock(BlockPos position, boolean onGround) {
+        this.mainSupportingBlock = position;
+        this.supportingBlockOnGround = onGround;
+    }
+
+    @Override
+    public void viaforge$markLocalItemUseFinished() {
+        this.localItemUseFinished = true;
+    }
+
+    @Override
+    public void viaforge$confirmServerItemUseFinished() {
+        this.serverItemUseFinished = true;
+    }
+
+    private boolean isModernTarget() {
+        return ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5;
+    }
+
+    private boolean usesModernSneakPose() {
+        return ViaProtocol.newerThanOrEqualTo1_9();
     }
 
     private boolean isUsingItemForSlowdown() {

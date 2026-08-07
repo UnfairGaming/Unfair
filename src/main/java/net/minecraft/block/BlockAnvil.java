@@ -1,12 +1,16 @@
 package net.minecraft.block;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityFallingBlock;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,6 +20,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerRepair;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumFacing;
@@ -50,6 +55,45 @@ public class BlockAnvil extends BlockFalling
     public boolean isOpaqueCube()
     {
         return false;
+    }
+
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
+    {
+        if (collidingEntity instanceof EntityPlayerSP && ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5)
+        {
+            addModernCollisionBox(pos, mask, list, 2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
+            EnumFacing facing = (EnumFacing)state.getValue(FACING);
+            if (facing.getAxis() == EnumFacing.Axis.Z)
+            {
+                addModernCollisionBox(pos, mask, list, 4.0D, 4.0D, 3.0D, 12.0D, 5.0D, 13.0D);
+                addModernCollisionBox(pos, mask, list, 6.0D, 5.0D, 4.0D, 10.0D, 10.0D, 12.0D);
+                addModernCollisionBox(pos, mask, list, 3.0D, 10.0D, 0.0D, 13.0D, 16.0D, 16.0D);
+            }
+            else
+            {
+                addModernCollisionBox(pos, mask, list, 3.0D, 4.0D, 4.0D, 13.0D, 5.0D, 12.0D);
+                addModernCollisionBox(pos, mask, list, 4.0D, 5.0D, 6.0D, 12.0D, 10.0D, 10.0D);
+                addModernCollisionBox(pos, mask, list, 0.0D, 10.0D, 3.0D, 16.0D, 16.0D, 13.0D);
+            }
+            return;
+        }
+
+        super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
+    }
+
+    private static void addModernCollisionBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list, double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
+    {
+        AxisAlignedBB box = new AxisAlignedBB(
+                (double)pos.getX() + minX / 16.0D,
+                (double)pos.getY() + minY / 16.0D,
+                (double)pos.getZ() + minZ / 16.0D,
+                (double)pos.getX() + maxX / 16.0D,
+                (double)pos.getY() + maxY / 16.0D,
+                (double)pos.getZ() + maxZ / 16.0D);
+        if (box.intersectsWith(mask))
+        {
+            list.add(box);
+        }
     }
 
     /**

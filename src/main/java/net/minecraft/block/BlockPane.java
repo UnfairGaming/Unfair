@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -41,7 +42,7 @@ public class BlockPane extends Block
      */
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
     {
-        return state.withProperty(NORTH, Boolean.valueOf(this.canPaneConnectToBlock(worldIn.getBlockState(pos.north()).getBlock()))).withProperty(SOUTH, Boolean.valueOf(this.canPaneConnectToBlock(worldIn.getBlockState(pos.south()).getBlock()))).withProperty(WEST, Boolean.valueOf(this.canPaneConnectToBlock(worldIn.getBlockState(pos.west()).getBlock()))).withProperty(EAST, Boolean.valueOf(this.canPaneConnectToBlock(worldIn.getBlockState(pos.east()).getBlock())));
+        return state.withProperty(NORTH, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.NORTH))).withProperty(SOUTH, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.SOUTH))).withProperty(WEST, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.WEST))).withProperty(EAST, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.EAST)));
     }
 
     /**
@@ -75,10 +76,37 @@ public class BlockPane extends Block
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        boolean flag = this.canPaneConnectToBlock(worldIn.getBlockState(pos.north()).getBlock());
-        boolean flag1 = this.canPaneConnectToBlock(worldIn.getBlockState(pos.south()).getBlock());
-        boolean flag2 = this.canPaneConnectToBlock(worldIn.getBlockState(pos.west()).getBlock());
-        boolean flag3 = this.canPaneConnectToBlock(worldIn.getBlockState(pos.east()).getBlock());
+        boolean flag = this.canPaneConnectTo(worldIn, pos, EnumFacing.NORTH);
+        boolean flag1 = this.canPaneConnectTo(worldIn, pos, EnumFacing.SOUTH);
+        boolean flag2 = this.canPaneConnectTo(worldIn, pos, EnumFacing.WEST);
+        boolean flag3 = this.canPaneConnectTo(worldIn, pos, EnumFacing.EAST);
+
+        if (ViaProtocol.newerThanOrEqualTo1_9())
+        {
+            this.addPaneCollisionBox(worldIn, pos, state, mask, list, 0.4375F, 0.0F, 0.4375F, 0.5625F, 1.0F, 0.5625F);
+
+            if (flag)
+            {
+                this.addPaneCollisionBox(worldIn, pos, state, mask, list, 0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 0.5625F);
+            }
+
+            if (flag1)
+            {
+                this.addPaneCollisionBox(worldIn, pos, state, mask, list, 0.4375F, 0.0F, 0.4375F, 0.5625F, 1.0F, 1.0F);
+            }
+
+            if (flag2)
+            {
+                this.addPaneCollisionBox(worldIn, pos, state, mask, list, 0.0F, 0.0F, 0.4375F, 0.5625F, 1.0F, 0.5625F);
+            }
+
+            if (flag3)
+            {
+                this.addPaneCollisionBox(worldIn, pos, state, mask, list, 0.4375F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F);
+            }
+
+            return;
+        }
 
         if ((!flag2 || !flag3) && (flag2 || flag3 || flag || flag1))
         {
@@ -133,10 +161,36 @@ public class BlockPane extends Block
         float f1 = 0.5625F;
         float f2 = 0.4375F;
         float f3 = 0.5625F;
-        boolean flag = this.canPaneConnectToBlock(worldIn.getBlockState(pos.north()).getBlock());
-        boolean flag1 = this.canPaneConnectToBlock(worldIn.getBlockState(pos.south()).getBlock());
-        boolean flag2 = this.canPaneConnectToBlock(worldIn.getBlockState(pos.west()).getBlock());
-        boolean flag3 = this.canPaneConnectToBlock(worldIn.getBlockState(pos.east()).getBlock());
+        boolean flag = this.canPaneConnectTo(worldIn, pos, EnumFacing.NORTH);
+        boolean flag1 = this.canPaneConnectTo(worldIn, pos, EnumFacing.SOUTH);
+        boolean flag2 = this.canPaneConnectTo(worldIn, pos, EnumFacing.WEST);
+        boolean flag3 = this.canPaneConnectTo(worldIn, pos, EnumFacing.EAST);
+
+        if (ViaProtocol.newerThanOrEqualTo1_9())
+        {
+            if (flag2)
+            {
+                f = 0.0F;
+            }
+
+            if (flag3)
+            {
+                f1 = 1.0F;
+            }
+
+            if (flag)
+            {
+                f2 = 0.0F;
+            }
+
+            if (flag1)
+            {
+                f3 = 1.0F;
+            }
+
+            this.setBlockBounds(f, 0.0F, f2, f1, 1.0F, f3);
+            return;
+        }
 
         if ((!flag2 || !flag3) && (flag2 || flag3 || flag || flag1))
         {
@@ -178,6 +232,43 @@ public class BlockPane extends Block
     public final boolean canPaneConnectToBlock(Block blockIn)
     {
         return blockIn.isFullBlock() || blockIn == this || blockIn == Blocks.glass || blockIn == Blocks.stained_glass || blockIn == Blocks.stained_glass_pane || blockIn instanceof BlockPane;
+    }
+
+    private boolean canPaneConnectTo(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
+    {
+        BlockPos neighbor = pos.offset(direction);
+        Block block = worldIn.getBlockState(neighbor).getBlock();
+
+        if (!ViaProtocol.newerThanOrEqualTo1_9())
+        {
+            return this.canPaneConnectToBlock(block);
+        }
+
+        if (block == this || block == Blocks.iron_bars || block instanceof BlockPane || block == Blocks.glass || block == Blocks.stained_glass)
+        {
+            return true;
+        }
+
+        if (block.getMaterial() == Material.leaves
+                || block instanceof BlockTrapDoor
+                || block == Blocks.farmland
+                || block == Blocks.beacon
+                || block == Blocks.cauldron
+                || block == Blocks.glowstone
+                || block == Blocks.sea_lantern
+                || block == Blocks.ice
+                || block == Blocks.packed_ice)
+        {
+            return false;
+        }
+
+        return block.isFullCube() && block.isBlockSolid(worldIn, neighbor, direction.getOpposite());
+    }
+
+    private void addPaneCollisionBox(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+    {
+        this.setBlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
+        super.addCollisionBoxesToList(worldIn, pos, state, mask, list, null);
     }
 
     protected boolean canSilkHarvest()

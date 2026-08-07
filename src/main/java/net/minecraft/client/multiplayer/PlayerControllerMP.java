@@ -7,6 +7,7 @@ import cn.unfair.events.WindowClickEvent;
 import cn.unfair.module.modules.misc.ViaVersionFix;
 import cn.unfair.util.via.BlockStatePredictionHandler;
 import cn.unfair.util.via.ViaProtocol;
+import cn.unfair.util.via.ModernOffhandInteraction;
 import com.viaversion.viabackwards.protocol.v1_19_1to1_19.Protocol1_19_1To1_19;
 import com.viaversion.viabackwards.protocol.v1_19_3to1_19_1.Protocol1_19_3To1_19_1;
 import com.viaversion.viabackwards.protocol.v1_19_4to1_19_3.Protocol1_19_4To1_19_3;
@@ -47,6 +48,7 @@ import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.player.EntityPlayer;
@@ -65,6 +67,10 @@ public class PlayerControllerMP
     private final Minecraft mc;
     private final NetHandlerPlayClient netClientHandler;
     private BlockPos currentBlock = new BlockPos(-1, -1, -1);
+    private Vec3 pendingOffhandEntityHit;
+    private double viaforge$motionBeforeAttackX;
+    private double viaforge$motionBeforeAttackZ;
+    private boolean viaforge$knockbackAttackSlow;
 
     /** The Item currently being used to destroy a block */
     private ItemStack currentItemHittingBlock;
@@ -474,7 +480,7 @@ public class PlayerControllerMP
 
                     if (!itemblock.canPlaceBlockOnSide(worldIn, hitPos, side, player, heldStack))
                     {
-                        return false;
+                        return this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                     }
                 }
             }
@@ -502,7 +508,7 @@ public class PlayerControllerMP
             {
                 if (heldStack == null)
                 {
-                    return false;
+                    return this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
                 else if (this.currentGameType.isCreative())
                 {
@@ -511,11 +517,12 @@ public class PlayerControllerMP
                     boolean flag1 = heldStack.onItemUse(player, worldIn, hitPos, side, f, f1, f2);
                     heldStack.setItemDamage(i);
                     heldStack.stackSize = j;
-                    return flag1;
+                    return flag1 || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
                 else
                 {
-                    return heldStack.onItemUse(player, worldIn, hitPos, side, f, f1, f2);
+                    return heldStack.onItemUse(player, worldIn, hitPos, side, f, f1, f2)
+                            || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
             }
             else
@@ -523,6 +530,18 @@ public class PlayerControllerMP
                 return true;
             }
         }
+    }
+
+    private boolean tryOffhandUseOnBlock(EntityPlayerSP player, BlockPos hitPos, EnumFacing side, Vec3 hitVec) {
+        if (!ModernOffhandInteraction.hasOffhand(player)
+                || !ModernOffhandInteraction.sendUseItemOnBlock(player, hitPos, side, hitVec)) {
+            return false;
+        }
+
+        if (ModernOffhandInteraction.shouldUseItemAfterBlock(player)) {
+            ModernOffhandInteraction.sendUseItem(player);
+        }
+        return true;
     }
 
     private UserConnection getViaUserConnection() {
@@ -569,6 +588,10 @@ public class PlayerControllerMP
 
                 return true;
             }
+            else if (playerIn instanceof EntityPlayerSP && ModernOffhandInteraction.hasOffhand(playerIn) && ModernOffhandInteraction.sendUseItem((EntityPlayerSP) playerIn))
+            {
+                return true;
+            }
             else
             {
                 return false;
@@ -585,6 +608,14 @@ public class PlayerControllerMP
      * Attacks an entity
      */
     public void attackEntity(EntityPlayer playerIn, Entity targetEntity) {
+        if (ModernOffhandInteraction.isModernTarget()) {
+            this.viaforge$motionBeforeAttackX = playerIn.motionX;
+            this.viaforge$motionBeforeAttackZ = playerIn.motionZ;
+            this.viaforge$knockbackAttackSlow = EnchantmentHelper.getKnockbackModifier(playerIn) > 0;
+        } else {
+            this.viaforge$knockbackAttackSlow = false;
+        }
+
         AttackEvent event = new AttackEvent(targetEntity);
         EventManager.call(event);
 
@@ -598,9 +629,23 @@ public class PlayerControllerMP
         } else {
             this.netClientHandler.addToSendQueue(new C02PacketUseEntity(targetEntity, C02PacketUseEntity.Action.ATTACK));
         }
+        if (ModernOffhandInteraction.isModernTarget()) {
+            this.netClientHandler.addToSendQueue(new ServerBoundSwing(EnumHand.MAIN_HAND));
+            playerIn.swingClientSide();
+        }
 
         if (this.currentGameType != WorldSettings.GameType.SPECTATOR) {
             playerIn.attackTargetEntityWithCurrentItem(targetEntity);
+        }
+        if (ModernOffhandInteraction.isModernTarget() && this.viaforge$knockbackAttackSlow) {
+            double expectedX = this.viaforge$motionBeforeAttackX * 0.6D;
+            double expectedZ = this.viaforge$motionBeforeAttackZ * 0.6D;
+            if (Math.abs(playerIn.motionX - expectedX) > 1.0E-12D
+                    || Math.abs(playerIn.motionZ - expectedZ) > 1.0E-12D) {
+                playerIn.motionX *= 0.6D;
+                playerIn.motionZ *= 0.6D;
+            }
+            playerIn.setSprinting(false);
         }
     }
 
@@ -611,7 +656,14 @@ public class PlayerControllerMP
     {
         this.syncCurrentPlayItem();
         this.netClientHandler.addToSendQueue(new C02PacketUseEntity(targetEntity, C02PacketUseEntity.Action.INTERACT));
-        return this.currentGameType != WorldSettings.GameType.SPECTATOR && playerIn.interactWith(targetEntity);
+        boolean consumed = this.currentGameType != WorldSettings.GameType.SPECTATOR && playerIn.interactWith(targetEntity);
+        Vec3 hit = this.pendingOffhandEntityHit;
+        this.pendingOffhandEntityHit = null;
+        if (!consumed && hit != null && ModernOffhandInteraction.hasOffhand(playerIn)) {
+            ModernOffhandInteraction.sendInteractAt(playerIn, targetEntity, hit);
+            ModernOffhandInteraction.sendInteract(playerIn, targetEntity);
+        }
+        return consumed;
     }
 
     /**
@@ -625,8 +677,35 @@ public class PlayerControllerMP
     {
         this.syncCurrentPlayItem();
         Vec3 vec3 = new Vec3(movingObject.hitVec.xCoord - entityIn.posX, movingObject.hitVec.yCoord - entityIn.posY, movingObject.hitVec.zCoord - entityIn.posZ);
+        if (ModernOffhandInteraction.isModernTarget()) {
+            vec3 = viaforge$clampInteractionHit(entityIn, entityIn.getEntityBoundingBox(), vec3);
+        }
         this.netClientHandler.addToSendQueue(new C02PacketUseEntity(entityIn, vec3));
-        return this.currentGameType != WorldSettings.GameType.SPECTATOR && entityIn.interactAt(player, vec3);
+        boolean consumed = this.currentGameType != WorldSettings.GameType.SPECTATOR && entityIn.interactAt(player, vec3);
+        if (!consumed && ModernOffhandInteraction.hasOffhand(player)) {
+            this.pendingOffhandEntityHit = vec3;
+        }
+        return consumed;
+    }
+
+    private static Vec3 viaforge$clampInteractionHit(Entity target, AxisAlignedBB bounds, Vec3 hit) {
+        double epsilon = 1.0E-5D;
+        double minX = bounds.minX - target.posX + epsilon;
+        double maxX = bounds.maxX - target.posX - epsilon;
+        double minY = bounds.minY - target.posY + epsilon;
+        double maxY = bounds.maxY - target.posY - epsilon;
+        double minZ = bounds.minZ - target.posZ + epsilon;
+        double maxZ = bounds.maxZ - target.posZ - epsilon;
+
+        return new Vec3(
+                viaforge$clamp(hit.xCoord, minX, maxX),
+                viaforge$clamp(hit.yCoord, minY, maxY),
+                viaforge$clamp(hit.zCoord, minZ, maxZ)
+        );
+    }
+
+    private static double viaforge$clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /**

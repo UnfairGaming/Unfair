@@ -20,6 +20,8 @@ import cn.unfair.util.*;
 import cn.unfair.util.killaura.PointFinder;
 import cn.unfair.util.player.CpsDelayGenerator;
 import com.google.common.base.CaseFormat;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
@@ -1791,7 +1793,9 @@ public class KillAura extends Module {
 
         public AttackData(EntityLivingBase entityLivingBase) {
             this.entity = entityLivingBase;
-            double collisionBorderSize = entityLivingBase.getCollisionBorderSize();
+            double collisionBorderSize = ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8)
+                    ? 0.0D
+                    : entityLivingBase.getCollisionBorderSize();
             this.box = entityLivingBase.getEntityBoundingBox().expand(collisionBorderSize, collisionBorderSize, collisionBorderSize);
             this.x = entityLivingBase.posX;
             this.y = entityLivingBase.posY;

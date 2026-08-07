@@ -14,8 +14,13 @@ import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFenceGate;
+import net.minecraft.block.BlockLadder;
+import net.minecraft.block.BlockTrapDoor;
+import net.minecraft.block.BlockWall;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import cn.unfair.util.via.ModernPlayerPhysics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -1015,8 +1020,21 @@ public abstract class EntityLivingBase extends Entity {
         int i = MathHelper.floor_double(this.posX);
         int j = MathHelper.floor_double(this.getEntityBoundingBox().minY);
         int k = MathHelper.floor_double(this.posZ);
-        Block block = this.worldObj.getBlockState(new BlockPos(i, j, k)).getBlock();
-        return (block == Blocks.ladder || block == Blocks.vine) && (!(this instanceof EntityPlayer) || !((EntityPlayer) this).isSpectator());
+        BlockPos position = new BlockPos(i, j, k);
+        IBlockState state = this.worldObj.getBlockState(position);
+        Block block = state.getBlock();
+        boolean legacyLadder = (block == Blocks.ladder || block == Blocks.vine) && (!(this instanceof EntityPlayer) || !((EntityPlayer) this).isSpectator());
+        if (legacyLadder || !(this instanceof EntityPlayerSP) || !viaforge$isModernTarget()) {
+            return legacyLadder;
+        }
+
+        if (!(block instanceof BlockTrapDoor) || !((Boolean) state.getValue(BlockTrapDoor.OPEN)).booleanValue()) {
+            return false;
+        }
+
+        IBlockState ladder = this.worldObj.getBlockState(position.down());
+        return ladder.getBlock() instanceof BlockLadder
+                && state.getValue(BlockTrapDoor.FACING) == ladder.getValue(BlockLadder.FACING);
     }
 
     /**
@@ -1427,11 +1445,22 @@ public abstract class EntityLivingBase extends Entity {
      * Moves the entity based on the specified heading.  Args: strafe, forward
      */
     public void moveEntityWithHeading(float strafe, float forward) {
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            EntityPlayerSP player = (EntityPlayerSP) this;
+            if (!player.capabilities.isFlying && !player.isRiding()
+                    && this.viaforge$modernFluidTravel(player, strafe, forward)) {
+                return;
+            }
+        }
+
         if (this.isServerWorld()) {
             if (!this.isInWater() || this instanceof EntityPlayer && ((EntityPlayer) this).capabilities.isFlying) {
                 if (!this.isInLava() || this instanceof EntityPlayer && ((EntityPlayer) this).capabilities.isFlying) {
                     boolean isNewPhysics = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_14);
                     BlockPos groundPos1 = getBlockPosWithDefaultOffset();
+                    if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                        groundPos1 = viaforge$findFrictionBlockPos((EntityPlayerSP) this, groundPos1);
+                    }
                     float groundSlipperiness = this.worldObj.getBlockState(groundPos1).getBlock().slipperiness;
                     float baseFriction = 0.91F;
 
@@ -1444,7 +1473,12 @@ public abstract class EntityLivingBase extends Entity {
 
                     if (this.onGround) {
                         float frictionDivisor = isNewPhysics ? 0.21600002F : 0.16277136F;
-                        moveFactor = this.getAIMoveSpeed() * (frictionDivisor / (effectiveFriction * effectiveFriction * effectiveFriction));
+                        float movementSpeed = this instanceof EntityPlayerSP && viaforge$isModernTarget()
+                                ? viaforge$getCurrentMovementSpeed((EntityPlayerSP) this)
+                                : this.getAIMoveSpeed();
+                        moveFactor = movementSpeed * (frictionDivisor / (effectiveFriction * effectiveFriction * effectiveFriction));
+                    } else if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                        moveFactor = this.isSprinting() ? 0.025999999F : 0.02F;
                     } else {
                         moveFactor = this.jumpMovementFactor;
                     }
@@ -1452,6 +1486,9 @@ public abstract class EntityLivingBase extends Entity {
                     this.moveFlyingWithStrafeEvent(strafe, forward, moveFactor);
 
                     BlockPos groundPos2 = getBlockPosWithDefaultOffset();
+                    if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                        groundPos2 = viaforge$findFrictionBlockPos((EntityPlayerSP) this, groundPos2);
+                    }
                     float updatedSlipperiness = this.worldObj.getBlockState(groundPos2).getBlock().slipperiness;
                     float finalFriction = 0.91F;
 
@@ -1480,6 +1517,14 @@ public abstract class EntityLivingBase extends Entity {
 
                     if ((this.isCollidedHorizontally || (isNewPhysics && this.isJumping)) && this.isOnLadder()) {
                         this.motionY = 0.2D;
+                    }
+
+                    if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                        BlockPos speedFactorPos = getBlockPosWithDefaultOffset();
+                        speedFactorPos = viaforge$findFrictionBlockPos((EntityPlayerSP) this, speedFactorPos);
+                        float blockSpeedFactor = viaforge$getModernBlockSpeedFactor((EntityPlayerSP) this, speedFactorPos);
+                        this.motionX *= blockSpeedFactor;
+                        this.motionZ *= blockSpeedFactor;
                     }
 
                     if (!this.worldObj.isRemote ||
@@ -1603,6 +1648,146 @@ public abstract class EntityLivingBase extends Entity {
      */
     public float getAIMoveSpeed() {
         return this.landMovementFactor;
+    }
+
+    private boolean viaforge$modernFluidTravel(EntityPlayerSP player, float strafe, float forward) {
+        if (!player.isInWater()) {
+            if (player.isInLava()) {
+                viaforge$modernLavaTravel(player, strafe, forward);
+                return true;
+            }
+            return false;
+        }
+
+        ModernPlayerPhysics modernPhysics = (ModernPlayerPhysics) player;
+        boolean falling = player.motionY <= 0.0D;
+        double oldY = player.posY;
+        boolean swimming = modernPhysics.viaforge$isModernSwimming();
+        boolean surfaceWaterSprint = player.isSprinting()
+                && !swimming
+                && !modernPhysics.viaforge$isModernSubmergedInWater()
+                && !player.isInsideOfMaterial(Material.water);
+        boolean effectiveWaterSprint = player.isSprinting() && !surfaceWaterSprint;
+        float swimmingFriction = effectiveWaterSprint ? 0.9F : 0.8F;
+        float swimmingSpeed = 0.02F;
+        float depthStrider = EnchantmentHelper.getDepthStriderModifier(player);
+        if (depthStrider > 3.0F) {
+            depthStrider = 3.0F;
+        }
+        if (!player.onGround) {
+            depthStrider *= 0.5F;
+        }
+        if (depthStrider > 0.0F) {
+            swimmingFriction += (0.54600006F - swimmingFriction) * depthStrider / 3.0F;
+            swimmingSpeed += (viaforge$getCurrentMovementSpeed(player) - swimmingSpeed) * depthStrider / 3.0F;
+        }
+
+        moveFlyingWithStrafeEvent(strafe, forward, swimmingSpeed);
+        player.moveEntity(player.motionX, player.motionY, player.motionZ);
+        if (player.isCollidedHorizontally && player.isOnLadder()) {
+            player.motionY = 0.2D;
+        }
+
+        player.motionX *= swimmingFriction;
+        player.motionY *= 0.8F;
+        player.motionZ *= swimmingFriction;
+        if (!effectiveWaterSprint) {
+            double gravityStep = 0.08D / 16.0D;
+            player.motionY = falling
+                    && Math.abs(player.motionY - 0.005D) >= 0.003D
+                    && Math.abs(player.motionY - gravityStep) < 0.003D
+                    ? -0.003D
+                    : player.motionY - gravityStep;
+        }
+
+        if (player.isCollidedHorizontally && player.isOffsetPositionInLiquid(player.motionX, player.motionY + 0.6F - player.posY + oldY, player.motionZ)) {
+            player.motionY = 0.3F;
+        }
+
+        viaforge$updateLimbSwing(player);
+        return true;
+    }
+
+    private void viaforge$modernLavaTravel(EntityPlayerSP player, float strafe, float forward) {
+        ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+        boolean falling = player.motionY <= 0.0D;
+        double oldY = player.posY;
+
+        moveFlyingWithStrafeEvent(strafe, forward, 0.02F);
+        player.moveEntity(player.motionX, player.motionY, player.motionZ);
+
+        if (physics.viaforge$getModernLavaHeight() <= 0.4D) {
+            player.motionX *= 0.5D;
+            player.motionY *= 0.800000011920929D;
+            player.motionZ *= 0.5D;
+            if (!player.isSprinting()) {
+                double gravityStep = 0.08D / 16.0D;
+                player.motionY = falling
+                        && Math.abs(player.motionY - 0.005D) >= 0.003D
+                        && Math.abs(player.motionY - gravityStep) < 0.003D
+                        ? -0.003D
+                        : player.motionY - gravityStep;
+            }
+        } else {
+            player.motionX *= 0.5D;
+            player.motionY *= 0.5D;
+            player.motionZ *= 0.5D;
+        }
+
+        player.motionY -= 0.08D / 4.0D;
+        if (player.isCollidedHorizontally && player.isOffsetPositionInLiquid(player.motionX, player.motionY + 0.6F - player.posY + oldY, player.motionZ)) {
+            player.motionY = 0.3F;
+        }
+        viaforge$updateLimbSwing(player);
+    }
+
+    private static BlockPos viaforge$findFrictionBlockPos(EntityPlayerSP player, BlockPos fallback) {
+        if (!player.onGround) {
+            return fallback;
+        }
+
+        BlockPos support = ((ModernPlayerPhysics) player).viaforge$getMainSupportingBlock();
+        if (support == null) {
+            return fallback;
+        }
+
+        Block block = player.worldObj.getBlockState(support).getBlock();
+        if (block instanceof BlockWall || block instanceof BlockFenceGate) {
+            return support;
+        }
+        return new BlockPos(support.getX(), MathHelper.floor_double(player.posY - 0.500001D), support.getZ());
+    }
+
+    private static void viaforge$updateLimbSwing(EntityPlayerSP player) {
+        player.prevLimbSwingAmount = player.limbSwingAmount;
+        double deltaX = player.posX - player.prevPosX;
+        double deltaZ = player.posZ - player.prevPosZ;
+        float amount = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
+        if (amount > 1.0F) {
+            amount = 1.0F;
+        }
+        player.limbSwingAmount += (amount - player.limbSwingAmount) * 0.4F;
+        player.limbSwing += player.limbSwingAmount;
+    }
+
+    private static float viaforge$getCurrentMovementSpeed(EntityPlayerSP player) {
+        return (float) player.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
+    }
+
+    private static float viaforge$getModernBlockSpeedFactor(EntityPlayerSP player, BlockPos support) {
+        if (support == null) {
+            return 1.0F;
+        }
+
+        Block supportBlock = player.worldObj.getBlockState(support).getBlock();
+        if (supportBlock == Blocks.soul_sand) {
+            return 0.4F;
+        }
+        return 1.0F;
+    }
+
+    private static boolean viaforge$isModernTarget() {
+        return ViaLoadingBase.getInstance().getTargetVersion() == ProtocolVersion.v1_20_5;
     }
 
     /**
@@ -1816,9 +2001,20 @@ public abstract class EntityLivingBase extends Entity {
         this.worldObj.theProfiler.startSection("jump");
 
         if (this.isJumping) {
-            if (this.isInWater()) {
+            boolean jumpAsWater = this.isInWater();
+            boolean jumpAsLava = !jumpAsWater && this.isInLava();
+            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                EntityPlayerSP player = (EntityPlayerSP) this;
+                ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+                jumpAsWater = player.isInWater() && (!player.onGround || physics.viaforge$getModernWaterHeight() > 0.4D);
+                jumpAsLava = !jumpAsWater
+                        && player.isInLava()
+                        && (!player.onGround || physics.viaforge$getModernLavaHeight() > 0.4D);
+            }
+
+            if (jumpAsWater) {
                 this.updateAITick();
-            } else if (this.isInLava()) {
+            } else if (jumpAsLava) {
                 this.handleJumpLava();
             } else if (this.onGround && this.jumpTicks == 0) {
                 this.jump();

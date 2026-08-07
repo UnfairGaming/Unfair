@@ -9,6 +9,10 @@ public class ViaProtocol {
         return !Minecraft.getMinecraft().isSingleplayer();
     }
 
+    public static int targetProtocolVersion() {
+        return notIsSinglePlayer() ? ViaLoadingBase.getInstance().getTargetVersion().getVersion() : ProtocolVersion.v1_8.getVersion();
+    }
+
     public static boolean newerThan1_8() {
         return notIsSinglePlayer() && ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8);
     }

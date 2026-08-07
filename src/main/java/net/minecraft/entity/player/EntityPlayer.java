@@ -1,5 +1,9 @@
 package net.minecraft.entity.player;
 
+import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.ModernOffhandInventory;
+import cn.unfair.util.via.ModernPlayerPhysics;
+import cn.unfair.util.via.ViaProtocol;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.combat.velocity.PolarVelocity;
@@ -13,6 +17,7 @@ import net.minecraft.block.BlockBed;
 import net.minecraft.block.BlockDirectional;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
@@ -261,6 +266,12 @@ public abstract class EntityPlayer extends EntityLivingBase {
         if (this.itemInUse != null)
         {
             ItemStack itemstack = this.inventory.getCurrentItem();
+            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                ItemStack offhand = ModernOffhandInteraction.getOffhand(this);
+                if (this.itemInUse == offhand) {
+                    itemstack = offhand;
+                }
+            }
 
             if (itemstack == this.itemInUse)
             {
@@ -472,6 +483,19 @@ public abstract class EntityPlayer extends EntityLivingBase {
     {
         if (this.itemInUse != null)
         {
+            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                ((ModernPlayerPhysics) this).viaforge$markLocalItemUseFinished();
+                ItemStack offhand = ModernOffhandInteraction.getOffhand(this);
+                if (this.itemInUse == offhand) {
+                    ItemStack original = this.itemInUse;
+                    this.updateItemUse(original, 16);
+                    ItemStack result = original.onItemUseFinish(this.worldObj, this);
+                    ((ModernOffhandInventory) this.inventory).viaforge$setOffhand(result != null && result.stackSize > 0 ? result : null);
+                    this.clearItemInUse();
+                    return;
+                }
+            }
+
             this.updateItemUse(this.itemInUse, 16);
             int i = this.itemInUse.stackSize;
             ItemStack itemstack = this.itemInUse.onItemUseFinish(this.worldObj, this);
@@ -494,6 +518,9 @@ public abstract class EntityPlayer extends EntityLivingBase {
     {
         if (id == 9)
         {
+            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                ((ModernPlayerPhysics) this).viaforge$confirmServerItemUseFinished();
+            }
             this.onItemUseFinish();
         }
         else if (id == 23)
@@ -2359,6 +2386,10 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
     public float getEyeHeight()
     {
+        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            return ((ModernPlayerPhysics) this).viaforge$getModernEyeHeight();
+        }
+
         float f = 1.62F;
 
         if (this.isPlayerSleeping())
@@ -2375,6 +2406,10 @@ public abstract class EntityPlayer extends EntityLivingBase {
         }
 
         return f;
+    }
+
+    private static boolean viaforge$isModernTarget() {
+        return ViaProtocol.newerThanOrEqualTo1_9();
     }
 
     public void setAbsorptionAmount(float amount)

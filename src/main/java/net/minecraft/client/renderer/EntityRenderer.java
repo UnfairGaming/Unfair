@@ -552,7 +552,9 @@ public class EntityRenderer implements IResourceManagerReloadListener {
             double d2 = distance;
 
             for (final Entity entity1 : list) {
-                final float f1 = entity1.getCollisionBorderSize() + (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8) ? 0 : expand);
+                final float f1 = ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8)
+                        ? 0.0F
+                        : entity1.getCollisionBorderSize() + expand;
                 final AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().expand(f1, f1, f1);
                 final MovingObjectPosition movingobjectposition = axisalignedbb.calculateIntercept(vec3, vec32);
 
