@@ -1,11 +1,11 @@
 package cn.unfair.module.modules.render;
 
-import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
 import net.minecraft.client.Minecraft;
@@ -36,6 +36,10 @@ import static cn.unfair.util.MathUtil.interpolate;
 public class TargetESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final long HURT_DURATION = 500;
+    private final ModeProperty colorMode = new ModeProperty("Color Mode", 0, new String[]{"HUD", "Custom", "Fade"});
+    private final ColorProperty customColor = new ColorProperty("Custom Color", Color.WHITE.getRGB(), () -> colorMode.getValue() == 1);
+    private final ColorProperty fadeColor1 = new ColorProperty("Fade Color 1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 2);
+    private final ColorProperty fadeColor2 = new ColorProperty("Fade Color 2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 2);
     private final ModeProperty mode = new ModeProperty("Mark Mode", 1, new String[]{"Points", "Ghost", "Ghost2", "Image", "Exhi", "Circle"});
     private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim", "Custom"}, () -> mode.getValue() == 3);
     private final BooleanProperty animation = new BooleanProperty("Animation", true, () -> mode.getValue() == 3 && imageMode.getValue() == 5);
@@ -99,8 +103,16 @@ public class TargetESP extends Module {
         }, "Image Selector Thread").start();
     }
 
-    private Color getInterfaceColor() {
-        return new Color(HUD.getColor(System.currentTimeMillis()).getRGB());
+    private Color getTargetColor() {
+        return switch (colorMode.getValue()) {
+            case 1 -> new Color(customColor.getValue());
+            case 2 -> {
+                float phase = (System.currentTimeMillis() % 2000L) / 1000.0F;
+                float progress = phase <= 1.0F ? phase : 2.0F - phase;
+                yield ColorUtil.interpolate(progress, new Color(fadeColor1.getValue()), new Color(fadeColor2.getValue()));
+            }
+            default -> HUD.getColor(System.currentTimeMillis());
+        };
     }
 
     @Override
@@ -229,7 +241,7 @@ public class TargetESP extends Module {
                     GlStateManager.translate(s, (c), -c);
                     GlStateManager.translate(-size / 2f, -size / 2f, 0);
                     GlStateManager.translate(size / 2f, size / 2f, 0);
-                    int color = ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB();
+                    int color = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
                     RenderUtil.drawImage(glowCircle, 0f, 0f, -size, -size, color);
                     GlStateManager.translate(-size / 2f, -size / 2f, 0);
                     GlStateManager.translate(size / 2f, size / 2f, 0);
@@ -242,7 +254,7 @@ public class TargetESP extends Module {
                     GlStateManager.translate(-s, s, -c);
                     GlStateManager.translate(-size / 2f, -size / 2f, 0);
                     GlStateManager.translate(size / 2f, size / 2f, 0);
-                    int color = ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB();
+                    int color = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
                     RenderUtil.drawImage(glowCircle, 0f, 0f, -size, -size, color);
                     GlStateManager.translate(-size / 2f, -size / 2f, 0);
                     GlStateManager.translate(size / 2f, size / 2f, 0);
@@ -255,7 +267,7 @@ public class TargetESP extends Module {
                     GlStateManager.translate(-(s), -(s), (c));
                     GlStateManager.translate(-size / 2f, -size / 2f, 0);
                     GlStateManager.translate(size / 2f, size / 2f, 0);
-                    int color = ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB();
+                    int color = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
                     RenderUtil.drawImage(glowCircle, 0f, 0f, -size, -size, color);
                     GlStateManager.translate(-size / 2f, -size / 2f, 0);
                     GlStateManager.translate(size / 2f, size / 2f, 0);
@@ -348,10 +360,8 @@ public class TargetESP extends Module {
                     double x2 = Math.sin(angle2) * radius;
                     double z2 = Math.cos(angle2) * radius;
 
-                    Unfair.moduleManager.modules.get(HUD.class);
-                    Color col1 = HUD.getColor((int) (i * 360.0 / slices * 10));
-                    Unfair.moduleManager.modules.get(HUD.class);
-                    Color col2 = HUD.getColor((int) ((i + 1) * 360.0 / slices * 10));
+                    Color col1 = getTargetColor();
+                    Color col2 = getTargetColor();
                     float r1 = col1.getRed() / 255f;
                     float g1 = col1.getGreen() / 255f;
                     float b1 = col1.getBlue() / 255f;
@@ -408,19 +418,19 @@ public class TargetESP extends Module {
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(Math.cos((((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) + ((((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.25)) * ((target.width * 0.56) + (0.22 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)) * 0.28) * 0.78 + (0.26 + (0.22 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)) * 0.28) * 0.38) * ((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0)) + Math.cos((((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) + ((((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.25) + Math.PI / 2.0) * (Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.7 + ((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) * 0.06), ((0.44 + 0.08 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.2)) * ((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) + 0.06 * (((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) + Math.PI / 2.0) + 1.0) * 0.5) * ((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) + Math.PI / 2.0) + 1.0) * 0.5) * (3.0 - 2.0 * ((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) + Math.PI / 2.0) + 1.0) * 0.5))) - 0.5) * 2.0)) + (Math.sin(((((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) + ((((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.25)) * 2.0 + ((System.currentTimeMillis() - lastTime) / 1000.0) * 2.2) * 0.05) + Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.2 + ((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) * (0.45 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.05)) * 0.35) * 0.12, Math.sin((((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) + ((((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.25)) * ((target.width * 0.56) + (0.22 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)) * 0.28) * 0.78 + (0.26 + (0.22 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)) * 0.28) * 0.38) * ((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0)) + Math.sin((((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) + ((((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.25) + Math.PI / 2.0) * (Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.7 + ((gi % 28) + (0.0)) / (double) 28 * Math.PI * 2.0) * 0.06));
                 GlStateManager.rotate((float) (((System.currentTimeMillis() - lastTime) / 1000.0) * 180.0 + (gi % 28) * 12.0), 0, 0, 1);
-                RenderUtil.drawImage(glowCircle, 0f, 0f, -(float) ((0.16 + 0.06 * (1.0 - ((gi % 28) + (0.0)) / (double) 28)) * (0.86 + 0.24 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.6 + (gi % 28) * 0.45) + 0.14 * ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), -(float) ((0.16 + 0.06 * (1.0 - ((gi % 28) + (0.0)) / (double) 28)) * (0.86 + 0.24 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.6 + (gi % 28) * 0.45) + 0.14 * ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB());
+                RenderUtil.drawImage(glowCircle, 0f, 0f, -(float) ((0.16 + 0.06 * (1.0 - ((gi % 28) + (0.0)) / (double) 28)) * (0.86 + 0.24 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.6 + (gi % 28) * 0.45) + 0.14 * ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), -(float) ((0.16 + 0.06 * (1.0 - ((gi % 28) + (0.0)) / (double) 28)) * (0.86 + 0.24 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.6 + (gi % 28) * 0.45) + 0.14 * ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB());
                 GlStateManager.popMatrix();
             } else if (gi < (28) + 10) {
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(Math.cos(((gi - (28) + (0.0)) / (double) 10) * Math.PI * 2.0 - (((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 0.95) * ((target.width * 0.86 + 0.20) + 0.10 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.0 + gi - (28)) - (0.18 + (0.22 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)) * 0.28) * 0.25) * ((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0)), (-(0.44 + 0.08 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.2)) * ((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) - 0.06 * (((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) + Math.PI / 2.0) + 1.0) * 0.5) * ((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) + Math.PI / 2.0) + 1.0) * 0.5) * (3.0 - 2.0 * ((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) + Math.PI / 2.0) + 1.0) * 0.5))) - 0.5) * 2.0) + Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.0 + (gi - (28)) * 0.70) * 0.10), Math.sin(((gi - (28) + (0.0)) / (double) 10) * Math.PI * 2.0 - (((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 0.95) * ((target.width * 0.86 + 0.20) + 0.10 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.0 + gi - (28)) - (0.18 + (0.22 + (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)) * 0.28) * 0.25) * ((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0)));
                 GlStateManager.rotate((float) (((System.currentTimeMillis() - lastTime) / 1000.0) * 320.0 + (gi - (28)) * 30.0), 0, 0, 1);
-                RenderUtil.drawImage(glowCircle, 0f, 0f, -(float) (0.17 + 0.06 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 3.0 + gi - (28))) + 0.05 * (1.0 - ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), -(float) (0.17 + 0.06 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 3.0 + gi - (28))) + 0.05 * (1.0 - ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB());
+                RenderUtil.drawImage(glowCircle, 0f, 0f, -(float) (0.17 + 0.06 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 3.0 + gi - (28))) + 0.05 * (1.0 - ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), -(float) (0.17 + 0.06 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 3.0 + gi - (28))) + 0.05 * (1.0 - ((((((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) < 0.68) ? (Math.pow((((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) / 0.68), 3.6) * 0.70) : (0.70 + (1.0 - 0.70) * (1.0 - Math.pow(1.0 - (((Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0)) + 1.0) * 0.5) - 0.68) / 0.32, 1.12)))) - 0.5) * 2.0) * 0.5) + 0.5))), ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB());
                 GlStateManager.popMatrix();
             } else {
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(Math.cos(((gi - (28) - 10 + (0.0)) / (double) 10) * Math.PI * 2.0 + (((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.9) * ((target.width * 0.62 + 0.12) + 0.12 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.8 + gi - (28) - 10)), (Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.6 + gi - (28) - 10) * 0.16) + (Math.cos(((System.currentTimeMillis() - lastTime) / 1000.0) * 2.0 + (gi - (28) - 10) * 0.7) * 0.12), Math.sin(((gi - (28) - 10 + (0.0)) / (double) 10) * Math.PI * 2.0 + (((System.currentTimeMillis() - lastTime) / 1000.0) * (1.2 + 0.8 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.35)))) * 1.9) * ((target.width * 0.62 + 0.12) + 0.12 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 1.8 + gi - (28) - 10)));
                 GlStateManager.rotate((float) (((System.currentTimeMillis() - lastTime) / 1000.0) * 420.0 + (gi - (28) - 10) * 40.0), 0, 0, 1);
-                RenderUtil.drawImage(glowCircle, 0f, 0f, -(float) (0.09 + 0.05 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 4.2 + (gi - (28) - 10) * 1.3))), -(float) (0.09 + 0.05 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 4.2 + (gi - (28) - 10) * 1.3))), ColorUtil.applyOpacity(getInterfaceColor(), (float) (getAlpha() * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 5.0 + (gi - (28) - 10) * 2.2))))).getRGB());
+                RenderUtil.drawImage(glowCircle, 0f, 0f, -(float) (0.09 + 0.05 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 4.2 + (gi - (28) - 10) * 1.3))), -(float) (0.09 + 0.05 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 4.2 + (gi - (28) - 10) * 1.3))), ColorUtil.applyOpacity(getTargetColor(), (float) (getAlpha() * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(((System.currentTimeMillis() - lastTime) / 1000.0) * 5.0 + (gi - (28) - 10) * 2.2))))).getRGB());
                 GlStateManager.popMatrix();
             }
         }
@@ -484,8 +494,8 @@ public class TargetESP extends Module {
                     float rf = 0.6f;
                     double radians = Math.toRadians(i);
                     double plY = pl + Math.sin(radians * 1.2f) * 0.1f;
-                    int firstColor = ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB();
-                    int secondColor = ColorUtil.applyOpacity(getInterfaceColor(), getAlpha()).getRGB();
+                    int firstColor = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
+                    int secondColor = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
                     GlStateManager.pushMatrix();
                     RenderUtil.setupOrientationMatrix(markerX, markerY, markerZ);
 
@@ -522,7 +532,7 @@ public class TargetESP extends Module {
         double rotate = useAnimation ? MathHelper.clamp_double((Math.sin(millis / 1000.0) + 1.0) / 2.0 * 360.0, 0.0, 360.0) : 0.0;
         rotate = (imageMode.getValue() == 1 ? 45 : 0) - (angle - 15.0) + rotate;
 
-        Color baseColor = getInterfaceColor();
+        Color baseColor = getTargetColor();
         float hurtAlpha = getHurtAlpha();
 
         Color hurtColor = new Color(255, 0, 0, 185);
@@ -558,7 +568,7 @@ public class TargetESP extends Module {
             GlStateManager.enableBlend();
             GlStateManager.shadeModel(7425);
             GlStateManager.tryBlendFuncSeparate(770, 1, 1, 0);
-            Color HUDColor = getInterfaceColor();
+            Color HUDColor = getTargetColor();
             float alpha = getAlpha();
             GlStateManager.color(
                     HUDColor.getRed() / 255.0f,

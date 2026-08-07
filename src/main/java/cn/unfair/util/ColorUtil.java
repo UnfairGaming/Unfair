@@ -36,6 +36,27 @@ public class ColorUtil {
         return new Color((int) ((float) startColor.getRed() + progress * (float) (endColor.getRed() - startColor.getRed())), (int) ((float) startColor.getGreen() + progress * (float) (endColor.getGreen() - startColor.getGreen())), (int) ((float) startColor.getBlue() + progress * (float) (endColor.getBlue() - startColor.getBlue())));
     }
 
+    public static int setAlpha(int rgb, double alpha) {
+        return (rgb & 0xFFFFFF) | Math.clamp((int) (alpha * 255.0), 0, 255) << 24;
+    }
+
+    public static int getChroma(double step) {
+        double divisor = 18000.0 / step;
+        double time = System.currentTimeMillis() % divisor / divisor;
+        return Color.getHSBColor((float) time, 1.0f, 1.0f).getRGB();
+    }
+
+    public static int interpolate(int startColor, int endColor, double percent) {
+        Color start = new Color(startColor, true);
+        Color end = new Color(endColor, true);
+        double inverse = 1.0 - percent;
+        int red = (int) (start.getRed() * percent + end.getRed() * inverse);
+        int green = (int) (start.getGreen() * percent + end.getGreen() * inverse);
+        int blue = (int) (start.getBlue() * percent + end.getBlue() * inverse);
+        int alpha = (int) (start.getAlpha() * percent + end.getAlpha() * inverse);
+        return new Color(red, green, blue, alpha).getRGB();
+    }
+
     public static Color getHealthBlend(float percent) {
         if (percent >= 0.9f) {
             return GREEN;
