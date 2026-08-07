@@ -11,9 +11,9 @@ public class CpsDelayGenerator {
         return Math.clamp(value, min, max);
     }
 
-    public long nextDelay(int minAps, int maxAps) {
-        int min = Math.min(minAps, maxAps);
-        int max = Math.max(minAps, maxAps);
+    public long nextDelay(int minCps, int maxCps) {
+        int min = Math.min(minCps, maxCps);
+        int max = Math.max(minCps, maxCps);
         double center = (min + max) / 2.0D;
         double range = Math.max(0.35D, (max - min) / 2.0D);
 
@@ -24,13 +24,13 @@ public class CpsDelayGenerator {
         double bias = (RandomUtil.nextDouble(0.0D, 1.0D) - RandomUtil.nextDouble(0.0D, 1.0D)) * range;
         double micro = RandomUtil.nextDouble(-0.45D, 0.45D);
         double state = this.getStateOffset(range);
-        double aps = center + bias + micro + this.tempo + state;
+        double cps = center + bias + micro + this.tempo + state;
 
         double lower = Math.max(1.0D, min - Math.max(0.75D, range * 0.35D));
         double upper = max + Math.max(0.75D, range * 0.45D);
-        aps = clamp(aps, lower, upper);
+        cps = clamp(cps, lower, upper);
 
-        double delay = 1000.0D / aps + RandomUtil.nextDouble(-7.0D, 7.0D);
+        double delay = 1000.0D / cps + RandomUtil.nextDouble(-7.0D, 7.0D);
         return Math.max(1L, Math.round(delay));
     }
 
