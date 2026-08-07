@@ -193,42 +193,47 @@ public class NameTags extends Module {
                         GlStateManager.enableDepth();
                         if (entity instanceof EntityPlayer) {
                             int height = mc.fontRendererObj.FONT_HEIGHT + 2;
-                            if (this.armor.getValue()) {
-                                ArrayList<ItemStack> renderingItems = new ArrayList<>();
-                                for (int i = 4; i >= 0; i--) {
-                                    ItemStack itemStack;
-                                    if (i == 0) {
-                                        itemStack = ((EntityPlayer) entity).getHeldItem();
-                                    } else {
-                                        itemStack = ((EntityPlayer) entity).inventory.armorInventory[i - 1];
+                            GlStateManager.disableDepth();
+                            try {
+                                if (this.armor.getValue()) {
+                                    ArrayList<ItemStack> renderingItems = new ArrayList<>();
+                                    for (int i = 4; i >= 0; i--) {
+                                        ItemStack itemStack;
+                                        if (i == 0) {
+                                            itemStack = ((EntityPlayer) entity).getHeldItem();
+                                        } else {
+                                            itemStack = ((EntityPlayer) entity).inventory.armorInventory[i - 1];
+                                        }
+                                        if (itemStack != null) {
+                                            renderingItems.add(itemStack);
+                                        }
                                     }
-                                    if (itemStack != null) {
-                                        renderingItems.add(itemStack);
+                                    if (!renderingItems.isEmpty()) {
+                                        int offset = renderingItems.size() * -8;
+                                        for (int i = 0; i < renderingItems.size(); i++) {
+                                            RenderUtil.renderItemInGUI(renderingItems.get(i), offset + i * 16, -height - 16);
+                                        }
+                                        height += 16;
                                     }
                                 }
-                                if (!renderingItems.isEmpty()) {
-                                    int offset = renderingItems.size() * -8;
-                                    for (int i = 0; i < renderingItems.size(); i++) {
-                                        RenderUtil.renderItemInGUI(renderingItems.get(i), offset + i * 16, -height - 16);
+                                if (this.effects.getValue()) {
+                                    List<PotionEffect> effects = ((EntityPlayer) entity)
+                                            .getActivePotionEffects()
+                                            .stream()
+                                            .filter(potionEffect -> Potion.potionTypes[potionEffect.getPotionID()].hasStatusIcon())
+                                            .collect(Collectors.toList());
+                                    if (!effects.isEmpty()) {
+                                        GlStateManager.pushMatrix();
+                                        GlStateManager.scale(0.5F, 0.5F, 1.0F);
+                                        int offset = effects.size() * -9;
+                                        for (int i = 0; i < effects.size(); i++) {
+                                            RenderUtil.renderPotionEffect(effects.get(i), offset + i * 18, -(height * 2) - 18);
+                                        }
+                                        GlStateManager.popMatrix();
                                     }
-                                    height += 16;
                                 }
-                            }
-                            if (this.effects.getValue()) {
-                                List<PotionEffect> effects = ((EntityPlayer) entity)
-                                        .getActivePotionEffects()
-                                        .stream()
-                                        .filter(potionEffect -> Potion.potionTypes[potionEffect.getPotionID()].hasStatusIcon())
-                                        .collect(Collectors.toList());
-                                if (!effects.isEmpty()) {
-                                    GlStateManager.pushMatrix();
-                                    GlStateManager.scale(0.5F, 0.5F, 1.0F);
-                                    int offset = effects.size() * -9;
-                                    for (int i = 0; i < effects.size(); i++) {
-                                        RenderUtil.renderPotionEffect(effects.get(i), offset + i * 18, -(height * 2) - 18);
-                                    }
-                                    GlStateManager.popMatrix();
-                                }
+                            } finally {
+                                GlStateManager.enableDepth();
                             }
                             if (TeamUtil.isFriend((EntityPlayer) entity)) {
                                 RenderUtil.enableRenderState();

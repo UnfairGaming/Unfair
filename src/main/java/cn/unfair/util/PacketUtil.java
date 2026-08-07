@@ -13,6 +13,7 @@ public class PacketUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static List<Packet<INetHandlerPlayClient>> skipReceiveEvent = new ArrayList<>();
     public static List<Packet<?>> skipSendEvent = new ArrayList<>();
+    public static List<Packet<?>> skipSendPostEvent = new ArrayList<>();
 
     public static void sendPacket(Packet<?> packet) {
         mc.getNetHandler().getNetworkManager().sendPacket(packet);

@@ -249,11 +249,15 @@ public class RenderUtil {
     }
 
     public static void renderItemInGUI(ItemStack itemStack, int x, int y) {
+        boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+        boolean lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+        boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
+        boolean texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+        boolean alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
+        boolean rescaleNormal = GL11.glIsEnabled(org.lwjgl.opengl.GL12.GL_RESCALE_NORMAL);
+        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
         GlStateManager.pushMatrix();
-        GlStateManager.depthMask(true);
-        GlStateManager.clear(256);
         RenderHelper.enableGUIStandardItemLighting();
-        GL11.glDisable(GL11.GL_LIGHTING);
         GlStateManager.pushMatrix();
         GlStateManager.scale(1.0f, 1.0f, -0.01f);
         RenderUtil.mc.getRenderItem().zLevel = -150.0f;
@@ -262,9 +266,6 @@ public class RenderUtil {
         RenderUtil.mc.getRenderItem().zLevel = 0.0f;
         GlStateManager.popMatrix();
         RenderHelper.disableStandardItemLighting();
-        GlStateManager.enableAlpha();
-        GlStateManager.disableBlend();
-        GlStateManager.enableTexture2D();
         GlStateManager.popMatrix();
         GlStateManager.pushMatrix();
         GlStateManager.scale(0.5f, 0.5f, 0.5f);
@@ -273,6 +274,13 @@ public class RenderUtil {
         GlStateManager.enableDepth();
         GlStateManager.scale(2.0f, 2.0f, 2.0f);
         GlStateManager.popMatrix();
+        GlStateManager.depthMask(depthMask);
+        if (depth) GlStateManager.enableDepth(); else GlStateManager.disableDepth();
+        if (lighting) GlStateManager.enableLighting(); else GlStateManager.disableLighting();
+        if (blend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
+        if (texture2D) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
+        if (alpha) GlStateManager.enableAlpha(); else GlStateManager.disableAlpha();
+        if (rescaleNormal) GlStateManager.enableRescaleNormal(); else GlStateManager.disableRescaleNormal();
     }
 
     public static void renderItemAndEffectIntoGui3D(ItemStack stack, int xPos, int yPos) {
@@ -356,10 +364,13 @@ public class RenderUtil {
 
     public static void renderPotionEffect(PotionEffect potionEffect, int x, int y) {
         int n3 = Potion.potionTypes[potionEffect.getPotionID()].getStatusIconIndex();
+        boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+        boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
+        boolean texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+        boolean alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
+        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
         GlStateManager.pushMatrix();
-        GlStateManager.depthMask(true);
-        GlStateManager.clear(256);
         GlStateManager.pushMatrix();
         GlStateManager.scale(1.0f, 1.0f, -0.01f);
         mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
@@ -369,6 +380,11 @@ public class RenderUtil {
         GlStateManager.disableBlend();
         GlStateManager.enableTexture2D();
         GlStateManager.popMatrix();
+        GlStateManager.depthMask(depthMask);
+        if (depth) GlStateManager.enableDepth(); else GlStateManager.disableDepth();
+        if (blend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
+        if (texture2D) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
+        if (alpha) GlStateManager.enableAlpha(); else GlStateManager.disableAlpha();
     }
 
     public static void drawRect(double left, double top, double right, double bottom, int color) {

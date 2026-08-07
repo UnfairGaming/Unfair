@@ -176,6 +176,8 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                 this.readWriteLock.writeLock().unlock();
             }
         }
+
+        this.callSendPostEvent(packetIn);
     }
 
     @SafeVarargs
@@ -196,6 +198,8 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                 this.readWriteLock.writeLock().unlock();
             }
         }
+
+        this.callSendPostEvent(packetIn);
     }
 
     private boolean shouldCancelSendPacket(Packet<?> packet) {
@@ -204,6 +208,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
         }
 
         if (PacketUtil.skipSendEvent.remove(packet)) {
+            PacketUtil.skipSendPostEvent.add(packet);
             return false;
         }
 
@@ -272,6 +277,14 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                 channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
             });
         }
+    }
+
+    private void callSendPostEvent(Packet<?> packet) {
+        if (PacketUtil.skipSendPostEvent.remove(packet)) {
+            return;
+        }
+
+        EventManager.call(new PacketEvent(EventType.POST, packet));
     }
 
     /**

@@ -1,6 +1,8 @@
 package cn.unfair.module.modules.render;
 
 import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.PacketEvent;
 import cn.unfair.events.RenderItemEvent;
 import cn.unfair.events.SwingAnimationEvent;
 import cn.unfair.Unfair;
@@ -8,11 +10,14 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.PacketUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemMap;
+import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MathHelper;
 import org.lwjgl.opengl.GL11;
@@ -44,10 +49,20 @@ public class Animations extends Module {
     public final BooleanProperty oldBlockBreak = new BooleanProperty("1.7 Blockbreak", true);
     public final BooleanProperty oldDebug = new BooleanProperty("1.7 Debug Menu", true);
     public final BooleanProperty oldEat = new BooleanProperty("1.7 Eat", true);
-    public final BooleanProperty oldPlayerList = new BooleanProperty("1.7 Playerlist", false);
+    private boolean sentStartDestroyBlock;
 
     public Animations() {
         super("Animations", false, true);
+    }
+
+    @Override
+    public void onEnabled() {
+        this.sentStartDestroyBlock = false;
+    }
+
+    @Override
+    public void onDisabled() {
+        this.sentStartDestroyBlock = false;
     }
 
     private static Animations instance() {
@@ -65,9 +80,7 @@ public class Animations extends Module {
     public static boolean oldDamageEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldDamage); }
     public static boolean oldHeartsEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldHearts); }
     public static boolean oldSneakEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldSneak); }
-    public static boolean oldBlockBreakEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldBlockBreak); }
     public static boolean oldDebugEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldDebug); }
-    public static boolean oldPlayerListEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldPlayerList); }
 
     public static void performLegacyBlockBreak() {
         Animations animations = instance();
@@ -80,6 +93,68 @@ public class Animations extends Module {
             return;
         }
         mc.thePlayer.swingItem();
+    }
+
+    @EventTarget
+    public void onPacket(PacketEvent event) {
+        if (!this.isEnabled() || !this.oldBlockBreak.getValue() || mc.thePlayer == null || mc.playerController == null) {
+            return;
+        }
+
+        if (event.getType() == EventType.SEND) {
+            this.handleSendPacket(event);
+        } else if (event.getType() == EventType.POST) {
+            this.handlePostPacket(event);
+        }
+    }
+
+    private void handleSendPacket(PacketEvent event) {
+        if (event.getPacket() instanceof C0APacketAnimation && mc.thePlayer.isUsingItem()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (event.getPacket() instanceof C07PacketPlayerDigging digging) {
+            C07PacketPlayerDigging.Action action = digging.getStatus();
+            if (action == C07PacketPlayerDigging.Action.START_DESTROY_BLOCK) {
+                if (mc.thePlayer.isUsingItem()) {
+                    event.setCancelled(true);
+                    return;
+                }
+                this.sentStartDestroyBlock = true;
+            } else if (action == C07PacketPlayerDigging.Action.ABORT_DESTROY_BLOCK) {
+                if (mc.thePlayer.isUsingItem() || !this.sentStartDestroyBlock) {
+                    event.setCancelled(true);
+                    return;
+                }
+                this.sentStartDestroyBlock = false;
+            } else if (action == C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK) {
+                this.sentStartDestroyBlock = false;
+            }
+        }
+    }
+
+    private void handlePostPacket(PacketEvent event) {
+        if (!(event.getPacket() instanceof C07PacketPlayerDigging digging)
+                || digging.getStatus() != C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
+                || !this.isBreakingBlock()) {
+            return;
+        }
+
+        PacketUtil.sendPacketNoEvent(new C07PacketPlayerDigging(
+                C07PacketPlayerDigging.Action.START_DESTROY_BLOCK,
+                mc.objectMouseOver.getBlockPos(),
+                mc.objectMouseOver.sideHit
+        ));
+        this.sentStartDestroyBlock = true;
+    }
+
+    private boolean isBreakingBlock() {
+        return mc.playerController.getIsHittingBlock()
+                && mc.objectMouseOver != null
+                && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
+                && mc.objectMouseOver.getBlockPos() != null
+                && mc.objectMouseOver.sideHit != null;
     }
 
     @EventTarget
