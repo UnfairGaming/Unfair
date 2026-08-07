@@ -1,7 +1,9 @@
 package net.minecraft.client.renderer;
 
+import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.RenderEntityEvent;
+import cn.unfair.module.modules.render.BlockOverlay;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -2172,6 +2174,12 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
      * @param execute If equals to 0 the method is executed
      */
     public void drawSelectionBox(EntityPlayer player, MovingObjectPosition movingObjectPositionIn, int execute, float partialTicks) {
+        if (Unfair.moduleManager != null) {
+            BlockOverlay blockOverlay = (BlockOverlay) Unfair.moduleManager.modules.get(BlockOverlay.class);
+            if (blockOverlay != null && blockOverlay.shouldCancelVanillaSelectionBox()) {
+                return;
+            }
+        }
         if (execute == 0 && movingObjectPositionIn.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);

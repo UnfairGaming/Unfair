@@ -3,6 +3,7 @@ package net.minecraft.client.gui;
 import cn.unfair.management.altmanager.AltManagerGui;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.ui.mainmenu.SilentMenuButton;
+import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import com.google.common.collect.Lists;
@@ -437,7 +438,11 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
 
         float titleY = this.height / 2.0F - (this.buttonList.size() * BUTTON_HEIGHT) / 2.0F;
-        MainMenuStyle.drawCenteredString(this.titleFont, "Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
+        if (AndroidUtil.isAndroid()) {
+            MainMenuStyle.drawCenteredString(this.titleFont, "安卓用户专属Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
+        } else {
+            MainMenuStyle.drawCenteredString(this.titleFont, "Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
+        }
         this.drawMenuButtons(mouseX, mouseY);
 
         float splashY = this.height / 2.0F

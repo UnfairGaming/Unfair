@@ -142,7 +142,7 @@ public class Animations extends Module {
                 itemRenderer.doBlockTransformations();
                 break;
             case "1.7":
-                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                this.transformCheatBreakerFirstPersonItem(animationProgression, swingProgress);
                 GlStateManager.scale(scaleValue, scaleValue, scaleValue);
                 itemRenderer.doBlockTransformations();
                 break;
@@ -349,6 +349,18 @@ public class Animations extends Module {
                 itemRenderer.doBlockTransformations();
                 break;
         }
+    }
+
+    private void transformCheatBreakerFirstPersonItem(float equipProgress, float swingProgress) {
+        float itemScale = 0.8F;
+        GlStateManager.translate(0.7F * itemScale, -0.65F * itemScale - equipProgress * 0.6F, -0.9F * itemScale);
+        GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
+        float swingSin = MathHelper.sin(swingProgress * swingProgress * (float) Math.PI);
+        float swingSqrtSin = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+        GlStateManager.rotate(-swingSin * 20.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(-swingSqrtSin * 20.0F, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(-swingSqrtSin * 80.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.scale(0.4F, 0.4F, 0.4F);
     }
 
     private void renderSwingAnimation(ItemRenderer itemRenderer, float animationProgression, float swingProgress, double scaleValue) {

@@ -8,6 +8,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.block.BlockStairs;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -19,6 +20,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.Display;
@@ -731,6 +733,384 @@ public class RenderUtil {
         RenderUtil.drawBoundingBox(new AxisAlignedBB(blockPos.getX(), blockPos.getY(), blockPos.getZ(), (double) blockPos.getX() + 1.0, (double) blockPos.getY() + height, (double) blockPos.getZ() + 1.0).offset(-mc.getRenderManager().getRenderPosX(), -mc.getRenderManager().getRenderPosY(), -mc.getRenderManager().getRenderPosZ()), red, green, blue, alpha, lineWidth);
     }
 
+    public static void drawBlock(AxisAlignedBB box, EnumFacing side, int overlayStartColor, int overlayEndColor, int outlineStartColor, int outlineEndColor, boolean overlay, boolean outline) {
+        if (side == null) {
+            drawBlockFull(box, new Color(overlayStartColor, true), new Color(overlayEndColor, true), new Color(outlineStartColor, true), new Color(outlineEndColor, true), overlay, outline);
+        } else {
+            drawBlockSide(box, side, new Color(overlayStartColor, true), new Color(overlayEndColor, true), new Color(outlineStartColor, true), new Color(outlineEndColor, true), overlay, outline);
+        }
+    }
+
+    public static void drawBlockSide(AxisAlignedBB box, EnumFacing side, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        switch (side) {
+            case UP -> drawBlockTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case DOWN -> drawBlockBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case NORTH -> drawBlockNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case EAST -> drawBlockEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case SOUTH -> drawBlockSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case WEST -> drawBlockWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        }
+    }
+
+    public static void drawStairs(BlockPos blockPos, net.minecraft.block.state.IBlockState blockState, AxisAlignedBB box, EnumFacing side, double playerX, double playerY, double playerZ, int overlayStartColor, int overlayEndColor, int outlineStartColor, int outlineEndColor, boolean overlay, boolean outline) {
+        EnumFacing blockFacing = blockState.getValue(BlockStairs.FACING);
+        BlockStairs.EnumHalf blockHalf = blockState.getValue(BlockStairs.HALF);
+        int blockX = blockPos.getX();
+        int blockY = blockPos.getY();
+        int blockZ = blockPos.getZ();
+        int angleX = blockHalf == BlockStairs.EnumHalf.TOP ? 270 : 0;
+        int angleY = 0;
+        switch (blockFacing) {
+            case NORTH -> angleY = 180;
+            case EAST -> angleY = 90;
+            case WEST -> angleY = 270;
+        }
+        GL11.glPushMatrix();
+        GL11.glTranslated(-playerX, -playerY, -playerZ);
+        GL11.glTranslated(blockX + 0.5, blockY, blockZ + 0.5);
+        GL11.glRotated(angleY, 0.0, 1.0, 0.0);
+        GL11.glTranslated(0.0, 0.5, 0.0);
+        GL11.glRotated(angleX, 1.0, 0.0, 0.0);
+        GL11.glTranslated(-blockX - 0.5, -blockY - 0.5, -blockZ - 0.5);
+        if (side == null) {
+            drawStairsFull(box, new Color(overlayStartColor, true), new Color(overlayEndColor, true), new Color(outlineStartColor, true), new Color(outlineEndColor, true), overlay, outline);
+        } else {
+            drawStairsSide(box, blockHalf, blockFacing, side, new Color(overlayStartColor, true), new Color(overlayEndColor, true), new Color(outlineStartColor, true), new Color(outlineEndColor, true), overlay, outline);
+        }
+        GL11.glPopMatrix();
+    }
+
+    private static void drawBlockFull(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            drawBlockTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, true, false);
+            drawBlockBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, true, false);
+            drawBlockNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, true, false);
+            drawBlockEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, true, false);
+            drawBlockSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, true, false);
+            drawBlockWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, true, false);
+        }
+        if (outline) {
+            drawBlockOutline(box, outlineStartColor, outlineEndColor);
+        }
+    }
+
+    private static void drawBlockOutline(AxisAlignedBB box, Color outlineStartColor, Color outlineEndColor) {
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+        worldRenderer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+        addLine(worldRenderer, box.minX, box.minY, box.minZ, box.maxX, box.minY, box.minZ, outlineStartColor, outlineEndColor);
+        addLine(worldRenderer, box.maxX, box.minY, box.minZ, box.maxX, box.minY, box.maxZ, outlineEndColor, outlineStartColor);
+        addLine(worldRenderer, box.maxX, box.minY, box.maxZ, box.minX, box.minY, box.maxZ, outlineStartColor, outlineEndColor);
+        addLine(worldRenderer, box.minX, box.minY, box.maxZ, box.minX, box.minY, box.minZ, outlineEndColor, outlineStartColor);
+
+        addLine(worldRenderer, box.minX, box.maxY, box.minZ, box.maxX, box.maxY, box.minZ, outlineEndColor, outlineStartColor);
+        addLine(worldRenderer, box.maxX, box.maxY, box.minZ, box.maxX, box.maxY, box.maxZ, outlineStartColor, outlineEndColor);
+        addLine(worldRenderer, box.maxX, box.maxY, box.maxZ, box.minX, box.maxY, box.maxZ, outlineEndColor, outlineStartColor);
+        addLine(worldRenderer, box.minX, box.maxY, box.maxZ, box.minX, box.maxY, box.minZ, outlineStartColor, outlineEndColor);
+
+        addLine(worldRenderer, box.minX, box.minY, box.minZ, box.minX, box.maxY, box.minZ, outlineStartColor, outlineEndColor);
+        addLine(worldRenderer, box.maxX, box.minY, box.minZ, box.maxX, box.maxY, box.minZ, outlineEndColor, outlineStartColor);
+        addLine(worldRenderer, box.maxX, box.minY, box.maxZ, box.maxX, box.maxY, box.maxZ, outlineStartColor, outlineEndColor);
+        addLine(worldRenderer, box.minX, box.minY, box.maxZ, box.minX, box.maxY, box.maxZ, outlineEndColor, outlineStartColor);
+        tessellator.draw();
+
+        drawBlockOutlineCorners(box, outlineStartColor, outlineEndColor);
+    }
+
+    private static void addLine(WorldRenderer worldRenderer, double x1, double y1, double z1, double x2, double y2, double z2, Color color1, Color color2) {
+        worldRenderer.pos(x1, y1, z1).color(color1.getRed(), color1.getGreen(), color1.getBlue(), color1.getAlpha()).endVertex();
+        worldRenderer.pos(x2, y2, z2).color(color2.getRed(), color2.getGreen(), color2.getBlue(), color2.getAlpha()).endVertex();
+    }
+
+    private static void drawBlockOutlineCorners(AxisAlignedBB box, Color outlineStartColor, Color outlineEndColor) {
+        double centerX = (box.minX + box.maxX) * 0.5D;
+        double centerY = (box.minY + box.maxY) * 0.5D;
+        double centerZ = (box.minZ + box.maxZ) * 0.5D;
+        double patchSize = Math.max(0.0005D, Math.min(0.015D, GL11.glGetFloat(GL11.GL_LINE_WIDTH) * getWorldSizePerPixel(centerX, centerY, centerZ) * 0.5D));
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+        worldRenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        addCornerPatch(worldRenderer, box.minX, box.minY, box.minZ, 1, 1, 1, patchSize, outlineStartColor);
+        addCornerPatch(worldRenderer, box.maxX, box.minY, box.minZ, -1, 1, 1, patchSize, outlineEndColor);
+        addCornerPatch(worldRenderer, box.maxX, box.minY, box.maxZ, -1, 1, -1, patchSize, outlineStartColor);
+        addCornerPatch(worldRenderer, box.minX, box.minY, box.maxZ, 1, 1, -1, patchSize, outlineEndColor);
+        addCornerPatch(worldRenderer, box.minX, box.maxY, box.minZ, 1, -1, 1, patchSize, outlineEndColor);
+        addCornerPatch(worldRenderer, box.maxX, box.maxY, box.minZ, -1, -1, 1, patchSize, outlineStartColor);
+        addCornerPatch(worldRenderer, box.maxX, box.maxY, box.maxZ, -1, -1, -1, patchSize, outlineEndColor);
+        addCornerPatch(worldRenderer, box.minX, box.maxY, box.maxZ, 1, -1, -1, patchSize, outlineStartColor);
+        tessellator.draw();
+    }
+
+    private static double getWorldSizePerPixel(double x, double y, double z) {
+        if (mc.displayHeight <= 0) {
+            return 0.001D;
+        }
+
+        modelViewBuffer.clear();
+        projectionBuffer.clear();
+        GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, modelViewBuffer);
+        GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, projectionBuffer);
+
+        double eyeZ = modelViewBuffer.get(2) * x + modelViewBuffer.get(6) * y + modelViewBuffer.get(10) * z + modelViewBuffer.get(14);
+        double projectionScaleY = Math.abs(projectionBuffer.get(5));
+        if (projectionScaleY <= 0.0D) {
+            return 0.001D;
+        }
+
+        double depth = Math.max(0.01D, Math.abs(eyeZ));
+        return 2.0D * depth / (projectionScaleY * (double) mc.displayHeight);
+    }
+
+    private static void addCornerPatch(WorldRenderer worldRenderer, double x, double y, double z, int xDir, int yDir, int zDir, double size, Color color) {
+        double halfSize = size * 0.5D;
+        double x1 = x - xDir * halfSize;
+        double x2 = x + xDir * halfSize;
+        double y1 = y - yDir * halfSize;
+        double y2 = y + yDir * halfSize;
+        double z1 = z - zDir * halfSize;
+        double z2 = z + zDir * halfSize;
+        addDoubleSidedQuad(worldRenderer, x1, y1, z, x2, y1, z, x2, y2, z, x1, y2, z, color);
+        addDoubleSidedQuad(worldRenderer, x1, y, z1, x2, y, z1, x2, y, z2, x1, y, z2, color);
+        addDoubleSidedQuad(worldRenderer, x, y1, z1, x, y2, z1, x, y2, z2, x, y1, z2, color);
+    }
+
+    private static void addDoubleSidedQuad(WorldRenderer worldRenderer, double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double x4, double y4, double z4, Color color) {
+        addColoredVertex(worldRenderer, x1, y1, z1, color);
+        addColoredVertex(worldRenderer, x2, y2, z2, color);
+        addColoredVertex(worldRenderer, x3, y3, z3, color);
+        addColoredVertex(worldRenderer, x4, y4, z4, color);
+        addColoredVertex(worldRenderer, x4, y4, z4, color);
+        addColoredVertex(worldRenderer, x3, y3, z3, color);
+        addColoredVertex(worldRenderer, x2, y2, z2, color);
+        addColoredVertex(worldRenderer, x1, y1, z1, color);
+    }
+
+    private static void addColoredVertex(WorldRenderer worldRenderer, double x, double y, double z, Color color) {
+        worldRenderer.pos(x, y, z).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).endVertex();
+    }
+
+    private static void drawStairsFull(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawStairsTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawStairsBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawStairsNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawStairsEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawStairsSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawStairsWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static void drawStairsSide(AxisAlignedBB box, BlockStairs.EnumHalf blockHalf, EnumFacing blockFacing, EnumFacing side, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        switch (getSide(blockHalf, blockFacing, side)) {
+            case UP -> drawStairsTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case DOWN -> drawStairsBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case NORTH -> drawStairsNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case EAST -> drawStairsEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case SOUTH -> drawStairsSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case WEST -> drawStairsWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        }
+    }
+
+    private static void drawStairsTop(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawBlockSide(box.contract(0.0, 0.0, 0.25).offset(0.0, 0.0, 0.25), EnumFacing.UP, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawBlockSide(box.contract(0.0, 0.0, 0.25).offset(0.0, -0.5, -0.25), EnumFacing.UP, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static void drawStairsBottom(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawBlockSide(box, EnumFacing.DOWN, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static void drawStairsNorth(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawBlockSide(box.contract(0.0, 0.252, 0.0).offset(0.0, 0.252, 0.5), EnumFacing.NORTH, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawBlockSide(box.contract(0.0, 0.25, 0.0).offset(0.0, -0.25, 0.0), EnumFacing.NORTH, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static void drawStairsEast(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawBlockSide(box.contract(0.0, 0.252, 0.25).offset(0.0, 0.252, 0.25), EnumFacing.EAST, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawBlockSide(box.contract(0.0, 0.25, 0.0).offset(0.0, -0.25, 0.0), EnumFacing.EAST, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static void drawStairsSouth(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawBlockSide(box, EnumFacing.SOUTH, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static void drawStairsWest(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        drawBlockSide(box.contract(0.0, 0.252, 0.25).offset(0.0, 0.252, 0.25), EnumFacing.WEST, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+        drawBlockSide(box.contract(0.0, 0.25, 0.0).offset(0.0, -0.25, 0.0), EnumFacing.WEST, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+    }
+
+    private static EnumFacing getSide(BlockStairs.EnumHalf blockHalf, EnumFacing blockFacing, EnumFacing side) {
+        if (blockHalf == BlockStairs.EnumHalf.TOP) {
+            switch (blockFacing) {
+                case NORTH -> {
+                    side = side.rotateAround(EnumFacing.Axis.X);
+                    side = side.rotateAround(EnumFacing.Axis.Y);
+                    side = side.rotateAround(EnumFacing.Axis.Y);
+                }
+                case EAST -> {
+                    side = side.rotateAround(EnumFacing.Axis.Z);
+                    side = side.rotateAround(EnumFacing.Axis.Y);
+                }
+                case SOUTH -> {
+                    side = side.rotateAround(EnumFacing.Axis.X);
+                    side = side.rotateAround(EnumFacing.Axis.X);
+                    side = side.rotateAround(EnumFacing.Axis.X);
+                }
+                case WEST -> {
+                    side = side.rotateAround(EnumFacing.Axis.Z);
+                    side = side.rotateAround(EnumFacing.Axis.Y);
+                    side = side.rotateAround(EnumFacing.Axis.Z);
+                    side = side.rotateAround(EnumFacing.Axis.Z);
+                }
+            }
+        } else if (side != EnumFacing.UP && side != EnumFacing.DOWN) {
+            switch (blockFacing) {
+                case NORTH -> side = side.getOpposite();
+                case EAST -> side = side.rotateY();
+                case WEST -> side = side.rotateYCCW();
+            }
+        }
+        return side;
+    }
+
+    private static void drawBlockTop(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.minX, box.maxY, box.maxZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.minZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+        if (outline) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(2, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.minX, box.maxY, box.maxZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.minZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+    }
+
+    private static void drawBlockBottom(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.minY, box.maxZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.maxZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.minZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.minZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+        if (outline) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(2, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.minY, box.maxZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.minZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+    }
+
+    private static void drawBlockNorth(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.minZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.minZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.minZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+        if (outline) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(2, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.minZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.minZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+    }
+
+    private static void drawBlockEast(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.maxZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.minZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+        if (outline) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(2, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.maxY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.maxZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.minZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+    }
+
+    private static void drawBlockSouth(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.minX, box.maxY, box.maxZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.maxZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.maxZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+        if (outline) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(2, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.maxZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.minY, box.maxZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.maxX, box.maxY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+    }
+
+    private static void drawBlockWest(AxisAlignedBB box, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
+        if (overlay) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.minX, box.maxY, box.maxZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.minZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.minZ).color(overlayStartColor.getRed(), overlayStartColor.getGreen(), overlayStartColor.getBlue(), overlayStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.maxZ).color(overlayEndColor.getRed(), overlayEndColor.getGreen(), overlayEndColor.getBlue(), overlayEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+        if (outline) {
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldRenderer = tessellator.getWorldRenderer();
+            worldRenderer.begin(2, DefaultVertexFormats.POSITION_COLOR);
+            worldRenderer.pos(box.minX, box.maxY, box.maxZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.maxY, box.minZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.minZ).color(outlineStartColor.getRed(), outlineStartColor.getGreen(), outlineStartColor.getBlue(), outlineStartColor.getAlpha()).endVertex();
+            worldRenderer.pos(box.minX, box.minY, box.maxZ).color(outlineEndColor.getRed(), outlineEndColor.getGreen(), outlineEndColor.getBlue(), outlineEndColor.getAlpha()).endVertex();
+            tessellator.draw();
+        }
+    }
+
     public static void drawCornerESP(EntityPlayer entity, float red, float green, float blue) {
         float x = (float) (RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, mc.timer.renderPartialTicks) - mc.getRenderManager().getRenderPosX());
         float y = (float) (RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks) - mc.getRenderManager().getRenderPosY());
@@ -1282,10 +1662,7 @@ public class RenderUtil {
         if (n > 255) {
             return 255;
         }
-        if (n < 0) {
-            return 0;
-        }
-        return n;
+        return Math.max(n, 0);
     }
 
     public static void resetColor() {
