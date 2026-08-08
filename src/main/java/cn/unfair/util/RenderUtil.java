@@ -24,7 +24,11 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL14;
 import org.lwjgl.util.glu.GLU;
 
 import javax.vecmath.Vector4d;
@@ -44,6 +48,143 @@ public class RenderUtil {
     private static final int SKEET_OUTER_COLOR = 0xE6121212;
     private static final int SKEET_MIDDLE_COLOR = 0xFF2A2A2A;
     private static final int SKEET_INNER_COLOR = 0xFF171717;
+    public static class GlRenderState {
+        private final boolean alpha;
+        private final boolean blend;
+        private final boolean cull;
+        private final boolean depth;
+        private final boolean depthMask;
+        private final boolean lighting;
+        private final boolean normalize;
+        private final boolean rescaleNormal;
+        private final boolean texture2D;
+        private final int activeTexture;
+        private final int blendDst;
+        private final int blendDstAlpha;
+        private final int blendSrc;
+        private final int blendSrcAlpha;
+        private final int depthFunc;
+        private final int shadeModel;
+        private final int textureBinding;
+        private final float red;
+        private final float green;
+        private final float blue;
+        private final float alphaValue;
+
+        private GlRenderState() {
+            this.alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
+            this.blend = GL11.glIsEnabled(GL11.GL_BLEND);
+            this.cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+            this.depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+            this.depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+            this.lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+            this.normalize = GL11.glIsEnabled(GL11.GL_NORMALIZE);
+            this.rescaleNormal = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
+            this.texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+            this.activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            this.blendDst = GL11.glGetInteger(GL11.GL_BLEND_DST);
+            this.blendDstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
+            this.blendSrc = GL11.glGetInteger(GL11.GL_BLEND_SRC);
+            this.blendSrcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA);
+            this.depthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
+            this.shadeModel = GL11.glGetInteger(GL11.GL_SHADE_MODEL);
+            this.textureBinding = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+
+            FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(4);
+            GL11.glGetFloat(GL11.GL_CURRENT_COLOR, colorBuffer);
+            this.red = colorBuffer.get(0);
+            this.green = colorBuffer.get(1);
+            this.blue = colorBuffer.get(2);
+            this.alphaValue = colorBuffer.get(3);
+        }
+
+        public void restore() {
+            setAlpha(this.alpha);
+            setBlend(this.blend);
+            setCull(this.cull);
+            setDepth(this.depth);
+            setLighting(this.lighting);
+            setNormalize(this.normalize);
+            setRescaleNormal(this.rescaleNormal);
+            setTexture2D(this.texture2D);
+            GlStateManager.depthMask(this.depthMask);
+            GlStateManager.depthFunc(this.depthFunc);
+            GlStateManager.tryBlendFuncSeparate(this.blendSrc, this.blendDst, this.blendSrcAlpha, this.blendDstAlpha);
+            GlStateManager.shadeModel(this.shadeModel);
+            GlStateManager.setActiveTexture(this.activeTexture);
+            GlStateManager.bindTexture(this.textureBinding);
+            GlStateManager.color(this.red, this.green, this.blue, this.alphaValue);
+        }
+
+        private static void setAlpha(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableAlpha();
+            } else {
+                GlStateManager.disableAlpha();
+            }
+        }
+
+        private static void setBlend(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableBlend();
+            } else {
+                GlStateManager.disableBlend();
+            }
+        }
+
+        private static void setCull(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableCull();
+            } else {
+                GlStateManager.disableCull();
+            }
+        }
+
+        private static void setDepth(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableDepth();
+            } else {
+                GlStateManager.disableDepth();
+            }
+        }
+
+        private static void setLighting(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableLighting();
+            } else {
+                GlStateManager.disableLighting();
+            }
+        }
+
+        private static void setNormalize(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableNormalize();
+            } else {
+                GlStateManager.disableNormalize();
+            }
+        }
+
+        private static void setRescaleNormal(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableRescaleNormal();
+            } else {
+                GlStateManager.disableRescaleNormal();
+            }
+        }
+
+        private static void setTexture2D(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableTexture2D();
+            } else {
+                GlStateManager.disableTexture2D();
+            }
+        }
+    }
+
+    public static GlRenderState captureGlState() {
+        return new GlRenderState();
+    }
+
     private static final String ROUNDED_RECT_SRC =
             """
                     #version 120
@@ -249,38 +390,68 @@ public class RenderUtil {
     }
 
     public static void renderItemInGUI(ItemStack itemStack, int x, int y) {
-        boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
-        boolean lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
-        boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
-        boolean texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
-        boolean alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
-        boolean rescaleNormal = GL11.glIsEnabled(org.lwjgl.opengl.GL12.GL_RESCALE_NORMAL);
-        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+        renderItemInGUI(itemStack, x, y, false);
+    }
+
+    public static void renderItemInGUI(ItemStack itemStack, int x, int y, boolean throughWalls) {
+        if (itemStack == null) {
+            return;
+        }
+
+        float previousZLevel = mc.getRenderItem().zLevel;
+        GlRenderState previousGlState = new GlRenderState();
+
         GlStateManager.pushMatrix();
-        RenderHelper.enableGUIStandardItemLighting();
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(1.0f, 1.0f, -0.01f);
-        RenderUtil.mc.getRenderItem().zLevel = -150.0f;
-        mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, x, y);
-        mc.getRenderItem().renderItemOverlays(RenderUtil.mc.fontRendererObj, itemStack, x, y);
-        RenderUtil.mc.getRenderItem().zLevel = 0.0f;
-        GlStateManager.popMatrix();
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popMatrix();
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(0.5f, 0.5f, 0.5f);
-        GlStateManager.disableDepth();
-        RenderUtil.renderEnchantmentText(itemStack, x, y, 0.5f);
-        GlStateManager.enableDepth();
-        GlStateManager.scale(2.0f, 2.0f, 2.0f);
-        GlStateManager.popMatrix();
-        GlStateManager.depthMask(depthMask);
-        if (depth) GlStateManager.enableDepth(); else GlStateManager.disableDepth();
-        if (lighting) GlStateManager.enableLighting(); else GlStateManager.disableLighting();
-        if (blend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
-        if (texture2D) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
-        if (alpha) GlStateManager.enableAlpha(); else GlStateManager.disableAlpha();
-        if (rescaleNormal) GlStateManager.enableRescaleNormal(); else GlStateManager.disableRescaleNormal();
+        try {
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            if (throughWalls) {
+                GlStateManager.disableDepth();
+                GlStateManager.depthMask(false);
+            } else {
+                GlStateManager.enableDepth();
+                GlStateManager.depthMask(true);
+            }
+            GlStateManager.enableRescaleNormal();
+            GlStateManager.enableAlpha();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            RenderHelper.enableGUIStandardItemLighting();
+            GlStateManager.pushMatrix();
+            try {
+                GlStateManager.scale(1.0F, 1.0F, -0.01F);
+                mc.getRenderItem().zLevel = -150.0F;
+                mc.getRenderItem().renderItemAndEffectIntoGUI(itemStack, x, y);
+                mc.getRenderItem().renderItemOverlays(mc.fontRendererObj, itemStack, x, y);
+                mc.getRenderItem().zLevel = 0.0F;
+                if (throughWalls) {
+                    GlStateManager.disableDepth();
+                    GlStateManager.depthMask(false);
+                }
+            } finally {
+                GlStateManager.popMatrix();
+            }
+            GlStateManager.pushMatrix();
+            try {
+                GlStateManager.scale(0.5F, 0.5F, 0.5F);
+                GlStateManager.disableDepth();
+                GlStateManager.depthMask(false);
+                RenderUtil.renderEnchantmentText(itemStack, x, y, 0.5F);
+                if (!throughWalls) {
+                    GlStateManager.enableDepth();
+                    GlStateManager.depthMask(true);
+                }
+                GlStateManager.scale(2.0F, 2.0F, 2.0F);
+            } finally {
+                GlStateManager.popMatrix();
+            }
+        } finally {
+            mc.getRenderItem().zLevel = previousZLevel;
+            RenderHelper.disableStandardItemLighting();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.popMatrix();
+            previousGlState.restore();
+        }
     }
 
     public static void renderItemAndEffectIntoGui3D(ItemStack stack, int xPos, int yPos) {
@@ -363,28 +534,35 @@ public class RenderUtil {
     }
 
     public static void renderPotionEffect(PotionEffect potionEffect, int x, int y) {
-        int n3 = Potion.potionTypes[potionEffect.getPotionID()].getStatusIconIndex();
-        boolean depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
-        boolean blend = GL11.glIsEnabled(GL11.GL_BLEND);
-        boolean texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
-        boolean alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
-        boolean depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+        if (potionEffect == null) {
+            return;
+        }
+
+        Potion potion = Potion.potionTypes[potionEffect.getPotionID()];
+        if (potion == null || !potion.hasStatusIcon()) {
+            return;
+        }
+
+        int icon = potion.getStatusIconIndex();
+        GlRenderState previousGlState = new GlRenderState();
         GlStateManager.pushMatrix();
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(1.0f, 1.0f, -0.01f);
-        mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
-        Gui.drawModalRectWithCustomSizedTexture(x, y, n3 % 8 * 18, 198 + (double) n3 / 8 * 18, 18, 18, 256.0f, 256.0f);
-        GlStateManager.popMatrix();
-        GlStateManager.enableAlpha();
-        GlStateManager.disableBlend();
-        GlStateManager.enableTexture2D();
-        GlStateManager.popMatrix();
-        GlStateManager.depthMask(depthMask);
-        if (depth) GlStateManager.enableDepth(); else GlStateManager.disableDepth();
-        if (blend) GlStateManager.enableBlend(); else GlStateManager.disableBlend();
-        if (texture2D) GlStateManager.enableTexture2D(); else GlStateManager.disableTexture2D();
-        if (alpha) GlStateManager.enableAlpha(); else GlStateManager.disableAlpha();
+        try {
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.disableLighting();
+            GlStateManager.disableDepth();
+            GlStateManager.depthMask(false);
+            GlStateManager.enableBlend();
+            GlStateManager.enableAlpha();
+            GlStateManager.enableTexture2D();
+            GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            GlStateManager.scale(1.0F, 1.0F, -0.01F);
+            mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
+            Gui.drawModalRectWithCustomSizedTexture(x, y, icon % 8 * 18, 198 + icon / 8 * 18, 18, 18, 256.0F, 256.0F);
+        } finally {
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.popMatrix();
+            previousGlState.restore();
+        }
     }
 
     public static void drawRect(double left, double top, double right, double bottom, int color) {

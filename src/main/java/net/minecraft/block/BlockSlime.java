@@ -19,7 +19,12 @@ public class BlockSlime extends BlockBreakable
 
     public EnumWorldBlockLayer getBlockLayer()
     {
-        return EnumWorldBlockLayer.TRANSLUCENT;
+        return EnumWorldBlockLayer.CUTOUT;
+    }
+
+    public boolean isFullCube()
+    {
+        return false;
     }
 
     /**

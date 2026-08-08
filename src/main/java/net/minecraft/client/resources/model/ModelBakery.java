@@ -240,15 +240,20 @@ public class ModelBakery {
 
         for (String s : ViaBackwardsItemModels.getModelNames()) {
             ResourceLocation resourcelocation = this.getItemLocation(s);
-            this.itemLocations.put(s, resourcelocation);
+            if (!this.hasResource(resourcelocation)) {
+                continue;
+            }
 
             if (this.models.get(resourcelocation) == null) {
                 try {
                     ModelBlock modelblock = this.loadModel(resourcelocation);
                     this.models.put(resourcelocation, modelblock);
+                    this.itemLocations.put(s, resourcelocation);
                 } catch (Exception exception) {
-                    LOGGER.warn("Unable to load ViaBackwards item model: '{}'", resourcelocation, exception);
+                    LOGGER.debug("Unable to load ViaBackwards item model: '{}'", resourcelocation, exception);
                 }
+            } else {
+                this.itemLocations.put(s, resourcelocation);
             }
         }
     }
@@ -330,6 +335,14 @@ public class ModelBakery {
         ResourceLocation resourcelocation = ResourceLocation.of(p_177583_1_);
 
         return ResourceLocation.of(resourcelocation.getResourceDomain(), "item/" + resourcelocation.getResourcePath());
+    }
+
+    private boolean hasResource(ResourceLocation resourceLocation) {
+        try {
+            return this.resourceManager.getResource(resourceLocation) != null;
+        } catch (IOException ignored) {
+            return false;
+        }
     }
 
     private void bakeBlockModels() {

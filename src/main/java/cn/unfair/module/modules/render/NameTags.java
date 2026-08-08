@@ -103,6 +103,58 @@ public class NameTags extends Module {
         }
     }
 
+    private int renderArmorItems(EntityPlayer player, int height) {
+        if (!this.armor.getValue()) {
+            return height;
+        }
+
+        ArrayList<ItemStack> renderingItems = new ArrayList<>();
+        for (int i = 4; i >= 0; i--) {
+            ItemStack itemStack = i == 0 ? player.getHeldItem() : player.inventory.armorInventory[i - 1];
+            if (itemStack != null) {
+                renderingItems.add(itemStack);
+            }
+        }
+
+        if (renderingItems.isEmpty()) {
+            return height;
+        }
+
+        int offset = renderingItems.size() * -8;
+        for (int i = 0; i < renderingItems.size(); i++) {
+            RenderUtil.renderItemInGUI(renderingItems.get(i), offset + i * 16, -height - 16, true);
+        }
+        return height + 16;
+    }
+
+    private void renderPotionEffects(EntityPlayer player, int height) {
+        if (!this.effects.getValue()) {
+            return;
+        }
+
+        List<PotionEffect> effects = player
+                .getActivePotionEffects()
+                .stream()
+                .filter(potionEffect -> Potion.potionTypes[potionEffect.getPotionID()] != null
+                        && Potion.potionTypes[potionEffect.getPotionID()].hasStatusIcon())
+                .collect(Collectors.toList());
+
+        if (effects.isEmpty()) {
+            return;
+        }
+
+        GlStateManager.pushMatrix();
+        try {
+            GlStateManager.scale(0.5F, 0.5F, 1.0F);
+            int offset = effects.size() * -9;
+            for (int i = 0; i < effects.size(); i++) {
+                RenderUtil.renderPotionEffect(effects.get(i), offset + i * 18, -(height * 2) - 18);
+            }
+        } finally {
+            GlStateManager.popMatrix();
+        }
+    }
+
     @EventTarget
     public void onRender(Render3DEvent event) {
         if (this.isEnabled()) {
@@ -120,142 +172,107 @@ public class NameTags extends Module {
                         double z = RenderUtil.lerpDouble(entity.posZ, entity.lastTickPosZ, event.partialTicks())
                                 - mc.getRenderManager().getRenderPosZ();
                         double distance = mc.getRenderViewEntity().getDistanceToEntity(entity);
+                        RenderUtil.GlRenderState previousGlState = RenderUtil.captureGlState();
                         GlStateManager.pushMatrix();
-                        GlStateManager.translate(x, y + (entity.isSneaking() ? 0.225 : 0.4), z);
-                        GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
-                        float view = mc.gameSettings.thirdPersonView == 2 ? -1.0F : 1.0F;
-                        GlStateManager.rotate(mc.getRenderManager().playerViewX, view, 0.0F, 0.0F);
-                        double scale = Math.pow(Math.clamp(this.autoScale.getValue() ? distance : 0.0, 6.0, 128.0), 0.75) * 0.0075;
-                        GlStateManager.scale(-scale * (double) this.scale.getValue(), -scale * (double) this.scale.getValue(), 1.0);
-                        String distanceText = "";
-                        switch (this.distanceMode.getValue()) {
-                            case 1:
-                                distanceText = String.format("&7%dm&r ", (int) distance);
-                                break;
-                            case 2:
-                                distanceText = String.format("&a[&f%d&a]&r ", (int) distance);
-                        }
-                        float health = ((EntityLivingBase) entity).getHealth();
-                        float absorption = ((EntityLivingBase) entity).getAbsorptionAmount();
-                        float max = ((EntityLivingBase) entity).getMaxHealth();
-                        float percent = Math.clamp((health + absorption) / max, 0.0F, 1.0F);
-                        String healText = "";
-                        switch (this.healthMode.getValue()) {
-                            case 1:
-                                healText = String.format(" %d%s", (int) health, absorption > 0.0F ? String.format(" &6%d&r", (int) absorption) : "&r");
-                                break;
-                            case 2:
-                                healText = String.format(
-                                        " %s%s",
-                                        healthFormatter.format((double) health / 2.0),
-                                        absorption > 0.0F ? String.format(" &6%s&r", healthFormatter.format((double) absorption / 2.0)) : "&r"
-                                );
-                                break;
-                            case 3:
-                                if (entity instanceof EntityPlayer) {
-                                    Scoreboard scoreboard = mc.theWorld.getScoreboard();
-                                    if (scoreboard != null) {
-                                        ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(2);
-                                        if (objective != null) {
-                                            Score score = scoreboard.getValueFromObjective(entity.getName(), objective);
-                                            if (score != null) {
-                                                healText = String.format(" &e%d&r", score.getScorePoints());
+                        try {
+                            GlStateManager.translate(x, y + (entity.isSneaking() ? 0.225 : 0.4), z);
+                            GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
+                            float view = mc.gameSettings.thirdPersonView == 2 ? -1.0F : 1.0F;
+                            GlStateManager.rotate(mc.getRenderManager().playerViewX, view, 0.0F, 0.0F);
+                            double scale = Math.pow(Math.clamp(this.autoScale.getValue() ? distance : 0.0, 6.0, 128.0), 0.75) * 0.0075;
+                            GlStateManager.scale(-scale * (double) this.scale.getValue(), -scale * (double) this.scale.getValue(), 1.0);
+                            String distanceText = "";
+                            switch (this.distanceMode.getValue()) {
+                                case 1:
+                                    distanceText = String.format("&7%dm&r ", (int) distance);
+                                    break;
+                                case 2:
+                                    distanceText = String.format("&a[&f%d&a]&r ", (int) distance);
+                            }
+                            float health = ((EntityLivingBase) entity).getHealth();
+                            float absorption = ((EntityLivingBase) entity).getAbsorptionAmount();
+                            float max = ((EntityLivingBase) entity).getMaxHealth();
+                            float percent = Math.clamp((health + absorption) / max, 0.0F, 1.0F);
+                            String healText = "";
+                            switch (this.healthMode.getValue()) {
+                                case 1:
+                                    healText = String.format(" %d%s", (int) health, absorption > 0.0F ? String.format(" &6%d&r", (int) absorption) : "&r");
+                                    break;
+                                case 2:
+                                    healText = String.format(
+                                            " %s%s",
+                                            healthFormatter.format((double) health / 2.0),
+                                            absorption > 0.0F ? String.format(" &6%s&r", healthFormatter.format((double) absorption / 2.0)) : "&r"
+                                    );
+                                    break;
+                                case 3:
+                                    if (entity instanceof EntityPlayer) {
+                                        Scoreboard scoreboard = mc.theWorld.getScoreboard();
+                                        if (scoreboard != null) {
+                                            ScoreObjective objective = scoreboard.getObjectiveInDisplaySlot(2);
+                                            if (objective != null) {
+                                                Score score = scoreboard.getValueFromObjective(entity.getName(), objective);
+                                                if (score != null) {
+                                                    healText = String.format(" &e%d&r", score.getScorePoints());
+                                                }
                                             }
                                         }
                                     }
-                                }
-                        }
-                        String color = ChatColors.formatColor(String.format("%s&f%s&r%s", distanceText, teamName, healText));
-                        int width = mc.fontRendererObj.getStringWidth(color);
-                        if (this.backgroundOpacity.getValue() > 0) {
-                            Color textColor = !entity.isSneaking() && !entity.isInvisible()
-                                    ? new Color(0.0F, 0.0F, 0.0F, (float) this.backgroundOpacity.getValue() / 100.0F)
-                                    : new Color(0.33F, 0.0F, 0.33F, (float) this.backgroundOpacity.getValue() / 100.0F);
-                            RenderUtil.enableRenderState();
-                            RenderUtil.drawRect(
-                                    (float) (-width) / 2.0F - 1.0F,
-                                    (float) (-mc.fontRendererObj.FONT_HEIGHT) - 1.0F,
-                                    (float) width / 2.0F + (this.shadow.getValue() ? 1.0F : 0.0F),
-                                    this.shadow.getValue() ? 0.0F : -1.0F,
-                                    textColor.getRGB()
-                            );
-                            RenderUtil.disableRenderState();
-                        }
-                        GlStateManager.disableDepth();
-                        mc.fontRendererObj
-                                .drawString(
-                                        color,
-                                        (float) (-width) / 2.0F,
-                                        (float) (-mc.fontRendererObj.FONT_HEIGHT),
-                                        ColorUtil.getHealthBlend(percent).getRGB(),
-                                        this.shadow.getValue()
+                            }
+                            String color = ChatColors.formatColor(String.format("%s&f%s&r%s", distanceText, teamName, healText));
+                            int width = mc.fontRendererObj.getStringWidth(color);
+                            if (this.backgroundOpacity.getValue() > 0) {
+                                Color textColor = !entity.isSneaking() && !entity.isInvisible()
+                                        ? new Color(0.0F, 0.0F, 0.0F, (float) this.backgroundOpacity.getValue() / 100.0F)
+                                        : new Color(0.33F, 0.0F, 0.33F, (float) this.backgroundOpacity.getValue() / 100.0F);
+                                RenderUtil.enableRenderState();
+                                RenderUtil.drawRect(
+                                        (float) (-width) / 2.0F - 1.0F,
+                                        (float) (-mc.fontRendererObj.FONT_HEIGHT) - 1.0F,
+                                        (float) width / 2.0F + (this.shadow.getValue() ? 1.0F : 0.0F),
+                                        this.shadow.getValue() ? 0.0F : -1.0F,
+                                        textColor.getRGB()
                                 );
-                        GlStateManager.enableDepth();
-                        if (entity instanceof EntityPlayer) {
-                            int height = mc.fontRendererObj.FONT_HEIGHT + 2;
+                                RenderUtil.disableRenderState();
+                            }
                             GlStateManager.disableDepth();
-                            try {
-                                if (this.armor.getValue()) {
-                                    ArrayList<ItemStack> renderingItems = new ArrayList<>();
-                                    for (int i = 4; i >= 0; i--) {
-                                        ItemStack itemStack;
-                                        if (i == 0) {
-                                            itemStack = ((EntityPlayer) entity).getHeldItem();
-                                        } else {
-                                            itemStack = ((EntityPlayer) entity).inventory.armorInventory[i - 1];
-                                        }
-                                        if (itemStack != null) {
-                                            renderingItems.add(itemStack);
-                                        }
-                                    }
-                                    if (!renderingItems.isEmpty()) {
-                                        int offset = renderingItems.size() * -8;
-                                        for (int i = 0; i < renderingItems.size(); i++) {
-                                            RenderUtil.renderItemInGUI(renderingItems.get(i), offset + i * 16, -height - 16);
-                                        }
-                                        height += 16;
-                                    }
+                            mc.fontRendererObj
+                                    .drawString(
+                                            color,
+                                            (float) (-width) / 2.0F,
+                                            (float) (-mc.fontRendererObj.FONT_HEIGHT),
+                                            ColorUtil.getHealthBlend(percent).getRGB(),
+                                            this.shadow.getValue()
+                            );
+                            GlStateManager.enableDepth();
+                            if (entity instanceof EntityPlayer) {
+                                int height = mc.fontRendererObj.FONT_HEIGHT + 2;
+                                height = this.renderArmorItems((EntityPlayer) entity, height);
+                                this.renderPotionEffects((EntityPlayer) entity, height);
+                                if (TeamUtil.isFriend((EntityPlayer) entity)) {
+                                    RenderUtil.enableRenderState();
+                                    float x1 = (float) (-width) / 2.0F - 1.0F;
+                                    view = (float) (-mc.fontRendererObj.FONT_HEIGHT) - 1.0F;
+                                    float y1 = (float) width / 2.0F + 1.0F;
+                                    float offset = this.shadow.getValue() ? 0.0F : -1.0F;
+                                    int friendColor = Unfair.friendManager.getColor().getRGB();
+                                    RenderUtil.drawOutlineRect(x1, view, y1, offset, 1.5F, 0, friendColor);
+                                    RenderUtil.disableRenderState();
+                                } else if (TeamUtil.isTarget((EntityPlayer) entity)) {
+                                    RenderUtil.enableRenderState();
+                                    float x1 = (float) (-width) / 2.0F - 1.0F;
+                                    view = (float) (-mc.fontRendererObj.FONT_HEIGHT) - 1.0F;
+                                    float y1 = (float) width / 2.0F + 1.0F;
+                                    float offset = this.shadow.getValue() ? 0.0F : -1.0F;
+                                    int targetColor = Unfair.targetManager.getColor().getRGB();
+                                    RenderUtil.drawOutlineRect(x1, view, y1, offset, 1.5F, 0, targetColor);
+                                    RenderUtil.disableRenderState();
                                 }
-                                if (this.effects.getValue()) {
-                                    List<PotionEffect> effects = ((EntityPlayer) entity)
-                                            .getActivePotionEffects()
-                                            .stream()
-                                            .filter(potionEffect -> Potion.potionTypes[potionEffect.getPotionID()].hasStatusIcon())
-                                            .collect(Collectors.toList());
-                                    if (!effects.isEmpty()) {
-                                        GlStateManager.pushMatrix();
-                                        GlStateManager.scale(0.5F, 0.5F, 1.0F);
-                                        int offset = effects.size() * -9;
-                                        for (int i = 0; i < effects.size(); i++) {
-                                            RenderUtil.renderPotionEffect(effects.get(i), offset + i * 18, -(height * 2) - 18);
-                                        }
-                                        GlStateManager.popMatrix();
-                                    }
-                                }
-                            } finally {
-                                GlStateManager.enableDepth();
                             }
-                            if (TeamUtil.isFriend((EntityPlayer) entity)) {
-                                RenderUtil.enableRenderState();
-                                float x1 = (float) (-width) / 2.0F - 1.0F;
-                                view = (float) (-mc.fontRendererObj.FONT_HEIGHT) - 1.0F;
-                                float y1 = (float) width / 2.0F + 1.0F;
-                                float offset = this.shadow.getValue() ? 0.0F : -1.0F;
-                                int friendColor = Unfair.friendManager.getColor().getRGB();
-                                RenderUtil.drawOutlineRect(x1, view, y1, offset, 1.5F, 0, friendColor);
-                                RenderUtil.disableRenderState();
-                            } else if (TeamUtil.isTarget((EntityPlayer) entity)) {
-                                RenderUtil.enableRenderState();
-                                float x1 = (float) (-width) / 2.0F - 1.0F;
-                                view = (float) (-mc.fontRendererObj.FONT_HEIGHT) - 1.0F;
-                                float y1 = (float) width / 2.0F + 1.0F;
-                                float offset = this.shadow.getValue() ? 0.0F : -1.0F;
-                                int targetColor = Unfair.targetManager.getColor().getRGB();
-                                RenderUtil.drawOutlineRect(x1, view, y1, offset, 1.5F, 0, targetColor);
-                                RenderUtil.disableRenderState();
-                            }
+                        } finally {
+                            GlStateManager.popMatrix();
+                            previousGlState.restore();
                         }
-                        GlStateManager.popMatrix();
                     }
                 }
             }

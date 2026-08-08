@@ -36,7 +36,12 @@ public abstract class Widget {
     }
 
     protected static float clamp(float value, float min, float max) {
-        return Math.clamp(max, min, value);
+        float lower = Math.min(min, max);
+        float upper = Math.max(min, max);
+        if (value < lower) {
+            return lower;
+        }
+        return Math.min(value, upper);
     }
 
     public abstract boolean shouldRender();

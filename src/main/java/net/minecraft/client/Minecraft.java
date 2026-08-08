@@ -613,7 +613,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
 
     private void createDisplay() {
         Display.setResizable(true);
-        Display.setTitle("Unfair" + Unfair.version);
+        Display.setTitle("Unfair " + Unfair.version);
 
         Display.create((new PixelFormat()).withDepthBits(24));
     }

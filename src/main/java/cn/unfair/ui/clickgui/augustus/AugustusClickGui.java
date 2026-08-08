@@ -13,6 +13,10 @@ import cn.unfair.property.properties.*;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -23,12 +27,16 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
 public class AugustusClickGui extends GuiScreen {
     private static final double FLOAT_SLIDER_STEP = 0.01D;
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final float SIDEBAR_WIDTH = 90f;
@@ -40,6 +48,7 @@ public class AugustusClickGui extends GuiScreen {
     private final Map<Property<?>, Float> sliderAnim = new HashMap<>();
     private final Map<TextProperty, GuiTextField> textFields = new HashMap<>();
     private final Map<ColorProperty, ColorPickerState> colorPickers = new HashMap<>();
+    private final File configFile = new File("./config/Unfair/", "augustus-clickgui.json");
     private boolean dragging = false;
     private boolean resizing = false;
     private boolean waitingForKey = false;
@@ -60,6 +69,7 @@ public class AugustusClickGui extends GuiScreen {
     public AugustusClickGui() {
         this.guiWidth = 600;
         this.guiHeight = 325;
+        this.loadLayout();
     }
 
     private static boolean isHovered(int mouseX, int mouseY, float x, float y, float w, float h) {
@@ -1022,12 +1032,72 @@ public class AugustusClickGui extends GuiScreen {
     @Override
     protected void mouseReleased(int mouseX, int mouseY, int state) {
         super.mouseReleased(mouseX, mouseY, state);
+        boolean changedLayout = dragging || resizing;
         dragging = false;
         resizing = false;
         draggingSlider = null;
+        if (changedLayout) {
+            saveLayout();
+        }
         for (ColorPickerState st : colorPickers.values()) {
             st.draggingHue = false;
             st.draggingArea = false;
+        }
+    }
+
+    @Override
+    public void onGuiClosed() {
+        super.onGuiClosed();
+        saveLayout();
+    }
+
+    private void loadLayout() {
+        if (!configFile.exists()) {
+            return;
+        }
+        try (FileReader reader = new FileReader(configFile)) {
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            if (json.has("x")) {
+                this.posX = json.get("x").getAsFloat();
+            }
+            if (json.has("y")) {
+                this.posY = json.get("y").getAsFloat();
+            }
+            if (json.has("width")) {
+                this.guiWidth = Math.max(420.0F, json.get("width").getAsFloat());
+            }
+            if (json.has("height")) {
+                this.guiHeight = Math.max(220.0F, json.get("height").getAsFloat());
+            }
+            if (json.has("category")) {
+                try {
+                    this.selectedCategory = Category.valueOf(json.get("category").getAsString());
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            this.positionInitialized = json.has("x") && json.has("y");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveLayout() {
+        try {
+            File parent = configFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            JsonObject json = new JsonObject();
+            json.addProperty("x", this.posX);
+            json.addProperty("y", this.posY);
+            json.addProperty("width", this.guiWidth);
+            json.addProperty("height", this.guiHeight);
+            json.addProperty("category", this.selectedCategory.name());
+            try (FileWriter writer = new FileWriter(configFile)) {
+                GSON.toJson(json, writer);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

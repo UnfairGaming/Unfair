@@ -31,7 +31,6 @@ sourceSets {
 }
 
 def lombokVersion = '1.18.46'
-def fastutilVersion = '8.5.19'
 
 configurations {
     localRuntime {
@@ -95,26 +94,3 @@ tasks.named('jar', Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.register('verifyLocalLibraries') {
-    group = 'verification'
-    description = 'Checks that the required local library directories are populated.'
-
-    doLast {
-        def requiredFiles = [
-                "libs/client/lombok-${lombokVersion}.jar",
-                "libs/client/fastutil-${fastutilVersion}.jar"
-        ]
-        def missingFiles = requiredFiles.findAll { !file(it).isFile() }
-
-        if (!missingFiles.isEmpty()) {
-            throw new GradleException(
-                    "Missing local libraries:\n - ${missingFiles.join('\n - ')}\n" +
-                            "Restore the checked-in files under libs/."
-            )
-        }
-    }
-}
-
-tasks.named('compileJava') {
-    dependsOn 'verifyLocalLibraries'
-}

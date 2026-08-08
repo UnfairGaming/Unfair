@@ -18,6 +18,8 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.src.Config;
+import net.minecraft.util.ResourceLocation;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -111,9 +113,21 @@ public final class ViaBackwardsItemModels {
     }
 
     private static void addModelName(String model) {
+        if (model == null || model.isEmpty()) {
+            return;
+        }
+
+        if (!hasModelResource(model)) {
+            return;
+        }
+
         if (!MODEL_NAMES.contains(model)) {
             MODEL_NAMES.add(model);
         }
+    }
+
+    private static boolean hasModelResource(String model) {
+        return Config.hasResource(ResourceLocation.of("minecraft", "models/item/" + model + ".json"));
     }
 
     private static boolean isBrokenElytra(ItemStack stack, String model) {
@@ -147,10 +161,11 @@ public final class ViaBackwardsItemModels {
                     continue;
                 }
 
-                if (!MODEL_NAMES.contains(model)) {
-                    MODEL_NAMES.add(model);
+                if (!hasModelResource(model)) {
+                    continue;
                 }
 
+                addModelName(model);
                 MODELS_BY_DISPLAY_NAME.putIfAbsent(normalizeDisplayName(displayName), model);
                 MODELS_BY_BACKUP_TAG.putIfAbsent(makeBackupKey(mappingsVersion, itemId), model);
 

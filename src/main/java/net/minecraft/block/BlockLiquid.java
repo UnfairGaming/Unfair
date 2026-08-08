@@ -77,7 +77,8 @@ public abstract class BlockLiquid extends Block {
     }
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side) {
-        return worldIn.getBlockState(pos).getBlock().getMaterial() != this.blockMaterial && (side == EnumFacing.UP || super.shouldSideBeRendered(worldIn, pos, side));
+        return worldIn.getBlockState(pos).getBlock().getMaterial() != this.blockMaterial
+                && (side == EnumFacing.UP || super.shouldSideBeRendered(worldIn, pos, side));
     }
 
     public boolean shouldRenderSides(IBlockAccess blockAccess, BlockPos pos) {
