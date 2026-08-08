@@ -1,9 +1,11 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
+import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.ModeProperty;
@@ -19,6 +21,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
@@ -132,28 +135,66 @@ public class TargetESP extends Module {
         alphaStartTime = 0L;
     }
 
+    private void setTarget(EntityLivingBase newTarget) {
+        if (newTarget == null || newTarget == mc.thePlayer || !TeamUtil.isEntityLoaded(newTarget)) {
+            return;
+        }
+
+        if (target != newTarget) {
+            target = newTarget;
+            lastTime = System.currentTimeMillis();
+            alphaStartTime = AnimationUtil.start();
+            hasFullyFadedIn = false;
+        }
+        displayTimer.reset();
+    }
+
+    private EntityLivingBase getKillAuraTarget() {
+        if (Unfair.moduleManager == null) {
+            return null;
+        }
+
+        KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
+        if (killAura != null
+                && killAura.isEnabled()
+                && killAura.isAttackAllowed()
+                && TeamUtil.isEntityLoaded(killAura.getTarget())) {
+            return killAura.getTarget();
+        }
+        return null;
+    }
+
+    private EntityLivingBase getMouseOverTarget() {
+        if (mc.objectMouseOver == null
+                || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY
+                || !(mc.objectMouseOver.entityHit instanceof EntityLivingBase entity)) {
+            return null;
+        }
+        return entity;
+    }
+
     @EventTarget
     public void onPacket(PacketEvent event) {
         if (!this.isEnabled()) return;
         if (event.getType() == EventType.SEND && event.getPacket() instanceof C02PacketUseEntity packet) {
-            if (packet.getAction() == C02PacketUseEntity.Action.ATTACK) {
-                Entity entity = packet.getEntityFromWorld(mc.theWorld);
-                if (entity == target) {
-                    lastHurtTime = System.currentTimeMillis();
-                }
-            }
             if (packet.getAction() != C02PacketUseEntity.Action.ATTACK) {
                 return;
             }
+
             Entity entity = packet.getEntityFromWorld(mc.theWorld);
             if (entity instanceof EntityLivingBase newTarget) {
-                if (target != newTarget) {
-                    target = newTarget;
-                    lastTime = System.currentTimeMillis();
-                    alphaStartTime = AnimationUtil.start();
-                    hasFullyFadedIn = false;
-                }
-                displayTimer.reset();
+                setTarget(newTarget);
+                lastHurtTime = System.currentTimeMillis();
+                return;
+            }
+
+            EntityLivingBase fallbackTarget = getKillAuraTarget();
+            if (fallbackTarget == null) {
+                fallbackTarget = getMouseOverTarget();
+            }
+            if (fallbackTarget != null) {
+                setTarget(fallbackTarget);
+                lastHurtTime = System.currentTimeMillis();
             }
         }
     }
@@ -161,7 +202,13 @@ public class TargetESP extends Module {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled()) return;
-        if (target != null && displayTimer.hasTimeElapsed(1000)) {
+        EntityLivingBase killAuraTarget = getKillAuraTarget();
+        if (killAuraTarget != null) {
+            setTarget(killAuraTarget);
+            return;
+        }
+
+        if (target != null && (!TeamUtil.isEntityLoaded(target) || displayTimer.hasTimeElapsed(1000))) {
             hasFullyFadedIn = false;
             target = null;
         }
