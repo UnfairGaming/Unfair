@@ -12,5 +12,6 @@ public final class HudWidgets {
         Unfair.widgetManager.register(new TargetHUDWidget());
         Unfair.widgetManager.register(new ScoreboardWidget());
         Unfair.widgetManager.register(new PotionEffectsWidget());
+        Unfair.widgetManager.register(new RadarWidget());
     }
 }

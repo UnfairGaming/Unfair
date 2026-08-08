@@ -913,7 +913,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         int i = GL11.glGetError();
 
         if (i != 0) {
-            String s = org.lwjgl.opengl.Util.translateGLErrorString(i);
+            String s = org.lwjgl.util.glu.GLU.gluErrorString(i);
             logger.error("########## GL ERROR ##########");
             logger.error("@ {}", message);
             logger.error("{}: {}", i, s);

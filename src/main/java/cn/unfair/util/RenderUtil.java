@@ -252,6 +252,22 @@ public class RenderUtil {
                         vec4 gradColor = mix(color1, color2, gl_TexCoord[0].st.x);
                         gl_FragColor = vec4(gradColor.rgb, gradColor.a * outlineAlpha);
                     }""";
+    private static final String CIRCLE_SRC =
+            """
+                    #version 120
+                    uniform vec2 location, rectSize, screenSize;
+                    uniform vec4 color;
+                    uniform float thickness;
+                    void main() {
+                        vec2 screenPos = vec2(gl_FragCoord.x, screenSize.y - gl_FragCoord.y);
+                        vec2 uv = (screenPos - location) / rectSize;
+                        vec2 p = uv * 2.0 - 1.0;
+                        float dist = length(p);
+                        float outer = 1.0 - smoothstep(1.0 - fwidth(dist), 1.0 + fwidth(dist), dist);
+                        float inner = thickness <= 0.0 ? 0.0 : 1.0 - smoothstep(thickness - fwidth(dist), thickness + fwidth(dist), dist);
+                        float alpha = outer * (1.0 - inner);
+                        gl_FragColor = vec4(color.rgb, color.a * alpha);
+                    }""";
     private static final String ROUNDED_TEXTURE_SRC =
             """
                     #version 120
@@ -272,6 +288,7 @@ public class RenderUtil {
     private static final ShaderUtils multiRadiusShader = new ShaderUtils(MULTI_RADIUS_SRC, true);
     private static final ShaderUtils roundedGradientShader = new ShaderUtils(ROUNDED_GRADIENT_SRC, true);
     private static final ShaderUtils roundedGradientOutlineShader = new ShaderUtils(ROUNDED_GRADIENT_OUTLINE_SRC, true);
+    private static final ShaderUtils circleShader = new ShaderUtils(CIRCLE_SRC, true);
     private static ShaderUtils roundedTextureShader;
     private static Minecraft mc;
     private static Frustum cameraFrustum;
@@ -1716,6 +1733,43 @@ public class RenderUtil {
         drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
 
         roundedGradientShader.unload();
+        GlStateManager.disableBlend();
+    }
+
+    public static void drawShaderCircle(float centerX, float centerY, float radius, int color) {
+        drawShaderCircle(centerX, centerY, radius, 0.0F, color);
+    }
+
+    public static void drawShaderCircleOutline(float centerX, float centerY, float radius, float thickness, int color) {
+        if (thickness <= 0.0F) {
+            return;
+        }
+        drawShaderCircle(centerX, centerY, radius, Math.max(0.0F, 1.0F - thickness / Math.max(radius, 1.0F)), color);
+    }
+
+    private static void drawShaderCircle(float centerX, float centerY, float radius, float innerRatio, int color) {
+        if (radius <= 0.0F || ((color >> 24) & 0xFF) <= 0) {
+            return;
+        }
+
+        float diameter = radius * 2.0F;
+        float x = centerX - radius;
+        float y = centerY - radius;
+
+        GlStateManager.resetColor();
+        GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GlStateManager.alphaFunc(516, 0.0F);
+
+        circleShader.init();
+        setupRoundedRectUniforms(circleShader, x, y, diameter, diameter);
+        circleShader.setUniformf("thickness", Math.clamp(innerRatio, 0.0F, 1.0F));
+        setShaderColor(circleShader, "color", color);
+
+        drawQuads(x - 1.0F, y - 1.0F, diameter + 2.0F, diameter + 2.0F);
+
+        circleShader.unload();
         GlStateManager.disableBlend();
     }
 

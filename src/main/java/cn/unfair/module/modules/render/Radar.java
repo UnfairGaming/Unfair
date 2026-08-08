@@ -2,40 +2,261 @@ package cn.unfair.module.modules.render;
 
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
-import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.Priority;
-import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.*;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ColorProperty;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.IntProperty;
+import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
+import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
-import java.util.stream.Collectors;
 
 public class Radar extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final float FONT_SIZE = 16.0F;
+    private static final String MINECRAFT_FONT = "Minecraft";
+
+    public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
     public final ModeProperty colorMode = new ModeProperty("color", 0, new String[]{"DEFAULT", "TEAMS", "HUD"});
-    public final IntProperty position = new IntProperty("position", 0, 0, 4);
-    public final IntProperty offsetX = new IntProperty("offset-x", 60, 0, 1000, () -> position.getValue() != 4);
-    public final IntProperty offsetY = new IntProperty("offset-y", 60, 0, 1000, () -> position.getValue() != 4);
     public final IntProperty radarRadius = new IntProperty("radar-radius", 55, 10, 200);
     public final FloatProperty dotRadius = new FloatProperty("dot-radius", 1.5F, 0.1F, 5.0F);
+    public final BooleanProperty background = new BooleanProperty("background", true);
     public final BooleanProperty showPlayers = new BooleanProperty("players", true);
     public final BooleanProperty showFriends = new BooleanProperty("friends", true);
     public final BooleanProperty showEnemies = new BooleanProperty("enemies", true);
     public final BooleanProperty showBots = new BooleanProperty("bots", false);
     public final BooleanProperty showPVP = new BooleanProperty("show-pvp", false);
-    public final ColorProperty fillColor = new ColorProperty("fill-color", Color.GRAY.getRGB());
+    public final ColorProperty fillColor = new ColorProperty("fill-color", Color.GRAY.getRGB(), this.background::getValue);
     public final ColorProperty outlineColor = new ColorProperty("outline-color", Color.DARK_GRAY.getRGB());
     public final ColorProperty crossColor = new ColorProperty("cross-color", Color.LIGHT_GRAY.getRGB());
+
     public Radar() {
         super("Radar", false, true);
+    }
+
+    private static String[] getFontModes() {
+        Fonts[] fonts = Fonts.values();
+        String[] modes = new String[fonts.length + 1];
+        modes[0] = MINECRAFT_FONT;
+        for (int i = 0; i < fonts.length; i++) {
+            modes[i + 1] = fonts[i].name();
+        }
+        return modes;
+    }
+
+    public boolean shouldRenderWidget() {
+        return this.isEnabled() && mc.theWorld != null && mc.thePlayer != null && !mc.gameSettings.showDebugInfo;
+    }
+
+    public boolean shouldRenderWidgetEffects() {
+        return this.shouldRenderWidget() && this.background.getValue();
+    }
+
+    public float[] getWidgetSize() {
+        float size = this.radarRadius.getValue() * 2.0F + this.getLabelPadding() * 2.0F;
+        return new float[]{size, size};
+    }
+
+    public void renderWidget(float partialTicks, float x, float y) {
+        if (!this.shouldRenderWidget()) {
+            return;
+        }
+        this.renderRadar(partialTicks, x, y, false, 0);
+    }
+
+    public void renderWidgetMask(float x, float y, int color) {
+        if (!this.shouldRenderWidgetEffects()) {
+            return;
+        }
+        this.renderRadar(0.0F, x, y, true, color);
+    }
+
+    private void renderRadar(float partialTicks, float x, float y, boolean mask, int maskColor) {
+        float radius = this.radarRadius.getValue();
+        float centerX = x + this.getLabelPadding() + radius;
+        float centerY = y + this.getLabelPadding() + radius;
+
+        if (mask) {
+            RenderUtil.drawShaderCircle(centerX, centerY, radius, maskColor);
+            return;
+        }
+
+        RenderUtil.enableRenderState();
+        GlStateManager.pushMatrix();
+        try {
+            float yaw = (float)Math.toRadians(mc.thePlayer.rotationYaw);
+            if (mc.gameSettings.thirdPersonView != 2) {
+                yaw += (float)Math.toRadians(180.0F);
+            }
+
+            this.drawRadarCircle(centerX, centerY, yaw, radius);
+            this.drawPlayerDots(partialTicks, centerX, centerY, yaw, radius);
+            if (this.showPVP.getValue()) {
+                this.drawPvpMarker(centerX, centerY, yaw, radius);
+            }
+        } finally {
+            GlStateManager.popMatrix();
+            RenderUtil.disableRenderState();
+        }
+    }
+
+    private void drawRadarCircle(float centerX, float centerY, float angle, float radius) {
+        if (this.background.getValue()) {
+            Color fill = new Color(this.fillColor.getValue());
+            RenderUtil.drawShaderCircle(centerX, centerY, radius, new Color(fill.getRed(), fill.getGreen(), fill.getBlue(), 100).getRGB());
+        }
+
+        RenderUtil.drawShaderCircleOutline(centerX, centerY, radius, 2.0F, withAlpha(this.outlineColor.getValue(), 255));
+        this.drawCross(centerX, centerY, angle, radius, withAlpha(this.crossColor.getValue(), 255));
+        this.drawDirections(centerX, centerY, angle, radius);
+    }
+
+    private void drawCross(float centerX, float centerY, float angle, float radius, int color) {
+        if (((color >>> 24) & 0xFF) == 0) {
+            return;
+        }
+
+        RenderUtil.setColor(color);
+        GL11.glLineWidth(1.5F);
+        GL11.glBegin(GL11.GL_LINES);
+
+        double dx1 = Math.sin(angle);
+        double dy1 = Math.cos(angle);
+        double dx2 = Math.sin(angle + Math.PI / 2.0);
+        double dy2 = Math.cos(angle + Math.PI / 2.0);
+
+        GL11.glVertex2d(centerX - dx1 * radius, centerY - dy1 * radius);
+        GL11.glVertex2d(centerX + dx1 * radius, centerY + dy1 * radius);
+        GL11.glVertex2d(centerX - dx2 * radius, centerY - dy2 * radius);
+        GL11.glVertex2d(centerX + dx2 * radius, centerY + dy2 * radius);
+
+        GL11.glEnd();
+    }
+
+    private void drawDirections(float centerX, float centerY, float angle, float radius) {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        int color = hud.getColor(System.currentTimeMillis()).getRGB();
+        boolean shadow = hud.shadow.getValue();
+
+        double dx1 = Math.sin(angle);
+        double dy1 = Math.cos(angle);
+        double dx2 = Math.sin(angle + Math.PI / 2.0);
+        double dy2 = Math.cos(angle + Math.PI / 2.0);
+
+        this.drawCenteredString("N", centerX - dx1 * (radius + 5.0F), centerY - dy1 * (radius + 5.0F), color, shadow);
+        this.drawCenteredString("E", centerX + dx2 * (radius + 5.0F), centerY + dy2 * (radius + 5.0F), color, shadow);
+        this.drawCenteredString("S", centerX + dx1 * (radius + 5.0F), centerY + dy1 * (radius + 5.0F), color, shadow);
+        this.drawCenteredString("W", centerX - dx2 * (radius + 5.0F), centerY - dy2 * (radius + 5.0F), color, shadow);
+    }
+
+    private void drawPlayerDots(float partialTicks, float centerX, float centerY, float yaw, float radius) {
+        double cos = Math.cos(yaw);
+        double sin = Math.sin(yaw);
+
+        for (Object entity : TeamUtil.getLoadedEntitiesSorted()) {
+            if (!(entity instanceof EntityPlayer player) || !this.shouldRender(player)) {
+                continue;
+            }
+
+            double dx = (player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks) - mc.thePlayer.posX;
+            double dz = (player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks) - mc.thePlayer.posZ;
+
+            double relX = dx * cos + dz * sin;
+            double relY = dz * cos - dx * sin;
+            double dist = Math.sqrt(relX * relX + relY * relY);
+            double scale = dist < radius ? 1.0D : radius / dist;
+
+            RenderUtil.fillCircle(
+                    centerX + relX * scale,
+                    centerY + relY * scale,
+                    this.dotRadius.getValue(),
+                    12,
+                    this.getEntityColor(player).getRGB()
+            );
+        }
+    }
+
+    private void drawPvpMarker(float centerX, float centerY, float yaw, float radius) {
+        double cos = Math.cos(yaw);
+        double sin = Math.sin(yaw);
+        double dx = -mc.thePlayer.posX;
+        double dz = -mc.thePlayer.posZ;
+        double relX = dx * cos + dz * sin;
+        double relY = dz * cos - dx * sin;
+        double dist = Math.sqrt(relX * relX + relY * relY);
+        double scale = dist < radius * 2.0F ? 1.0D : radius * 2.0F / dist;
+
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        this.drawCenteredString(
+                "PVP",
+                centerX + relX * scale,
+                centerY + relY * scale,
+                Color.WHITE.getRGB(),
+                hud.shadow.getValue()
+        );
+    }
+
+    private void drawCenteredString(String text, double x, double y, int color, boolean shadow) {
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableBlend();
+        this.drawString(text, (float)(x - this.getStringWidth(text) / 2.0F), (float)(y - this.getFontHeight() / 2.0F), color, shadow);
+        GlStateManager.disableTexture2D();
+    }
+
+    private float getLabelPadding() {
+        return Math.max(16.0F, this.getFontHeight() + 7.0F);
+    }
+
+    private boolean useMinecraftFont() {
+        return this.font.getValue() == 0;
+    }
+
+    private FontRenderer getCustomFont() {
+        int fontIndex = this.font.getValue() - 1;
+        Fonts[] fonts = Fonts.values();
+        if (fontIndex < 0 || fontIndex >= fonts.length) {
+            return null;
+        }
+        return fonts[fontIndex].get(FONT_SIZE);
+    }
+
+    private int getStringWidth(String text) {
+        if (this.useMinecraftFont()) {
+            return mc.fontRendererObj.getStringWidth(text);
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
+    }
+
+    private int getFontHeight() {
+        if (this.useMinecraftFont()) {
+            return mc.fontRendererObj.FONT_HEIGHT;
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT : fontRenderer.getHeight();
+    }
+
+    private void drawString(String text, float x, float y, int color, boolean shadow) {
+        if (this.useMinecraftFont()) {
+            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+            return;
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        if (fontRenderer == null) {
+            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+        } else if (shadow) {
+            fontRenderer.drawStringWithShadow(text, x, y, color);
+        } else {
+            fontRenderer.drawString(text, x, y, color);
+        }
     }
 
     private boolean shouldRender(EntityPlayer entityPlayer) {
@@ -79,165 +300,7 @@ public class Radar extends Module {
         }
     }
 
-    @EventTarget(Priority.LOWEST)
-    public void onRender(Render2DEvent event) {
-        if (!this.isEnabled()) return;
-
-        ScaledResolution sr = new ScaledResolution(mc);
-        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-
-        double centerX, centerY;
-        if (position.getValue() == 4) {
-            centerX = sr.getScaledWidth() / 2.0F;
-            centerY = sr.getScaledHeight() / 2.0F;
-        } else {
-            centerX = (position.getValue() & 0x1) == 0x1 ? Math.max(sr.getScaledWidth() - offsetX.getValue(), 0) : Math.min(offsetX.getValue(), sr.getScaledWidth());
-            centerY = (position.getValue() & 0x2) == 0x2 ? Math.max(sr.getScaledHeight() - offsetY.getValue(), 0) : Math.min(offsetY.getValue(), sr.getScaledHeight());
-        }
-
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(hud.scale.getValue(), hud.scale.getValue(), 1.0f);
-        GlStateManager.translate(centerX, centerY, 0.0f);
-
-        RenderUtil.enableRenderState();
-
-        float yaw = (float)Math.toRadians(mc.thePlayer.rotationYaw);
-        if (mc.gameSettings.thirdPersonView != 2) {
-            yaw += (float)Math.toRadians(180.0F);
-        }
-        double cos = Math.cos(yaw);
-        double sin = Math.sin(yaw);
-
-        Color fill = new Color(fillColor.getValue());
-        this.drawRadarCircle(0.0, 0, yaw, radarRadius.getValue(), 64, new Color(fill.getRed(),fill.getGreen(),fill.getBlue(),100).getRGB(), outlineColor.getValue(), crossColor.getValue());
-        for (EntityPlayer player : TeamUtil.getLoadedEntitiesSorted().stream().filter(entity -> entity instanceof EntityPlayer && this.shouldRender((EntityPlayer) entity)).map(EntityPlayer.class::cast).collect(Collectors.toList())) {
-            double dx = (player.lastTickPosX + (player.posX - player.lastTickPosX) * event.partialTicks()) - mc.thePlayer.posX;
-            double dz = (player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * event.partialTicks()) - mc.thePlayer.posZ;
-
-            double relX = dx * cos + dz * sin;
-            double relY = dz * cos - dx * sin;
-
-            double dist = Math.sqrt(relX * relX + relY * relY);
-            double scale = dist < radarRadius.getValue() ? 1.0F : radarRadius.getValue() / dist;
-            double px = relX * scale;
-            double py = relY * scale;
-
-            RenderUtil.fillCircle(px, py, dotRadius.getValue(), 12, getEntityColor(player).getRGB());
-
-        }
-        if (this.showPVP.getValue()) {
-            double dx = - mc.thePlayer.posX;
-            double dz = - mc.thePlayer.posZ;
-
-            double relX = dx * cos + dz * sin;
-            double relY = dz * cos - dx * sin;
-
-            double dist = Math.sqrt(relX * relX + relY * relY);
-            double scale = dist < radarRadius.getValue() * 2 ? 1.0F : radarRadius.getValue() * 2 / dist;
-            double px = relX * scale;
-            double py = relY * scale;
-            GlStateManager.pushMatrix();
-            GlStateManager.disableDepth();
-            GlStateManager.enableBlend();
-            GlStateManager.enableTexture2D();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GlStateManager.scale(hud.scale.getValue() / 2, hud.scale.getValue() / 2, 1.0f);
-            mc.fontRendererObj.drawString("PVP",
-                    (float) (px - mc.fontRendererObj.getStringWidth("PVP") / 2.0F),
-                    (float) (py - mc.fontRendererObj.FONT_HEIGHT / 2.0F),
-                    Color.WHITE.getRGB(), hud.shadow.getValue());
-            GlStateManager.popMatrix();
-        }
-        RenderUtil.disableRenderState();
-        GlStateManager.popMatrix();
-    }
-
-    public void drawRadarCircle(double x, double y, double angle, double radius,
-                                       int segments,
-                                       int fillColor,
-                                       int outlineColor,
-                                       int crossColor) {
-
-        GlStateManager.enableBlend();
-        GlStateManager.disableTexture2D();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        if ((fillColor >>> 24) != 0) {
-            RenderUtil.setColor(fillColor);
-            GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-            GL11.glVertex2d(x, y);
-            for (int i = 0; i <= segments; i++) {
-                double angle1 = i * (Math.PI * 2 / segments);
-                GL11.glVertex2d(
-                        x + Math.cos(angle1) * radius,
-                        y + Math.sin(angle1) * radius
-                );
-            }
-            GL11.glEnd();
-        }
-
-        if ((outlineColor >>> 24) != 0) {
-            RenderUtil.setColor(outlineColor);
-            GL11.glLineWidth(2f);
-
-            GL11.glBegin(GL11.GL_LINE_LOOP);
-            for (int i = 0; i <= segments; i++) {
-                double angle1 = i * (Math.PI * 2 / segments);
-                GL11.glVertex2d(
-                        x + Math.cos(angle1) * radius,
-                        y + Math.sin(angle1) * radius
-                );
-            }
-            GL11.glEnd();
-        }
-
-        if ((crossColor >>> 24) != 0) {
-            RenderUtil.setColor(crossColor);
-            GL11.glLineWidth(1.5f);
-            GL11.glBegin(GL11.GL_LINES);
-
-            double dx1 = Math.sin(angle);
-            double dy1 = Math.cos(angle);
-
-            double dx2 = Math.sin(angle + Math.PI / 2);
-            double dy2 = Math.cos(angle + Math.PI / 2);
-
-            GL11.glVertex2d(x - dx1 * radius, y - dy1 * radius);
-            GL11.glVertex2d(x + dx1 * radius, y + dy1 * radius);
-
-            GL11.glVertex2d(x - dx2 * radius, y - dy2 * radius);
-            GL11.glVertex2d(x + dx2 * radius, y + dy2 * radius);
-
-            GL11.glEnd();
-
-            GlStateManager.disableDepth();
-            GlStateManager.enableBlend();
-            GlStateManager.enableTexture2D();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-            int color = hud.getColor(System.currentTimeMillis()).getRGB();
-            mc.fontRendererObj.drawString("N",
-                    (float) (x - dx1 * (radius + 5)) - mc.fontRendererObj.getStringWidth("N") / 2.0F,
-                    (float) (y - dy1 * (radius + 5)) - mc.fontRendererObj.FONT_HEIGHT / 2.0F,
-                    color, hud.shadow.getValue());
-            mc.fontRendererObj.drawString("E",
-                    (float) (x + dx2 * (radius + 5)) - mc.fontRendererObj.getStringWidth("E") / 2.0F,
-                    (float) (y + dy2 * (radius + 5)) - mc.fontRendererObj.FONT_HEIGHT / 2.0F,
-                    color, hud.shadow.getValue());
-            mc.fontRendererObj.drawString("S",
-                    (float) (x + dx1 * (radius + 5)) - mc.fontRendererObj.getStringWidth("S") / 2.0F,
-                    (float) (y + dy1 * (radius + 5)) - mc.fontRendererObj.FONT_HEIGHT / 2.0F,
-                    color, hud.shadow.getValue());
-            mc.fontRendererObj.drawString("W",
-                    (float) (x - dx2 * (radius + 5)) - mc.fontRendererObj.getStringWidth("W") / 2.0F,
-                    (float) (y - dy2 * (radius + 5)) - mc.fontRendererObj.FONT_HEIGHT / 2.0F,
-                    color, hud.shadow.getValue());
-            GlStateManager.disableTexture2D();
-            GlStateManager.disableBlend();
-            GlStateManager.enableDepth();
-        }
-
-        GlStateManager.enableTexture2D();
-        GlStateManager.disableBlend();
-        GlStateManager.resetColor();
+    private static int withAlpha(int rgb, int alpha) {
+        return (Math.clamp(alpha, 0, 255) << 24) | (rgb & 0xFFFFFF);
     }
 }

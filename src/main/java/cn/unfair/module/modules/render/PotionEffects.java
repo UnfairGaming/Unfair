@@ -4,7 +4,10 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.IntProperty;
+import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.RenderUtil;
+import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -22,8 +25,11 @@ import java.util.List;
 public class PotionEffects extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ResourceLocation INVENTORY_TEXTURE = new ResourceLocation("textures/gui/container/inventory.png");
-    private static final float MIN_WIDGET_WIDTH = 120.0F;
+    private static final float FONT_SIZE = 16.0F;
+    private static final String MINECRAFT_FONT = "Minecraft";
+    private static final float MIN_WIDGET_WIDTH = 32.0F;
 
+    public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
     public final BooleanProperty showName = new BooleanProperty("show-name", true);
     public final BooleanProperty blink = new BooleanProperty("blink", true);
     public final IntProperty blinkSeconds = new IntProperty("blink-seconds", 10, 2, 20, this.blink::getValue);
@@ -37,8 +43,22 @@ public class PotionEffects extends Module {
         super("PotionEffects", false, true);
     }
 
+    private static String[] getFontModes() {
+        Fonts[] fonts = Fonts.values();
+        String[] modes = new String[fonts.length + 1];
+        modes[0] = MINECRAFT_FONT;
+        for (int i = 0; i < fonts.length; i++) {
+            modes[i + 1] = fonts[i].name();
+        }
+        return modes;
+    }
+
     public boolean shouldRenderWidget() {
         return this.isEnabled() && mc.thePlayer != null;
+    }
+
+    public boolean shouldRenderWidgetEffects() {
+        return this.shouldRenderWidget() && this.background.getValue() && !getEffects().isEmpty();
     }
 
     public void tickBlink() {
@@ -49,22 +69,31 @@ public class PotionEffects extends Module {
     }
 
     public float[] getWidgetSize() {
+        float[] contentSize = this.getContentSize();
+        this.widgetWidth = Math.max(this.widgetWidth, contentSize[0]);
+        return new float[]{this.widgetWidth, contentSize[1]};
+    }
+
+    public float[] getContentSize() {
         List<PotionEffect> effects = getEffects();
         if (effects.isEmpty()) {
-            return new float[]{this.widgetWidth, 22.0F};
+            return new float[]{32.0F, this.getRowHeight()};
         }
         int maxWidth = 0;
         for (PotionEffect effect : effects) {
             String name = getEffectName(effect);
             String duration = Potion.getDurationString(effect);
             int width = 20 + Math.max(
-                    this.showName.getValue() ? mc.fontRendererObj.getStringWidth(name) : 0,
-                    mc.fontRendererObj.getStringWidth(duration)
+                    this.showName.getValue() ? this.getStringWidth(name) : 0,
+                    this.getStringWidth(duration)
             );
             maxWidth = Math.max(maxWidth, width);
         }
-        this.widgetWidth = Math.max(this.widgetWidth, Math.max(MIN_WIDGET_WIDTH, maxWidth));
-        return new float[]{this.widgetWidth, effects.size() * 22.0F};
+        return new float[]{Math.max(32.0F, maxWidth), effects.size() * this.getRowHeight()};
+    }
+
+    public float getRowHeight() {
+        return Math.max(22.0F, this.showName.getValue() ? this.getFontHeight() * 2.0F + 3.0F : this.getFontHeight() + 6.0F);
     }
 
     public void renderWidget(float x, float y) {
@@ -80,18 +109,18 @@ public class PotionEffects extends Module {
         if (effects.isEmpty()) {
             return;
         }
-        float[] size = getWidgetSize();
+        float[] size = getContentSize();
         if (mask) {
-            RenderUtil.drawRect(x, y, x + size[0], y + size[1], color);
+            RenderUtil.drawRect(x - 3.0F, y - 3.0F, x + size[0] + 3.0F, y + size[1], color);
             return;
         }
         if (this.background.getValue()) {
-            RenderUtil.drawRect(x - 3.0F, y - 3.0F, x + size[0] + 3.0F, y + size[1] + 3.0F, new Color(0, 0, 0, 90).getRGB());
+            RenderUtil.drawRect(x - 3.0F, y - 3.0F, x + size[0] + 3.0F, y + size[1], new Color(0, 0, 0, 90).getRGB());
         }
         float rowY = y;
         for (PotionEffect effect : effects) {
             renderEffect(effect, x, rowY);
-            rowY += 22.0F;
+            rowY += this.getRowHeight();
         }
     }
 
@@ -101,14 +130,58 @@ public class PotionEffects extends Module {
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
             int icon = potion.getStatusIconIndex();
-            Gui.drawModalRectWithCustomSizedTexture((int) x, (int) y, icon % 8 * 18, 198 + icon / 8 * 18, 18, 18, 256.0F, 256.0F);
+            Gui.drawModalRectWithCustomSizedTexture((int) x, (int)(y + (this.getRowHeight() - 18.0F) / 2.0F), icon % 8 * 18, 198 + icon / 8 * 18, 18, 18, 256.0F, 256.0F);
         }
         float textX = x + 20.0F;
         if (this.showName.getValue()) {
-            mc.fontRendererObj.drawStringWithShadow(getEffectName(effect), textX, y, this.nameColor.getValue());
-            mc.fontRendererObj.drawStringWithShadow(getDurationText(effect), textX, y + 10.0F, this.durationColor.getValue());
+            this.drawString(getEffectName(effect), textX, y, this.nameColor.getValue(), true);
+            this.drawString(getDurationText(effect), textX, y + this.getFontHeight() + 1.0F, this.durationColor.getValue(), true);
         } else {
-            mc.fontRendererObj.drawStringWithShadow(getDurationText(effect), textX, y + 5.0F, this.durationColor.getValue());
+            this.drawString(getDurationText(effect), textX, y + (this.getRowHeight() - this.getFontHeight()) / 2.0F, this.durationColor.getValue(), true);
+        }
+    }
+
+    private boolean useMinecraftFont() {
+        return this.font.getValue() == 0;
+    }
+
+    private FontRenderer getCustomFont() {
+        int fontIndex = this.font.getValue() - 1;
+        Fonts[] fonts = Fonts.values();
+        if (fontIndex < 0 || fontIndex >= fonts.length) {
+            return null;
+        }
+        return fonts[fontIndex].get(FONT_SIZE);
+    }
+
+    private int getStringWidth(String text) {
+        if (this.useMinecraftFont()) {
+            return mc.fontRendererObj.getStringWidth(text);
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
+    }
+
+    private int getFontHeight() {
+        if (this.useMinecraftFont()) {
+            return mc.fontRendererObj.FONT_HEIGHT;
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT : fontRenderer.getHeight();
+    }
+
+    private void drawString(String text, float x, float y, int color, boolean shadow) {
+        if (this.useMinecraftFont()) {
+            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+            return;
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        if (fontRenderer == null) {
+            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+        } else if (shadow) {
+            fontRenderer.drawStringWithShadow(text, x, y, color);
+        } else {
+            fontRenderer.drawString(text, x, y, color);
         }
     }
 

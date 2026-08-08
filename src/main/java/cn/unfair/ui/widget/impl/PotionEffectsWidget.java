@@ -9,7 +9,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
 
 public class PotionEffectsWidget extends Widget {
-    private static final float ROW_HEIGHT = 22.0F;
     private PotionEffects potionEffects;
 
     public PotionEffectsWidget() {
@@ -30,6 +29,31 @@ public class PotionEffectsWidget extends Widget {
         if (module == null) return;
         module.tickBlink();
         module.renderWidget(this.renderX, this.renderY);
+    }
+
+    @Override
+    public boolean shouldRenderBlurMask() {
+        PotionEffects module = this.getPotionEffects();
+        return module != null && module.shouldRenderWidgetEffects();
+    }
+
+    @Override
+    public void renderBlurMask(float partialTicks) {
+        PotionEffects module = this.getPotionEffects();
+        if (module == null) return;
+        module.renderWidgetMask(this.renderX, this.renderY, 0xFF000000);
+    }
+
+    @Override
+    public boolean shouldRenderBloomMask() {
+        return this.shouldRenderBlurMask();
+    }
+
+    @Override
+    public void renderBloomMask(float partialTicks) {
+        PotionEffects module = this.getPotionEffects();
+        if (module == null) return;
+        module.renderWidgetMask(this.renderX, this.renderY, 0xFFFFFFFF);
     }
 
     @Override
@@ -111,6 +135,8 @@ public class PotionEffectsWidget extends Widget {
     }
 
     private float getCenterOffset() {
-        return Math.max(0.0F, (this.height - ROW_HEIGHT) / 2.0F);
+        PotionEffects module = this.getPotionEffects();
+        float rowHeight = module == null ? 22.0F : module.getRowHeight();
+        return Math.max(0.0F, (this.height - rowHeight) / 2.0F);
     }
 }
