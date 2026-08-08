@@ -185,47 +185,24 @@ public class NativeBackedImage extends BufferedImage implements AutoCloseable {
             }
 
             byteBuffer = MemoryTracker.memAlloc(sizeGuess * 2);
+            byte[] buffer = new byte[TRANSFER_SIZE];
+            int read;
 
-            while (read(byteBuffer, inputStream) != -1) {
-                // If we've filled the buffer, make it twice as large and reparse
-                if (byteBuffer.remaining() == 0) {
-                    byteBuffer = MemoryTracker.memRealloc(byteBuffer, byteBuffer.capacity() * 2);
+            while ((read = inputStream.read(buffer)) != -1) {
+                if (byteBuffer.remaining() < read) {
+                    int newCapacity = byteBuffer.capacity();
+                    do {
+                        newCapacity *= 2;
+                    } while (newCapacity - byteBuffer.position() < read);
+
+                    byteBuffer = MemoryTracker.memRealloc(byteBuffer, newCapacity);
                 }
+
+                byteBuffer.put(buffer, 0, read);
             }
         }
 
+        byteBuffer.flip();
         return byteBuffer;
-    }
-
-    private static int read(ByteBuffer dst, InputStream in) throws IOException {
-        int len = dst.remaining();
-        int totalRead = 0;
-        int bytesRead = 0;
-        byte[] buf = new byte[TRANSFER_SIZE];
-        while (totalRead < len) {
-            int bytesToRead = Math.min((len - totalRead), TRANSFER_SIZE);
-            if (buf.length < bytesToRead) {
-                buf = new byte[bytesToRead];
-            }
-
-            if ((totalRead > 0) && !(in.available() > 0)) {
-                break; // block at most once
-            }
-
-            bytesRead = in.read(buf, 0, bytesToRead);
-
-            if (bytesRead < 0) {
-                break;
-            } else {
-                totalRead += bytesRead;
-            }
-            dst.put(buf, 0, bytesRead);
-        }
-
-        if ((bytesRead < 0) && (totalRead == 0)) {
-            return -1;
-        }
-
-        return totalRead;
     }
 }

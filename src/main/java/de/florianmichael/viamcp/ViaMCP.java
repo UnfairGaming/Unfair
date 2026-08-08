@@ -49,15 +49,19 @@ import java.util.UUID;
 
 public class ViaMCP {
     public final static int NATIVE_VERSION = 47;
-    public static ViaMCP INSTANCE;
+    public static volatile ViaMCP INSTANCE;
     public UserConnection user;
 
     @Getter
     public static int sequence;
     public int TransactionCount = 0;
 
-    public static void create() {
-        INSTANCE = new ViaMCP();
+    public static synchronized ViaMCP create() {
+        if (INSTANCE == null) {
+            INSTANCE = new ViaMCP();
+        }
+
+        return INSTANCE;
     }
 
     private AsyncVersionSlider asyncVersionSlider;
@@ -149,6 +153,14 @@ public class ViaMCP {
     }
 
     public AsyncVersionSlider getAsyncVersionSlider() {
+        return asyncVersionSlider;
+    }
+
+    public synchronized AsyncVersionSlider getOrCreateAsyncVersionSlider() {
+        if (asyncVersionSlider == null) {
+            initAsyncSlider();
+        }
+
         return asyncVersionSlider;
     }
 }

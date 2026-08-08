@@ -40,11 +40,8 @@ public class Unfair {
     }
 
     public void init() {
-        new Thread(() -> {
-            ViaMCP.create();
-            ViaMCP.INSTANCE.initAsyncSlider();
-            ViaMCP.INSTANCE.getAsyncVersionSlider().setVersion(ViaMCP.NATIVE_VERSION);
-        }).start();
+        ViaMCP viaMCP = ViaMCP.create();
+        viaMCP.getOrCreateAsyncVersionSlider().setVersion(ViaMCP.NATIVE_VERSION);
 
         rotationManager = new RotationManager();
         floatManager = new FloatManager();
