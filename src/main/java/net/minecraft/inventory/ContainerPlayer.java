@@ -69,7 +69,7 @@ public class ContainerPlayer extends Container
 
         if (ModernOffhandInteraction.isModernTarget() && player.worldObj.isRemote)
         {
-            this.addSlotToContainer(new Slot(playerInventory, 45, 77, 62));
+            this.addSlotToContainer(new Slot(playerInventory, 45, 80, 63));
         }
 
         this.onCraftMatrixChanged(this.craftMatrix);

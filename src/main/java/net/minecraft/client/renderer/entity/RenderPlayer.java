@@ -31,6 +31,7 @@ public class RenderPlayer extends RendererLivingEntity<AbstractClientPlayer>
         this.addLayer(new LayerHeldItem(this));
         this.addLayer(new LayerArrow(this));
         this.addLayer(new LayerDeadmau5Head(this));
+        this.addLayer(new LayerElytra(this));
         this.addLayer(new LayerCape(this));
         this.addLayer(new LayerCustomHead(this.getMainModel().bipedHead));
     }

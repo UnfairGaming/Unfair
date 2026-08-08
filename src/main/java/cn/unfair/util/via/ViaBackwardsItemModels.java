@@ -53,6 +53,10 @@ public final class ViaBackwardsItemModels {
         return isBrokenElytra(stack, model) ? "elytra_broken" : model;
     }
 
+    public static boolean isModel(ItemStack stack, String modelName) {
+        return modelName != null && modelName.equals(getModelName(stack));
+    }
+
     private static void initialize() {
         if (initialized) {
             return;
@@ -87,11 +91,13 @@ public final class ViaBackwardsItemModels {
         registerMappingSet("1.21.11to1.21.9", "1.21.11");
 
         addModelName("respawn_anchor");
+        addModelName("crossbow");
         addModelName("shield");
         addModelName("shield_blocking");
         addModelName("elytra");
         addModelName("elytra_broken");
         addModelName("totem_of_undying");
+        addModelName("end_crystal");
         addModelName("crossbow_pulling_0");
         addModelName("crossbow_pulling_1");
         addModelName("crossbow_pulling_2");
@@ -173,9 +179,9 @@ public final class ViaBackwardsItemModels {
             return null;
         }
 
-        String backupModel = getBackupModel(stack);
-        if (backupModel != null) {
-            return backupModel;
+        String displayModel = getDisplayKnownModel(stack);
+        if (displayModel != null) {
+            return displayModel;
         }
 
         Integer customModelData = getCustomModelData(stack);
@@ -184,6 +190,11 @@ public final class ViaBackwardsItemModels {
             if (model != null) {
                 return model;
             }
+        }
+
+        String backupModel = getBackupModel(stack);
+        if (backupModel != null) {
+            return backupModel;
         }
 
         if (!stack.hasTagCompound()) {
@@ -195,7 +206,34 @@ public final class ViaBackwardsItemModels {
             return null;
         }
 
-        return MODELS_BY_DISPLAY_NAME.get(normalizeDisplayName(display.getString("Name")));
+        String normalized = normalizeDisplayName(display.getString("Name"));
+        String direct = getKnownModernModel(normalized);
+        return direct != null ? direct : MODELS_BY_DISPLAY_NAME.get(normalized);
+    }
+
+    private static String getKnownModernModel(String normalized) {
+        if (normalized == null) {
+            return null;
+        }
+        if (normalized.equals("elytra") || normalized.endsWith("_elytra")) {
+            return "elytra";
+        }
+        if (normalized.equals("totem_of_undying") || normalized.endsWith("_totem_of_undying")) {
+            return "totem_of_undying";
+        }
+        if (normalized.equals("shield") || normalized.endsWith("_shield")) {
+            return "shield";
+        }
+        if (normalized.equals("crossbow") || normalized.endsWith("_crossbow")) {
+            return "crossbow";
+        }
+        if (normalized.equals("respawn_anchor") || normalized.endsWith("_respawn_anchor")) {
+            return "respawn_anchor";
+        }
+        if (normalized.equals("end_crystal") || normalized.endsWith("_end_crystal")) {
+            return "end_crystal";
+        }
+        return null;
     }
 
     private static String getBackupModel(ItemStack stack) {
@@ -271,6 +309,19 @@ public final class ViaBackwardsItemModels {
         }
 
         return getNumber(tag, "value");
+    }
+
+    private static String getDisplayKnownModel(ItemStack stack) {
+        if (stack == null || !stack.hasTagCompound()) {
+            return null;
+        }
+
+        NBTTagCompound display = stack.getTagCompound().getCompoundTag("display");
+        if (display == null || !display.hasKey("Name", 8)) {
+            return null;
+        }
+
+        return getKnownModernModel(normalizeDisplayName(display.getString("Name")));
     }
 
     private static CompoundTag readMappings(String resource) throws Exception {

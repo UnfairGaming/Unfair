@@ -11,7 +11,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderEnderCrystal extends Render<EntityEnderCrystal>
 {
-    private static final ResourceLocation enderCrystalTextures = ResourceLocation.of("textures/entity/endercrystal/endercrystal.png");
+    private static final ResourceLocation enderCrystalTextures = ResourceLocation.of("textures/entity/end_crystal/end_crystal.png");
     public ModelBase modelEnderCrystal = new ModelEnderCrystal(0.0F, true);
 
     public RenderEnderCrystal(RenderManager renderManagerIn)

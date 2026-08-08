@@ -18,6 +18,8 @@ import cn.unfair.util.via.ModernOffhandInventory;
 import cn.unfair.util.via.ModernOffhandStorage;
 import cn.unfair.util.via.ModernPlayerPhysics;
 import cn.unfair.util.via.ModernSequenceStorage;
+import cn.unfair.util.via.ViaBackwardsItemModels;
+import cn.unfair.util.via.RespawnAnchorBlockTracker;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;
@@ -60,6 +62,7 @@ import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemMap;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
@@ -552,7 +555,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
 
         for (S22PacketMultiBlockChange.BlockUpdateData s22packetmultiblockchange$blockupdatedata : packetIn.getChangedBlocks()) {
-            this.clientWorldController.invalidateRegionAndSetBlock(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState());
+            this.clientWorldController.invalidateRegionAndSetBlock(s22packetmultiblockchange$blockupdatedata.getPos(),
+                    RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState()));
         }
     }
 
@@ -588,7 +592,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleBlockChange(S23PacketBlockChange packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
-        this.clientWorldController.invalidateRegionAndSetBlock(packetIn.getBlockPosition(), packetIn.getBlockState());
+        this.clientWorldController.invalidateRegionAndSetBlock(packetIn.getBlockPosition(),
+                RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState()));
     }
 
     /**
@@ -735,6 +740,10 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         float f = (float) (packetIn.getYaw() * 360) / 256.0F;
         float f1 = (float) (packetIn.getPitch() * 360) / 256.0F;
         EntityLivingBase entitylivingbase = (EntityLivingBase) EntityList.createEntityByID(packetIn.getEntityType(), this.gameController.theWorld);
+        if (entitylivingbase == null) {
+            return;
+        }
+
         entitylivingbase.serverPosX = packetIn.getX();
         entitylivingbase.serverPosY = packetIn.getY();
         entitylivingbase.serverPosZ = packetIn.getZ();
@@ -828,12 +837,49 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         Entity entity = packetIn.getEntity(this.clientWorldController);
 
         if (entity != null) {
+            if (packetIn.getOpCode() == 35 && entity == this.gameController.thePlayer) {
+                ItemStack totem = this.getActiveTotemOfUndying();
+                if (totem != null) {
+                    this.gameController.entityRenderer.displayItemActivation(totem);
+                    this.consumeOffhandTotemIfActive(totem);
+                }
+            }
             if (packetIn.getOpCode() == 21) {
                 this.gameController.getSoundHandler().playSound(new GuardianSound((EntityGuardian)entity));
             } else {
                 entity.handleStatusUpdate(packetIn.getOpCode());
             }
         }
+    }
+
+    private ItemStack getActiveTotemOfUndying() {
+        ItemStack mainHand = this.gameController.thePlayer.inventory.getCurrentItem();
+        if (mainHand != null && "totem_of_undying".equals(ViaBackwardsItemModels.getModelName(mainHand))) {
+            return mainHand;
+        }
+
+        ItemStack offhand = ModernOffhandInteraction.getOffhand(this.gameController.thePlayer);
+        if (offhand != null && "totem_of_undying".equals(ViaBackwardsItemModels.getModelName(offhand))) {
+            return offhand;
+        }
+
+        ItemStack fallback = new ItemStack(Items.skull);
+        NBTTagCompound tag = new NBTTagCompound();
+        NBTTagCompound display = new NBTTagCompound();
+        display.setString("Name", "totem_of_undying");
+        tag.setTag("display", display);
+        fallback.setTagCompound(tag);
+        return fallback;
+    }
+
+    private void consumeOffhandTotemIfActive(ItemStack activeTotem) {
+        ItemStack offhand = ModernOffhandInteraction.getOffhand(this.gameController.thePlayer);
+        if (offhand != activeTotem || !(this.gameController.thePlayer.inventory instanceof ModernOffhandInventory)) {
+            return;
+        }
+
+        --offhand.stackSize;
+        ((ModernOffhandInventory) this.gameController.thePlayer.inventory).viaforge$setOffhand(offhand.stackSize > 0 ? offhand : null);
     }
 
     @Override

@@ -54,6 +54,9 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
         ItemStack itemstack = this.getCurrentArmor(entitylivingbaseIn, armorSlot);
 
         if (itemstack != null && itemstack.getItem() instanceof ItemArmor itemarmor) {
+            if ("elytra".equals(ViaBackwardsItemModels.getModelName(itemstack))) {
+                return;
+            }
             T t = this.getArmorModel(armorSlot);
             t.setModelAttributes(this.renderer.getMainModel());
             t.setLivingAnimations(entitylivingbaseIn, p_177182_2_, p_177182_3_, partialTicks);

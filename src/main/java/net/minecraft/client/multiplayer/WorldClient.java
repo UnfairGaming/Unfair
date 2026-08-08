@@ -296,10 +296,7 @@ public class WorldClient extends World
 
         try (BlockStatePredictionHandler blockStatePredictionHandler = this.predictionHandler)
         {
-            if (blockStatePredictionHandler.updateKnownServerState(pos, state))
-            {
-                return false;
-            }
+            blockStatePredictionHandler.updateKnownServerState(pos, state);
         }
 
         return super.setBlockState(pos, state, 3);

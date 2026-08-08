@@ -6,6 +6,7 @@ import cn.unfair.module.modules.render.Animations;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ModernOffhandInventory;
 import cn.unfair.util.via.ModernOffhandPlayer;
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -55,6 +56,8 @@ public class ItemRenderer {
     private float prevEquippedProgress;
     private final RenderManager renderManager;
     private final RenderItem itemRenderer;
+    private ItemStack totemAnimationStack;
+    private int totemAnimationTicks;
 
     public ItemRenderer(Minecraft mcIn) {
         this.mc = mcIn;
@@ -404,10 +407,21 @@ public class ItemRenderer {
             GlStateManager.enableRescaleNormal();
             GlStateManager.pushMatrix();
 
+            if (this.totemAnimationTicks > 0 && this.totemAnimationStack != null) {
+                this.renderTotemAnimation(partialTicks);
+                --this.totemAnimationTicks;
+            }
+
             if (this.itemToRender != null)
             {
                 ItemStack renderedStack = this.itemToRender;
                 EnumAction enumaction = renderedStack.getItemUseAction();
+                String modernModel = ViaBackwardsItemModels.getModelName(renderedStack);
+                if ("shield".equals(modernModel)) {
+                    enumaction = EnumAction.BLOCK;
+                } else if ("crossbow".equals(modernModel)) {
+                    enumaction = EnumAction.BOW;
+                }
                 boolean useItem = abstractclientplayer.getItemInUseCount() > 0;
                 RenderItemEvent event = new RenderItemEvent(enumaction, useItem, f, partialTicks, f1, renderedStack);
                 EventManager.call(event);
@@ -466,6 +480,25 @@ public class ItemRenderer {
         }
     }
 
+    public void startTotemAnimation(ItemStack stack) {
+        if (stack != null && "totem_of_undying".equals(ViaBackwardsItemModels.getModelName(stack))) {
+            this.totemAnimationStack = stack.copy();
+            this.totemAnimationTicks = 40;
+        }
+    }
+
+    private void renderTotemAnimation(float partialTicks) {
+        float progress = 1.0F - ((float) this.totemAnimationTicks - partialTicks) / 40.0F;
+        progress = MathHelper.clamp_float(progress, 0.0F, 1.0F);
+        float scale = 1.0F + 0.35F * MathHelper.sin(progress * (float) Math.PI);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.0F, 0.05F, -0.6F);
+        GlStateManager.scale(scale, scale, scale);
+        GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
+        this.renderItem(this.mc.thePlayer, this.totemAnimationStack, ItemCameraTransforms.TransformType.FIRST_PERSON);
+        GlStateManager.popMatrix();
+    }
+
     private void renderOffhandItemInFirstPerson(float partialTicks) {
         if (!ModernOffhandInteraction.isModernTarget()
                 || this.mc == null
@@ -507,7 +540,7 @@ public class ItemRenderer {
             return;
         }
 
-        EnumAction action = stack.getItemUseAction();
+        EnumAction action = "shield".equals(ViaBackwardsItemModels.getModelName(stack)) ? EnumAction.BLOCK : stack.getItemUseAction();
         if (action == EnumAction.EAT || action == EnumAction.DRINK) {
             this.performDrinking(this.mc.thePlayer, partialTicks);
         }

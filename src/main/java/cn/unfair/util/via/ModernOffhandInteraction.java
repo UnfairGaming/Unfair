@@ -94,6 +94,12 @@ public final class ModernOffhandInteraction {
         if (result != stack || result == null || result.stackSize != previousSize) {
             ((ModernOffhandInventory) player.inventory).viaforge$setOffhand(result != null && result.stackSize > 0 ? result : null);
         }
+
+        ItemStack activeStack = getOffhand(player);
+        if (activeStack != null && "shield".equals(ViaBackwardsItemModels.getModelName(activeStack))) {
+            player.setItemInUse(activeStack, 72000);
+        }
+
         return true;
     }
 

@@ -1,5 +1,7 @@
 package net.minecraft.client.multiplayer;
 
+import cn.unfair.util.via.ViaBackwardsItemModels;
+import cn.unfair.util.via.RespawnAnchorBlockTracker;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.CancelUseEvent;
@@ -506,6 +508,12 @@ public class PlayerControllerMP
 
             if (!flag && this.currentGameType != WorldSettings.GameType.SPECTATOR)
             {
+                if (heldStack != null && "respawn_anchor".equals(ViaBackwardsItemModels.getModelName(heldStack))) {
+                    BlockPos anchorPos = hitPos.offset(side);
+                    RespawnAnchorBlockTracker.mark(anchorPos);
+                    worldIn.setBlockState(anchorPos, net.minecraft.init.Blocks.respawn_anchor.getDefaultState(), 3);
+                }
+
                 if (heldStack == null)
                 {
                     return this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
@@ -586,6 +594,11 @@ public class PlayerControllerMP
                     playerIn.inventory.mainInventory[playerIn.inventory.currentItem] = null;
                 }
 
+                return true;
+            }
+            else if (playerIn instanceof EntityPlayerSP
+                    && "shield".equals(ViaBackwardsItemModels.getModelName(itemStackIn))) {
+                playerIn.setItemInUse(itemStackIn, 72000);
                 return true;
             }
             else if (playerIn instanceof EntityPlayerSP && ModernOffhandInteraction.hasOffhand(playerIn) && ModernOffhandInteraction.sendUseItem((EntityPlayerSP) playerIn))

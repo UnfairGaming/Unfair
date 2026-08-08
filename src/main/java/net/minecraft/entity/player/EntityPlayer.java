@@ -1,5 +1,6 @@
 package net.minecraft.entity.player;
 
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ModernOffhandInventory;
 import cn.unfair.util.via.ModernPlayerPhysics;
@@ -248,7 +249,9 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
     public boolean isBlocking()
     {
-        return this.isUsingItem() && this.itemInUse.getItem().getItemUseAction(this.itemInUse) == EnumAction.BLOCK;
+        return this.isUsingItem()
+                && (this.itemInUse.getItem().getItemUseAction(this.itemInUse) == EnumAction.BLOCK
+                || "shield".equals(ViaBackwardsItemModels.getModelName(this.itemInUse)));
     }
 
     /**
@@ -2319,7 +2322,14 @@ public abstract class EntityPlayer extends EntityLivingBase {
      */
     public void setCurrentItemOrArmor(int slotIn, ItemStack stack)
     {
-        this.inventory.armorInventory[slotIn] = stack;
+        if (slotIn == 0)
+        {
+            this.inventory.mainInventory[this.inventory.currentItem] = stack;
+        }
+        else if (slotIn > 0 && slotIn <= this.inventory.armorInventory.length)
+        {
+            this.inventory.armorInventory[slotIn - 1] = stack;
+        }
     }
 
     /**

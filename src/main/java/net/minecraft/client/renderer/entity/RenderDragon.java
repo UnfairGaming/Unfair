@@ -15,7 +15,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderDragon extends RenderLiving<EntityDragon>
 {
-    private static final ResourceLocation enderDragonCrystalBeamTextures = ResourceLocation.of("textures/entity/endercrystal/endercrystal_beam.png");
+    private static final ResourceLocation enderDragonCrystalBeamTextures = ResourceLocation.of("textures/entity/end_crystal/end_crystal_beam.png");
     private static final ResourceLocation enderDragonExplodingTextures = ResourceLocation.of("textures/entity/enderdragon/dragon_exploding.png");
     private static final ResourceLocation enderDragonTextures = ResourceLocation.of("textures/entity/enderdragon/dragon.png");
 

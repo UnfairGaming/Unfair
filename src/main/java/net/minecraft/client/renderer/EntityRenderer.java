@@ -114,6 +114,10 @@ public class EntityRenderer implements IResourceManagerReloadListener {
     private boolean unfairHasSavedItemInUse;
     private final IResourceManager resourceManager;
     private final Random random = new Random();
+    private ItemStack itemActivationItem;
+    private int itemActivationTicks;
+    private float itemActivationOffX;
+    private float itemActivationOffY;
     private float farPlaneDistance;
     public ItemRenderer itemRenderer;
     private final MapItemRenderer theMapItemRenderer;
@@ -405,6 +409,12 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         this.fogColor1 += (f4 - this.fogColor1) * 0.1F;
         ++this.rendererUpdateCount;
         this.itemRenderer.updateEquippedItem();
+        if (this.itemActivationTicks > 0) {
+            --this.itemActivationTicks;
+            if (this.itemActivationTicks == 0) {
+                this.itemActivationItem = null;
+            }
+        }
         this.addRainParticles();
         this.bossColorModifierPrev = this.bossColorModifier;
 
@@ -1311,6 +1321,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
 
                     GlStateManager.alphaFunc(516, 0.1F);
                     this.mc.ingameGUI.renderGameOverlay(partialTicks);
+                    this.renderItemActivation(partialTicks);
 
                     if (this.mc.gameSettings.ofShowFps && !this.mc.gameSettings.showDebugInfo) {
                         Config.drawFps();
@@ -2007,6 +2018,52 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         GlStateManager.matrixMode(5888);
         GlStateManager.loadIdentity();
         GlStateManager.translate(0.0F, 0.0F, -2000.0F);
+    }
+
+    public void displayItemActivation(ItemStack stack) {
+        this.itemActivationItem = stack;
+        this.itemActivationTicks = 40;
+        this.itemActivationOffX = this.random.nextFloat() * 2.0F - 1.0F;
+        this.itemActivationOffY = this.random.nextFloat() * 2.0F - 1.0F;
+    }
+
+    private void renderItemActivation(float partialTicks) {
+        if (this.itemActivationItem == null || this.itemActivationTicks <= 0) {
+            return;
+        }
+
+        ScaledResolution scaled = new ScaledResolution(this.mc);
+        int width = scaled.getScaledWidth();
+        int height = scaled.getScaledHeight();
+        int ticks = 40 - this.itemActivationTicks;
+        float progress = ((float) ticks + partialTicks) / 40.0F;
+        float f1 = progress * progress;
+        float f2 = progress * f1;
+        float curve = 10.25F * f2 * f1 - 24.95F * f1 * f1 + 25.5F * f2 - 13.8F * f1 + 4.0F * progress;
+        float angle = curve * (float) Math.PI;
+        float offsetX = this.itemActivationOffX * (float) (width / 4);
+        float offsetY = this.itemActivationOffY * (float) (height / 4);
+
+        GlStateManager.pushAttrib();
+        GlStateManager.pushMatrix();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableDepth();
+        GlStateManager.disableCull();
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.translate(
+                (float) (width / 2) + offsetX * MathHelper.abs(MathHelper.sin(angle * 2.0F)),
+                (float) (height / 2) + offsetY * MathHelper.abs(MathHelper.sin(angle * 2.0F)),
+                -50.0F);
+        float size = 50.0F + 175.0F * MathHelper.sin(angle);
+        GlStateManager.scale(size, -size, size);
+        GlStateManager.rotate(900.0F * MathHelper.abs(MathHelper.sin(angle)), 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(6.0F * MathHelper.cos(progress * 8.0F), 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(6.0F * MathHelper.cos(progress * 8.0F), 0.0F, 0.0F, 1.0F);
+        this.mc.getRenderItem().renderItem(this.itemActivationItem, net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType.FIXED);
+        GlStateManager.popMatrix();
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.enableCull();
+        GlStateManager.popAttrib();
     }
 
     /**

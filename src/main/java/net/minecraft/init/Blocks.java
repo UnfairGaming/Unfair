@@ -57,6 +57,7 @@ public class Blocks
     public static final Block bookshelf;
     public static final Block mossy_cobblestone;
     public static final Block obsidian;
+    public static final Block respawn_anchor;
     public static final Block torch;
     public static final BlockFire fire;
     public static final Block mob_spawner;
@@ -274,6 +275,7 @@ public class Blocks
             bookshelf = getRegisteredBlock("bookshelf");
             mossy_cobblestone = getRegisteredBlock("mossy_cobblestone");
             obsidian = getRegisteredBlock("obsidian");
+            respawn_anchor = getRegisteredBlock("respawn_anchor");
             torch = getRegisteredBlock("torch");
             fire = (BlockFire)getRegisteredBlock("fire");
             mob_spawner = getRegisteredBlock("mob_spawner");

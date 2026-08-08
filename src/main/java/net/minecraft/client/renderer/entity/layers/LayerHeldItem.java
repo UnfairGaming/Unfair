@@ -2,6 +2,7 @@ package net.minecraft.client.renderer.entity.layers;
 
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ModernOffhandInventory;
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
@@ -65,7 +66,11 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
                 GlStateManager.translate(0.0F, 0.203125F, 0.0F);
             }
 
-            minecraft.getItemRenderer().renderItem(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON);
+            if ("shield".equals(ViaBackwardsItemModels.getModelName(itemstack))) {
+                renderModernShield(entitylivingbaseIn, itemstack, false);
+            } else {
+                minecraft.getItemRenderer().renderItem(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON);
+            }
             GlStateManager.popMatrix();
         }
 
@@ -102,8 +107,40 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
             GlStateManager.translate(0.0F, 0.203125F, 0.0F);
         }
 
-        Minecraft.getMinecraft().getItemRenderer().renderItem(entitylivingbaseIn, offhand, ItemCameraTransforms.TransformType.THIRD_PERSON);
+        if ("shield".equals(ViaBackwardsItemModels.getModelName(offhand))) {
+            renderModernShield(entitylivingbaseIn, offhand, true);
+        } else {
+            Minecraft.getMinecraft().getItemRenderer().renderItem(entitylivingbaseIn, offhand, ItemCameraTransforms.TransformType.THIRD_PERSON);
+        }
         GlStateManager.popMatrix();
+    }
+
+    private static void renderModernShield(EntityLivingBase entity, ItemStack shield, boolean leftHand) {
+        ItemStack activeStack = entity instanceof EntityPlayer ? ((EntityPlayer) entity).getItemInUse() : null;
+        boolean blocking = activeStack != null && "shield".equals(ViaBackwardsItemModels.getModelName(activeStack));
+
+        GlStateManager.scale(2.0F, 2.0F, 2.0F);
+
+        if (blocking) {
+            if (leftHand) {
+                applyItemTransform(45.0F, 135.0F, 0.0F, -0.75F, 3.5F, 1.5F, 1.0F);
+            } else {
+                applyItemTransform(45.0F, 135.0F, 0.0F, -3.0F, 6.5F, -1.5F, 1.0F);
+            }
+        } else {
+            applyItemTransform(0.0F, 90.0F, 0.0F, leftHand ? -0.75F : -3.0F, 5.0F, leftHand ? 1.5F : -2.0F, 1.0F);
+        }
+
+        Minecraft.getMinecraft().getRenderItem().renderItemModelForEntity(shield, entity, ItemCameraTransforms.TransformType.NONE);
+    }
+
+    private static void applyItemTransform(float rotationX, float rotationY, float rotationZ,
+                                           float translationX, float translationY, float translationZ, float scale) {
+        GlStateManager.translate(translationX * 0.0625F, translationY * 0.0625F, translationZ * 0.0625F);
+        GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
+        GlStateManager.scale(scale, scale, scale);
     }
 
     public boolean shouldCombineTextures()

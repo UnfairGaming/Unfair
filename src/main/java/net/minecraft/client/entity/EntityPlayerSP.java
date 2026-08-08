@@ -371,7 +371,13 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      */
     public EntityItem dropOneItem(boolean dropAll) {
         C07PacketPlayerDigging.Action c07packetplayerdigging$action = dropAll ? C07PacketPlayerDigging.Action.DROP_ALL_ITEMS : C07PacketPlayerDigging.Action.DROP_ITEM;
+        ItemStack held = this.inventory.getCurrentItem();
+        if (held == null || held.stackSize <= 0) {
+            return null;
+        }
+
         this.sendQueue.addToSendQueue(new C07PacketPlayerDigging(c07packetplayerdigging$action, BlockPos.ORIGIN, EnumFacing.DOWN));
+        this.inventory.decrStackSize(this.inventory.currentItem, dropAll ? held.stackSize : 1);
         if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_17)) {
             this.swingItem();
         }

@@ -325,6 +325,15 @@ public class RenderItem implements IResourceManagerReloadListener {
                     }
                 } else if (entityplayer.getItemInUse() != null && "shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
                     modelresourcelocation = new ModelResourceLocation("shield_blocking", "inventory");
+                } else if (entityplayer.getItemInUse() != null && "crossbow".equals(ViaBackwardsItemModels.getModelName(stack))) {
+                    int useTicks = stack.getMaxItemUseDuration() - entityplayer.getItemInUseCount();
+                    if (useTicks >= 18) {
+                        modelresourcelocation = new ModelResourceLocation("crossbow_pulling_2", "inventory");
+                    } else if (useTicks > 13) {
+                        modelresourcelocation = new ModelResourceLocation("crossbow_pulling_1", "inventory");
+                    } else if (useTicks > 0) {
+                        modelresourcelocation = new ModelResourceLocation("crossbow_pulling_0", "inventory");
+                    }
                 }
 
                 if (modelresourcelocation != null) {
@@ -362,10 +371,14 @@ public class RenderItem implements IResourceManagerReloadListener {
             if (heldStack != null) {
                 EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
                 if (lastEntityToRenderFor == player) {
-                    if (heldStack.getItem() instanceof ItemSword && (p.getItemInUseCount() > 0 || player.isBlocking())) {
+                    if ((heldStack.getItem() instanceof ItemSword
+                            || "shield".equals(ViaBackwardsItemModels.getModelName(heldStack)))
+                            && (p.getItemInUseCount() > 0 || player.isBlocking())) {
                         doThirdPersonBlockTransformations();
                     }
-                } else if (p.getItemInUseCount() > 0 && heldStack.getItemUseAction() == EnumAction.BLOCK) {
+                } else if (p.getItemInUseCount() > 0
+                        && (heldStack.getItemUseAction() == EnumAction.BLOCK
+                        || "shield".equals(ViaBackwardsItemModels.getModelName(heldStack)))) {
                     doThirdPersonBlockTransformations();
                 }
             }

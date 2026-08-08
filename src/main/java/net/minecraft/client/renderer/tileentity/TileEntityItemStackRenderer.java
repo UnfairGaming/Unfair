@@ -100,10 +100,11 @@ public class TileEntityItemStackRenderer
     {
         Minecraft.getMinecraft().getTextureManager().bindTexture(SHIELD_BASE_TEXTURE);
         GlStateManager.pushMatrix();
-        GlStateManager.translate(0.5F, 0.5F, 0.5F);
+        GlStateManager.disableCull();
         GlStateManager.scale(1.0F, -1.0F, -1.0F);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.shield.render();
+        GlStateManager.enableCull();
         GlStateManager.popMatrix();
     }
 

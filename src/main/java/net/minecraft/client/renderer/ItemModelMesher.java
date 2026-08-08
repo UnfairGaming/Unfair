@@ -43,7 +43,8 @@ public class ItemModelMesher {
     public IBakedModel getItemModel(ItemStack stack) {
         Item item = stack.getItem();
         String viaModelName = ViaBackwardsItemModels.getModelName(stack);
-        ModelResourceLocation viaModelLocation = viaModelName == null ? null : new ModelResourceLocation(viaModelName, "inventory");
+        String itemModelName = isElytraModel(viaModelName) ? null : viaModelName;
+        ModelResourceLocation viaModelLocation = itemModelName == null ? null : new ModelResourceLocation(itemModelName, "inventory");
         IBakedModel ibakedmodel = viaModelLocation == null ? this.getItemModel(item, this.getMetadata(stack)) : this.modelManager.getModel(viaModelLocation);
 
         if (ibakedmodel == null) {
@@ -62,7 +63,11 @@ public class ItemModelMesher {
             ibakedmodel = CustomItems.getCustomItemModel(stack, ibakedmodel, null, true);
         }
 
-        return LegacyHandBakedModel.wrap(ibakedmodel, viaModelName);
+        return LegacyHandBakedModel.wrap(ibakedmodel, itemModelName);
+    }
+
+    private static boolean isElytraModel(String modelName) {
+        return modelName != null && (modelName.equals("elytra") || modelName.equals("elytra_broken"));
     }
 
     protected int getMetadata(ItemStack stack) {
