@@ -212,7 +212,12 @@ public class Radar extends Module {
     }
 
     private float getLabelPadding() {
-        return Math.max(16.0F, this.getFontHeight() + 7.0F);
+        float maxLabelWidth = 0.0F;
+        maxLabelWidth = Math.max(maxLabelWidth, this.getStringWidth("N"));
+        maxLabelWidth = Math.max(maxLabelWidth, this.getStringWidth("E"));
+        maxLabelWidth = Math.max(maxLabelWidth, this.getStringWidth("S"));
+        maxLabelWidth = Math.max(maxLabelWidth, this.getStringWidth("W"));
+        return 5.0F + Math.max(maxLabelWidth / 2.0F, this.getFontHeight() / 2.0F);
     }
 
     private boolean useMinecraftFont() {

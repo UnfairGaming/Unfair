@@ -10,6 +10,8 @@ import org.lwjgl.input.Mouse;
 
 public class PotionEffectsWidget extends Widget {
     private PotionEffects potionEffects;
+    private boolean positioned;
+    private float lastScreenW;
 
     public PotionEffectsWidget() {
         super("PotionEffects", WidgetAlign.RIGHT | WidgetAlign.TOP);
@@ -58,6 +60,11 @@ public class PotionEffectsWidget extends Widget {
 
     @Override
     public void updatePos(ScaledResolution sr) {
+        float screenW = sr.getScaledWidth();
+        float screenH = sr.getScaledHeight();
+        float oldWidth = this.width;
+        float oldRenderX = this.renderX;
+
         PotionEffects module = this.getPotionEffects();
         if (module != null) {
             float[] size = module.getWidgetSize();
@@ -65,8 +72,15 @@ public class PotionEffectsWidget extends Widget {
             this.height = size[1];
         }
 
-        float screenW = sr.getScaledWidth();
-        float screenH = sr.getScaledHeight();
+        if (this.positioned && !this.dragging && Math.abs(screenW - this.lastScreenW) < 0.5F && Math.abs(this.width - oldWidth) > 0.01F) {
+            float fixedRenderX = clamp(oldRenderX, 0.0F, Math.max(0.0F, screenW - this.width));
+            if ((this.align & WidgetAlign.RIGHT) != 0) {
+                this.x = screenW <= 0.0F ? 0.0F : (fixedRenderX + this.width) / screenW;
+            } else if ((this.align & WidgetAlign.CENTER) != 0) {
+                this.x = screenW <= 0.0F ? 0.0F : (fixedRenderX + this.width / 2.0F) / screenW;
+            }
+        }
+
         float rx = this.x * screenW;
         float ry = this.y * screenH - this.getCenterOffset();
 
@@ -78,6 +92,8 @@ public class PotionEffectsWidget extends Widget {
 
         this.renderX = clamp(rx, 0.0F, Math.max(0.0F, screenW - this.width));
         this.renderY = clamp(ry, 0.0F, Math.max(0.0F, screenH - this.height));
+        this.positioned = true;
+        this.lastScreenW = screenW;
     }
 
     @Override

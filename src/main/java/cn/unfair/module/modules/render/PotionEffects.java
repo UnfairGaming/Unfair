@@ -110,16 +110,21 @@ public class PotionEffects extends Module {
             return;
         }
         float[] size = getContentSize();
+        float contentX = x + Math.max(0.0F, this.widgetWidth - size[0]);
+        float left = contentX - 3.0F;
+        float top = y - 3.0F;
+        float right = contentX + size[0] + 3.0F;
+        float bottom = y + size[1];
         if (mask) {
-            RenderUtil.drawRect(x - 3.0F, y - 3.0F, x + size[0] + 3.0F, y + size[1], color);
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
             return;
         }
         if (this.background.getValue()) {
-            RenderUtil.drawRect(x - 3.0F, y - 3.0F, x + size[0] + 3.0F, y + size[1], new Color(0, 0, 0, 90).getRGB());
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, new Color(0, 0, 0, 90).getRGB());
         }
         float rowY = y;
         for (PotionEffect effect : effects) {
-            renderEffect(effect, x, rowY);
+            renderEffect(effect, contentX, rowY);
             rowY += this.getRowHeight();
         }
     }
@@ -134,11 +139,17 @@ public class PotionEffects extends Module {
         }
         float textX = x + 20.0F;
         if (this.showName.getValue()) {
-            this.drawString(getEffectName(effect), textX, y, this.nameColor.getValue(), true);
-            this.drawString(getDurationText(effect), textX, y + this.getFontHeight() + 1.0F, this.durationColor.getValue(), true);
+            float textY = y + this.getTextBlockOffset();
+            this.drawString(getEffectName(effect), textX, textY, this.nameColor.getValue(), true);
+            this.drawString(getDurationText(effect), textX, textY + this.getFontHeight() + 1.0F, this.durationColor.getValue(), true);
         } else {
             this.drawString(getDurationText(effect), textX, y + (this.getRowHeight() - this.getFontHeight()) / 2.0F, this.durationColor.getValue(), true);
         }
+    }
+
+    private float getTextBlockOffset() {
+        float textHeight = this.getFontHeight() * 2.0F + 1.0F;
+        return Math.max(0.0F, (this.getRowHeight() - textHeight) / 2.0F);
     }
 
     private boolean useMinecraftFont() {
