@@ -1068,6 +1068,22 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     public void fillChunk(byte[] p_177439_1_, int p_177439_2_, boolean p_177439_3_) {
         int i = 0;
         boolean flag = !this.worldObj.provider.getHasNoSky();
+        int sectionMask = p_177439_2_ & ((1 << this.storageArrays.length) - 1);
+        int sectionCount = Integer.bitCount(sectionMask);
+        int requiredLength = sectionCount * (4096 * 2 + 2048 + (flag ? 2048 : 0)) + (p_177439_3_ ? this.blockBiomeArray.length : 0);
+
+        if (p_177439_1_ == null || p_177439_1_.length < requiredLength) {
+            logger.warn(
+                    "Skipping malformed chunk data at {}, {}: got {} bytes, expected at least {} bytes, mask {}, fullChunk {}",
+                    this.xPosition,
+                    this.zPosition,
+                    p_177439_1_ == null ? 0 : p_177439_1_.length,
+                    requiredLength,
+                    p_177439_2_,
+                    p_177439_3_
+            );
+            return;
+        }
 
         for (int j = 0; j < this.storageArrays.length; ++j) {
             if ((p_177439_2_ & 1 << j) != 0) {

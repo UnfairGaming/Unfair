@@ -33,8 +33,12 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
         float centerX = x + width / 2.0F;
         float centerY = y + height / 2.0F;
 
-        float ratio = MathHelper.clamp_float(data.targetHealth() / Math.max(data.maxHealth(), 1.0F), 0.0F, 1.0F);
-        float absorptionRatio = Math.min(data.absorption() / Math.max(data.maxHealth(), 1.0F), 1.0F);
+        float targetHealth = TargetHUD.finiteHealth(data.targetHealth());
+        float playerHealth = TargetHUD.finiteHealth(data.playerHealth());
+        float maxHealth = Math.max(TargetHUD.finiteHealth(data.maxHealth()), 1.0F);
+        float absorption = TargetHUD.finiteHealth(data.absorption());
+        float ratio = MathHelper.clamp_float(targetHealth / maxHealth, 0.0F, 1.0F);
+        float absorptionRatio = MathHelper.clamp_float(absorption / maxHealth, 0.0F, 1.0F);
         float space = width - 43.0F;
         int[] colors = targetHUD.getRavenGradientColors();
         float partialTicks = TargetHUD.mc.timer.renderPartialTicks;
@@ -82,9 +86,9 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
             );
         }
 
-        float targetHp = data.entity().getHealth() + data.entity().getAbsorptionAmount();
-        float playerHp = TargetHUD.mc.thePlayer == null ? 0.0F : TargetHUD.mc.thePlayer.getHealth() + TargetHUD.mc.thePlayer.getAbsorptionAmount();
-        String health = BigDecimal.valueOf(targetHp).setScale(2, RoundingMode.FLOOR).doubleValue() + "HP";
+        float targetHp = targetHealth;
+        float playerHp = playerHealth;
+        String health = this.floorToTwoPlaces(targetHp) + "HP";
         String diff = this.diffText(playerHp, targetHp);
         FontRenderer nameFont = Fonts.interSemiBold.get(18.0F);
         FontRenderer infoFont = Fonts.interSemiBold.get(13.0F);
@@ -177,7 +181,7 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
     }
 
     private String diffText(float playerHealth, float targetHealth) {
-        double diff = BigDecimal.valueOf(playerHealth - targetHealth).setScale(2, RoundingMode.FLOOR).doubleValue();
+        double diff = this.floorToTwoPlaces(TargetHUD.finiteOrDefault(playerHealth - targetHealth, 0.0F));
         if (diff > 0.0D) {
             return "+" + diff;
         }
@@ -185,5 +189,9 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
             return String.valueOf(diff);
         }
         return "+0.0";
+    }
+
+    private double floorToTwoPlaces(float value) {
+        return BigDecimal.valueOf(TargetHUD.finiteOrDefault(value, 0.0F)).setScale(2, RoundingMode.FLOOR).doubleValue();
     }
 }

@@ -31,7 +31,9 @@ public class TargetHUDRavenModernMode extends TargetHUDMode {
         int gradientRight = gradientColors[1];
         int trackAlpha = Math.min(alpha, 110);
         int barAlpha = Math.min(alpha, 210);
-        double healthRatio = data.entity().isDead ? 0.0D : data.targetHealth() / data.maxHealth();
+        double healthRatio = data.entity().isDead
+                ? 0.0D
+                : Math.max(0.0D, Math.min(1.0D, TargetHUD.finiteHealth(data.targetHealth()) / Math.max(TargetHUD.finiteHealth(data.maxHealth()), 1.0F)));
 
         if (this.background.getValue() > 0) {
             int backgroundAlpha = Math.min(alpha, (int) (this.background.getValue() / 100.0F * 255.0F));

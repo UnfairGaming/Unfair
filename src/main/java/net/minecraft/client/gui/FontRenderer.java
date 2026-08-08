@@ -462,17 +462,18 @@ public class FontRenderer implements IResourceManagerReloadListener {
             char currentChar = charArray[i];
 
             if (currentChar == '\247' && i + 1 < text.length()) {
-                char next = charArray[i + 1];
+                char next = Character.toLowerCase(charArray[i + 1]);
+                int formatIndex = "0123456789abcdefklmnor".indexOf(next);
 
-                if (next >= '0' && next <= 'r') {
-                    if (next <= 'f') {
+                if (formatIndex >= 0) {
+                    if (formatIndex < 16) {
                         this.randomStyle = false;
                         this.boldStyle = false;
                         this.strikethroughStyle = false;
                         this.underlineStyle = false;
                         this.italicStyle = false;
 
-                        int colorIndex = ((next - 'a') >= 0 ? (next - 'a' + 10) : (next - '0')) + (shadow ? 16 : 0);
+                        int colorIndex = formatIndex + (shadow ? 16 : 0);
 
                         int hexColor = this.colorCode[colorIndex];
 
@@ -992,7 +993,7 @@ public class FontRenderer implements IResourceManagerReloadListener {
     }
 
     public int getColorCode(char character) {
-        int i = "0123456789abcdef".indexOf(character);
+        int i = "0123456789abcdef".indexOf(Character.toLowerCase(character));
 
         if (i >= 0 && i < this.colorCode.length) {
             int j = this.colorCode[i];

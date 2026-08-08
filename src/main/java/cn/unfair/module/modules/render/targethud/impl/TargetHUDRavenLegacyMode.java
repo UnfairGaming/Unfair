@@ -29,7 +29,9 @@ public class TargetHUDRavenLegacyMode extends TargetHUDMode {
         int gradientRight = gradientColors[1];
         int trackAlpha = Math.min(alpha, 110);
         int barAlpha = Math.min(alpha, 210);
-        double healthRatio = data.entity().isDead ? 0.0D : data.targetHealth() / data.maxHealth();
+        double healthRatio = data.entity().isDead
+                ? 0.0D
+                : Math.max(0.0D, Math.min(1.0D, TargetHUD.finiteHealth(data.targetHealth()) / Math.max(TargetHUD.finiteHealth(data.maxHealth()), 1.0F)));
 
         RenderUtil.drawRoundedGradientOutlinedRectangle(bounds.left(), bounds.top(), bounds.right(), bounds.bottom(), 10.0F,
                 RenderUtil.mergeAlpha(Color.black.getRGB(), trackAlpha),

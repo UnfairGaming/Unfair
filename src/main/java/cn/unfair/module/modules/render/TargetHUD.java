@@ -176,18 +176,26 @@ public class TargetHUD extends ModuleWithModuleSettings {
         return score == null ? -1.0F : (float) score.getScorePoints();
     }
 
+    public static float finiteOrDefault(float value, float fallback) {
+        return Float.isFinite(value) ? value : fallback;
+    }
+
+    public static float finiteHealth(float value) {
+        return Math.max(0.0F, finiteOrDefault(value, 0.0F));
+    }
+
     public HealthInfo getHealthInfo(EntityLivingBase entityLivingBase) {
-        float healthPoints = entityLivingBase.getHealth();
+        float healthPoints = finiteHealth(entityLivingBase.getHealth());
         if (this.health.getValue() == 1) {
             float tabHealth = this.getTabHealth(entityLivingBase);
-            if (tabHealth >= 0.0F) {
-                healthPoints = tabHealth;
+            if (Float.isFinite(tabHealth) && tabHealth >= 0.0F) {
+                healthPoints = finiteHealth(tabHealth);
             }
         }
 
-        float absorptionHearts = entityLivingBase.getAbsorptionAmount() / 2.0F;
+        float absorptionHearts = finiteHealth(entityLivingBase.getAbsorptionAmount()) / 2.0F;
         float healthHearts = healthPoints / 2.0F + absorptionHearts;
-        float maxHearts = Math.max(entityLivingBase.getMaxHealth(), healthPoints) / 2.0F;
+        float maxHearts = Math.max(finiteHealth(entityLivingBase.getMaxHealth()), healthPoints) / 2.0F;
         return new HealthInfo(healthHearts, absorptionHearts, Math.max(maxHearts, 1.0F));
     }
 
@@ -357,6 +365,8 @@ public class TargetHUD extends ModuleWithModuleSettings {
     }
 
     public String buildModernPlayerInfo(EntityLivingBase entity, float targetHealth, float playerHealth, boolean indicator) {
+        targetHealth = finiteHealth(targetHealth);
+        playerHealth = finiteHealth(playerHealth);
         String playerInfo = entity.getDisplayName().getFormattedText();
         playerInfo += " " + FORMAT + "c" + String.format("%.1f", targetHealth);
 
@@ -375,6 +385,8 @@ public class TargetHUD extends ModuleWithModuleSettings {
     }
 
     public float updateRavenHealthBar(float healthBar, int barLeft, int barRight) {
+        healthBar = finiteOrDefault(healthBar, barLeft);
+        this.lastHealthBar = finiteOrDefault(this.lastHealthBar, healthBar);
         if (this.lastHealthBar != healthBar && this.lastHealthBar - barLeft >= 3.0F) {
             float diff = this.lastHealthBar - healthBar;
             if (diff > 0.0F) {

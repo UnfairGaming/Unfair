@@ -53,8 +53,6 @@ import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.entity.projectile.*;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.AnimalChest;
 import net.minecraft.inventory.Container;
@@ -332,6 +330,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleEntityVelocity(S12PacketEntityVelocity packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        if (this.clientWorldController == null) {
+            return;
+        }
         Entity entity = this.clientWorldController.getEntityByID(packetIn.getEntityID());
 
         if (entity != null) {
@@ -668,22 +669,6 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
                 ));
             }
 
-            if (!unformattedText.replace(" ", "").isEmpty()) {
-                ChatComponentText copyText = new ChatComponentText(
-                        EnumChatFormatting.DARK_GRAY + Character.toString((char) Integer.parseInt("270D", 16))
-                );
-                ChatStyle style = new ChatStyle()
-                        .setChatHoverEvent(new HoverEvent(
-                                HoverEvent.Action.SHOW_TEXT,
-                                new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")
-                        ))
-                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unformattedText));
-                copyText.setChatStyle(style);
-
-                chatComponent.appendSibling(new ChatComponentText(EnumChatFormatting.RESET + " "));
-                chatComponent.appendSibling(copyText);
-            }
-
             this.gameController.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(
                     chatComponent,
                     this.lastChatLineId
@@ -834,6 +819,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleEntityStatus(S19PacketEntityStatus packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        if (this.clientWorldController == null) {
+            return;
+        }
         Entity entity = packetIn.getEntity(this.clientWorldController);
 
         if (entity != null) {
@@ -1033,17 +1021,20 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleConfirmTransaction(S32PacketConfirmTransaction packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        EntityPlayer entityplayer = this.gameController.thePlayer;
+        if (entityplayer == null) {
+            return;
+        }
         if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_17)) {
             this.addToSendQueue(new C0FPacketConfirmTransaction(packetIn.getWindowId(), (short) ViaMCP.INSTANCE.TransactionCount, false));
             return;
         }
 
         Container container = null;
-        EntityPlayer entityplayer = this.gameController.thePlayer;
 
         if (packetIn.getWindowId() == 0) {
             container = entityplayer.inventoryContainer;
-        } else if (packetIn.getWindowId() == entityplayer.openContainer.windowId) {
+        } else if (entityplayer.openContainer != null && packetIn.getWindowId() == entityplayer.openContainer.windowId) {
             container = entityplayer.openContainer;
         }
 
@@ -1670,9 +1661,16 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         ScorePlayerTeam scoreplayerteam;
 
         if (packetIn.getAction() == 0) {
-            scoreplayerteam = scoreboard.createTeam(packetIn.getName());
+            scoreplayerteam = scoreboard.getTeam(packetIn.getName());
+            if (scoreplayerteam == null) {
+                scoreplayerteam = scoreboard.createTeam(packetIn.getName());
+            }
         } else {
             scoreplayerteam = scoreboard.getTeam(packetIn.getName());
+        }
+
+        if (scoreplayerteam == null && packetIn.getAction() != 0) {
+            return;
         }
 
         if (packetIn.getAction() == 0 || packetIn.getAction() == 2) {

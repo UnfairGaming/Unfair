@@ -3,6 +3,8 @@ package net.minecraft.rendering.optimization.entityculling;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.ChestESP;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.rendering.culling.OcclusionCullingInstance;
@@ -52,17 +54,20 @@ public class CullTask implements Runnable {
                 int sleepDelay = 10;
                 Thread.sleep(sleepDelay);
 
-                if (mc.theWorld != null && mc.thePlayer != null && mc.thePlayer.ticksExisted > 10 && mc.getRenderViewEntity() != null) {
-                    Vec3 cameraMC = getCameraPos();
+                WorldClient world = mc.theWorld;
+                EntityPlayerSP player = mc.thePlayer;
+                Entity renderViewEntity = mc.getRenderViewEntity();
+                if (world != null && player != null && player.ticksExisted > 10 && renderViewEntity != null) {
+                    Vec3 cameraMC = getCameraPos(mc, renderViewEntity);
                     if (requestCull || !(cameraMC.xCoord == lastPos.x && cameraMC.yCoord == lastPos.y && cameraMC.zCoord == lastPos.z)) {
                         long start = System.currentTimeMillis();
                         requestCull = false;
                         lastPos.set(cameraMC.xCoord, cameraMC.yCoord, cameraMC.zCoord);
                         Vec3d camera = lastPos;
                         culling.resetCache();
-                        boolean noCulling = mc.thePlayer.isSpectator() || mc.gameSettings.thirdPersonView != 0;
+                        boolean noCulling = player.isSpectator() || mc.gameSettings.thirdPersonView != 0;
                         boolean chestESPEnabled = isChestESPEnabled();
-                        Iterator<TileEntity> iterator = mc.theWorld.loadedTileEntityList.iterator();
+                        Iterator<TileEntity> iterator = world.loadedTileEntityList.iterator();
                         TileEntity entry;
                         while(iterator.hasNext()) {
                             try {
@@ -70,6 +75,9 @@ public class CullTask implements Runnable {
                             }catch(NullPointerException | ConcurrentModificationException ex) {
                                 break; // We are not synced to the main thread, so NPE's/CME are allowed here and way less
                                 // overhead probably than trying to sync stuff up for no really good reason
+                            }
+                            if(entry == null || entry.getBlockType() == null) {
+                                continue;
                             }
                             if(unCullable.contains(entry.getBlockType().getUnlocalizedName())) {
                                 continue;
@@ -95,7 +103,7 @@ public class CullTask implements Runnable {
                             }
                         }
                         Entity entity;
-                        Iterator<Entity> iterable = mc.theWorld.getLoadedEntityList().iterator();
+                        Iterator<Entity> iterable = world.getLoadedEntityList().iterator();
                         while (iterable.hasNext()) {
                             try {
                                 entity = iterable.next();
@@ -116,6 +124,10 @@ public class CullTask implements Runnable {
                                     continue;
                                 }
                                 AxisAlignedBB boundingBox = entity.getEntityBoundingBox();
+                                if (boundingBox == null) {
+                                    entity.setCulled(false);
+                                    continue;
+                                }
                                 int hitboxLimit = 50;
                                 if(boundingBox.maxX - boundingBox.minX > hitboxLimit || boundingBox.maxY - boundingBox.minY > hitboxLimit || boundingBox.maxZ - boundingBox.minZ > hitboxLimit) {
                                     entity.setCulled(false); // To big to bother to cull
@@ -138,9 +150,9 @@ public class CullTask implements Runnable {
     }
 
     // 1.8 doesnt know where the heck the camera is... what?!?
-    private Vec3 getCameraPos() {
-        Minecraft mc = Minecraft.getMinecraft();
-        return mc.getRenderViewEntity().getPositionEyes(mc.timer.renderPartialTicks);
+    private Vec3 getCameraPos(Minecraft mc, Entity renderViewEntity) {
+        float partialTicks = mc.timer == null ? 1.0F : mc.timer.renderPartialTicks;
+        return renderViewEntity.getPositionEyes(partialTicks);
     }
 
     private boolean isSkippableArmorstand(Entity entity) {

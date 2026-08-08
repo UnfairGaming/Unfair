@@ -4,9 +4,14 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -134,8 +139,32 @@ public class GuiNewChat extends Gui
      */
     public void printChatMessageWithOptionalDeletion(IChatComponent chatComponent, int chatLineId)
     {
+        String unformattedText = StringUtils.stripControlCodes(chatComponent.getUnformattedText());
+        this.appendCopyButton(chatComponent, unformattedText);
         this.setChatLine(chatComponent, chatLineId, this.mc.ingameGUI.getUpdateCounter(), false);
-        logger.info("[CHAT] " + chatComponent.getUnformattedText());
+        logger.info("[CHAT] " + unformattedText);
+    }
+
+    private void appendCopyButton(IChatComponent chatComponent, String copyText)
+    {
+        if (copyText.replace(" ", "").isEmpty())
+        {
+            return;
+        }
+
+        ChatComponentText copyButton = new ChatComponentText(
+                EnumChatFormatting.DARK_GRAY + Character.toString((char)Integer.parseInt("270D", 16))
+        );
+        ChatStyle style = new ChatStyle()
+                .setChatHoverEvent(new HoverEvent(
+                        HoverEvent.Action.SHOW_TEXT,
+                        new ChatComponentText(EnumChatFormatting.GRAY + "Copy message")
+                ))
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, copyText));
+        copyButton.setChatStyle(style);
+
+        chatComponent.appendSibling(new ChatComponentText(EnumChatFormatting.RESET + " "));
+        chatComponent.appendSibling(copyButton);
     }
 
     private void setChatLine(IChatComponent chatComponent, int chatLineId, int updateCounter, boolean displayOnly)

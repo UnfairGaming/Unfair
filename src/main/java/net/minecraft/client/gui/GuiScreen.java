@@ -362,6 +362,8 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
                     this.openWebLink(uri1);
                 } else if (clickevent.getAction() == ClickEvent.Action.SUGGEST_COMMAND) {
                     this.setText(clickevent.getValue(), true);
+                } else if (clickevent.getAction() == ClickEvent.Action.COPY_TO_CLIPBOARD) {
+                    setClipboardString(clickevent.getValue());
                 } else if (clickevent.getAction() == ClickEvent.Action.RUN_COMMAND) {
                     this.sendChatMessage(clickevent.getValue(), false);
                 } else {
