@@ -22,6 +22,7 @@ import java.util.List;
 public class PotionEffects extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ResourceLocation INVENTORY_TEXTURE = new ResourceLocation("textures/gui/container/inventory.png");
+    private static final float MIN_WIDGET_WIDTH = 120.0F;
 
     public final BooleanProperty showName = new BooleanProperty("show-name", true);
     public final BooleanProperty blink = new BooleanProperty("blink", true);
@@ -29,6 +30,7 @@ public class PotionEffects extends Module {
     public final BooleanProperty background = new BooleanProperty("background", false);
     public final ColorProperty nameColor = new ColorProperty("name-color", Color.WHITE.getRGB());
     public final ColorProperty durationColor = new ColorProperty("duration-color", Color.WHITE.getRGB());
+    private float widgetWidth = MIN_WIDGET_WIDTH;
     private int ticks;
 
     public PotionEffects() {
@@ -49,7 +51,7 @@ public class PotionEffects extends Module {
     public float[] getWidgetSize() {
         List<PotionEffect> effects = getEffects();
         if (effects.isEmpty()) {
-            return new float[]{96.0F, 22.0F};
+            return new float[]{this.widgetWidth, 22.0F};
         }
         int maxWidth = 0;
         for (PotionEffect effect : effects) {
@@ -61,7 +63,8 @@ public class PotionEffects extends Module {
             );
             maxWidth = Math.max(maxWidth, width);
         }
-        return new float[]{Math.max(32.0F, maxWidth), effects.size() * 22.0F};
+        this.widgetWidth = Math.max(this.widgetWidth, Math.max(MIN_WIDGET_WIDTH, maxWidth));
+        return new float[]{this.widgetWidth, effects.size() * 22.0F};
     }
 
     public void renderWidget(float x, float y) {
