@@ -1,0 +1,62 @@
+{
+  "variants": {
+    "axis=x": [
+      {
+        "model": "deepslate",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "deepslate_mirrored",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "deepslate",
+        "x": 90,
+        "y": 90
+      },
+      {
+        "model": "deepslate_mirrored",
+        "x": 90,
+        "y": 90
+      }
+    ],
+    "axis=y": [
+      {
+        "model": "deepslate"
+      },
+      {
+        "model": "deepslate_mirrored"
+      },
+      {
+        "model": "deepslate",
+        "y": 180
+      },
+      {
+        "model": "deepslate_mirrored",
+        "y": 180
+      }
+    ],
+    "axis=z": [
+      {
+        "model": "deepslate",
+        "x": 90
+      },
+      {
+        "model": "deepslate_mirrored",
+        "x": 90
+      },
+      {
+        "model": "deepslate",
+        "x": 90,
+        "y": 180
+      },
+      {
+        "model": "deepslate_mirrored",
+        "x": 90,
+        "y": 180
+      }
+    ]
+  }
+}

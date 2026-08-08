@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "dead_bubble_coral_wall_fan",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "dead_bubble_coral_wall_fan"
+    },
+    "facing=south": {
+      "model": "dead_bubble_coral_wall_fan",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "dead_bubble_coral_wall_fan",
+      "y": 270
+    }
+  }
+}

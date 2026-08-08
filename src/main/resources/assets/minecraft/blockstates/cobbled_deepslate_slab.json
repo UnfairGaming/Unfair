@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "cobbled_deepslate_slab"
+    },
+    "type=double": {
+      "model": "cobbled_deepslate"
+    },
+    "type=top": {
+      "model": "cobbled_deepslate_slab_top"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "oxidized_copper_chain",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "oxidized_copper_chain"
+    },
+    "axis=z": {
+      "model": "oxidized_copper_chain",
+      "x": 90
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "items/scrape_pottery_sherd"
+  }
+}

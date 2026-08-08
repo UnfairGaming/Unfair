@@ -1,0 +1,6 @@
+{
+  "parent": "item/template_chest",
+  "textures": {
+    "particle": "blocks/oxidized_copper"
+  }
+}

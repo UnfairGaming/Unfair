@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_fire_floor",
+  "textures": {
+    "fire": "blocks/soul_fire_0"
+  }
+}

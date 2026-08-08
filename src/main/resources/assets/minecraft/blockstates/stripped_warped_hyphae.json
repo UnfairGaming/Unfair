@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "stripped_warped_hyphae",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "stripped_warped_hyphae"
+    },
+    "axis=z": {
+      "model": "stripped_warped_hyphae",
+      "x": 90
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "crimson_hyphae",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "crimson_hyphae"
+    },
+    "axis=z": {
+      "model": "crimson_hyphae",
+      "x": 90
+    }
+  }
+}

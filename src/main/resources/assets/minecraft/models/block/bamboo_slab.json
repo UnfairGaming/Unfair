@@ -1,0 +1,8 @@
+{
+  "parent": "block/slab",
+  "textures": {
+    "bottom": "blocks/bamboo_planks",
+    "side": "blocks/bamboo_planks",
+    "top": "blocks/bamboo_planks"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "blocks/exposed_copper_bulb_lit"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "block/inner_stairs",
+  "textures": {
+    "bottom": "blocks/pale_oak_planks",
+    "side": "blocks/pale_oak_planks",
+    "top": "blocks/pale_oak_planks"
+  }
+}

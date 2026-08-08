@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "stone"
+      },
+      {
+        "model": "stone_mirrored"
+      },
+      {
+        "model": "stone",
+        "y": 180
+      },
+      {
+        "model": "stone_mirrored",
+        "y": 180
+      }
+    ]
+  }
+}

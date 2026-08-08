@@ -1,0 +1,8 @@
+{
+  "parent": "block/template_command_block",
+  "textures": {
+    "back": "blocks/chain_command_block_back",
+    "front": "blocks/chain_command_block_front",
+    "side": "blocks/chain_command_block_side"
+  }
+}

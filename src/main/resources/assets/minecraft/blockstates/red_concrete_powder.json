@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "red_concrete_powder"
+      },
+      {
+        "model": "red_concrete_powder",
+        "y": 90
+      },
+      {
+        "model": "red_concrete_powder",
+        "y": 180
+      },
+      {
+        "model": "red_concrete_powder",
+        "y": 270
+      }
+    ]
+  }
+}

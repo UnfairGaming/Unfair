@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_torch_wall_unlit",
+  "textures": {
+    "torch": "blocks/redstone_torch_off"
+  }
+}

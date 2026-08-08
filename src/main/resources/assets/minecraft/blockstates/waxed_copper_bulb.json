@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "lit=false,powered=false": {
+      "model": "copper_bulb"
+    },
+    "lit=false,powered=true": {
+      "model": "copper_bulb_powered"
+    },
+    "lit=true,powered=false": {
+      "model": "copper_bulb_lit"
+    },
+    "lit=true,powered=true": {
+      "model": "copper_bulb_lit_powered"
+    }
+  }
+}

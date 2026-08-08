@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "crimson_slab"
+    },
+    "type=double": {
+      "model": "crimson_planks"
+    },
+    "type=top": {
+      "model": "crimson_slab_top"
+    }
+  }
+}

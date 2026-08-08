@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "stonecutter",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "stonecutter"
+    },
+    "facing=south": {
+      "model": "stonecutter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stonecutter",
+      "y": 270
+    }
+  }
+}

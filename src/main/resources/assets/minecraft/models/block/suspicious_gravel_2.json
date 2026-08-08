@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "blocks/suspicious_gravel_2"
+  }
+}

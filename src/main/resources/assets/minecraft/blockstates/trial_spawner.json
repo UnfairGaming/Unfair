@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "ominous=false,trial_spawner_state=active": {
+      "model": "trial_spawner_active"
+    },
+    "ominous=false,trial_spawner_state=cooldown": {
+      "model": "trial_spawner"
+    },
+    "ominous=false,trial_spawner_state=ejecting_reward": {
+      "model": "trial_spawner_ejecting_reward"
+    },
+    "ominous=false,trial_spawner_state=inactive": {
+      "model": "trial_spawner"
+    },
+    "ominous=false,trial_spawner_state=waiting_for_players": {
+      "model": "trial_spawner_active"
+    },
+    "ominous=false,trial_spawner_state=waiting_for_reward_ejection": {
+      "model": "trial_spawner_active"
+    },
+    "ominous=true,trial_spawner_state=active": {
+      "model": "trial_spawner_active_ominous"
+    },
+    "ominous=true,trial_spawner_state=cooldown": {
+      "model": "trial_spawner_inactive_ominous"
+    },
+    "ominous=true,trial_spawner_state=ejecting_reward": {
+      "model": "trial_spawner_ejecting_reward_ominous"
+    },
+    "ominous=true,trial_spawner_state=inactive": {
+      "model": "trial_spawner_inactive_ominous"
+    },
+    "ominous=true,trial_spawner_state=waiting_for_players": {
+      "model": "trial_spawner_active_ominous"
+    },
+    "ominous=true,trial_spawner_state=waiting_for_reward_ejection": {
+      "model": "trial_spawner_active_ominous"
+    }
+  }
+}

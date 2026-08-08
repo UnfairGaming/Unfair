@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_leaf_litter_2",
+  "textures": {
+    "texture": "blocks/leaf_litter"
+  }
+}

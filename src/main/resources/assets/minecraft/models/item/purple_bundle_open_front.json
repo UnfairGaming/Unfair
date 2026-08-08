@@ -1,0 +1,6 @@
+{
+  "parent": "item/template_bundle_open_front",
+  "textures": {
+    "layer0": "items/purple_bundle_open_front"
+  }
+}

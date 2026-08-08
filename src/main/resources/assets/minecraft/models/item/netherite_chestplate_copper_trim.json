@@ -1,0 +1,7 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "items/netherite_chestplate",
+    "layer1": "minecraft:trims/items/chestplate_trim_copper"
+  }
+}

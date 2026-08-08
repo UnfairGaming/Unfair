@@ -1,0 +1,6 @@
+{
+  "parent": "item/template_music_disc",
+  "textures": {
+    "layer0": "items/music_disc_stal"
+  }
+}

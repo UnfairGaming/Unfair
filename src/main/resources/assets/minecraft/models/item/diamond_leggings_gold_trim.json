@@ -1,0 +1,7 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "items/diamond_leggings",
+    "layer1": "minecraft:trims/items/leggings_trim_gold"
+  }
+}

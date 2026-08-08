@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_shelf_body",
+  "textures": {
+    "all": "blocks/bamboo_shelf",
+    "particle": "blocks/stripped_bamboo_block"
+  }
+}

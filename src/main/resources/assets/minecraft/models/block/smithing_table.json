@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "blocks/smithing_table_bottom",
+    "east": "blocks/smithing_table_side",
+    "north": "blocks/smithing_table_front",
+    "particle": "blocks/smithing_table_front",
+    "south": "blocks/smithing_table_front",
+    "up": "blocks/smithing_table_top",
+    "west": "blocks/smithing_table_side"
+  }
+}

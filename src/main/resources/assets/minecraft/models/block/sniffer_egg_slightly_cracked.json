@@ -1,0 +1,11 @@
+{
+  "parent": "block/sniffer_egg",
+  "textures": {
+    "bottom": "blocks/sniffer_egg_slightly_cracked_bottom",
+    "east": "blocks/sniffer_egg_slightly_cracked_east",
+    "north": "blocks/sniffer_egg_slightly_cracked_north",
+    "south": "blocks/sniffer_egg_slightly_cracked_south",
+    "top": "blocks/sniffer_egg_slightly_cracked_top",
+    "west": "blocks/sniffer_egg_slightly_cracked_west"
+  }
+}

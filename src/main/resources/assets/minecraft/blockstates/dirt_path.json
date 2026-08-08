@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "dirt_path"
+      },
+      {
+        "model": "dirt_path",
+        "y": 90
+      },
+      {
+        "model": "dirt_path",
+        "y": 180
+      },
+      {
+        "model": "dirt_path",
+        "y": 270
+      }
+    ]
+  }
+}

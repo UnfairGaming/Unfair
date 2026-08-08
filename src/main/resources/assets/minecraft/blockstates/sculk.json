@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "sculk"
+      },
+      {
+        "model": "sculk_mirrored"
+      },
+      {
+        "model": "sculk",
+        "y": 180
+      },
+      {
+        "model": "sculk_mirrored",
+        "y": 180
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_shelf_right",
+  "textures": {
+    "all": "blocks/spruce_shelf",
+    "particle": "blocks/stripped_spruce_log"
+  }
+}

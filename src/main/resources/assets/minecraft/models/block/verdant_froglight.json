@@ -1,0 +1,7 @@
+{
+  "parent": "block/cube_column",
+  "textures": {
+    "end": "blocks/verdant_froglight_top",
+    "side": "blocks/verdant_froglight_side"
+  }
+}

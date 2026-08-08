@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "tip=false": {
+      "model": "pale_hanging_moss"
+    },
+    "tip=true": {
+      "model": "pale_hanging_moss_tip"
+    }
+  }
+}

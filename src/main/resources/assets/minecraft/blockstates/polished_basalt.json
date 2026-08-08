@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "polished_basalt",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "polished_basalt"
+    },
+    "axis=z": {
+      "model": "polished_basalt",
+      "x": 90
+    }
+  }
+}

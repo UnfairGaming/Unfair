@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer.entity.layers;
 
 import cn.unfair.module.modules.render.Animations;
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import com.google.common.collect.Maps;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
@@ -61,7 +62,8 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
             boolean flag = this.isSlotForLeggings(armorSlot);
 
             if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(itemstack, flag ? 2 : 1, (String) null)) {
-                this.renderer.bindTexture(this.getArmorResource(itemarmor, flag));
+                String modernArmorMaterial = this.getModernArmorMaterial(itemstack);
+                this.renderer.bindTexture(modernArmorMaterial == null ? this.getArmorResource(itemarmor, flag) : this.getArmorResource(modernArmorMaterial, flag, null));
             }
 
             switch (itemarmor.getArmorMaterial()) {
@@ -160,9 +162,18 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
     }
 
     private ResourceLocation getArmorResource(ItemArmor p_177178_1_, boolean p_177178_2_, String p_177178_3_) {
-        String suffix = p_177178_3_ == null ? "" : "_" + p_177178_3_;
-        String path = "textures/models/armor/" + p_177178_1_.getArmorMaterial().getName() + "_layer_" + (p_177178_2_ ? 2 : 1) + suffix + ".png";
+        return this.getArmorResource(p_177178_1_.getArmorMaterial().getName(), p_177178_2_, p_177178_3_);
+    }
+
+    private ResourceLocation getArmorResource(String armorMaterial, boolean leggings, String overlay) {
+        String suffix = overlay == null ? "" : "_" + overlay;
+        String path = "textures/models/armor/" + armorMaterial + "_layer_" + (leggings ? 2 : 1) + suffix + ".png";
         return (ResourceLocation) ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
+    }
+
+    private String getModernArmorMaterial(ItemStack stack) {
+        String modelName = ViaBackwardsItemModels.getModelName(stack);
+        return modelName != null && modelName.startsWith("netherite_") && (modelName.endsWith("_helmet") || modelName.endsWith("_chestplate") || modelName.endsWith("_leggings") || modelName.endsWith("_boots")) ? "netherite" : null;
     }
 
     protected abstract void initArmor();

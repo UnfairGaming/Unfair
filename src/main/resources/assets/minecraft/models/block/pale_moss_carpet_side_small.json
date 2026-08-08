@@ -1,0 +1,6 @@
+{
+  "parent": "block/mossy_carpet_side",
+  "textures": {
+    "side": "blocks/pale_moss_carpet_side_small"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "items/iron_boots",
+    "layer1": "minecraft:trims/items/boots_trim_iron_darker"
+  }
+}

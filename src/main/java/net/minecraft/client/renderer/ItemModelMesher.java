@@ -2,6 +2,10 @@ package net.minecraft.client.renderer;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import cn.unfair.util.via.ViaBackwardsItemModels;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.block.model.ItemTransformVec3f;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.client.resources.model.ModelManager;
@@ -9,8 +13,11 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.src.Config;
+import net.minecraft.util.EnumFacing;
 import net.optifine.CustomItems;
+import org.lwjgl.util.vector.Vector3f;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -35,7 +42,9 @@ public class ItemModelMesher {
 
     public IBakedModel getItemModel(ItemStack stack) {
         Item item = stack.getItem();
-        IBakedModel ibakedmodel = this.getItemModel(item, this.getMetadata(stack));
+        String viaModelName = ViaBackwardsItemModels.getModelName(stack);
+        ModelResourceLocation viaModelLocation = viaModelName == null ? null : new ModelResourceLocation(viaModelName, "inventory");
+        IBakedModel ibakedmodel = viaModelLocation == null ? this.getItemModel(item, this.getMetadata(stack)) : this.modelManager.getModel(viaModelLocation);
 
         if (ibakedmodel == null) {
             ItemMeshDefinition itemmeshdefinition = this.shapers.get(item);
@@ -53,7 +62,7 @@ public class ItemModelMesher {
             ibakedmodel = CustomItems.getCustomItemModel(stack, ibakedmodel, null, true);
         }
 
-        return ibakedmodel;
+        return LegacyHandBakedModel.wrap(ibakedmodel, viaModelName);
     }
 
     protected int getMetadata(ItemStack stack) {
@@ -82,6 +91,79 @@ public class ItemModelMesher {
 
         for (Entry<Integer, ModelResourceLocation> entry : this.simpleShapes.entrySet()) {
             this.simpleShapesCache.put(entry.getKey(), this.modelManager.getModel(entry.getValue()));
+        }
+    }
+
+    private static class LegacyHandBakedModel implements IBakedModel {
+        private static final ItemTransformVec3f LEGACY_TOOL_THIRD_PERSON = transform(0.0F, 90.0F, -35.0F, 0.0F, 1.25F, -3.5F, 0.85F, 0.85F, 0.85F);
+        private static final ItemTransformVec3f LEGACY_BOW_THIRD_PERSON = transform(5.0F, 80.0F, -45.0F, 0.75F, 0.0F, 0.25F, 1.0F, 1.0F, 1.0F);
+        private static final ItemTransformVec3f LEGACY_FLAT_THIRD_PERSON = transform(-90.0F, 0.0F, 0.0F, 0.0F, 1.0F, -3.0F, 0.55F, 0.55F, 0.55F);
+        private static final ItemTransformVec3f LEGACY_FIRST_PERSON = transform(0.0F, -135.0F, 25.0F, 0.0F, 4.0F, 2.0F, 1.7F, 1.7F, 1.7F);
+
+        private final IBakedModel parent;
+        private final ItemCameraTransforms transforms;
+
+        private LegacyHandBakedModel(IBakedModel parent, ItemTransformVec3f thirdPerson) {
+            this.parent = parent;
+            ItemCameraTransforms original = parent.getItemCameraTransforms();
+            this.transforms = new ItemCameraTransforms(thirdPerson, LEGACY_FIRST_PERSON, original.head, original.gui, original.ground, original.fixed);
+        }
+
+        private static IBakedModel wrap(IBakedModel model, String viaModelName) {
+            ItemTransformVec3f thirdPerson = getLegacyThirdPersonTransform(model, viaModelName);
+            return thirdPerson == null ? model : new LegacyHandBakedModel(model, thirdPerson);
+        }
+
+        private static ItemTransformVec3f getLegacyThirdPersonTransform(IBakedModel model, String modelName) {
+            if (modelName == null || modelName.equals("shield") || modelName.equals("shield_blocking") || modelName.equals("elytra") || modelName.equals("elytra_broken")) {
+                return null;
+            }
+
+            if (modelName.equals("crossbow") || modelName.startsWith("crossbow_")) {
+                return LEGACY_BOW_THIRD_PERSON;
+            }
+
+            if (modelName.endsWith("_sword") || modelName.endsWith("_pickaxe") || modelName.endsWith("_axe") || modelName.endsWith("_shovel") || modelName.endsWith("_hoe") || modelName.endsWith("_spear") || modelName.equals("trident")) {
+                return LEGACY_TOOL_THIRD_PERSON;
+            }
+
+            if (model.isGui3d()) {
+                return null;
+            }
+
+            return LEGACY_FLAT_THIRD_PERSON;
+        }
+
+        private static ItemTransformVec3f transform(float rotX, float rotY, float rotZ, float transX, float transY, float transZ, float scaleX, float scaleY, float scaleZ) {
+            return new ItemTransformVec3f(new Vector3f(rotX, rotY, rotZ), new Vector3f(transX / 16.0F, transY / 16.0F, transZ / 16.0F), new Vector3f(scaleX, scaleY, scaleZ));
+        }
+
+        public List<BakedQuad> getFaceQuads(EnumFacing facing) {
+            return this.parent.getFaceQuads(facing);
+        }
+
+        public List<BakedQuad> getGeneralQuads() {
+            return this.parent.getGeneralQuads();
+        }
+
+        public boolean isAmbientOcclusion() {
+            return this.parent.isAmbientOcclusion();
+        }
+
+        public boolean isGui3d() {
+            return this.parent.isGui3d();
+        }
+
+        public boolean isBuiltInRenderer() {
+            return this.parent.isBuiltInRenderer();
+        }
+
+        public TextureAtlasSprite getParticleTexture() {
+            return this.parent.getParticleTexture();
+        }
+
+        public ItemCameraTransforms getItemCameraTransforms() {
+            return this.transforms;
         }
     }
 }

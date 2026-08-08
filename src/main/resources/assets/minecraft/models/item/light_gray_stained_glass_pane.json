@@ -1,0 +1,6 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "blocks/light_gray_stained_glass"
+  }
+}

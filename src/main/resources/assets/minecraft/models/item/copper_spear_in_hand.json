@@ -1,0 +1,6 @@
+{
+  "parent": "item/spear_in_hand",
+  "textures": {
+    "layer0": "items/copper_spear_in_hand"
+  }
+}

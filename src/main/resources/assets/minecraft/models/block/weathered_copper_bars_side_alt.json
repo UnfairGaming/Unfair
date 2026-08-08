@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_bars_side_alt",
+  "textures": {
+    "bars": "blocks/weathered_copper_bars",
+    "edge": "blocks/weathered_copper_bars"
+  }
+}

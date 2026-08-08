@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_turtle_egg",
+  "textures": {
+    "all": "blocks/turtle_egg_very_cracked"
+  }
+}

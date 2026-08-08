@@ -1,0 +1,7 @@
+{
+  "parent": "block/door_bottom_right",
+  "textures": {
+    "bottom": "blocks/weathered_copper_door_bottom",
+    "top": "blocks/weathered_copper_door_top"
+  }
+}

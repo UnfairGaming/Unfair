@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_shelf_unpowered",
+  "textures": {
+    "all": "blocks/cherry_shelf",
+    "particle": "blocks/stripped_cherry_log"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "block/cross",
+  "textures": {
+    "cross": "blocks/torchflower_crop_stage1"
+  }
+}

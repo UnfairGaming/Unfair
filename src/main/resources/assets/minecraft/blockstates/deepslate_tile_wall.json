@@ -1,0 +1,7 @@
+{
+    "variants":  {
+                     "":  {
+                              "model":  "deepslate_tile_wall_post"
+                          }
+                 }
+}

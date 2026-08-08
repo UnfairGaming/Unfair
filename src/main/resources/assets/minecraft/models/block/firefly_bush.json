@@ -1,0 +1,7 @@
+{
+  "parent": "block/cross_emissive",
+  "textures": {
+    "cross": "blocks/firefly_bush",
+    "cross_emissive": "blocks/firefly_bush_emissive"
+  }
+}

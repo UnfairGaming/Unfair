@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "mangrove_slab"
+    },
+    "type=double": {
+      "model": "mangrove_planks"
+    },
+    "type=top": {
+      "model": "mangrove_slab_top"
+    }
+  }
+}

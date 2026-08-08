@@ -1,0 +1,6 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "items/flow_armor_trim_smithing_template"
+  }
+}

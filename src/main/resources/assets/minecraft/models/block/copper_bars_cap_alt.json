@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_bars_cap_alt",
+  "textures": {
+    "bars": "blocks/copper_bars",
+    "edge": "blocks/copper_bars"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "tuff_slab"
+    },
+    "type=double": {
+      "model": "tuff"
+    },
+    "type=top": {
+      "model": "tuff_slab_top"
+    }
+  }
+}

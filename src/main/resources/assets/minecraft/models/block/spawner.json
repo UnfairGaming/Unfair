@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all_inner_faces",
+  "textures": {
+    "all": "blocks/spawner"
+  }
+}

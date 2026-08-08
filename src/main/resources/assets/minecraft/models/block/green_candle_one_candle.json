@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_candle",
+  "textures": {
+    "all": "blocks/green_candle",
+    "particle": "blocks/green_candle"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "cherry_wood",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "cherry_wood"
+    },
+    "axis=z": {
+      "model": "cherry_wood",
+      "x": 90
+    }
+  }
+}

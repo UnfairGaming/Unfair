@@ -1,0 +1,7 @@
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "items/wolf_armor",
+    "layer1": "items/wolf_armor_overlay"
+  }
+}

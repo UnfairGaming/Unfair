@@ -1,0 +1,7 @@
+{
+  "parent": "block/flowerbed_4",
+  "textures": {
+    "flowerbed": "blocks/wildflowers",
+    "stem": "blocks/wildflowers_stem"
+  }
+}

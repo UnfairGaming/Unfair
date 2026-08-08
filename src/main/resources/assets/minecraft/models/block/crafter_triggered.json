@@ -1,0 +1,9 @@
+{
+  "parent": "block/crafter",
+  "textures": {
+    "top": "blocks/crafter_top_triggered",
+    "south": "blocks/crafter_south_triggered",
+    "west": "blocks/crafter_west_triggered",
+    "east": "blocks/crafter_east_triggered"
+  }
+}

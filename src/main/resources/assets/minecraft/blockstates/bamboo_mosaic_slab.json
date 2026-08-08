@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "bamboo_mosaic_slab"
+    },
+    "type=double": {
+      "model": "bamboo_mosaic"
+    },
+    "type=top": {
+      "model": "bamboo_mosaic_slab_top"
+    }
+  }
+}

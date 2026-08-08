@@ -1,0 +1,10 @@
+{
+  "parent": "block/template_cake_with_candle",
+  "textures": {
+    "bottom": "blocks/cake_bottom",
+    "candle": "blocks/light_blue_candle_lit",
+    "particle": "blocks/cake_side",
+    "side": "blocks/cake_side",
+    "top": "blocks/cake_top"
+  }
+}

@@ -1,5 +1,6 @@
 package net.minecraft.client.renderer.entity;
 
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -322,6 +323,8 @@ public class RenderItem implements IResourceManagerReloadListener {
                     } else if (i > 0) {
                         modelresourcelocation = new ModelResourceLocation("bow_pulling_0", "inventory");
                     }
+                } else if (entityplayer.getItemInUse() != null && "shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
+                    modelresourcelocation = new ModelResourceLocation("shield_blocking", "inventory");
                 }
 
                 if (modelresourcelocation != null) {

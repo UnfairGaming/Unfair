@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "small_amethyst_bud",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "small_amethyst_bud",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "small_amethyst_bud",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "small_amethyst_bud",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "small_amethyst_bud"
+    },
+    "facing=west": {
+      "model": "small_amethyst_bud",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

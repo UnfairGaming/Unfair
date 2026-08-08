@@ -1,0 +1,57 @@
+{
+  "variants": {
+    "orientation=down_east": {
+      "model": "jigsaw",
+      "x": 90,
+      "y": 90
+    },
+    "orientation=down_north": {
+      "model": "jigsaw",
+      "x": 90
+    },
+    "orientation=down_south": {
+      "model": "jigsaw",
+      "x": 90,
+      "y": 180
+    },
+    "orientation=down_west": {
+      "model": "jigsaw",
+      "x": 90,
+      "y": 270
+    },
+    "orientation=east_up": {
+      "model": "jigsaw",
+      "y": 90
+    },
+    "orientation=north_up": {
+      "model": "jigsaw"
+    },
+    "orientation=south_up": {
+      "model": "jigsaw",
+      "y": 180
+    },
+    "orientation=up_east": {
+      "model": "jigsaw",
+      "x": 270,
+      "y": 270
+    },
+    "orientation=up_north": {
+      "model": "jigsaw",
+      "x": 270,
+      "y": 180
+    },
+    "orientation=up_south": {
+      "model": "jigsaw",
+      "x": 270
+    },
+    "orientation=up_west": {
+      "model": "jigsaw",
+      "x": 270,
+      "y": 90
+    },
+    "orientation=west_up": {
+      "model": "jigsaw",
+      "y": 270
+    }
+  }
+}

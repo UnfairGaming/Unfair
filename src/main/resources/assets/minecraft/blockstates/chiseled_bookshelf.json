@@ -1,0 +1,8 @@
+{
+    "variants":  {
+                     "":  {
+                              "model":  "chiseled_bookshelf",
+                              "uvlock":  true
+                          }
+                 }
+}

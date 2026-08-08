@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "blackstone_slab"
+    },
+    "type=double": {
+      "model": "blackstone"
+    },
+    "type=top": {
+      "model": "blackstone_slab_top"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "mode=accept": {
+      "model": "test_block_accept"
+    },
+    "mode=fail": {
+      "model": "test_block_fail"
+    },
+    "mode=log": {
+      "model": "test_block_log"
+    },
+    "mode=start": {
+      "model": "test_block_start"
+    }
+  }
+}

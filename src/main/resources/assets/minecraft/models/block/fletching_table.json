@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "down": "blocks/birch_planks",
+    "east": "blocks/fletching_table_side",
+    "north": "blocks/fletching_table_front",
+    "particle": "blocks/fletching_table_front",
+    "south": "blocks/fletching_table_front",
+    "up": "blocks/fletching_table_top",
+    "west": "blocks/fletching_table_side"
+  }
+}

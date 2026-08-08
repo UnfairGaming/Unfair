@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "bloom=false": {
+      "model": "sculk_catalyst"
+    },
+    "bloom=true": {
+      "model": "sculk_catalyst_bloom"
+    }
+  }
+}

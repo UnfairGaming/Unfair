@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "level=0": {
+      "model": "light_00"
+    },
+    "level=1": {
+      "model": "light_01"
+    },
+    "level=10": {
+      "model": "light_10"
+    },
+    "level=11": {
+      "model": "light_11"
+    },
+    "level=12": {
+      "model": "light_12"
+    },
+    "level=13": {
+      "model": "light_13"
+    },
+    "level=14": {
+      "model": "light_14"
+    },
+    "level=15": {
+      "model": "light_15"
+    },
+    "level=2": {
+      "model": "light_02"
+    },
+    "level=3": {
+      "model": "light_03"
+    },
+    "level=4": {
+      "model": "light_04"
+    },
+    "level=5": {
+      "model": "light_05"
+    },
+    "level=6": {
+      "model": "light_06"
+    },
+    "level=7": {
+      "model": "light_07"
+    },
+    "level=8": {
+      "model": "light_08"
+    },
+    "level=9": {
+      "model": "light_09"
+    }
+  }
+}

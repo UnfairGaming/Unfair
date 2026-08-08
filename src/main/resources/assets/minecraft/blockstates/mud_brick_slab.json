@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "mud_brick_slab"
+    },
+    "type=double": {
+      "model": "mud_bricks"
+    },
+    "type=top": {
+      "model": "mud_brick_slab_top"
+    }
+  }
+}

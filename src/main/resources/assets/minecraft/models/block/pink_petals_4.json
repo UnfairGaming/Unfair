@@ -1,0 +1,7 @@
+{
+  "parent": "block/flowerbed_4",
+  "textures": {
+    "flowerbed": "blocks/pink_petals",
+    "stem": "blocks/pink_petals_stem"
+  }
+}

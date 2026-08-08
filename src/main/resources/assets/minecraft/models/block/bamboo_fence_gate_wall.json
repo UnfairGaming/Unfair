@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_custom_fence_gate_wall",
+  "textures": {
+    "particle": "blocks/bamboo_fence_gate_particle",
+    "texture": "blocks/bamboo_fence_gate"
+  }
+}

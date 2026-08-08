@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "dark_oak_wood",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "dark_oak_wood"
+    },
+    "axis=z": {
+      "model": "dark_oak_wood",
+      "x": 90
+    }
+  }
+}

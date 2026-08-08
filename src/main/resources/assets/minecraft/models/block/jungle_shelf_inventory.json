@@ -1,0 +1,7 @@
+{
+  "parent": "block/template_shelf_inventory",
+  "textures": {
+    "all": "blocks/jungle_shelf",
+    "particle": "blocks/stripped_jungle_log"
+  }
+}

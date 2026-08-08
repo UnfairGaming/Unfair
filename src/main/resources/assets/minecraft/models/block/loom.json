@@ -1,0 +1,9 @@
+{
+  "parent": "block/orientable_with_bottom",
+  "textures": {
+    "bottom": "blocks/loom_bottom",
+    "front": "blocks/loom_front",
+    "side": "blocks/loom_side",
+    "top": "blocks/loom_top"
+  }
+}

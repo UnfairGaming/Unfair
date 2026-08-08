@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_chiseled_bookshelf_slot_top_left",
+  "textures": {
+    "texture": "blocks/chiseled_bookshelf_occupied"
+  }
+}

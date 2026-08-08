@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "birch_wood",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "birch_wood"
+    },
+    "axis=z": {
+      "model": "birch_wood",
+      "x": 90
+    }
+  }
+}

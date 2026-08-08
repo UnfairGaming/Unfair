@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "light_blue_candle_cake"
+    },
+    "lit=true": {
+      "model": "light_blue_candle_cake_lit"
+    }
+  }
+}

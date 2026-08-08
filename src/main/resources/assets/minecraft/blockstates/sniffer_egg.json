@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "hatch=0": {
+      "model": "sniffer_egg_not_cracked"
+    },
+    "hatch=1": {
+      "model": "sniffer_egg_slightly_cracked"
+    },
+    "hatch=2": {
+      "model": "sniffer_egg_very_cracked"
+    }
+  }
+}

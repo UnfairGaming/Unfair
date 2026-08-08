@@ -1,0 +1,6 @@
+{
+  "parent": "block/cross",
+  "textures": {
+    "cross": "blocks/lily_of_the_valley"
+  }
+}

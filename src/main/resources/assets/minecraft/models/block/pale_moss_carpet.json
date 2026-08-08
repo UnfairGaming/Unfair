@@ -1,0 +1,6 @@
+{
+  "parent": "block/carpet",
+  "textures": {
+    "wool": "blocks/pale_moss_carpet"
+  }
+}

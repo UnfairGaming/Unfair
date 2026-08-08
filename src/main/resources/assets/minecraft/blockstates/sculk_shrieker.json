@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "can_summon=false": {
+      "model": "sculk_shrieker"
+    },
+    "can_summon=true": {
+      "model": "sculk_shrieker_can_summon"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,tilt=full": {
+      "model": "big_dripleaf_full_tilt",
+      "y": 90
+    },
+    "facing=east,tilt=none": {
+      "model": "big_dripleaf",
+      "y": 90
+    },
+    "facing=east,tilt=partial": {
+      "model": "big_dripleaf_partial_tilt",
+      "y": 90
+    },
+    "facing=east,tilt=unstable": {
+      "model": "big_dripleaf",
+      "y": 90
+    },
+    "facing=north,tilt=full": {
+      "model": "big_dripleaf_full_tilt"
+    },
+    "facing=north,tilt=none": {
+      "model": "big_dripleaf"
+    },
+    "facing=north,tilt=partial": {
+      "model": "big_dripleaf_partial_tilt"
+    },
+    "facing=north,tilt=unstable": {
+      "model": "big_dripleaf"
+    },
+    "facing=south,tilt=full": {
+      "model": "big_dripleaf_full_tilt",
+      "y": 180
+    },
+    "facing=south,tilt=none": {
+      "model": "big_dripleaf",
+      "y": 180
+    },
+    "facing=south,tilt=partial": {
+      "model": "big_dripleaf_partial_tilt",
+      "y": 180
+    },
+    "facing=south,tilt=unstable": {
+      "model": "big_dripleaf",
+      "y": 180
+    },
+    "facing=west,tilt=full": {
+      "model": "big_dripleaf_full_tilt",
+      "y": 270
+    },
+    "facing=west,tilt=none": {
+      "model": "big_dripleaf",
+      "y": 270
+    },
+    "facing=west,tilt=partial": {
+      "model": "big_dripleaf_partial_tilt",
+      "y": 270
+    },
+    "facing=west,tilt=unstable": {
+      "model": "big_dripleaf",
+      "y": 270
+    }
+  }
+}

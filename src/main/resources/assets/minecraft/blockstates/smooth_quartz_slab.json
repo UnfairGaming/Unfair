@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "smooth_quartz_slab"
+    },
+    "type=double": {
+      "model": "smooth_quartz"
+    },
+    "type=top": {
+      "model": "smooth_quartz_slab_top"
+    }
+  }
+}

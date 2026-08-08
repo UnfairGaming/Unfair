@@ -1,0 +1,6 @@
+{
+  "parent": "block/template_fire_side_alt",
+  "textures": {
+    "fire": "blocks/soul_fire_0"
+  }
+}

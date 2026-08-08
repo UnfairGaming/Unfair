@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "exposed_cut_copper_slab"
+    },
+    "type=double": {
+      "model": "exposed_cut_copper"
+    },
+    "type=top": {
+      "model": "exposed_cut_copper_slab_top"
+    }
+  }
+}

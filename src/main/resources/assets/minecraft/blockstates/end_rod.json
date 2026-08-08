@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "end_rod",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "end_rod",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "end_rod",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "end_rod",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "end_rod"
+    },
+    "facing=west": {
+      "model": "end_rod",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

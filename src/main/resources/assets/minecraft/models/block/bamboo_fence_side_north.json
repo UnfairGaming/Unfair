@@ -1,0 +1,6 @@
+{
+  "parent": "block/custom_fence_side_north",
+  "textures": {
+    "texture": "blocks/bamboo_fence"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "block/cube_column_uv_locked_z",
+  "textures": {
+    "end": "blocks/bamboo_block_top",
+    "side": "blocks/bamboo_block"
+  }
+}

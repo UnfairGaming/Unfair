@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "andesite_slab"
+    },
+    "type=double": {
+      "model": "andesite"
+    },
+    "type=top": {
+      "model": "andesite_slab_top"
+    }
+  }
+}

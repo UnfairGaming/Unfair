@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "weathered_cut_copper_slab"
+    },
+    "type=double": {
+      "model": "weathered_cut_copper"
+    },
+    "type=top": {
+      "model": "weathered_cut_copper_slab_top"
+    }
+  }
+}

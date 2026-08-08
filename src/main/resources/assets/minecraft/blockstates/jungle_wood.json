@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "jungle_wood",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "jungle_wood"
+    },
+    "axis=z": {
+      "model": "jungle_wood",
+      "x": 90
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "block/outer_stairs",
+  "textures": {
+    "bottom": "blocks/resin_bricks",
+    "side": "blocks/resin_bricks",
+    "top": "blocks/resin_bricks"
+  }
+}
