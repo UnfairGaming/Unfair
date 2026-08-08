@@ -110,10 +110,9 @@ public class PotionEffects extends Module {
             return;
         }
         float[] size = getContentSize();
-        float contentX = x + Math.max(0.0F, this.widgetWidth - size[0]);
-        float left = contentX - 3.0F;
+        float left = x - 3.0F;
         float top = y - 3.0F;
-        float right = contentX + size[0] + 3.0F;
+        float right = x + size[0] + 3.0F;
         float bottom = y + size[1];
         if (mask) {
             RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
@@ -124,7 +123,7 @@ public class PotionEffects extends Module {
         }
         float rowY = y;
         for (PotionEffect effect : effects) {
-            renderEffect(effect, contentX, rowY);
+            renderEffect(effect, x, rowY);
             rowY += this.getRowHeight();
         }
     }

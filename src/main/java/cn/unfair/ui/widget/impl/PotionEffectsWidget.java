@@ -11,6 +11,7 @@ import org.lwjgl.input.Mouse;
 public class PotionEffectsWidget extends Widget {
     private PotionEffects potionEffects;
     private boolean positioned;
+    private float fixedRenderX;
     private float lastScreenW;
 
     public PotionEffectsWidget() {
@@ -62,23 +63,12 @@ public class PotionEffectsWidget extends Widget {
     public void updatePos(ScaledResolution sr) {
         float screenW = sr.getScaledWidth();
         float screenH = sr.getScaledHeight();
-        float oldWidth = this.width;
-        float oldRenderX = this.renderX;
 
         PotionEffects module = this.getPotionEffects();
         if (module != null) {
             float[] size = module.getWidgetSize();
             this.width = size[0];
             this.height = size[1];
-        }
-
-        if (this.positioned && !this.dragging && Math.abs(screenW - this.lastScreenW) < 0.5F && Math.abs(this.width - oldWidth) > 0.01F) {
-            float fixedRenderX = clamp(oldRenderX, 0.0F, Math.max(0.0F, screenW - this.width));
-            if ((this.align & WidgetAlign.RIGHT) != 0) {
-                this.x = screenW <= 0.0F ? 0.0F : (fixedRenderX + this.width) / screenW;
-            } else if ((this.align & WidgetAlign.CENTER) != 0) {
-                this.x = screenW <= 0.0F ? 0.0F : (fixedRenderX + this.width / 2.0F) / screenW;
-            }
         }
 
         float rx = this.x * screenW;
@@ -90,8 +80,13 @@ public class PotionEffectsWidget extends Widget {
             rx -= this.width / 2.0F;
         }
 
+        if (this.positioned && !this.dragging && Math.abs(screenW - this.lastScreenW) < 0.5F) {
+            rx = this.fixedRenderX;
+        }
+
         this.renderX = clamp(rx, 0.0F, Math.max(0.0F, screenW - this.width));
         this.renderY = clamp(ry, 0.0F, Math.max(0.0F, screenH - this.height));
+        this.fixedRenderX = this.renderX;
         this.positioned = true;
         this.lastScreenW = screenW;
     }
@@ -138,6 +133,9 @@ public class PotionEffectsWidget extends Widget {
 
             this.x = screenW <= 0.0F ? 0.0F : nx / screenW;
             this.y = screenH <= 0.0F ? 0.0F : (newRenderY + this.getCenterOffset()) / screenH;
+            this.fixedRenderX = newRenderX;
+            this.positioned = true;
+            this.lastScreenW = screenW;
             this.dragX = mouseX;
             this.dragY = mouseY;
         }
