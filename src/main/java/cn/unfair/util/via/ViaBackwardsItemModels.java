@@ -18,10 +18,10 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.src.Config;
 import net.minecraft.util.ResourceLocation;
 
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
@@ -127,7 +127,18 @@ public final class ViaBackwardsItemModels {
     }
 
     private static boolean hasModelResource(String model) {
-        return Config.hasResource(ResourceLocation.of("minecraft", "models/item/" + model + ".json"));
+        try (InputStream stream = getResourceStream(ResourceLocation.of("minecraft", "models/item/" + model + ".json"))) {
+            return stream != null;
+        } catch (IOException ignored) {
+            return false;
+        }
+    }
+
+    private static InputStream getResourceStream(ResourceLocation location) {
+        String path = "assets/" + location.getResourceDomain() + "/" + location.getResourcePath();
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        InputStream stream = contextClassLoader == null ? null : contextClassLoader.getResourceAsStream(path);
+        return stream == null ? ViaBackwardsItemModels.class.getClassLoader().getResourceAsStream(path) : stream;
     }
 
     private static boolean isBrokenElytra(ItemStack stack, String model) {

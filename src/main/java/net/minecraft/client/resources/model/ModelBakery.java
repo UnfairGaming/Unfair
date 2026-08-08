@@ -240,7 +240,7 @@ public class ModelBakery {
 
         for (String s : ViaBackwardsItemModels.getModelNames()) {
             ResourceLocation resourcelocation = this.getItemLocation(s);
-            if (!this.hasResource(resourcelocation)) {
+            if (!this.hasResource(this.getModelLocation(resourcelocation))) {
                 continue;
             }
 
