@@ -27,7 +27,7 @@ public class RavenClickGui extends GuiScreen {
     public static ArrayList<CategoryComponent> categories;
     private static RavenClickGui instance;
     private static boolean isNotFirstOpen;
-    private final File configFile = new File("./config/Unfair/", "clickgui.txt");
+    private final File configFile = new File("./config/Unfair/", "clickgui.json");
     private final String clientName = "Unfair";
     private final String developer = "dev, UnfairGaming";
     public int originalScale;
