@@ -35,7 +35,7 @@ public class Radar extends Module {
     public final ColorProperty outlineColor = new ColorProperty("outline-color", Color.DARK_GRAY.getRGB());
     public final ColorProperty crossColor = new ColorProperty("cross-color", Color.LIGHT_GRAY.getRGB());
     public Radar() {
-        super("Radar", false);
+        super("Radar", false, true);
     }
 
     private boolean shouldRender(EntityPlayer entityPlayer) {

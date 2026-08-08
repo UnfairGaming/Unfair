@@ -38,7 +38,7 @@ public class Scoreboard extends Module {
     private float cachedHeight = 24.0F;
 
     public Scoreboard() {
-        super("Scoreboard", false);
+        super("Scoreboard", false, true);
     }
 
     public boolean shouldRenderWidget() {

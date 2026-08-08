@@ -34,7 +34,7 @@ public class PotionEffects extends Module {
     private int ticks;
 
     public PotionEffects() {
-        super("PotionEffects", false);
+        super("PotionEffects", false, true);
     }
 
     public boolean shouldRenderWidget() {

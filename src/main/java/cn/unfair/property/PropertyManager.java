@@ -9,7 +9,16 @@ public class PropertyManager {
     public LinkedHashMap<Class<?>, ArrayList<Property<?>>> properties = new LinkedHashMap<>();
 
     public Property<?> getProperty(Module module, String string) {
-        for (Property<?> property : properties.get(module.getClass())) {
+        if (module == null) {
+            return null;
+        }
+
+        ArrayList<Property<?>> moduleProperties = properties.get(module.getClass());
+        if (moduleProperties == null) {
+            return null;
+        }
+
+        for (Property<?> property : moduleProperties) {
             if (property.matchesName(string)) {
                 return property;
             }

@@ -1,5 +1,6 @@
 package net.minecraft.client.gui;
 
+import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.ChatGUIEvent;
 import com.google.common.collect.Lists;
@@ -26,7 +27,9 @@ public class GuiChat extends GuiScreen
     private int sentHistoryCursor = -1;
     private boolean playerNamesFound;
     private boolean waitingOnAutocomplete;
+    private boolean clientAutocompleteFound;
     private int autocompleteIndex;
+    private int clientAutocompleteStart;
     private List<String> foundPlayerNames = Lists.<String>newArrayList();
 
     /** Chat entry field */
@@ -94,11 +97,15 @@ public class GuiChat extends GuiScreen
 
         if (keyCode == 15)
         {
-            this.autocompletePlayerNames();
+            if (!this.autocompleteClientCommand())
+            {
+                this.autocompletePlayerNames();
+            }
         }
         else
         {
             this.playerNamesFound = false;
+            this.clientAutocompleteFound = false;
         }
 
         if (keyCode == 1)
@@ -139,6 +146,95 @@ public class GuiChat extends GuiScreen
 
             this.mc.displayGuiScreen((GuiScreen)null);
         }
+    }
+
+    private boolean autocompleteClientCommand()
+    {
+        if (Unfair.commandManager == null || !this.inputField.getText().startsWith("."))
+        {
+            return false;
+        }
+
+        if (this.clientAutocompleteFound)
+        {
+            this.inputField.deleteFromCursor(this.clientAutocompleteStart - this.inputField.getCursorPosition());
+
+            if (this.autocompleteIndex >= this.foundPlayerNames.size())
+            {
+                this.autocompleteIndex = 0;
+            }
+        }
+        else
+        {
+            String text = this.inputField.getText();
+            int cursor = this.inputField.getCursorPosition();
+            this.clientAutocompleteStart = Unfair.commandManager.getAutocompleteStart(text, cursor);
+            this.foundPlayerNames.clear();
+            this.autocompleteIndex = 0;
+            this.foundPlayerNames.addAll(Unfair.commandManager.getAutocompleteSuggestions(text, cursor));
+
+            if (this.foundPlayerNames.isEmpty())
+            {
+                return true;
+            }
+
+            String current = text.substring(this.clientAutocompleteStart, cursor);
+            String commonPrefix = StringUtils.getCommonPrefix(this.foundPlayerNames.toArray(new String[0]));
+
+            if (!commonPrefix.isEmpty() && !current.equalsIgnoreCase(commonPrefix))
+            {
+                this.inputField.deleteFromCursor(this.clientAutocompleteStart - this.inputField.getCursorPosition());
+                this.inputField.writeText(commonPrefix);
+
+                if (this.foundPlayerNames.size() == 1)
+                {
+                    this.inputField.writeText(" ");
+                }
+                return true;
+            }
+
+            this.clientAutocompleteFound = true;
+            this.playerNamesFound = false;
+            this.inputField.deleteFromCursor(this.clientAutocompleteStart - this.inputField.getCursorPosition());
+        }
+
+        if (this.foundPlayerNames.size() > 1)
+        {
+            StringBuilder stringbuilder = new StringBuilder();
+
+            int shown = 0;
+            for (String suggestion : this.foundPlayerNames)
+            {
+                if (shown >= 20)
+                {
+                    break;
+                }
+
+                if (!stringbuilder.isEmpty())
+                {
+                    stringbuilder.append(", ");
+                }
+
+                stringbuilder.append(suggestion);
+                shown++;
+            }
+
+            if (this.foundPlayerNames.size() > shown)
+            {
+                stringbuilder.append(", ... +").append(this.foundPlayerNames.size() - shown);
+            }
+
+            this.mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(new ChatComponentText(stringbuilder.toString()), 1);
+        }
+
+        this.inputField.writeText(this.foundPlayerNames.get(this.autocompleteIndex++));
+
+        if (this.foundPlayerNames.size() == 1)
+        {
+            this.inputField.writeText(" ");
+        }
+
+        return true;
     }
 
     /**
