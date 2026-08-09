@@ -1,8 +1,5 @@
-package cn.unfair.module.modules.misc;
+package cn.unfair.util.via;
 
-import cn.unfair.util.via.BlockStatePredictionHandler;
-import cn.unfair.util.via.ModernOffhandInteraction;
-import cn.unfair.util.via.ModernSequenceStorage;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import de.florianmichael.viamcp.ViaMCP;
 import net.minecraft.client.Minecraft;

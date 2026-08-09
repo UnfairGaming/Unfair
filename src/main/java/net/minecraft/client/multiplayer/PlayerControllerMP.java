@@ -6,7 +6,7 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.CancelUseEvent;
 import cn.unfair.events.WindowClickEvent;
-import cn.unfair.module.modules.misc.ViaVersionFix;
+import cn.unfair.util.via.ViaVersionFix;
 import cn.unfair.util.via.BlockStatePredictionHandler;
 import cn.unfair.util.via.ViaProtocol;
 import cn.unfair.util.via.ModernOffhandInteraction;

@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
-import cn.unfair.module.modules.misc.ViaVersionFix;
+import cn.unfair.util.via.ViaVersionFix;
 import cn.unfair.util.PacketUtil;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
