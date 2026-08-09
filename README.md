@@ -28,7 +28,13 @@ Linux/macOS:
 
 bzdhyp / zzz 的深度优化后的 MCP 与 Augustus Click Gui
 
+Demise Client 的源码/资源
+
+Augustus Client 的资源
+
+Epilogue Client 的源码/资源 https://github.com/qm123pz/E
+
 Un1336 / Falling Star / Fall1ng Star 的开发
 
-Phosphor https://github.com/momenbasel/Phosphor
+Phosphor 的光照系统 https://github.com/momenbasel/Phosphor
 

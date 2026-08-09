@@ -1,7 +1,7 @@
 {
     "textures": {
         "spyglass": "items/spyglass_model",
-        "particle": "#spyglass"
+        "particle": "items/spyglass_model"
     },
     "elements": [
         {

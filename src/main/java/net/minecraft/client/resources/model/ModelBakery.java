@@ -250,7 +250,7 @@ public class ModelBakery {
                     this.models.put(resourcelocation, modelblock);
                     this.itemLocations.put(s, resourcelocation);
                 } catch (Exception exception) {
-                    LOGGER.debug("Unable to load ViaBackwards item model: '{}'", resourcelocation, exception);
+                    ;
                 }
             } else {
                 this.itemLocations.put(s, resourcelocation);
@@ -356,13 +356,15 @@ public class ModelBakery {
                 if (modelblock != null && modelblock.isResolved()) {
                     ++i;
                     weightedbakedmodel$builder.add(this.bakeModel(modelblock, modelblockdefinition$variant.getRotation(), modelblockdefinition$variant.isUvLocked()), modelblockdefinition$variant.getWeight());
-                } else {
+                } else if (!this.isViaBackwardsModel(modelresourcelocation)) {
                     LOGGER.warn("Missing model for: " + modelresourcelocation);
                 }
             }
 
             if (i == 0) {
-                LOGGER.warn("No weighted models for: " + modelresourcelocation);
+                if (!this.isViaBackwardsModel(modelresourcelocation)) {
+                    LOGGER.warn("No weighted models for: " + modelresourcelocation);
+                }
             } else if (i == 1) {
                 this.bakedRegistry.putObject(modelresourcelocation, weightedbakedmodel$builder.first());
             } else {
@@ -382,7 +384,7 @@ public class ModelBakery {
                 } else {
                     this.bakedRegistry.putObject(modelresourcelocation1, this.bakeModel(modelblock1, ModelRotation.X0_Y0, false));
                 }
-            } else {
+            } else if (!this.isViaBackwardsModel(resourcelocation)) {
                 LOGGER.warn("Missing model for: " + resourcelocation);
             }
         }
@@ -400,6 +402,10 @@ public class ModelBakery {
                 ModelBlock modelblock = this.models.get(modelblockdefinition$variant.getModelLocation());
 
                 if (modelblock == null) {
+                    if (this.isViaBackwardsModel(modelresourcelocation)) {
+                        continue;
+                    }
+
                     LOGGER.warn("Missing model for: " + modelresourcelocation);
                 } else {
                     set.addAll(this.getTextureLocations(modelblock));
@@ -475,7 +481,11 @@ public class ModelBakery {
                     deque.add(resourcelocation3);
                 }
             } catch (Exception var6) {
-                LOGGER.warn("In parent chain: " + JOINER.join(this.getParentPath(resourcelocation2)) + "; unable to load model: '" + resourcelocation2 + "'");
+                List<ResourceLocation> parentPath = this.getParentPath(resourcelocation2);
+
+                if (!this.hasViaBackwardsModel(parentPath)) {
+                    LOGGER.warn("In parent chain: " + JOINER.join(parentPath) + "; unable to load model: '" + resourcelocation2 + "'");
+                }
             }
 
             set.add(resourcelocation2);
@@ -503,6 +513,26 @@ public class ModelBakery {
         }
 
         return null;
+    }
+
+    private boolean hasViaBackwardsModel(List<ResourceLocation> locations) {
+        for (ResourceLocation location : locations) {
+            if (this.isViaBackwardsModel(location)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isViaBackwardsModel(ResourceLocation location) {
+        String path = location.getResourcePath();
+
+        if (!"minecraft".equals(location.getResourceDomain()) || !path.startsWith("item/")) {
+            return false;
+        }
+
+        return ViaBackwardsItemModels.getModelNames().contains(path.substring("item/".length()));
     }
 
     private Set<ResourceLocation> getTextureLocations(ModelBlock p_177585_1_) {

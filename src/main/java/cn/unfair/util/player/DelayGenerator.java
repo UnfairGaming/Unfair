@@ -2,7 +2,7 @@ package cn.unfair.util.player;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class CpsDelayGenerator {
+public class DelayGenerator {
     private double tempo;
     private int burstTicks;
     private int restTicks;

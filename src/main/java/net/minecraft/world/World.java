@@ -1841,6 +1841,40 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
         if (!this.isAreaLoaded(i, k, i1, j, l, j1, true)) {
             return false;
         } else {
+            if (!newerThanOrEqualTo1_13) {
+                boolean flag = false;
+                Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
+                BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
+
+                for (int k1 = i; k1 < j; ++k1) {
+                    for (int l1 = k; l1 < l; ++l1) {
+                        for (int i2 = i1; i2 < j1; ++i2) {
+                            blockpos$mutableblockpos.set(k1, l1, i2);
+                            IBlockState iblockstate = this.getBlockState(blockpos$mutableblockpos);
+                            Block block = iblockstate.getBlock();
+
+                            if (block.getMaterial() == materialIn) {
+                                double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL).intValue());
+
+                                if ((double) l >= d0) {
+                                    flag = true;
+                                    vec3 = block.modifyAcceleration(this, blockpos$mutableblockpos, entityIn, vec3);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (vec3.lengthVector() > 0.0D && entityIn.isPushedByWater()) {
+                    vec3 = vec3.normalize();
+                    entityIn.motionX += vec3.xCoord * velocityFactor;
+                    entityIn.motionY += vec3.yCoord * velocityFactor;
+                    entityIn.motionZ += vec3.zCoord * velocityFactor;
+                }
+
+                return flag;
+            }
+
             boolean flag = false;
             double maxLiquidHeight = 0.0D;
             int liquidBlockCount = 0;

@@ -125,38 +125,42 @@ public abstract class BlockLiquid extends Block {
     public Vec3 getFlowVector(IBlockAccess worldIn, BlockPos pos) {
         Vec3 vec3 = new Vec3(0.0D, 0.0D, 0.0D);
         int i = this.getEffectiveFlowDecay(worldIn, pos);
+        AssociatedMutableBlockPos blockpos$associated = AssociatedMutableBlockPos.get(pos);
 
-        for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-            BlockPos blockpos = AssociatedMutableBlockPos.get(pos);
-            int j = this.getEffectiveFlowDecay(worldIn, blockpos);
+        try {
+            for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
+                BlockPos blockpos = blockpos$associated.associateWithOwnBlockPos().move(enumfacing);
+                int j = this.getEffectiveFlowDecay(worldIn, blockpos);
 
-            if (j < 0) {
-                if (!worldIn.getBlockState(blockpos).getBlock().getMaterial().blocksMovement()) {
-                    j = this.getEffectiveFlowDecay(worldIn, blockpos.down());
+                if (j < 0) {
+                    if (!worldIn.getBlockState(blockpos).getBlock().getMaterial().blocksMovement()) {
+                        j = this.getEffectiveFlowDecay(worldIn, blockpos.down());
 
-                    if (j >= 0) {
-                        int k = j - (i - 8);
-                        vec3 = vec3.addVector((blockpos.getX() - pos.getX()) * k, (blockpos.getY() - pos.getY()) * k, (blockpos.getZ() - pos.getZ()) * k);
+                        if (j >= 0) {
+                            int k = j - (i - 8);
+                            vec3 = vec3.addVector((blockpos.getX() - pos.getX()) * k, (blockpos.getY() - pos.getY()) * k, (blockpos.getZ() - pos.getZ()) * k);
+                        }
+                    }
+                } else if (j >= 0) {
+                    int l = j - i;
+                    vec3 = vec3.addVector((blockpos.getX() - pos.getX()) * l, (blockpos.getY() - pos.getY()) * l, (blockpos.getZ() - pos.getZ()) * l);
+                }
+            }
+
+            if (worldIn.getBlockState(pos).getValue(LEVEL) >= 8) {
+                for (EnumFacing enumfacing1 : EnumFacing.Plane.HORIZONTAL) {
+                    BlockPos blockpos1 = blockpos$associated.associateWithOwnBlockPos().move(enumfacing1);
+
+                    if (this.isBlockSolid(worldIn, blockpos1, enumfacing1) || this.isBlockSolid(worldIn, blockpos1.up(), enumfacing1)) {
+                        vec3 = vec3.normalize().addVector(0.0D, -6.0D, 0.0D);
+                        break;
                     }
                 }
-            } else if (j >= 0) {
-                int l = j - i;
-                vec3 = vec3.addVector((blockpos.getX() - pos.getX()) * l, (blockpos.getY() - pos.getY()) * l, (blockpos.getZ() - pos.getZ()) * l);
             }
+        } finally {
+            blockpos$associated.release();
         }
 
-        if (worldIn.getBlockState(pos).getValue(LEVEL) >= 8) {
-            for (EnumFacing enumfacing1 : EnumFacing.Plane.HORIZONTAL) {
-                BlockPos blockpos1 = AssociatedMutableBlockPos.get(pos).associateWithOwnBlockPos().move(enumfacing1);
-
-                if (this.isBlockSolid(worldIn, blockpos1, enumfacing1) || this.isBlockSolid(worldIn, blockpos1.up(), enumfacing1)) {
-                    vec3 = vec3.normalize().addVector(0.0D, -6.0D, 0.0D);
-                    break;
-                }
-            }
-        }
-
-        AssociatedMutableBlockPos.get(pos).release();
         return vec3.normalize();
     }
 

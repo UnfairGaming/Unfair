@@ -15,7 +15,7 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
-import cn.unfair.util.player.CpsDelayGenerator;
+import cn.unfair.util.player.DelayGenerator;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -67,7 +67,7 @@ public class Scaffold extends Module {
     public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
     private final float[] lastErrors = new float[20];
     private final TimerUtil clickTimer = new TimerUtil();
-    private final CpsDelayGenerator cpsDelayGenerator = new CpsDelayGenerator();
+    private final DelayGenerator delayGenerator = new DelayGenerator();
     private int errorIndex = 0;
     private int rotationTick = 0;
     private int lastSlot = -1;
@@ -359,7 +359,7 @@ public class Scaffold extends Module {
     }
 
     private void resetClickTimer() {
-        this.nextClickDelay = this.cpsDelayGenerator.nextDelay(this.minCps.getValue(), this.maxCps.getValue());
+        this.nextClickDelay = this.delayGenerator.nextDelay(this.minCps.getValue(), this.maxCps.getValue());
         this.clickTimer.reset();
     }
 
@@ -1187,7 +1187,7 @@ public class Scaffold extends Module {
         this.lastPitchChange = 0;
         this.errorIndex = 0;
         this.clickTimer.setTime();
-        this.cpsDelayGenerator.reset();
+        this.delayGenerator.reset();
         this.nextClickDelay = 0L;
         for (int i = 0; i < this.lastErrors.length; i++) {
             this.lastErrors[i] = 0.0F;
