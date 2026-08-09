@@ -2,6 +2,7 @@ package cn.unfair.module.modules.render.targethud.impl;
 
 import cn.unfair.module.modules.render.TargetHUD;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
+import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
@@ -15,6 +16,7 @@ import java.math.RoundingMode;
 
 public class TargetHUDUnfairMode extends TargetHUDMode {
     public final PercentProperty background = new PercentProperty("background", 65);
+    public final BooleanProperty animations = new BooleanProperty("animations", true);
 
     public TargetHUDUnfairMode() {
         super("Unfair");
@@ -37,12 +39,16 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
         float playerHealth = TargetHUD.finiteHealth(data.playerHealth());
         float maxHealth = Math.max(TargetHUD.finiteHealth(data.maxHealth()), 1.0F);
         float absorption = TargetHUD.finiteHealth(data.absorption());
-        float ratio = MathHelper.clamp_float(targetHealth / maxHealth, 0.0F, 1.0F);
+        float animatedHealth = this.getAnimatedHealth(targetHUD, targetHealth);
+        float animatedMaxHealth = Math.max(TargetHUD.finiteHealth(targetHUD.maxHealth), maxHealth);
+        float ratio = MathHelper.clamp_float(animatedHealth / animatedMaxHealth, 0.0F, 1.0F);
         float absorptionRatio = MathHelper.clamp_float(absorption / maxHealth, 0.0F, 1.0F);
         float space = width - 43.0F;
         int[] colors = targetHUD.getRavenGradientColors();
         float partialTicks = TargetHUD.mc.timer.renderPartialTicks;
-        float hurtTime = data.entity().hurtTime == 0 ? 0.0F : (data.entity().hurtTime - partialTicks) * 0.3F;
+        float hurtProgress = data.entity().hurtTime == 0
+                ? 0.0F
+                : MathHelper.clamp_float((data.entity().hurtTime - partialTicks) / 10.0F, 0.0F, 1.0F);
 
         if (this.background.getValue() > 0) {
             int backgroundAlpha = (int) (this.background.getValue() / 100.0F * fadeAlpha);
@@ -86,10 +92,10 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
             );
         }
 
-        float targetHp = targetHealth;
+        float targetHp = animatedHealth;
         float playerHp = playerHealth;
         String health = this.floorToTwoPlaces(targetHp) + "HP";
-        String diff = this.diffText(playerHp, targetHp);
+        String diff = this.diffText(playerHp, targetHealth);
         FontRenderer nameFont = Fonts.interSemiBold.get(18.0F);
         FontRenderer infoFont = Fonts.interSemiBold.get(13.0F);
         net.minecraft.client.renderer.GlStateManager.pushMatrix();
@@ -101,17 +107,23 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
         infoFont.drawStringWithShadow(diff, x + 115.0F - infoFont.getStringWidth(diff), y + 17.0F, RenderUtil.mergeAlpha(Color.LIGHT_GRAY.getRGB(), fadeAlpha));
         net.minecraft.client.renderer.GlStateManager.popMatrix();
 
-        Color headColor = new Color(255, (int) (255 - Math.max(0.0F, hurtTime) * 80.0F), (int) (255 - Math.max(0.0F, hurtTime) * 80.0F), fadeAlpha);
+        float headHurtScale = 1.0F - 0.15F * this.easeOutQuad(hurtProgress);
+        int greenBlue = (int) (255.0F * (1.0F - 0.75F * hurtProgress));
+        Color headColor = new Color(255, MathHelper.clamp_int(greenBlue, 0, 255), MathHelper.clamp_int(greenBlue, 0, 255), fadeAlpha);
+        float baseHeadX = this.scaleX(x + 2.5F, centerX, scale);
+        float baseHeadY = this.scaleY(y + 2.5F, centerY, scale);
+        float baseHeadSize = this.scaleSize(32.0F, scale);
+        float headSize = baseHeadSize * headHurtScale;
+        float headX = baseHeadX + (baseHeadSize - headSize) / 2.0F;
+        float headY = baseHeadY + (baseHeadSize - headSize) / 2.0F;
+        float headRadius = this.scaleSize(5.0F, scale) * headHurtScale;
         RenderUtil.drawRoundedRectangle(
-                this.scaleX(x + 2.55F, centerX, scale),
-                this.scaleY(y + 2.55F, centerY, scale),
-                this.scaleX(x + 34.65F, centerX, scale),
-                this.scaleY(y + 34.65F, centerY, scale),
-                this.scaleSize(5.0F, scale),
-                playerHp >= targetHp ? new Color(0, 0, 0, 0).getRGB() : new Color(255, 0, 0, (int) (85.0F * progress)).getRGB());
-        float headX = this.scaleX(x + 2.5F, centerX, scale);
-        float headY = this.scaleY(y + 2.5F, centerY, scale);
-        float headSize = this.scaleSize(32.0F, scale);
+                headX,
+                headY,
+                headX + headSize,
+                headY + headSize,
+                headRadius,
+                playerHp >= targetHealth ? new Color(0, 0, 0, 0).getRGB() : new Color(255, 0, 0, (int) (85.0F * progress)).getRGB());
         if (AndroidUtil.isAndroid()) {
             RenderUtil.renderPlayerHead(data.entity(), headX, headY, headSize, headColor);
         } else {
@@ -120,7 +132,7 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
                     headX,
                     headY,
                     headSize,
-                    this.scaleSize(5.0F, scale),
+                    headRadius,
                     headColor
             );
         }
@@ -178,6 +190,25 @@ public class TargetHUDUnfairMode extends TargetHUDMode {
         float t = Math.clamp(progress, 0.0F, 1.0F) - 1.0F;
         float c = 1.70158F;
         return t * t * ((c + 1.0F) * t + c) + 1.0F;
+    }
+
+    private float easeOutQuad(float progress) {
+        float t = Math.clamp(progress, 0.0F, 1.0F);
+        return 1.0F - (1.0F - t) * (1.0F - t);
+    }
+
+    private float getAnimatedHealth(TargetHUD targetHUD, float fallbackHealth) {
+        boolean hasAnimationState = targetHUD.maxHealth > 0.0F || targetHUD.oldHealth != 0.0F || targetHUD.newHealth != 0.0F;
+        if (!this.animations.getValue() || !hasAnimationState) {
+            return fallbackHealth;
+        }
+        float elapsedTime = (float) Math.clamp(targetHUD.animTimer.getElapsedTime(), 0L, 150L);
+        return TargetHUD.finiteHealth(RenderUtil.lerpFloat(targetHUD.newHealth, targetHUD.oldHealth, elapsedTime / 150.0F));
+    }
+
+    @Override
+    public boolean shouldAnimateHealth() {
+        return this.animations.getValue();
     }
 
     private String diffText(float playerHealth, float targetHealth) {

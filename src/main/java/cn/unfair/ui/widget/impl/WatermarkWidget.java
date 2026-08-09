@@ -52,6 +52,7 @@ public class WatermarkWidget extends Widget {
     public void render(float partialTicks) {
         WaterMark module = this.getWaterMark();
         if (module == null) return;
+        this.updateBounds(module);
         module.renderWidget(this.renderX, this.renderY);
     }
 

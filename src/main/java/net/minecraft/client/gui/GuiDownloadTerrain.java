@@ -3,8 +3,10 @@ package net.minecraft.client.gui;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.network.play.client.C00PacketKeepAlive;
+import net.minecraft.util.ChatComponentText;
 import net.optifine.CustomLoadingScreen;
 import net.optifine.CustomLoadingScreens;
+import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
 
@@ -25,6 +27,21 @@ public class GuiDownloadTerrain extends GuiScreen
      */
     protected void keyTyped(char typedChar, int keyCode) throws IOException
     {
+        if (keyCode == Keyboard.KEY_ESCAPE)
+        {
+            if (this.mc.theWorld != null)
+            {
+                this.mc.theWorld.sendQuittingDisconnectingPacket();
+            }
+
+            if (this.netHandlerPlayClient != null && this.netHandlerPlayClient.getNetworkManager() != null)
+            {
+                this.netHandlerPlayClient.getNetworkManager().closeChannel(new ChatComponentText("Aborted"));
+            }
+
+            this.mc.loadWorld(null);
+            this.mc.displayGuiScreen(new GuiMainMenu());
+        }
     }
 
     /**

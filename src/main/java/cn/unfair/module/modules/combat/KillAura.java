@@ -995,6 +995,11 @@ public class KillAura extends Module {
         }
     }
 
+    @EventTarget
+    public void onLoadWorld(LoadWorldEvent event) {
+        this.setEnabled(false);
+    }
+
     private float[] getAdvancedRotations(float yaw, float pitch, float maxAngle, float smoothFactor) {
         EntityLivingBase entity = target.getEntity();
         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);

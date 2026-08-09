@@ -3,6 +3,7 @@ package cn.unfair.module.modules.render;
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.ColorUtil;
@@ -25,6 +26,7 @@ public class WaterMark extends Module {
     private static final int BACKGROUND_RGB = 9 << 16 | 11 << 8 | 15;
 
     public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
+    public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
     public final PercentProperty background = new PercentProperty("background", 0);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
     public final BooleanProperty showVersion = new BooleanProperty("version", true);
@@ -68,33 +70,39 @@ public class WaterMark extends Module {
         }
 
         this.updateLayoutCache();
+        float scaleValue = this.scale.getValue();
+        float posX = x / scaleValue;
+        float posY = y / scaleValue;
         long time = System.currentTimeMillis();
         int accent = HUD.getColor(time).getRGB();
         int backgroundAlpha = (int) (this.background.getValue().floatValue() / 100.0F * 220.0F);
 
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(scaleValue, scaleValue, 0.0F);
         if (backgroundAlpha > 0) {
             RenderUtil.enableRenderState();
-            this.drawBackground(x, y, x + this.cachedWidth, y + this.cachedHeight, backgroundAlpha << 24 | BACKGROUND_RGB);
+            this.drawBackground(posX, posY, posX + this.cachedWidth, posY + this.cachedHeight, backgroundAlpha << 24 | BACKGROUND_RGB);
             RenderUtil.disableRenderState();
         }
 
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        this.drawString("Unfair", x + 4.0F, y + 3.0F, accent, this.shadow.getValue());
+        this.drawString("Unfair", posX + 4.0F, posY + 3.0F, accent, this.shadow.getValue());
 
-        float cursor = x + 4.0F + this.getStringWidth("Unfair");
+        float cursor = posX + 4.0F + this.getStringWidth("Unfair");
         if (this.showVersion.getValue()) {
-            this.drawString(" " + Unfair.version, cursor, y + 3.0F, VERSION_COLOR, this.shadow.getValue());
+            this.drawString(" " + Unfair.version, cursor, posY + 3.0F, VERSION_COLOR, this.shadow.getValue());
             cursor += this.getStringWidth(" " + Unfair.version);
         }
 
         for (String segment : this.cachedSegments) {
-            this.drawSeparator(cursor + 3.0F, y + 3.0F, accent);
+            this.drawSeparator(cursor + 3.0F, posY + 3.0F, accent);
             cursor += 7.0F;
-            this.drawString(segment, cursor, y + 3.0F, INFO_COLOR, this.shadow.getValue());
+            this.drawString(segment, cursor, posY + 3.0F, INFO_COLOR, this.shadow.getValue());
             cursor += this.getStringWidth(segment);
         }
         GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
     }
 
     public void renderWidgetMask(float x, float y, int color) {
@@ -102,9 +110,15 @@ public class WaterMark extends Module {
             return;
         }
         this.updateLayoutCache();
+        float scaleValue = this.scale.getValue();
+        float posX = x / scaleValue;
+        float posY = y / scaleValue;
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(scaleValue, scaleValue, 0.0F);
         RenderUtil.enableRenderState();
-        this.drawBackgroundMask(x, y, x + this.cachedWidth, y + this.cachedHeight, color);
+        this.drawBackgroundMask(posX, posY, posX + this.cachedWidth, posY + this.cachedHeight, color);
         RenderUtil.disableRenderState();
+        GlStateManager.popMatrix();
     }
 
     private void drawBackground(float left, float top, float right, float bottom, int color) {
@@ -123,7 +137,8 @@ public class WaterMark extends Module {
 
     public float[] getWidgetSize() {
         this.updateLayoutCache();
-        return new float[]{this.cachedWidth, this.cachedHeight};
+        float scaleValue = this.scale.getValue();
+        return new float[]{this.cachedWidth * scaleValue, this.cachedHeight * scaleValue};
     }
 
     private void updateLayoutCache() {
