@@ -311,9 +311,12 @@ public class RenderItem implements IResourceManagerReloadListener {
                 Item item = stack.getItem();
                 ModelResourceLocation modelresourcelocation = null;
 
+                ItemStack activeStack = entityplayer.getItemInUse();
+                boolean usingThisStack = activeStack == stack;
+
                 if (item == Items.fishing_rod && entityplayer.fishEntity != null) {
                     modelresourcelocation = new ModelResourceLocation("fishing_rod_cast", "inventory");
-                } else if (item == Items.bow && entityplayer.getItemInUse() != null) {
+                } else if (item == Items.bow && usingThisStack) {
                     int i = stack.getMaxItemUseDuration() - entityplayer.getItemInUseCount();
 
                     if (i >= 18) {
@@ -323,9 +326,9 @@ public class RenderItem implements IResourceManagerReloadListener {
                     } else if (i > 0) {
                         modelresourcelocation = new ModelResourceLocation("bow_pulling_0", "inventory");
                     }
-                } else if (entityplayer.getItemInUse() != null && "shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
+                } else if (usingThisStack && "shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
                     modelresourcelocation = new ModelResourceLocation("shield_blocking", "inventory");
-                } else if (entityplayer.getItemInUse() != null && "crossbow".equals(ViaBackwardsItemModels.getModelName(stack))) {
+                } else if (usingThisStack && "crossbow".equals(ViaBackwardsItemModels.getModelName(stack))) {
                     int useTicks = stack.getMaxItemUseDuration() - entityplayer.getItemInUseCount();
                     if (useTicks >= 18) {
                         modelresourcelocation = new ModelResourceLocation("crossbow_pulling_2", "inventory");
@@ -369,14 +372,15 @@ public class RenderItem implements IResourceManagerReloadListener {
             EntityPlayer p = (EntityPlayer) lastEntityToRenderFor;
             ItemStack heldStack = p.getHeldItem();
             if (heldStack != null) {
+                boolean usingHeldStack = p.getItemInUseCount() > 0 && p.getItemInUse() == heldStack;
                 EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
                 if (lastEntityToRenderFor == player) {
                     if ((heldStack.getItem() instanceof ItemSword
                             || "shield".equals(ViaBackwardsItemModels.getModelName(heldStack)))
-                            && (p.getItemInUseCount() > 0 || player.isBlocking())) {
+                            && usingHeldStack) {
                         doThirdPersonBlockTransformations();
                     }
-                } else if (p.getItemInUseCount() > 0
+                } else if (usingHeldStack
                         && (heldStack.getItemUseAction() == EnumAction.BLOCK
                         || "shield".equals(ViaBackwardsItemModels.getModelName(heldStack)))) {
                     doThirdPersonBlockTransformations();

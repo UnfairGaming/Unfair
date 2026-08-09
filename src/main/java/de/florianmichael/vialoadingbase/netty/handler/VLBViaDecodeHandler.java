@@ -20,9 +20,10 @@ package de.florianmichael.vialoadingbase.netty.handler;
 
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.minecraft.item.Item;
 import com.viaversion.viaversion.api.protocol.packet.State;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import com.viaversion.viaversion.api.minecraft.item.Item;
+import com.viaversion.viaversion.api.type.Type;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.api.type.types.VarIntType;
 import com.viaversion.viaversion.exception.CancelCodecException;
@@ -90,25 +91,51 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
         ByteBuf duplicate = input.duplicate();
         try {
             int packetId = Types.VAR_INT.readPrimitive(duplicate);
-            if (packetId == ClientboundPackets1_9.CONTAINER_SET_SLOT.getId()) {
+            ProtocolVersion version = ViaLoadingBase.getInstance().getTargetVersion();
+            if (packetId == getSetSlotPacketId(version)) {
                 int windowIndex = duplicate.readerIndex();
-                byte window = duplicate.readByte();
+                int window = version.newerThanOrEqualTo(ProtocolVersion.v1_21_2)
+                        ? Types.VAR_INT.readPrimitive(duplicate)
+                        : duplicate.readByte();
+                int stateId = 0;
+                if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+                    stateId = Types.VAR_INT.readPrimitive(duplicate);
+                }
                 short slot = duplicate.readShort();
                 if (window == 0 && slot == 45) {
+                    if (version.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                        Item item = getItemType(version).read(duplicate);
+                        input.setByte(windowIndex, 127);
+                        ByteBuf synthetic = ctx.alloc().buffer();
+                        Types.VAR_INT.writePrimitive(synthetic, getSetSlotPacketId(version));
+                        writeContainerWindowId(synthetic, version, ModernOffhandStorage.CLIENT_WINDOW_ID);
+                        Types.VAR_INT.writePrimitive(synthetic, stateId);
+                        synthetic.writeShort(45);
+                        getItemType(version).write(synthetic, item);
+                        return synthetic;
+                    }
                     input.setByte(windowIndex, ModernOffhandStorage.CLIENT_WINDOW_ID);
                 }
                 return null;
             }
 
-            if (packetId == ClientboundPackets1_9.CONTAINER_SET_CONTENT.getId()) {
-                short window = Types.UNSIGNED_BYTE.read(duplicate);
-                Item[] items = Types.ITEM1_8_SHORT_ARRAY.read(duplicate);
+            if (packetId == getSetContentPacketId(version)) {
+                int window = readContainerWindowId(duplicate, version);
+                int stateId = 0;
+                if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+                    stateId = Types.VAR_INT.readPrimitive(duplicate);
+                }
+                Type<Item[]> itemArrayType = getItemArrayType(version);
+                Item[] items = itemArrayType.read(duplicate);
                 if (window == 0 && items.length == 46) {
                     ByteBuf synthetic = ctx.alloc().buffer();
-                    Types.VAR_INT.writePrimitive(synthetic, ClientboundPackets1_9.CONTAINER_SET_SLOT.getId());
-                    synthetic.writeByte(ModernOffhandStorage.CLIENT_WINDOW_ID);
+                    Types.VAR_INT.writePrimitive(synthetic, getSetSlotPacketId(version));
+                    writeContainerWindowId(synthetic, version, ModernOffhandStorage.CLIENT_WINDOW_ID);
+                    if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+                        Types.VAR_INT.writePrimitive(synthetic, stateId);
+                    }
                     synthetic.writeShort(45);
-                    Types.ITEM1_8.write(synthetic, items[45]);
+                    getItemType(version).write(synthetic, items[45]);
                     return synthetic;
                 }
             }
@@ -116,6 +143,99 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
             return null;
         }
         return null;
+    }
+
+    private static int getSetContentPacketId(ProtocolVersion version) {
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_21_4)) {
+            return 18;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_18_2)) {
+            return 19;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+            return 20;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_16)) {
+            return 20;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_15)) {
+            return 21;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_14)) {
+            return 20;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+            return 21;
+        }
+        return ClientboundPackets1_9.CONTAINER_SET_CONTENT.getId();
+    }
+
+    private static int getSetSlotPacketId(ProtocolVersion version) {
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_21_4)) {
+            return 20;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_18_2)) {
+            return 21;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
+            return 22;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_16)) {
+            return 22;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_15)) {
+            return 23;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_14)) {
+            return 22;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+            return 23;
+        }
+        return ClientboundPackets1_9.CONTAINER_SET_SLOT.getId();
+    }
+
+    private static int readContainerWindowId(ByteBuf input, ProtocolVersion version) {
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+            return Types.VAR_INT.readPrimitive(input);
+        }
+        return Types.UNSIGNED_BYTE.read(input);
+    }
+
+    private static void writeContainerWindowId(ByteBuf output, ProtocolVersion version, int windowId) {
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+            Types.VAR_INT.writePrimitive(output, windowId);
+        } else {
+            output.writeByte(windowId);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Type<Item[]> getItemArrayType(ProtocolVersion version) {
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+            return (Type<Item[]>) Types.ITEM1_20_2_ARRAY;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_13_2)) {
+            return (Type<Item[]>) Types.ITEM1_13_2_ARRAY;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+            return (Type<Item[]>) Types.ITEM1_13_ARRAY;
+        }
+        return (Type<Item[]>) Types.ITEM1_8_SHORT_ARRAY;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Type<Item> getItemType(ProtocolVersion version) {
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
+            return (Type<Item>) Types.ITEM1_20_2;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_13_2)) {
+            return (Type<Item>) Types.ITEM1_13_2;
+        }
+        if (version.newerThanOrEqualTo(ProtocolVersion.v1_13)) {
+            return (Type<Item>) Types.ITEM1_13;
+        }
+        return (Type<Item>) Types.ITEM1_8;
     }
 
     @Override

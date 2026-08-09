@@ -1443,10 +1443,10 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
             if (flag) {
                 ItemStack itemstack1 = this.thePlayer.inventory.getCurrentItem();
 
-                if (itemstack1 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, itemstack1)) {
+                if (itemstack1 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, itemstack1) && !ModernOffhandInteraction.wasClientOffhandAction()) {
                     this.entityRenderer.itemRenderer.resetEquippedProgress2();
                 } else if (itemstack1 == null && ModernOffhandInteraction.hasOffhand(this.thePlayer) && ModernOffhandInteraction.sendUseItem(this.thePlayer)) {
-                    this.entityRenderer.itemRenderer.resetEquippedProgress2();
+                    // Offhand-only use should not reset the main-hand equip progress.
                 }
             }
         }

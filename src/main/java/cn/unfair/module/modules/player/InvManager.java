@@ -9,9 +9,12 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.ItemUtil;
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
 
 public class InvManager extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -38,21 +42,23 @@ public class InvManager extends Module {
     public final BooleanProperty sword = new BooleanProperty("Sword", true);
     public final IntProperty swordSlot = new IntProperty("Sword Slot", 1, 1, 10, this.sword::getValue);
     public final BooleanProperty pickaxe = new BooleanProperty("Pickaxe", true);
-    public final IntProperty pickaxeSlot = new IntProperty("Pickaxe Slot", 8, 1, 10, this.pickaxe::getValue);
-    public final BooleanProperty shovel = new BooleanProperty("Shovel", true);
+    public final IntProperty pickaxeSlot = new IntProperty("Pickaxe Slot", 9, 1, 10, this.pickaxe::getValue);
+    public final BooleanProperty shovel = new BooleanProperty("Shovel", false);
     public final IntProperty shovelSlot = new IntProperty("Shovel Slot", 7, 1, 10, this.shovel::getValue);
     public final BooleanProperty axe = new BooleanProperty("Axe", true);
-    public final IntProperty axeSlot = new IntProperty("Axe Slot", 9, 1, 10, this.axe::getValue);
+    public final IntProperty axeSlot = new IntProperty("Axe Slot", 8, 1, 10, this.axe::getValue);
     public final BooleanProperty blocksEnabled = new BooleanProperty("Blocks Enabled", true);
     public final IntProperty blocksSlot = new IntProperty("Blocks Slot", 2, 1, 10, this.blocksEnabled::getValue);
     public final IntProperty blocks = new IntProperty("Blocks", 128, 64, 2304, this.blocksEnabled::getValue);
     public final BooleanProperty throwsEnabled = new BooleanProperty("Throws", true);
-    public final IntProperty throwsSlot = new IntProperty("Throws Slot", 4, 1, 10, this.throwsEnabled::getValue);
+    public final IntProperty throwsSlot = new IntProperty("Throws Slot", 3, 1, 10, this.throwsEnabled::getValue);
     public final IntProperty throwsAmount = new IntProperty("Throws Amount", 64, 16, 320, this.throwsEnabled::getValue);
+    public final BooleanProperty pearl = new BooleanProperty("Pearl", false);
+    public final IntProperty pearlSlot = new IntProperty("Pearl Slot", 6, 1, 10, this.pearl::getValue);
     public final BooleanProperty gapple = new BooleanProperty("Gapple", true);
-    public final IntProperty gappleSlot = new IntProperty("Gapple Slot", 3, 1, 10, this.gapple::getValue);
+    public final IntProperty gappleSlot = new IntProperty("Gapple Slot", 5, 1, 10, this.gapple::getValue);
     public final BooleanProperty fishingRod = new BooleanProperty("Fishing Rod", true);
-    public final IntProperty fishingRodSlot = new IntProperty("Fishing Rod Slot", 6, 1, 10, this.fishingRod::getValue);
+    public final IntProperty fishingRodSlot = new IntProperty("Fishing Rod Slot", 4, 1, 10, this.fishingRod::getValue);
     public final BooleanProperty bow = new BooleanProperty("Bow", false);
     public final IntProperty bowSlot = new IntProperty("Bow Slot", 6, 1, 10, this.bow::getValue);
     public final BooleanProperty waterBucket = new BooleanProperty("Water Bucket", false);
@@ -102,6 +108,11 @@ public class InvManager extends Module {
         return stack.getItem() instanceof ItemAppleGold;
     }
 
+    private boolean isPearl(ItemStack stack) {
+        if (stack == null) return false;
+        return stack.getItem() instanceof ItemEnderPearl;
+    }
+
     private boolean isFishingRod(ItemStack stack) {
         if (stack == null) return false;
         return stack.getItem() instanceof ItemFishingRod;
@@ -117,13 +128,50 @@ public class InvManager extends Module {
         return stack.getItem() == Items.water_bucket;
     }
 
+    private boolean isTotem(ItemStack stack) {
+        if (stack == null) return false;
+        return "totem_of_undying".equals(ViaBackwardsItemModels.getModelName(stack));
+    }
+
+    private double getDurabilityScore(ItemStack stack) {
+        if (stack == null || !stack.isItemStackDamageable()) {
+            return 0.0D;
+        }
+        return (double) (stack.getMaxDamage() - stack.getItemDamage()) / Math.max(1, stack.getMaxDamage());
+    }
+
+    private double getBowScore(ItemStack stack) {
+        if (!this.isBow(stack)) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return EnchantmentHelper.getEnchantmentLevel(Enchantment.power.effectId, stack) * 10.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.punch.effectId, stack) * 4.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, stack) * 3.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.infinity.effectId, stack) * 2.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
+                + this.getDurabilityScore(stack);
+    }
+
+    private double getFishingRodScore(ItemStack stack) {
+        if (!this.isFishingRod(stack)) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return EnchantmentHelper.getEnchantmentLevel(Enchantment.knockback.effectId, stack) * 10.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.lure.effectId, stack) * 4.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.luckOfTheSea.effectId, stack) * 3.0D
+                + EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
+                + this.getDurabilityScore(stack);
+    }
+
     private boolean shouldKeepStack(ItemStack stack) {
         if (stack == null) return false;
         Item item = stack.getItem();
         if (item == Items.boat
                 || item == Items.arrow
-                || item == Items.water_bucket
-                || item instanceof ItemBow) {
+                || item instanceof ItemEnderPearl) {
+            return true;
+        }
+        if (this.isTotem(stack)) {
             return true;
         }
         if (item instanceof ItemBlock) {
@@ -152,6 +200,33 @@ public class InvManager extends Module {
             }
         }
         return -1;
+    }
+
+    private int findBestMatchingSlot(int preferredSlot, Predicate<ItemStack> matcher, ToDoubleFunction<ItemStack> scorer) {
+        int bestSlot = -1;
+        double bestScore = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < 36; i++) {
+            int currentSlot = ((preferredSlot + i) % 36 + 36) % 36;
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(currentSlot);
+            if (!matcher.test(stack)) {
+                continue;
+            }
+
+            double score = scorer.applyAsDouble(stack);
+            if (score > bestScore) {
+                bestSlot = currentSlot;
+                bestScore = score;
+            }
+        }
+        return bestSlot;
+    }
+
+    private int hotbarSlotOrMissing(int slot) {
+        return slot >= 0 && slot <= 8 ? slot : -1;
+    }
+
+    private int inventorySlotOrMissing(int slot) {
+        return slot >= 9 && slot < 36 ? slot : -1;
     }
 
     private int getTotalThrowsCount() {
@@ -228,6 +303,7 @@ public class InvManager extends Module {
                 || this.organizeSlot(this.axe.getValue(), plan.axeTarget, plan.equippedAxeSlot, plan.inventoryAxeSlot, stack -> stack != null && stack.getItem() instanceof ItemAxe, usedHotbarSlots)
                 || this.organizeSlot(this.blocksEnabled.getValue(), plan.blocksTarget, plan.inventoryBlocksSlot, -1, ItemUtil::isBlock, usedHotbarSlots)
                 || this.organizeSlot(this.throwsEnabled.getValue(), plan.throwsTarget, plan.equippedThrowsSlot, plan.inventoryThrowsSlot, this::isThrowable, usedHotbarSlots)
+                || this.organizeSlot(this.pearl.getValue(), plan.pearlTarget, plan.equippedPearlSlot, plan.inventoryPearlSlot, this::isPearl, usedHotbarSlots)
                 || this.organizeSlot(this.gapple.getValue(), plan.gappleTarget, plan.equippedGappleSlot, plan.inventoryGappleSlot, this::isGapple, usedHotbarSlots)
                 || this.organizeSlot(this.fishingRod.getValue(), plan.fishingRodTarget, plan.equippedFishingRodSlot, plan.inventoryFishingRodSlot, this::isFishingRod, usedHotbarSlots)
                 || this.organizeSlot(this.bow.getValue(), plan.bowTarget, plan.equippedBowSlot, plan.inventoryBowSlot, this::isBow, usedHotbarSlots)
@@ -272,6 +348,14 @@ public class InvManager extends Module {
         }
     }
 
+    private void addUniqueProtectedSlot(LinkedHashSet<Integer> protectedSlots, Predicate<ItemStack> matcher,
+                                        int equippedSlot, int inventorySlot) {
+        if (this.isOffhandMatching(matcher)) {
+            return;
+        }
+        this.addProtectedSlot(protectedSlots, equippedSlot != -1 ? equippedSlot : inventorySlot);
+    }
+
     private LinkedHashSet<Integer> buildProtectedSlots(InventoryPlan plan) {
         LinkedHashSet<Integer> protectedSlots = new LinkedHashSet<>();
         for (int slot : plan.equippedArmorSlots) this.addProtectedSlot(protectedSlots, slot);
@@ -299,22 +383,17 @@ public class InvManager extends Module {
             this.addProtectedSlot(protectedSlots, plan.equippedThrowsSlot);
             this.addProtectedSlot(protectedSlots, plan.inventoryThrowsSlot);
         }
+        if (this.pearl.getValue()) {
+            this.addProtectedSlot(protectedSlots, plan.equippedPearlSlot);
+            this.addProtectedSlot(protectedSlots, plan.inventoryPearlSlot);
+        }
         if (this.gapple.getValue()) {
             this.addProtectedSlot(protectedSlots, plan.equippedGappleSlot);
             this.addProtectedSlot(protectedSlots, plan.inventoryGappleSlot);
         }
-        if (this.fishingRod.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedFishingRodSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryFishingRodSlot);
-        }
-        if (this.bow.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedBowSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryBowSlot);
-        }
-        if (this.waterBucket.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedWaterBucketSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryWaterBucketSlot);
-        }
+        this.addUniqueProtectedSlot(protectedSlots, this::isFishingRod, plan.equippedFishingRodSlot, plan.inventoryFishingRodSlot);
+        this.addUniqueProtectedSlot(protectedSlots, this::isBow, plan.equippedBowSlot, plan.inventoryBowSlot);
+        this.addUniqueProtectedSlot(protectedSlots, this::isWaterBucket, plan.equippedWaterBucketSlot, plan.inventoryWaterBucketSlot);
         return protectedSlots;
     }
 
@@ -325,15 +404,11 @@ public class InvManager extends Module {
 
         boolean isBlock = ItemUtil.isBlock(stack);
         boolean isThrowable = this.isThrowable(stack);
+        boolean isPearl = this.isPearl(stack);
         boolean isGapple = this.isGapple(stack);
-        boolean isFishingRod = this.isFishingRod(stack);
-        boolean isBow = this.isBow(stack);
-        boolean isWaterBucket = this.isWaterBucket(stack);
         return !isThrowable
+                && !isPearl
                 && !isGapple
-                && !isFishingRod
-                && !isBow
-                && !isWaterBucket
                 && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()));
     }
 
@@ -400,20 +475,27 @@ public class InvManager extends Module {
         plan.blocksTarget = this.blocksSlot.getValue() - 1;
         plan.inventoryBlocksSlot = this.blocksEnabled.getValue() ? ItemUtil.findInventorySlot(plan.blocksTarget) : -1;
         plan.throwsTarget = this.throwsSlot.getValue() - 1;
-        plan.equippedThrowsSlot = this.throwsEnabled.getValue() ? this.findMatchingSlot(plan.throwsTarget, true, this::isThrowable) : -1;
-        plan.inventoryThrowsSlot = this.throwsEnabled.getValue() ? this.findMatchingSlot(plan.throwsTarget, false, this::isThrowable) : -1;
+        int bestThrowsSlot = this.throwsEnabled.getValue() ? this.findBestMatchingSlot(plan.throwsTarget, this::isThrowable, stack -> stack.stackSize) : -1;
+        plan.equippedThrowsSlot = this.hotbarSlotOrMissing(bestThrowsSlot);
+        plan.inventoryThrowsSlot = this.inventorySlotOrMissing(bestThrowsSlot);
+        plan.pearlTarget = this.pearlSlot.getValue() - 1;
+        plan.equippedPearlSlot = this.pearl.getValue() ? this.findMatchingSlot(plan.pearlTarget, true, this::isPearl) : -1;
+        plan.inventoryPearlSlot = this.pearl.getValue() ? this.findMatchingSlot(plan.pearlTarget, false, this::isPearl) : -1;
         plan.gappleTarget = this.gappleSlot.getValue() - 1;
         plan.equippedGappleSlot = this.gapple.getValue() ? this.findMatchingSlot(plan.gappleTarget, true, this::isGapple) : -1;
         plan.inventoryGappleSlot = this.gapple.getValue() ? this.findMatchingSlot(plan.gappleTarget, false, this::isGapple) : -1;
         plan.fishingRodTarget = this.fishingRodSlot.getValue() - 1;
-        plan.equippedFishingRodSlot = this.fishingRod.getValue() ? this.findMatchingSlot(plan.fishingRodTarget, true, this::isFishingRod) : -1;
-        plan.inventoryFishingRodSlot = this.fishingRod.getValue() ? this.findMatchingSlot(plan.fishingRodTarget, false, this::isFishingRod) : -1;
+        int bestFishingRodSlot = this.findBestMatchingSlot(plan.fishingRodTarget, this::isFishingRod, this::getFishingRodScore);
+        plan.equippedFishingRodSlot = this.hotbarSlotOrMissing(bestFishingRodSlot);
+        plan.inventoryFishingRodSlot = this.inventorySlotOrMissing(bestFishingRodSlot);
         plan.bowTarget = this.bowSlot.getValue() - 1;
-        plan.equippedBowSlot = this.bow.getValue() ? this.findMatchingSlot(plan.bowTarget, true, this::isBow) : -1;
-        plan.inventoryBowSlot = this.bow.getValue() ? this.findMatchingSlot(plan.bowTarget, false, this::isBow) : -1;
+        int bestBowSlot = this.findBestMatchingSlot(plan.bowTarget, this::isBow, this::getBowScore);
+        plan.equippedBowSlot = this.hotbarSlotOrMissing(bestBowSlot);
+        plan.inventoryBowSlot = this.inventorySlotOrMissing(bestBowSlot);
         plan.waterBucketTarget = this.waterBucketSlot.getValue() - 1;
-        plan.equippedWaterBucketSlot = this.waterBucket.getValue() ? this.findMatchingSlot(plan.waterBucketTarget, true, this::isWaterBucket) : -1;
-        plan.inventoryWaterBucketSlot = this.waterBucket.getValue() ? this.findMatchingSlot(plan.waterBucketTarget, false, this::isWaterBucket) : -1;
+        int bestWaterBucketSlot = this.findBestMatchingSlot(plan.waterBucketTarget, this::isWaterBucket, stack -> 1.0D);
+        plan.equippedWaterBucketSlot = this.hotbarSlotOrMissing(bestWaterBucketSlot);
+        plan.inventoryWaterBucketSlot = this.inventorySlotOrMissing(bestWaterBucketSlot);
         return plan;
     }
 
@@ -520,6 +602,9 @@ public class InvManager extends Module {
         private int throwsTarget;
         private int equippedThrowsSlot;
         private int inventoryThrowsSlot;
+        private int pearlTarget;
+        private int equippedPearlSlot;
+        private int inventoryPearlSlot;
         private int gappleTarget;
         private int equippedGappleSlot;
         private int inventoryGappleSlot;

@@ -3,6 +3,7 @@ package net.minecraft.world;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.misc.AntiObbyTrap;
 import cn.unfair.module.modules.movement.Jesus;
+import cn.unfair.module.modules.render.Ambience;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -1254,6 +1255,11 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
      * Calculates the color for the skybox
      */
     public Vec3 getSkyColor(Entity entityIn, float partialTicks) {
+        Vec3 ambienceColor = Ambience.getWorldColorVec();
+        if (ambienceColor != null) {
+            return ambienceColor;
+        }
+
         float f = this.getCelestialAngle(partialTicks);
         float f1 = MathHelper.cos(f * (float) Math.PI * 2.0F) * 2.0F + 0.5F;
         f1 = MathHelper.clamp_float(f1, 0.0F, 1.0F);
@@ -1333,6 +1339,11 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
     }
 
     public Vec3 getCloudColour(float partialTicks) {
+        Vec3 ambienceColor = Ambience.getWorldColorVec();
+        if (ambienceColor != null) {
+            return ambienceColor;
+        }
+
         float f = this.getCelestialAngle(partialTicks);
         float f1 = MathHelper.cos(f * (float) Math.PI * 2.0F) * 2.0F + 0.5F;
         f1 = MathHelper.clamp_float(f1, 0.0F, 1.0F);
@@ -1370,6 +1381,11 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
      * Returns vector(ish) with R/G/B for fog
      */
     public Vec3 getFogColor(float partialTicks) {
+        Vec3 ambienceColor = Ambience.getWorldColorVec();
+        if (ambienceColor != null) {
+            return ambienceColor;
+        }
+
         float f = this.getCelestialAngle(partialTicks);
         return this.provider.getFogColor(f, partialTicks);
     }

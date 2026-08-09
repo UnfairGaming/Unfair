@@ -22,6 +22,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketSwapItemWithOffHand;
 import net.minecraft.network.play.client.ServerBoundUseItem;
@@ -51,6 +52,19 @@ public final class ModernOffhandInteraction {
     public static boolean shouldUseItemAfterBlock(EntityPlayer player) {
         ItemStack stack = getOffhand(player);
         return stack != null && stack.getItemUseAction() != EnumAction.NONE;
+    }
+
+    public static boolean shouldMainHandUseTakePriority(ItemStack stack) {
+        if (stack == null || stack.getItem() instanceof ItemSword) {
+            return false;
+        }
+
+        if (stack.getItemUseAction() != EnumAction.NONE) {
+            return true;
+        }
+
+        String modelName = ViaBackwardsItemModels.getModelName(stack);
+        return "shield".equals(modelName) || "crossbow".equals(modelName) || "trident".equals(modelName);
     }
 
     public static void beginRightClick() {

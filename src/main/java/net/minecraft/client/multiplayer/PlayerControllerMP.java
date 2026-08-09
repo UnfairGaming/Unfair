@@ -541,7 +541,8 @@ public class PlayerControllerMP
     }
 
     private boolean tryOffhandUseOnBlock(EntityPlayerSP player, BlockPos hitPos, EnumFacing side, Vec3 hitVec) {
-        if (!ModernOffhandInteraction.hasOffhand(player)
+        if (ModernOffhandInteraction.shouldMainHandUseTakePriority(player.inventory.getCurrentItem())
+                || !ModernOffhandInteraction.hasOffhand(player)
                 || !ModernOffhandInteraction.sendUseItemOnBlock(player, hitPos, side, hitVec)) {
             return false;
         }
@@ -599,6 +600,10 @@ public class PlayerControllerMP
             else if (playerIn instanceof EntityPlayerSP
                     && "shield".equals(ViaBackwardsItemModels.getModelName(itemStackIn))) {
                 playerIn.setItemInUse(itemStackIn, 72000);
+                return true;
+            }
+            else if (playerIn instanceof EntityPlayerSP
+                    && ModernOffhandInteraction.shouldMainHandUseTakePriority(itemStackIn)) {
                 return true;
             }
             else if (playerIn instanceof EntityPlayerSP && ModernOffhandInteraction.hasOffhand(playerIn) && ModernOffhandInteraction.sendUseItem((EntityPlayerSP) playerIn))
@@ -672,7 +677,10 @@ public class PlayerControllerMP
         boolean consumed = this.currentGameType != WorldSettings.GameType.SPECTATOR && playerIn.interactWith(targetEntity);
         Vec3 hit = this.pendingOffhandEntityHit;
         this.pendingOffhandEntityHit = null;
-        if (!consumed && hit != null && ModernOffhandInteraction.hasOffhand(playerIn)) {
+        if (!consumed
+                && hit != null
+                && !ModernOffhandInteraction.shouldMainHandUseTakePriority(playerIn.inventory.getCurrentItem())
+                && ModernOffhandInteraction.hasOffhand(playerIn)) {
             ModernOffhandInteraction.sendInteractAt(playerIn, targetEntity, hit);
             ModernOffhandInteraction.sendInteract(playerIn, targetEntity);
         }
@@ -695,7 +703,9 @@ public class PlayerControllerMP
         }
         this.netClientHandler.addToSendQueue(new C02PacketUseEntity(entityIn, vec3));
         boolean consumed = this.currentGameType != WorldSettings.GameType.SPECTATOR && entityIn.interactAt(player, vec3);
-        if (!consumed && ModernOffhandInteraction.hasOffhand(player)) {
+        if (!consumed
+                && !ModernOffhandInteraction.shouldMainHandUseTakePriority(player.inventory.getCurrentItem())
+                && ModernOffhandInteraction.hasOffhand(player)) {
             this.pendingOffhandEntityHit = vec3;
         }
         return consumed;

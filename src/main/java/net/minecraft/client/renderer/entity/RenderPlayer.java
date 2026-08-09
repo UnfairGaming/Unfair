@@ -92,7 +92,7 @@ public class RenderPlayer extends RendererLivingEntity<AbstractClientPlayer>
             {
                 modelplayer.heldItemRight = 1;
 
-                if (clientPlayer.getItemInUseCount() > 0)
+                if (clientPlayer.getItemInUseCount() > 0 && clientPlayer.getItemInUse() == itemstack)
                 {
                     EnumAction enumaction = itemstack.getItemUseAction();
 

@@ -321,6 +321,7 @@ public class ItemRenderer {
                 GlStateManager.scale(0.93F, 1.0F, 1.0F);
             }
             if (Animations.oldBowEnabled() && this.mc.thePlayer.getItemInUseCount() > 0
+                    && this.mc.thePlayer.getItemInUse() == stack
                     && stack.getItem() instanceof ItemBow) {
                 GlStateManager.translate(-0.01F, 0.05F, -0.06F);
             }
@@ -422,7 +423,15 @@ public class ItemRenderer {
                 } else if ("crossbow".equals(modernModel)) {
                     enumaction = EnumAction.BOW;
                 }
-                boolean useItem = abstractclientplayer.getItemInUseCount() > 0;
+                ItemStack activeStack = abstractclientplayer.getItemInUse();
+                ItemStack offhandStack = ModernOffhandInteraction.getOffhand(abstractclientplayer);
+                boolean useItem = abstractclientplayer.getItemInUseCount() > 0
+                        && activeStack != null
+                        && activeStack != offhandStack
+                        && (activeStack == renderedStack || ItemStack.areItemStacksEqual(activeStack, renderedStack));
+                boolean usingDifferentItem = abstractclientplayer.getItemInUseCount() > 0
+                        && activeStack != null
+                        && !useItem;
                 RenderItemEvent event = new RenderItemEvent(enumaction, useItem, f, partialTicks, f1, renderedStack);
                 EventManager.call(event);
                 enumaction = event.getEnumAction();
@@ -461,8 +470,10 @@ public class ItemRenderer {
                 else
                 {
                     if (!event.isCancelled()) {
-                        this.doItemUsedTransformations(f1);
-                        this.transformFirstPersonItem(f, f1);
+                        if (!usingDifferentItem) {
+                            this.doItemUsedTransformations(f1);
+                        }
+                        this.transformFirstPersonItem(f, usingDifferentItem ? 0.0F : f1);
                     }
                 }
 
