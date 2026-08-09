@@ -13,6 +13,7 @@ import cn.unfair.property.Property;
 import cn.unfair.property.PropertyManager;
 import cn.unfair.ui.widget.WidgetManager;
 import cn.unfair.ui.widget.impl.HudWidgets;
+import cn.unfair.util.rotationadvanced.AdvancedJitterHandler;
 import de.florianmichael.viamcp.ViaMCP;
 
 import java.lang.reflect.Field;
@@ -61,6 +62,7 @@ public class Unfair {
         EventManager.register(blinkManager);
         EventManager.register(delayManager);
         EventManager.register(lagManager);
+        EventManager.register(new AdvancedJitterHandler());
         EventManager.register(moduleManager);
         EventManager.register(commandManager);
         commandManager.commands.add(new BindCommand());
