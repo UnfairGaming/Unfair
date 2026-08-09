@@ -92,9 +92,26 @@ public class Scaffold extends Module {
     private EnumFacing targetFacing = null;
     private boolean easingOut = false;
     private long nextClickDelay = 0L;
+    /**
+     * When true, Scaffold suspends placing/rotating so a higher-priority action (e.g. AutoMLG
+     * water clutch) can take over the rotation. Set via {@link #setPaused(boolean)}.
+     */
+    private boolean paused = false;
 
     public Scaffold() {
         super("Scaffold", false);
+    }
+
+    /**
+     * Suspends or resumes Scaffold. While paused it behaves as if disabled for placing/rotation
+     * without changing the module's on/off state.
+     */
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
+    public boolean isPaused() {
+        return this.paused;
     }
 
     private boolean isInventoryBlocked() {
@@ -189,6 +206,9 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
+        if (this.paused) {
+            return;
+        }
         if (this.isEnabled() && this.isInventoryBlocked()) {
             this.resetRuntimeState(true);
             return;
@@ -475,6 +495,9 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
+        if (this.paused) {
+            return;
+        }
         if ((this.isEnabled() || this.easingOut) && event.getType() == EventType.PRE && this.isInventoryBlocked()) {
             this.resetRuntimeState(true);
             return;

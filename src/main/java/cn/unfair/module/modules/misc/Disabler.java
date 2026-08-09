@@ -11,20 +11,38 @@ import cn.unfair.util.PacketUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
+import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C0DPacketCloseWindow;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.network.play.client.C16PacketClientStatus;
+import net.minecraft.util.MathHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Disabler extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Prediction"});
     public final BooleanProperty inventory = new BooleanProperty("Inventory", true, () -> mode.getValue() == 0);
+    public final BooleanProperty logging = new BooleanProperty("Logging", false);
+    public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("GrimDuplicateRotPlace", false);
+    public final BooleanProperty acaAimStep = new BooleanProperty("ACAAimStep", false);
+    public final BooleanProperty acaPerfectRotation = new BooleanProperty("ACAPerfectRotation", false);
 
     private final List<Packet<?>> inventoryPackets = new ArrayList<>();
+
+    private final Random random = new Random();
+    private static final double[] PERFECT_PATTERNS = new double[]{0.1, 0.25};
+    private static final double EPSILON = 1.0E-10;
+    private float playerYaw;
+    private float deltaYaw;
+    private float lastPlacedDeltaYaw;
+    private boolean rotated = false;
+    private float lastYaw = 0.0F;
+    private float lastPitch = 0.0F;
 
     public Disabler() {
         super("Disabler", false);
@@ -57,6 +75,12 @@ public class Disabler extends Module {
 
     private void resetStates() {
         inventoryPackets.clear();
+        this.playerYaw = 0.0F;
+        this.deltaYaw = 0.0F;
+        this.lastPlacedDeltaYaw = 0.0F;
+        this.rotated = false;
+        this.lastYaw = 0.0F;
+        this.lastPitch = 0.0F;
     }
 
     private boolean checkCompass() {
@@ -78,6 +102,153 @@ public class Disabler extends Module {
                     handlePredictionInventory(event);
                 }
             }
+        }
+        this.handleAntiCheatRotations(event);
+    }
+
+    private void log(String message) {
+        if (this.logging.getValue()) {
+            ChatUtil.sendFormatted(message);
+        }
+    }
+
+    private float normalizeYaw(float yaw) {
+        while (yaw > 180.0F) {
+            yaw -= 360.0F;
+        }
+        while (yaw < -180.0F) {
+            yaw += 360.0F;
+        }
+        return yaw;
+    }
+
+    private boolean shouldModifyRotation(float currentYaw, float currentPitch) {
+        if (this.lastYaw == 0.0F && this.lastPitch == 0.0F) {
+            return false;
+        }
+        double yawDelta = Math.abs(this.normalizeYaw(currentYaw - this.lastYaw));
+        double pitchDelta = Math.abs(currentPitch - this.lastPitch);
+        boolean isStepYaw = yawDelta < 1.0E-5 && pitchDelta > 1.0;
+        boolean isStepPitch = pitchDelta < 1.0E-5 && yawDelta > 1.0;
+        return isStepYaw || isStepPitch;
+    }
+
+    private float[] getModifiedRotation(float yaw, float pitch) {
+        double yawDelta = Math.abs(this.normalizeYaw(yaw - this.lastYaw));
+        double pitchDelta = Math.abs(pitch - this.lastPitch);
+        float newYaw = yaw;
+        float newPitch = pitch;
+        if (yawDelta < 1.0E-5 && pitchDelta > 1.0) {
+            newYaw = this.lastYaw + (float) (this.random.nextGaussian() * 0.001);
+        }
+        if (pitchDelta < 1.0E-5 && yawDelta > 1.0) {
+            newPitch = this.lastPitch + (float) (this.random.nextGaussian() * 0.001);
+        }
+        return new float[]{newYaw, newPitch};
+    }
+
+    private float[] getAntiPerfectRotation(float yaw, float pitch) {
+        if (this.lastYaw == 0.0F && this.lastPitch == 0.0F) {
+            return new float[]{yaw, pitch};
+        }
+        double yawDelta = Math.abs(this.normalizeYaw(yaw - this.lastYaw));
+        double pitchDelta = Math.abs(pitch - this.lastPitch);
+        float newYaw = yaw;
+        float newPitch = pitch;
+        if (!this.isNoRotation(yawDelta) && this.isPerfectPattern(yawDelta)) {
+            newYaw = yaw + (float) (this.random.nextGaussian() * 0.005);
+        }
+        if (!this.isNoRotation(pitchDelta) && this.isPerfectPattern(pitchDelta)) {
+            newPitch = pitch + (float) (this.random.nextGaussian() * 0.005);
+        }
+        return new float[]{newYaw, newPitch};
+    }
+
+    private boolean isNoRotation(double rotation) {
+        return Math.abs(rotation) <= EPSILON || this.isIntegerMultiple(360.0, rotation);
+    }
+
+    private boolean isPerfectPattern(double rotation) {
+        if (Double.isInfinite(rotation) || Double.isNaN(rotation)) {
+            return false;
+        }
+        for (double pattern : PERFECT_PATTERNS) {
+            if (this.isIntegerMultiple(pattern, rotation)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isIntegerMultiple(double reference, double value) {
+        if (reference == 0.0) {
+            return Math.abs(value) <= EPSILON;
+        }
+        double multiple = value / reference;
+        return Math.abs(multiple - Math.round(multiple)) <= EPSILON;
+    }
+
+    private void handleAntiCheatRotations(PacketEvent event) {
+        if (event.getType() != EventType.SEND || event.isCancelled() || mc.thePlayer == null) {
+            return;
+        }
+
+        // GrimDuplicateRotPlace: break Grim's "duplicate rotation on place" check by offsetting yaw.
+        if (this.grimDuplicateRotPlace.getValue()) {
+            if (event.getPacket() instanceof C03PacketPlayer packet && packet.getRotating()) {
+                float yaw = packet.getYaw();
+                if (yaw < 360.0F && yaw > -360.0F) {
+                    packet.setYaw(yaw + 720.0F);
+                }
+                float lastPlayerYaw = this.playerYaw;
+                this.playerYaw = packet.getYaw();
+                this.deltaYaw = Math.abs(this.playerYaw - lastPlayerYaw);
+                this.rotated = true;
+                if (this.deltaYaw > 2.0F) {
+                    float xDiff = Math.abs(this.deltaYaw - this.lastPlacedDeltaYaw);
+                    if (xDiff < 1.0E-4) {
+                        this.log("Disabling DuplicateRotPlace!");
+                        packet.setYaw(packet.getYaw() + 0.002F);
+                    }
+                }
+            } else if (event.getPacket() instanceof C08PacketPlayerBlockPlacement && this.rotated) {
+                this.lastPlacedDeltaYaw = this.deltaYaw;
+                this.rotated = false;
+            }
+        }
+
+        // ACAAimStep / ACAPerfectRotation: jitter step-like / perfectly-patterned rotations.
+        if ((this.acaAimStep.getValue() || this.acaPerfectRotation.getValue())
+                && event.getPacket() instanceof C03PacketPlayer movePacket
+                && movePacket.getRotating()) {
+            float currentYaw = movePacket.getYaw();
+            float currentPitch = movePacket.getPitch();
+            boolean modified = false;
+
+            if (this.acaAimStep.getValue() && this.shouldModifyRotation(currentYaw, currentPitch)) {
+                float[] modifiedRotation = this.getModifiedRotation(currentYaw, currentPitch);
+                currentYaw = modifiedRotation[0];
+                currentPitch = modifiedRotation[1];
+                modified = true;
+            }
+
+            if (this.acaPerfectRotation.getValue()) {
+                float[] antiPerfectRotation = this.getAntiPerfectRotation(currentYaw, currentPitch);
+                if (antiPerfectRotation[0] != currentYaw || antiPerfectRotation[1] != currentPitch) {
+                    currentYaw = antiPerfectRotation[0];
+                    currentPitch = antiPerfectRotation[1];
+                    modified = true;
+                    this.log("PerfectRotation: Modified rotation");
+                }
+            }
+
+            if (modified) {
+                movePacket.setYaw(currentYaw);
+                movePacket.setPitch(MathHelper.clamp_float(currentPitch, -90.0F, 90.0F));
+            }
+
+            this.lastYaw = movePacket.getYaw();
+            this.lastPitch = movePacket.getPitch();
         }
     }
 

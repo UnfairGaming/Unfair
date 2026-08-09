@@ -71,4 +71,18 @@ public class UpdateEvent implements Event {
             this.rotated = true;
         }
     }
+
+    /**
+     * Overwrites the already-decided rotation (yaw, pitch and the previous/render yaw) in place,
+     * leaving the winning priority untouched. Used by global rotation smoothing so that per-module
+     * behaviour keyed on {@link #isRotating()} / {@code RotationState.getPriority()} keeps working.
+     * Only takes effect on a PRE event that a module already rotated this tick.
+     */
+    public void overwriteRotation(float yaw, float pitch) {
+        if (this.type == EventType.PRE && this.rotated) {
+            this.newYaw = yaw;
+            this.newPitch = pitch;
+            this.prevYaw = yaw;
+        }
+    }
 }
