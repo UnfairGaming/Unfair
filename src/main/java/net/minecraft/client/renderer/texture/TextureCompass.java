@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer.texture;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.src.Config;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -88,7 +89,7 @@ public class TextureCompass extends TextureAtlasSprite
                 ;
             }
 
-            if (i != this.frameCounter)
+            if (Config.isAnimatedTextures() && Config.isAnimatedTerrain() && i != this.frameCounter)
             {
                 this.frameCounter = i;
                 TextureUtil.uploadTextureMipmap((int[][])this.framesTextureData.get(this.frameCounter), this.width, this.height, this.originX, this.originY, false, false);
