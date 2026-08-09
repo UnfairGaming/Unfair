@@ -125,9 +125,6 @@ public class GrimReduceVelocity extends SubModule {
                         boolean grounded = mc.thePlayer.onGround;
                         predictSprinting = mc.thePlayer.isSprinting();
                         jumpResetTicks = grounded ? 3 : 0;
-                        // NOTE: unlike Prediction, we never cancel/delay the velocity packet.
-                        // Grim expects the received knockback to be applied; we only lean on the
-                        // sprint-reset attack for reduction.
                         predictTick = 0;
                     }
                 }
