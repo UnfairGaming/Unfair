@@ -39,6 +39,7 @@ public class WaterMark extends Module {
     private String cachedVersion = "";
     private long cachedInfoTime;
     private String[] cachedSegments = new String[0];
+    private float cachedScale = -1.0F;
     private float cachedWidth;
     private float cachedHeight;
 
@@ -71,38 +72,36 @@ public class WaterMark extends Module {
 
         this.updateLayoutCache();
         float scaleValue = this.scale.getValue();
-        float posX = x / scaleValue;
-        float posY = y / scaleValue;
         long time = System.currentTimeMillis();
         int accent = HUD.getColor(time).getRGB();
         int backgroundAlpha = (int) (this.background.getValue().floatValue() / 100.0F * 220.0F);
+        float paddingX = 4.0F * scaleValue;
+        float paddingY = 3.0F * scaleValue;
+        float separatorGap = 7.0F * scaleValue;
 
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(scaleValue, scaleValue, 0.0F);
         if (backgroundAlpha > 0) {
             RenderUtil.enableRenderState();
-            this.drawBackground(posX, posY, posX + this.cachedWidth, posY + this.cachedHeight, backgroundAlpha << 24 | BACKGROUND_RGB);
+            this.drawBackground(x, y, x + this.cachedWidth, y + this.cachedHeight, backgroundAlpha << 24 | BACKGROUND_RGB);
             RenderUtil.disableRenderState();
         }
 
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        this.drawString("Unfair", posX + 4.0F, posY + 3.0F, accent, this.shadow.getValue());
+        this.drawString("Unfair", x + paddingX, y + paddingY, accent, this.shadow.getValue());
 
-        float cursor = posX + 4.0F + this.getStringWidth("Unfair");
+        float cursor = x + paddingX + this.getStringWidth("Unfair");
         if (this.showVersion.getValue()) {
-            this.drawString(" " + Unfair.version, cursor, posY + 3.0F, VERSION_COLOR, this.shadow.getValue());
+            this.drawString(" " + Unfair.version, cursor, y + paddingY, VERSION_COLOR, this.shadow.getValue());
             cursor += this.getStringWidth(" " + Unfair.version);
         }
 
         for (String segment : this.cachedSegments) {
-            this.drawSeparator(cursor + 3.0F, posY + 3.0F, accent);
-            cursor += 7.0F;
-            this.drawString(segment, cursor, posY + 3.0F, INFO_COLOR, this.shadow.getValue());
+            this.drawSeparator(cursor + 3.0F * scaleValue, y + paddingY, accent);
+            cursor += separatorGap;
+            this.drawString(segment, cursor, y + paddingY, INFO_COLOR, this.shadow.getValue());
             cursor += this.getStringWidth(segment);
         }
         GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
     }
 
     public void renderWidgetMask(float x, float y, int color) {
@@ -110,15 +109,9 @@ public class WaterMark extends Module {
             return;
         }
         this.updateLayoutCache();
-        float scaleValue = this.scale.getValue();
-        float posX = x / scaleValue;
-        float posY = y / scaleValue;
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(scaleValue, scaleValue, 0.0F);
         RenderUtil.enableRenderState();
-        this.drawBackgroundMask(posX, posY, posX + this.cachedWidth, posY + this.cachedHeight, color);
+        this.drawBackgroundMask(x, y, x + this.cachedWidth, y + this.cachedHeight, color);
         RenderUtil.disableRenderState();
-        GlStateManager.popMatrix();
     }
 
     private void drawBackground(float left, float top, float right, float bottom, int color) {
@@ -137,14 +130,15 @@ public class WaterMark extends Module {
 
     public float[] getWidgetSize() {
         this.updateLayoutCache();
-        float scaleValue = this.scale.getValue();
-        return new float[]{this.cachedWidth * scaleValue, this.cachedHeight * scaleValue};
+        return new float[]{this.cachedWidth, this.cachedHeight};
     }
 
     private void updateLayoutCache() {
         long now = System.currentTimeMillis();
+        float scaleValue = this.scale.getValue();
         boolean dynamicInfo = this.showFps.getValue() || this.showPing.getValue();
         boolean dirty = this.cachedFont != this.font.getValue()
+                || this.cachedScale != scaleValue
                 || this.cachedShowVersion != this.showVersion.getValue()
                 || this.cachedShowFps != this.showFps.getValue()
                 || this.cachedShowPing != this.showPing.getValue()
@@ -160,18 +154,19 @@ public class WaterMark extends Module {
         this.cachedShowPing = this.showPing.getValue();
         this.cachedVersion = Unfair.version;
         this.cachedInfoTime = now;
+        this.cachedScale = scaleValue;
         this.cachedSegments = this.buildInfoSegments();
 
-        float width = 8.0F + this.getStringWidth("Unfair");
+        float width = 8.0F * scaleValue + this.getStringWidth("Unfair");
         if (this.showVersion.getValue()) {
             width += this.getStringWidth(" " + Unfair.version);
         }
         for (String segment : this.cachedSegments) {
-            width += 7.0F + this.getStringWidth(segment);
+            width += 7.0F * scaleValue + this.getStringWidth(segment);
         }
 
         this.cachedWidth = width;
-        this.cachedHeight = Math.max(14.0F, this.getFontHeight() + 5.0F);
+        this.cachedHeight = Math.max(14.0F * scaleValue, this.getFontHeight() + 5.0F * scaleValue);
     }
 
     private String[] buildInfoSegments() {
@@ -207,38 +202,53 @@ public class WaterMark extends Module {
     }
 
     private FontRenderer getCustomFont() {
+        return this.getCustomFont(this.scale.getValue());
+    }
+
+    private FontRenderer getCustomFont(float scaleValue) {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
         if (fontIndex < 0 || fontIndex >= fonts.length) {
             return null;
         }
-        return fonts[fontIndex].get(FONT_SIZE);
+        return fonts[fontIndex].get(FONT_SIZE * scaleValue);
     }
 
     private int getStringWidth(String text) {
+        float scaleValue = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return mc.fontRendererObj.getStringWidth(text);
+            return Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue);
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
+        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
+        return fontRenderer == null ? Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue) : fontRenderer.getStringWidth(text);
     }
 
     private int getFontHeight() {
+        float scaleValue = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return mc.fontRendererObj.FONT_HEIGHT;
+            return Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue);
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT : fontRenderer.getHeight();
+        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
+        return fontRenderer == null ? Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue) : fontRenderer.getHeight();
     }
 
     private void drawString(String text, float x, float y, int color, boolean shadow) {
+        float scaleValue = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(x, y, 0.0F);
+            GlStateManager.scale(scaleValue, scaleValue, 1.0F);
+            mc.fontRendererObj.drawString(text, 0.0F, 0.0F, color, shadow);
+            GlStateManager.popMatrix();
             return;
         }
-        FontRenderer fontRenderer = this.getCustomFont();
+        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
         if (fontRenderer == null) {
-            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(x, y, 0.0F);
+            GlStateManager.scale(scaleValue, scaleValue, 1.0F);
+            mc.fontRendererObj.drawString(text, 0.0F, 0.0F, color, shadow);
+            GlStateManager.popMatrix();
         } else if (shadow) {
             fontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
@@ -247,6 +257,13 @@ public class WaterMark extends Module {
     }
 
     private void drawSeparator(float x, float y, int color) {
-        RenderUtil.drawRect(x, y + 1.5F, x + 1.0F, y + this.getFontHeight() - 1.5F, ColorUtil.darker(new Color(color, true), 0.65F).getRGB());
+        float scaleValue = this.scale.getValue();
+        RenderUtil.drawRect(
+                x,
+                y + 1.5F * scaleValue,
+                x + Math.max(1.0F, scaleValue),
+                y + this.getFontHeight() - 1.5F * scaleValue,
+                ColorUtil.darker(new Color(color, true), 0.65F).getRGB()
+        );
     }
 }

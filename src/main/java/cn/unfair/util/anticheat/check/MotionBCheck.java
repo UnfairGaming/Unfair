@@ -4,8 +4,8 @@ import cn.unfair.util.anticheat.*;
 import net.minecraft.network.Packet;
 import net.minecraft.potion.Potion;
 
-public class MotionCCheck extends AntiCheatCheck {
-    public MotionCCheck() { super("Motion C", "Checks invalid acceleration."); }
+public class MotionBCheck extends AntiCheatCheck {
+    public MotionBCheck() { super("Motion B", "Checks invalid acceleration."); }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
