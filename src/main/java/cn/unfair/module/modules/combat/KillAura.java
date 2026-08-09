@@ -17,7 +17,6 @@ import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
-import cn.unfair.util.killaura.PointFinder;
 import cn.unfair.util.player.DelayGenerator;
 import com.google.common.base.CaseFormat;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
@@ -50,10 +49,7 @@ import net.minecraft.world.WorldSettings.GameType;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class KillAura extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -72,71 +68,13 @@ public class KillAura extends Module {
     public final IntProperty minCPS = new IntProperty("min-aps", 14, 1, 20);
     public final IntProperty maxCPS = new IntProperty("max-aps", 14, 1, 20);
     public final IntProperty switchDelay = new IntProperty("switch-delay", 150, 0, 1000);
-    public final ModeProperty rotations = new ModeProperty("rotations", 2, new String[]{"NONE", "LEGIT", "SILENT", "LOCK_VIEW"});
+    public final ModeProperty rotations = new ModeProperty("rotations", 2, new String[]{"NONE", "LEGIT", "SILENT"});
+    public final BooleanProperty lockView = new BooleanProperty("lock-view", false, () -> this.rotations.getValue() != 0);
     public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
     public final PercentProperty smoothing = new PercentProperty("smoothing", 0);
     public final IntProperty angleStep = new IntProperty("angle-step", 90, 30, 180);
     public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 60, 1, 180, () -> this.rotations.getValue() == 2);
     public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 60, 1, 180, () -> this.rotations.getValue() == 2);
-    public final BooleanProperty advancedRotations = new BooleanProperty("advanced-rotations", false, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
-    public final BooleanProperty gcdFix = new BooleanProperty("gcd-fix", false, this.advancedRotations::getValue);
-    public final FloatProperty hitboxQuality = new FloatProperty("hitbox-quality", 1.0F, 0.01F, 1.0F, this.advancedRotations::getValue);
-    public final FloatProperty outOfRangeBuffer = new FloatProperty("out-of-range-buffer", 0.0F, -1.0F, 1.0F, this.advancedRotations::getValue);
-    public final ModeProperty preferredBodyPart = new ModeProperty("preferred-body-part", 0, new String[]{"NONE", "HEAD", "TORSO", "FEET"}, this.advancedRotations::getValue);
-    public final BooleanProperty blacklistHead = new BooleanProperty("blacklist-head", false, this.advancedRotations::getValue);
-    public final BooleanProperty blacklistTorso = new BooleanProperty("blacklist-torso", false, this.advancedRotations::getValue);
-    public final BooleanProperty blacklistFeet = new BooleanProperty("blacklist-feet", false, this.advancedRotations::getValue);
-    public final BooleanProperty blacklistBadHitVec = new BooleanProperty("blacklist-bad-hitvec", false, this.advancedRotations::getValue);
-    public final FloatProperty badHitVecBuffer = new FloatProperty("bad-hitvec-buffer", 0.5F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && this.blacklistBadHitVec.getValue());
-    public final BooleanProperty blacklistHeuristic = new BooleanProperty("blacklist-heuristic", false, this.advancedRotations::getValue);
-    public final FloatProperty heuristicBuffer = new FloatProperty("heuristic-buffer", 0.1F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && this.blacklistHeuristic.getValue());
-    public final BooleanProperty dynamicTrim = new BooleanProperty("dynamic-trim", false, this.advancedRotations::getValue);
-    public final FloatProperty yTrim = new FloatProperty("y-trim", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && !this.dynamicTrim.getValue());
-    public final FloatProperty xzRandAdd = new FloatProperty("xz-rand-add", 0.0F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.dynamicTrim.getValue());
-    public final FloatProperty xzTrim = new FloatProperty("xz-trim", 0.0F, 0.0F, 0.5F, this.advancedRotations::getValue);
-    public final BooleanProperty predictionEngine = new BooleanProperty("prediction-engine", false, this.advancedRotations::getValue);
-    public final BooleanProperty simulateReactionTime = new BooleanProperty("simulate-reaction-time", false, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue());
-    public final IntProperty reactionTimeMin = new IntProperty("reaction-time-min", 0, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
-    public final IntProperty reactionTimeMax = new IntProperty("reaction-time-max", 10, 0, 20, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
-    public final FloatProperty thresholdToApplyReactionTime = new FloatProperty("threshold-to-apply-reaction-time", 0.1F, 0.01F, 1.0F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
-    public final FloatProperty thresholdForDirectionConfidence = new FloatProperty("threshold-for-direction-confidence", 0.1F, 0.01F, 0.5F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
-    public final FloatProperty extraPrediction = new FloatProperty("extra-reaction-prediction", 1.0F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
-    public final BooleanProperty jitter = new BooleanProperty("jitter", false, this.advancedRotations::getValue);
-    public final FloatProperty jitterMin = new FloatProperty("jitter-min", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
-    public final FloatProperty jitterMax = new FloatProperty("jitter-max", 0.5F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.jitter.getValue());
-    public final BooleanProperty interpolateJitterVec = new BooleanProperty("interpolate-jitter-vec", false, () -> this.advancedRotations.getValue() && this.jitter.getValue());
-    public final ModeProperty lookVec = new ModeProperty("look-vec", 2, new String[]{"CLIENT", "SERVER", "NORMALISED"}, this.advancedRotations::getValue);
-    public final ModeProperty offsetMode = new ModeProperty("offset-mode", 0, new String[]{"NONE", "GAUSSIAN", "NOISE", "ADVANCED"}, this.advancedRotations::getValue);
-    public final ModeProperty advancedBase = new ModeProperty("advanced-base", 0, new String[]{"GAUSSIAN", "NOISE"}, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() == 3);
-    public final IntProperty offsetChance = new IntProperty("offset-chance", 75, 1, 100, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty yawFactorMin = new FloatProperty("yaw-factor-min", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty yawFactorMax = new FloatProperty("yaw-factor-max", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty pitchFactorMin = new FloatProperty("pitch-factor-min", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty pitchFactorMax = new FloatProperty("pitch-factor-max", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty noiseSpeed = new FloatProperty("noise-speed", 0.35F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && (this.offsetMode.getValue() == 2 || this.offsetMode.getValue() == 3 && this.advancedBase.getValue() == 1));
-    public final BooleanProperty interpolateVec = new BooleanProperty("interpolate-vec", false, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty offsetAmount = new FloatProperty("offset-amount", 0.5F, 0.01F, 1.0F, () -> this.advancedRotations.getValue() && this.interpolateVec.getValue() && this.offsetMode.getValue() != 0);
-    public final FloatProperty tolerance = new FloatProperty("tolerance", 0.05F, 0.01F, 0.1F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() == 3);
-    public final BooleanProperty pointStability = new BooleanProperty("point-stability", true, this.advancedRotations::getValue);
-    public final FloatProperty pointStabilityAmount = new FloatProperty("point-stability-amount", 0.15F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.pointStability.getValue());
-    public final FloatProperty pointSwitchThreshold = new FloatProperty("point-switch-threshold", 0.05F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.pointStability.getValue());
-    public final BooleanProperty edgeSafety = new BooleanProperty("edge-safety", true, this.advancedRotations::getValue);
-    public final FloatProperty edgeSafetyAmount = new FloatProperty("edge-safety-amount", 0.18F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.edgeSafety.getValue());
-    public final BooleanProperty adaptiveAimSpeed = new BooleanProperty("adaptive-aim-speed", false, () -> this.advancedRotations.getValue() && this.rotations.getValue() == 2);
-    public final FloatProperty adaptiveMinSpeed = new FloatProperty("adaptive-min-speed", 0.35F, 0.05F, 1.0F, () -> this.advancedRotations.getValue() && this.rotations.getValue() == 2 && this.adaptiveAimSpeed.getValue());
-    public final BooleanProperty overshoot = new BooleanProperty("overshoot", false, this::canUseOvershoot);
-    public final IntProperty overshootChance = new IntProperty("overshoot-chance", 100, 0, 100, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootSpeed = new FloatProperty("overshoot-speed", 1.0F, 0.05F, 2.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final IntProperty overshootDelay = new IntProperty("overshoot-delay", 2, 0, 20, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootStrength = new FloatProperty("overshoot-strength", 0.45F, 0.0F, 2.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootMaxAngle = new FloatProperty("overshoot-max-angle", 4.0F, 0.1F, 15.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootTriggerAngle = new FloatProperty("overshoot-trigger-angle", 18.0F, 1.0F, 60.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootDamping = new FloatProperty("overshoot-damping", 0.68F, 0.0F, 0.95F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootRecovery = new FloatProperty("overshoot-recovery", 0.35F, 0.05F, 1.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootPrediction = new FloatProperty("overshoot-prediction", 0.45F, 0.0F, 1.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final FloatProperty overshootRandomness = new FloatProperty("overshoot-randomness", 0.15F, 0.0F, 1.0F, () -> this.canUseOvershoot() && this.overshoot.getValue());
-    public final BooleanProperty aimDot = new BooleanProperty("aim-dot", false, this.advancedRotations::getValue);
-    public final ColorProperty aimDotColor = new ColorProperty("aim-dot-color", Color.WHITE.getRGB(), () -> this.advancedRotations.getValue() && this.aimDot.getValue());
     public final BooleanProperty throughWalls = new BooleanProperty("through-walls", true);
     public final BooleanProperty requirePress = new BooleanProperty("require-press", false);
     public final BooleanProperty allowMining = new BooleanProperty("allow-mining", false);
@@ -153,9 +91,6 @@ public class KillAura extends Module {
     private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
     private final TimerUtil timer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();
-    private final TimerUtil predictionUpdateTimer = new TimerUtil();
-    private final ArrayList<Double> previousTargetMotions = new ArrayList<>();
-    private final ArrayList<Long> jitterClicks = new ArrayList<>();
     public boolean attackDisabled = false;
     private int switchTick = 0;
     private boolean hitRegistered = false;
@@ -166,169 +101,10 @@ public class KillAura extends Module {
     private int blockTick = 0;
     private float serverYaw;
     private float serverPitch;
-    private Vec3 currentVec;
-    private Vec3 lastAimVec;
-    private Vec3 stableAimRatio;
-    private EntityLivingBase stableAimTarget;
-    private Vec3 offsetVec = zeroVec();
-    private float[] normalisedRot;
-    private double lastXOffset;
-    private double lastYOffset;
-    private double lastZOffset;
-    private double noiseTime;
-    private long noiseSeed;
-    private boolean shouldRandomize;
-    private double finalXZTrim;
-    private double xzRandShrinkThing;
-    private float predictionTargetOffset;
-    private EntityLivingBase predictionTrackedEntity;
-    private AxisAlignedBB predictionLastTrackedAABB;
-    private int predictionTicksExisted;
-    private int currentReactionTime;
-    private Vec3 predictionLastTrackedMoveDelta = zeroVec();
-    private float tremorYaw;
-    private float tremorPitch;
-    private float targetJitterYaw;
-    private float targetJitterPitch;
-    private float clickImpulseYaw;
-    private float clickImpulsePitch;
-    private float jitterYaw;
-    private float jitterPitch;
-    private int lastJitterTick;
     private boolean easingOut;
-    private EntityLivingBase overshootTrackedEntity;
-    private float overshootYaw;
-    private float overshootPitch;
-    private float overshootLastTargetYaw;
-    private float overshootLastTargetPitch;
-    private float overshootLastErrorYaw;
-    private float overshootLastErrorPitch;
-    private float overshootNoiseYaw;
-    private float overshootNoisePitch;
-    private int overshootLastTick;
-    private boolean overshootActive;
-    private int overshootCooldownUntilTick;
 
     public KillAura() {
         super("KillAura", false);
-    }
-
-    private static Vec3 interpolate(Vec3 prev, Vec3 current, float partialTicks) {
-        return new Vec3(
-                prev.xCoord + (current.xCoord - prev.xCoord) * partialTicks,
-                prev.yCoord + (current.yCoord - prev.yCoord) * partialTicks,
-                prev.zCoord + (current.zCoord - prev.zCoord) * partialTicks
-        );
-    }
-
-    private static AxisAlignedBB contract(AxisAlignedBB bb, double x, double y, double z) {
-        return new AxisAlignedBB(bb.minX + x, bb.minY + y, bb.minZ + z, bb.maxX - x, bb.maxY - y, bb.maxZ - z);
-    }
-
-    private static Vec3[] vertices(AxisAlignedBB bb) {
-        return new Vec3[]{
-                new Vec3(bb.minX, bb.minY, bb.minZ), new Vec3(bb.minX, bb.minY, bb.maxZ),
-                new Vec3(bb.minX, bb.maxY, bb.minZ), new Vec3(bb.minX, bb.maxY, bb.maxZ),
-                new Vec3(bb.maxX, bb.minY, bb.minZ), new Vec3(bb.maxX, bb.minY, bb.maxZ),
-                new Vec3(bb.maxX, bb.maxY, bb.minZ), new Vec3(bb.maxX, bb.maxY, bb.maxZ)
-        };
-    }
-
-    private static Vec3 center(AxisAlignedBB bb) {
-        return new Vec3((bb.minX + bb.maxX) / 2.0D, (bb.minY + bb.maxY) / 2.0D, (bb.minZ + bb.maxZ) / 2.0D);
-    }
-
-    private static Vec3 getMoveDelta(Entity entity) {
-        return new Vec3(entity.posX - entity.prevPosX, entity.posY - entity.prevPosY, entity.posZ - entity.prevPosZ);
-    }
-
-    private static double getSpeedPosBased(Entity entity) {
-        return Math.hypot(entity.posX - entity.prevPosX, entity.posZ - entity.prevPosZ);
-    }
-
-    private static Vec3 getVectorForRotation(float yaw, float pitch) {
-        float yawRad = -yaw * 0.017453292F - (float) Math.PI;
-        float pitchRad = -pitch * 0.017453292F;
-        float cosYaw = MathHelper.cos(yawRad);
-        float sinYaw = MathHelper.sin(yawRad);
-        float cosPitch = -MathHelper.cos(pitchRad);
-        float sinPitch = MathHelper.sin(pitchRad);
-        return new Vec3(sinYaw * cosPitch, sinPitch, cosYaw * cosPitch);
-    }
-
-    private static float[] rotationsTo(Vec3 target, Vec3 eyes) {
-        double x = target.xCoord - eyes.xCoord;
-        double y = target.yCoord - eyes.yCoord;
-        double z = target.zCoord - eyes.zCoord;
-        double dist = MathHelper.sqrt_double(x * x + z * z);
-        return new float[]{
-                (float) (Math.atan2(z, x) * 180.0D / Math.PI) - 90.0F,
-                (float) (-(Math.atan2(y, dist) * 180.0D / Math.PI))
-        };
-    }
-
-    private static Vec3 add(Vec3 a, Vec3 b) {
-        return new Vec3(a.xCoord + b.xCoord, a.yCoord + b.yCoord, a.zCoord + b.zCoord);
-    }
-
-    private static Vec3 subtract(Vec3 a, Vec3 b) {
-        return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
-    }
-
-    private static Vec3 multiply(Vec3 vec, double factor) {
-        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
-    }
-
-    private static Vec3 flat(Vec3 vec) {
-        return new Vec3(vec.xCoord, 0.0D, vec.zCoord);
-    }
-
-    private static Vec3 zeroVec() {
-        return new Vec3(0.0D, 0.0D, 0.0D);
-    }
-
-    private static double crossLength(Vec3 a, Vec3 b) {
-        double x = a.yCoord * b.zCoord - a.zCoord * b.yCoord;
-        double y = a.zCoord * b.xCoord - a.xCoord * b.zCoord;
-        double z = a.xCoord * b.yCoord - a.yCoord * b.xCoord;
-        return Math.sqrt(x * x + y * y + z * z);
-    }
-
-    private static double distance(double x1, double y1, double z1, double x2, double y2, double z2) {
-        double x = x1 - x2;
-        double y = y1 - y2;
-        double z = z1 - z2;
-        return Math.sqrt(x * x + y * y + z * z);
-    }
-
-    private static float interpolate(float current, float target, float amount) {
-        return current + (target - current) * amount;
-    }
-
-    private static double randomBetween(float min, float max) {
-        return min == max ? min : RandomUtil.nextDouble(Math.min(min, max), Math.max(min, max));
-    }
-
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    private static double smoothStep(double value) {
-        return value * value * (3.0D - 2.0D * value);
-    }
-
-    private static double hashNoise(long seed, int step, int salt) {
-        long x = seed + (long) step * 0x9E3779B97F4A7C15L + (long) salt * 0xBF58476D1CE4E5B9L;
-        x = (x ^ (x >>> 30)) * 0xBF58476D1CE4E5B9L;
-        x = (x ^ (x >>> 27)) * 0x94D049BB133111EBL;
-        x = x ^ (x >>> 31);
-        return ((x >>> 11) * 0x1.0p-53D) * 2.0D - 1.0D;
-    }
-
-    private double coherentNoise(double time, int salt) {
-        int step = (int) Math.floor(time);
-        double progress = smoothStep(time - step);
-        return interpolate((float) hashNoise(this.noiseSeed, step, salt), (float) hashNoise(this.noiseSeed, step + 1, salt), (float) progress);
     }
 
     private long getAttackDelay() {
@@ -345,6 +121,7 @@ public class KillAura extends Module {
                 this.attackDelayMS = this.attackDelayMS + this.getAttackDelay();
                 if ((this.rotations.getValue() != 0 || !this.isBoxInAttackRange(target.getBox()))
                         && this.getAttackHitVec(yaw, pitch, this.attackRange.getValue()) == null) {
+                    this.performSwing();
                     return false;
                 } else {
                     AttackEvent event = new AttackEvent(target.getEntity());
@@ -360,6 +137,16 @@ public class KillAura extends Module {
             }
         } else {
             return false;
+        }
+    }
+
+    private void performSwing() {
+        mc.playerController.syncCurrentPlayItem();
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_19)) {
+            PacketUtil.sendPacket(new ServerBoundSwing(EnumHand.MAIN_HAND));
+            mc.thePlayer.swingClientSide();
+        } else {
+            mc.thePlayer.swingItem();
         }
     }
 
@@ -545,12 +332,6 @@ public class KillAura extends Module {
         while (deltaYaw > 180.0F) deltaYaw -= 360.0F;
 
         float deltaPitch = targetPitch - this.serverPitch;
-        if (this.adaptiveAimSpeed.getValue() && this.advancedRotations.getValue()) {
-            float angularError = Math.max(Math.abs(deltaYaw), Math.abs(deltaPitch));
-            float speedFactor = this.getAdaptiveAimSpeedFactor(angularError);
-            maxDeltaYaw *= speedFactor;
-            maxDeltaPitch *= speedFactor;
-        }
 
         if (Math.abs(deltaYaw) > maxDeltaYaw) {
             this.serverYaw += Math.signum(deltaYaw) * maxDeltaYaw;
@@ -566,45 +347,12 @@ public class KillAura extends Module {
 
         this.serverPitch = Math.clamp(this.serverPitch, -90.0F, 90.0F);
 
-        if (this.gcdFix.getValue() && this.advancedRotations.getValue()) {
-            float[] fixed = this.applyGcdFix(this.serverYaw, this.serverPitch, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-            this.serverYaw = fixed[0];
-            this.serverPitch = fixed[1];
-        }
-
         return new float[]{this.serverYaw, this.serverPitch};
-    }
-
-    private float getAdaptiveAimSpeedFactor(float angularError) {
-        float min = this.adaptiveMinSpeed.getValue();
-        float max = 1.35F;
-        float normalizedError = MathHelper.clamp_float(angularError / 90.0F, 0.0F, 1.0F);
-        float eased = normalizedError * normalizedError * (3.0F - 2.0F * normalizedError);
-        float speedFactor = min + (max - min) * eased;
-        if (target != null) {
-            double distance = RotationUtil.distanceToBox(target.getBox());
-            float closeRangeBoost = (float) MathHelper.clamp_double((this.attackRange.getValue() - distance) / this.attackRange.getValue(), 0.0D, 1.0D);
-            speedFactor += closeRangeBoost * 0.15F;
-        }
-        return MathHelper.clamp_float(speedFactor, min, max);
     }
 
     private boolean isAtRotation(float yaw, float pitch) {
         return Math.abs(MathHelper.wrapAngleTo180_float(yaw - this.serverYaw)) < 0.01F
                 && Math.abs(pitch - this.serverPitch) < 0.01F;
-    }
-
-    private float[] applyGcdFix(float yaw, float pitch, float previousYaw, float previousPitch) {
-        float sensitivity = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
-        float gcd = sensitivity * sensitivity * sensitivity * 1.2F;
-        float yawDelta = yaw - previousYaw;
-        float pitchDelta = pitch - previousPitch;
-
-        yaw = previousYaw + yawDelta - yawDelta % gcd;
-        pitch = previousPitch + pitchDelta - pitchDelta % gcd;
-        pitch = MathHelper.clamp_float(pitch, -90.0F, 90.0F);
-
-        return new float[]{yaw, pitch};
     }
 
     public EntityLivingBase getTarget() {
@@ -638,10 +386,16 @@ public class KillAura extends Module {
         }
     }
 
-    private boolean shouldKeepSilentRotation() {
-        return target != null
-                && this.rotations.getValue() == 2
-                && (this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 5);
+    private void applyAuraRotation(UpdateEvent event, float yaw, float pitch) {
+        event.setRotation(yaw, pitch, 1);
+        if (this.lockView.getValue()) {
+            Unfair.rotationManager.setRotation(yaw, pitch, 1, true);
+        }
+    }
+
+    private void syncServerRotationToPlayer() {
+        this.serverYaw = mc.thePlayer.rotationYaw;
+        this.serverPitch = mc.thePlayer.rotationPitch;
     }
 
     private boolean isInventoryBlocked() {
@@ -657,8 +411,6 @@ public class KillAura extends Module {
         this.blockTick = 0;
         this.attackDelayMS = 0L;
         this.easingOut = false;
-        this.resetAimVec();
-        this.resetPredictionEngine();
 
         if (mc.thePlayer != null) {
             this.serverYaw = mc.thePlayer.rotationYaw;
@@ -685,7 +437,7 @@ public class KillAura extends Module {
             float targetYaw = event.getNewYaw();
             float targetPitch = event.getNewPitch();
             float[] reset = this.interpolateRotation(targetYaw, targetPitch);
-            event.setRotation(reset[0], reset[1], 1);
+            this.applyAuraRotation(event, reset[0], reset[1]);
             if (this.moveFix.getValue() != 0) {
                 event.setPervRotation(reset[0], 1);
             }
@@ -695,8 +447,6 @@ public class KillAura extends Module {
             return;
         }
         if (this.isEnabled() && event.getType() == EventType.PRE) {
-            this.shouldRandomize = RandomUtil.nextDouble(0.0D, 100.0D) <= this.offsetChance.getValue();
-            this.xzRandShrinkThing = Math.random();
             if (this.attackDelayMS > 0L) {
                 this.attackDelayMS -= 50L;
             }
@@ -878,61 +628,29 @@ public class KillAura extends Module {
                 }
                 boolean attacked = false;
                 if (this.isBoxInSwingRange(target.getBox())) {
-                    if (this.rotations.getValue() == 2 || this.rotations.getValue() == 3) {
+                    if (this.rotations.getValue() == 2) {
 
-                        float[] targetRotations;
                         float randomOffset = (float) this.angleStep.getValue() + RandomUtil.nextFloat(-5.0F, 5.0F);
                         float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
-                        targetRotations = this.advancedRotations.getValue()
-                                ? this.getAdvancedRotations(event.getYaw(), event.getPitch(), randomOffset, smoothFactor)
-                                : RotationUtil.getRotationsToBox(
+                        float[] targetRotations = RotationUtil.getRotationsToBox(
                                 target.getBox(),
                                 event.getYaw(),
                                 event.getPitch(),
                                 randomOffset,
                                 smoothFactor
                         );
+                        float[] smoothed = interpolateRotation(targetRotations[0], targetRotations[1]);
+                        this.applyAuraRotation(event, smoothed[0], smoothed[1]);
 
-                        float finalYaw, finalPitch;
-
-                        if (this.rotations.getValue() == 2) {
-
-                            finalYaw = targetRotations[0];
-                            finalPitch = targetRotations[1];
-
-                            float[] smoothed = interpolateRotation(finalYaw, finalPitch);
-                            event.setRotation(smoothed[0], smoothed[1], 1);
-                        } else {
-
-                            finalYaw = targetRotations[0];
-                            finalPitch = targetRotations[1];
-                            if (this.gcdFix.getValue() && this.advancedRotations.getValue()) {
-                                float[] fixed = this.applyGcdFix(finalYaw, finalPitch, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-                                finalYaw = fixed[0];
-                                finalPitch = fixed[1];
-                            }
-                            event.setRotation(finalYaw, finalPitch, 1);
-                            Unfair.rotationManager.setRotation(finalYaw, finalPitch, 1, true);
-                        }
-
-                        if (this.moveFix.getValue() != 0 || this.rotations.getValue() == 3) {
+                        if (this.moveFix.getValue() != 0 || this.lockView.getValue()) {
                             event.setPervRotation(event.getNewYaw(), 1);
                         }
                     }
                     if (attack) {
                         attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
                     }
-                } else if (this.rotations.getValue() == 2 && target != null && !this.shouldKeepSilentRotation()) {
-
-                    float realYaw = mc.thePlayer.rotationYaw;
-                    float realPitch = mc.thePlayer.rotationPitch;
-
-                    float[] reset = interpolateRotation(realYaw, realPitch);
-                    event.setRotation(reset[0], reset[1], 1);
-
-                    if (this.moveFix.getValue() != 0) {
-                        event.setPervRotation(reset[0], 1);
-                    }
+                } else if (this.rotations.getValue() == 2) {
+                    this.syncServerRotationToPlayer();
                 }
                 if (swap) {
                     if (attacked) {
@@ -947,16 +665,8 @@ public class KillAura extends Module {
                 }
             }
 
-            if (this.rotations.getValue() == 2 && !attack && !this.shouldKeepSilentRotation()) {
-                float realYaw = mc.thePlayer.rotationYaw;
-                float realPitch = mc.thePlayer.rotationPitch;
-
-                float[] reset = interpolateRotation(realYaw, realPitch);
-                event.setRotation(reset[0], reset[1], 1);
-
-                if (this.moveFix.getValue() != 0) {
-                    event.setPervRotation(reset[0], 1);
-                }
+            if (this.rotations.getValue() == 2 && !attack) {
+                this.syncServerRotationToPlayer();
             }
         }
     }
@@ -966,8 +676,6 @@ public class KillAura extends Module {
         if (this.isEnabled()) {
             if (mc.thePlayer == null || mc.theWorld == null) {
                 target = null;
-                this.resetAimVec();
-                this.resetPredictionEngine();
                 this.blockingState = false;
                 this.isBlocking = false;
                 return;
@@ -980,7 +688,6 @@ public class KillAura extends Module {
                 case PRE:
                     if (target == null
                             || !this.isValidTarget(target.getEntity())
-                            || !this.isBoxInAttackRange(target.getBox())
                             || !this.isBoxInSwingRange(target.getBox())
                             || this.timer.hasTimeElapsed(this.switchDelay.getValue().longValue())) {
                         this.timer.reset();
@@ -994,8 +701,6 @@ public class KillAura extends Module {
                         }
                         if (targets.isEmpty()) {
                             target = null;
-                            this.resetAimVec();
-                            this.resetPredictionEngine();
                         } else {
                             if (targets.stream().anyMatch(this::isInSwingRange)) {
                                 targets.removeIf(entityLivingBase -> !this.isInSwingRange(entityLivingBase));
@@ -1035,10 +740,6 @@ public class KillAura extends Module {
                                 this.switchTick = 0;
                             }
                             EntityLivingBase selected = targets.get(this.switchTick);
-                            if (target == null || target.getEntity() != selected) {
-                                this.resetAimVec();
-                                this.resetPredictionEngine();
-                            }
                             target = new AttackData(selected);
                         }
                     }
@@ -1059,642 +760,9 @@ public class KillAura extends Module {
         this.setEnabled(false);
     }
 
-    private float[] getAdvancedRotations(float yaw, float pitch, float maxAngle, float smoothFactor) {
-        EntityLivingBase entity = target.getEntity();
-        this.noiseTime += Math.max(0.01D, this.noiseSpeed.getValue()) * 0.08D;
-        Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
-        AxisAlignedBB bb = this.getAdvancedBox(entity);
-        double speedTrim = getSpeedPosBased(entity) * 0.5D;
-        double configuredTrim = this.xzTrim.getValue();
-        double minTrim = Math.min(speedTrim, configuredTrim);
-        double maxTrim = Math.max(speedTrim, configuredTrim);
-        double speedShrinkFactor = Math.clamp(getSpeedPosBased(mc.thePlayer) * 0.5D, minTrim, maxTrim) + this.xzRandShrinkThing * this.xzRandAdd.getValue();
-        this.finalXZTrim = this.dynamicTrim.getValue() ? speedShrinkFactor : this.xzTrim.getValue();
-        double finalYTrim = this.dynamicTrim.getValue() ? Math.abs(mc.thePlayer.motionY) : this.yTrim.getValue();
-        bb = contract(bb, this.finalXZTrim, finalYTrim, this.finalXZTrim);
-
-        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(bb)) {
-            AxisAlignedBB playerBox = mc.thePlayer.getEntityBoundingBox();
-            double overlapX = Math.min(playerBox.maxX, bb.maxX) - Math.max(playerBox.minX, bb.minX);
-            double overlapZ = Math.min(playerBox.maxZ, bb.maxZ) - Math.max(playerBox.minZ, bb.minZ);
-            bb = contract(bb, overlapX / 2.0D, 0.0D, overlapZ / 2.0D);
-        }
-        PointFinder.findPoints(bb, Math.max(1, (int) (PointFinder.POINT_COUNT * this.hitboxQuality.getValue())));
-        List<Vec3> hitboxPoints = PointFinder.hitboxPoints;
-        double playerToTarget = distance(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, entity.prevPosX, entity.prevPosY, entity.prevPosZ)
-                - distance(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, entity.posX, entity.posY, entity.posZ);
-        double targetToPlayer = distance(entity.posX, entity.posY, entity.posZ, mc.thePlayer.prevPosX, mc.thePlayer.prevPosY, mc.thePlayer.prevPosZ)
-                - distance(entity.posX, entity.posY, entity.posZ, mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
-        double pred = (playerToTarget + targetToPlayer) / 2.0D;
-        boolean outOfRange = RotationUtil.distanceToBox(target.getBox()) > this.attackRange.getValue();
-
-        boolean[] preferred = this.getPreferredHittable(bb, eyes, this.attackRange.getValue() + this.outOfRangeBuffer.getValue() + pred + this.finalXZTrim);
-        AxisAlignedBB finalBb = bb;
-        hitboxPoints.removeIf(point -> {
-            boolean invalid = !this.isValidPoint(point, finalBb, pred, outOfRange, preferred[0], preferred[1], preferred[2]);
-            if (invalid) {
-                PointFinder.invalidHitboxPoints.add(point);
-            }
-            return invalid;
-        });
-        AxisAlignedBB finalBb1 = bb;
-        PointFinder.allHitboxPoints.removeIf(point -> this.pointInBlacklistedPos(point, finalBb1, preferred[0], preferred[1], preferred[2]));
-
-        Vec3 lookDir = this.getAdvancedLookVec(yaw, pitch);
-        AxisAlignedBB scoringBb = bb;
-        Vec3 vec;
-        if (!hitboxPoints.isEmpty()) {
-            Vec3 stablePoint = this.getStablePoint(entity, bb);
-            hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint, scoringBb)));
-            if (this.blacklistBadHitVec.getValue() || this.blacklistHeuristic.getValue()) {
-                List<Vec3> filteredFallback = new ArrayList<>(hitboxPoints);
-                Vec3 badHitVec = hitboxPoints.stream().min(Comparator.comparingDouble(point -> point.distanceTo(eyes))).orElse(center(bb));
-                if (this.blacklistHeuristic.getValue()) {
-                    double height = Math.max(bb.maxY - bb.minY, 1.0E-4D);
-                    double cappedBuffer = Math.min(this.heuristicBuffer.getValue(), height * 0.25D);
-                    hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) < cappedBuffer);
-                }
-                if (this.blacklistBadHitVec.getValue()) {
-                    hitboxPoints.removeIf(point -> point.distanceTo(badHitVec) > this.badHitVecBuffer.getValue());
-                }
-                if (hitboxPoints.isEmpty()) {
-                    hitboxPoints.addAll(filteredFallback);
-                }
-                hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint, scoringBb)));
-            }
-            vec = hitboxPoints.isEmpty() ? this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb) : this.chooseAimPoint(hitboxPoints, eyes, lookDir, stablePoint, bb);
-        } else {
-            vec = this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb);
-        }
-        this.updateStableAimPoint(entity, bb, vec);
-
-        this.normalisedRot = rotationsTo(vec, eyes);
-        float[] jitterOffset = this.jitter.getValue()
-                ? this.calculateJitter(RandomUtil.nextFloat(this.jitterMin.getValue(), this.jitterMax.getValue()), this.interpolateJitterVec.getValue())
-                : new float[]{0.0F, 0.0F};
-        Vec3 targetVec = add(vec, this.getOffsetVec());
-        boolean notVisible = !canSeePoint(targetVec) && canSeePoint(subtract(targetVec, this.offsetVec));
-        if (notVisible) {
-            targetVec = subtract(targetVec, this.offsetVec);
-        }
-        targetVec = new Vec3(
-                MathHelper.clamp_double(targetVec.xCoord, bb.minX, bb.maxX),
-                MathHelper.clamp_double(targetVec.yCoord, bb.minY, bb.maxY),
-                MathHelper.clamp_double(targetVec.zCoord, bb.minZ, bb.maxZ)
-        );
-        if (this.predictionEngine.getValue()) {
-            double predictionBlend = (0.35D + (this.coherentNoise(this.noiseTime + 71.0D, 83) + 1.0D) * 0.175D) * this.extraPrediction.getValue();
-            targetVec = add(targetVec, multiply(getMoveDelta(entity), predictionBlend));
-        }
-
-        this.updateAimVec(targetVec);
-        float[] rot = RotationUtil.getRotations(
-                targetVec.xCoord - eyes.xCoord,
-                targetVec.yCoord - eyes.yCoord,
-                targetVec.zCoord - eyes.zCoord,
-                yaw,
-                pitch,
-                maxAngle,
-                smoothFactor
-        );
-        if (this.canUseOvershoot() && this.overshoot.getValue() && !notVisible) {
-            rot = this.applyOvershoot(rot[0], rot[1], yaw, pitch, entity);
-        } else {
-            this.resetOvershoot();
-        }
-        if (!notVisible) {
-            rot[0] += jitterOffset[0];
-            rot[1] += jitterOffset[1];
-        }
-        this.shouldRandomize = false;
-        return rot;
-    }
-
-    private boolean canUseOvershoot() {
-        return this.advancedRotations.getValue() && this.rotations.getValue() == 2;
-    }
-
-    private float[] applyOvershoot(float targetYaw, float targetPitch, float baseYaw, float basePitch, EntityLivingBase entity) {
-        float errorYaw = MathHelper.wrapAngleTo180_float(targetYaw - baseYaw);
-        float errorPitch = targetPitch - basePitch;
-        float angularError = (float) Math.sqrt(errorYaw * errorYaw + errorPitch * errorPitch);
-        float trigger = Math.max(1.0F, this.overshootTriggerAngle.getValue());
-
-        if (this.overshootTrackedEntity != entity) {
-            this.overshootTrackedEntity = entity;
-            this.overshootYaw = 0.0F;
-            this.overshootPitch = 0.0F;
-            this.overshootLastTargetYaw = targetYaw;
-            this.overshootLastTargetPitch = targetPitch;
-            this.overshootLastErrorYaw = errorYaw;
-            this.overshootLastErrorPitch = errorPitch;
-            this.overshootLastTick = mc.thePlayer.ticksExisted;
-            this.overshootActive = false;
-            this.overshootCooldownUntilTick = mc.thePlayer.ticksExisted + this.overshootDelay.getValue();
-        }
-
-        float arrival = MathHelper.clamp_float(1.0F - angularError / trigger, 0.0F, 1.0F);
-        int tick = mc.thePlayer.ticksExisted;
-        if (!this.overshootActive && arrival > 0.0F && tick >= this.overshootCooldownUntilTick) {
-            if (RandomUtil.nextDouble(0.0D, 100.0D) <= this.overshootChance.getValue()) {
-                this.overshootActive = true;
-            } else {
-                this.overshootCooldownUntilTick = tick + Math.max(1, this.overshootDelay.getValue());
-            }
-        }
-
-        float velocityYaw = MathHelper.wrapAngleTo180_float(targetYaw - this.overshootLastTargetYaw);
-        float velocityPitch = targetPitch - this.overshootLastTargetPitch;
-        float targetAngularVelocity = (float) Math.sqrt(velocityYaw * velocityYaw + velocityPitch * velocityPitch);
-        float velocityGain = MathHelper.clamp_float(targetAngularVelocity / 12.0F, 0.0F, 1.0F);
-        float motionGain = 1.0F + (float) MathHelper.clamp_double(getSpeedPosBased(entity) * 3.0D, 0.0D, 0.45D);
-        float amplitude = this.overshootMaxAngle.getValue()
-                * this.overshootStrength.getValue()
-                * arrival
-                * (0.55F + 0.45F * velocityGain)
-                * motionGain;
-
-        if (tick != this.overshootLastTick) {
-            float noise = amplitude * this.overshootRandomness.getValue() * 0.35F;
-            this.overshootNoiseYaw = interpolate(this.overshootNoiseYaw, (float) this.coherentNoise(tick * 0.35D + 101.0D, 109) * noise, 0.35F);
-            this.overshootNoisePitch = interpolate(this.overshootNoisePitch, (float) this.coherentNoise(tick * 0.31D + 149.0D, 127) * noise * 0.65F, 0.35F);
-            this.overshootLastTick = tick;
-        }
-
-        float speed = this.overshootSpeed.getValue();
-        float recoveryStep = MathHelper.clamp_float(this.overshootRecovery.getValue() * speed, 0.01F, 1.0F);
-        if (!this.overshootActive || arrival <= 0.0F || amplitude <= 0.0F || angularError < 1.0E-3F) {
-            this.overshootYaw = interpolate(this.overshootYaw, 0.0F, recoveryStep);
-            this.overshootPitch = interpolate(this.overshootPitch, 0.0F, recoveryStep);
-            if (this.overshootActive && (arrival <= 0.0F || angularError < 1.0E-3F || Math.abs(this.overshootYaw) + Math.abs(this.overshootPitch) < 0.05F)) {
-                this.overshootActive = false;
-                this.overshootCooldownUntilTick = tick + this.overshootDelay.getValue();
-            }
-            this.overshootLastTargetYaw = targetYaw;
-            this.overshootLastTargetPitch = targetPitch;
-            this.overshootLastErrorYaw = errorYaw;
-            this.overshootLastErrorPitch = errorPitch;
-            return new float[]{
-                    targetYaw + this.overshootYaw,
-                    MathHelper.clamp_float(targetPitch + this.overshootPitch, -90.0F, 90.0F)
-            };
-        }
-
-        float prediction = this.overshootPrediction.getValue();
-        float leadYaw = errorYaw + velocityYaw * prediction * 1.75F;
-        float leadPitch = errorPitch + velocityPitch * prediction * 1.25F;
-        float leadLength = (float) Math.sqrt(leadYaw * leadYaw + leadPitch * leadPitch);
-        if (leadLength < 1.0E-3F) {
-            leadYaw = errorYaw;
-            leadPitch = errorPitch;
-            leadLength = Math.max(angularError, 1.0E-3F);
-        }
-
-        float desiredYawOffset = leadYaw / leadLength * amplitude + this.overshootNoiseYaw;
-        float desiredPitchOffset = leadPitch / leadLength * amplitude * 0.75F + this.overshootNoisePitch;
-        float errorDot = errorYaw * this.overshootLastErrorYaw + errorPitch * this.overshootLastErrorPitch;
-        if (errorDot < 0.0F && angularError < trigger) {
-            desiredYawOffset -= this.overshootYaw * this.overshootRecovery.getValue();
-            desiredPitchOffset -= this.overshootPitch * this.overshootRecovery.getValue();
-        }
-
-        float response = MathHelper.clamp_float((1.0F - this.overshootDamping.getValue()) * speed, 0.01F, 1.0F);
-        this.overshootYaw = this.overshootYaw + (desiredYawOffset - this.overshootYaw) * response;
-        this.overshootPitch = this.overshootPitch + (desiredPitchOffset - this.overshootPitch) * response;
-        this.overshootYaw = MathHelper.clamp_float(this.overshootYaw, -this.overshootMaxAngle.getValue(), this.overshootMaxAngle.getValue());
-        this.overshootPitch = MathHelper.clamp_float(this.overshootPitch, -this.overshootMaxAngle.getValue(), this.overshootMaxAngle.getValue());
-        if (angularError < 0.25F && Math.abs(this.overshootYaw) + Math.abs(this.overshootPitch) < 0.15F) {
-            this.overshootActive = false;
-            this.overshootCooldownUntilTick = tick + this.overshootDelay.getValue();
-        }
-        this.overshootLastTargetYaw = targetYaw;
-        this.overshootLastTargetPitch = targetPitch;
-        this.overshootLastErrorYaw = errorYaw;
-        this.overshootLastErrorPitch = errorPitch;
-
-        return new float[]{
-                targetYaw + this.overshootYaw,
-                MathHelper.clamp_float(targetPitch + this.overshootPitch, -90.0F, 90.0F)
-        };
-    }
-
-    private void resetOvershoot() {
-        this.overshootTrackedEntity = null;
-        this.overshootYaw = 0.0F;
-        this.overshootPitch = 0.0F;
-        this.overshootLastTargetYaw = 0.0F;
-        this.overshootLastTargetPitch = 0.0F;
-        this.overshootLastErrorYaw = 0.0F;
-        this.overshootLastErrorPitch = 0.0F;
-        this.overshootNoiseYaw = 0.0F;
-        this.overshootNoisePitch = 0.0F;
-        this.overshootLastTick = 0;
-        this.overshootActive = false;
-        this.overshootCooldownUntilTick = 0;
-    }
-
-    private AxisAlignedBB getAdvancedBox(EntityLivingBase entity) {
-        AxisAlignedBB bb = target.getBox();
-        if (!this.predictionEngine.getValue()) {
-            return bb;
-        }
-        return this.simulatePredictions(entity, bb);
-    }
-
-    private AxisAlignedBB simulatePredictions(EntityLivingBase entity, AxisAlignedBB hitbox) {
-        if (this.predictionTrackedEntity != entity) {
-            this.resetPredictionEngine();
-            this.predictionTrackedEntity = entity;
-        }
-
-        double dist = RotationUtil.distanceToBox(hitbox);
-        boolean shouldPredict = false;
-        double speed = getSpeedPosBased(entity);
-
-        if (dist > this.attackRange.getValue()) {
-            this.predictionTargetOffset = (float) Math.clamp((dist - this.attackRange.getValue()) * 3.0D, 0.0D, 8.0D);
-            shouldPredict = true;
-        }
-
-        if (speed > 0.4D) {
-            double extra = Math.random() * RandomUtil.nextFloat(0.9F, 1.1F);
-            float predictedOffset = (float) (-Math.clamp(dist, 0.0D, 8.0D) + (ThreadLocalRandom.current().nextBoolean() ? extra : -extra));
-            this.predictionTargetOffset = interpolate(this.predictionTargetOffset, predictedOffset, 0.05F);
-            shouldPredict = true;
-        }
-
-        if (mc.thePlayer.getEntityBoundingBox().intersectsWith(hitbox)) {
-            this.predictionTargetOffset = 3.0F;
-            shouldPredict = true;
-        }
-
-        Vec3 moveDelta = getMoveDelta(entity);
-        AxisAlignedBB trackedHitbox = this.simulateReactionTime.getValue() ? this.getReactionDelayedHitbox(hitbox, moveDelta) : hitbox;
-        Vec3 prediction = multiply(flat(moveDelta), shouldPredict ? this.predictionTargetOffset : 0.0D);
-        return trackedHitbox.offset(prediction.xCoord, prediction.yCoord, prediction.zCoord);
-    }
-
-    private AxisAlignedBB getReactionDelayedHitbox(AxisAlignedBB hitbox, Vec3 moveDelta) {
-        if (this.predictionLastTrackedAABB == null) {
-            this.predictionLastTrackedAABB = hitbox;
-            this.predictionLastTrackedMoveDelta = moveDelta;
-        }
-
-        if (mc.thePlayer.ticksExisted != this.predictionTicksExisted) {
-            this.previousTargetMotions.add(moveDelta.lengthVector());
-
-            if (this.predictionUpdateTimer.hasTimeElapsed((this.currentReactionTime + 1L) * 50L)) {
-                this.predictionLastTrackedAABB = hitbox;
-                this.predictionLastTrackedMoveDelta = moveDelta;
-                this.currentReactionTime = this.getReactionTimeFromMotion();
-                this.predictionUpdateTimer.reset();
-            } else if (this.getDirectionConfidence(moveDelta, this.predictionLastTrackedMoveDelta) >= this.thresholdForDirectionConfidence.getValue()) {
-                this.predictionLastTrackedAABB = this.predictionLastTrackedAABB.offset(
-                        this.predictionLastTrackedMoveDelta.xCoord,
-                        this.predictionLastTrackedMoveDelta.yCoord,
-                        this.predictionLastTrackedMoveDelta.zCoord
-                );
-                hitbox = this.predictionLastTrackedAABB;
-            } else {
-                this.predictionLastTrackedAABB = hitbox;
-                this.predictionLastTrackedMoveDelta = moveDelta;
-            }
-
-            while (this.previousTargetMotions.size() > 20) {
-                this.previousTargetMotions.remove(0);
-            }
-        }
-
-        this.predictionTicksExisted = mc.thePlayer.ticksExisted;
-        return hitbox;
-    }
-
-    private int getReactionTimeFromMotion() {
-        if (this.previousTargetMotions.isEmpty()) {
-            return this.currentReactionTime;
-        }
-
-        double averageMotion = 0.0D;
-        for (Double motion : this.previousTargetMotions) {
-            averageMotion += motion;
-        }
-        averageMotion /= this.previousTargetMotions.size();
-
-        double motionPercentage = MathHelper.clamp_double(averageMotion * 2.0D, 0.0D, 1.0D);
-        if (averageMotion < this.thresholdToApplyReactionTime.getValue()) {
-            motionPercentage = 0.0D;
-        }
-
-        int min = Math.min(this.reactionTimeMin.getValue(), this.reactionTimeMax.getValue());
-        int max = Math.max(this.reactionTimeMin.getValue(), this.reactionTimeMax.getValue());
-        return (int) interpolate(min, max, (float) motionPercentage);
-    }
-
-    private double getDirectionConfidence(Vec3 current, Vec3 previous) {
-        double currentLength = current.lengthVector();
-        double previousLength = previous.lengthVector();
-        if (currentLength < 1.0E-4D || previousLength < 1.0E-4D) {
-            return 1.0D;
-        }
-        double dot = current.xCoord * previous.xCoord + current.yCoord * previous.yCoord + current.zCoord * previous.zCoord;
-        return MathHelper.clamp_double((dot / (currentLength * previousLength) + 1.0D) / 2.0D, 0.0D, 1.0D);
-    }
-
-    private void resetPredictionEngine() {
-        this.predictionTargetOffset = 0.0F;
-        this.predictionTrackedEntity = null;
-        this.predictionLastTrackedAABB = null;
-        this.predictionTicksExisted = 0;
-        this.currentReactionTime = 0;
-        this.predictionLastTrackedMoveDelta = zeroVec();
-        this.previousTargetMotions.clear();
-        this.predictionUpdateTimer.setTime();
-    }
-
-    private Vec3 getAdvancedLookVec(float yaw, float pitch) {
-        switch (this.lookVec.getValue()) {
-            case 0:
-                return getVectorForRotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-            case 1:
-                return getVectorForRotation(this.serverYaw, this.serverPitch);
-            default:
-                return this.normalisedRot == null ? mc.thePlayer.getLook(1.0F) : getVectorForRotation(this.normalisedRot[0], this.normalisedRot[1]);
-        }
-    }
-
-    private Vec3 getBackupVec(List<Vec3> points, Vec3 eyes, Vec3 lookDir, AxisAlignedBB bb) {
-        if (points.isEmpty()) {
-            return center(bb);
-        }
-        points.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, null, bb)));
-        return points.get(0);
-    }
-
-    private Vec3 chooseAimPoint(List<Vec3> points, Vec3 eyes, Vec3 lookDir, Vec3 stablePoint, AxisAlignedBB bb) {
-        Vec3 bestPoint = points.get(0);
-        if (!this.pointStability.getValue() || stablePoint == null || this.pointSwitchThreshold.getValue() <= 0.0F) {
-            return bestPoint;
-        }
-
-        Vec3 stableCandidate = points.stream()
-                .min(Comparator.comparingDouble(point -> point.distanceTo(stablePoint)))
-                .orElse(bestPoint);
-        double bestScore = this.scoreAimPoint(bestPoint, eyes, lookDir, stablePoint, bb);
-        double stableScore = this.scoreAimPoint(stableCandidate, eyes, lookDir, stablePoint, bb);
-        return stableScore <= bestScore + this.pointSwitchThreshold.getValue() ? stableCandidate : bestPoint;
-    }
-
-    private double scoreAimPoint(Vec3 point, Vec3 eyes, Vec3 lookDir, Vec3 stablePoint, AxisAlignedBB bb) {
-        double score = crossLength(subtract(point, eyes), lookDir);
-        if (stablePoint != null) {
-            score += point.distanceTo(stablePoint) * this.pointStabilityAmount.getValue();
-        }
-        if (this.edgeSafety.getValue()) {
-            score += this.getEdgePenalty(point, bb) * this.edgeSafetyAmount.getValue();
-        }
-        return score;
-    }
-
-    private double getEdgePenalty(Vec3 point, AxisAlignedBB bb) {
-        double width = Math.max(bb.maxX - bb.minX, 1.0E-4D);
-        double height = Math.max(bb.maxY - bb.minY, 1.0E-4D);
-        double depth = Math.max(bb.maxZ - bb.minZ, 1.0E-4D);
-        double xRatio = MathHelper.clamp_double((point.xCoord - bb.minX) / width, 0.0D, 1.0D);
-        double yRatio = MathHelper.clamp_double((point.yCoord - bb.minY) / height, 0.0D, 1.0D);
-        double zRatio = MathHelper.clamp_double((point.zCoord - bb.minZ) / depth, 0.0D, 1.0D);
-        double xzEdge = Math.min(Math.min(xRatio, 1.0D - xRatio), Math.min(zRatio, 1.0D - zRatio));
-        double yEdge = Math.min(yRatio, 1.0D - yRatio);
-        return (0.5D - xzEdge) * 2.0D + (0.5D - yEdge) * 0.45D;
-    }
-
-    private Vec3 getStablePoint(EntityLivingBase entity, AxisAlignedBB bb) {
-        if (!this.pointStability.getValue() || this.stableAimRatio == null || this.stableAimTarget != entity) {
-            return null;
-        }
-        return new Vec3(
-                bb.minX + (bb.maxX - bb.minX) * this.stableAimRatio.xCoord,
-                bb.minY + (bb.maxY - bb.minY) * this.stableAimRatio.yCoord,
-                bb.minZ + (bb.maxZ - bb.minZ) * this.stableAimRatio.zCoord
-        );
-    }
-
-    private void updateStableAimPoint(EntityLivingBase entity, AxisAlignedBB bb, Vec3 point) {
-        if (!this.pointStability.getValue()) {
-            this.resetStableAimPoint();
-            return;
-        }
-        double width = Math.max(bb.maxX - bb.minX, 1.0E-4D);
-        double height = Math.max(bb.maxY - bb.minY, 1.0E-4D);
-        double depth = Math.max(bb.maxZ - bb.minZ, 1.0E-4D);
-        this.stableAimTarget = entity;
-        this.stableAimRatio = new Vec3(
-                MathHelper.clamp_double((point.xCoord - bb.minX) / width, 0.0D, 1.0D),
-                MathHelper.clamp_double((point.yCoord - bb.minY) / height, 0.0D, 1.0D),
-                MathHelper.clamp_double((point.zCoord - bb.minZ) / depth, 0.0D, 1.0D)
-        );
-    }
-
-    private void resetStableAimPoint() {
-        this.stableAimRatio = null;
-        this.stableAimTarget = null;
-    }
-
-    private boolean isValidPoint(Vec3 point, AxisAlignedBB bb, double pred, boolean outOfRange, boolean headHittable, boolean torsoHittable, boolean feetHittable) {
-        return this.canSeePoint(point, bb, pred, outOfRange) && !this.pointInBlacklistedPos(point, bb, headHittable, torsoHittable, feetHittable);
-    }
-
-    private boolean pointInBlacklistedPos(Vec3 point, AxisAlignedBB bb, boolean headHittable, boolean torsoHittable, boolean feetHittable) {
-        double height = bb.maxY - bb.minY;
-        double headSize = height / 4.5D;
-        double torsoSize = height / 2.75D;
-        boolean head = point.yCoord <= bb.maxY && point.yCoord > bb.maxY - headSize;
-        boolean torso = point.yCoord <= bb.maxY - headSize && point.yCoord >= bb.minY + torsoSize;
-        boolean feet = point.yCoord >= bb.minY && point.yCoord < bb.minY + torsoSize;
-        if (headHittable && !head) return true;
-        if (torsoHittable && !torso) return true;
-        if (feetHittable && !feet) return true;
-        if (this.blacklistHead.getValue() && head) return true;
-        if (this.blacklistTorso.getValue() && torso) return true;
-        if (this.blacklistFeet.getValue() && feet) return true;
-        return false;
-    }
-
-    private boolean canSeePoint(Vec3 point, AxisAlignedBB bb, double pred, boolean outOfRange) {
-        Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0F);
-        MovingObjectPosition blockHit = mc.theWorld.rayTraceBlocks(eyePos, point, false, false, false);
-        MovingObjectPosition boxHit = bb.calculateIntercept(eyePos, point);
-        if (boxHit != null && boxHit.hitVec.distanceTo(point) > 0.01D) {
-            return false;
-        }
-        return blockHit == null && (eyePos.distanceTo(point) < this.attackRange.getValue() + this.outOfRangeBuffer.getValue() + pred + this.finalXZTrim || outOfRange);
-    }
-
-    private boolean canSeePoint(Vec3 point) {
-        return mc.theWorld.rayTraceBlocks(mc.thePlayer.getPositionEyes(1.0F), point, false, false, false) == null;
-    }
-
-    private boolean[] getPreferredHittable(AxisAlignedBB bb, Vec3 eyes, double range) {
-        boolean[] hittable = new boolean[3];
-        AxisAlignedBB selected = null;
-        double height = bb.maxY - bb.minY;
-        double headSize = height / 4.5D;
-        double torsoSize = height / 2.75D;
-        switch (this.preferredBodyPart.getValue()) {
-            case 1:
-                selected = new AxisAlignedBB(bb.minX, bb.maxY - headSize, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
-                break;
-            case 2:
-                selected = new AxisAlignedBB(bb.minX, bb.minY + torsoSize, bb.minZ, bb.maxX, bb.maxY - headSize, bb.maxZ);
-                break;
-            case 3:
-                selected = new AxisAlignedBB(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY + torsoSize, bb.maxZ);
-                break;
-            default:
-                return hittable;
-        }
-        for (Vec3 vertex : vertices(selected)) {
-            if (eyes.distanceTo(vertex) < range) {
-                hittable[this.preferredBodyPart.getValue() - 1] = true;
-                break;
-            }
-        }
-        return hittable;
-    }
-
-    private Vec3 getOffsetVec() {
-        double minXZ = -0.5D;
-        double maxXZ = 0.5D;
-        double minY = -0.5D;
-        double maxY = 0.5D;
-        double yawFactor = randomBetween(this.yawFactorMin.getValue(), this.yawFactorMax.getValue());
-        double pitchFactor = randomBetween(this.pitchFactorMin.getValue(), this.pitchFactorMax.getValue());
-        double meanXZ = (minXZ + maxXZ) / 2.0D;
-        double stdDevXZ = (maxXZ - minXZ) / 4.0D;
-        double meanY = (minY + maxY) / 2.0D;
-        double stdDevY = (maxY - minY) / 4.0D;
-        double noiseScaleXZ = (maxXZ - minXZ) / 2.0D;
-        double noiseScaleY = (maxY - minY) / 2.0D;
-
-        if (this.shouldRandomize || this.offsetMode.getValue() == 2) {
-            switch (this.offsetMode.getValue()) {
-                case 1:
-                    this.updateOffset(
-                            clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
-                            clamp(ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY, minY, maxY),
-                            clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
-                            yawFactor,
-                            pitchFactor
-                    );
-                    break;
-                case 2:
-                    this.updateOffset(
-                            this.coherentNoise(this.noiseTime, 11) * noiseScaleXZ + meanXZ,
-                            this.coherentNoise(this.noiseTime * 0.85D + 19.0D, 23) * noiseScaleY + meanY,
-                            this.coherentNoise(this.noiseTime * 1.15D + 37.0D, 31) * noiseScaleXZ + meanXZ,
-                            yawFactor,
-                            pitchFactor
-                    );
-                    break;
-                case 3:
-                    Vec3 lastOffset = new Vec3(this.lastXOffset, this.lastYOffset, this.lastZOffset);
-                    if (this.offsetVec.distanceTo(lastOffset) < this.tolerance.getValue()) {
-                        if (this.advancedBase.getValue() == 0) {
-                            this.updateOffset(
-                                    clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
-                                    clamp(ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY, minY, maxY),
-                                    clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
-                                    yawFactor,
-                                    pitchFactor
-                            );
-                        } else {
-                            this.updateOffset(
-                                    this.coherentNoise(this.noiseTime, 41) * noiseScaleXZ + meanXZ,
-                                    this.coherentNoise(this.noiseTime * 0.85D + 13.0D, 53) * noiseScaleY + meanY,
-                                    this.coherentNoise(this.noiseTime * 1.15D + 29.0D, 67) * noiseScaleXZ + meanXZ,
-                                    yawFactor,
-                                    pitchFactor
-                            );
-                        }
-                    }
-                    break;
-                default:
-                    this.offsetVec = zeroVec();
-            }
-        } else if (this.offsetMode.getValue() != 0) {
-            this.offsetVec = interpolate(this.offsetVec, new Vec3(this.lastXOffset, this.lastYOffset, this.lastZOffset), this.interpolateVec.getValue() ? this.offsetAmount.getValue() : 1.0F);
-        } else {
-            this.offsetVec = zeroVec();
-        }
-
-        return this.offsetVec;
-    }
-
-    private void updateOffset(double xOffset, double yOffset, double zOffset, double yawFactor, double pitchFactor) {
-        xOffset *= yawFactor;
-        yOffset *= pitchFactor;
-        zOffset *= yawFactor;
-        this.offsetVec = interpolate(this.offsetVec, new Vec3(xOffset, yOffset, zOffset), this.interpolateVec.getValue() ? this.offsetAmount.getValue() : 1.0F);
-        this.lastXOffset = xOffset;
-        this.lastYOffset = yOffset;
-        this.lastZOffset = zOffset;
-    }
-
-    private float[] calculateJitter(float strength, boolean interpolate) {
-        long time = System.currentTimeMillis();
-        this.jitterClicks.removeIf(click -> click + 1000L < time);
-        if (this.jitterClicks.isEmpty()) {
-            this.clickImpulseYaw *= 0.75F;
-            this.clickImpulsePitch *= 0.75F;
-            this.tremorYaw = interpolate(this.tremorYaw, 0.0F, 0.12F);
-            this.tremorPitch = interpolate(this.tremorPitch, 0.0F, 0.12F);
-            this.jitterYaw = interpolate(this.jitterYaw, 0.0F, interpolate ? 0.25F : 0.4F);
-            this.jitterPitch = interpolate(this.jitterPitch, 0.0F, interpolate ? 0.25F : 0.4F);
-            return new float[]{this.jitterYaw, this.jitterPitch};
-        }
-
-        boolean lastFrameClicked = false;
-        for (Long clickTime : this.jitterClicks) {
-            if (clickTime + 17L > time) {
-                lastFrameClicked = true;
-                break;
-            }
-        }
-        if (lastFrameClicked) {
-            this.clickImpulseYaw = MathHelper.clamp_float(this.clickImpulseYaw + RandomUtil.nextFloat(-strength, strength), -strength * 2.0F, strength * 2.0F);
-            this.clickImpulsePitch = MathHelper.clamp_float(this.clickImpulsePitch + RandomUtil.nextFloat(-strength, strength), -strength * 1.5F, strength * 1.5F);
-        }
-
-        float cpsFactor = Math.min(this.jitterClicks.size() / 12.0F, 1.5F);
-        float yawJitter = this.tremorYaw * 0.6F * cpsFactor + this.clickImpulseYaw;
-        float pitchJitter = this.tremorPitch * 0.6F * cpsFactor + this.clickImpulsePitch;
-        if (interpolate) {
-            this.jitterYaw = interpolate(this.jitterYaw, yawJitter, 0.25F);
-            this.jitterPitch = interpolate(this.jitterPitch, pitchJitter, 0.25F);
-        } else {
-            this.jitterYaw = yawJitter;
-            this.jitterPitch = pitchJitter;
-        }
-
-        if (mc.thePlayer.ticksExisted != this.lastJitterTick) {
-            if (Math.random() < 0.08D) {
-                this.targetJitterYaw = RandomUtil.nextFloat(-0.15F, 0.15F);
-                this.targetJitterPitch = RandomUtil.nextFloat(-0.15F, 0.15F);
-            }
-            this.tremorYaw += (this.targetJitterYaw - this.tremorYaw) * 0.12F;
-            this.tremorPitch += (this.targetJitterPitch - this.tremorPitch) * 0.12F;
-            this.clickImpulseYaw *= 0.75F;
-            this.clickImpulsePitch *= 0.75F;
-            this.lastJitterTick = mc.thePlayer.ticksExisted;
-        }
-        return new float[]{this.jitterYaw, this.jitterPitch};
-    }
-
     @EventTarget(Priority.LOWEST)
     public void onPacket(PacketEvent event) {
         if (this.isEnabled() && !event.isCancelled() && !this.isInventoryBlocked()) {
-            if (event.getType() == EventType.SEND && event.getPacket() instanceof C0APacketAnimation) {
-                this.jitterClicks.add(System.currentTimeMillis());
-            }
             if (event.getPacket() instanceof C07PacketPlayerDigging packet) {
                 if (packet.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM) {
                     this.blockingState = false;
@@ -1713,7 +781,7 @@ public class KillAura extends Module {
     public void onMove(MoveInputEvent event) {
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
-                    && this.rotations.getValue() != 3
+                    && !this.lockView.getValue()
                     && RotationState.isActived()
                     && RotationState.getPriority() == 1.0F
                     && MoveUtil.isForwardPressed()) {
@@ -1737,69 +805,8 @@ public class KillAura extends Module {
                     RenderUtil.drawEntityBox(target.getEntity(), color.getRed(), color.getGreen(), color.getBlue());
                     RenderUtil.disableRenderState();
                 }
-                if (this.advancedRotations.getValue() && this.aimDot.getValue() && this.currentVec != null) {
-                    this.renderAimDot(event.partialTicks());
-                }
             }
         }
-    }
-
-    private void renderAimDot(float partialTicks) {
-        double size = 0.1D;
-        Color color = new Color(this.aimDotColor.getValue());
-        Vec3 aimVec = this.lastAimVec == null
-                ? this.currentVec
-                : interpolate(this.lastAimVec, this.currentVec, partialTicks);
-        AxisAlignedBB dotBox = new AxisAlignedBB(
-                aimVec.xCoord - size,
-                aimVec.yCoord - size,
-                aimVec.zCoord - size,
-                aimVec.xCoord + size,
-                aimVec.yCoord + size,
-                aimVec.zCoord + size
-        ).offset(
-                -mc.getRenderManager().getRenderPosX(),
-                -mc.getRenderManager().getRenderPosY(),
-                -mc.getRenderManager().getRenderPosZ()
-        );
-
-        RenderUtil.enableRenderState();
-        RenderUtil.drawFilledBox(dotBox, color.getRed(), color.getGreen(), color.getBlue(), 180);
-        RenderUtil.disableRenderState();
-    }
-
-    private void updateAimVec(Vec3 targetVec) {
-        this.lastAimVec = this.currentVec == null ? targetVec : this.currentVec;
-        this.currentVec = targetVec;
-    }
-
-    private void resetAimVec() {
-        this.currentVec = null;
-        this.lastAimVec = null;
-        this.resetStableAimPoint();
-        this.resetOvershoot();
-        this.resetAdvancedRotationState();
-    }
-
-    private void resetAdvancedRotationState() {
-        this.offsetVec = zeroVec();
-        this.lastXOffset = 0.0D;
-        this.lastYOffset = 0.0D;
-        this.lastZOffset = 0.0D;
-        this.noiseTime = 0.0D;
-        this.noiseSeed = ThreadLocalRandom.current().nextLong();
-        this.normalisedRot = null;
-        this.shouldRandomize = false;
-        this.tremorYaw = 0.0F;
-        this.tremorPitch = 0.0F;
-        this.targetJitterYaw = 0.0F;
-        this.targetJitterPitch = 0.0F;
-        this.clickImpulseYaw = 0.0F;
-        this.clickImpulsePitch = 0.0F;
-        this.jitterYaw = 0.0F;
-        this.jitterPitch = 0.0F;
-        this.lastJitterTick = 0;
-        this.jitterClicks.clear();
     }
 
     @Override
@@ -1868,8 +875,6 @@ public class KillAura extends Module {
     public void onEnabled() {
         this.easingOut = false;
         target = null;
-        this.resetAimVec();
-        this.resetPredictionEngine();
         this.switchTick = 0;
         this.hitRegistered = false;
         this.attackDelayMS = 0L;
@@ -1886,8 +891,6 @@ public class KillAura extends Module {
         this.blockingState = false;
         this.isBlocking = false;
         this.fakeBlockState = false;
-        this.resetAimVec();
-        this.resetPredictionEngine();
     }
 
     @Override
@@ -1904,14 +907,6 @@ public class KillAura extends Module {
             } else if (this.minCPS.getName().equals(mode)) {
                 if (this.minCPS.getValue() > this.maxCPS.getValue()) {
                     this.maxCPS.setValue(this.minCPS.getValue());
-                }
-            } else if (this.reactionTimeMin.getName().equals(mode)) {
-                if (this.reactionTimeMin.getValue() > this.reactionTimeMax.getValue()) {
-                    this.reactionTimeMax.setValue(this.reactionTimeMin.getValue());
-                }
-            } else if (this.reactionTimeMax.getName().equals(mode)) {
-                if (this.reactionTimeMin.getValue() > this.reactionTimeMax.getValue()) {
-                    this.reactionTimeMin.setValue(this.reactionTimeMax.getValue());
                 }
             } else {
                 if (this.maxCPS.getName().equals(mode) && this.minCPS.getValue() > this.maxCPS.getValue()) {
