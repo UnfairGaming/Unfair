@@ -113,6 +113,7 @@ public class KillAura extends Module {
     public final FloatProperty yawFactorMax = new FloatProperty("yaw-factor-max", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
     public final FloatProperty pitchFactorMin = new FloatProperty("pitch-factor-min", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
     public final FloatProperty pitchFactorMax = new FloatProperty("pitch-factor-max", 0.25F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
+    public final FloatProperty noiseSpeed = new FloatProperty("noise-speed", 0.35F, 0.01F, 2.0F, () -> this.advancedRotations.getValue() && (this.offsetMode.getValue() == 2 || this.offsetMode.getValue() == 3 && this.advancedBase.getValue() == 1));
     public final BooleanProperty interpolateVec = new BooleanProperty("interpolate-vec", false, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() != 0);
     public final FloatProperty offsetAmount = new FloatProperty("offset-amount", 0.5F, 0.01F, 1.0F, () -> this.advancedRotations.getValue() && this.interpolateVec.getValue() && this.offsetMode.getValue() != 0);
     public final FloatProperty tolerance = new FloatProperty("tolerance", 0.05F, 0.01F, 0.1F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() == 3);
@@ -171,6 +172,8 @@ public class KillAura extends Module {
     private double lastXOffset;
     private double lastYOffset;
     private double lastZOffset;
+    private double noiseTime;
+    private long noiseSeed;
     private boolean shouldRandomize;
     private double finalXZTrim;
     private double xzRandShrinkThing;
@@ -303,6 +306,28 @@ public class KillAura extends Module {
         return min == max ? min : RandomUtil.nextDouble(Math.min(min, max), Math.max(min, max));
     }
 
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private static double smoothStep(double value) {
+        return value * value * (3.0D - 2.0D * value);
+    }
+
+    private static double hashNoise(long seed, int step, int salt) {
+        long x = seed + (long) step * 0x9E3779B97F4A7C15L + (long) salt * 0xBF58476D1CE4E5B9L;
+        x = (x ^ (x >>> 30)) * 0xBF58476D1CE4E5B9L;
+        x = (x ^ (x >>> 27)) * 0x94D049BB133111EBL;
+        x = x ^ (x >>> 31);
+        return ((x >>> 11) * 0x1.0p-53D) * 2.0D - 1.0D;
+    }
+
+    private double coherentNoise(double time, int salt) {
+        int step = (int) Math.floor(time);
+        double progress = smoothStep(time - step);
+        return interpolate((float) hashNoise(this.noiseSeed, step, salt), (float) hashNoise(this.noiseSeed, step + 1, salt), (float) progress);
+    }
+
     private long getAttackDelay() {
         return this.isBlocking ? this.delayGenerator.nextDelay(this.autoBlockCPS.getValue(), this.autoBlockCPS.getValue()) : this.delayGenerator.nextDelay(this.minCPS.getValue(), this.maxCPS.getValue());
     }
@@ -384,7 +409,7 @@ public class KillAura extends Module {
         if (this.attackDisabled) {
             return false;
         }
-        if (this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer) {
+        if (this.isInventoryBlocked()) {
             return false;
         } else if (!(Boolean) this.weaponsOnly.getValue()
                 || ItemUtil.hasRawUnbreakingEnchant()
@@ -616,6 +641,28 @@ public class KillAura extends Module {
                 && (this.autoBlock.getValue() == 2 || this.autoBlock.getValue() == 5);
     }
 
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
+    }
+
+    private void resetInventoryBlockedState() {
+        target = null;
+        Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+        this.blockingState = false;
+        this.isBlocking = false;
+        this.fakeBlockState = false;
+        this.blockTick = 0;
+        this.attackDelayMS = 0L;
+        this.easingOut = false;
+        this.resetAimVec();
+        this.resetPredictionEngine();
+
+        if (mc.thePlayer != null) {
+            this.serverYaw = mc.thePlayer.rotationYaw;
+            this.serverPitch = mc.thePlayer.rotationPitch;
+        }
+    }
+
     public boolean isBlocking() {
         return this.fakeBlockState && ItemUtil.isHoldingSword();
     }
@@ -626,6 +673,11 @@ public class KillAura extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
+        if ((this.isEnabled() || this.easingOut) && event.getType() == EventType.PRE && this.isInventoryBlocked()) {
+            this.resetInventoryBlockedState();
+            return;
+        }
+
         if (this.easingOut && event.getType() == EventType.PRE) {
             float targetYaw = event.getNewYaw();
             float targetPitch = event.getNewPitch();
@@ -917,6 +969,10 @@ public class KillAura extends Module {
                 this.isBlocking = false;
                 return;
             }
+            if (this.isInventoryBlocked()) {
+                this.resetInventoryBlockedState();
+                return;
+            }
             switch (event.type()) {
                 case PRE:
                     if (target == null
@@ -1002,6 +1058,7 @@ public class KillAura extends Module {
 
     private float[] getAdvancedRotations(float yaw, float pitch, float maxAngle, float smoothFactor) {
         EntityLivingBase entity = target.getEntity();
+        this.noiseTime += Math.max(0.01D, this.noiseSpeed.getValue()) * 0.08D;
         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
         AxisAlignedBB bb = this.getAdvancedBox(entity);
         double speedTrim = getSpeedPosBased(entity) * 0.5D;
@@ -1082,7 +1139,8 @@ public class KillAura extends Module {
                 MathHelper.clamp_double(targetVec.zCoord, bb.minZ, bb.maxZ)
         );
         if (this.predictionEngine.getValue()) {
-            targetVec = add(targetVec, multiply(getMoveDelta(entity), Math.random() * 0.7D * this.extraPrediction.getValue()));
+            double predictionBlend = (0.35D + (this.coherentNoise(this.noiseTime + 71.0D, 83) + 1.0D) * 0.175D) * this.extraPrediction.getValue();
+            targetVec = add(targetVec, multiply(getMoveDelta(entity), predictionBlend));
         }
 
         this.updateAimVec(targetVec);
@@ -1154,8 +1212,8 @@ public class KillAura extends Module {
 
         if (tick != this.overshootLastTick) {
             float noise = amplitude * this.overshootRandomness.getValue() * 0.35F;
-            this.overshootNoiseYaw = RandomUtil.nextFloat(-noise, noise);
-            this.overshootNoisePitch = RandomUtil.nextFloat(-noise, noise) * 0.65F;
+            this.overshootNoiseYaw = interpolate(this.overshootNoiseYaw, (float) this.coherentNoise(tick * 0.35D + 101.0D, 109) * noise, 0.35F);
+            this.overshootNoisePitch = interpolate(this.overshootNoisePitch, (float) this.coherentNoise(tick * 0.31D + 149.0D, 127) * noise * 0.65F, 0.35F);
             this.overshootLastTick = tick;
         }
 
@@ -1481,34 +1539,48 @@ public class KillAura extends Module {
         double stdDevXZ = (maxXZ - minXZ) / 4.0D;
         double meanY = (minY + maxY) / 2.0D;
         double stdDevY = (maxY - minY) / 4.0D;
+        double noiseScaleXZ = (maxXZ - minXZ) / 2.0D;
+        double noiseScaleY = (maxY - minY) / 2.0D;
 
-        if (this.shouldRandomize) {
+        if (this.shouldRandomize || this.offsetMode.getValue() == 2) {
             switch (this.offsetMode.getValue()) {
                 case 1:
                     this.updateOffset(
-                            ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
-                            ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY,
-                            ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
+                            clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
+                            clamp(ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY, minY, maxY),
+                            clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
                             yawFactor,
                             pitchFactor
                     );
                     break;
                 case 2:
-                    this.updateOffset(RandomUtil.nextDouble(minXZ, maxXZ), RandomUtil.nextDouble(minY, maxY), RandomUtil.nextDouble(minXZ, maxXZ), yawFactor, pitchFactor);
+                    this.updateOffset(
+                            this.coherentNoise(this.noiseTime, 11) * noiseScaleXZ + meanXZ,
+                            this.coherentNoise(this.noiseTime * 0.85D + 19.0D, 23) * noiseScaleY + meanY,
+                            this.coherentNoise(this.noiseTime * 1.15D + 37.0D, 31) * noiseScaleXZ + meanXZ,
+                            yawFactor,
+                            pitchFactor
+                    );
                     break;
                 case 3:
                     Vec3 lastOffset = new Vec3(this.lastXOffset, this.lastYOffset, this.lastZOffset);
                     if (this.offsetVec.distanceTo(lastOffset) < this.tolerance.getValue()) {
                         if (this.advancedBase.getValue() == 0) {
                             this.updateOffset(
-                                    ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
-                                    ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY,
-                                    ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ,
+                                    clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
+                                    clamp(ThreadLocalRandom.current().nextGaussian() * stdDevY + meanY, minY, maxY),
+                                    clamp(ThreadLocalRandom.current().nextGaussian() * stdDevXZ + meanXZ, minXZ, maxXZ),
                                     yawFactor,
                                     pitchFactor
                             );
                         } else {
-                            this.updateOffset(RandomUtil.nextDouble(minXZ, maxXZ), RandomUtil.nextDouble(minY, maxY), RandomUtil.nextDouble(minXZ, maxXZ), yawFactor, pitchFactor);
+                            this.updateOffset(
+                                    this.coherentNoise(this.noiseTime, 41) * noiseScaleXZ + meanXZ,
+                                    this.coherentNoise(this.noiseTime * 0.85D + 13.0D, 53) * noiseScaleY + meanY,
+                                    this.coherentNoise(this.noiseTime * 1.15D + 29.0D, 67) * noiseScaleXZ + meanXZ,
+                                    yawFactor,
+                                    pitchFactor
+                            );
                         }
                     }
                     break;
@@ -1538,6 +1610,12 @@ public class KillAura extends Module {
         long time = System.currentTimeMillis();
         this.jitterClicks.removeIf(click -> click + 1000L < time);
         if (this.jitterClicks.isEmpty()) {
+            this.clickImpulseYaw *= 0.75F;
+            this.clickImpulsePitch *= 0.75F;
+            this.tremorYaw = interpolate(this.tremorYaw, 0.0F, 0.12F);
+            this.tremorPitch = interpolate(this.tremorPitch, 0.0F, 0.12F);
+            this.jitterYaw = interpolate(this.jitterYaw, 0.0F, interpolate ? 0.25F : 0.4F);
+            this.jitterPitch = interpolate(this.jitterPitch, 0.0F, interpolate ? 0.25F : 0.4F);
             return new float[]{this.jitterYaw, this.jitterPitch};
         }
 
@@ -1549,8 +1627,8 @@ public class KillAura extends Module {
             }
         }
         if (lastFrameClicked) {
-            this.clickImpulseYaw += RandomUtil.nextFloat(-strength, strength);
-            this.clickImpulsePitch += RandomUtil.nextFloat(-strength, strength);
+            this.clickImpulseYaw = MathHelper.clamp_float(this.clickImpulseYaw + RandomUtil.nextFloat(-strength, strength), -strength * 2.0F, strength * 2.0F);
+            this.clickImpulsePitch = MathHelper.clamp_float(this.clickImpulsePitch + RandomUtil.nextFloat(-strength, strength), -strength * 1.5F, strength * 1.5F);
         }
 
         float cpsFactor = Math.min(this.jitterClicks.size() / 12.0F, 1.5F);
@@ -1580,7 +1658,7 @@ public class KillAura extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onPacket(PacketEvent event) {
-        if (this.isEnabled() && !event.isCancelled()) {
+        if (this.isEnabled() && !event.isCancelled() && !this.isInventoryBlocked()) {
             if (event.getType() == EventType.SEND && event.getPacket() instanceof C0APacketAnimation) {
                 this.jitterClicks.add(System.currentTimeMillis());
             }
@@ -1600,7 +1678,7 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onMove(MoveInputEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
                     && this.rotations.getValue() != 3
                     && RotationState.isActived()
@@ -1616,7 +1694,7 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onRender(Render3DEvent event) {
-        if (this.isEnabled() && target != null) {
+        if (this.isEnabled() && !this.isInventoryBlocked() && target != null) {
             if (TeamUtil.isEntityLoaded(target.getEntity())
                     && this.isAttackAllowed()) {
                 if (this.showTarget.getValue() == 1) {
@@ -1667,6 +1745,28 @@ public class KillAura extends Module {
         this.lastAimVec = null;
         this.resetStableAimPoint();
         this.resetOvershoot();
+        this.resetAdvancedRotationState();
+    }
+
+    private void resetAdvancedRotationState() {
+        this.offsetVec = zeroVec();
+        this.lastXOffset = 0.0D;
+        this.lastYOffset = 0.0D;
+        this.lastZOffset = 0.0D;
+        this.noiseTime = 0.0D;
+        this.noiseSeed = ThreadLocalRandom.current().nextLong();
+        this.normalisedRot = null;
+        this.shouldRandomize = false;
+        this.tremorYaw = 0.0F;
+        this.tremorPitch = 0.0F;
+        this.targetJitterYaw = 0.0F;
+        this.targetJitterPitch = 0.0F;
+        this.clickImpulseYaw = 0.0F;
+        this.clickImpulsePitch = 0.0F;
+        this.jitterYaw = 0.0F;
+        this.jitterPitch = 0.0F;
+        this.lastJitterTick = 0;
+        this.jitterClicks.clear();
     }
 
     @Override
@@ -1684,6 +1784,9 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onLeftClick(LeftClickMouseEvent event) {
+        if (this.isInventoryBlocked()) {
+            return;
+        }
         if (this.isBlocking) {
             event.setCancelled(true);
         } else {
@@ -1695,6 +1798,9 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onRightClick(RightClickMouseEvent event) {
+        if (this.isInventoryBlocked()) {
+            return;
+        }
         if (this.isBlocking) {
             event.setCancelled(true);
         } else {
@@ -1706,6 +1812,9 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onHitBlock(HitBlockEvent event) {
+        if (this.isInventoryBlocked()) {
+            return;
+        }
         if (this.isBlocking) {
             event.setCancelled(true);
         } else {
@@ -1717,7 +1826,7 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onCancelUse(CancelUseEvent event) {
-        if (this.isBlocking) {
+        if (!this.isInventoryBlocked() && this.isBlocking) {
             event.setCancelled(true);
         }
     }

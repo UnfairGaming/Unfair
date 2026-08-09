@@ -168,6 +168,10 @@ public class BackTrack extends Module {
         return (int) randomizeDouble(-value, value);
     }
 
+    private int getDelayMs() {
+        return Math.max(0, this.ms.getValue() + this.nextRand);
+    }
+
     private static double randomizeDouble(double min, double max) {
         if (min == max) {
             return min;
@@ -208,7 +212,7 @@ public class BackTrack extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{this.ms.getValue() + this.nextRand + "ms"};
+        return new String[]{this.getDelayMs() + "ms"};
     }
 
     @EventTarget
@@ -302,7 +306,7 @@ public class BackTrack extends Module {
                     this.outOfRange = this.target.hurtTime == 10;
                     break;
                 default:
-                    this.outOfRange = this.attacked && (!this.attackTickFix.getValue() || this.attackTimer.hasTimeElapsed(Math.min(this.ms.getValue(), 100)));
+                    this.outOfRange = this.attacked && (!this.attackTickFix.getValue() || this.attackTimer.hasTimeElapsed(Math.min(this.getDelayMs(), 100)));
                     break;
             }
         }
@@ -321,7 +325,7 @@ public class BackTrack extends Module {
 
         if (shouldLag) {
             if (this.relagTimer.hasTimeElapsed(this.delayForNextLag.getValue())) {
-                BackTrackLagUtils.spoof(this.ms.getValue() + this.nextRand, true, true, true, true, false, false);
+                BackTrackLagUtils.spoof(this.getDelayMs(), true, true, true, true, false, false);
                 this.dispatched = false;
             }
         } else if (!this.dispatched) {
@@ -343,7 +347,7 @@ public class BackTrack extends Module {
         }
 
         this.attacked = true;
-        if (!this.attackTimer.hasTimeElapsed(Math.min(this.ms.getValue(), 100))
+        if (!this.attackTimer.hasTimeElapsed(Math.min(this.getDelayMs(), 100))
                 && this.attackTickFix.getValue()
                 && !this.dispatched
                 && this.onlyWhenNeeded.getValue()) {
@@ -601,7 +605,7 @@ public class BackTrack extends Module {
             PacketType.ACTION.enabled = action;
             PacketType.MOVEMENT.enabled = movement;
             post = true;
-            delayAmount = amount;
+            delayAmount = Math.max(0L, amount);
         }
 
         private static void dispatch() {

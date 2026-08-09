@@ -18,6 +18,7 @@ import cn.unfair.util.*;
 import cn.unfair.util.player.DelayGenerator;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.item.Item;
@@ -65,6 +66,7 @@ public class Scaffold extends Module {
     public final BooleanProperty swing = new BooleanProperty("swing", true);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
     public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     private final float[] lastErrors = new float[20];
     private final TimerUtil clickTimer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();
@@ -93,6 +95,42 @@ public class Scaffold extends Module {
 
     public Scaffold() {
         super("Scaffold", false);
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
+    }
+
+    private void resetRuntimeState(boolean restoreSlot) {
+        if (restoreSlot && mc.thePlayer != null && this.lastSlot != -1) {
+            mc.thePlayer.inventory.currentItem = this.lastSlot;
+        }
+        this.blockCount = -1;
+        this.rotationTick = 0;
+        this.yaw = -180.0F;
+        this.pitch = 0.0F;
+        this.serverYaw = mc.thePlayer != null ? mc.thePlayer.rotationYaw : 0.0F;
+        this.serverPitch = mc.thePlayer != null ? mc.thePlayer.rotationPitch : 0.0F;
+        this.canRotate = false;
+        this.towerTick = 0;
+        this.towerDelay = 0;
+        this.sneakDelay = 0;
+        this.stage = 0;
+        this.startY = mc.thePlayer != null ? MathHelper.floor_double(mc.thePlayer.posY) : 256;
+        this.shouldKeepY = false;
+        this.towering = false;
+        this.lastYaw = 0.0F;
+        this.lastYawChange = 0.0F;
+        this.lastPitchChange = 0.0F;
+        this.targetFacing = null;
+        this.easingOut = false;
+        this.errorIndex = 0;
+        this.nextClickDelay = 0L;
+        this.clickTimer.setTime();
+        this.delayGenerator.reset();
+        for (int i = 0; i < this.lastErrors.length; i++) {
+            this.lastErrors[i] = 0.0F;
+        }
     }
 
     private boolean shouldStopSprint() {
@@ -151,6 +189,10 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
+        if (this.isEnabled() && this.isInventoryBlocked()) {
+            this.resetRuntimeState(true);
+            return;
+        }
         if (!this.sneak.getValue()) {
             this.sneakDelay = 0;
             return;
@@ -433,6 +475,11 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
+        if ((this.isEnabled() || this.easingOut) && event.getType() == EventType.PRE && this.isInventoryBlocked()) {
+            this.resetRuntimeState(true);
+            return;
+        }
+
         if (this.easingOut && event.getType() == EventType.PRE) {
             float targetYaw = event.getNewYaw();
             float targetPitch = event.getNewPitch();
@@ -863,6 +910,10 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onStrafe(StrafeEvent event) {
+        if (this.isEnabled() && this.isInventoryBlocked()) {
+            this.resetRuntimeState(true);
+            return;
+        }
         if (this.isEnabled()) {
             if (!mc.thePlayer.isCollidedHorizontally
                     && mc.thePlayer.hurtTime <= 5
@@ -1004,7 +1055,7 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onMoveInput(MoveInputEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
                     && RotationState.isActived()
                     && RotationState.getPriority() == 3.0F
@@ -1028,7 +1079,7 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onLivingUpdate(LivingUpdateEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             float speed = this.getSpeed();
             if (speed != 1.0F) {
                 if (mc.thePlayer.movementInput.moveForward != 0.0F && mc.thePlayer.movementInput.moveStrafe != 0.0F) {
@@ -1046,7 +1097,7 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onSafeWalk(SafeWalkEvent event) {
-        if (this.isEnabled() && this.safeWalk.getValue()) {
+        if (this.isEnabled() && !this.isInventoryBlocked() && this.safeWalk.getValue()) {
             if (mc.thePlayer.onGround && mc.thePlayer.motionY <= 0.0 && PlayerUtil.canMove(mc.thePlayer.motionX, mc.thePlayer.motionZ, -1.0)) {
                 event.setSafeWalk(true);
             }
@@ -1125,28 +1176,28 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onLeftClick(LeftClickMouseEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             event.setCancelled(true);
         }
     }
 
     @EventTarget
     public void onRightClick(RightClickMouseEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             event.setCancelled(true);
         }
     }
 
     @EventTarget
     public void onHitBlock(HitBlockEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             event.setCancelled(true);
         }
     }
 
     @EventTarget
     public void onSwap(SwapItemEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             this.lastSlot = event.setSlot(this.lastSlot);
             event.setCancelled(true);
         }
@@ -1172,26 +1223,8 @@ public class Scaffold extends Module {
         } else {
             this.lastSlot = -1;
         }
-        this.blockCount = -1;
+        this.resetRuntimeState(false);
         this.rotationTick = 3;
-        this.yaw = -180.0F;
-        this.pitch = 0.0F;
-        this.serverYaw = mc.thePlayer != null ? mc.thePlayer.rotationYaw : 0.0F;
-        this.serverPitch = mc.thePlayer != null ? mc.thePlayer.rotationPitch : 0.0F;
-        this.canRotate = false;
-        this.towerTick = 0;
-        this.towerDelay = 0;
-        this.towering = false;
-        this.lastYaw = 0;
-        this.lastYawChange = 0;
-        this.lastPitchChange = 0;
-        this.errorIndex = 0;
-        this.clickTimer.setTime();
-        this.delayGenerator.reset();
-        this.nextClickDelay = 0L;
-        for (int i = 0; i < this.lastErrors.length; i++) {
-            this.lastErrors[i] = 0.0F;
-        }
     }
 
     @Override
@@ -1199,7 +1232,7 @@ public class Scaffold extends Module {
         if (mc.thePlayer != null && this.lastSlot != -1) {
             mc.thePlayer.inventory.currentItem = this.lastSlot;
         }
-        this.sneakDelay = 0;
+        this.resetRuntimeState(false);
     }
 
     @Override

@@ -58,4 +58,12 @@ public class AntiCheat extends Module {
         manager.clearPlayers();
     }
 
+    @Override
+    public void verifyValue(String string) {
+        if (manager != null) {
+            manager.reloadChecks();
+            manager.clearPlayers();
+        }
+    }
+
 }

@@ -12,7 +12,6 @@ import cn.unfair.util.anticheat.check.AutoClickerACheck;
 import cn.unfair.util.anticheat.check.AutoClickerBCheck;
 import cn.unfair.util.anticheat.check.InvalidSwingCheck;
 import cn.unfair.util.anticheat.check.MotionACheck;
-import cn.unfair.util.anticheat.check.MotionBCheck;
 import cn.unfair.util.anticheat.check.MotionCCheck;
 import cn.unfair.util.anticheat.check.NoSlowACheck;
 import cn.unfair.util.anticheat.check.NoSlowBCheck;
@@ -56,7 +55,6 @@ public class AnticheatManager {
         }
         if (module.motionCheck.getValue()) {
             checks.add(new MotionACheck());
-            checks.add(new MotionBCheck());
             checks.add(new MotionCCheck());
         }
         if (module.invalidSwingCheck.getValue()) checks.add(new InvalidSwingCheck());
