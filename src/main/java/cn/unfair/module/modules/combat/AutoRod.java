@@ -12,6 +12,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -37,6 +38,7 @@ public class AutoRod extends Module {
     public final FloatProperty basePrediction = new FloatProperty("base-prediction", 2.0F, 0.0F, 8.0F, this.rotate::getValue);
     public final BooleanProperty onlyOnKillAura = new BooleanProperty("only-on-kill-aura", false);
     public final BooleanProperty overrideAuraRots = new BooleanProperty("override-kill-aura-rots", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
 
     private final TimerUtil recastTimer = new TimerUtil();
     private final TimerUtil delayTimer = new TimerUtil();
@@ -84,6 +86,11 @@ public class AutoRod extends Module {
     @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
+            return;
+        }
+
+        if (this.isInventoryBlocked()) {
+            this.forceReset();
             return;
         }
 
@@ -141,7 +148,7 @@ public class AutoRod extends Module {
 
     @EventTarget
     public void onLeftClick(LeftClickMouseEvent event) {
-        if (this.isEnabled() && !this.delayTimer.hasTimeElapsed(50L)) {
+        if (this.isEnabled() && !this.isInventoryBlocked() && !this.delayTimer.hasTimeElapsed(50L)) {
             event.setCancelled(true);
         }
     }
@@ -223,6 +230,22 @@ public class AutoRod extends Module {
         this.rotating = false;
         this.rodState = 0;
         this.rodSlot = -1;
+    }
+
+    private void forceReset() {
+        if (!this.resetSpoofing) {
+            this.restoreSlot();
+        }
+        this.currentTarget = null;
+        this.usingRod = false;
+        this.resetSpoofing = true;
+        this.rotating = false;
+        this.rodState = 0;
+        this.rodSlot = -1;
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
     private void restoreSlot() {

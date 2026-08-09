@@ -11,6 +11,7 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.inventory.ContainerBrewingStand;
@@ -30,6 +31,7 @@ public class ChestAura extends Module {
     public final FloatProperty range = new FloatProperty("Range", 3.0F, 1.0F, 7.0F);
     public final FloatProperty openDelay = new FloatProperty("Open Delay", 100.0F, 0.0F, 600.0F);
     public final BooleanProperty interactOnce = new BooleanProperty("Interact Once", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     private final List<BlockPos> openedList = new ArrayList<>();
     private BlockPos targetPos;
     private boolean waitingOpen;
@@ -66,6 +68,12 @@ public class ChestAura extends Module {
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled()) return;
 
+        if (this.isInventoryBlocked()) {
+            this.targetPos = null;
+            this.waitingOpen = false;
+            return;
+        }
+
         ChestStealer stealer = (ChestStealer) Unfair.moduleManager.getModule(ChestStealer.class);
         if (!stealer.isEnabled()) return;
 
@@ -75,8 +83,7 @@ public class ChestAura extends Module {
         if (event.getType() == EventType.PRE) {
             if ((killAura.isEnabled() && killAura.getTarget() != null)
                     || this.isContainerOpen()
-                    || scaffold.isEnabled()
-                    || mc.currentScreen != null) {
+                    || scaffold.isEnabled()) {
                 this.targetPos = null;
                 return;
             }
@@ -150,5 +157,9 @@ public class ChestAura extends Module {
                 }
             }
         }
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 }

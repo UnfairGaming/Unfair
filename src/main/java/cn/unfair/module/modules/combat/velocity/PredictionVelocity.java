@@ -14,10 +14,12 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
+import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
@@ -37,6 +39,7 @@ public class PredictionVelocity extends SubModule {
     private int jumpResetTicks;
     private boolean rotating;
     private Entity target;
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
 
     public PredictionVelocity() {
         super("Prediction");
@@ -54,6 +57,11 @@ public class PredictionVelocity extends SubModule {
             return;
         }
         if (velocity == null || !isEnabled() || event.getType() != EventType.PRE) return;
+        if (this.isInventoryBlocked()) {
+            if (delaying) releaseDelay();
+            resetPredict();
+            return;
+        }
         if (predictTick < 0) {
             rotating = false;
             return;
@@ -97,7 +105,10 @@ public class PredictionVelocity extends SubModule {
     @EventTarget
     public void onMove(MoveInputEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!isEnabled() || !rotating) return;
+        if (!isEnabled() || !rotating || this.isInventoryBlocked()) {
+            rotating = false;
+            return;
+        }
         mc.thePlayer.movementInput.moveForward = 1.0F;
         mc.thePlayer.movementInput.moveStrafe = 0.0F;
         mc.thePlayer.setSprinting(true);
@@ -108,6 +119,7 @@ public class PredictionVelocity extends SubModule {
         Velocity velocity = velocity();
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (velocity == null || !isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) return;
+        if (this.isInventoryBlocked()) return;
         if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
             if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
                 LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
@@ -206,6 +218,10 @@ public class PredictionVelocity extends SubModule {
         jumpResetTicks = 0;
         delaying = false;
         rotating = false;
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
 }

@@ -13,6 +13,7 @@ import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.MoveUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.init.Blocks;
@@ -38,6 +39,7 @@ public class AutoBlockIn extends Module {
     public final IntProperty rotationTolerance = new IntProperty("rotation-tolerance", 25, 5, 100);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", true);
     public final BooleanProperty showProgress = new BooleanProperty("show-progress", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
     private final Map<String, Integer> BLOCK_SCORE = new HashMap<>();
     private long lastPlaceTime = 0;
@@ -83,6 +85,10 @@ public class AutoBlockIn extends Module {
 
     @Override
     public void onDisabled() {
+        this.resetState();
+    }
+
+    private void resetState() {
         if (lastSlot != -1 && mc.thePlayer != null && mc.thePlayer.inventory.currentItem != lastSlot) {
             mc.thePlayer.inventory.currentItem = lastSlot;
         }
@@ -92,13 +98,18 @@ public class AutoBlockIn extends Module {
         targetHitVec = null;
     }
 
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
+    }
+
     @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
         if (!isEnabled()) return;
         if (event.getType() != EventType.PRE) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        if (mc.currentScreen != null) {
+        if (this.isInventoryBlocked()) {
+            this.resetState();
             return;
         }
 
@@ -155,7 +166,7 @@ public class AutoBlockIn extends Module {
 
     @EventTarget
     public void onMove(MoveInputEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
                     && RotationState.isActived()
                     && RotationState.getPriority() == 6
@@ -171,7 +182,8 @@ public class AutoBlockIn extends Module {
         if (event.type() != EventType.PRE) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        if (mc.currentScreen != null) {
+        if (this.isInventoryBlocked()) {
+            this.resetState();
             return;
         }
 
@@ -213,7 +225,7 @@ public class AutoBlockIn extends Module {
 
     @EventTarget
     public void onSwap(SwapItemEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             lastSlot = event.setSlot(lastSlot);
             event.setCancelled(true);
         }
@@ -221,7 +233,7 @@ public class AutoBlockIn extends Module {
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {
-        if (!isEnabled() || mc.currentScreen != null) return;
+        if (!isEnabled() || this.isInventoryBlocked()) return;
         if (!showProgress.getValue()) return;
         if (mc.fontRendererObj == null) return;
 

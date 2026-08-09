@@ -15,6 +15,7 @@ import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.projectile.EntityFireball;
 
 import java.awt.*;
@@ -29,6 +30,7 @@ public class AntiFireball extends Module {
     public final IntProperty fov = new IntProperty("fov", 360, 1, 360);
     public final BooleanProperty rotations = new BooleanProperty("rotations", true);
     public final BooleanProperty swing = new BooleanProperty("swing", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "DEFAULT", "HUD"});
     private final ArrayList<EntityFireball> farList = new ArrayList<>();
@@ -47,6 +49,10 @@ public class AntiFireball extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (this.isEnabled() && event.type() == EventType.PRE) {
+            if (this.isInventoryBlocked()) {
+                this.target = null;
+                return;
+            }
             List<EntityFireball> fireballs = mc.theWorld
                     .loadedEntityList
                     .stream()
@@ -75,6 +81,10 @@ public class AntiFireball extends Module {
     @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
+            if (this.isInventoryBlocked()) {
+                this.target = null;
+                return;
+            }
             EntityFireball fireball = this.target;
             if (TeamUtil.isEntityLoaded(fireball)) {
                 float[] rotations = RotationUtil.getRotationsToBox(this.target.getEntityBoundingBox(), event.getYaw(), event.getPitch(), 180.0F, 0.0F);
@@ -101,7 +111,7 @@ public class AntiFireball extends Module {
 
     @EventTarget
     public void onMove(MoveInputEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
                     && RotationState.isActived()
                     && RotationState.getPriority() == 0.0F
@@ -143,5 +153,9 @@ public class AntiFireball extends Module {
     public void onLoadWorld(LoadWorldEvent event) {
         this.farList.clear();
         this.nearList.clear();
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 }

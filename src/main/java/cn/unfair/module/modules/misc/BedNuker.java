@@ -24,6 +24,7 @@ import net.minecraft.block.BlockBed.EnumPartType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.enchantment.Enchantment;
@@ -65,6 +66,7 @@ public class BedNuker extends Module {
     public final BooleanProperty toolCheck = new BooleanProperty("tool-check", true);
     public final BooleanProperty whiteList = new BooleanProperty("whitelist", true);
     public final BooleanProperty swing = new BooleanProperty("swing", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
     public final ModeProperty showTarget = new ModeProperty("show-target", 1, new String[]{"NONE", "DEFAULT", "HUD"});
     public final ModeProperty showProgress = new ModeProperty("show-progress", 1, new String[]{"NONE", "DEFAULT", "HUD"});
@@ -333,6 +335,12 @@ public class BedNuker extends Module {
     @EventTarget(Priority.HIGH)
     public void onTick(TickEvent event) {
         if (this.isEnabled() && event.type() == EventType.PRE) {
+            if (this.isInventoryBlocked()) {
+                this.restoreSlot();
+                this.resetBreaking();
+                Unfair.delayManager.setDelayState(false, DelayModules.BED_NUKER);
+                return;
+            }
             AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
             if (autoBlockIn.isEnabled()) return;
             if (this.targetBed != null) {
@@ -437,6 +445,11 @@ public class BedNuker extends Module {
     @EventTarget(Priority.LOWEST)
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
+            if (this.isInventoryBlocked()) {
+                this.restoreSlot();
+                this.resetBreaking();
+                return;
+            }
             AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
             if (autoBlockIn.isEnabled()) return;
             if (this.isReady()) {
@@ -452,7 +465,7 @@ public class BedNuker extends Module {
 
     @EventTarget
     public void onPlayerUpdate(PlayerUpdateEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.isBreaking()
                     && !Unfair.playerStateManager.attacking
                     && !Unfair.playerStateManager.digging
@@ -465,7 +478,7 @@ public class BedNuker extends Module {
 
     @EventTarget
     public void onMoveInput(MoveInputEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
                     && RotationState.isActived()
                     && RotationState.getPriority() == 5.0F
@@ -477,7 +490,7 @@ public class BedNuker extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onKnockback(KnockbackEvent event) {
-        if (this.isEnabled() && !event.isCancelled() && !(event.getY() <= 0.0)) {
+        if (this.isEnabled() && !this.isInventoryBlocked() && !event.isCancelled() && !(event.getY() <= 0.0)) {
             if (this.ignoreVelocity.getValue() == 1 && this.targetBed != null) {
                 event.setCancelled(true);
                 event.setX(mc.thePlayer.motionX);
@@ -570,7 +583,7 @@ public class BedNuker extends Module {
                     }
                 }, 1L, TimeUnit.SECONDS);
             }
-            if (this.isEnabled() && this.targetBed != null && this.ignoreVelocity.getValue() == 2 && Unfair.delayManager.getDelayModule() != DelayModules.BED_NUKER) {
+            if (this.isEnabled() && !this.isInventoryBlocked() && this.targetBed != null && this.ignoreVelocity.getValue() == 2 && Unfair.delayManager.getDelayModule() != DelayModules.BED_NUKER) {
                 if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
                     if (packet.getEntityID() == mc.thePlayer.getEntityId() && packet.getMotionY() > 0) {
                         Unfair.delayManager.delay(DelayModules.BED_NUKER);
@@ -591,7 +604,7 @@ public class BedNuker extends Module {
 
     @EventTarget
     public void onLeftClick(LeftClickMouseEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.isReady() || this.targetBed != null && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectType.BLOCK) {
                 event.setCancelled(true);
             }
@@ -600,7 +613,7 @@ public class BedNuker extends Module {
 
     @EventTarget
     public void onRightClick(RightClickMouseEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.isReady()) {
                 event.setCancelled(true);
             }
@@ -609,7 +622,7 @@ public class BedNuker extends Module {
 
     @EventTarget
     public void onHitBlock(HitBlockEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.isReady() || this.targetBed != null && mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectType.BLOCK) {
                 event.setCancelled(true);
             }
@@ -618,7 +631,7 @@ public class BedNuker extends Module {
 
     @EventTarget
     public void onSwap(SwapItemEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.savedSlot != -1) {
                 event.setCancelled(true);
             }
@@ -635,5 +648,9 @@ public class BedNuker extends Module {
     @Override
     public String[] getSuffix() {
         return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 }

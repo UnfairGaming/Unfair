@@ -17,6 +17,7 @@ import cn.unfair.util.RotationUtil;
 import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -40,6 +41,7 @@ public class AutoProjectiles extends Module {
     public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
     public final BooleanProperty rotation = new BooleanProperty("rotation", true);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     private EntityLivingBase target = null;
     private int lastSlot = -1;
     private long lastThrowTime = 0L;
@@ -293,17 +295,18 @@ public class AutoProjectiles extends Module {
             return;
         }
 
+        if (this.isInventoryBlocked()) {
+            this.resetState(true);
+            return;
+        }
+
         BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
         if (backTrack.isEnabled() && backTrack.isBackTracking) {
             return;
         }
 
         if (!this.hasProjectile()) {
-            this.target = null;
-            this.throwState = 0;
-            this.throwsRemaining = 0;
-            this.hasRotated = false;
-            this.switchBack();
+            this.resetState(true);
             return;
         }
 
@@ -374,6 +377,10 @@ public class AutoProjectiles extends Module {
         if (!this.isEnabled()) {
             return;
         }
+        if (this.isInventoryBlocked()) {
+            this.hasRotated = false;
+            return;
+        }
         if (this.hasRotated && RotationState.isActived() && RotationState.getPriority() == 2.0F && MoveUtil.isForwardPressed()) {
             MoveUtil.fixStrafe(RotationState.getSmoothedYaw());
         }
@@ -391,11 +398,21 @@ public class AutoProjectiles extends Module {
 
     @Override
     public void onDisabled() {
-        this.switchBack();
+        this.resetState(true);
+    }
+
+    private void resetState(boolean restoreSlot) {
+        if (restoreSlot) {
+            this.switchBack();
+        }
         this.target = null;
         this.throwState = 0;
         this.throwsRemaining = 0;
         this.hasRotated = false;
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
     private static class SmartPredictor {

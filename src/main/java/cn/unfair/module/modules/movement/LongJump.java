@@ -7,12 +7,14 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
+import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
 import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemFireball;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
@@ -24,6 +26,7 @@ public class LongJump extends Module {
     public final FloatProperty motion = new FloatProperty("motion", 1.0F, 1.0F, 20.0F);
     public final FloatProperty speedMotion = new FloatProperty("speed-motion", 1.0F, 1.0F, 20.0F);
     public final PercentProperty strafe = new PercentProperty("strafe", 0);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     private final TimerUtil fireballTimer = new TimerUtil();
     private final TimerUtil jumpTimer = new TimerUtil();
     private boolean isJumping = false;
@@ -79,7 +82,7 @@ public class LongJump extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void onKnockback(KnockbackEvent event) {
-        if (this.isEnabled() && !event.isCancelled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked() && !event.isCancelled()) {
             if ((this.isManualMode() || this.isAutoMode()) && this.canStartJump()) {
                 event.setCancelled(true);
                 this.isJumping = true;
@@ -91,6 +94,10 @@ public class LongJump extends Module {
     @EventTarget(Priority.HIGHEST)
     public void onTick(TickEvent event) {
         if (this.isEnabled()) {
+            if (this.isInventoryBlocked()) {
+                this.resetState();
+                return;
+            }
             switch (event.type()) {
                 case PRE:
                     if (this.isAutoMode() && !this.fireballLaunched && this.readyToUseFireball) {
@@ -117,6 +124,10 @@ public class LongJump extends Module {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
+            if (this.isInventoryBlocked()) {
+                this.resetState();
+                return;
+            }
             if (this.isLongJumpMode() && this.isJumping) {
                 this.tickCounter++;
                 if (this.tickCounter == 1) {
@@ -181,7 +192,7 @@ public class LongJump extends Module {
 
     @EventTarget
     public void onMoveInput(MoveInputEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (RotationState.isActived()
                     && RotationState.getPriority() == 4.0F
                     && MoveUtil.isForwardPressed()) {
@@ -192,7 +203,7 @@ public class LongJump extends Module {
 
     @EventTarget
     public void onStrafe(StrafeEvent event) {
-        if (this.isEnabled()) {
+        if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.isLongJumpMode()
                     && this.isJumping
                     && this.tickCounter >= 5
@@ -243,11 +254,23 @@ public class LongJump extends Module {
 
     @Override
     public void onDisabled() {
+        this.resetState();
+    }
+
+    private void resetState() {
+        if (this.savedHotbarSlot != -1 && mc.thePlayer != null) {
+            mc.thePlayer.inventory.currentItem = this.savedHotbarSlot;
+            this.savedHotbarSlot = -1;
+        }
         this.isJumping = false;
         this.tickCounter = 0;
         this.jumpModeStage = 0;
         this.readyToUseFireball = false;
         this.fireballLaunched = false;
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
     @Override

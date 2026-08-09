@@ -15,6 +15,7 @@ import cn.unfair.util.PlayerUtil;
 import cn.unfair.util.RotationUtil;
 import cn.unfair.util.TeamUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -46,6 +47,7 @@ public class Displace extends Module {
     public final BooleanProperty hasKnockback = new BooleanProperty("has-knockback", false);
     public final BooleanProperty weaponsOnly = new BooleanProperty("weapons-only", false);
     public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
 
     private boolean displaceThisTick;
     private boolean active;
@@ -96,6 +98,10 @@ public class Displace extends Module {
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
             clearState();
+            return;
+        }
+        if (this.isInventoryBlocked()) {
+            clearActiveState();
             return;
         }
 
@@ -152,7 +158,8 @@ public class Displace extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onMoveInput(MoveInputEvent event) {
-        if (!this.isEnabled() || mc.thePlayer == null) {
+        if (!this.isEnabled() || mc.thePlayer == null || this.isInventoryBlocked()) {
+            clearState();
             return;
         }
         if (compensateNextTick && !displaceThisTick) {
@@ -358,6 +365,10 @@ public class Displace extends Module {
         lastRenderedDisplaceYaw = null;
         lastRenderedTarget = null;
         lastRenderedArrowMs = 0L;
+    }
+
+    private boolean isInventoryBlocked() {
+        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
 }
