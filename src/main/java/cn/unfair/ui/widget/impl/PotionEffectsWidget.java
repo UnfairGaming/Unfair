@@ -5,14 +5,16 @@ import cn.unfair.module.modules.render.PotionEffects;
 import cn.unfair.ui.widget.Widget;
 import cn.unfair.ui.widget.WidgetAlign;
 import cn.unfair.util.RenderUtil;
+import com.google.gson.JsonObject;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
 
 public class PotionEffectsWidget extends Widget {
+    private static final String POSITION_MODE = "positionMode";
+    private static final String POSITION_MODE_LEFT_TOP = "left_top";
     private PotionEffects potionEffects;
     private boolean positioned;
-    private float fixedRenderX;
-    private float lastScreenW;
+    private boolean leftTopPosition;
 
     public PotionEffectsWidget() {
         super("PotionEffects", WidgetAlign.RIGHT | WidgetAlign.TOP);
@@ -74,21 +76,36 @@ public class PotionEffectsWidget extends Widget {
         float rx = this.x * screenW;
         float ry = this.y * screenH - this.getCenterOffset();
 
-        if ((this.align & WidgetAlign.RIGHT) != 0) {
+        if (!this.leftTopPosition && (this.align & WidgetAlign.RIGHT) != 0) {
             rx -= this.width;
         } else if ((this.align & WidgetAlign.CENTER) != 0) {
             rx -= this.width / 2.0F;
         }
 
-        if (this.positioned && !this.dragging && Math.abs(screenW - this.lastScreenW) < 0.5F) {
-            rx = this.fixedRenderX;
+        if (!this.positioned && !this.leftTopPosition) {
+            rx = clamp(rx, 0.0F, Math.max(0.0F, screenW - this.width));
+            this.x = screenW <= 0.0F ? 0.0F : rx / screenW;
+            this.leftTopPosition = true;
         }
 
         this.renderX = clamp(rx, 0.0F, Math.max(0.0F, screenW - this.width));
         this.renderY = clamp(ry, 0.0F, Math.max(0.0F, screenH - this.height));
-        this.fixedRenderX = this.renderX;
         this.positioned = true;
-        this.lastScreenW = screenW;
+    }
+
+    @Override
+    public void loadConfig(JsonObject object) {
+        super.loadConfig(object);
+        this.leftTopPosition = object.has(POSITION_MODE)
+                && POSITION_MODE_LEFT_TOP.equalsIgnoreCase(object.get(POSITION_MODE).getAsString());
+        this.positioned = false;
+    }
+
+    @Override
+    public void saveConfig(JsonObject object) {
+        object.addProperty("x", this.x);
+        object.addProperty("y", this.y);
+        object.addProperty(POSITION_MODE, POSITION_MODE_LEFT_TOP);
     }
 
     @Override
@@ -124,18 +141,10 @@ public class PotionEffectsWidget extends Widget {
             newRenderX = clamp(newRenderX, 0.0F, Math.max(0.0F, screenW - this.width));
             newRenderY = clamp(newRenderY, 0.0F, Math.max(0.0F, screenH - this.height));
 
-            float nx = newRenderX;
-            if ((this.align & WidgetAlign.RIGHT) != 0) {
-                nx += this.width;
-            } else if ((this.align & WidgetAlign.CENTER) != 0) {
-                nx += this.width / 2.0F;
-            }
-
-            this.x = screenW <= 0.0F ? 0.0F : nx / screenW;
+            this.x = screenW <= 0.0F ? 0.0F : newRenderX / screenW;
             this.y = screenH <= 0.0F ? 0.0F : (newRenderY + this.getCenterOffset()) / screenH;
-            this.fixedRenderX = newRenderX;
+            this.leftTopPosition = true;
             this.positioned = true;
-            this.lastScreenW = screenW;
             this.dragX = mouseX;
             this.dragY = mouseY;
         }

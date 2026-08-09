@@ -31,12 +31,7 @@ public class WidgetConfig {
                     continue;
                 }
                 JsonObject widgetObject = obj.getAsJsonObject(widget.name);
-                if (widgetObject.has("x")) {
-                    widget.x = widgetObject.get("x").getAsFloat();
-                }
-                if (widgetObject.has("y")) {
-                    widget.y = widgetObject.get("y").getAsFloat();
-                }
+                widget.loadConfig(widgetObject);
             }
         } catch (Exception ignored) {
         }
@@ -55,8 +50,7 @@ public class WidgetConfig {
             JsonObject obj = new JsonObject();
             for (Widget widget : Unfair.widgetManager.widgets) {
                 JsonObject widgetObject = new JsonObject();
-                widgetObject.addProperty("x", widget.x);
-                widgetObject.addProperty("y", widget.y);
+                widget.saveConfig(widgetObject);
                 obj.add(widget.name, widgetObject);
             }
 

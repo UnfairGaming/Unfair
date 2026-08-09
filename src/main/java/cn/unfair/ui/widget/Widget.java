@@ -3,6 +3,7 @@ package cn.unfair.ui.widget;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.util.RenderUtil;
+import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
@@ -83,6 +84,20 @@ public abstract class Widget {
         ry = clamp(ry, 0.0F, Math.max(0.0F, screenH - this.height));
         this.renderX = rx;
         this.renderY = ry;
+    }
+
+    public void loadConfig(JsonObject object) {
+        if (object.has("x")) {
+            this.x = object.get("x").getAsFloat();
+        }
+        if (object.has("y")) {
+            this.y = object.get("y").getAsFloat();
+        }
+    }
+
+    public void saveConfig(JsonObject object) {
+        object.addProperty("x", this.x);
+        object.addProperty("y", this.y);
     }
 
     public void onChatGUI(ScaledResolution sr, int mouseX, int mouseY, boolean allowDrag) {
