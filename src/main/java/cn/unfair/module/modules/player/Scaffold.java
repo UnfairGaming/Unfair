@@ -63,10 +63,10 @@ public class Scaffold extends Module {
     public final BooleanProperty sneak = new BooleanProperty("sneak", false);
     public final IntProperty sneakMinDelay = new IntProperty("sneak-min-delay", 2, 0, 10, this.sneak::getValue);
     public final IntProperty sneakMaxDelay = new IntProperty("sneak-max-delay", 3, 0, 10, this.sneak::getValue);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     public final BooleanProperty swing = new BooleanProperty("swing", true);
     public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
     public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     private final float[] lastErrors = new float[20];
     private final TimerUtil clickTimer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();

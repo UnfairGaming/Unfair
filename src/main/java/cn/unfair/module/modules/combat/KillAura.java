@@ -119,6 +119,9 @@ public class KillAura extends Module {
     public final FloatProperty tolerance = new FloatProperty("tolerance", 0.05F, 0.01F, 0.1F, () -> this.advancedRotations.getValue() && this.offsetMode.getValue() == 3);
     public final BooleanProperty pointStability = new BooleanProperty("point-stability", true, this.advancedRotations::getValue);
     public final FloatProperty pointStabilityAmount = new FloatProperty("point-stability-amount", 0.15F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.pointStability.getValue());
+    public final FloatProperty pointSwitchThreshold = new FloatProperty("point-switch-threshold", 0.05F, 0.0F, 0.5F, () -> this.advancedRotations.getValue() && this.pointStability.getValue());
+    public final BooleanProperty edgeSafety = new BooleanProperty("edge-safety", true, this.advancedRotations::getValue);
+    public final FloatProperty edgeSafetyAmount = new FloatProperty("edge-safety-amount", 0.18F, 0.0F, 1.0F, () -> this.advancedRotations.getValue() && this.edgeSafety.getValue());
     public final BooleanProperty adaptiveAimSpeed = new BooleanProperty("adaptive-aim-speed", false, () -> this.advancedRotations.getValue() && this.rotations.getValue() == 2);
     public final FloatProperty adaptiveMinSpeed = new FloatProperty("adaptive-min-speed", 0.35F, 0.05F, 1.0F, () -> this.advancedRotations.getValue() && this.rotations.getValue() == 2 && this.adaptiveAimSpeed.getValue());
     public final BooleanProperty overshoot = new BooleanProperty("overshoot", false, this::canUseOvershoot);
@@ -1098,10 +1101,11 @@ public class KillAura extends Module {
         PointFinder.allHitboxPoints.removeIf(point -> this.pointInBlacklistedPos(point, finalBb1, preferred[0], preferred[1], preferred[2]));
 
         Vec3 lookDir = this.getAdvancedLookVec(yaw, pitch);
+        AxisAlignedBB scoringBb = bb;
         Vec3 vec;
         if (!hitboxPoints.isEmpty()) {
             Vec3 stablePoint = this.getStablePoint(entity, bb);
-            hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint)));
+            hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint, scoringBb)));
             if (this.blacklistBadHitVec.getValue() || this.blacklistHeuristic.getValue()) {
                 List<Vec3> filteredFallback = new ArrayList<>(hitboxPoints);
                 Vec3 badHitVec = hitboxPoints.stream().min(Comparator.comparingDouble(point -> point.distanceTo(eyes))).orElse(center(bb));
@@ -1116,9 +1120,9 @@ public class KillAura extends Module {
                 if (hitboxPoints.isEmpty()) {
                     hitboxPoints.addAll(filteredFallback);
                 }
-                hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint)));
+                hitboxPoints.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, stablePoint, scoringBb)));
             }
-            vec = hitboxPoints.isEmpty() ? this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb) : hitboxPoints.get(0);
+            vec = hitboxPoints.isEmpty() ? this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb) : this.chooseAimPoint(hitboxPoints, eyes, lookDir, stablePoint, bb);
         } else {
             vec = this.getBackupVec(PointFinder.allHitboxPoints, eyes, lookDir, bb);
         }
@@ -1422,16 +1426,45 @@ public class KillAura extends Module {
         if (points.isEmpty()) {
             return center(bb);
         }
-        points.sort(Comparator.comparingDouble(point -> crossLength(subtract(point, eyes), lookDir)));
+        points.sort(Comparator.comparingDouble(point -> this.scoreAimPoint(point, eyes, lookDir, null, bb)));
         return points.get(0);
     }
 
-    private double scoreAimPoint(Vec3 point, Vec3 eyes, Vec3 lookDir, Vec3 stablePoint) {
+    private Vec3 chooseAimPoint(List<Vec3> points, Vec3 eyes, Vec3 lookDir, Vec3 stablePoint, AxisAlignedBB bb) {
+        Vec3 bestPoint = points.get(0);
+        if (!this.pointStability.getValue() || stablePoint == null || this.pointSwitchThreshold.getValue() <= 0.0F) {
+            return bestPoint;
+        }
+
+        Vec3 stableCandidate = points.stream()
+                .min(Comparator.comparingDouble(point -> point.distanceTo(stablePoint)))
+                .orElse(bestPoint);
+        double bestScore = this.scoreAimPoint(bestPoint, eyes, lookDir, stablePoint, bb);
+        double stableScore = this.scoreAimPoint(stableCandidate, eyes, lookDir, stablePoint, bb);
+        return stableScore <= bestScore + this.pointSwitchThreshold.getValue() ? stableCandidate : bestPoint;
+    }
+
+    private double scoreAimPoint(Vec3 point, Vec3 eyes, Vec3 lookDir, Vec3 stablePoint, AxisAlignedBB bb) {
         double score = crossLength(subtract(point, eyes), lookDir);
         if (stablePoint != null) {
             score += point.distanceTo(stablePoint) * this.pointStabilityAmount.getValue();
         }
+        if (this.edgeSafety.getValue()) {
+            score += this.getEdgePenalty(point, bb) * this.edgeSafetyAmount.getValue();
+        }
         return score;
+    }
+
+    private double getEdgePenalty(Vec3 point, AxisAlignedBB bb) {
+        double width = Math.max(bb.maxX - bb.minX, 1.0E-4D);
+        double height = Math.max(bb.maxY - bb.minY, 1.0E-4D);
+        double depth = Math.max(bb.maxZ - bb.minZ, 1.0E-4D);
+        double xRatio = MathHelper.clamp_double((point.xCoord - bb.minX) / width, 0.0D, 1.0D);
+        double yRatio = MathHelper.clamp_double((point.yCoord - bb.minY) / height, 0.0D, 1.0D);
+        double zRatio = MathHelper.clamp_double((point.zCoord - bb.minZ) / depth, 0.0D, 1.0D);
+        double xzEdge = Math.min(Math.min(xRatio, 1.0D - xRatio), Math.min(zRatio, 1.0D - zRatio));
+        double yEdge = Math.min(yRatio, 1.0D - yRatio);
+        return (0.5D - xzEdge) * 2.0D + (0.5D - yEdge) * 0.45D;
     }
 
     private Vec3 getStablePoint(EntityLivingBase entity, AxisAlignedBB bb) {
