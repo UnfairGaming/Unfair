@@ -33,9 +33,11 @@ import org.lwjgl.util.glu.GLU;
 
 import javax.vecmath.Vector4d;
 import java.awt.*;
+import java.util.ArrayDeque;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,7 @@ public class RenderUtil {
     private static final int SKEET_OUTER_COLOR = 0xE6121212;
     private static final int SKEET_MIDDLE_COLOR = 0xFF2A2A2A;
     private static final int SKEET_INNER_COLOR = 0xFF171717;
+    private static final Deque<GlRenderState> RENDER_STATE_STACK = new ArrayDeque<>();
     public static class GlRenderState {
         private final boolean alpha;
         private final boolean blend;
@@ -860,6 +863,7 @@ public class RenderUtil {
     }
 
     public static void drawFilledBox(AxisAlignedBB axisAlignedBB, int red, int green, int blue) {
+        resetColor();
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldRenderer = tessellator.getWorldRenderer();
         worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
@@ -888,9 +892,11 @@ public class RenderUtil {
         worldRenderer.pos(axisAlignedBB.maxX, axisAlignedBB.maxY, axisAlignedBB.maxZ).color(red, green, blue, 63).endVertex();
         worldRenderer.pos(axisAlignedBB.maxX, axisAlignedBB.minY, axisAlignedBB.maxZ).color(red, green, blue, 63).endVertex();
         tessellator.draw();
+        resetColor();
     }
 
     public static void drawFilledBox(AxisAlignedBB axisAlignedBB, int red, int green, int blue, int alpha) {
+        resetColor();
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldRenderer = tessellator.getWorldRenderer();
         worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
@@ -919,15 +925,18 @@ public class RenderUtil {
         worldRenderer.pos(axisAlignedBB.maxX, axisAlignedBB.maxY, axisAlignedBB.maxZ).color(red, green, blue, alpha).endVertex();
         worldRenderer.pos(axisAlignedBB.maxX, axisAlignedBB.minY, axisAlignedBB.maxZ).color(red, green, blue, alpha).endVertex();
         tessellator.draw();
+        resetColor();
     }
 
     public static void drawBoundingBox(AxisAlignedBB axisAlignedBB, int red, int green, int blue, int alpha, float lineWidth) {
+        resetColor();
         GL11.glLineWidth(lineWidth);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
         RenderGlobal.drawOutlinedBoundingBox(axisAlignedBB, red, green, blue, alpha);
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
         GL11.glLineWidth(2.0f);
+        resetColor();
     }
 
     public static void drawEntityBox(Entity entity, int red, int green, int blue) {
@@ -1439,20 +1448,32 @@ public class RenderUtil {
     }
 
     public static void enableRenderState() {
+        RENDER_STATE_STACK.push(captureGlState());
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.disableTexture2D();
         GlStateManager.disableCull();
         GlStateManager.disableAlpha();
         GlStateManager.disableDepth();
+        GlStateManager.disableLighting();
+        GlStateManager.depthMask(false);
+        resetColor();
     }
 
     public static void disableRenderState() {
+        resetColor();
+        if (!RENDER_STATE_STACK.isEmpty()) {
+            RENDER_STATE_STACK.pop().restore();
+            return;
+        }
+
+        GlStateManager.depthMask(true);
         GlStateManager.enableDepth();
         GlStateManager.enableAlpha();
         GlStateManager.enableCull();
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
+        GlStateManager.enableLighting();
     }
 
     public static void setColor(int argb) {
@@ -1922,7 +1943,8 @@ public class RenderUtil {
     }
 
     public static void resetColor() {
-        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.resetColor();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public static void drawRoundedRectWithCorners(double x, double y, double x1, double y1, int color, double radius,

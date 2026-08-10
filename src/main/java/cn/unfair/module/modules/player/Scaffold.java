@@ -57,6 +57,10 @@ public class Scaffold extends Module {
     public final BooleanProperty raytraceCheck = new BooleanProperty("raytrace-check", false);
     public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
     public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
+    public final BooleanProperty customClutchSpeed = new BooleanProperty("custom-clutch-speed", false, () -> this.rotationMode.getValue() != 0);
+    public final BooleanProperty clutchSmooth = new BooleanProperty("clutch-smooth", true, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
+    public final IntProperty clutchMinAimSpeed = new IntProperty("clutch-min-aim-speed", 180, 1, 180, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
+    public final IntProperty clutchMaxAimSpeed = new IntProperty("clutch-max-aim-speed", 180, 1, 180, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
     public final IntProperty minCps = new IntProperty("min-cps", 8, 1, 30, this.alwaysClick::getValue);
     public final IntProperty maxCps = new IntProperty("max-cps", 12, 1, 30, this.alwaysClick::getValue);
     public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
@@ -182,6 +186,17 @@ public class Scaffold extends Module {
                 || PlayerUtil.canMove(mc.thePlayer.motionX + offset[0], mc.thePlayer.motionZ + offset[1]);
     }
 
+    private boolean shouldUseClutchSpeed() {
+        return this.customClutchSpeed.getValue()
+                && this.isClutchPlacementState();
+    }
+
+    private boolean isClutchPlacementState() {
+        return mc.thePlayer != null
+                && !mc.thePlayer.onGround
+                && (this.canMoveSafely() || BlockUtil.isReplaceable(this.getTargetPos()));
+    }
+
     private boolean shouldSneak() {
         return ItemUtil.isHoldingBlock() && mc.thePlayer.onGround;
     }
@@ -284,6 +299,10 @@ public class Scaffold extends Module {
         return facing == null ? null : new BlockData(blockPos, facing);
     }
 
+    private boolean isKeepYPlacementLocked() {
+        return this.keepY.getValue() != 0 && this.stage > 0;
+    }
+
     private boolean place(BlockPos blockPos, EnumFacing enumFacing, Vec3 vec3) {
         if (vec3 == null) {
             return false;
@@ -314,6 +333,10 @@ public class Scaffold extends Module {
         if (BlockUtil.isReplaceable(blockPos) || BlockUtil.isInteractable(blockPos)) {
             return false;
         }
+        if (this.isKeepYPlacementLocked()
+                && blockPos.offset(enumFacing).getY() != this.getTargetPos().getY()) {
+            return false;
+        }
         return BlockUtil.isReplaceable(blockPos.offset(enumFacing));
     }
 
@@ -336,6 +359,13 @@ public class Scaffold extends Module {
     private float[] interpolateRotation(float targetYaw, float targetPitch) {
         float maxDeltaYaw = this.aimSpeedYaw.getValue().floatValue();
         float maxDeltaPitch = this.aimSpeedPitch.getValue().floatValue();
+        if (this.shouldUseClutchSpeed()) {
+            int min = this.clutchMinAimSpeed.getValue();
+            int max = this.clutchMaxAimSpeed.getValue();
+            float clutchSpeed = RandomUtils.nextInt(min, max + 1);
+            maxDeltaYaw = clutchSpeed;
+            maxDeltaPitch = clutchSpeed;
+        }
         float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - this.serverYaw);
         if (Math.abs(deltaYaw) > maxDeltaYaw) {
             this.serverYaw = RotationUtil.quantizeAngle(this.serverYaw + Math.signum(deltaYaw) * maxDeltaYaw);
@@ -379,33 +409,54 @@ public class Scaffold extends Module {
 
     private PlacementTarget findClosestPlacementTarget(float currentYaw, float currentPitch) {
         BlockPos targetPos = this.getTargetPos();
+        int maxPlaceY = MathHelper.floor_double(mc.thePlayer.posY);
+        if (this.isClutchPlacementState()) {
+            PlacementTarget clutchTarget = this.findClosestClutchPlacementTarget(currentYaw, currentPitch, targetPos, maxPlaceY);
+            if (clutchTarget != null) {
+                return clutchTarget;
+            }
+        }
+
         PlacementTarget bestTarget = null;
         double bestScore = 0.0D;
         for (BlockData blockData : this.getBlockDataCandidates()) {
             if (!this.isValidPlacementTarget(blockData.blockPos(), blockData.facing())) {
                 continue;
             }
+            BlockPos placedPos = blockData.blockPos().offset(blockData.facing());
+            if (placedPos.getY() > maxPlaceY) {
+                continue;
+            }
             double[] x = placeOffsets;
             double[] y = placeOffsets;
             double[] z = placeOffsets;
+            double centerX = 0.5D;
+            double centerY = 0.5D;
+            double centerZ = 0.5D;
             switch (blockData.facing()) {
                 case NORTH:
                     z = new double[]{0.0};
+                    centerZ = 0.0D;
                     break;
                 case EAST:
                     x = new double[]{1.0};
+                    centerX = 1.0D;
                     break;
                 case SOUTH:
                     z = new double[]{1.0};
+                    centerZ = 1.0D;
                     break;
                 case WEST:
                     x = new double[]{0.0};
+                    centerX = 0.0D;
                     break;
                 case DOWN:
                     y = new double[]{0.0};
+                    centerY = 0.0D;
                     break;
                 case UP:
                     y = new double[]{1.0};
+                    centerY = 1.0D;
             }
             for (double dx : x) {
                 for (double dy : y) {
@@ -416,14 +467,24 @@ public class Scaffold extends Module {
                         float[] exactRotations = RotationUtil.getRotationsTo(relX, relY, relZ, currentYaw, currentPitch);
                         MovingObjectPosition mop = this.getMatchingRaytrace(blockData.blockPos(), blockData.facing(), exactRotations[0], exactRotations[1]);
                         if (mop != null) {
-                            double angleScore = Math.abs(MathHelper.wrapAngleTo180_float(exactRotations[0] - currentYaw))
-                                    + Math.abs(exactRotations[1] - currentPitch);
-                            double targetScore = blockData.blockPos().offset(blockData.facing()).distanceSqToCenter(
+                            double yawScore = Math.abs(MathHelper.wrapAngleTo180_float(exactRotations[0] - currentYaw));
+                            double pitchScore = Math.abs(exactRotations[1] - currentPitch);
+                            double targetScore = placedPos.distanceSqToCenter(
                                     (double) targetPos.getX() + 0.5D,
                                     (double) targetPos.getY() + 0.5D,
                                     (double) targetPos.getZ() + 0.5D
-                            ) * 4.0D;
-                            double score = angleScore + targetScore;
+                            );
+                            double yScore = Math.abs(placedPos.getY() - targetPos.getY()) * 12.0D;
+                            double faceCenterScore = Math.pow(dx - centerX, 2.0D)
+                                    + Math.pow(dy - centerY, 2.0D)
+                                    + Math.pow(dz - centerZ, 2.0D);
+                            double reachScore = mc.thePlayer.getPositionEyes(1.0F).squareDistanceTo(mop.hitVec) * 0.05D;
+                            double score = yawScore * 0.7D
+                                    + pitchScore
+                                    + targetScore * 10.0D
+                                    + yScore
+                                    + faceCenterScore * 3.0D
+                                    + reachScore;
                             if (bestTarget == null || score < bestScore) {
                                 bestTarget = new PlacementTarget(blockData, mop.hitVec, exactRotations[0], exactRotations[1]);
                                 bestScore = score;
@@ -434,6 +495,89 @@ public class Scaffold extends Module {
             }
         }
         return bestTarget;
+    }
+
+    private PlacementTarget findClosestClutchPlacementTarget(float currentYaw, float currentPitch, BlockPos targetPos, int maxPlaceY) {
+        Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
+        BlockData bestBlockData = null;
+        Vec3 bestPoint = null;
+        double bestScore = 0.0D;
+
+        for (BlockData blockData : this.getBlockDataCandidates()) {
+            if (!this.isValidPlacementTarget(blockData.blockPos(), blockData.facing())) {
+                continue;
+            }
+
+            BlockPos placedPos = blockData.blockPos().offset(blockData.facing());
+            if (placedPos.getY() > maxPlaceY) {
+                continue;
+            }
+
+            Vec3 point = this.getClosestPointOnPlacementFace(blockData, eyes);
+            double supportScore = eyes.squareDistanceTo(point);
+            double targetScore = placedPos.distanceSqToCenter(
+                    (double) targetPos.getX() + 0.5D,
+                    (double) targetPos.getY() + 0.5D,
+                    (double) targetPos.getZ() + 0.5D
+            );
+            double score = supportScore + targetScore * 0.25D;
+            if (bestBlockData == null || score < bestScore) {
+                bestBlockData = blockData;
+                bestPoint = point;
+                bestScore = score;
+            }
+        }
+
+        if (bestBlockData == null || bestPoint == null) {
+            return null;
+        }
+
+        float[] rotations = RotationUtil.getRotationsTo(
+                bestPoint.xCoord - mc.thePlayer.posX,
+                bestPoint.yCoord - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight(),
+                bestPoint.zCoord - mc.thePlayer.posZ,
+                currentYaw,
+                currentPitch
+        );
+        MovingObjectPosition mop = this.getMatchingRaytrace(bestBlockData.blockPos(), bestBlockData.facing(), rotations[0], rotations[1]);
+        return mop == null ? null : new PlacementTarget(bestBlockData, mop.hitVec, rotations[0], rotations[1]);
+    }
+
+    private Vec3 getClosestPointOnPlacementFace(BlockData blockData, Vec3 point) {
+        double minX = (double) blockData.blockPos().getX();
+        double minY = (double) blockData.blockPos().getY();
+        double minZ = (double) blockData.blockPos().getZ();
+        double maxX = minX + 1.0D;
+        double maxY = minY + 1.0D;
+        double maxZ = minZ + 1.0D;
+        double inset = 0.03125D;
+
+        double x = MathHelper.clamp_double(point.xCoord, minX + inset, maxX - inset);
+        double y = MathHelper.clamp_double(point.yCoord, minY + inset, maxY - inset);
+        double z = MathHelper.clamp_double(point.zCoord, minZ + inset, maxZ - inset);
+
+        switch (blockData.facing()) {
+            case DOWN:
+                y = minY;
+                break;
+            case UP:
+                y = maxY;
+                break;
+            case NORTH:
+                z = minZ;
+                break;
+            case SOUTH:
+                z = maxZ;
+                break;
+            case WEST:
+                x = minX;
+                break;
+            case EAST:
+                x = maxX;
+                break;
+        }
+
+        return new Vec3(x, y, z);
     }
 
     private boolean canAlwaysClick() {
@@ -815,9 +959,16 @@ public class Scaffold extends Module {
                         this.rotationTick = 3;
                         this.towering = true;
                     }
-                    float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
-                    targetYaw = rotations[0];
-                    targetPitch = rotations[1];
+                    if (this.shouldUseClutchSpeed() && !this.clutchSmooth.getValue()) {
+                        targetYaw = RotationUtil.quantizeAngle(targetYaw);
+                        targetPitch = RotationUtil.quantizeAngle(MathHelper.clamp_float(targetPitch, -90.0F, 90.0F));
+                        this.serverYaw = targetYaw;
+                        this.serverPitch = targetPitch;
+                    } else {
+                        float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
+                        targetYaw = rotations[0];
+                        targetPitch = rotations[1];
+                    }
                     this.yaw = targetYaw;
                     this.pitch = targetPitch;
                     if (blockData != null) {
@@ -1294,6 +1445,16 @@ public class Scaffold extends Module {
             case "max-cps":
                 if (this.minCps.getValue() > this.maxCps.getValue()) {
                     this.minCps.setValue(this.maxCps.getValue());
+                }
+                break;
+            case "clutch-min-aim-speed":
+                if (this.clutchMinAimSpeed.getValue() > this.clutchMaxAimSpeed.getValue()) {
+                    this.clutchMaxAimSpeed.setValue(this.clutchMinAimSpeed.getValue());
+                }
+                break;
+            case "clutch-max-aim-speed":
+                if (this.clutchMinAimSpeed.getValue() > this.clutchMaxAimSpeed.getValue()) {
+                    this.clutchMinAimSpeed.setValue(this.clutchMaxAimSpeed.getValue());
                 }
                 break;
         }

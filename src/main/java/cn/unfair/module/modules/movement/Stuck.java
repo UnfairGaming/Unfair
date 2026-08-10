@@ -7,12 +7,14 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
+import cn.unfair.property.properties.IntProperty;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class Stuck extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    public final IntProperty stuckTicks = new IntProperty("stuck-ticks", 10, 1, 100);
     private double savedMotionX;
     private double savedMotionY;
     private double savedMotionZ;
@@ -40,7 +42,7 @@ public class Stuck extends Module {
             if (event.getPacket() instanceof S12PacketEntityVelocity s12PacketEntityVelocity) {
                 if (s12PacketEntityVelocity.getEntityID() == mc.thePlayer.getEntityId()) {
                     Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
-                    tick = 10;
+                    tick = this.stuckTicks.getValue();
                     Unfair.delayManager.delayedPacket.offer(s12PacketEntityVelocity);
                     event.setCancelled(true);
                 }
@@ -51,11 +53,12 @@ public class Stuck extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (using && event.type() == EventType.PRE) {
-            if (tick == 10) {
+            int ticks = this.stuckTicks.getValue();
+            if (tick == ticks) {
                 this.setEnabled(false);
                 using = true;
             }
-            if (tick == 11) {
+            if (tick == ticks + 1) {
                 this.setEnabled(true);
                 tick = 0;
             }
