@@ -160,8 +160,8 @@ public class ShaderUtils {
         cachedGuiScale = guiScale;
         cachedUnicode = unicode;
         cachedScaleFactor = sr.getScaleFactor();
-        cachedScaledWidth = sr.getScaledWidth();
-        cachedScaledHeight = sr.getScaledHeight();
+        cachedScaledWidth = (float) sr.getScaledWidth_double();
+        cachedScaledHeight = (float) sr.getScaledHeight_double();
     }
 
     private int createShader(String source, int type) {

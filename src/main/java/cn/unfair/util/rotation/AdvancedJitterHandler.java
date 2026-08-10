@@ -1,4 +1,4 @@
-package cn.unfair.util.rotationadvanced;
+package cn.unfair.util.rotation;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;

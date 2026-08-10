@@ -10,6 +10,7 @@ import cn.unfair.util.via.ViaVersionFix;
 import cn.unfair.util.via.BlockStatePredictionHandler;
 import cn.unfair.util.via.ViaProtocol;
 import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.DirtPathBlockTracker;
 import com.viaversion.viabackwards.protocol.v1_19_1to1_19.Protocol1_19_1To1_19;
 import com.viaversion.viabackwards.protocol.v1_19_3to1_19_1.Protocol1_19_3To1_19_1;
 import com.viaversion.viabackwards.protocol.v1_19_4to1_19_3.Protocol1_19_4To1_19_3;
@@ -512,6 +513,11 @@ public class PlayerControllerMP
                     BlockPos anchorPos = hitPos.offset(side);
                     RespawnAnchorBlockTracker.mark(anchorPos);
                     worldIn.setBlockState(anchorPos, net.minecraft.init.Blocks.respawn_anchor.getDefaultState(), 3);
+                }
+
+                if (heldStack != null && DirtPathBlockTracker.isDirtPathItem(heldStack)) {
+                    return DirtPathBlockTracker.place(heldStack, player, worldIn, hitPos, side)
+                            || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 
                 if (heldStack == null)

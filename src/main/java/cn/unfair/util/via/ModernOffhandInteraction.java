@@ -21,6 +21,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemSword;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CPacketSwapItemWithOffHand;
@@ -54,7 +55,17 @@ public final class ModernOffhandInteraction {
     }
 
     public static boolean shouldMainHandUseTakePriority(ItemStack stack) {
-        if (stack == null || stack.getItem() instanceof ItemSword) {
+        if (stack == null) {
+            return false;
+        }
+
+        // Buckets have no item-use animation, but their right-click must still
+        // own the interaction instead of falling through to the offhand.
+        if (stack.getItem() instanceof ItemBucket) {
+            return true;
+        }
+
+        if (stack.getItem() instanceof ItemSword) {
             return false;
         }
 

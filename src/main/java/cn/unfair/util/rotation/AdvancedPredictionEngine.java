@@ -1,4 +1,4 @@
-package cn.unfair.util.rotationadvanced;
+package cn.unfair.util.rotation;
 
 import cn.unfair.util.RandomUtil;
 import cn.unfair.util.TimerUtil;

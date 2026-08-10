@@ -93,6 +93,8 @@ public final class ViaBackwardsItemModels {
         registerMappingSet("1.21.11to1.21.9", "1.21.11");
 
         addModelName("respawn_anchor");
+        addModelName("dirt_path");
+        addModelName("grass_path");
         addModelName("crossbow");
         addModelName("shield");
         addModelName("shield_blocking");
@@ -223,6 +225,11 @@ public final class ViaBackwardsItemModels {
             return backupModel;
         }
 
+        String stackDisplayModel = getKnownModernModelFromDisplayName(stack.getDisplayName());
+        if (stackDisplayModel != null) {
+            return stackDisplayModel;
+        }
+
         if (!stack.hasTagCompound()) {
             return null;
         }
@@ -232,7 +239,13 @@ public final class ViaBackwardsItemModels {
             return null;
         }
 
-        String normalized = normalizeDisplayName(display.getString("Name"));
+        String displayName = display.getString("Name");
+        String rawDisplayModel = getKnownModernModelFromDisplayName(displayName);
+        if (rawDisplayModel != null) {
+            return rawDisplayModel;
+        }
+
+        String normalized = normalizeDisplayName(displayName);
         String direct = getKnownModernModel(normalized);
         return direct != null ? direct : MODELS_BY_DISPLAY_NAME.get(normalized);
     }
@@ -255,6 +268,12 @@ public final class ViaBackwardsItemModels {
         }
         if (normalized.equals("respawn_anchor") || normalized.endsWith("_respawn_anchor")) {
             return "respawn_anchor";
+        }
+        if (normalized.equals("dirt_path") || normalized.endsWith("_dirt_path")) {
+            return "dirt_path";
+        }
+        if (normalized.equals("grass_path") || normalized.endsWith("_grass_path")) {
+            return "grass_path";
         }
         if (normalized.equals("end_crystal") || normalized.endsWith("_end_crystal")) {
             return "end_crystal";
@@ -347,7 +366,30 @@ public final class ViaBackwardsItemModels {
             return null;
         }
 
-        return getKnownModernModel(normalizeDisplayName(display.getString("Name")));
+        String displayName = display.getString("Name");
+        String raw = getKnownModernModelFromDisplayName(displayName);
+        return raw != null ? raw : getKnownModernModel(normalizeDisplayName(displayName));
+    }
+
+    private static String getKnownModernModelFromDisplayName(String name) {
+        String text = extractText(name);
+        if (text == null) {
+            return null;
+        }
+
+        String lowered = text.replaceAll("\\u00A7.", "").replaceAll("搂.", "").toLowerCase();
+        if (lowered.contains("dirt_path") || lowered.contains("dirt path")
+                || lowered.contains("minecraft:dirt_path") || lowered.contains("block.minecraft.dirt_path")
+                || text.contains("土径") || text.contains("泥土小径")) {
+            return "dirt_path";
+        }
+        if (lowered.contains("grass_path") || lowered.contains("grass path")
+                || lowered.contains("minecraft:grass_path") || lowered.contains("block.minecraft.grass_path")
+                || text.contains("草径") || text.contains("草径方块")) {
+            return "grass_path";
+        }
+
+        return null;
     }
 
     private static CompoundTag readMappings(String resource) throws Exception {

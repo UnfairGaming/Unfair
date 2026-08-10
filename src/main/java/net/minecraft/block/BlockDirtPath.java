@@ -21,13 +21,13 @@ public class BlockDirtPath extends Block
     protected BlockDirtPath()
     {
         super(Material.ground);
-        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.9375F, 1.0F);
-        this.setLightOpacity(255);
+        this.setLightOpacity(0);
+        this.useNeighborBrightness = true;
     }
 
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_9())
+        if (ViaProtocol.newerThanOrEqualTo1_9())
         {
             AxisAlignedBB box = new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0D, pos.getY() + 0.9375D, pos.getZ() + 1.0D);
             if (box.intersectsWith(mask))
@@ -45,6 +45,22 @@ public class BlockDirtPath extends Block
         return ViaProtocol.newerThanOrEqualTo1_9()
                 ? new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0D, pos.getY() + 0.9375D, pos.getZ() + 1.0D)
                 : super.getCollisionBoundingBox(worldIn, pos, state);
+    }
+
+    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
+    {
+        if (ViaProtocol.newerThanOrEqualTo1_9())
+        {
+            this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.9375F, 1.0F);
+            return;
+        }
+
+        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    public void setBlockBoundsForItemRender()
+    {
+        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public boolean isOpaqueCube()

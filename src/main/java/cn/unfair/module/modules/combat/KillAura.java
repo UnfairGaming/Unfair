@@ -17,7 +17,7 @@ import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
-import cn.unfair.util.rotationadvanced.*;
+import cn.unfair.util.rotation.*;
 import cn.unfair.util.player.DelayGenerator;
 import com.google.common.base.CaseFormat;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;

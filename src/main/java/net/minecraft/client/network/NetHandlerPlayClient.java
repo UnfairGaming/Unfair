@@ -20,6 +20,7 @@ import cn.unfair.util.via.ModernPlayerPhysics;
 import cn.unfair.util.via.ModernSequenceStorage;
 import cn.unfair.util.via.ViaBackwardsItemModels;
 import cn.unfair.util.via.RespawnAnchorBlockTracker;
+import cn.unfair.util.via.DirtPathBlockTracker;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;
@@ -591,7 +592,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         for (S22PacketMultiBlockChange.BlockUpdateData s22packetmultiblockchange$blockupdatedata : packetIn.getChangedBlocks()) {
             this.clientWorldController.invalidateRegionAndSetBlock(s22packetmultiblockchange$blockupdatedata.getPos(),
-                    RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState()));
+                    RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
+                            DirtPathBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState())));
         }
     }
 
@@ -634,7 +636,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             return;
         }
         this.clientWorldController.invalidateRegionAndSetBlock(packetIn.getBlockPosition(),
-                RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState()));
+                RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(),
+                        DirtPathBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState())));
     }
 
     /**

@@ -150,7 +150,7 @@ public class HUD extends Module {
         int width = this.getTextWidth(string);
         if (this.suffixes.getValue()) {
             for (String str : arr) {
-                width += Math.round(3.0F * this.scale.getValue()) + this.getTextWidth(str);
+                width += 3 + this.getTextWidth(str);
             }
         }
         return width;
@@ -161,59 +161,44 @@ public class HUD extends Module {
     }
 
     private FontRenderer getCustomFont() {
-        return this.getCustomFont(this.scale.getValue());
-    }
-
-    private FontRenderer getCustomFont(float scaleValue) {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
         if (fontIndex < 0 || fontIndex >= fonts.length) {
             return null;
         }
-        return fonts[fontIndex].get(HUD_FONT_SIZE * scaleValue);
+        return fonts[fontIndex].get(HUD_FONT_SIZE);
     }
 
     private int getTextWidth(String text) {
-        float scaleValue = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue);
+            return mc.fontRendererObj.getStringWidth(text);
         }
-        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
-        return fontRenderer == null ? Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue) : fontRenderer.getStringWidth(text);
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
     }
 
     private float getTextHeight() {
-        float scaleValue = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return ((float) mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scaleValue;
+            return (float) mc.fontRendererObj.FONT_HEIGHT - 1.0F;
         }
-        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
-        return fontRenderer == null ? ((float) mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scaleValue : (float) fontRenderer.getHeight();
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null ? (float) mc.fontRendererObj.FONT_HEIGHT - 1.0F : (float) fontRenderer.getHeight();
     }
 
     private void drawHudString(String text, float x, float y, int color, boolean shadow, boolean alignTop) {
-        float scaleValue = this.scale.getValue();
-        float renderY = y + (!shadow && !alignTop ? scaleValue : 0.0F);
+        float renderY = y + (!shadow && !alignTop ? 1.0F : 0.0F);
         if (this.useMinecraftFont()) {
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(x, y, 0.0F);
-            GlStateManager.scale(scaleValue, scaleValue, 1.0F);
             if (shadow) {
-                mc.fontRendererObj.drawStringWithShadow(text, 0.0F, 0.0F, color);
+                mc.fontRendererObj.drawStringWithShadow(text, x, y, color);
             } else {
-                mc.fontRendererObj.drawString(text, 0.0F, renderY - y, color, false);
+                mc.fontRendererObj.drawString(text, x, renderY, color, false);
             }
-            GlStateManager.popMatrix();
             return;
         }
 
-        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
+        FontRenderer fontRenderer = this.getCustomFont();
         if (fontRenderer == null) {
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(x, y, 0.0F);
-            GlStateManager.scale(scaleValue, scaleValue, 1.0F);
-            mc.fontRendererObj.drawString(text, 0.0F, renderY - y, color, shadow);
-            GlStateManager.popMatrix();
+            mc.fontRendererObj.drawString(text, x, renderY, color, shadow);
             return;
         }
         if (shadow) {
@@ -338,7 +323,7 @@ public class HUD extends Module {
     }
 
     public float getEntryHeight() {
-        return this.getTextHeight() + (this.shadow.getValue() ? this.scale.getValue() : 0.0F);
+        return (this.getTextHeight() + (this.shadow.getValue() ? 1.0F : 0.0F)) * this.scale.getValue();
     }
 
     public float[] getWidgetSize() {
@@ -351,11 +336,10 @@ public class HUD extends Module {
         for (Module module : renderList) {
             String moduleName = this.getModuleName(module);
             String[] moduleSuffix = this.getModuleSuffix(module);
-            maxWidth = Math.max(maxWidth, (float) this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0.0F : this.scale.getValue()));
+            maxWidth = Math.max(maxWidth, (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1)));
         }
-        float scaleValue = this.scale.getValue();
-        float barExtra = this.showBar.getValue() && this.barPos.getValue() != 2 ? 3.0F * scaleValue : 0.0F;
-        return new float[]{maxWidth + 2.0F * scaleValue + barExtra, renderList.size() * this.getEntryHeight() + 2.0F * scaleValue};
+        float barExtra = this.showBar.getValue() && this.barPos.getValue() != 2 ? 3.0F : 0.0F;
+        return new float[]{(maxWidth + 2.0F + barExtra) * this.scale.getValue(), renderList.size() * this.getEntryHeight() + 2.0F};
     }
 
     public void renderWidget(float partialTicks, float x, float y, boolean alignLeft, boolean alignTop) {
@@ -382,19 +366,22 @@ public class HUD extends Module {
                 long movementPacketSize = Unfair.blinkManager.countMovement();
                 if (movementPacketSize > 0L) {
                     long colorOffset = this.getRenderList().size();
+                    GlStateManager.pushMatrix();
+                    GlStateManager.scale(this.scale.getValue(), this.scale.getValue(), 0.0F);
                     GlStateManager.enableBlend();
                     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                     String movementText = String.valueOf(movementPacketSize);
                     this.drawHudString(
                             movementText,
-                            (float) new ScaledResolution(mc).getScaledWidth() / 2.0F
+                            (float) new ScaledResolution(mc).getScaledWidth() / 2.0F / this.scale.getValue()
                                     - (float) this.getTextWidth(movementText) / 2.0F,
-                            (float) new ScaledResolution(mc).getScaledHeight() / 5.0F * 3.0F,
+                            (float) new ScaledResolution(mc).getScaledHeight() / 5.0F * 3.0F / this.scale.getValue(),
                             getColor(System.currentTimeMillis(), colorOffset).getRGB() & 16777215 | -1090519040,
                             this.shadow.getValue(),
                             true
                     );
                     GlStateManager.disableBlend();
+                    GlStateManager.popMatrix();
                 }
             }
         }
@@ -411,10 +398,13 @@ public class HUD extends Module {
         long time = System.currentTimeMillis();
         long offset = 0L;
 
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(this.scale.getValue(), this.scale.getValue(), 0.0F);
+
         for (Module module : renderList) {
             String moduleName = this.getModuleName(module);
             String[] moduleSuffix = this.getModuleSuffix(module);
-            float totalWidth = (float) this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0.0F : this.scale.getValue());
+            float totalWidth = (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1));
             int color = getColor(time, offset).getRGB();
 
             boolean isFadingOut = !module.isEnabled();
@@ -464,27 +454,27 @@ public class HUD extends Module {
                     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                     this.drawHudString(
                             moduleName,
-                            currentX - (alignLeft ? 0.0F : totalWidth),
-                            currentY,
+                            currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth),
+                            currentY / this.scale.getValue(),
                             animatedColor,
                             this.shadow.getValue(),
                             alignTop
                     );
                     if (this.suffixes.getValue() && moduleSuffix.length > 0 && animProgress > 0.5F) {
-                        float width = (float) this.getTextWidth(moduleName) + 3.0F * this.scale.getValue();
+                        float width = (float) this.getTextWidth(moduleName) + 3.0F;
                         int suffixAlpha = (int) (((animProgress - 0.5F) / 0.5F) * 255.0F);
                         suffixAlpha = Math.min(suffixAlpha, 255);
                         int suffixColor = ChatColors.GRAY.toAwtColor() & 0x00FFFFFF | (suffixAlpha << 24);
                         for (String string : moduleSuffix) {
                             this.drawHudString(
                                     string,
-                                    currentX - (alignLeft ? 0.0F : totalWidth) + width,
-                                    currentY,
+                                    currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth) + width,
+                                    currentY / this.scale.getValue(),
                                     suffixColor,
                                     this.shadow.getValue(),
                                     alignTop
                             );
-                            width += (float) this.getTextWidth(string) + (this.shadow.getValue() ? 3.0F : 2.0F) * this.scale.getValue();
+                            width += (float) this.getTextWidth(string) + (this.shadow.getValue() ? 3.0F : 2.0F);
                         }
                     }
                     GlStateManager.disableBlend();
@@ -494,6 +484,8 @@ public class HUD extends Module {
 
             offset++;
         }
+
+        GlStateManager.popMatrix();
     }
 
     private void drawHudBar(float currentX, float currentY, float totalWidth, float height,
@@ -505,43 +497,42 @@ public class HUD extends Module {
         float barX = 0, barX2 = 0;
         float barY = 0, barY2 = 0;
         boolean shouldDrawBar = true;
-        float scaleValue = this.scale.getValue();
 
         if (barPos.getValue() == 0) {
             if (alignLeft) {
-                barX = currentX - 2.0F * scaleValue;
-                barX2 = currentX - scaleValue;
+                barX = currentX / this.scale.getValue() - 2.0F;
+                barX2 = currentX / this.scale.getValue() - 1.0F;
             } else {
-                barX = currentX - totalWidth - 2.0F * scaleValue;
-                barX2 = currentX - totalWidth - scaleValue;
+                barX = currentX / this.scale.getValue() - totalWidth - 2.0F;
+                barX2 = currentX / this.scale.getValue() - totalWidth - 1.0F;
             }
-            barY = currentY - (alignTop ? (offset == 0L ? scaleValue : 0.0F) : scaleValue);
-            barY2 = currentY + height + (alignTop ? scaleValue : (offset == 0L ? scaleValue : 0.0F));
+            barY = currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F);
+            barY2 = currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F));
         } else if (barPos.getValue() == 1) {
             if (alignLeft) {
-                barX = currentX + totalWidth + scaleValue;
-                barX2 = currentX + totalWidth + 2.0F * scaleValue;
+                barX = currentX / this.scale.getValue() + totalWidth + 1.0F;
+                barX2 = currentX / this.scale.getValue() + totalWidth + 2.0F;
             } else {
-                barX = currentX + scaleValue;
-                barX2 = currentX + 2.0F * scaleValue;
+                barX = currentX / this.scale.getValue() + 1.0F;
+                barX2 = currentX / this.scale.getValue() + 2.0F;
             }
-            barY = currentY - (alignTop ? (offset == 0L ? scaleValue : 0.0F) : scaleValue);
-            barY2 = currentY + height + (alignTop ? scaleValue : (offset == 0L ? scaleValue : 0.0F));
+            barY = currentY / this.scale.getValue() - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F);
+            barY2 = currentY / this.scale.getValue() + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F));
         } else {
             if (offset == 0L) {
                 if (alignLeft) {
-                    barX = currentX - scaleValue;
-                    barX2 = currentX + totalWidth + scaleValue;
+                    barX = currentX / this.scale.getValue() - 1.0F;
+                    barX2 = currentX / this.scale.getValue() + totalWidth + 1.0F;
                 } else {
-                    barX = currentX - totalWidth - scaleValue;
-                    barX2 = currentX + scaleValue;
+                    barX = currentX / this.scale.getValue() - totalWidth - 1.0F;
+                    barX2 = currentX / this.scale.getValue() + 1.0F;
                 }
                 if (alignTop) {
-                    barY = currentY - 2.0F * scaleValue;
-                    barY2 = currentY - scaleValue;
+                    barY = currentY / this.scale.getValue() - 2.0F;
+                    barY2 = currentY / this.scale.getValue() - 1.0F;
                 } else {
-                    barY = currentY + height + scaleValue;
-                    barY2 = currentY + height + 2.0F * scaleValue;
+                    barY = currentY / this.scale.getValue() + height + 1.0F;
+                    barY2 = currentY / this.scale.getValue() + height + 2.0F;
                 }
             } else {
                 shouldDrawBar = false;
@@ -575,10 +566,10 @@ public class HUD extends Module {
     private HudEntry buildHudEntry(List<Module> renderList, Module module, float currentX, float currentY, float totalWidth,
                                    float height, boolean alignLeft, boolean alignTop, long offset) {
         float scaleValue = this.scale.getValue();
-        float left = currentX - scaleValue - (alignLeft ? 0.0F : totalWidth);
-        float top = currentY - (alignTop ? (offset == 0L ? scaleValue : 0.0F) : (this.shadow.getValue() ? scaleValue : 0.0F));
-        float right = currentX + scaleValue + (alignLeft ? totalWidth : 0.0F);
-        float bottom = currentY + height + (alignTop ? (this.shadow.getValue() ? scaleValue : 0.0F) : (offset == 0L ? scaleValue : 0.0F));
+        float left = currentX / scaleValue - 1.0F - (alignLeft ? 0.0F : totalWidth);
+        float top = currentY / scaleValue - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : (this.shadow.getValue() ? 1.0F : 0.0F));
+        float right = currentX / scaleValue + 1.0F + (alignLeft ? totalWidth : 0.0F);
+        float bottom = currentY / scaleValue + height + (alignTop ? (this.shadow.getValue() ? 1.0F : 0.0F) : (offset == 0L ? 1.0F : 0.0F));
 
         int moduleIndex = renderList.indexOf(module);
         float bgWidth = right - left;
@@ -590,7 +581,7 @@ public class HUD extends Module {
         boolean nextWidthSame = false;
         if (moduleIndex < renderList.size() - 1) {
             Module nextModule = renderList.get(moduleIndex + 1);
-            float nextWidth = (float) (this.calculateStringWidth(this.getModuleName(nextModule), this.getModuleSuffix(nextModule)) - (this.shadow.getValue() ? 0 : Math.round(scaleValue))) + 2.0F * scaleValue;
+            float nextWidth = (float) (this.calculateStringWidth(this.getModuleName(nextModule), this.getModuleSuffix(nextModule)) - (this.shadow.getValue() ? 0 : 1)) + 2.0F;
             nextWidthSame = Math.abs(nextWidth - bgWidth) < 1.0F;
         }
 
@@ -648,7 +639,7 @@ public class HUD extends Module {
                     entry.right,
                     entry.bottom,
                     color,
-                    2.0F * this.scale.getValue(),
+                    2.0F,
                     entry.leftTop,
                     entry.rightTop,
                     entry.leftBot,

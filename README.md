@@ -32,9 +32,11 @@ Demise Client 的源码/资源
 
 Augustus Client 的资源
 
-Epilogue Client 的源码/资源 https://github.com/qm123pz/E
+Epilogue Client 的源码/资源 https://github.com/qm123pz/Epilogue-Client
 
-Un1336 / Falling Star / Fall1ng Star / qm123pz / 张金辰 的开发
+Un1336 / Falling Star / Fall1ng Star / qm123pz 的开发
+
+ModernSkidder / 张金辰 的开发
 
 Phosphor 的光照系统 https://github.com/momenbasel/Phosphor
 

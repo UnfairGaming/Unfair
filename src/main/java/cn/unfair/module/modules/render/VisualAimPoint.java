@@ -13,7 +13,7 @@ import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.RotationUtil;
-import cn.unfair.util.rotationadvanced.AdvancedRotationMath;
+import cn.unfair.util.rotation.AdvancedRotationMath;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
