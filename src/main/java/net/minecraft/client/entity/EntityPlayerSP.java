@@ -10,7 +10,6 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.NoSlow;
 import cn.unfair.module.modules.player.AntiDebuff;
-import cn.unfair.module.modules.player.BetterRotation;
 import cn.unfair.util.via.ModernFluidPhysics;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ModernOffhandPlayer;
@@ -204,7 +203,6 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         if (this.worldObj.isBlockLoaded(new BlockPos(this.posX, 0.0D, this.posZ))) {
             UpdateEvent event = new UpdateEvent(EventType.PRE, this.lastReportedYaw, this.lastReportedPitch, this.rotationYaw, this.rotationPitch);
             EventManager.call(event);
-            BetterRotation.smooth(event);
             RotationState.applyState(event.isRotated() && !this.isRiding(), event.getNewYaw(), event.getNewPitch(), event.getPreYaw(), event.isRotating());
 
             if (event.isRotated()) {

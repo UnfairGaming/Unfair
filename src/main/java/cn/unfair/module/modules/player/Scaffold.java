@@ -93,8 +93,8 @@ public class Scaffold extends Module {
     private boolean easingOut = false;
     private long nextClickDelay = 0L;
     /**
-     * When true, Scaffold suspends placing/rotating so a higher-priority action (e.g. AutoMLG
-     * water clutch) can take over the rotation. Set via {@link #setPaused(boolean)}.
+     * When true, Scaffold suspends placing/rotating so a higher-priority action can take over
+     * the rotation. Set via {@link #setPaused(boolean)}.
      */
     private boolean paused = false;
 
