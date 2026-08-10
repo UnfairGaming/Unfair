@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -28,11 +27,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 import static cn.unfair.util.MathUtil.interpolate;
 
@@ -44,7 +39,7 @@ public class TargetESP extends Module {
     private final ColorProperty fadeColor1 = new ColorProperty("Fade Color 1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 2);
     private final ColorProperty fadeColor2 = new ColorProperty("Fade Color 2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 2);
     private final ModeProperty mode = new ModeProperty("Mark Mode", 1, new String[]{"Points", "Ghost", "Ghost2", "Image", "Exhi", "Circle"});
-    private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim", "Custom"}, () -> mode.getValue() == 3);
+    private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim"}, () -> mode.getValue() == 3);
     private final BooleanProperty animation = new BooleanProperty("Animation", true, () -> mode.getValue() == 3 && imageMode.getValue() == 5);
     private final BooleanProperty showHurt = new BooleanProperty("ShowHurt", false, () -> mode.getValue() == 3);
     private final TimerUtil displayTimer = new TimerUtil();
@@ -56,19 +51,6 @@ public class TargetESP extends Module {
     private final ResourceLocation aim = new ResourceLocation("minecraft", "unfair/targetesp/shenmi.png");
     public double prevCircleStep;
     public double circleStep;
-    private ResourceLocation customImage = null;
-    // 给👇这个删了你妈就死了 笑死我了
-    private final BooleanProperty selectImage = new BooleanProperty("Select Image", false, () -> mode.getValue() == 3 && imageMode.getValue() == 5) {
-        @Override
-        public boolean setValue(Boolean value) {
-            boolean result = super.setValue(value);
-            if (result && value) {
-                selectCustomImage();
-                super.setValue(false);
-            }
-            return result;
-        }
-    };
     private long lastHurtTime = 0;
     private EntityLivingBase target;
     private long lastTime = System.currentTimeMillis();
@@ -77,33 +59,6 @@ public class TargetESP extends Module {
 
     public TargetESP() {
         super("TargetESP", false, true);
-    }
-
-    private void selectCustomImage() {
-        new Thread(() -> {
-            FileDialog fileDialog = new FileDialog((Frame) null, "Select Custom Image", FileDialog.LOAD);
-            fileDialog.setFile("*.png");
-            fileDialog.setFilenameFilter((dir, name) -> name.toLowerCase().endsWith(".png"));
-            fileDialog.setVisible(true);
-
-            String file = fileDialog.getFile();
-            if (file != null) {
-                String directory = fileDialog.getDirectory();
-                File imageFile = new File(directory, file);
-                try {
-                    BufferedImage image = ImageIO.read(imageFile);
-                    if (image != null) {
-                        ResourceLocation newImage = new ResourceLocation("epilogue", "custom_target_" + System.currentTimeMillis());
-                        mc.addScheduledTask(() -> {
-                            mc.getTextureManager().loadTexture(newImage, new DynamicTexture(image));
-                            customImage = newImage;
-                        });
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, "Image Selector Thread").start();
     }
 
     private Color getTargetColor() {
@@ -638,13 +593,6 @@ public class TargetESP extends Module {
                     break;
                 case 4:
                     RenderUtil.drawImage(aim, renderX, renderY, x2, y2, color, color2, color3, color4);
-                    break;
-                case 5:
-                    if (customImage != null) {
-                        RenderUtil.drawImage(customImage, renderX, renderY, x2, y2, color, color2, color3, color4);
-                    } else {
-                        RenderUtil.drawImage(rectangle, renderX, renderY, x2, y2, color, color2, color3, color4);
-                    }
                     break;
             }
         } finally {

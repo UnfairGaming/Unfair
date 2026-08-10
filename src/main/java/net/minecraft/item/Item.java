@@ -546,6 +546,7 @@ public class Item
                 return BlockDirt.DirtType.byMetadata(p_apply_1_.getMetadata()).getUnlocalizedName();
             }
         })).setUnlocalizedName("dirt"));
+        registerItemBlock(Blocks.dirt_path);
         registerItemBlock(Blocks.cobblestone);
         registerItemBlock(Blocks.planks, (new ItemMultiTexture(Blocks.planks, Blocks.planks, new Function<ItemStack, String>()
         {
