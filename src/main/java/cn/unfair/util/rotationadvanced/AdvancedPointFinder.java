@@ -1,4 +1,4 @@
-package cn.unfair.util.killaura;
+package cn.unfair.util.rotationadvanced;
 
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
@@ -6,19 +6,15 @@ import net.minecraft.util.Vec3;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Generates stable surface points used by KillAura's aim-point selector.
- */
-public final class PointFinder {
+public final class AdvancedPointFinder {
     public static final List<Vec3> hitboxPoints = new ArrayList<>();
     public static final List<Vec3> invalidHitboxPoints = new ArrayList<>();
     public static final List<Vec3> allHitboxPoints = new ArrayList<>();
     public static final int POINT_COUNT = 2048;
-
     private static double lastCbrt;
-    private static int lastPointCount;
+    private static double lastPointCount;
 
-    private PointFinder() {
+    private AdvancedPointFinder() {
     }
 
     public static void findPoints(AxisAlignedBB bb, int pointCount) {
@@ -37,26 +33,35 @@ public final class PointFinder {
         int stepsX = Math.max(2, (int) (cbrt * (width / total) * 3));
         int stepsY = Math.max(2, (int) (cbrt * (height / total) * 3));
         int stepsZ = Math.max(2, (int) (cbrt * (depth / total) * 3));
+
         double stepX = width / (stepsX - 1);
         double stepY = height / (stepsY - 1);
         double stepZ = depth / (stepsZ - 1);
 
         for (int i = 0; i < stepsX; i++) {
             for (int j = 0; j < stepsY; j++) {
-                add(new Vec3(bb.minX + stepX * i, bb.minY + stepY * j, bb.minZ));
-                add(new Vec3(bb.minX + stepX * i, bb.minY + stepY * j, bb.maxZ));
+                double x = bb.minX + stepX * i;
+                double y = bb.minY + stepY * j;
+                add(new Vec3(x, y, bb.minZ));
+                add(new Vec3(x, y, bb.maxZ));
             }
         }
+
         for (int i = 0; i < stepsX; i++) {
             for (int k = 0; k < stepsZ; k++) {
-                add(new Vec3(bb.minX + stepX * i, bb.minY, bb.minZ + stepZ * k));
-                add(new Vec3(bb.minX + stepX * i, bb.maxY, bb.minZ + stepZ * k));
+                double x = bb.minX + stepX * i;
+                double z = bb.minZ + stepZ * k;
+                add(new Vec3(x, bb.minY, z));
+                add(new Vec3(x, bb.maxY, z));
             }
         }
+
         for (int j = 0; j < stepsY; j++) {
             for (int k = 0; k < stepsZ; k++) {
-                add(new Vec3(bb.minX, bb.minY + stepY * j, bb.minZ + stepZ * k));
-                add(new Vec3(bb.maxX, bb.minY + stepY * j, bb.minZ + stepZ * k));
+                double y = bb.minY + stepY * j;
+                double z = bb.minZ + stepZ * k;
+                add(new Vec3(bb.minX, y, z));
+                add(new Vec3(bb.maxX, y, z));
             }
         }
     }
