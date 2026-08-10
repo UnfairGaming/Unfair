@@ -479,7 +479,6 @@ public class RenderUtil {
         GlStateManager.pushMatrix();
         prepareGuiItemRenderState();
         GlStateManager.depthMask(true);
-        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
         RenderHelper.enableStandardItemLighting();
         GlStateManager.pushMatrix();
         GlStateManager.scale(1.0f, 1.0f, -0.01f);
@@ -536,18 +535,27 @@ public class RenderUtil {
     }
 
     private static void prepareGuiItemRenderState() {
-        GlStateManager.enableRescaleNormal();
+        GlStateManager.disableLighting();
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableAlpha();
+        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
         GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+        GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     private static void prepareGuiTextureRenderState() {
+        GlStateManager.disableLighting();
         GlStateManager.disableDepth();
+        GlStateManager.depthMask(false);
         GlStateManager.enableAlpha();
         GlStateManager.enableTexture2D();
+        GlStateManager.alphaFunc(GL11.GL_GREATER, 0.1F);
         GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public static void renderPotionEffect(PotionEffect potionEffect, int x, int y) {
@@ -2148,3 +2156,4 @@ public class RenderUtil {
         }
     }
 }
+
