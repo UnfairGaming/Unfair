@@ -5,14 +5,12 @@ import cn.unfair.events.LoadWorldEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.KeyBindUtil;
 import net.minecraft.client.Minecraft;
 
 public class FreeLook extends Module {
     public static FreeLook INSTANCE;
     public final BooleanProperty autoF5 = new BooleanProperty("AutoF5", true);
-    public final IntProperty keyBind = new IntProperty("Key", 56, 0, 1000);
     public boolean active = false;
     public float cameraYaw;
     public float cameraPitch;
@@ -43,7 +41,7 @@ public class FreeLook extends Module {
             if (mc.thePlayer != null) {
                 this.prevCameraYaw = this.cameraYaw;
                 this.prevCameraPitch = this.cameraPitch;
-                boolean isKeyDown = KeyBindUtil.isKeyDown(this.keyBind.getValue()) && mc.currentScreen == null;
+                boolean isKeyDown = KeyBindUtil.isKeyDown(this.getKey()) && mc.currentScreen == null;
                 if (isKeyDown) {
                     if (!this.active) {
                         this.active = true;

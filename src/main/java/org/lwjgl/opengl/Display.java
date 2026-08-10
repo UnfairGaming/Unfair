@@ -322,7 +322,10 @@ public class Display {
     private static void handleKeyCallback(long window, int key, int scancode, int action, int mods) {
         cancelNextChar = false;
         if (key > GLFW_KEY_SPACE && key <= GLFW_KEY_GRAVE_ACCENT) {
-            if ((GLFW_MOD_CONTROL & mods) != 0 && (GLFW_MOD_ALT & mods) == 0) {
+            if ((GLFW_MOD_ALT & mods) != 0) {
+                Keyboard.addGlfwKeyEvent(window, key, scancode, action, mods, '\0');
+                cancelNextChar = true;
+            } else if ((GLFW_MOD_CONTROL & mods) != 0) {
                 Keyboard.addGlfwKeyEvent(window, key, scancode, action, mods, (char) (key & 0x1f));
                 cancelNextChar = true;
             } else if (action > 0) {

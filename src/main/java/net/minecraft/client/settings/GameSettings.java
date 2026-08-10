@@ -360,6 +360,7 @@ public class GameSettings implements ModernOffhandKeyBinding
     public void setOptionKeyBinding(KeyBinding key, int keyCode)
     {
         key.setKeyCode(keyCode);
+        KeyBinding.resetKeyBindingArrayAndHash();
         this.saveOptions();
     }
 
