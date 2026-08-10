@@ -78,7 +78,7 @@ public abstract class GenLayer
 
         for (int k = 0; k < i; ++k)
         {
-            genlayerhills = new GenLayerZoom((long)(1000 + k), genlayerhills);
+            genlayerhills = new GenLayerZoom(1000 + k, genlayerhills);
 
             if (k == 0)
             {
@@ -195,14 +195,14 @@ public abstract class GenLayer
                 {
                     public String call() throws Exception
                     {
-                        return String.valueOf((Object)biomegenbase);
+                        return String.valueOf(biomegenbase);
                     }
                 });
                 crashreportcategory.addCrashSectionCallable("Biome B", new Callable<String>()
                 {
                     public String call() throws Exception
                     {
-                        return String.valueOf((Object)biomegenbase1);
+                        return String.valueOf(biomegenbase1);
                     }
                 });
                 throw new ReportedException(crashreport);

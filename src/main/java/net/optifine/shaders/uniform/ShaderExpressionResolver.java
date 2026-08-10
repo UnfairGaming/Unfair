@@ -20,7 +20,7 @@ public class ShaderExpressionResolver implements IExpressionResolver
 
         for (String s : map.keySet())
         {
-            IExpression iexpression = (IExpression)map.get(s);
+            IExpression iexpression = map.get(s);
             this.registerExpression(s, iexpression);
         }
     }
@@ -100,7 +100,7 @@ public class ShaderExpressionResolver implements IExpressionResolver
 
     public IExpression getExpression(String name)
     {
-        return (IExpression)this.mapExpressions.get(name);
+        return this.mapExpressions.get(name);
     }
 
     public boolean hasExpression(String name)

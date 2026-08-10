@@ -42,7 +42,7 @@ public class MovementInputFromOptions extends MovementInput {
 
         EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
         if (player instanceof ModernPlayerPhysics) {
-            ((ModernPlayerPhysics) player).viaforge$updateModernMovementInput(this);
+            player.viaforge$updateModernMovementInput(this);
         }
     }
 }

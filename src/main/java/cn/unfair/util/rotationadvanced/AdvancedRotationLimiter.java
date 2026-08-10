@@ -1,8 +1,11 @@
 package cn.unfair.util.rotationadvanced;
 
+import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RandomUtil;
+import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
 
 import java.util.ArrayList;
@@ -10,19 +13,30 @@ import java.util.List;
 
 public class AdvancedRotationLimiter {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final float UPDATE_MS = 16.67F;
+
+    private final TimerUtil updateTimer = new TimerUtil();
+    private final List<Float> yawDiffList = new ArrayList<>();
+    private final List<Float> pitchDiffList = new ArrayList<>();
+    private final List<Double> speedList = new ArrayList<>();
+
     private double previousDeltaYaw;
     private double previousDeltaPitch;
     private double accelerationYaw;
     private double accelerationPitch;
-    private final List<Float> yawDiffList = new ArrayList<>();
-    private final List<Float> pitchDiffList = new ArrayList<>();
-    private final List<Double> speedList = new ArrayList<>();
     private float avgYawDiff;
     private float avgPitchDiff;
     private float prevYaw;
     private float prevPitch;
-    private float stamina = 0.8F;
+    private float yawDiff;
+    private float pitchDiff;
     private float lastYawDiff;
+    private double lastAccelDeltaYaw;
+    private double lastAccelDeltaPitch;
+    private float stamina = 0.8F;
+    private boolean shouldLimit;
+    private double averageSwitching;
+    private double avgSpeed;
 
     public void reset(float yaw, float pitch) {
         previousDeltaYaw = 0.0D;
@@ -36,12 +50,20 @@ public class AdvancedRotationLimiter {
         avgPitchDiff = 0.0F;
         prevYaw = yaw;
         prevPitch = pitch;
-        stamina = 0.8F;
+        yawDiff = 0.0F;
+        pitchDiff = 0.0F;
         lastYawDiff = yaw;
+        lastAccelDeltaYaw = 0.0F;
+        lastAccelDeltaPitch = 0.0F;
+        stamina = 0.8F;
+        shouldLimit = false;
+        averageSwitching = 0.0D;
+        avgSpeed = 0.0D;
+        updateTimer.reset();
     }
 
     public float[] limit(float currentYaw, float currentPitch, float targetYaw, float targetPitch, String limiterMode, int maxDeltaHistorySize, String averageMode, float maxAverageYawDelta, float minYawMultiplier, float maxYawMultiplier, float yawSpeed, float pitchSpeed) {
-        updateHistory(currentYaw, currentPitch, maxDeltaHistorySize);
+        updateHistory(currentYaw, currentPitch, maxDeltaHistorySize, averageMode, maxAverageYawDelta, limiterMode, yawSpeed);
 
         double[] delta = limitRotations(currentYaw, currentPitch, targetYaw, targetPitch, limiterMode, yawSpeed, pitchSpeed);
         if (!"NONE".equalsIgnoreCase(averageMode)) {
@@ -54,29 +76,43 @@ public class AdvancedRotationLimiter {
         };
     }
 
-    private void updateHistory(float currentYaw, float currentPitch, int maxDeltaHistorySize) {
-        float yawDiff = prevYaw - currentYaw;
-        float pitchDiff = prevPitch - currentPitch;
+    private void updateHistory(float currentYaw, float currentPitch, int maxDeltaHistorySize, String averageMode, float maxAverageYawDelta, String limiterMode, float yawSpeed) {
+        yawDiff = prevYaw - currentYaw;
+        pitchDiff = prevPitch - currentPitch;
 
         if (maxDeltaHistorySize == 0) {
             avgYawDiff = 0.0F;
             avgPitchDiff = 0.0F;
+            shouldLimit = false;
+            averageSwitching = 0.0D;
+            avgSpeed = 0.0D;
         } else {
             yawDiffList.add(yawDiff);
             pitchDiffList.add(pitchDiff);
             speedList.add(MoveUtil.getSpeed());
 
-            float yawSum = 0.0F;
-            for (float diff : yawDiffList) {
-                yawSum += diff;
+            int deltaSwitchTarget = 0;
+            float yawDiffListSum = 0.0F;
+            for (float diffYaw : yawDiffList) {
+                yawDiffListSum += diffYaw;
+                if (Math.abs(diffYaw) > 30.0F) {
+                    deltaSwitchTarget++;
+                }
             }
-            avgYawDiff = yawSum / yawDiffList.size();
+            avgYawDiff = yawDiffListSum / yawDiffList.size();
+            averageSwitching = (double) deltaSwitchTarget / yawDiffList.size();
 
-            float pitchSum = 0.0F;
-            for (float diff : pitchDiffList) {
-                pitchSum += diff;
+            float pitchDiffListSum = 0.0F;
+            for (float diffPitch : pitchDiffList) {
+                pitchDiffListSum += diffPitch;
             }
-            avgPitchDiff = pitchSum / pitchDiffList.size();
+            avgPitchDiff = pitchDiffListSum / pitchDiffList.size();
+
+            double speedListSum = 0.0D;
+            for (double speed : speedList) {
+                speedListSum += speed;
+            }
+            avgSpeed = speedList.isEmpty() ? 0.0D : speedListSum / speedList.size();
 
             while (yawDiffList.size() > maxDeltaHistorySize) {
                 yawDiffList.remove(0);
@@ -90,36 +126,56 @@ public class AdvancedRotationLimiter {
 
             avgYawDiff = MathHelper.clamp_float(avgYawDiff, -180.0F, 180.0F);
             avgPitchDiff = MathHelper.clamp_float(avgPitchDiff, -90.0F, 90.0F);
+
+            if (!"NONE".equalsIgnoreCase(averageMode)) {
+                float avgYawAbs = Math.abs(avgYawDiff);
+                switch (averageMode.toUpperCase()) {
+                    case "NCP":
+                        EntityLivingBase target = KillAura.target == null ? null : KillAura.target.getEntity();
+                        if (target == null || AdvancedRotationMath.getDistanceToEntityBox(target) > 1.0D) {
+                            double vl = 0.0D;
+                            if (avgYawAbs > 50.0F) {
+                                vl += 30.0D * avgYawAbs / 180.0D;
+                            }
+                            if (avgSpeed >= 0.0D && avgSpeed < 0.2D) {
+                                vl += 20.0D * (0.2D - avgSpeed) / 0.2D;
+                            }
+                            if (averageSwitching > 0.0D) {
+                                vl += 20.0D * averageSwitching;
+                            }
+                            vl += 30.0D * (150.0D - RandomUtil.nextDouble(37.5D, 112.5D)) / 150.0D;
+                            shouldLimit = vl > 70.0D;
+                        } else {
+                            shouldLimit = false;
+                        }
+                        break;
+                    case "CUSTOM":
+                        shouldLimit = avgYawAbs > maxAverageYawDelta;
+                        break;
+                    default:
+                        shouldLimit = false;
+                        break;
+                }
+            } else {
+                shouldLimit = false;
+            }
         }
 
         prevYaw = currentYaw;
         prevPitch = currentPitch;
+
+        if ("ACCELERATED".equalsIgnoreCase(limiterMode)) {
+            if (Math.abs(avgYawDiff) > yawSpeed / 4.0F) {
+                stamina = Math.max(0.0F, stamina - (Math.abs(avgYawDiff) - (yawSpeed / 4.0F)) / 1980.0F);
+            } else {
+                stamina = Math.min(1.0F, stamina + 0.004F);
+            }
+        }
     }
 
     private double reduceYaw(double deltaYaw, String averageMode, int maxDeltaHistorySize, float maxAverageYawDelta, float minYawMultiplier, float maxYawMultiplier) {
         if (maxDeltaHistorySize <= 0) {
             return deltaYaw;
-        }
-
-        boolean shouldLimit;
-        if ("NCP".equalsIgnoreCase(averageMode)) {
-            double avgSpeed = 0.0D;
-            for (double speed : speedList) {
-                avgSpeed += speed;
-            }
-            avgSpeed = speedList.isEmpty() ? 0.0D : avgSpeed / speedList.size();
-            double vl = 0.0D;
-            float avgYawAbs = Math.abs(avgYawDiff);
-            if (avgYawAbs > 50.0F) {
-                vl += 30.0D * avgYawAbs / 180.0D;
-            }
-            if (avgSpeed >= 0.0D && avgSpeed < 0.2D) {
-                vl += 20.0D * (0.2D - avgSpeed) / 0.2D;
-            }
-            vl += 30.0D * (150.0D - RandomUtil.nextDouble(37.5D, 112.5D)) / 150.0D;
-            shouldLimit = vl > 70.0D;
-        } else {
-            shouldLimit = Math.abs(avgYawDiff) > maxAverageYawDelta;
         }
 
         if (!shouldLimit) {
@@ -131,7 +187,7 @@ public class AdvancedRotationLimiter {
         }
 
         float percentageYaw = 1.0F - MathHelper.clamp_float((Math.abs(avgYawDiff) - maxAverageYawDelta) / maxAverageYawDelta, 0.0F, 1.0F);
-        float reduce = (float) AdvancedRotationMath.interpolate(minYawMultiplier, maxYawMultiplier, percentageYaw);
+        float reduce = AdvancedRotationMath.interpolate(minYawMultiplier, maxYawMultiplier, percentageYaw);
         return deltaYaw * reduce;
     }
 
@@ -140,12 +196,17 @@ public class AdvancedRotationLimiter {
         float pitchDifference = AdvancedRotationMath.getAngleDifference(targetPitch, currentPitch);
         double rotationDifference = Math.max(1.0E-6D, Math.hypot(Math.abs(yawDifference), Math.abs(pitchDifference)));
 
-        float hSpeed = baseYawSpeed + Math.abs((prevYaw - currentYaw) * 0.4F) + Math.abs(avgYawDiff * RandomUtil.nextFloat(0.8F, 1.6F));
-        float vSpeed = basePitchSpeed + Math.abs((prevPitch - currentPitch) * 0.4F) + Math.abs(avgPitchDiff * RandomUtil.nextFloat(0.8F, 1.6F));
+        float hSpeed = baseYawSpeed + Math.abs(yawDiff * 0.4F) + Math.abs(avgYawDiff * RandomUtil.nextFloat(0.8F, 1.6F));
+        float vSpeed = basePitchSpeed + Math.abs(pitchDiff * 0.4F) + Math.abs(avgPitchDiff * RandomUtil.nextFloat(0.8F, 1.6F));
+
         float unNormHSpeed = hSpeed;
+        hSpeed /= 3.0F;
+
         float unNormVSpeed = vSpeed;
-        hSpeed = Math.min(hSpeed / 3.0F, 180.0F);
-        vSpeed = Math.min(vSpeed / 3.0F, 180.0F);
+        vSpeed /= 3.0F;
+
+        hSpeed = Math.min(hSpeed * 1.08F, 180.0F);
+        vSpeed = Math.min(vSpeed * 1.08F, 180.0F);
 
         switch (limiterMode.toUpperCase()) {
             case "NONE":
@@ -159,53 +220,121 @@ public class AdvancedRotationLimiter {
                 };
             }
             case "ACCELERATED": {
-                if (yawDifference > hSpeed && Math.abs(avgYawDiff) > 12.0F && Math.abs(avgPitchDiff) < 1.0F) {
-                    targetPitch += AdvancedRotationMath.randomizeAround(Math.abs(avgYawDiff) / 90.0F * 50.0F);
+                if (yawDifference > hSpeed * 1.2F && Math.abs(avgYawDiff) > 16.0F && Math.abs(avgPitchDiff) < 0.7F && RandomUtil.nextInt(0, 100) < 22) {
+                    targetPitch += AdvancedRotationMath.randomizeAround(Math.abs(avgYawDiff) / 180.0F * 10.0F);
                     pitchDifference = AdvancedRotationMath.getAngleDifference(targetPitch, currentPitch);
                 }
 
-                if (Math.abs(avgYawDiff) > baseYawSpeed / 4.0F) {
-                    stamina = Math.max(0.0F, stamina - (Math.abs(avgYawDiff) - (baseYawSpeed / 4.0F)) / 1980.0F);
-                } else {
-                    stamina = Math.min(1.0F, stamina + 0.004F);
-                }
-
-                float staminaMultiplier = MathHelper.clamp_float(0.8F + stamina * 0.2F, 0.8F, 1.0F);
+                float staminaMultiplier = MathHelper.clamp_float(0.84F + stamina * 0.16F, 0.84F, 1.0F);
                 hSpeed *= staminaMultiplier;
                 vSpeed *= staminaMultiplier;
 
                 float decelStartYaw = unNormHSpeed / 4.0F;
                 float decelStartPitch = unNormVSpeed / 4.0F;
-                float percentageYaw = MathHelper.clamp_float((decelStartYaw - Math.abs(avgYawDiff)) / decelStartYaw, 0.0F, 1.0F)
-                        * MathHelper.clamp_float((decelStartYaw - Math.abs(yawDifference)) / decelStartYaw, 0.0F, 1.0F);
-                float percentagePitch = MathHelper.clamp_float((decelStartPitch - Math.abs(avgPitchDiff)) / decelStartPitch, 0.0F, 1.0F)
-                        * MathHelper.clamp_float((decelStartPitch - Math.abs(pitchDifference)) / decelStartPitch, 0.0F, 1.0F);
-                hSpeed = (float) AdvancedRotationMath.interpolate(hSpeed, hSpeed * MathHelper.clamp_float(Math.abs(yawDifference) / decelStartYaw, 0.85F, 1.0F), percentageYaw);
-                vSpeed = (float) AdvancedRotationMath.interpolate(vSpeed, vSpeed * MathHelper.clamp_float(Math.abs(pitchDifference) / decelStartPitch, 0.85F, 1.0F), percentagePitch);
+                float percentageYawCurr = MathHelper.clamp_float((decelStartYaw - Math.abs(avgYawDiff)) / decelStartYaw, 0.0F, 1.0F);
+                float percentageYawAvg = MathHelper.clamp_float((decelStartYaw - Math.abs(yawDifference)) / decelStartYaw, 0.0F, 1.0F);
+                float percentageYaw = percentageYawCurr * percentageYawAvg;
+                float percentagePitchCurr = MathHelper.clamp_float((decelStartPitch - Math.abs(avgPitchDiff)) / decelStartPitch, 0.0F, 1.0F);
+                float percentagePitchAvg = MathHelper.clamp_float((decelStartPitch - Math.abs(pitchDifference)) / decelStartPitch, 0.0F, 1.0F);
+                float percentagePitch = percentagePitchCurr * percentagePitchAvg;
 
-                double straightLineYaw = Math.abs(yawDifference / rotationDifference) * Math.min(hSpeed, 180.0F);
-                double straightLinePitch = Math.abs(pitchDifference / rotationDifference) * Math.min(vSpeed, 180.0F);
+                float multiYaw = Math.abs(yawDifference) / decelStartYaw;
+                float multiPitch = Math.abs(pitchDifference) / decelStartPitch;
+                multiYaw = MathHelper.clamp_float(multiYaw, 0.85F, 1.0F);
+                multiPitch = MathHelper.clamp_float(multiPitch, 0.85F, 1.0F);
+
+                float reducedHSpeed = hSpeed * multiYaw;
+                float reducedVSpeed = vSpeed * multiPitch;
+                hSpeed = MathHelper.clamp_float(AdvancedRotationMath.interpolate(hSpeed, reducedHSpeed, percentageYaw), 0.0F, 180.0F);
+                vSpeed = MathHelper.clamp_float(AdvancedRotationMath.interpolate(vSpeed, reducedVSpeed, percentagePitch), 0.0F, 180.0F);
+
+                float maxAccel = 1.8F;
+                float percentage1 = MathHelper.clamp_float((Math.abs(currentYaw - prevYaw) - baseYawSpeed * maxAccel) / Math.max(baseYawSpeed * maxAccel, 1.0E-6F), 0.0F, 1.0F);
+                float percentage2 = MathHelper.clamp_float((Math.abs(avgYawDiff) - baseYawSpeed) / baseYawSpeed, 0.0F, 1.0F);
+                float reducedHSpeed2 = hSpeed * 0.78F;
+                hSpeed = MathHelper.clamp_float(AdvancedRotationMath.interpolate(hSpeed, reducedHSpeed2, percentage1 * percentage2), 0.0F, 180.0F);
+
+                double straightLineYaw = Math.abs(yawDifference / rotationDifference) * hSpeed;
+                double straightLinePitch = Math.abs(pitchDifference / rotationDifference) * vSpeed;
                 double deltaYaw = MathHelper.clamp_double(yawDifference, -straightLineYaw, straightLineYaw);
                 double deltaPitch = MathHelper.clamp_double(pitchDifference, -straightLinePitch, straightLinePitch);
 
-                double velocityYaw = deltaYaw - previousDeltaYaw;
-                double velocityPitch = deltaPitch - previousDeltaPitch;
-                float baseYaw = MathHelper.clamp_float((Math.abs(prevYaw - currentYaw) * 0.7F + Math.abs(avgYawDiff * RandomUtil.nextFloat(0.8F, 1.6F))) / 180.0F, 0.0F, 1.0F);
-                float basePitch = MathHelper.clamp_float((Math.abs(prevPitch - currentPitch) * 0.7F + Math.abs(avgPitchDiff * RandomUtil.nextFloat(0.8F, 1.6F))) / 180.0F, 0.0F, 1.0F);
-                float factorYaw = MathHelper.clamp_float((float) AdvancedRotationMath.interpolate(0.15F, 0.35F, baseYaw * baseYaw * 2.0F), 0.0F, 0.35F);
-                float factorPitch = MathHelper.clamp_float((float) AdvancedRotationMath.interpolate(0.15F, 0.35F, basePitch * basePitch * 2.0F), 0.0F, 0.35F);
+                if (updateTimer.hasTimeElapsed((long) UPDATE_MS)) {
+                    double velocityYaw = deltaYaw - previousDeltaYaw;
+                    double velocityPitch = deltaPitch - previousDeltaPitch;
 
-                accelerationYaw = AdvancedRotationMath.interpolate(previousDeltaYaw, deltaYaw, factorYaw);
-                accelerationPitch = AdvancedRotationMath.interpolate(previousDeltaPitch, deltaPitch, factorPitch);
-                if (Math.signum(accelerationYaw) != Math.signum(velocityYaw) && Math.abs(avgYawDiff) > baseYawSpeed / 2.0F) {
-                    accelerationYaw *= 0.85D;
+                    float baseYaw = (Math.abs(yawDiff * 0.7F) + Math.abs(avgYawDiff * RandomUtil.nextFloat(0.8F, 1.6F))) / 180.0F;
+                    baseYaw = MathHelper.clamp_float(baseYaw, 0.0F, 1.0F);
+
+                    float basePitch = (Math.abs(pitchDiff * 0.7F) + Math.abs(avgPitchDiff * RandomUtil.nextFloat(0.8F, 1.6F))) / 180.0F;
+                    basePitch = MathHelper.clamp_float(basePitch, 0.0F, 1.0F);
+
+                    float factorYaw = MathHelper.clamp_float(AdvancedRotationMath.interpolate(0.14F, 0.29F, smooth(baseYaw, 2.0F)), 0.0F, 0.29F);
+                    float factorPitch = MathHelper.clamp_float(AdvancedRotationMath.interpolate(0.14F, 0.29F, smooth(basePitch, 2.0F)), 0.0F, 0.29F);
+
+                    float f = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+                    float f1 = f * f * f * 8.0F;
+                    if (Math.abs(lastAccelDeltaYaw) < f1 * 0.15F) {
+                        float incYaw = MathHelper.clamp_float(0.15F * (Math.abs(yawDifference) / 50.0F), 0.0F, 1.0F);
+                        factorYaw = RandomUtil.nextFloat(0.05F + incYaw, 0.15F + incYaw);
+                    }
+
+                    if (Math.abs(lastAccelDeltaPitch) < f1 * 0.15F) {
+                        float incPitch = MathHelper.clamp_float(0.15F * (Math.abs(pitchDifference) / 50.0F), 0.0F, 1.0F);
+                        factorPitch = RandomUtil.nextFloat(0.05F + incPitch, 0.15F + incPitch);
+                    }
+
+                    factorYaw = MathHelper.clamp_float(factorYaw, 0.0F, 1.0F);
+                    factorPitch = MathHelper.clamp_float(factorPitch, 0.0F, 1.0F);
+
+                    float distYaw = 1.0F - MathHelper.clamp_float(Math.abs(yawDifference) / Math.max(baseYawSpeed, 1.0F) * 2.0F, 0.0F, 1.0F);
+                    float distPitch = 1.0F - MathHelper.clamp_float(Math.abs(pitchDifference) / Math.max(basePitchSpeed, 1.0F) * 2.0F, 0.0F, 1.0F);
+
+                    float yawSpeedRatio = 1.0F - MathHelper.clamp_float(Math.abs(avgYawDiff) / Math.max(baseYawSpeed, 1.0F) / 2.0F, 0.0F, 1.0F);
+                    float pitchSpeedRatio = 1.0F - MathHelper.clamp_float(Math.abs(avgPitchDiff) / Math.max(basePitchSpeed, 1.0F) / 2.0F, 0.0F, 1.0F);
+
+                    float minDamping = 0.9F;
+                    float yawProgress = AdvancedRotationMath.interpolate(minDamping, 1.0F, 1.0F - (distYaw * yawSpeedRatio));
+                    float pitchProgress = AdvancedRotationMath.interpolate(minDamping, 1.0F, 1.0F - (distPitch * pitchSpeedRatio));
+                    float yawDamping = MathHelper.clamp_float(smooth(yawProgress, 1.0F), minDamping, 1.0F);
+                    float pitchDamping = MathHelper.clamp_float(smooth(pitchProgress, 1.0F), minDamping, 1.0F);
+
+                    float dampFactor = Math.abs(targetYaw - lastYawDiff) / 4.7F;
+                    yawDamping = MathHelper.clamp_float(AdvancedRotationMath.interpolate(yawDamping, 1.0F, dampFactor), minDamping, 1.0F);
+                    pitchDamping = MathHelper.clamp_float(AdvancedRotationMath.interpolate(pitchDamping, 1.0F, dampFactor), minDamping, 1.0F);
+                    lastYawDiff = targetYaw;
+
+                    float minYaw = baseYawSpeed / 2.0F;
+                    float minPitch = minYaw / 2.0F;
+                    if (Math.signum(accelerationYaw) != Math.signum(velocityYaw) && Math.abs(avgYawDiff) > minYaw) {
+                        float blendedDelta = (float) AdvancedRotationMath.interpolate(Math.abs(deltaYaw), Math.abs(avgYawDiff), 0.73F);
+                        float avgYawRatio = MathHelper.clamp_float((blendedDelta - minYaw) / minYaw, 0.0F, 1.0F);
+                        float multi = AdvancedRotationMath.interpolate(0.8F, 0.9F, avgYawRatio);
+                        yawDamping *= multi;
+                    }
+
+                    if (Math.signum(accelerationPitch) != Math.signum(velocityPitch) && Math.abs(avgPitchDiff) > minPitch) {
+                        float blendedDelta = (float) AdvancedRotationMath.interpolate(Math.abs(deltaPitch), Math.abs(avgYawDiff), 0.73F);
+                        float avgPitchRatio = MathHelper.clamp_float((blendedDelta - minPitch) / minPitch, 0.0F, 1.0F);
+                        float multi = AdvancedRotationMath.interpolate(0.8F, 0.9F, avgPitchRatio);
+                        pitchDamping *= multi;
+                    }
+
+                    accelerationYaw = (float) AdvancedRotationMath.interpolate(previousDeltaYaw, deltaYaw, factorYaw);
+                    accelerationPitch = (float) AdvancedRotationMath.interpolate(previousDeltaPitch, deltaPitch, factorPitch);
+                    accelerationYaw *= yawDamping;
+                    accelerationPitch *= pitchDamping;
+                    float yawOvershootLimit = Math.abs(yawDifference) + Math.min(2.0F, Math.abs(yawDifference) * 0.06F);
+                    float pitchOvershootLimit = Math.abs(pitchDifference) + Math.min(2.0F, Math.abs(pitchDifference) * 0.06F);
+                    accelerationYaw = MathHelper.clamp_double(accelerationYaw, -yawOvershootLimit, yawOvershootLimit);
+                    accelerationPitch = MathHelper.clamp_double(accelerationPitch, -pitchOvershootLimit, pitchOvershootLimit);
+                    lastAccelDeltaYaw = accelerationYaw;
+                    lastAccelDeltaPitch = accelerationPitch;
+                    updateTimer.reset();
                 }
-                if (Math.signum(accelerationPitch) != Math.signum(velocityPitch) && Math.abs(avgPitchDiff) > baseYawSpeed / 4.0F) {
-                    accelerationPitch *= 0.85D;
-                }
+
                 previousDeltaYaw = accelerationYaw;
                 previousDeltaPitch = accelerationPitch;
-                lastYawDiff = targetYaw;
                 return new double[]{accelerationYaw, -accelerationPitch};
             }
             case "LINEAR":
@@ -218,5 +347,9 @@ public class AdvancedRotationLimiter {
                 };
             }
         }
+    }
+
+    private float smooth(float x, float f) {
+        return (x * x) * f;
     }
 }

@@ -87,7 +87,7 @@ public class BlockRedstoneWire extends Block
     public int colorMultiplier(IBlockAccess worldIn, BlockPos pos, int renderPass)
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
-        return iblockstate.getBlock() != this ? super.colorMultiplier(worldIn, pos, renderPass) : this.colorMultiplier(((Integer)iblockstate.getValue(POWER)).intValue());
+        return iblockstate.getBlock() != this ? super.colorMultiplier(worldIn, pos, renderPass) : this.colorMultiplier(iblockstate.getValue(POWER).intValue());
     }
 
     public boolean canPlaceBlockAt(World worldIn, BlockPos pos)
@@ -112,7 +112,7 @@ public class BlockRedstoneWire extends Block
     private IBlockState calculateCurrentChanges(World worldIn, BlockPos pos1, BlockPos pos2, IBlockState state)
     {
         IBlockState iblockstate = state;
-        int i = ((Integer)state.getValue(POWER)).intValue();
+        int i = state.getValue(POWER).intValue();
         int j = 0;
         j = this.getMaxCurrentStrength(worldIn, pos2, j);
         this.canProvidePower = false;
@@ -278,7 +278,7 @@ public class BlockRedstoneWire extends Block
         }
         else
         {
-            int i = ((Integer)worldIn.getBlockState(pos).getValue(POWER)).intValue();
+            int i = worldIn.getBlockState(pos).getValue(POWER).intValue();
             return i > strength ? i : strength;
         }
     }
@@ -323,7 +323,7 @@ public class BlockRedstoneWire extends Block
         }
         else
         {
-            int i = ((Integer)state.getValue(POWER)).intValue();
+            int i = state.getValue(POWER).intValue();
 
             if (i == 0)
             {
@@ -378,7 +378,7 @@ public class BlockRedstoneWire extends Block
 
     protected static boolean canConnectUpwardsTo(IBlockState state)
     {
-        return canConnectTo(state, (EnumFacing)null);
+        return canConnectTo(state, null);
     }
 
     protected static boolean canConnectTo(IBlockState blockState, EnumFacing side)
@@ -391,7 +391,7 @@ public class BlockRedstoneWire extends Block
         }
         else if (Blocks.unpowered_repeater.isAssociated(block))
         {
-            EnumFacing enumfacing = (EnumFacing)blockState.getValue(BlockRedstoneRepeater.FACING);
+            EnumFacing enumfacing = blockState.getValue(BlockRedstoneRepeater.FACING);
             return enumfacing == side || enumfacing.getOpposite() == side;
         }
         else
@@ -439,18 +439,18 @@ public class BlockRedstoneWire extends Block
 
     public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
     {
-        int i = ((Integer)state.getValue(POWER)).intValue();
+        int i = state.getValue(POWER).intValue();
 
         if (i != 0)
         {
             double d0 = (double)pos.getX() + 0.5D + ((double)rand.nextFloat() - 0.5D) * 0.2D;
-            double d1 = (double)((float)pos.getY() + 0.0625F);
+            double d1 = (float)pos.getY() + 0.0625F;
             double d2 = (double)pos.getZ() + 0.5D + ((double)rand.nextFloat() - 0.5D) * 0.2D;
             float f = (float)i / 15.0F;
             float f1 = f * 0.6F + 0.4F;
             float f2 = Math.max(0.0F, f * f * 0.7F - 0.5F);
             float f3 = Math.max(0.0F, f * f * 0.6F - 0.7F);
-            worldIn.spawnParticle(EnumParticleTypes.REDSTONE, d0, d1, d2, (double)f1, (double)f2, (double)f3, new int[0]);
+            worldIn.spawnParticle(EnumParticleTypes.REDSTONE, d0, d1, d2, f1, f2, f3, new int[0]);
         }
     }
 
@@ -477,7 +477,7 @@ public class BlockRedstoneWire extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Integer)state.getValue(POWER)).intValue();
+        return state.getValue(POWER).intValue();
     }
 
     protected BlockState createBlockState()

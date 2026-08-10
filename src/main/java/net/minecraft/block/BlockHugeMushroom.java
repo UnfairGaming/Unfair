@@ -40,7 +40,7 @@ public class BlockHugeMushroom extends Block
      */
     public MapColor getMapColor(IBlockState state)
     {
-        switch ((BlockHugeMushroom.EnumType)state.getValue(VARIANT))
+        switch (state.getValue(VARIANT))
         {
             case ALL_STEM:
                 return MapColor.clothColor;
@@ -91,7 +91,7 @@ public class BlockHugeMushroom extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockHugeMushroom.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     protected BlockState createBlockState()

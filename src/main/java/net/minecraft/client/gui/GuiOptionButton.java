@@ -8,7 +8,7 @@ public class GuiOptionButton extends GuiButton
 
     public GuiOptionButton(int p_i45011_1_, int p_i45011_2_, int p_i45011_3_, String p_i45011_4_)
     {
-        this(p_i45011_1_, p_i45011_2_, p_i45011_3_, (GameSettings.Options)null, p_i45011_4_);
+        this(p_i45011_1_, p_i45011_2_, p_i45011_3_, null, p_i45011_4_);
     }
 
     public GuiOptionButton(int p_i45012_1_, int p_i45012_2_, int p_i45012_3_, int p_i45012_4_, int p_i45012_5_, String p_i45012_6_)

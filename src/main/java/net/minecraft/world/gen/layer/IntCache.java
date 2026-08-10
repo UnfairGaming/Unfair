@@ -23,7 +23,7 @@ public class IntCache
             }
             else
             {
-                int[] aint3 = (int[])freeSmallArrays.remove(freeSmallArrays.size() - 1);
+                int[] aint3 = freeSmallArrays.remove(freeSmallArrays.size() - 1);
                 inUseSmallArrays.add(aint3);
                 return aint3;
             }
@@ -45,7 +45,7 @@ public class IntCache
         }
         else
         {
-            int[] aint = (int[])freeLargeArrays.remove(freeLargeArrays.size() - 1);
+            int[] aint = freeLargeArrays.remove(freeLargeArrays.size() - 1);
             inUseLargeArrays.add(aint);
             return aint;
         }

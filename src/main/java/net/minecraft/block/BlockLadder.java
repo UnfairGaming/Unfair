@@ -47,7 +47,7 @@ public class BlockLadder extends Block
             float f = 0.125F;
 
             if (ViaLoadingBase.getInstance().getTargetVersion().getVersion() <= 47) {
-                switch ((EnumFacing)iblockstate.getValue(FACING))
+                switch (iblockstate.getValue(FACING))
                 {
                     case NORTH:
                         this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
@@ -66,7 +66,7 @@ public class BlockLadder extends Block
                         this.setBlockBounds(0.0F, 0.0F, 0.0F, f, 1.0F, 1.0F);
                 }
             } else {
-                switch ((EnumFacing)iblockstate.getValue(FACING))
+                switch (iblockstate.getValue(FACING))
                 {
                     case NORTH:
                         this.setBlockBounds(0.0F, 0.0F, 0.8125F, 1.0F, 1.0F, 1.0F);
@@ -135,7 +135,7 @@ public class BlockLadder extends Block
      */
     public void onNeighborBlockChange(World worldIn, BlockPos pos, IBlockState state, Block neighborBlock)
     {
-        EnumFacing enumfacing = (EnumFacing)state.getValue(FACING);
+        EnumFacing enumfacing = state.getValue(FACING);
 
         if (!this.canBlockStay(worldIn, pos, enumfacing))
         {
@@ -176,7 +176,7 @@ public class BlockLadder extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((EnumFacing)state.getValue(FACING)).getIndex();
+        return state.getValue(FACING).getIndex();
     }
 
     protected BlockState createBlockState()

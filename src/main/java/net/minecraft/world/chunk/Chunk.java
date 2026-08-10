@@ -410,7 +410,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             this.heightMap[z << 4 | x] = j;
 
             if (!this.worldObj.provider.getHasNoSky()) {
-                LightingHooks.relightSkylightColumn(this.worldObj, (Chunk) this, x, z, i, j);
+                LightingHooks.relightSkylightColumn(this.worldObj, this, x, z, i, j);
             }
 
             int l1 = this.heightMap[z << 4 | x];
@@ -630,7 +630,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         if (extendedblockstorage == null) {
             extendedblockstorage = this.storageArrays[j >> 4] = new ExtendedBlockStorage(j >> 4 << 4, !this.worldObj.provider.getHasNoSky());
 //            this.generateSkylightMap();
-            LightingHooks.initSkylightForSection(this.worldObj, (Chunk) this, this.storageArrays[pos.getY() >> 4]);
+            LightingHooks.initSkylightForSection(this.worldObj, this, this.storageArrays[pos.getY() >> 4]);
 
         }
 
@@ -820,7 +820,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             this.worldObj.loadEntities(entityList);
         }
 
-        LightingHooks.scheduleRelightChecksForChunkBoundaries(this.worldObj, (Chunk) this);
+        LightingHooks.scheduleRelightChecksForChunkBoundaries(this.worldObj, this);
 
     }
 
@@ -1291,7 +1291,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 //        }
         this.isTerrainPopulated = true;
 
-        LightingHooks.checkChunkLighting((Chunk) this, this.worldObj);
+        LightingHooks.checkChunkLighting(this, this.worldObj);
     }
 
     private void func_177441_y() {
@@ -1593,7 +1593,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
         ExtendedBlockStorage storage = new ExtendedBlockStorage(y, storeSkylight);
 
-        LightingHooks.initSkylightForSection(this.worldObj, (Chunk) this, storage);
+        LightingHooks.initSkylightForSection(this.worldObj, this, storage);
 
         return storage;
     }

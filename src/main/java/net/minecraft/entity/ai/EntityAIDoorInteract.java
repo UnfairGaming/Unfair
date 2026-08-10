@@ -55,7 +55,7 @@ public abstract class EntityAIDoorInteract extends EntityAIBase
                     PathPoint pathpoint = pathentity.getPathPointFromIndex(i);
                     this.doorPosition = new BlockPos(pathpoint.xCoord, pathpoint.yCoord + 1, pathpoint.zCoord);
 
-                    if (this.theEntity.getDistanceSq((double)this.doorPosition.getX(), this.theEntity.posY, (double)this.doorPosition.getZ()) <= 2.25D)
+                    if (this.theEntity.getDistanceSq(this.doorPosition.getX(), this.theEntity.posY, this.doorPosition.getZ()) <= 2.25D)
                     {
                         this.doorBlock = this.getBlockDoor(this.doorPosition);
 

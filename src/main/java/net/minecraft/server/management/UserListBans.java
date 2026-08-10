@@ -28,7 +28,7 @@ public class UserListBans extends UserList<GameProfile, UserListBansEntry>
 
         for (UserListBansEntry userlistbansentry : this.getValues().values())
         {
-            astring[i++] = ((GameProfile)userlistbansentry.getValue()).getName();
+            astring[i++] = userlistbansentry.getValue().getName();
         }
 
         return astring;
@@ -46,9 +46,9 @@ public class UserListBans extends UserList<GameProfile, UserListBansEntry>
     {
         for (UserListBansEntry userlistbansentry : this.getValues().values())
         {
-            if (username.equalsIgnoreCase(((GameProfile)userlistbansentry.getValue()).getName()))
+            if (username.equalsIgnoreCase(userlistbansentry.getValue().getName()))
             {
-                return (GameProfile)userlistbansentry.getValue();
+                return userlistbansentry.getValue();
             }
         }
 

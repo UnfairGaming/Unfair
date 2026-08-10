@@ -43,9 +43,9 @@ public class EntityItem extends Entity
         this.setSize(0.25F, 0.25F);
         this.setPosition(x, y, z);
         this.rotationYaw = (float)(Math.random() * 360.0D);
-        this.motionX = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D));
+        this.motionX = (float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D);
         this.motionY = 0.20000000298023224D;
-        this.motionZ = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D));
+        this.motionZ = (float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D);
     }
 
     public EntityItem(World worldIn, double x, double y, double z, ItemStack stack)
@@ -108,8 +108,8 @@ public class EntityItem extends Entity
                 if (this.worldObj.getBlockState(new BlockPos(this)).getBlock().getMaterial() == Material.lava)
                 {
                     this.motionY = 0.20000000298023224D;
-                    this.motionX = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
-                    this.motionZ = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
+                    this.motionX = (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F;
+                    this.motionZ = (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F;
                     this.playSound("random.fizz", 0.4F, 2.0F + this.rand.nextFloat() * 0.4F);
                 }
 
@@ -126,9 +126,9 @@ public class EntityItem extends Entity
                 f = this.worldObj.getBlockState(new BlockPos(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.getEntityBoundingBox().minY) - 1, MathHelper.floor_double(this.posZ))).getBlock().slipperiness * 0.98F;
             }
 
-            this.motionX *= (double)f;
+            this.motionX *= f;
             this.motionY *= 0.9800000190734863D;
-            this.motionZ *= (double)f;
+            this.motionZ *= f;
 
             if (this.onGround)
             {
@@ -305,7 +305,7 @@ public class EntityItem extends Entity
      */
     public void writeEntityToNBT(NBTTagCompound tagCompound)
     {
-        tagCompound.setShort("Health", (short)((byte)this.health));
+        tagCompound.setShort("Health", (byte)this.health);
         tagCompound.setShort("Age", (short)this.age);
         tagCompound.setShort("PickupDelay", (short)this.delayBeforeCanPickup);
 

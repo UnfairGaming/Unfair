@@ -18,7 +18,7 @@ public abstract class BehaviorProjectileDispense extends BehaviorDefaultDispense
         IPosition iposition = BlockDispenser.getDispensePosition(source);
         EnumFacing enumfacing = BlockDispenser.getFacing(source.getBlockMetadata());
         IProjectile iprojectile = this.getProjectileEntity(world, iposition);
-        iprojectile.setThrowableHeading((double)enumfacing.getFrontOffsetX(), (double)((float)enumfacing.getFrontOffsetY() + 0.1F), (double)enumfacing.getFrontOffsetZ(), this.func_82500_b(), this.func_82498_a());
+        iprojectile.setThrowableHeading(enumfacing.getFrontOffsetX(), (float)enumfacing.getFrontOffsetY() + 0.1F, enumfacing.getFrontOffsetZ(), this.func_82500_b(), this.func_82498_a());
         world.spawnEntityInWorld((Entity)iprojectile);
         stack.splitStack(1);
         return stack;

@@ -42,7 +42,7 @@ public class CommandHandler implements ICommandManager
         String[] astring = rawCommand.split(" ");
         String s = astring[0];
         astring = dropFirstString(astring);
-        ICommand icommand = (ICommand)this.commandMap.get(s);
+        ICommand icommand = this.commandMap.get(s);
         int i = this.getUsernameIndex(icommand, astring);
         int j = 0;
 
@@ -133,7 +133,7 @@ public class CommandHandler implements ICommandManager
 
         for (String s : command.getCommandAliases())
         {
-            ICommand icommand = (ICommand)this.commandMap.get(s);
+            ICommand icommand = this.commandMap.get(s);
 
             if (icommand == null || !icommand.getCommandName().equals(s))
             {
@@ -165,7 +165,7 @@ public class CommandHandler implements ICommandManager
 
             for (Entry<String, ICommand> entry : this.commandMap.entrySet())
             {
-                if (CommandBase.doesStringStartWith(s, (String)entry.getKey()) && ((ICommand)entry.getValue()).canCommandSenderUseCommand(sender))
+                if (CommandBase.doesStringStartWith(s, entry.getKey()) && entry.getValue().canCommandSenderUseCommand(sender))
                 {
                     list.add(entry.getKey());
                 }
@@ -177,7 +177,7 @@ public class CommandHandler implements ICommandManager
         {
             if (astring.length > 1)
             {
-                ICommand icommand = (ICommand)this.commandMap.get(s);
+                ICommand icommand = this.commandMap.get(s);
 
                 if (icommand != null && icommand.canCommandSenderUseCommand(sender))
                 {

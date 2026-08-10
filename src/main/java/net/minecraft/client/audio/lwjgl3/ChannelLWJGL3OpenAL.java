@@ -135,7 +135,7 @@ public class ChannelLWJGL3OpenAL extends Channel {
                 ByteBuffer byteBuffer = null;
 
                 for (int i = 0; i < bufferList.size(); ++i) {
-                    byteBuffer = (ByteBuffer) BufferUtils.createByteBuffer(bufferList.get(i).length).put(bufferList.get(i)).flip();
+                    byteBuffer = BufferUtils.createByteBuffer(bufferList.get(i).length).put(bufferList.get(i)).flip();
 
                     try {
                         AL10.alBufferData(streamBuffers.get(i), this.ALformat, byteBuffer, this.sampleRate);
@@ -172,7 +172,7 @@ public class ChannelLWJGL3OpenAL extends Channel {
         if (this.errorCheck(this.channelType != 1, "Buffers may only be queued for streaming sources.")) {
             return false;
         } else {
-            ByteBuffer byteBuffer = (ByteBuffer) BufferUtils.createByteBuffer(buffer.length).put(buffer).flip();
+            ByteBuffer byteBuffer = BufferUtils.createByteBuffer(buffer.length).put(buffer).flip();
             IntBuffer intBuffer = BufferUtils.createIntBuffer(1);
             AL10.alSourceUnqueueBuffers(this.ALSource.get(0), intBuffer);
             if (this.checkALError()) {
@@ -198,7 +198,7 @@ public class ChannelLWJGL3OpenAL extends Channel {
         if (this.errorCheck(this.channelType != 1, "Raw audio data can only be fed to streaming sources.")) {
             return -1;
         } else {
-            ByteBuffer byteBuffer = (ByteBuffer) BufferUtils.createByteBuffer(buffer.length).put(buffer).flip();
+            ByteBuffer byteBuffer = BufferUtils.createByteBuffer(buffer.length).put(buffer).flip();
             int processed = AL10.alGetSourcei(this.ALSource.get(0), 4118);
             IntBuffer intBuffer;
             if (processed > 0) {

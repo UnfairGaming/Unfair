@@ -42,7 +42,7 @@ public class BlockOldLeaf extends BlockLeaves
         }
         else
         {
-            BlockPlanks.EnumType blockplanks$enumtype = (BlockPlanks.EnumType)state.getValue(VARIANT);
+            BlockPlanks.EnumType blockplanks$enumtype = state.getValue(VARIANT);
             return blockplanks$enumtype == BlockPlanks.EnumType.SPRUCE ? ColorizerFoliage.getFoliageColorPine() : (blockplanks$enumtype == BlockPlanks.EnumType.BIRCH ? ColorizerFoliage.getFoliageColorBirch() : super.getRenderColor(state));
         }
     }
@@ -53,7 +53,7 @@ public class BlockOldLeaf extends BlockLeaves
 
         if (iblockstate.getBlock() == this)
         {
-            BlockPlanks.EnumType blockplanks$enumtype = (BlockPlanks.EnumType)iblockstate.getValue(VARIANT);
+            BlockPlanks.EnumType blockplanks$enumtype = iblockstate.getValue(VARIANT);
 
             if (blockplanks$enumtype == BlockPlanks.EnumType.SPRUCE)
             {
@@ -95,7 +95,7 @@ public class BlockOldLeaf extends BlockLeaves
 
     protected ItemStack createStackedBlock(IBlockState state)
     {
-        return new ItemStack(Item.getItemFromBlock(this), 1, ((BlockPlanks.EnumType)state.getValue(VARIANT)).getMetadata());
+        return new ItemStack(Item.getItemFromBlock(this), 1, state.getValue(VARIANT).getMetadata());
     }
 
     /**
@@ -112,14 +112,14 @@ public class BlockOldLeaf extends BlockLeaves
     public int getMetaFromState(IBlockState state)
     {
         int i = 0;
-        i = i | ((BlockPlanks.EnumType)state.getValue(VARIANT)).getMetadata();
+        i = i | state.getValue(VARIANT).getMetadata();
 
-        if (!((Boolean)state.getValue(DECAYABLE)).booleanValue())
+        if (!state.getValue(DECAYABLE).booleanValue())
         {
             i |= 4;
         }
 
-        if (((Boolean)state.getValue(CHECK_DECAY)).booleanValue())
+        if (state.getValue(CHECK_DECAY).booleanValue())
         {
             i |= 8;
         }
@@ -143,7 +143,7 @@ public class BlockOldLeaf extends BlockLeaves
      */
     public int damageDropped(IBlockState state)
     {
-        return ((BlockPlanks.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     public void harvestBlock(World worldIn, EntityPlayer player, BlockPos pos, IBlockState state, TileEntity te)
@@ -151,7 +151,7 @@ public class BlockOldLeaf extends BlockLeaves
         if (!worldIn.isRemote && player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() == Items.shears)
         {
             player.triggerAchievement(StatList.mineBlockStatArray[Block.getIdFromBlock(this)]);
-            spawnAsEntity(worldIn, pos, new ItemStack(Item.getItemFromBlock(this), 1, ((BlockPlanks.EnumType)state.getValue(VARIANT)).getMetadata()));
+            spawnAsEntity(worldIn, pos, new ItemStack(Item.getItemFromBlock(this), 1, state.getValue(VARIANT).getMetadata()));
         }
         else
         {

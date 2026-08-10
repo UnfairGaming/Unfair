@@ -40,7 +40,7 @@ public class HttpUtil
                 stringbuilder.append('&');
             }
 
-            stringbuilder.append(URLEncoder.encode((String)entry.getKey(), StandardCharsets.UTF_8));
+            stringbuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8));
 
             if (entry.getValue() != null)
             {
@@ -104,7 +104,7 @@ public class HttpUtil
         {
             if (!skipLoggingErrors)
             {
-                logger.error((String)("Could not post to " + url), (Throwable)exception);
+                logger.error("Could not post to " + url, exception);
             }
 
             return "";
@@ -140,7 +140,7 @@ public class HttpUtil
 
                         for (Entry<String, String> entry : p_180192_2_.entrySet())
                         {
-                            httpurlconnection.setRequestProperty((String)entry.getKey(), (String)entry.getValue());
+                            httpurlconnection.setRequestProperty(entry.getKey(), entry.getValue());
 
                             if (p_180192_4_ != null)
                             {

@@ -29,7 +29,7 @@ public class BlockRedSandstone extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        return ((BlockRedSandstone.EnumType)state.getValue(TYPE)).getMetadata();
+        return state.getValue(TYPE).getMetadata();
     }
 
     /**
@@ -56,7 +56,7 @@ public class BlockRedSandstone extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockRedSandstone.EnumType)state.getValue(TYPE)).getMetadata();
+        return state.getValue(TYPE).getMetadata();
     }
 
     protected BlockState createBlockState()

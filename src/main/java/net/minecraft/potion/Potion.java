@@ -123,7 +123,7 @@ public class Potion
 
     public static Potion getPotionFromResourceLocation(String location)
     {
-        return (Potion)field_180150_I.get(ResourceLocation.of(location));
+        return field_180150_I.get(ResourceLocation.of(location));
     }
 
     public static Set<ResourceLocation> getPotionLocations()
@@ -348,11 +348,11 @@ public class Potion
     {
         for (Entry<IAttribute, AttributeModifier> entry : this.attributeModifierMap.entrySet())
         {
-            IAttributeInstance iattributeinstance = p_111187_2_.getAttributeInstance((IAttribute)entry.getKey());
+            IAttributeInstance iattributeinstance = p_111187_2_.getAttributeInstance(entry.getKey());
 
             if (iattributeinstance != null)
             {
-                iattributeinstance.removeModifier((AttributeModifier)entry.getValue());
+                iattributeinstance.removeModifier(entry.getValue());
             }
         }
     }
@@ -361,11 +361,11 @@ public class Potion
     {
         for (Entry<IAttribute, AttributeModifier> entry : this.attributeModifierMap.entrySet())
         {
-            IAttributeInstance iattributeinstance = p_111185_2_.getAttributeInstance((IAttribute)entry.getKey());
+            IAttributeInstance iattributeinstance = p_111185_2_.getAttributeInstance(entry.getKey());
 
             if (iattributeinstance != null)
             {
-                AttributeModifier attributemodifier = (AttributeModifier)entry.getValue();
+                AttributeModifier attributemodifier = entry.getValue();
                 iattributeinstance.removeModifier(attributemodifier);
                 iattributeinstance.applyModifier(new AttributeModifier(attributemodifier.getID(), this.getName() + " " + amplifier, this.getAttributeModifierAmount(amplifier, attributemodifier), attributemodifier.getOperation()));
             }

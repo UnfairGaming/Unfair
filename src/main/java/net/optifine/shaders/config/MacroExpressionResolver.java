@@ -22,13 +22,13 @@ public class MacroExpressionResolver implements IExpressionResolver
         if (name.startsWith(s))
         {
             String s2 = name.substring(s.length());
-            return this.mapMacroValues.containsKey(s2) ? new FunctionBool(FunctionType.TRUE, (IExpression[])null) : new FunctionBool(FunctionType.FALSE, (IExpression[])null);
+            return this.mapMacroValues.containsKey(s2) ? new FunctionBool(FunctionType.TRUE, null) : new FunctionBool(FunctionType.FALSE, null);
         }
         else
         {
             while (this.mapMacroValues.containsKey(name))
             {
-                String s1 = (String)this.mapMacroValues.get(name);
+                String s1 = this.mapMacroValues.get(name);
 
                 if (s1 == null || s1.equals(name))
                 {

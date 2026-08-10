@@ -28,14 +28,14 @@ public class CustomTextureRaw implements ICustomTexture
         switch (type)
         {
             case TEXTURE_1D:
-                GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, internalFormat.getId(), width, 0, pixelFormat.getId(), pixelType.getId(), (ByteBuffer)data);
+                GL11.glTexImage1D(GL11.GL_TEXTURE_1D, 0, internalFormat.getId(), width, 0, pixelFormat.getId(), pixelType.getId(), data);
                 GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_WRAP_S, i);
                 GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MAG_FILTER, j);
                 GL11.glTexParameteri(GL11.GL_TEXTURE_1D, GL11.GL_TEXTURE_MIN_FILTER, j);
                 break;
 
             case TEXTURE_2D:
-                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, internalFormat.getId(), width, height, 0, pixelFormat.getId(), pixelType.getId(), (ByteBuffer)data);
+                GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, internalFormat.getId(), width, height, 0, pixelFormat.getId(), pixelType.getId(), data);
                 GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, i);
                 GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, i);
                 GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, j);
@@ -43,7 +43,7 @@ public class CustomTextureRaw implements ICustomTexture
                 break;
 
             case TEXTURE_3D:
-                GL12.glTexImage3D(GL12.GL_TEXTURE_3D, 0, internalFormat.getId(), width, height, depth, 0, pixelFormat.getId(), pixelType.getId(), (ByteBuffer)data);
+                GL12.glTexImage3D(GL12.GL_TEXTURE_3D, 0, internalFormat.getId(), width, height, depth, 0, pixelFormat.getId(), pixelType.getId(), data);
                 GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL11.GL_TEXTURE_WRAP_S, i);
                 GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL11.GL_TEXTURE_WRAP_T, i);
                 GL11.glTexParameteri(GL12.GL_TEXTURE_3D, GL12.GL_TEXTURE_WRAP_R, i);
@@ -52,7 +52,7 @@ public class CustomTextureRaw implements ICustomTexture
                 break;
 
             case TEXTURE_RECTANGLE:
-                GL11.glTexImage2D(34037, 0, internalFormat.getId(), width, height, 0, pixelFormat.getId(), pixelType.getId(), (ByteBuffer)data);
+                GL11.glTexImage2D(34037, 0, internalFormat.getId(), width, height, 0, pixelFormat.getId(), pixelType.getId(), data);
                 GL11.glTexParameteri(34037, GL11.GL_TEXTURE_WRAP_S, i);
                 GL11.glTexParameteri(34037, GL11.GL_TEXTURE_WRAP_T, i);
                 GL11.glTexParameteri(34037, GL11.GL_TEXTURE_MAG_FILTER, j);

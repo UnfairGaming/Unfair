@@ -64,6 +64,6 @@ public class NpcMerchant implements IMerchant
      */
     public IChatComponent getDisplayName()
     {
-        return (IChatComponent)(this.field_175548_d != null ? this.field_175548_d : new ChatComponentTranslation("entity.Villager.name", new Object[0]));
+        return this.field_175548_d != null ? this.field_175548_d : new ChatComponentTranslation("entity.Villager.name", new Object[0]);
     }
 }

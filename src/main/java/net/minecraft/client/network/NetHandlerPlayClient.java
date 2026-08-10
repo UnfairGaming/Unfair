@@ -928,7 +928,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
 
         --offhand.stackSize;
-        ((ModernOffhandInventory) this.gameController.thePlayer.inventory).viaforge$setOffhand(offhand.stackSize > 0 ? offhand : null);
+        this.gameController.thePlayer.inventory.viaforge$setOffhand(offhand.stackSize > 0 ? offhand : null);
     }
 
     @Override
@@ -1049,7 +1049,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         } else if (ModernOffhandInteraction.isModernTarget()
                 && (packetIn.func_149175_c() == 0 || packetIn.func_149175_c() == ModernOffhandStorage.CLIENT_WINDOW_ID)
                 && packetIn.func_149173_d() == 45) {
-            ((ModernOffhandInventory) entityplayer.inventory).viaforge$setOffhand(packetIn.func_149174_e());
+            entityplayer.inventory.viaforge$setOffhand(packetIn.func_149174_e());
         } else {
             boolean flag = false;
 
@@ -1079,7 +1079,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             boolean mainHandUpdate = window == 0 && slot == this.gameController.thePlayer.inventory.currentItem + 36;
             boolean offhandUpdate = window == ModernOffhandStorage.CLIENT_WINDOW_ID && slot == 45;
             if (mainHandUpdate || offhandUpdate) {
-                ((ModernPlayerPhysics) this.gameController.thePlayer).viaforge$confirmServerItemUseFinished();
+                this.gameController.thePlayer.viaforge$confirmServerItemUseFinished();
             }
         }
     }
@@ -1124,7 +1124,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         if (packetIn.func_148911_c() == 0) {
             entityplayer.inventoryContainer.putStacksInSlots(packetIn.getItemStacks());
             if (ModernOffhandInteraction.isModernTarget() && packetIn.getItemStacks().length > 45) {
-                ((ModernOffhandInventory) entityplayer.inventory).viaforge$setOffhand(packetIn.getItemStacks()[45]);
+                entityplayer.inventory.viaforge$setOffhand(packetIn.getItemStacks()[45]);
             }
         } else if (packetIn.func_148911_c() == entityplayer.openContainer.windowId) {
             entityplayer.openContainer.putStacksInSlots(packetIn.getItemStacks());
@@ -1231,7 +1231,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
                 && ModernOffhandInteraction.isModernTarget()
                 && packetIn.getEquipmentSlot() == 5
                 && ((EntityPlayer) entity).inventory instanceof ModernOffhandInventory) {
-            ((ModernOffhandInventory) ((EntityPlayer) entity).inventory).viaforge$setOffhand(packetIn.getItemStack());
+            ((EntityPlayer) entity).inventory.viaforge$setOffhand(packetIn.getItemStack());
         } else if (entity != null) {
             entity.setCurrentItemOrArmor(packetIn.getEquipmentSlot(), packetIn.getItemStack());
         }

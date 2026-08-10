@@ -30,7 +30,7 @@ public class GenLayerAddIsland extends GenLayer
                 int i2 = aint[j1 + 0 + (i1 + 2) * k];
                 int j2 = aint[j1 + 2 + (i1 + 2) * k];
                 int k2 = aint[j1 + 1 + (i1 + 1) * k];
-                this.initChunkSeed((long)(j1 + areaX), (long)(i1 + areaY));
+                this.initChunkSeed(j1 + areaX, i1 + areaY);
 
                 if (k2 != 0 || k1 == 0 && l1 == 0 && i2 == 0 && j2 == 0)
                 {

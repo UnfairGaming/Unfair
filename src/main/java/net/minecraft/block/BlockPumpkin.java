@@ -140,7 +140,7 @@ public class BlockPumpkin extends BlockDirectional
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((EnumFacing)state.getValue(FACING)).getHorizontalIndex();
+        return state.getValue(FACING).getHorizontalIndex();
     }
 
     protected BlockState createBlockState()

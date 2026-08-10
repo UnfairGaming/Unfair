@@ -35,7 +35,7 @@ public class BlockDirt extends Block
      */
     public MapColor getMapColor(IBlockState state)
     {
-        return ((BlockDirt.DirtType)state.getValue(VARIANT)).func_181066_d();
+        return state.getValue(VARIANT).func_181066_d();
     }
 
     /**
@@ -69,7 +69,7 @@ public class BlockDirt extends Block
     public int getDamageValue(World worldIn, BlockPos pos)
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
-        return iblockstate.getBlock() != this ? 0 : ((BlockDirt.DirtType)iblockstate.getValue(VARIANT)).getMetadata();
+        return iblockstate.getBlock() != this ? 0 : iblockstate.getValue(VARIANT).getMetadata();
     }
 
     /**
@@ -85,7 +85,7 @@ public class BlockDirt extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockDirt.DirtType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     protected BlockState createBlockState()
@@ -99,7 +99,7 @@ public class BlockDirt extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        BlockDirt.DirtType blockdirt$dirttype = (BlockDirt.DirtType)state.getValue(VARIANT);
+        BlockDirt.DirtType blockdirt$dirttype = state.getValue(VARIANT);
 
         if (blockdirt$dirttype == BlockDirt.DirtType.PODZOL)
         {

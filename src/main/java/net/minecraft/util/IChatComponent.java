@@ -164,7 +164,7 @@ public interface IChatComponent extends Iterable<IChatComponent>
                     }
                 }
 
-                ichatcomponent.setChatStyle((ChatStyle)p_deserialize_3_.deserialize(p_deserialize_1_, ChatStyle.class));
+                ichatcomponent.setChatStyle(p_deserialize_3_.deserialize(p_deserialize_1_, ChatStyle.class));
                 return ichatcomponent;
             }
         }
@@ -179,7 +179,7 @@ public interface IChatComponent extends Iterable<IChatComponent>
 
                 for (Entry<String, JsonElement> entry : jsonobject.entrySet())
                 {
-                    object.add((String)entry.getKey(), (JsonElement)entry.getValue());
+                    object.add(entry.getKey(), entry.getValue());
                 }
             }
         }
@@ -205,7 +205,7 @@ public interface IChatComponent extends Iterable<IChatComponent>
 
                     for (IChatComponent ichatcomponent : p_serialize_1_.getSiblings())
                     {
-                        jsonarray.add(this.serialize((IChatComponent)ichatcomponent, ichatcomponent.getClass(), p_serialize_3_));
+                        jsonarray.add(this.serialize(ichatcomponent, ichatcomponent.getClass(), p_serialize_3_));
                     }
 
                     jsonobject.add("extra", jsonarray);
@@ -228,7 +228,7 @@ public interface IChatComponent extends Iterable<IChatComponent>
                         {
                             if (object instanceof IChatComponent)
                             {
-                                jsonarray1.add(this.serialize((IChatComponent)((IChatComponent)object), object.getClass(), p_serialize_3_));
+                                jsonarray1.add(this.serialize((IChatComponent) object, object.getClass(), p_serialize_3_));
                             }
                             else
                             {
@@ -265,12 +265,12 @@ public interface IChatComponent extends Iterable<IChatComponent>
 
         public static String componentToJson(IChatComponent component)
         {
-            return GSON.toJson((Object)component);
+            return GSON.toJson(component);
         }
 
         public static IChatComponent jsonToComponent(String json)
         {
-            return (IChatComponent)GSON.fromJson(json, IChatComponent.class);
+            return GSON.fromJson(json, IChatComponent.class);
         }
 
         static

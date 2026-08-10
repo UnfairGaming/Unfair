@@ -152,7 +152,7 @@ public class ItemInWorldManager
     {
         if (this.isCreative())
         {
-            if (!this.theWorld.extinguishFire((EntityPlayer)null, pos, side))
+            if (!this.theWorld.extinguishFire(null, pos, side))
             {
                 this.tryHarvestBlock(pos);
             }
@@ -184,7 +184,7 @@ public class ItemInWorldManager
                 }
             }
 
-            this.theWorld.extinguishFire((EntityPlayer)null, pos, side);
+            this.theWorld.extinguishFire(null, pos, side);
             this.initialDamage = this.curblockDamage;
             float f = 1.0F;
 

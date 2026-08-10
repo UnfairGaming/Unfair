@@ -38,9 +38,9 @@ public class EntityXPOrb extends Entity
         this.setSize(0.5F, 0.5F);
         this.setPosition(x, y, z);
         this.rotationYaw = (float)(Math.random() * 360.0D);
-        this.motionX = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D) * 2.0F);
-        this.motionY = (double)((float)(Math.random() * 0.2D) * 2.0F);
-        this.motionZ = (double)((float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D) * 2.0F);
+        this.motionX = (float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D) * 2.0F;
+        this.motionY = (float)(Math.random() * 0.2D) * 2.0F;
+        this.motionZ = (float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D) * 2.0F;
         this.xpValue = expValue;
     }
 
@@ -100,8 +100,8 @@ public class EntityXPOrb extends Entity
         if (this.worldObj.getBlockState(new BlockPos(this)).getBlock().getMaterial() == Material.lava)
         {
             this.motionY = 0.20000000298023224D;
-            this.motionX = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
-            this.motionZ = (double)((this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F);
+            this.motionX = (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F;
+            this.motionZ = (this.rand.nextFloat() - this.rand.nextFloat()) * 0.2F;
             this.playSound("random.fizz", 0.4F, 2.0F + this.rand.nextFloat() * 0.4F);
         }
 
@@ -148,9 +148,9 @@ public class EntityXPOrb extends Entity
             f = this.worldObj.getBlockState(new BlockPos(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.getEntityBoundingBox().minY) - 1, MathHelper.floor_double(this.posZ))).getBlock().slipperiness * 0.98F;
         }
 
-        this.motionX *= (double)f;
+        this.motionX *= f;
         this.motionY *= 0.9800000190734863D;
-        this.motionZ *= (double)f;
+        this.motionZ *= f;
 
         if (this.onGround)
         {
@@ -211,7 +211,7 @@ public class EntityXPOrb extends Entity
      */
     public void writeEntityToNBT(NBTTagCompound tagCompound)
     {
-        tagCompound.setShort("Health", (short)((byte)this.xpOrbHealth));
+        tagCompound.setShort("Health", (byte)this.xpOrbHealth);
         tagCompound.setShort("Age", (short)this.xpOrbAge);
         tagCompound.setShort("Value", (short)this.xpValue);
     }

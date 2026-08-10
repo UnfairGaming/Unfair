@@ -30,7 +30,7 @@ public class BlockPartFace
             EnumFacing enumfacing = this.parseCullFace(jsonobject);
             int i = this.parseTintIndex(jsonobject);
             String s = this.parseTexture(jsonobject);
-            BlockFaceUV blockfaceuv = (BlockFaceUV)p_deserialize_3_.deserialize(jsonobject, BlockFaceUV.class);
+            BlockFaceUV blockfaceuv = p_deserialize_3_.deserialize(jsonobject, BlockFaceUV.class);
             return new BlockPartFace(enumfacing, i, s, blockfaceuv);
         }
 

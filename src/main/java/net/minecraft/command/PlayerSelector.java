@@ -48,7 +48,7 @@ public class PlayerSelector
      */
     public static EntityPlayerMP matchOnePlayer(ICommandSender sender, String token)
     {
-        return (EntityPlayerMP)matchOneEntity(sender, token, EntityPlayerMP.class);
+        return matchOneEntity(sender, token, EntityPlayerMP.class);
     }
 
     public static <T extends Entity> T matchOneEntity(ICommandSender sender, String token, Class <? extends T > targetClass)
@@ -305,7 +305,7 @@ public class PlayerSelector
 
                     for (Entry<String, Integer> entry : map.entrySet())
                     {
-                        String s = (String)entry.getKey();
+                        String s = entry.getKey();
                         boolean flag = false;
 
                         if (s.endsWith("_min") && s.length() > 4)
@@ -331,12 +331,12 @@ public class PlayerSelector
                         Score score = scoreboard.getValueFromObjective(s1, scoreobjective);
                         int i = score.getScorePoints();
 
-                        if (i < ((Integer)entry.getValue()).intValue() && flag)
+                        if (i < entry.getValue().intValue() && flag)
                         {
                             return false;
                         }
 
-                        if (i > ((Integer)entry.getValue()).intValue() && !flag)
+                        if (i > entry.getValue().intValue() && !flag)
                         {
                             return false;
                         }
@@ -411,7 +411,7 @@ public class PlayerSelector
             {
                 public boolean apply(Entity p_apply_1_)
                 {
-                    int i1 = PlayerSelector.func_179650_a((int)Math.floor((double)p_apply_1_.rotationYaw));
+                    int i1 = PlayerSelector.func_179650_a((int)Math.floor(p_apply_1_.rotationYaw));
                     return i > j ? i1 >= i || i1 <= j : i1 >= i && i1 <= j;
                 }
             });
@@ -425,7 +425,7 @@ public class PlayerSelector
             {
                 public boolean apply(Entity p_apply_1_)
                 {
-                    int i1 = PlayerSelector.func_179650_a((int)Math.floor((double)p_apply_1_.rotationPitch));
+                    int i1 = PlayerSelector.func_179650_a((int)Math.floor(p_apply_1_.rotationPitch));
                     return k > l ? i1 >= k || i1 <= l : i1 >= k && i1 <= l;
                 }
             });
@@ -458,7 +458,7 @@ public class PlayerSelector
             {
                 if (l >= 0)
                 {
-                    AxisAlignedBB axisalignedbb1 = new AxisAlignedBB((double)(position.getX() - l), (double)(position.getY() - l), (double)(position.getZ() - l), (double)(position.getX() + l + 1), (double)(position.getY() + l + 1), (double)(position.getZ() + l + 1));
+                    AxisAlignedBB axisalignedbb1 = new AxisAlignedBB(position.getX() - l, position.getY() - l, position.getZ() - l, position.getX() + l + 1, position.getY() + l + 1, position.getZ() + l + 1);
 
                     if (flag && flag2 && !flag1)
                     {
@@ -527,7 +527,7 @@ public class PlayerSelector
         {
             if (p_179658_4_.equals("r"))
             {
-                Collections.shuffle((List<?>)p_179658_0_);
+                Collections.shuffle(p_179658_0_);
             }
         }
         else if (p_179658_5_ != null)
@@ -552,7 +552,7 @@ public class PlayerSelector
         {
             if (i < 0)
             {
-                Collections.reverse((List<?>)p_179658_0_);
+                Collections.reverse(p_179658_0_);
             }
 
             p_179658_0_ = p_179658_0_.subList(0, Math.min(Math.abs(i), p_179658_0_.size()));
@@ -572,7 +572,7 @@ public class PlayerSelector
         int l = p_179661_0_.getX() + (flag ? 0 : p_179661_1_) + 1;
         int i1 = p_179661_0_.getY() + (flag1 ? 0 : p_179661_2_) + 1;
         int j1 = p_179661_0_.getZ() + (flag2 ? 0 : p_179661_3_) + 1;
-        return new AxisAlignedBB((double)i, (double)j, (double)k, (double)l, (double)i1, (double)j1);
+        return new AxisAlignedBB(i, j, k, l, i1, j1);
     }
 
     public static int func_179650_a(int p_179650_0_)
@@ -612,12 +612,12 @@ public class PlayerSelector
 
     private static int parseIntWithDefault(Map<String, String> p_179653_0_, String p_179653_1_, int p_179653_2_)
     {
-        return p_179653_0_.containsKey(p_179653_1_) ? MathHelper.parseIntWithDefault((String)p_179653_0_.get(p_179653_1_), p_179653_2_) : p_179653_2_;
+        return p_179653_0_.containsKey(p_179653_1_) ? MathHelper.parseIntWithDefault(p_179653_0_.get(p_179653_1_), p_179653_2_) : p_179653_2_;
     }
 
     private static String func_179651_b(Map<String, String> p_179651_0_, String p_179651_1_)
     {
-        return (String)p_179651_0_.get(p_179651_1_);
+        return p_179651_0_.get(p_179651_1_);
     }
 
     public static Map<String, Integer> func_96560_a(Map<String, String> p_96560_0_)
@@ -628,7 +628,7 @@ public class PlayerSelector
         {
             if (s.startsWith("score_") && s.length() > "score_".length())
             {
-                map.put(s.substring("score_".length()), Integer.valueOf(MathHelper.parseIntWithDefault((String)p_96560_0_.get(s), 1)));
+                map.put(s.substring("score_".length()), Integer.valueOf(MathHelper.parseIntWithDefault(p_96560_0_.get(s), 1)));
             }
         }
 

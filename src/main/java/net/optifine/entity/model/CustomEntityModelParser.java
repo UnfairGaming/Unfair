@@ -78,7 +78,7 @@ public class CustomEntityModelParser
             }
         }
 
-        CustomModelRenderer[] acustommodelrenderer = (CustomModelRenderer[])((CustomModelRenderer[])list.toArray(new CustomModelRenderer[list.size()]));
+        CustomModelRenderer[] acustommodelrenderer = (CustomModelRenderer[]) list.toArray(new CustomModelRenderer[list.size()]);
         ResourceLocation resourcelocation = null;
 
         if (s2 != null)
@@ -148,9 +148,9 @@ public class CustomEntityModelParser
     {
         for (Entry<String, JsonElement> entry : objFrom.entrySet())
         {
-            if (!((String)entry.getKey()).equals("id") && !objTo.has((String)entry.getKey()))
+            if (!entry.getKey().equals("id") && !objTo.has(entry.getKey()))
             {
-                objTo.add((String)entry.getKey(), (JsonElement)entry.getValue());
+                objTo.add(entry.getKey(), entry.getValue());
             }
         }
     }
@@ -225,8 +225,8 @@ public class CustomEntityModelParser
 
                 for (Entry<String, JsonElement> entry : jsonobject.entrySet())
                 {
-                    String s1 = (String)entry.getKey();
-                    String s2 = ((JsonElement)entry.getValue()).getAsString();
+                    String s1 = entry.getKey();
+                    String s2 = entry.getValue().getAsString();
                     ModelVariableUpdater modelvariableupdater = new ModelVariableUpdater(s1, s2);
                     list.add(modelvariableupdater);
                 }
@@ -234,7 +234,7 @@ public class CustomEntityModelParser
 
             if (!list.isEmpty())
             {
-                ModelVariableUpdater[] amodelvariableupdater = (ModelVariableUpdater[])((ModelVariableUpdater[])list.toArray(new ModelVariableUpdater[list.size()]));
+                ModelVariableUpdater[] amodelvariableupdater = list.toArray(new ModelVariableUpdater[list.size()]);
                 modelupdater = new ModelUpdater(amodelvariableupdater);
             }
         }

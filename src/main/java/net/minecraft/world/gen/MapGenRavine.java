@@ -16,8 +16,8 @@ public class MapGenRavine extends MapGenBase
     protected void func_180707_a(long p_180707_1_, int p_180707_3_, int p_180707_4_, ChunkPrimer p_180707_5_, double p_180707_6_, double p_180707_8_, double p_180707_10_, float p_180707_12_, float p_180707_13_, float p_180707_14_, int p_180707_15_, int p_180707_16_, double p_180707_17_)
     {
         Random random = new Random(p_180707_1_);
-        double d0 = (double)(p_180707_3_ * 16 + 8);
-        double d1 = (double)(p_180707_4_ * 16 + 8);
+        double d0 = p_180707_3_ * 16 + 8;
+        double d1 = p_180707_4_ * 16 + 8;
         float f = 0.0F;
         float f1 = 0.0F;
 
@@ -55,9 +55,9 @@ public class MapGenRavine extends MapGenBase
             d2 = d2 * ((double)random.nextFloat() * 0.25D + 0.75D);
             float f3 = MathHelper.cos(p_180707_14_);
             float f4 = MathHelper.sin(p_180707_14_);
-            p_180707_6_ += (double)(MathHelper.cos(p_180707_13_) * f3);
-            p_180707_8_ += (double)f4;
-            p_180707_10_ += (double)(MathHelper.sin(p_180707_13_) * f3);
+            p_180707_6_ += MathHelper.cos(p_180707_13_) * f3;
+            p_180707_8_ += f4;
+            p_180707_10_ += MathHelper.sin(p_180707_13_) * f3;
             p_180707_14_ = p_180707_14_ * 0.7F;
             p_180707_14_ = p_180707_14_ + f1 * 0.05F;
             p_180707_13_ += f * 0.05F;
@@ -70,8 +70,8 @@ public class MapGenRavine extends MapGenBase
             {
                 double d3 = p_180707_6_ - d0;
                 double d4 = p_180707_10_ - d1;
-                double d5 = (double)(p_180707_16_ - p_180707_15_);
-                double d6 = (double)(p_180707_12_ + 2.0F + 16.0F);
+                double d5 = p_180707_16_ - p_180707_15_;
+                double d6 = p_180707_12_ + 2.0F + 16.0F;
 
                 if (d3 * d3 + d4 * d4 - d5 * d5 > d6 * d6)
                 {
@@ -211,9 +211,9 @@ public class MapGenRavine extends MapGenBase
     {
         if (this.rand.nextInt(50) == 0)
         {
-            double d0 = (double)(chunkX * 16 + this.rand.nextInt(16));
-            double d1 = (double)(this.rand.nextInt(this.rand.nextInt(40) + 8) + 20);
-            double d2 = (double)(chunkZ * 16 + this.rand.nextInt(16));
+            double d0 = chunkX * 16 + this.rand.nextInt(16);
+            double d1 = this.rand.nextInt(this.rand.nextInt(40) + 8) + 20;
+            double d2 = chunkZ * 16 + this.rand.nextInt(16);
             int i = 1;
 
             for (int j = 0; j < i; ++j)

@@ -24,7 +24,7 @@ public class AchievementList
     public static List<Achievement> achievementList = Lists.<Achievement>newArrayList();
 
     /** Is the 'open inventory' achievement. */
-    public static Achievement openInventory = (new Achievement("achievement.openInventory", "openInventory", 0, 0, Items.book, (Achievement)null)).initIndependentStat().registerStat();
+    public static Achievement openInventory = (new Achievement("achievement.openInventory", "openInventory", 0, 0, Items.book, null)).initIndependentStat().registerStat();
 
     /** Is the 'getting wood' achievement. */
     public static Achievement mineWood = (new Achievement("achievement.mineWood", "mineWood", 2, 1, Blocks.log, openInventory)).registerStat();

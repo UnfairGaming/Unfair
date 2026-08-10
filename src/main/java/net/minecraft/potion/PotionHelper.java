@@ -145,7 +145,7 @@ public class PotionHelper
         {
             if (DATAVALUE_COLORS.containsKey(integer))
             {
-                return ((Integer)DATAVALUE_COLORS.get(integer)).intValue();
+                return DATAVALUE_COLORS.get(integer).intValue();
             }
             else
             {
@@ -399,7 +399,7 @@ public class PotionHelper
         {
             if (potion != null && (!potion.isUsable() || p_77917_1_))
             {
-                String s = (String)potionRequirements.get(Integer.valueOf(potion.getId()));
+                String s = potionRequirements.get(Integer.valueOf(potion.getId()));
 
                 if (s != null)
                 {
@@ -408,7 +408,7 @@ public class PotionHelper
                     if (i > 0)
                     {
                         int j = 0;
-                        String s1 = (String)potionAmplifiers.get(Integer.valueOf(potion.getId()));
+                        String s1 = potionAmplifiers.get(Integer.valueOf(potion.getId()));
 
                         if (s1 != null)
                         {

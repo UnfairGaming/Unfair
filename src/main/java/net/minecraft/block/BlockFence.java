@@ -242,7 +242,7 @@ public class BlockFence extends Block
                 return true;
             }
 
-            EnumFacing gateFacing = (EnumFacing)state.getValue(BlockFenceGate.FACING);
+            EnumFacing gateFacing = state.getValue(BlockFenceGate.FACING);
             return gateFacing.getAxis() != direction.getAxis();
         }
 

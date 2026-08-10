@@ -140,12 +140,12 @@ public class CommandClone extends CommandBase
                                             }
                                             else if (!iblockstate.getBlock().isFullBlock() && !iblockstate.getBlock().isFullCube())
                                             {
-                                                list2.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, (NBTTagCompound)null));
+                                                list2.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, null));
                                                 linkedlist.addFirst(blockpos4);
                                             }
                                             else
                                             {
-                                                list.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, (NBTTagCompound)null));
+                                                list.add(new CommandClone.StaticCloneData(blockpos5, iblockstate, null));
                                                 linkedlist.addLast(blockpos4);
                                             }
                                         }

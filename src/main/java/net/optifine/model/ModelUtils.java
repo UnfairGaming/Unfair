@@ -98,7 +98,7 @@ public class ModelUtils
 
     public static BakedQuad duplicateQuad(BakedQuad quad)
     {
-        BakedQuad bakedquad = new BakedQuad((int[])quad.getVertexData().clone(), quad.getTintIndex(), quad.getFace(), quad.getSprite());
+        BakedQuad bakedquad = new BakedQuad(quad.getVertexData().clone(), quad.getTintIndex(), quad.getFace(), quad.getSprite());
         return bakedquad;
     }
 }

@@ -27,7 +27,7 @@ public class BiomeGenSavanna extends BiomeGenBase
 
     public WorldGenAbstractTree genBigTreeChance(Random rand)
     {
-        return (WorldGenAbstractTree)(rand.nextInt(5) > 0 ? field_150627_aC : this.worldGeneratorTrees);
+        return rand.nextInt(5) > 0 ? field_150627_aC : this.worldGeneratorTrees;
     }
 
     protected BiomeGenBase createMutatedBiome(int p_180277_1_)

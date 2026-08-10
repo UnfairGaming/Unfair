@@ -596,7 +596,7 @@ public class FontRenderer implements IResourceManagerReloadListener {
      */
     private int renderStringAligned(String text, int x, int y, int width, int color, boolean dropShadow) {
         if (this.bidiFlag) {
-            int i = (int) this.getStringWidth(this.bidiReorder(text));
+            int i = this.getStringWidth(this.bidiReorder(text));
             x = x + width - i;
         }
 

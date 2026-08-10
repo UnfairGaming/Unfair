@@ -325,7 +325,7 @@ public class EntityIronGolem extends EntityGolem
                                     f = 0.1F;
                                 }
 
-                                d0 *= (double)(0.7F * f);
+                                d0 *= 0.7F * f;
                             }
 
                             if ((double)p_apply_1_.getDistanceToEntity(creature) > d0)

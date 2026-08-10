@@ -259,7 +259,7 @@ public class EntityWolf extends EntityTameable
                 {
                     float f1 = (this.rand.nextFloat() * 2.0F - 1.0F) * this.width * 0.5F;
                     float f2 = (this.rand.nextFloat() * 2.0F - 1.0F) * this.width * 0.5F;
-                    this.worldObj.spawnParticle(EnumParticleTypes.WATER_SPLASH, this.posX + (double)f1, (double)(f + 0.8F), this.posZ + (double)f2, this.motionX, this.motionY, this.motionZ, new int[0]);
+                    this.worldObj.spawnParticle(EnumParticleTypes.WATER_SPLASH, this.posX + (double)f1, f + 0.8F, this.posZ + (double)f2, this.motionX, this.motionY, this.motionZ, new int[0]);
                 }
             }
         }
@@ -393,7 +393,7 @@ public class EntityWolf extends EntityTameable
 
                         if (itemstack.stackSize <= 0)
                         {
-                            player.inventory.setInventorySlotContents(player.inventory.currentItem, (ItemStack)null);
+                            player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
                         }
 
                         return true;
@@ -409,7 +409,7 @@ public class EntityWolf extends EntityTameable
 
                         if (!player.capabilities.isCreativeMode && --itemstack.stackSize <= 0)
                         {
-                            player.inventory.setInventorySlotContents(player.inventory.currentItem, (ItemStack)null);
+                            player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
                         }
 
                         return true;
@@ -422,7 +422,7 @@ public class EntityWolf extends EntityTameable
                 this.aiSit.setSitting(!this.isSitting());
                 this.isJumping = false;
                 this.navigator.clearPathEntity();
-                this.setAttackTarget((EntityLivingBase)null);
+                this.setAttackTarget(null);
             }
         }
         else if (itemstack != null && itemstack.getItem() == Items.bone && !this.isAngry())
@@ -434,7 +434,7 @@ public class EntityWolf extends EntityTameable
 
             if (itemstack.stackSize <= 0)
             {
-                player.inventory.setInventorySlotContents(player.inventory.currentItem, (ItemStack)null);
+                player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
             }
 
             if (!this.worldObj.isRemote)
@@ -443,7 +443,7 @@ public class EntityWolf extends EntityTameable
                 {
                     this.setTamed(true);
                     this.navigator.clearPathEntity();
-                    this.setAttackTarget((EntityLivingBase)null);
+                    this.setAttackTarget(null);
                     this.aiSit.setSitting(true);
                     this.setHealth(20.0F);
                     this.setOwnerId(player.getUniqueID().toString());

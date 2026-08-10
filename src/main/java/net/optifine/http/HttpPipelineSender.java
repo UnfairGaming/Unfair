@@ -66,7 +66,7 @@ public class HttpPipelineSender extends Thread
 
         for (String s : map.keySet())
         {
-            String s1 = (String)req.getHeaders().get(s);
+            String s1 = req.getHeaders().get(s);
             this.write(out, s + ": " + s1 + "\r\n");
         }
 

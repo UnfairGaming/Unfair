@@ -89,7 +89,7 @@ public class MathUtils
 
         for (int j = -1; j < 2; ++j)
         {
-            ASIN_TABLE[(int)(((double)j + 1.0D) * 32767.5D) & 65535] = (float)Math.asin((double)j);
+            ASIN_TABLE[(int)(((double)j + 1.0D) * 32767.5D) & 65535] = (float)Math.asin(j);
         }
     }
 }

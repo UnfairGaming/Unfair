@@ -112,7 +112,7 @@ public class ClickEvent
 
         public static ClickEvent.Action getValueByCanonicalName(String canonicalNameIn)
         {
-            return (ClickEvent.Action)nameMapping.get(canonicalNameIn);
+            return nameMapping.get(canonicalNameIn);
         }
 
         static {

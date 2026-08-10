@@ -27,11 +27,11 @@ public class TextureCompass extends TextureAtlasSprite
 
         if (minecraft.theWorld != null && minecraft.thePlayer != null)
         {
-            this.updateCompass(minecraft.theWorld, minecraft.thePlayer.posX, minecraft.thePlayer.posZ, (double)minecraft.thePlayer.rotationYaw, false, false);
+            this.updateCompass(minecraft.theWorld, minecraft.thePlayer.posX, minecraft.thePlayer.posZ, minecraft.thePlayer.rotationYaw, false, false);
         }
         else
         {
-            this.updateCompass((World)null, 0.0D, 0.0D, 0.0D, true, false);
+            this.updateCompass(null, 0.0D, 0.0D, 0.0D, true, false);
         }
     }
 
@@ -92,7 +92,7 @@ public class TextureCompass extends TextureAtlasSprite
             if (Config.isAnimatedTextures() && Config.isAnimatedTerrain() && i != this.frameCounter)
             {
                 this.frameCounter = i;
-                TextureUtil.uploadTextureMipmap((int[][])this.framesTextureData.get(this.frameCounter), this.width, this.height, this.originX, this.originY, false, false);
+                TextureUtil.uploadTextureMipmap(this.framesTextureData.get(this.frameCounter), this.width, this.height, this.originX, this.originY, false, false);
             }
         }
     }

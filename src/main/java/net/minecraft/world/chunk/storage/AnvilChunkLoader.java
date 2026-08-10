@@ -305,7 +305,7 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
         LightingHooks.writeNeighborLightChecksToNBT(chunkIn, p_75820_3_);
 
-        p_75820_3_.setBoolean("LightPopulated", ((IChunkLightingData) chunkIn).isLightInitialized());
+        p_75820_3_.setBoolean("LightPopulated", chunkIn.isLightInitialized());
     }
 
     /**
@@ -419,7 +419,7 @@ public class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
         LightingHooks.readNeighborLightChecksFromNBT(chunk, p_75823_2_);
 
-        ((IChunkLightingData) chunk).setLightInitialized(p_75823_2_.getBoolean("LightPopulated"));
+        chunk.setLightInitialized(p_75823_2_.getBoolean("LightPopulated"));
 
         return chunk;
     }

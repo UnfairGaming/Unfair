@@ -50,7 +50,7 @@ public class ServerList
         }
         catch (Exception exception)
         {
-            logger.error((String)"Couldn\'t load server list", (Throwable)exception);
+            logger.error("Couldn\'t load server list", exception);
         }
     }
 
@@ -75,7 +75,7 @@ public class ServerList
         }
         catch (Exception exception)
         {
-            logger.error((String)"Couldn\'t save server list", (Throwable)exception);
+            logger.error("Couldn\'t save server list", exception);
         }
     }
 
@@ -84,7 +84,7 @@ public class ServerList
      */
     public ServerData getServerData(int index)
     {
-        return (ServerData)this.servers.get(index);
+        return this.servers.get(index);
     }
 
     /**

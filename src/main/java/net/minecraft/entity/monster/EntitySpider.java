@@ -40,7 +40,7 @@ public class EntitySpider extends EntityMob
      */
     public double getMountedYOffset()
     {
-        return (double)(this.height * 0.5F);
+        return this.height * 0.5F;
     }
 
     /**
@@ -197,7 +197,7 @@ public class EntitySpider extends EntityMob
         {
             EntitySkeleton entityskeleton = new EntitySkeleton(this.worldObj);
             entityskeleton.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, 0.0F);
-            entityskeleton.onInitialSpawn(difficulty, (IEntityLivingData)null);
+            entityskeleton.onInitialSpawn(difficulty, null);
             this.worldObj.spawnEntityInWorld(entityskeleton);
             entityskeleton.mountEntity(this);
         }
@@ -243,7 +243,7 @@ public class EntitySpider extends EntityMob
 
             if (f >= 0.5F && this.attacker.getRNG().nextInt(100) == 0)
             {
-                this.attacker.setAttackTarget((EntityLivingBase)null);
+                this.attacker.setAttackTarget(null);
                 return false;
             }
             else
@@ -254,7 +254,7 @@ public class EntitySpider extends EntityMob
 
         protected double func_179512_a(EntityLivingBase attackTarget)
         {
-            return (double)(4.0F + attackTarget.width);
+            return 4.0F + attackTarget.width;
         }
     }
 

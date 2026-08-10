@@ -25,8 +25,8 @@ public abstract class StateMapperBase implements IStateMapper
                 stringbuilder.append(",");
             }
 
-            IProperty iproperty = (IProperty)entry.getKey();
-            Comparable comparable = (Comparable)entry.getValue();
+            IProperty iproperty = entry.getKey();
+            Comparable comparable = entry.getValue();
             stringbuilder.append(iproperty.getName());
             stringbuilder.append("=");
             stringbuilder.append(iproperty.getName(comparable));

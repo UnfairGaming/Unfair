@@ -292,7 +292,7 @@ public class JsonUtils
      */
     public static String toString(JsonElement p_151222_0_)
     {
-        String s = org.apache.commons.lang3.StringUtils.abbreviateMiddle(String.valueOf((Object)p_151222_0_), "...", 10);
+        String s = org.apache.commons.lang3.StringUtils.abbreviateMiddle(String.valueOf(p_151222_0_), "...", 10);
 
         if (p_151222_0_ == null)
         {

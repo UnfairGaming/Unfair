@@ -131,9 +131,9 @@ public class BlockRedstoneOre extends Block
 
         for (int i = 0; i < 6; ++i)
         {
-            double d1 = (double)((float)pos.getX() + random.nextFloat());
-            double d2 = (double)((float)pos.getY() + random.nextFloat());
-            double d3 = (double)((float)pos.getZ() + random.nextFloat());
+            double d1 = (float)pos.getX() + random.nextFloat();
+            double d2 = (float)pos.getY() + random.nextFloat();
+            double d3 = (float)pos.getZ() + random.nextFloat();
 
             if (i == 0 && !worldIn.getBlockState(pos.up()).getBlock().isOpaqueCube())
             {

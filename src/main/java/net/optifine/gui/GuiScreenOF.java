@@ -37,7 +37,7 @@ public class GuiScreenOF extends GuiScreen
     {
         for (int i = 0; i < listButtons.size(); ++i)
         {
-            GuiButton guibutton = (GuiButton)listButtons.get(i);
+            GuiButton guibutton = listButtons.get(i);
 
             if (guibutton.visible)
             {

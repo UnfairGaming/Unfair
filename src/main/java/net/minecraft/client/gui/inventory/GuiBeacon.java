@@ -138,7 +138,7 @@ public class GuiBeacon extends GuiContainer
     {
         if (button.id == -2)
         {
-            this.mc.displayGuiScreen((GuiScreen)null);
+            this.mc.displayGuiScreen(null);
         }
         else if (button.id == -1)
         {
@@ -147,7 +147,7 @@ public class GuiBeacon extends GuiContainer
             packetbuffer.writeInt(this.tileBeacon.getField(1));
             packetbuffer.writeInt(this.tileBeacon.getField(2));
             this.mc.getNetHandler().addToSendQueue(new C17PacketCustomPayload(s, packetbuffer));
-            this.mc.displayGuiScreen((GuiScreen)null);
+            this.mc.displayGuiScreen(null);
         }
         else if (button instanceof GuiBeacon.PowerButton)
         {

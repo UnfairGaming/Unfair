@@ -124,7 +124,7 @@ public class CommandSummon extends CommandBase
 
                     if (!flag && entity2 instanceof EntityLiving)
                     {
-                        ((EntityLiving)entity2).onInitialSpawn(world.getDifficultyForLocation(new BlockPos(entity2)), (IEntityLivingData)null);
+                        ((EntityLiving)entity2).onInitialSpawn(world.getDifficultyForLocation(new BlockPos(entity2)), null);
                     }
 
                     world.spawnEntityInWorld(entity2);

@@ -21,12 +21,12 @@ public class AxisAlignedBB
 
     public AxisAlignedBB(BlockPos pos1, BlockPos pos2)
     {
-        this.minX = (double)pos1.getX();
-        this.minY = (double)pos1.getY();
-        this.minZ = (double)pos1.getZ();
-        this.maxX = (double)pos2.getX();
-        this.maxY = (double)pos2.getY();
-        this.maxZ = (double)pos2.getZ();
+        this.minX = pos1.getX();
+        this.minY = pos1.getY();
+        this.minZ = pos1.getZ();
+        this.maxX = pos2.getX();
+        this.maxY = pos2.getY();
+        this.maxZ = pos2.getZ();
     }
 
     /**

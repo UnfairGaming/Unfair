@@ -50,7 +50,7 @@ public class Session
         }
         catch (IllegalArgumentException var2)
         {
-            return new GameProfile((UUID)null, this.getUsername());
+            return new GameProfile(null, this.getUsername());
         }
     }
 
@@ -77,7 +77,7 @@ public class Session
 
         public static Session.Type setSessionType(String sessionTypeIn)
         {
-            return (Session.Type)SESSION_TYPES.get(sessionTypeIn.toLowerCase());
+            return SESSION_TYPES.get(sessionTypeIn.toLowerCase());
         }
 
         static {

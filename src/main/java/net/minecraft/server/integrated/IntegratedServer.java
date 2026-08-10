@@ -291,7 +291,7 @@ public class IntegratedServer extends MinecraftServer
                 return;
             }
 
-            this.ticksSaveLast = (long)i;
+            this.ticksSaveLast = i;
         }
 
         super.saveAllWorlds(dontLog);

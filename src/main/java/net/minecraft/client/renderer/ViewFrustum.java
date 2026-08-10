@@ -217,7 +217,7 @@ public class ViewFrustum
         int j = blockpos.getZ() >> 8 << 8;
         ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(i, j);
         EnumWorldBlockLayer[] aenumworldblocklayer = RenderChunk.ENUM_WORLD_BLOCK_LAYERS;
-        VboRegion[] avboregion = (VboRegion[])this.mapVboRegions.get(chunkcoordintpair);
+        VboRegion[] avboregion = this.mapVboRegions.get(chunkcoordintpair);
 
         if (avboregion == null)
         {
@@ -246,7 +246,7 @@ public class ViewFrustum
     {
         for (ChunkCoordIntPair chunkcoordintpair : this.mapVboRegions.keySet())
         {
-            VboRegion[] avboregion = (VboRegion[])this.mapVboRegions.get(chunkcoordintpair);
+            VboRegion[] avboregion = this.mapVboRegions.get(chunkcoordintpair);
 
             for (int i = 0; i < avboregion.length; ++i)
             {

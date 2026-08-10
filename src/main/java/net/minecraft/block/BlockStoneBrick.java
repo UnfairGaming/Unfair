@@ -33,7 +33,7 @@ public class BlockStoneBrick extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        return ((BlockStoneBrick.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     /**
@@ -60,7 +60,7 @@ public class BlockStoneBrick extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockStoneBrick.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     protected BlockState createBlockState()

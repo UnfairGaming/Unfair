@@ -9,7 +9,7 @@ public class CacheLocal
     private int offsetX = 0;
     private int offsetY = 0;
     private int offsetZ = 0;
-    private int[][][] cache = (int[][][])null;
+    private int[][][] cache = null;
     private int[] lastZs = null;
     private int lastDz = 0;
 

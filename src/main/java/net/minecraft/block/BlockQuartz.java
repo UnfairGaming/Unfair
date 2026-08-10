@@ -61,13 +61,13 @@ public class BlockQuartz extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        BlockQuartz.EnumType blockquartz$enumtype = (BlockQuartz.EnumType)state.getValue(VARIANT);
+        BlockQuartz.EnumType blockquartz$enumtype = state.getValue(VARIANT);
         return blockquartz$enumtype != BlockQuartz.EnumType.LINES_X && blockquartz$enumtype != BlockQuartz.EnumType.LINES_Z ? blockquartz$enumtype.getMetadata() : BlockQuartz.EnumType.LINES_Y.getMetadata();
     }
 
     protected ItemStack createStackedBlock(IBlockState state)
     {
-        BlockQuartz.EnumType blockquartz$enumtype = (BlockQuartz.EnumType)state.getValue(VARIANT);
+        BlockQuartz.EnumType blockquartz$enumtype = state.getValue(VARIANT);
         return blockquartz$enumtype != BlockQuartz.EnumType.LINES_X && blockquartz$enumtype != BlockQuartz.EnumType.LINES_Z ? super.createStackedBlock(state) : new ItemStack(Item.getItemFromBlock(this), 1, BlockQuartz.EnumType.LINES_Y.getMetadata());
     }
 
@@ -102,7 +102,7 @@ public class BlockQuartz extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockQuartz.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     protected BlockState createBlockState()

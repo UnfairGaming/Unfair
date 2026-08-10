@@ -80,7 +80,7 @@ public class GuiScreenAddServer extends GuiScreen
         this.serverIPField.setMaxStringLength(128);
         this.serverIPField.setText(this.serverData.serverIP);
         this.serverIPField.setValidator(this.field_181032_r);
-        ((GuiButton)this.buttonList.get(0)).enabled = !this.serverIPField.getText().isEmpty() && this.serverIPField.getText().split(":").length > 0 && !this.serverNameField.getText().isEmpty();
+        this.buttonList.get(0).enabled = !this.serverIPField.getText().isEmpty() && this.serverIPField.getText().split(":").length > 0 && !this.serverNameField.getText().isEmpty();
     }
 
     /**
@@ -136,7 +136,7 @@ public class GuiScreenAddServer extends GuiScreen
             this.actionPerformed((GuiButton)this.buttonList.get(0));
         }
 
-        ((GuiButton)this.buttonList.get(0)).enabled = !this.serverIPField.getText().isEmpty() && this.serverIPField.getText().split(":").length > 0 && !this.serverNameField.getText().isEmpty();
+        this.buttonList.get(0).enabled = !this.serverIPField.getText().isEmpty() && this.serverIPField.getText().split(":").length > 0 && !this.serverNameField.getText().isEmpty();
     }
 
     /**

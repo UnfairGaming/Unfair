@@ -32,7 +32,7 @@ public class ItemRedstone extends Item
         {
             Block block = worldIn.getBlockState(blockpos).getBlock();
 
-            if (!worldIn.canBlockBePlaced(block, blockpos, false, side, (Entity)null, stack))
+            if (!worldIn.canBlockBePlaced(block, blockpos, false, side, null, stack))
             {
                 return false;
             }

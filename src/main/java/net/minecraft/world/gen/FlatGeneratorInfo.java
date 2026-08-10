@@ -57,7 +57,7 @@ public class FlatGeneratorInfo
     public String toString()
     {
         StringBuilder stringbuilder = new StringBuilder();
-        stringbuilder.append((int)3);
+        stringbuilder.append(3);
         stringbuilder.append(";");
 
         for (int i = 0; i < this.flatLayers.size(); ++i)
@@ -67,7 +67,7 @@ public class FlatGeneratorInfo
                 stringbuilder.append(",");
             }
 
-            stringbuilder.append(((FlatLayerInfo)this.flatLayers.get(i)).toString());
+            stringbuilder.append(this.flatLayers.get(i).toString());
         }
 
         stringbuilder.append(";");
@@ -85,7 +85,7 @@ public class FlatGeneratorInfo
                     stringbuilder.append(",");
                 }
 
-                stringbuilder.append(((String)entry.getKey()).toLowerCase());
+                stringbuilder.append(entry.getKey().toLowerCase());
                 Map<String, String> map = entry.getValue();
 
                 if (!map.isEmpty())
@@ -100,9 +100,9 @@ public class FlatGeneratorInfo
                             stringbuilder.append(" ");
                         }
 
-                        stringbuilder.append((String)entry1.getKey());
+                        stringbuilder.append(entry1.getKey());
                         stringbuilder.append("=");
-                        stringbuilder.append((String)entry1.getValue());
+                        stringbuilder.append(entry1.getValue());
                     }
 
                     stringbuilder.append(")");

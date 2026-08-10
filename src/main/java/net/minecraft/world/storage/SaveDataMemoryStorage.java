@@ -6,7 +6,7 @@ public class SaveDataMemoryStorage extends MapStorage
 {
     public SaveDataMemoryStorage()
     {
-        super((ISaveHandler)null);
+        super(null);
     }
 
     /**
@@ -15,7 +15,7 @@ public class SaveDataMemoryStorage extends MapStorage
      */
     public WorldSavedData loadData(Class <? extends WorldSavedData > clazz, String dataIdentifier)
     {
-        return (WorldSavedData)this.loadedDataMap.get(dataIdentifier);
+        return this.loadedDataMap.get(dataIdentifier);
     }
 
     /**

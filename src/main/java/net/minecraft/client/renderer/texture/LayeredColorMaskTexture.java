@@ -51,12 +51,12 @@ public class LayeredColorMaskTexture extends AbstractTexture
 
             bufferedimage = new BufferedImage(bufferedimage1.getWidth(), bufferedimage1.getHeight(), i);
             Graphics graphics = bufferedimage.getGraphics();
-            graphics.drawImage(bufferedimage1, 0, 0, (ImageObserver)null);
+            graphics.drawImage(bufferedimage1, 0, 0, null);
 
             for (int j = 0; j < 17 && j < this.field_174949_h.size() && j < this.field_174950_i.size(); ++j)
             {
-                String s = (String)this.field_174949_h.get(j);
-                MapColor mapcolor = ((EnumDyeColor)this.field_174950_i.get(j)).getMapColor();
+                String s = this.field_174949_h.get(j);
+                MapColor mapcolor = this.field_174950_i.get(j).getMapColor();
 
                 if (s != null)
                 {
@@ -81,14 +81,14 @@ public class LayeredColorMaskTexture extends AbstractTexture
                             }
                         }
 
-                        bufferedimage.getGraphics().drawImage(bufferedimage2, 0, 0, (ImageObserver)null);
+                        bufferedimage.getGraphics().drawImage(bufferedimage2, 0, 0, null);
                     }
                 }
             }
         }
         catch (IOException ioexception)
         {
-            LOG.error((String)"Couldn\'t load layered image", (Throwable)ioexception);
+            LOG.error("Couldn\'t load layered image", ioexception);
             return;
         }
 

@@ -652,7 +652,7 @@ public class StructureNetherBridgePieces
 
         public boolean addComponentParts(World worldIn, Random randomIn, StructureBoundingBox structureBoundingBoxIn)
         {
-            Random random = new Random((long)this.fillSeed);
+            Random random = new Random(this.fillSeed);
 
             for (int i = 0; i <= 4; ++i)
             {

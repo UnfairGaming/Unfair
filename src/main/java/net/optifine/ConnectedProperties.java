@@ -193,7 +193,7 @@ public class ConnectedProperties
 
                     if (map.containsKey(Integer.valueOf(k)))
                     {
-                        aint[k] = ((Integer)map.get(Integer.valueOf(k))).intValue();
+                        aint[k] = map.get(Integer.valueOf(k)).intValue();
                     }
                 }
 
@@ -307,7 +307,7 @@ public class ConnectedProperties
                 list.add(s);
             }
 
-            String[] astring2 = (String[])((String[])list.toArray(new String[list.size()]));
+            String[] astring2 = (String[]) list.toArray(new String[list.size()]);
 
             for (int i1 = 0; i1 < astring2.length; ++i1)
             {
@@ -1193,7 +1193,7 @@ public class ConnectedProperties
                 }
             }
 
-            TextureAtlasSprite[] atextureatlassprite = (TextureAtlasSprite[])((TextureAtlasSprite[])list.toArray(new TextureAtlasSprite[list.size()]));
+            TextureAtlasSprite[] atextureatlassprite = (TextureAtlasSprite[]) list.toArray(new TextureAtlasSprite[list.size()]);
             return atextureatlassprite;
         }
     }
@@ -1215,7 +1215,7 @@ public class ConnectedProperties
 
     public String toString()
     {
-        return "CTM name: " + this.name + ", basePath: " + this.basePath + ", matchBlocks: " + Config.arrayToString((Object[])this.matchBlocks) + ", matchTiles: " + Config.arrayToString((Object[])this.matchTiles);
+        return "CTM name: " + this.name + ", basePath: " + this.basePath + ", matchBlocks: " + Config.arrayToString(this.matchBlocks) + ", matchTiles: " + Config.arrayToString(this.matchTiles);
     }
 
     public boolean matchesBiome(BiomeGenBase biome)

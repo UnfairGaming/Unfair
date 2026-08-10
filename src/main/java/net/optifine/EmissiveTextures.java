@@ -75,7 +75,7 @@ public class EmissiveTextures
                     resourcelocation = LOCATION_EMPTY;
                 }
 
-                ITextureObject itextureobject = (ITextureObject)mapTextures.get(resourcelocation);
+                ITextureObject itextureobject = mapTextures.get(resourcelocation);
 
                 if (itextureobject == null)
                 {

@@ -80,7 +80,7 @@ public class GuiRenameWorld extends GuiScreen
     protected void keyTyped(char typedChar, int keyCode) throws IOException
     {
         this.field_146583_f.textboxKeyTyped(typedChar, keyCode);
-        ((GuiButton)this.buttonList.get(0)).enabled = !this.field_146583_f.getText().trim().isEmpty();
+        this.buttonList.get(0).enabled = !this.field_146583_f.getText().trim().isEmpty();
 
         if (keyCode == 28 || keyCode == 156)
         {

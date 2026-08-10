@@ -261,7 +261,7 @@ public class ChunkProviderSettings
             {
                 try
                 {
-                    return (ChunkProviderSettings.Factory)JSON_ADAPTER.fromJson(p_177865_0_, ChunkProviderSettings.Factory.class);
+                    return JSON_ADAPTER.fromJson(p_177865_0_, Factory.class);
                 }
                 catch (Exception var2)
                 {
@@ -272,7 +272,7 @@ public class ChunkProviderSettings
 
         public String toString()
         {
-            return JSON_ADAPTER.toJson((Object)this);
+            return JSON_ADAPTER.toJson(this);
         }
 
         public Factory()
@@ -580,26 +580,26 @@ public class ChunkProviderSettings
         public JsonElement serialize(ChunkProviderSettings.Factory p_serialize_1_, Type p_serialize_2_, JsonSerializationContext p_serialize_3_)
         {
             JsonObject jsonobject = new JsonObject();
-            jsonobject.addProperty("coordinateScale", (Number)Float.valueOf(p_serialize_1_.coordinateScale));
-            jsonobject.addProperty("heightScale", (Number)Float.valueOf(p_serialize_1_.heightScale));
-            jsonobject.addProperty("lowerLimitScale", (Number)Float.valueOf(p_serialize_1_.lowerLimitScale));
-            jsonobject.addProperty("upperLimitScale", (Number)Float.valueOf(p_serialize_1_.upperLimitScale));
-            jsonobject.addProperty("depthNoiseScaleX", (Number)Float.valueOf(p_serialize_1_.depthNoiseScaleX));
-            jsonobject.addProperty("depthNoiseScaleZ", (Number)Float.valueOf(p_serialize_1_.depthNoiseScaleZ));
-            jsonobject.addProperty("depthNoiseScaleExponent", (Number)Float.valueOf(p_serialize_1_.depthNoiseScaleExponent));
-            jsonobject.addProperty("mainNoiseScaleX", (Number)Float.valueOf(p_serialize_1_.mainNoiseScaleX));
-            jsonobject.addProperty("mainNoiseScaleY", (Number)Float.valueOf(p_serialize_1_.mainNoiseScaleY));
-            jsonobject.addProperty("mainNoiseScaleZ", (Number)Float.valueOf(p_serialize_1_.mainNoiseScaleZ));
-            jsonobject.addProperty("baseSize", (Number)Float.valueOf(p_serialize_1_.baseSize));
-            jsonobject.addProperty("stretchY", (Number)Float.valueOf(p_serialize_1_.stretchY));
-            jsonobject.addProperty("biomeDepthWeight", (Number)Float.valueOf(p_serialize_1_.biomeDepthWeight));
-            jsonobject.addProperty("biomeDepthOffset", (Number)Float.valueOf(p_serialize_1_.biomeDepthOffset));
-            jsonobject.addProperty("biomeScaleWeight", (Number)Float.valueOf(p_serialize_1_.biomeScaleWeight));
-            jsonobject.addProperty("biomeScaleOffset", (Number)Float.valueOf(p_serialize_1_.biomeScaleOffset));
-            jsonobject.addProperty("seaLevel", (Number)Integer.valueOf(p_serialize_1_.seaLevel));
+            jsonobject.addProperty("coordinateScale", Float.valueOf(p_serialize_1_.coordinateScale));
+            jsonobject.addProperty("heightScale", Float.valueOf(p_serialize_1_.heightScale));
+            jsonobject.addProperty("lowerLimitScale", Float.valueOf(p_serialize_1_.lowerLimitScale));
+            jsonobject.addProperty("upperLimitScale", Float.valueOf(p_serialize_1_.upperLimitScale));
+            jsonobject.addProperty("depthNoiseScaleX", Float.valueOf(p_serialize_1_.depthNoiseScaleX));
+            jsonobject.addProperty("depthNoiseScaleZ", Float.valueOf(p_serialize_1_.depthNoiseScaleZ));
+            jsonobject.addProperty("depthNoiseScaleExponent", Float.valueOf(p_serialize_1_.depthNoiseScaleExponent));
+            jsonobject.addProperty("mainNoiseScaleX", Float.valueOf(p_serialize_1_.mainNoiseScaleX));
+            jsonobject.addProperty("mainNoiseScaleY", Float.valueOf(p_serialize_1_.mainNoiseScaleY));
+            jsonobject.addProperty("mainNoiseScaleZ", Float.valueOf(p_serialize_1_.mainNoiseScaleZ));
+            jsonobject.addProperty("baseSize", Float.valueOf(p_serialize_1_.baseSize));
+            jsonobject.addProperty("stretchY", Float.valueOf(p_serialize_1_.stretchY));
+            jsonobject.addProperty("biomeDepthWeight", Float.valueOf(p_serialize_1_.biomeDepthWeight));
+            jsonobject.addProperty("biomeDepthOffset", Float.valueOf(p_serialize_1_.biomeDepthOffset));
+            jsonobject.addProperty("biomeScaleWeight", Float.valueOf(p_serialize_1_.biomeScaleWeight));
+            jsonobject.addProperty("biomeScaleOffset", Float.valueOf(p_serialize_1_.biomeScaleOffset));
+            jsonobject.addProperty("seaLevel", Integer.valueOf(p_serialize_1_.seaLevel));
             jsonobject.addProperty("useCaves", Boolean.valueOf(p_serialize_1_.useCaves));
             jsonobject.addProperty("useDungeons", Boolean.valueOf(p_serialize_1_.useDungeons));
-            jsonobject.addProperty("dungeonChance", (Number)Integer.valueOf(p_serialize_1_.dungeonChance));
+            jsonobject.addProperty("dungeonChance", Integer.valueOf(p_serialize_1_.dungeonChance));
             jsonobject.addProperty("useStrongholds", Boolean.valueOf(p_serialize_1_.useStrongholds));
             jsonobject.addProperty("useVillages", Boolean.valueOf(p_serialize_1_.useVillages));
             jsonobject.addProperty("useMineShafts", Boolean.valueOf(p_serialize_1_.useMineShafts));
@@ -607,57 +607,57 @@ public class ChunkProviderSettings
             jsonobject.addProperty("useMonuments", Boolean.valueOf(p_serialize_1_.useMonuments));
             jsonobject.addProperty("useRavines", Boolean.valueOf(p_serialize_1_.useRavines));
             jsonobject.addProperty("useWaterLakes", Boolean.valueOf(p_serialize_1_.useWaterLakes));
-            jsonobject.addProperty("waterLakeChance", (Number)Integer.valueOf(p_serialize_1_.waterLakeChance));
+            jsonobject.addProperty("waterLakeChance", Integer.valueOf(p_serialize_1_.waterLakeChance));
             jsonobject.addProperty("useLavaLakes", Boolean.valueOf(p_serialize_1_.useLavaLakes));
-            jsonobject.addProperty("lavaLakeChance", (Number)Integer.valueOf(p_serialize_1_.lavaLakeChance));
+            jsonobject.addProperty("lavaLakeChance", Integer.valueOf(p_serialize_1_.lavaLakeChance));
             jsonobject.addProperty("useLavaOceans", Boolean.valueOf(p_serialize_1_.useLavaOceans));
-            jsonobject.addProperty("fixedBiome", (Number)Integer.valueOf(p_serialize_1_.fixedBiome));
-            jsonobject.addProperty("biomeSize", (Number)Integer.valueOf(p_serialize_1_.biomeSize));
-            jsonobject.addProperty("riverSize", (Number)Integer.valueOf(p_serialize_1_.riverSize));
-            jsonobject.addProperty("dirtSize", (Number)Integer.valueOf(p_serialize_1_.dirtSize));
-            jsonobject.addProperty("dirtCount", (Number)Integer.valueOf(p_serialize_1_.dirtCount));
-            jsonobject.addProperty("dirtMinHeight", (Number)Integer.valueOf(p_serialize_1_.dirtMinHeight));
-            jsonobject.addProperty("dirtMaxHeight", (Number)Integer.valueOf(p_serialize_1_.dirtMaxHeight));
-            jsonobject.addProperty("gravelSize", (Number)Integer.valueOf(p_serialize_1_.gravelSize));
-            jsonobject.addProperty("gravelCount", (Number)Integer.valueOf(p_serialize_1_.gravelCount));
-            jsonobject.addProperty("gravelMinHeight", (Number)Integer.valueOf(p_serialize_1_.gravelMinHeight));
-            jsonobject.addProperty("gravelMaxHeight", (Number)Integer.valueOf(p_serialize_1_.gravelMaxHeight));
-            jsonobject.addProperty("graniteSize", (Number)Integer.valueOf(p_serialize_1_.graniteSize));
-            jsonobject.addProperty("graniteCount", (Number)Integer.valueOf(p_serialize_1_.graniteCount));
-            jsonobject.addProperty("graniteMinHeight", (Number)Integer.valueOf(p_serialize_1_.graniteMinHeight));
-            jsonobject.addProperty("graniteMaxHeight", (Number)Integer.valueOf(p_serialize_1_.graniteMaxHeight));
-            jsonobject.addProperty("dioriteSize", (Number)Integer.valueOf(p_serialize_1_.dioriteSize));
-            jsonobject.addProperty("dioriteCount", (Number)Integer.valueOf(p_serialize_1_.dioriteCount));
-            jsonobject.addProperty("dioriteMinHeight", (Number)Integer.valueOf(p_serialize_1_.dioriteMinHeight));
-            jsonobject.addProperty("dioriteMaxHeight", (Number)Integer.valueOf(p_serialize_1_.dioriteMaxHeight));
-            jsonobject.addProperty("andesiteSize", (Number)Integer.valueOf(p_serialize_1_.andesiteSize));
-            jsonobject.addProperty("andesiteCount", (Number)Integer.valueOf(p_serialize_1_.andesiteCount));
-            jsonobject.addProperty("andesiteMinHeight", (Number)Integer.valueOf(p_serialize_1_.andesiteMinHeight));
-            jsonobject.addProperty("andesiteMaxHeight", (Number)Integer.valueOf(p_serialize_1_.andesiteMaxHeight));
-            jsonobject.addProperty("coalSize", (Number)Integer.valueOf(p_serialize_1_.coalSize));
-            jsonobject.addProperty("coalCount", (Number)Integer.valueOf(p_serialize_1_.coalCount));
-            jsonobject.addProperty("coalMinHeight", (Number)Integer.valueOf(p_serialize_1_.coalMinHeight));
-            jsonobject.addProperty("coalMaxHeight", (Number)Integer.valueOf(p_serialize_1_.coalMaxHeight));
-            jsonobject.addProperty("ironSize", (Number)Integer.valueOf(p_serialize_1_.ironSize));
-            jsonobject.addProperty("ironCount", (Number)Integer.valueOf(p_serialize_1_.ironCount));
-            jsonobject.addProperty("ironMinHeight", (Number)Integer.valueOf(p_serialize_1_.ironMinHeight));
-            jsonobject.addProperty("ironMaxHeight", (Number)Integer.valueOf(p_serialize_1_.ironMaxHeight));
-            jsonobject.addProperty("goldSize", (Number)Integer.valueOf(p_serialize_1_.goldSize));
-            jsonobject.addProperty("goldCount", (Number)Integer.valueOf(p_serialize_1_.goldCount));
-            jsonobject.addProperty("goldMinHeight", (Number)Integer.valueOf(p_serialize_1_.goldMinHeight));
-            jsonobject.addProperty("goldMaxHeight", (Number)Integer.valueOf(p_serialize_1_.goldMaxHeight));
-            jsonobject.addProperty("redstoneSize", (Number)Integer.valueOf(p_serialize_1_.redstoneSize));
-            jsonobject.addProperty("redstoneCount", (Number)Integer.valueOf(p_serialize_1_.redstoneCount));
-            jsonobject.addProperty("redstoneMinHeight", (Number)Integer.valueOf(p_serialize_1_.redstoneMinHeight));
-            jsonobject.addProperty("redstoneMaxHeight", (Number)Integer.valueOf(p_serialize_1_.redstoneMaxHeight));
-            jsonobject.addProperty("diamondSize", (Number)Integer.valueOf(p_serialize_1_.diamondSize));
-            jsonobject.addProperty("diamondCount", (Number)Integer.valueOf(p_serialize_1_.diamondCount));
-            jsonobject.addProperty("diamondMinHeight", (Number)Integer.valueOf(p_serialize_1_.diamondMinHeight));
-            jsonobject.addProperty("diamondMaxHeight", (Number)Integer.valueOf(p_serialize_1_.diamondMaxHeight));
-            jsonobject.addProperty("lapisSize", (Number)Integer.valueOf(p_serialize_1_.lapisSize));
-            jsonobject.addProperty("lapisCount", (Number)Integer.valueOf(p_serialize_1_.lapisCount));
-            jsonobject.addProperty("lapisCenterHeight", (Number)Integer.valueOf(p_serialize_1_.lapisCenterHeight));
-            jsonobject.addProperty("lapisSpread", (Number)Integer.valueOf(p_serialize_1_.lapisSpread));
+            jsonobject.addProperty("fixedBiome", Integer.valueOf(p_serialize_1_.fixedBiome));
+            jsonobject.addProperty("biomeSize", Integer.valueOf(p_serialize_1_.biomeSize));
+            jsonobject.addProperty("riverSize", Integer.valueOf(p_serialize_1_.riverSize));
+            jsonobject.addProperty("dirtSize", Integer.valueOf(p_serialize_1_.dirtSize));
+            jsonobject.addProperty("dirtCount", Integer.valueOf(p_serialize_1_.dirtCount));
+            jsonobject.addProperty("dirtMinHeight", Integer.valueOf(p_serialize_1_.dirtMinHeight));
+            jsonobject.addProperty("dirtMaxHeight", Integer.valueOf(p_serialize_1_.dirtMaxHeight));
+            jsonobject.addProperty("gravelSize", Integer.valueOf(p_serialize_1_.gravelSize));
+            jsonobject.addProperty("gravelCount", Integer.valueOf(p_serialize_1_.gravelCount));
+            jsonobject.addProperty("gravelMinHeight", Integer.valueOf(p_serialize_1_.gravelMinHeight));
+            jsonobject.addProperty("gravelMaxHeight", Integer.valueOf(p_serialize_1_.gravelMaxHeight));
+            jsonobject.addProperty("graniteSize", Integer.valueOf(p_serialize_1_.graniteSize));
+            jsonobject.addProperty("graniteCount", Integer.valueOf(p_serialize_1_.graniteCount));
+            jsonobject.addProperty("graniteMinHeight", Integer.valueOf(p_serialize_1_.graniteMinHeight));
+            jsonobject.addProperty("graniteMaxHeight", Integer.valueOf(p_serialize_1_.graniteMaxHeight));
+            jsonobject.addProperty("dioriteSize", Integer.valueOf(p_serialize_1_.dioriteSize));
+            jsonobject.addProperty("dioriteCount", Integer.valueOf(p_serialize_1_.dioriteCount));
+            jsonobject.addProperty("dioriteMinHeight", Integer.valueOf(p_serialize_1_.dioriteMinHeight));
+            jsonobject.addProperty("dioriteMaxHeight", Integer.valueOf(p_serialize_1_.dioriteMaxHeight));
+            jsonobject.addProperty("andesiteSize", Integer.valueOf(p_serialize_1_.andesiteSize));
+            jsonobject.addProperty("andesiteCount", Integer.valueOf(p_serialize_1_.andesiteCount));
+            jsonobject.addProperty("andesiteMinHeight", Integer.valueOf(p_serialize_1_.andesiteMinHeight));
+            jsonobject.addProperty("andesiteMaxHeight", Integer.valueOf(p_serialize_1_.andesiteMaxHeight));
+            jsonobject.addProperty("coalSize", Integer.valueOf(p_serialize_1_.coalSize));
+            jsonobject.addProperty("coalCount", Integer.valueOf(p_serialize_1_.coalCount));
+            jsonobject.addProperty("coalMinHeight", Integer.valueOf(p_serialize_1_.coalMinHeight));
+            jsonobject.addProperty("coalMaxHeight", Integer.valueOf(p_serialize_1_.coalMaxHeight));
+            jsonobject.addProperty("ironSize", Integer.valueOf(p_serialize_1_.ironSize));
+            jsonobject.addProperty("ironCount", Integer.valueOf(p_serialize_1_.ironCount));
+            jsonobject.addProperty("ironMinHeight", Integer.valueOf(p_serialize_1_.ironMinHeight));
+            jsonobject.addProperty("ironMaxHeight", Integer.valueOf(p_serialize_1_.ironMaxHeight));
+            jsonobject.addProperty("goldSize", Integer.valueOf(p_serialize_1_.goldSize));
+            jsonobject.addProperty("goldCount", Integer.valueOf(p_serialize_1_.goldCount));
+            jsonobject.addProperty("goldMinHeight", Integer.valueOf(p_serialize_1_.goldMinHeight));
+            jsonobject.addProperty("goldMaxHeight", Integer.valueOf(p_serialize_1_.goldMaxHeight));
+            jsonobject.addProperty("redstoneSize", Integer.valueOf(p_serialize_1_.redstoneSize));
+            jsonobject.addProperty("redstoneCount", Integer.valueOf(p_serialize_1_.redstoneCount));
+            jsonobject.addProperty("redstoneMinHeight", Integer.valueOf(p_serialize_1_.redstoneMinHeight));
+            jsonobject.addProperty("redstoneMaxHeight", Integer.valueOf(p_serialize_1_.redstoneMaxHeight));
+            jsonobject.addProperty("diamondSize", Integer.valueOf(p_serialize_1_.diamondSize));
+            jsonobject.addProperty("diamondCount", Integer.valueOf(p_serialize_1_.diamondCount));
+            jsonobject.addProperty("diamondMinHeight", Integer.valueOf(p_serialize_1_.diamondMinHeight));
+            jsonobject.addProperty("diamondMaxHeight", Integer.valueOf(p_serialize_1_.diamondMaxHeight));
+            jsonobject.addProperty("lapisSize", Integer.valueOf(p_serialize_1_.lapisSize));
+            jsonobject.addProperty("lapisCount", Integer.valueOf(p_serialize_1_.lapisCount));
+            jsonobject.addProperty("lapisCenterHeight", Integer.valueOf(p_serialize_1_.lapisCenterHeight));
+            jsonobject.addProperty("lapisSpread", Integer.valueOf(p_serialize_1_.lapisSpread));
             return jsonobject;
         }
     }

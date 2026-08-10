@@ -38,7 +38,7 @@ public abstract class NodeProcessor
     protected PathPoint openPoint(int x, int y, int z)
     {
         int i = PathPoint.makeHash(x, y, z);
-        PathPoint pathpoint = (PathPoint)this.pointMap.lookup(i);
+        PathPoint pathpoint = this.pointMap.lookup(i);
 
         if (pathpoint == null)
         {

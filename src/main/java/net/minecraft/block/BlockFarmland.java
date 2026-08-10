@@ -52,7 +52,7 @@ public class BlockFarmland extends Block
 
     public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
     {
-        int i = ((Integer)state.getValue(MOISTURE)).intValue();
+        int i = state.getValue(MOISTURE).intValue();
 
         if (!this.hasWater(worldIn, pos) && !worldIn.isRainingAt(pos.up()))
         {
@@ -169,7 +169,7 @@ public class BlockFarmland extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Integer)state.getValue(MOISTURE)).intValue();
+        return state.getValue(MOISTURE).intValue();
     }
 
     protected BlockState createBlockState()

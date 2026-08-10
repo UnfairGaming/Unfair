@@ -75,7 +75,7 @@ public abstract class AbstractResourcePack implements IResourcePack
         }
         finally
         {
-            IOUtils.closeQuietly((Reader)bufferedreader);
+            IOUtils.closeQuietly(bufferedreader);
         }
 
         return p_110596_0_.parseMetadataSection(p_110596_2_, jsonobject);

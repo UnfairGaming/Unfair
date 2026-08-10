@@ -74,7 +74,7 @@ public class S21PacketChunkData implements Packet<INetHandlerPlayClient> {
 
     public static S21PacketChunkData.Extracted getExtractedData(Chunk p_179756_0_, boolean p_179756_1_, boolean p_179756_2_, int p_179756_3_) {
 
-        ((ILightingEngineProvider) p_179756_0_).getLightingEngine().processLightUpdates();
+        p_179756_0_.getLightingEngine().processLightUpdates();
 
         ExtendedBlockStorage[] aextendedblockstorage = p_179756_0_.getBlockStorageArray();
         S21PacketChunkData.Extracted s21packetchunkdata$extracted = new S21PacketChunkData.Extracted();

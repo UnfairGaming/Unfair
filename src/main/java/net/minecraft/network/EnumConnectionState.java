@@ -212,7 +212,7 @@ public enum EnumConnectionState
 
     public static EnumConnectionState getFromPacket(Packet packetIn)
     {
-        return (EnumConnectionState)STATES_BY_CLASS.get(packetIn.getClass());
+        return STATES_BY_CLASS.get(packetIn.getClass());
     }
 
     static {

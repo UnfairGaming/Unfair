@@ -64,12 +64,12 @@ public class Item
 
     public static Item getItemById(int id)
     {
-        return (Item)itemRegistry.getObjectById(id);
+        return itemRegistry.getObjectById(id);
     }
 
     public static Item getItemFromBlock(Block blockIn)
     {
-        return (Item)BLOCK_TO_ITEM.get(blockIn);
+        return BLOCK_TO_ITEM.get(blockIn);
     }
 
     /**
@@ -78,7 +78,7 @@ public class Item
      */
     public static Item getByNameOrId(String id)
     {
-        Item item = (Item)itemRegistry.getObject(ResourceLocation.of(id));
+        Item item = itemRegistry.getObject(ResourceLocation.of(id));
 
         if (item == null)
         {
@@ -950,7 +950,7 @@ public class Item
         registerItem(419, "diamond_horse_armor", (new Item()).setUnlocalizedName("horsearmordiamond").setMaxStackSize(1).setCreativeTab(CreativeTabs.tabMisc));
         registerItem(420, "lead", (new ItemLead()).setUnlocalizedName("leash"));
         registerItem(421, "name_tag", (new ItemNameTag()).setUnlocalizedName("nameTag"));
-        registerItem(422, "command_block_minecart", (new ItemMinecart(EntityMinecart.EnumMinecartType.COMMAND_BLOCK)).setUnlocalizedName("minecartCommandBlock").setCreativeTab((CreativeTabs)null));
+        registerItem(422, "command_block_minecart", (new ItemMinecart(EntityMinecart.EnumMinecartType.COMMAND_BLOCK)).setUnlocalizedName("minecartCommandBlock").setCreativeTab(null));
         registerItem(423, "mutton", (new ItemFood(2, 0.3F, true)).setUnlocalizedName("muttonRaw"));
         registerItem(424, "cooked_mutton", (new ItemFood(6, 0.8F, true)).setUnlocalizedName("muttonCooked"));
         registerItem(425, "banner", (new ItemBanner()).setUnlocalizedName("banner"));
@@ -986,7 +986,7 @@ public class Item
      */
     protected static void registerItemBlock(Block blockIn, Item itemIn)
     {
-        registerItem(Block.getIdFromBlock(blockIn), (ResourceLocation)Block.blockRegistry.getNameForObject(blockIn), itemIn);
+        registerItem(Block.getIdFromBlock(blockIn), Block.blockRegistry.getNameForObject(blockIn), itemIn);
         BLOCK_TO_ITEM.put(blockIn, itemIn);
     }
 

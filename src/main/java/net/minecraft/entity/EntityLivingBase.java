@@ -1029,7 +1029,7 @@ public abstract class EntityLivingBase extends Entity {
             return legacyLadder;
         }
 
-        if (!(block instanceof BlockTrapDoor) || !((Boolean) state.getValue(BlockTrapDoor.OPEN)).booleanValue()) {
+        if (!(block instanceof BlockTrapDoor) || !state.getValue(BlockTrapDoor.OPEN).booleanValue()) {
             return false;
         }
 
@@ -1660,7 +1660,7 @@ public abstract class EntityLivingBase extends Entity {
             return false;
         }
 
-        ModernPlayerPhysics modernPhysics = (ModernPlayerPhysics) player;
+        ModernPlayerPhysics modernPhysics = player;
         boolean falling = player.motionY <= 0.0D;
         double oldY = player.posY;
         boolean swimming = modernPhysics.viaforge$isModernSwimming();
@@ -1710,7 +1710,7 @@ public abstract class EntityLivingBase extends Entity {
     }
 
     private void viaforge$modernLavaTravel(EntityPlayerSP player, float strafe, float forward) {
-        ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+        ModernPlayerPhysics physics = player;
         boolean falling = player.motionY <= 0.0D;
         double oldY = player.posY;
 
@@ -1751,7 +1751,7 @@ public abstract class EntityLivingBase extends Entity {
             return fallback;
         }
 
-        BlockPos support = ((ModernPlayerPhysics) player).viaforge$getMainSupportingBlock();
+        BlockPos support = player.viaforge$getMainSupportingBlock();
         if (support == null) {
             return fallback;
         }
@@ -2029,7 +2029,7 @@ public abstract class EntityLivingBase extends Entity {
             boolean jumpAsLava = !jumpAsWater && this.isInLava();
             if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
                 EntityPlayerSP player = (EntityPlayerSP) this;
-                ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+                ModernPlayerPhysics physics = player;
                 jumpAsWater = player.isInWater() && (!player.onGround || physics.viaforge$getModernWaterHeight() > 0.4D);
                 jumpAsLava = !jumpAsWater
                         && player.isInLava()

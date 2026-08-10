@@ -357,6 +357,26 @@ public class Scaffold extends Module {
                 && Math.abs(pitch - this.serverPitch) < 0.01F;
     }
 
+    private boolean returnToMouseRotation(UpdateEvent event) {
+        if (this.rotationMode.getValue() == 0) {
+            return false;
+        }
+
+        float targetYaw = event.getNewYaw();
+        float targetPitch = event.getNewPitch();
+        if (this.isAtRotation(targetYaw, targetPitch)) {
+            this.resetRuntimeState(false);
+            return false;
+        }
+
+        float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
+        event.setRotation(rotations[0], rotations[1], 3);
+        if (this.moveFix.getValue() == 1) {
+            event.setPervRotation(rotations[0], 3);
+        }
+        return true;
+    }
+
     private PlacementTarget findClosestPlacementTarget(float currentYaw, float currentPitch) {
         BlockPos targetPos = this.getTargetPos();
         PlacementTarget bestTarget = null;
@@ -504,16 +524,7 @@ public class Scaffold extends Module {
         }
 
         if (this.easingOut && event.getType() == EventType.PRE) {
-            float targetYaw = event.getNewYaw();
-            float targetPitch = event.getNewPitch();
-            float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
-            event.setRotation(rotations[0], rotations[1], 3);
-            if (this.moveFix.getValue() == 1) {
-                event.setPervRotation(rotations[0], 3);
-            }
-            if (this.isAtRotation(targetYaw, targetPitch)) {
-                this.easingOut = false;
-            }
+            this.returnToMouseRotation(event);
             return;
         }
         if (this.isEnabled() && event.getType() == EventType.PRE) {
@@ -888,6 +899,8 @@ public class Scaffold extends Module {
                     }
                     this.resetClickTimer();
                 }
+            } else {
+                this.returnToMouseRotation(event);
             }
         }
     }
@@ -1255,7 +1268,9 @@ public class Scaffold extends Module {
         if (mc.thePlayer != null && this.lastSlot != -1) {
             mc.thePlayer.inventory.currentItem = this.lastSlot;
         }
-        this.resetRuntimeState(false);
+        if (!this.easingOut) {
+            this.resetRuntimeState(false);
+        }
     }
 
     @Override

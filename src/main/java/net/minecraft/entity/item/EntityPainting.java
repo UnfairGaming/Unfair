@@ -40,7 +40,7 @@ public class EntityPainting extends EntityHanging
 
         if (!list.isEmpty())
         {
-            this.art = (EntityPainting.EnumArt)list.get(this.rand.nextInt(list.size()));
+            this.art = list.get(this.rand.nextInt(list.size()));
         }
 
         this.updateFacingWithBoundingBox(facing);
@@ -131,13 +131,13 @@ public class EntityPainting extends EntityHanging
     public void setLocationAndAngles(double x, double y, double z, float yaw, float pitch)
     {
         BlockPos blockpos = this.hangingPosition.add(x - this.posX, y - this.posY, z - this.posZ);
-        this.setPosition((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ());
+        this.setPosition(blockpos.getX(), blockpos.getY(), blockpos.getZ());
     }
 
     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean p_180426_10_)
     {
         BlockPos blockpos = this.hangingPosition.add(x - this.posX, y - this.posY, z - this.posZ);
-        this.setPosition((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ());
+        this.setPosition(blockpos.getX(), blockpos.getY(), blockpos.getZ());
     }
 
     public static enum EnumArt

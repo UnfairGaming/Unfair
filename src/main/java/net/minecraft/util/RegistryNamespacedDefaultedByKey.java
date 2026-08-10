@@ -38,7 +38,7 @@ public class RegistryNamespacedDefaultedByKey<K, V> extends RegistryNamespaced<K
     public V getObject(K name)
     {
         V v = super.getObject(name);
-        return (V)(v == null ? this.defaultValue : v);
+        return v == null ? this.defaultValue : v;
     }
 
     /**
@@ -47,6 +47,6 @@ public class RegistryNamespacedDefaultedByKey<K, V> extends RegistryNamespaced<K
     public V getObjectById(int id)
     {
         V v = super.getObjectById(id);
-        return (V)(v == null ? this.defaultValue : v);
+        return v == null ? this.defaultValue : v;
     }
 }

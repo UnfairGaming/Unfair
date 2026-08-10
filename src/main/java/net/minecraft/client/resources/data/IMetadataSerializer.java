@@ -39,7 +39,7 @@ public class IMetadataSerializer
         }
         else if (!json.has(sectionName))
         {
-            return (T)null;
+            return null;
         }
         else if (!json.get(sectionName).isJsonObject())
         {
@@ -47,7 +47,7 @@ public class IMetadataSerializer
         }
         else
         {
-            IMetadataSerializer.Registration<?> registration = (IMetadataSerializer.Registration)this.metadataSectionSerializerRegistry.getObject(sectionName);
+            IMetadataSerializer.Registration<?> registration = this.metadataSectionSerializerRegistry.getObject(sectionName);
 
             if (registration == null)
             {
@@ -55,7 +55,7 @@ public class IMetadataSerializer
             }
             else
             {
-                return (T)((IMetadataSection)this.getGson().fromJson((JsonElement)json.getAsJsonObject(sectionName), registration.clazz));
+                return (T) this.getGson().fromJson(json.getAsJsonObject(sectionName), registration.clazz);
             }
         }
     }

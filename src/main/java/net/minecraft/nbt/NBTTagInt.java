@@ -73,7 +73,7 @@ public class NBTTagInt extends NBTBase.NBTPrimitive
 
     public long getLong()
     {
-        return (long)this.data;
+        return this.data;
     }
 
     public int getInt()
@@ -93,7 +93,7 @@ public class NBTTagInt extends NBTBase.NBTPrimitive
 
     public double getDouble()
     {
-        return (double)this.data;
+        return this.data;
     }
 
     public float getFloat()

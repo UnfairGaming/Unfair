@@ -85,9 +85,9 @@ public class BlockEndPortal extends BlockContainer
 
     public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
     {
-        double d0 = (double)((float)pos.getX() + rand.nextFloat());
-        double d1 = (double)((float)pos.getY() + 0.8F);
-        double d2 = (double)((float)pos.getZ() + rand.nextFloat());
+        double d0 = (float)pos.getX() + rand.nextFloat();
+        double d1 = (float)pos.getY() + 0.8F;
+        double d2 = (float)pos.getZ() + rand.nextFloat();
         double d3 = 0.0D;
         double d4 = 0.0D;
         double d5 = 0.0D;

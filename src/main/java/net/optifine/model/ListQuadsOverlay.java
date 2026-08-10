@@ -31,12 +31,12 @@ public class ListQuadsOverlay
 
     public BakedQuad getQuad(int index)
     {
-        return (BakedQuad)this.listQuads.get(index);
+        return this.listQuads.get(index);
     }
 
     public IBlockState getBlockState(int index)
     {
-        return index >= 0 && index < this.listBlockStates.size() ? (IBlockState)this.listBlockStates.get(index) : Blocks.air.getDefaultState();
+        return index >= 0 && index < this.listBlockStates.size() ? this.listBlockStates.get(index) : Blocks.air.getDefaultState();
     }
 
     public List<BakedQuad> getListQuadsSingle(BakedQuad quad)

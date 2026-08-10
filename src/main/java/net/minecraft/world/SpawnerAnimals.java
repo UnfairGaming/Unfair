@@ -44,7 +44,7 @@ public final class SpawnerAnimals
 
             if (worldServerIn.playerEntities.size() == 1)
             {
-                entityplayer = (EntityPlayer)worldServerIn.playerEntities.get(0);
+                entityplayer = worldServerIn.playerEntities.get(0);
 
                 if (!this.eligibleChunksForSpawning.isEmpty() && entityplayer != null && entityplayer.chunkCoordX == this.lastPlayerChunkX && entityplayer.chunkCoordZ == this.lastPlayerChunkZ)
                 {
@@ -143,7 +143,7 @@ public final class SpawnerAnimals
                                         float f = (float)l2 + 0.5F;
                                         float f1 = (float)j3 + 0.5F;
 
-                                        if (!worldServerIn.isAnyPlayerWithinRangeAt((double)f, (double)i3, (double)f1, 24.0D) && blockpos2.distanceSq((double)f, (double)i3, (double)f1) >= 576.0D)
+                                        if (!worldServerIn.isAnyPlayerWithinRangeAt(f, i3, f1, 24.0D) && blockpos2.distanceSq(f, i3, f1) >= 576.0D)
                                         {
                                             if (biomegenbase$spawnlistentry == null)
                                             {
@@ -161,11 +161,11 @@ public final class SpawnerAnimals
 
                                                 try
                                                 {
-                                                    entityliving = (EntityLiving)this.mapSampleEntitiesByClass.get(biomegenbase$spawnlistentry.entityClass);
+                                                    entityliving = this.mapSampleEntitiesByClass.get(biomegenbase$spawnlistentry.entityClass);
 
                                                     if (entityliving == null)
                                                     {
-                                                        entityliving = (EntityLiving)biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldServerIn});
+                                                        entityliving = biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldServerIn});
                                                         this.mapSampleEntitiesByClass.put(biomegenbase$spawnlistentry.entityClass, entityliving);
                                                     }
                                                 }
@@ -175,7 +175,7 @@ public final class SpawnerAnimals
                                                     return j4;
                                                 }
 
-                                                entityliving.setLocationAndAngles((double)f, (double)i3, (double)f1, worldServerIn.rand.nextFloat() * 360.0F, 0.0F);
+                                                entityliving.setLocationAndAngles(f, i3, f1, worldServerIn.rand.nextFloat() * 360.0F, 0.0F);
                                                 boolean flag2 = entityliving.getCanSpawnHere() && entityliving.isNotColliding();
 
                                                 if (flag2)
@@ -283,7 +283,7 @@ public final class SpawnerAnimals
         {
             while (randomIn.nextFloat() < biomeIn.getSpawningChance())
             {
-                BiomeGenBase.SpawnListEntry biomegenbase$spawnlistentry = (BiomeGenBase.SpawnListEntry)WeightedRandom.getRandomItem(worldIn.rand, list);
+                BiomeGenBase.SpawnListEntry biomegenbase$spawnlistentry = WeightedRandom.getRandomItem(worldIn.rand, list);
                 int i = biomegenbase$spawnlistentry.minGroupCount + randomIn.nextInt(1 + biomegenbase$spawnlistentry.maxGroupCount - biomegenbase$spawnlistentry.minGroupCount);
                 IEntityLivingData ientitylivingdata = null;
                 int j = p_77191_2_ + randomIn.nextInt(p_77191_4_);
@@ -305,7 +305,7 @@ public final class SpawnerAnimals
 
                             try
                             {
-                                entityliving = (EntityLiving)biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldIn});
+                                entityliving = biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldIn});
                             }
                             catch (Exception exception1)
                             {
@@ -313,7 +313,7 @@ public final class SpawnerAnimals
                                 continue;
                             }
 
-                            entityliving.setLocationAndAngles((double)((float)j + 0.5F), (double)blockpos.getY(), (double)((float)k + 0.5F), randomIn.nextFloat() * 360.0F, 0.0F);
+                            entityliving.setLocationAndAngles((float)j + 0.5F, blockpos.getY(), (float)k + 0.5F, randomIn.nextFloat() * 360.0F, 0.0F);
                             worldIn.spawnEntityInWorld(entityliving);
                             ientitylivingdata = entityliving.onInitialSpawn(worldIn.getDifficultyForLocation(new BlockPos(entityliving)), ientitylivingdata);
                             flag = true;

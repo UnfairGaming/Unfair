@@ -38,7 +38,7 @@ public class LinkedListTest
             {
                 if (!list.isEmpty())
                 {
-                    VboRange vborange3 = (VboRange)list.get(random.nextInt(list.size()));
+                    VboRange vborange3 = list.get(random.nextInt(list.size()));
                     LinkedList.Node<VboRange> node2 = vborange3.getNode();
 
                     if (random.nextBoolean())
@@ -58,7 +58,7 @@ public class LinkedListTest
                             continue;
                         }
 
-                        VboRange vborange1 = (VboRange)list1.get(random.nextInt(list1.size()));
+                        VboRange vborange1 = list1.get(random.nextInt(list1.size()));
                         LinkedList.Node<VboRange> node1 = vborange1.getNode();
                         linkedlist.addAfter(node1, node2);
                         dbg("Add after: " + vborange1.getPosition() + ", " + vborange3.getPosition());
@@ -70,7 +70,7 @@ public class LinkedListTest
             }
             else if (!list1.isEmpty())
             {
-                VboRange vborange2 = (VboRange)list1.get(random.nextInt(list1.size()));
+                VboRange vborange2 = list1.get(random.nextInt(list1.size()));
                 LinkedList.Node<VboRange> node = vborange2.getNode();
                 linkedlist.remove(node);
                 dbg("Remove: " + vborange2.getPosition());

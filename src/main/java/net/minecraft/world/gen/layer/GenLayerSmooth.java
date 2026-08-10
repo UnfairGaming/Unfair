@@ -33,7 +33,7 @@ public class GenLayerSmooth extends GenLayer
 
                 if (k1 == l1 && i2 == j2)
                 {
-                    this.initChunkSeed((long)(j1 + areaX), (long)(i1 + areaY));
+                    this.initChunkSeed(j1 + areaX, i1 + areaY);
 
                     if (this.nextInt(2) == 0)
                     {

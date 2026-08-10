@@ -90,9 +90,9 @@ public class VisGraph
         queue.add(IntegerCache.getInteger(p_178604_1_));
         this.field_178612_d.set(p_178604_1_, true);
 
-        while (!((Queue)queue).isEmpty())
+        while (!queue.isEmpty())
         {
-            int i = ((Integer)queue.poll()).intValue();
+            int i = queue.poll().intValue();
             this.func_178610_a(i, set);
 
             for (EnumFacing enumfacing : EnumFacing.VALUES)

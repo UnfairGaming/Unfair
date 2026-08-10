@@ -52,7 +52,7 @@ class GuiSlotShaders extends GuiSlot
 
         for (int j = this.shaderslist.size(); i < j; ++i)
         {
-            if (((String)this.shaderslist.get(i)).equals(Shaders.currentShaderName))
+            if (this.shaderslist.get(i).equals(Shaders.currentShaderName))
             {
                 this.selectedIndex = i;
                 break;

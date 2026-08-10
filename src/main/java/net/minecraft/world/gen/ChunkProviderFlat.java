@@ -148,7 +148,7 @@ public class ChunkProviderFlat implements IChunkProvider
         }
 
         Chunk chunk = new Chunk(this.worldObj, chunkprimer, x, z);
-        BiomeGenBase[] abiomegenbase = this.worldObj.getWorldChunkManager().loadBlockGeneratorData((BiomeGenBase[])null, x * 16, z * 16, 16, 16);
+        BiomeGenBase[] abiomegenbase = this.worldObj.getWorldChunkManager().loadBlockGeneratorData(null, x * 16, z * 16, 16, 16);
         byte[] abyte = chunk.getBiomeArray();
 
         for (int l = 0; l < abyte.length; ++l)
@@ -300,7 +300,7 @@ public class ChunkProviderFlat implements IChunkProvider
     {
         for (MapGenStructure mapgenstructure : this.structureGenerators)
         {
-            mapgenstructure.generate(this, this.worldObj, x, z, (ChunkPrimer)null);
+            mapgenstructure.generate(this, this.worldObj, x, z, null);
         }
     }
 

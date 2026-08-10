@@ -77,7 +77,7 @@ public class CustomGuiProperties
         this.levels = connectedparser.parseRangeListInt(props.getProperty("levels"));
         this.professions = connectedparser.parseProfessions(props.getProperty("professions"));
         CustomGuiProperties.EnumVariant[] acustomguiproperties$enumvariant = getContainerVariants(this.container);
-        this.variants = (CustomGuiProperties.EnumVariant[])((CustomGuiProperties.EnumVariant[])connectedparser.parseEnums(props.getProperty("variants"), acustomguiproperties$enumvariant, "variants", VARIANTS_INVALID));
+        this.variants = (CustomGuiProperties.EnumVariant[]) connectedparser.parseEnums(props.getProperty("variants"), acustomguiproperties$enumvariant, "variants", VARIANTS_INVALID);
         this.colors = parseEnumDyeColors(props.getProperty("colors"));
     }
 
@@ -376,7 +376,7 @@ public class CustomGuiProperties
 
     private static IWorldNameable getWorldNameable(GuiScreen screen)
     {
-        return (IWorldNameable)(screen instanceof GuiBeacon ? asWorldNameable(((GuiBeacon)screen).getTileBeacon()) : (screen instanceof GuiBrewingStand ? asWorldNameable(((GuiBrewingStand)screen).getTileBrewingStand()) : (screen instanceof GuiChest ? asWorldNameable(((GuiChest)screen).getLowerChestInventory()) : (screen instanceof GuiDispenser ? ((GuiDispenser)screen).dispenserInventory : (screen instanceof GuiEnchantment ? ((GuiEnchantment)screen).getNameable() : (screen instanceof GuiFurnace ? asWorldNameable(((GuiFurnace)screen).getTileFurnace()) : (screen instanceof GuiHopper ? asWorldNameable(((GuiHopper)screen).getHopperInventory()) : null)))))));
+        return screen instanceof GuiBeacon ? asWorldNameable(((GuiBeacon)screen).getTileBeacon()) : (screen instanceof GuiBrewingStand ? asWorldNameable(((GuiBrewingStand)screen).getTileBrewingStand()) : (screen instanceof GuiChest ? asWorldNameable(((GuiChest)screen).getLowerChestInventory()) : (screen instanceof GuiDispenser ? ((GuiDispenser)screen).dispenserInventory : (screen instanceof GuiEnchantment ? ((GuiEnchantment)screen).getNameable() : (screen instanceof GuiFurnace ? asWorldNameable(((GuiFurnace)screen).getTileFurnace()) : (screen instanceof GuiHopper ? asWorldNameable(((GuiHopper)screen).getHopperInventory()) : null))))));
     }
 
     private static IWorldNameable asWorldNameable(Object object)
@@ -608,7 +608,7 @@ public class CustomGuiProperties
 
     public ResourceLocation getTextureLocation(ResourceLocation loc)
     {
-        ResourceLocation resourcelocation = (ResourceLocation)this.textureLocations.get(loc);
+        ResourceLocation resourcelocation = this.textureLocations.get(loc);
         return resourcelocation == null ? loc : resourcelocation;
     }
 

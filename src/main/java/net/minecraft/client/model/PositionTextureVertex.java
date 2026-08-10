@@ -10,7 +10,7 @@ public class PositionTextureVertex
 
     public PositionTextureVertex(float p_i1158_1_, float p_i1158_2_, float p_i1158_3_, float p_i1158_4_, float p_i1158_5_)
     {
-        this(new Vec3((double)p_i1158_1_, (double)p_i1158_2_, (double)p_i1158_3_), p_i1158_4_, p_i1158_5_);
+        this(new Vec3(p_i1158_1_, p_i1158_2_, p_i1158_3_), p_i1158_4_, p_i1158_5_);
     }
 
     public PositionTextureVertex setTexturePosition(float p_78240_1_, float p_78240_2_)

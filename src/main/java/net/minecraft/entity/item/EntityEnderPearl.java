@@ -71,7 +71,7 @@ public class EntityEnderPearl extends EntityThrowable
 
                     if (entitylivingbase.isRiding())
                     {
-                        entitylivingbase.mountEntity((Entity)null);
+                        entitylivingbase.mountEntity(null);
                     }
 
                     entitylivingbase.setPositionAndUpdate(this.posX, this.posY, this.posZ);

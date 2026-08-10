@@ -281,7 +281,7 @@ public class ConnectedTexturesCompact
                     amap1[dir.ordinal()] = map;
                 }
 
-                BakedQuad bakedquad = (BakedQuad)map.get(quadIn);
+                BakedQuad bakedquad = map.get(quadIn);
 
                 if (bakedquad == null)
                 {
@@ -300,7 +300,7 @@ public class ConnectedTexturesCompact
 
     private static BakedQuad makeSpriteQuadCompact(BakedQuad quad, TextureAtlasSprite sprite, int side, int x1, int y1, int x2, int y2)
     {
-        int[] aint = (int[])quad.getVertexData().clone();
+        int[] aint = quad.getVertexData().clone();
         TextureAtlasSprite textureatlassprite = quad.getSprite();
 
         for (int i = 0; i < 4; ++i)
@@ -368,25 +368,25 @@ public class ConnectedTexturesCompact
         if (d0 < (double)x1)
         {
             f5 = (float)((double)f5 + ((double)x1 - d0) / (double)f7);
-            d0 = (double)x1;
+            d0 = x1;
         }
 
         if (d0 > (double)x2)
         {
             f5 = (float)((double)f5 - (d0 - (double)x2) / (double)f7);
-            d0 = (double)x2;
+            d0 = x2;
         }
 
         if (d1 < (double)y1)
         {
             f6 = (float)((double)f6 + ((double)y1 - d1) / (double)f8);
-            d1 = (double)y1;
+            d1 = y1;
         }
 
         if (d1 > (double)y2)
         {
             f6 = (float)((double)f6 - (d1 - (double)y2) / (double)f8);
-            d1 = (double)y2;
+            d1 = y2;
         }
 
         switch (side)

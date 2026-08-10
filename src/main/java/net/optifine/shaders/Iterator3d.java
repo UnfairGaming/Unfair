@@ -29,7 +29,7 @@ public class Iterator3d implements Iterator<BlockPos>
         this.kX = flag ? -1 : 1;
         this.kY = flag1 ? -1 : 1;
         this.kZ = flag2 ? -1 : 1;
-        Vec3 vec3 = new Vec3((double)(posEnd.getX() - posStart.getX()), (double)(posEnd.getY() - posStart.getY()), (double)(posEnd.getZ() - posStart.getZ()));
+        Vec3 vec3 = new Vec3(posEnd.getX() - posStart.getX(), posEnd.getY() - posStart.getY(), posEnd.getZ() - posStart.getZ());
         Vec3 vec31 = vec3.normalize();
         Vec3 vec32 = new Vec3(1.0D, 0.0D, 0.0D);
         double d0 = vec31.dotProduct(vec32);

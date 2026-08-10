@@ -29,7 +29,7 @@ public class EntityAINearestAttackableTarget<T extends EntityLivingBase> extends
 
     public EntityAINearestAttackableTarget(EntityCreature creature, Class<T> classTarget, boolean checkSight, boolean onlyNearby)
     {
-        this(creature, classTarget, 10, checkSight, onlyNearby, (Predicate <? super T >)null);
+        this(creature, classTarget, 10, checkSight, onlyNearby, null);
     }
 
     public EntityAINearestAttackableTarget(EntityCreature creature, Class<T> classTarget, int chance, boolean checkSight, boolean onlyNearby, final Predicate <? super T > targetSelector)
@@ -67,7 +67,7 @@ public class EntityAINearestAttackableTarget<T extends EntityLivingBase> extends
                                 f = 0.1F;
                             }
 
-                            d0 *= (double)(0.7F * f);
+                            d0 *= 0.7F * f;
                         }
 
                         if ((double)p_apply_1_.getDistanceToEntity(EntityAINearestAttackableTarget.this.taskOwner) > d0)
@@ -103,7 +103,7 @@ public class EntityAINearestAttackableTarget<T extends EntityLivingBase> extends
             }
             else
             {
-                this.targetEntity = (EntityLivingBase)list.get(0);
+                this.targetEntity = list.get(0);
                 return true;
             }
         }

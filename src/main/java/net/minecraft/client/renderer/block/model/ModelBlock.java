@@ -32,7 +32,7 @@ public class ModelBlock
 
     public static ModelBlock deserialize(Reader readerIn)
     {
-        return (ModelBlock)SERIALIZER.fromJson(readerIn, ModelBlock.class);
+        return SERIALIZER.fromJson(readerIn, ModelBlock.class);
     }
 
     public static ModelBlock deserialize(String jsonString)
@@ -42,7 +42,7 @@ public class ModelBlock
 
     protected ModelBlock(List<BlockPart> elementsIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemCameraTransforms cameraTransformsIn)
     {
-        this((ResourceLocation)null, elementsIn, texturesIn, ambientOcclusionIn, gui3dIn, cameraTransformsIn);
+        this(null, elementsIn, texturesIn, ambientOcclusionIn, gui3dIn, cameraTransformsIn);
     }
 
     protected ModelBlock(ResourceLocation parentLocationIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemCameraTransforms cameraTransformsIn)
@@ -90,7 +90,7 @@ public class ModelBlock
     {
         if (this.parentLocation != null)
         {
-            this.parent = (ModelBlock)p_178299_1_.get(this.parentLocation);
+            this.parent = p_178299_1_.get(this.parentLocation);
         }
     }
 
@@ -120,7 +120,7 @@ public class ModelBlock
             }
             else
             {
-                String s = (String)this.textures.get(textureName.substring(1));
+                String s = this.textures.get(textureName.substring(1));
 
                 if (s == null && this.hasParent())
                 {
@@ -234,7 +234,7 @@ public class ModelBlock
                 if (jsonobject.has("display"))
                 {
                     JsonObject jsonobject1 = JsonUtils.getJsonObject(jsonobject, "display");
-                    itemcameratransforms = (ItemCameraTransforms)p_deserialize_3_.deserialize(jsonobject1, ItemCameraTransforms.class);
+                    itemcameratransforms = p_deserialize_3_.deserialize(jsonobject1, ItemCameraTransforms.class);
                 }
 
                 return flag1 ? new ModelBlock(ResourceLocation.of(s), map, flag2, true, itemcameratransforms) : new ModelBlock(list, map, flag2, true, itemcameratransforms);
@@ -251,7 +251,7 @@ public class ModelBlock
 
                 for (Entry<String, JsonElement> entry : jsonobject.entrySet())
                 {
-                    map.put(entry.getKey(), ((JsonElement)entry.getValue()).getAsString());
+                    map.put(entry.getKey(), entry.getValue().getAsString());
                 }
             }
 
@@ -276,7 +276,7 @@ public class ModelBlock
             {
                 for (JsonElement jsonelement : JsonUtils.getJsonArray(p_178325_2_, "elements"))
                 {
-                    list.add((BlockPart)p_178325_1_.deserialize(jsonelement, BlockPart.class));
+                    list.add(p_178325_1_.deserialize(jsonelement, BlockPart.class));
                 }
             }
 

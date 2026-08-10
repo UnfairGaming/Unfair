@@ -122,7 +122,7 @@ public class BlockFlowerPot extends BlockContainer
 
                     if (!playerIn.capabilities.isCreativeMode && --itemstack.stackSize <= 0)
                     {
-                        playerIn.inventory.setInventorySlotContents(playerIn.inventory.currentItem, (ItemStack)null);
+                        playerIn.inventory.setInventorySlotContents(playerIn.inventory.currentItem, null);
                     }
 
                     return true;
@@ -202,7 +202,7 @@ public class BlockFlowerPot extends BlockContainer
 
             if (tileentityflowerpot != null)
             {
-                tileentityflowerpot.setFlowerPotData((Item)null, 0);
+                tileentityflowerpot.setFlowerPotData(null, 0);
             }
         }
     }
@@ -304,7 +304,7 @@ public class BlockFlowerPot extends BlockContainer
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Integer)state.getValue(LEGACY_DATA)).intValue();
+        return state.getValue(LEGACY_DATA).intValue();
     }
 
     /**

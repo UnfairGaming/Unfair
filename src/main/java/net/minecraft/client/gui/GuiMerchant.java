@@ -154,7 +154,7 @@ public class GuiMerchant extends GuiContainer
                 return;
             }
 
-            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(k);
+            MerchantRecipe merchantrecipe = merchantrecipelist.get(k);
 
             if (merchantrecipe.isRecipeDisabled())
             {
@@ -180,7 +180,7 @@ public class GuiMerchant extends GuiContainer
             int i = (this.width - this.xSize) / 2;
             int j = (this.height - this.ySize) / 2;
             int k = this.selectedMerchantRecipe;
-            MerchantRecipe merchantrecipe = (MerchantRecipe)merchantrecipelist.get(k);
+            MerchantRecipe merchantrecipe = merchantrecipelist.get(k);
             ItemStack itemstack = merchantrecipe.getItemToBuy();
             ItemStack itemstack1 = merchantrecipe.getSecondItemToBuy();
             ItemStack itemstack2 = merchantrecipe.getItemToSell();

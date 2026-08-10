@@ -38,7 +38,7 @@ public class ModelAdapterArmorStand extends ModelAdapterBiped
     public String[] getModelRendererNames()
     {
         String[] astring = super.getModelRendererNames();
-        astring = (String[])((String[])Config.addObjectsToArray(astring, new String[] {"right", "left", "waist", "base"}));
+        astring = (String[]) Config.addObjectsToArray(astring, new String[] {"right", "left", "waist", "base"});
         return astring;
     }
 

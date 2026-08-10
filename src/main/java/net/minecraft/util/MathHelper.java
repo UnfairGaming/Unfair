@@ -52,7 +52,7 @@ public class MathHelper {
     }
 
     public static float sqrt_float(float value) {
-        return (float) Math.sqrt((double) value);
+        return (float) Math.sqrt(value);
     }
 
     public static float sqrt_double(double value) {

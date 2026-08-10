@@ -15,7 +15,7 @@ public class FrameEvent
         synchronized (mapEventFrames)
         {
             int i = Minecraft.getMinecraft().entityRenderer.frameCount;
-            Integer integer = (Integer)mapEventFrames.get(name);
+            Integer integer = mapEventFrames.get(name);
 
             if (integer == null)
             {

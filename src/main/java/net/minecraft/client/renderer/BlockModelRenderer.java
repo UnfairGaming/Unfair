@@ -116,7 +116,7 @@ public class BlockModelRenderer
 
         if (!list1.isEmpty())
         {
-            list1 = BlockModelCustomizer.getRenderQuads(list1, p_renderModelSmooth_1_, p_renderModelSmooth_3_, p_renderModelSmooth_4_, (EnumFacing)null, enumworldblocklayer, 0L, renderenv);
+            list1 = BlockModelCustomizer.getRenderQuads(list1, p_renderModelSmooth_1_, p_renderModelSmooth_3_, p_renderModelSmooth_4_, null, enumworldblocklayer, 0L, renderenv);
             this.renderQuadsSmooth(p_renderModelSmooth_1_, p_renderModelSmooth_3_, p_renderModelSmooth_4_, p_renderModelSmooth_5_, list1, renderenv);
             flag = true;
         }
@@ -159,8 +159,8 @@ public class BlockModelRenderer
 
         if (!list1.isEmpty())
         {
-            list1 = BlockModelCustomizer.getRenderQuads(list1, p_renderModelFlat_1_, p_renderModelFlat_3_, p_renderModelFlat_4_, (EnumFacing)null, enumworldblocklayer, 0L, renderenv);
-            this.renderQuadsFlat(p_renderModelFlat_1_, p_renderModelFlat_3_, p_renderModelFlat_4_, (EnumFacing)null, -1, true, p_renderModelFlat_5_, list1, renderenv);
+            list1 = BlockModelCustomizer.getRenderQuads(list1, p_renderModelFlat_1_, p_renderModelFlat_3_, p_renderModelFlat_4_, null, enumworldblocklayer, 0L, renderenv);
+            this.renderQuadsFlat(p_renderModelFlat_1_, p_renderModelFlat_3_, p_renderModelFlat_4_, null, -1, true, p_renderModelFlat_5_, list1, renderenv);
             flag = true;
         }
 
@@ -173,9 +173,9 @@ public class BlockModelRenderer
         float[] afloat = p_renderQuadsSmooth_6_.getQuadBounds();
         BitSet bitset = p_renderQuadsSmooth_6_.getBoundsFlags();
         BlockModelRenderer.AmbientOcclusionFace blockmodelrenderer$ambientocclusionface = p_renderQuadsSmooth_6_.getAoFace();
-        double d0 = (double)p_renderQuadsSmooth_3_.getX();
-        double d1 = (double)p_renderQuadsSmooth_3_.getY();
-        double d2 = (double)p_renderQuadsSmooth_3_.getZ();
+        double d0 = p_renderQuadsSmooth_3_.getX();
+        double d1 = p_renderQuadsSmooth_3_.getY();
+        double d2 = p_renderQuadsSmooth_3_.getZ();
         Block.EnumOffsetType block$enumoffsettype = block.getOffsetType();
 
         if (block$enumoffsettype != Block.EnumOffsetType.NONE)
@@ -352,9 +352,9 @@ public class BlockModelRenderer
     {
         Block block = p_renderQuadsFlat_2_.getBlock();
         BitSet bitset = p_renderQuadsFlat_9_.getBoundsFlags();
-        double d0 = (double)p_renderQuadsFlat_3_.getX();
-        double d1 = (double)p_renderQuadsFlat_3_.getY();
-        double d2 = (double)p_renderQuadsFlat_3_.getZ();
+        double d0 = p_renderQuadsFlat_3_.getX();
+        double d1 = p_renderQuadsFlat_3_.getY();
+        double d2 = p_renderQuadsFlat_3_.getZ();
         Block.EnumOffsetType block$enumoffsettype = block.getOffsetType();
 
         if (block$enumoffsettype != Block.EnumOffsetType.NONE)
@@ -376,7 +376,7 @@ public class BlockModelRenderer
         {
             if (p_renderQuadsFlat_6_)
             {
-                this.fillQuadBounds(block, bakedquad.getVertexData(), bakedquad.getFace(), (float[])null, bitset);
+                this.fillQuadBounds(block, bakedquad.getVertexData(), bakedquad.getFace(), null, bitset);
                 p_renderQuadsFlat_5_ = bitset.get(0) ? block.getMixedBrightnessForBlock(p_renderQuadsFlat_1_, p_renderQuadsFlat_3_.offset(bakedquad.getFace())) : block.getMixedBrightnessForBlock(p_renderQuadsFlat_1_, p_renderQuadsFlat_3_);
             }
 
@@ -568,7 +568,7 @@ public class BlockModelRenderer
 
         public AmbientOcclusionFace()
         {
-            this((BlockModelRenderer)null);
+            this(null);
         }
 
         public AmbientOcclusionFace(BlockModelRenderer p_i46235_1_)

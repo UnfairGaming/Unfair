@@ -115,7 +115,7 @@ public class GuiCreateFlatWorld extends GuiScreen {
         this.drawCenteredString(this.fontRendererObj, this.flatWorldTitle, this.width / 2, 8, 16777215);
         int i = this.width / 2 - 92 - 16;
         this.drawString(this.fontRendererObj, this.field_146394_i, i, 32, 16777215);
-        this.drawString(this.fontRendererObj, this.field_146391_r, (int) (i + 2 + 213 - this.fontRendererObj.getStringWidth(this.field_146391_r)), 32, 16777215);
+        this.drawString(this.fontRendererObj, this.field_146391_r, i + 2 + 213 - this.fontRendererObj.getStringWidth(this.field_146391_r), 32, 16777215);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 

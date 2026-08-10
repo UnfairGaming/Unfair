@@ -8,7 +8,7 @@ public class DefaultTexture extends AbstractTexture
 {
     public DefaultTexture()
     {
-        this.loadTexture((IResourceManager)null);
+        this.loadTexture(null);
     }
 
     public void loadTexture(IResourceManager resourcemanager)

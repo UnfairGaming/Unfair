@@ -31,7 +31,7 @@ public abstract class BlockFlower extends BlockBush
      */
     public int damageDropped(IBlockState state)
     {
-        return ((BlockFlower.EnumFlowerType)state.getValue(this.getTypeProperty())).getMeta();
+        return state.getValue(this.getTypeProperty()).getMeta();
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class BlockFlower extends BlockBush
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockFlower.EnumFlowerType)state.getValue(this.getTypeProperty())).getMeta();
+        return state.getValue(this.getTypeProperty()).getMeta();
     }
 
     protected BlockState createBlockState()
@@ -190,7 +190,7 @@ public abstract class BlockFlower extends BlockBush
                         return p_apply_1_.getBlockType() == blockflower$enumflowercolor;
                     }
                 });
-                TYPES_FOR_BLOCK[blockflower$enumflowercolor.ordinal()] = (BlockFlower.EnumFlowerType[])collection.toArray(new BlockFlower.EnumFlowerType[collection.size()]);
+                TYPES_FOR_BLOCK[blockflower$enumflowercolor.ordinal()] = collection.toArray(new EnumFlowerType[collection.size()]);
             }
         }
     }

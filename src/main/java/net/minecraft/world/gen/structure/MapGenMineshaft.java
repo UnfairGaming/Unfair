@@ -22,9 +22,9 @@ public class MapGenMineshaft extends MapGenStructure
     {
         for (Entry<String, String> entry : p_i2034_1_.entrySet())
         {
-            if (((String)entry.getKey()).equals("chance"))
+            if (entry.getKey().equals("chance"))
             {
-                this.field_82673_e = MathHelper.parseDoubleWithDefault((String)entry.getValue(), this.field_82673_e);
+                this.field_82673_e = MathHelper.parseDoubleWithDefault(entry.getValue(), this.field_82673_e);
             }
         }
     }

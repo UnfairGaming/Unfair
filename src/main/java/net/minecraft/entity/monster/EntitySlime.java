@@ -51,8 +51,8 @@ public class EntitySlime extends EntityLiving implements IMob
         this.dataWatcher.updateObject(16, Byte.valueOf((byte)size));
         this.setSize(0.51000005F * (float)size, 0.51000005F * (float)size);
         this.setPosition(this.posX, this.posY, this.posZ);
-        this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue((double)(size * size));
-        this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue((double)(0.2F + 0.1F * (float)size));
+        this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(size * size);
+        this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.2F + 0.1F * (float)size);
         this.setHealth(this.getMaxHealth());
         this.experienceValue = size;
     }

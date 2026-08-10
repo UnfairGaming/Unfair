@@ -28,7 +28,7 @@ public class Scoreboard
      */
     public ScoreObjective getObjective(String name)
     {
-        return (ScoreObjective)this.scoreObjectives.get(name);
+        return this.scoreObjectives.get(name);
     }
 
     /**
@@ -222,7 +222,7 @@ public class Scoreboard
         {
             if (this.getObjectiveInDisplaySlot(i) == p_96519_1_)
             {
-                this.setObjectiveInDisplaySlot(i, (ScoreObjective)null);
+                this.setObjectiveInDisplaySlot(i, null);
             }
         }
 
@@ -262,7 +262,7 @@ public class Scoreboard
      */
     public ScorePlayerTeam getTeam(String p_96508_1_)
     {
-        return (ScorePlayerTeam)this.teams.get(p_96508_1_);
+        return this.teams.get(p_96508_1_);
     }
 
     public ScorePlayerTeam createTeam(String name)
@@ -379,7 +379,7 @@ public class Scoreboard
      */
     public ScorePlayerTeam getPlayersTeam(String p_96509_1_)
     {
-        return (ScorePlayerTeam)this.teamMemberships.get(p_96509_1_);
+        return this.teamMemberships.get(p_96509_1_);
     }
 
     /**
@@ -512,7 +512,7 @@ public class Scoreboard
         if (p_181140_1_ != null && !(p_181140_1_ instanceof EntityPlayer) && !p_181140_1_.isEntityAlive())
         {
             String s = p_181140_1_.getUniqueID().toString();
-            this.removeObjectiveFromEntity(s, (ScoreObjective)null);
+            this.removeObjectiveFromEntity(s, null);
             this.removePlayerFromTeams(s);
         }
     }

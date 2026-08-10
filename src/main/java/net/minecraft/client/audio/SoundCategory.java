@@ -38,7 +38,7 @@ public enum SoundCategory
 
     public static SoundCategory getCategory(String name)
     {
-        return (SoundCategory)NAME_CATEGORY_MAP.get(name);
+        return NAME_CATEGORY_MAP.get(name);
     }
 
     static {

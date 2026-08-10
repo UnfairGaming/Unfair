@@ -213,29 +213,29 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
     @SuppressWarnings("unchecked")
     private static Type<Item[]> getItemArrayType(ProtocolVersion version) {
         if (version.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
-            return (Type<Item[]>) Types.ITEM1_20_2_ARRAY;
+            return Types.ITEM1_20_2_ARRAY;
         }
         if (version.newerThanOrEqualTo(ProtocolVersion.v1_13_2)) {
-            return (Type<Item[]>) Types.ITEM1_13_2_ARRAY;
+            return Types.ITEM1_13_2_ARRAY;
         }
         if (version.newerThanOrEqualTo(ProtocolVersion.v1_13)) {
-            return (Type<Item[]>) Types.ITEM1_13_ARRAY;
+            return Types.ITEM1_13_ARRAY;
         }
-        return (Type<Item[]>) Types.ITEM1_8_SHORT_ARRAY;
+        return Types.ITEM1_8_SHORT_ARRAY;
     }
 
     @SuppressWarnings("unchecked")
     private static Type<Item> getItemType(ProtocolVersion version) {
         if (version.newerThanOrEqualTo(ProtocolVersion.v1_20_2)) {
-            return (Type<Item>) Types.ITEM1_20_2;
+            return Types.ITEM1_20_2;
         }
         if (version.newerThanOrEqualTo(ProtocolVersion.v1_13_2)) {
-            return (Type<Item>) Types.ITEM1_13_2;
+            return Types.ITEM1_13_2;
         }
         if (version.newerThanOrEqualTo(ProtocolVersion.v1_13)) {
-            return (Type<Item>) Types.ITEM1_13;
+            return Types.ITEM1_13;
         }
-        return (Type<Item>) Types.ITEM1_8;
+        return Types.ITEM1_8;
     }
 
     @Override

@@ -93,7 +93,7 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
         }
         catch (Exception exception)
         {
-            logger.error((String)"Error whilst disconnecting player", (Throwable)exception);
+            logger.error("Error whilst disconnecting player", exception);
         }
     }
 
@@ -150,7 +150,7 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
 
     public String getConnectionInfo()
     {
-        return this.loginGameProfile != null ? this.loginGameProfile.toString() + " (" + this.networkManager.getRemoteAddress().toString() + ")" : String.valueOf((Object)this.networkManager.getRemoteAddress());
+        return this.loginGameProfile != null ? this.loginGameProfile.toString() + " (" + this.networkManager.getRemoteAddress().toString() + ")" : String.valueOf(this.networkManager.getRemoteAddress());
     }
 
     public void processLoginStart(C00PacketLoginStart packetIn)
@@ -192,7 +192,7 @@ public class NetHandlerLoginServer implements INetHandlerLoginServer, ITickable
                     try
                     {
                         String s = (new BigInteger(CryptManager.getServerIdHash(NetHandlerLoginServer.this.serverId, NetHandlerLoginServer.this.server.getKeyPair().getPublic(), NetHandlerLoginServer.this.secretKey))).toString(16);
-                        NetHandlerLoginServer.this.loginGameProfile = NetHandlerLoginServer.this.server.getMinecraftSessionService().hasJoinedServer(new GameProfile((UUID)null, gameprofile.getName()), s);
+                        NetHandlerLoginServer.this.loginGameProfile = NetHandlerLoginServer.this.server.getMinecraftSessionService().hasJoinedServer(new GameProfile(null, gameprofile.getName()), s);
 
                         if (NetHandlerLoginServer.this.loginGameProfile != null)
                         {

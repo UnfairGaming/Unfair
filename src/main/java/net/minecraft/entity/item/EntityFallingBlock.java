@@ -125,7 +125,7 @@ public class EntityFallingBlock extends Entity
 
                         if (!this.canSetAsBlock)
                         {
-                            if (this.worldObj.canBlockBePlaced(block, blockpos1, true, EnumFacing.UP, (Entity)null, (ItemStack)null) && !BlockFalling.canFallInto(this.worldObj, blockpos1.down()) && this.worldObj.setBlockState(blockpos1, this.fallTile, 3))
+                            if (this.worldObj.canBlockBePlaced(block, blockpos1, true, EnumFacing.UP, null, null) && !BlockFalling.canFallInto(this.worldObj, blockpos1.down()) && this.worldObj.setBlockState(blockpos1, this.fallTile, 3))
                             {
                                 if (block instanceof BlockFalling)
                                 {
@@ -197,7 +197,7 @@ public class EntityFallingBlock extends Entity
 
                 if (flag && (double)this.rand.nextFloat() < 0.05000000074505806D + (double)i * 0.05D)
                 {
-                    int j = ((Integer)this.fallTile.getValue(BlockAnvil.DAMAGE)).intValue();
+                    int j = this.fallTile.getValue(BlockAnvil.DAMAGE).intValue();
                     ++j;
 
                     if (j > 2)
@@ -219,7 +219,7 @@ public class EntityFallingBlock extends Entity
     protected void writeEntityToNBT(NBTTagCompound tagCompound)
     {
         Block block = this.fallTile != null ? this.fallTile.getBlock() : Blocks.air;
-        ResourceLocation resourcelocation = (ResourceLocation)Block.blockRegistry.getNameForObject(block);
+        ResourceLocation resourcelocation = Block.blockRegistry.getNameForObject(block);
         tagCompound.setString("Block", resourcelocation == null ? "" : resourcelocation.toString());
         tagCompound.setByte("Data", (byte)block.getMetaFromState(this.fallTile));
         tagCompound.setByte("Time", (byte)this.fallTime);

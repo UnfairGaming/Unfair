@@ -201,7 +201,7 @@ public class CraftingManager
 
         if (recipeComponents[i] instanceof String[])
         {
-            String[] astring = (String[])((String[])recipeComponents[i++]);
+            String[] astring = (String[]) recipeComponents[i++];
 
             for (int l = 0; l < astring.length; ++l)
             {
@@ -253,7 +253,7 @@ public class CraftingManager
 
             if (map.containsKey(Character.valueOf(c0)))
             {
-                aitemstack[i1] = ((ItemStack)map.get(Character.valueOf(c0))).copy();
+                aitemstack[i1] = map.get(Character.valueOf(c0)).copy();
             }
             else
             {

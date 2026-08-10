@@ -45,7 +45,7 @@ public class BlockReed extends Block
 
                 if (i < 3)
                 {
-                    int j = ((Integer)state.getValue(AGE)).intValue();
+                    int j = state.getValue(AGE).intValue();
 
                     if (j == 15)
                     {
@@ -168,7 +168,7 @@ public class BlockReed extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Integer)state.getValue(AGE)).intValue();
+        return state.getValue(AGE).intValue();
     }
 
     protected BlockState createBlockState()

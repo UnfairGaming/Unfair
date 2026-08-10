@@ -416,7 +416,7 @@ public class GuiIngame extends Gui {
             }
 
             String s = "" + experienceLevel;
-            int l1 = (int) ((scaledRes.getScaledWidth() - this.getFontRenderer().getStringWidth(s)) / 2);
+            int l1 = (scaledRes.getScaledWidth() - this.getFontRenderer().getStringWidth(s)) / 2;
             int i1 = scaledRes.getScaledHeight() - 31 - 4;
 
             this.getFontRenderer().drawString(s, l1 + 1, i1, 0);
@@ -438,7 +438,7 @@ public class GuiIngame extends Gui {
                 s = EnumChatFormatting.ITALIC + s;
             }
 
-            int i = (int) ((scaledRes.getScaledWidth() - this.getFontRenderer().getStringWidth(s)) / 2);
+            int i = (scaledRes.getScaledWidth() - this.getFontRenderer().getStringWidth(s)) / 2;
             int j = scaledRes.getScaledHeight() - 59 - this.getSelectedItemHealthOffset();
 
             if (!this.mc.playerController.shouldDrawHUD()) {
@@ -487,7 +487,7 @@ public class GuiIngame extends Gui {
             s = I18n.format("demo.remainingTime", StringUtils.ticksToElapsedTime((int) (120500L - this.mc.theWorld.getTotalWorldTime())));
         }
 
-        int i = (int) this.getFontRenderer().getStringWidth(s);
+        int i = this.getFontRenderer().getStringWidth(s);
         this.getFontRenderer().drawStringWithShadow(s, (float) (scaledRes.getScaledWidth() - i - 10), 5.0F, 16777215);
         this.mc.mcProfiler.endSection();
     }
@@ -523,12 +523,12 @@ public class GuiIngame extends Gui {
             collection = list;
         }
 
-        int i = (int) this.getFontRenderer().getStringWidth(objective.getDisplayName());
+        int i = this.getFontRenderer().getStringWidth(objective.getDisplayName());
 
         for (Score score : collection) {
             ScorePlayerTeam scoreplayerteam = scoreboard.getPlayersTeam(score.getPlayerName());
             String s = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName()) + ": " + EnumChatFormatting.RED + score.getScorePoints();
-            i = (int) Math.max(i, this.getFontRenderer().getStringWidth(s));
+            i = Math.max(i, this.getFontRenderer().getStringWidth(s));
         }
 
         int i1 = collection.size() * this.getFontRenderer().FONT_HEIGHT;

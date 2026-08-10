@@ -26,8 +26,8 @@ public abstract class BlockStateBase implements IBlockState
             }
             else
             {
-                IProperty iproperty = (IProperty)p_apply_1_.getKey();
-                return iproperty.getName() + "=" + iproperty.getName((Comparable)p_apply_1_.getValue());
+                IProperty iproperty = p_apply_1_.getKey();
+                return iproperty.getName() + "=" + iproperty.getName(p_apply_1_.getValue());
             }
         }
     };
@@ -70,7 +70,7 @@ public abstract class BlockStateBase implements IBlockState
     {
         if (this.blockLocation == null)
         {
-            this.blockLocation = (ResourceLocation)Block.blockRegistry.getNameForObject(this.getBlock());
+            this.blockLocation = Block.blockRegistry.getNameForObject(this.getBlock());
         }
 
         return this.blockLocation;
@@ -96,14 +96,14 @@ public abstract class BlockStateBase implements IBlockState
             {
                 if (iterator.hasNext())
                 {
-                    return (T)iterator.next();
+                    return iterator.next();
                 }
 
-                return (T)values.iterator().next();
+                return values.iterator().next();
             }
         }
 
-        return (T)iterator.next();
+        return iterator.next();
     }
 
     public String toString()

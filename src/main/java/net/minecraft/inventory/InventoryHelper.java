@@ -15,7 +15,7 @@ public class InventoryHelper
 
     public static void dropInventoryItems(World worldIn, BlockPos pos, IInventory inventory)
     {
-        dropInventoryItems(worldIn, (double)pos.getX(), (double)pos.getY(), (double)pos.getZ(), inventory);
+        dropInventoryItems(worldIn, pos.getX(), pos.getY(), pos.getZ(), inventory);
     }
 
     public static void dropInventoryItems(World worldIn, Entity entityAt, IInventory inventory)

@@ -85,7 +85,7 @@ public class WorldManager implements IWorldAccess
 
     public void playAuxSFX(EntityPlayer player, int sfxType, BlockPos blockPosIn, int data)
     {
-        this.mcServer.getConfigurationManager().sendToAllNearExcept(player, (double)blockPosIn.getX(), (double)blockPosIn.getY(), (double)blockPosIn.getZ(), 64.0D, this.theWorldServer.provider.getDimensionId(), new S28PacketEffect(sfxType, blockPosIn, data, false));
+        this.mcServer.getConfigurationManager().sendToAllNearExcept(player, blockPosIn.getX(), blockPosIn.getY(), blockPosIn.getZ(), 64.0D, this.theWorldServer.provider.getDimensionId(), new S28PacketEffect(sfxType, blockPosIn, data, false));
     }
 
     public void broadcastSound(int soundID, BlockPos pos, int data)

@@ -254,7 +254,7 @@ public class ChunkProviderEnd implements IChunkProvider
 
                     if (l > p_73187_6_ / 2 - i1)
                     {
-                        double d6 = (double)((float)(l - (p_73187_6_ / 2 - i1)) / 64.0F);
+                        double d6 = (float)(l - (p_73187_6_ / 2 - i1)) / 64.0F;
                         d6 = MathHelper.clamp_double(d6, 0.0D, 1.0D);
                         d2 = d2 * (1.0D - d6) + -3000.0D * d6;
                     }
@@ -263,7 +263,7 @@ public class ChunkProviderEnd implements IChunkProvider
 
                     if (l < i1)
                     {
-                        double d7 = (double)((float)(i1 - l) / ((float)i1 - 1.0F));
+                        double d7 = (float)(i1 - l) / ((float)i1 - 1.0F);
                         d2 = d2 * (1.0D - d7) + -30.0D * d7;
                     }
 

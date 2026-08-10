@@ -22,7 +22,7 @@ public class Util
         }
         catch (ExecutionException executionexception)
         {
-            logger.fatal((String)"Error executing task", (Throwable)executionexception);
+            logger.fatal("Error executing task", executionexception);
 
             if (executionexception.getCause() instanceof OutOfMemoryError)
             {
@@ -32,7 +32,7 @@ public class Util
         }
         catch (InterruptedException interruptedexception)
         {
-            logger.fatal((String)"Error executing task", (Throwable)interruptedexception);
+            logger.fatal("Error executing task", interruptedexception);
         }
 
     }

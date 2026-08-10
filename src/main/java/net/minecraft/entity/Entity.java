@@ -1302,7 +1302,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     public boolean isInsideOfMaterial(Material materialIn) {
         if (this instanceof EntityPlayerSP && viaforge$isModernTarget() && (materialIn == Material.water || materialIn == Material.lava)) {
             EntityPlayerSP player = (EntityPlayerSP) this;
-            double eyeY = player.posY + (double) ((ModernPlayerPhysics) player).viaforge$getModernEyeHeight() - 0.1111111119389534D;
+            double eyeY = player.posY + (double) player.viaforge$getModernEyeHeight() - 0.1111111119389534D;
             BlockPos eyePosition = new BlockPos(player.posX, eyeY, player.posZ);
             float height = materialIn == Material.water
                     ? ModernFluidPhysics.getWaterHeight(player.worldObj, eyePosition)
@@ -1385,7 +1385,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     private boolean viaforge$modernFluidBaseTick(EntityPlayerSP player) {
-        ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+        ModernPlayerPhysics physics = player;
         if (this.viaforge$lastModernFluidTick == player.ticksExisted) {
             return this.inWater;
         }
@@ -1494,7 +1494,7 @@ public abstract class Entity implements ICommandSender, Cullable {
         }
 
         EntityPlayerSP player = (EntityPlayerSP) this;
-        ModernPlayerPhysics physics = (ModernPlayerPhysics) player;
+        ModernPlayerPhysics physics = player;
         if (!player.onGround) {
             physics.viaforge$setMainSupportingBlock(null, false);
             return;

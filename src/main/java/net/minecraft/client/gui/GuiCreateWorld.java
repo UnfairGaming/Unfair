@@ -216,7 +216,7 @@ public class GuiCreateWorld extends GuiScreen
             }
             else if (button.id == 0)
             {
-                this.mc.displayGuiScreen((GuiScreen)null);
+                this.mc.displayGuiScreen(null);
 
                 if (this.alreadyGenerated)
                 {
@@ -240,7 +240,7 @@ public class GuiCreateWorld extends GuiScreen
                     }
                     catch (NumberFormatException var7)
                     {
-                        i = (long)s.hashCode();
+                        i = s.hashCode();
                     }
                 }
 
@@ -459,7 +459,7 @@ public class GuiCreateWorld extends GuiScreen
             this.actionPerformed((GuiButton)this.buttonList.get(0));
         }
 
-        ((GuiButton)this.buttonList.get(0)).enabled = !this.worldNameField.getText().isEmpty();
+        this.buttonList.get(0).enabled = !this.worldNameField.getText().isEmpty();
         this.calcSaveDirName();
     }
 

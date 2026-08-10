@@ -78,7 +78,7 @@ public class ModifiableAttributeInstance implements IAttributeInstance
      */
     public AttributeModifier getModifier(UUID uuid)
     {
-        return (AttributeModifier)this.mapByUUID.get(uuid);
+        return this.mapByUUID.get(uuid);
     }
 
     public boolean hasModifier(AttributeModifier modifier)

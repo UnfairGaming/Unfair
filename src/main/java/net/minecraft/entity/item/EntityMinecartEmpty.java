@@ -49,7 +49,7 @@ public class EntityMinecartEmpty extends EntityMinecart
         {
             if (this.riddenByEntity != null)
             {
-                this.riddenByEntity.mountEntity((Entity)null);
+                this.riddenByEntity.mountEntity(null);
             }
 
             if (this.getRollingAmplitude() == 0)

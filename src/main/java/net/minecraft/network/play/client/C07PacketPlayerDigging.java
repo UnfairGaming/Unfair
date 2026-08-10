@@ -32,7 +32,7 @@ public class C07PacketPlayerDigging implements Packet<INetHandlerPlayServer>
      */
     public void readPacketData(PacketBuffer buf) throws IOException
     {
-        this.status = (C07PacketPlayerDigging.Action)buf.readEnumValue(C07PacketPlayerDigging.Action.class);
+        this.status = buf.readEnumValue(Action.class);
         this.position = buf.readBlockPos();
         this.facing = EnumFacing.getFront(buf.readUnsignedByte());
     }

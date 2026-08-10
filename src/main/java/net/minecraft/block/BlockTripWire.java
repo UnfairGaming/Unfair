@@ -89,7 +89,7 @@ public class BlockTripWire extends Block
      */
     public void onNeighborBlockChange(World worldIn, BlockPos pos, IBlockState state, Block neighborBlock)
     {
-        boolean flag = ((Boolean)state.getValue(SUSPENDED)).booleanValue();
+        boolean flag = state.getValue(SUSPENDED).booleanValue();
         boolean flag1 = !World.doesBlockHaveSolidTopSurface(worldIn, pos.down());
 
         if (flag != flag1)
@@ -102,8 +102,8 @@ public class BlockTripWire extends Block
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
-        boolean flag = ((Boolean)iblockstate.getValue(ATTACHED)).booleanValue();
-        boolean flag1 = ((Boolean)iblockstate.getValue(SUSPENDED)).booleanValue();
+        boolean flag = iblockstate.getValue(ATTACHED).booleanValue();
+        boolean flag1 = iblockstate.getValue(SUSPENDED).booleanValue();
 
         if (!flag1)
         {
@@ -176,7 +176,7 @@ public class BlockTripWire extends Block
     {
         if (!worldIn.isRemote)
         {
-            if (!((Boolean)state.getValue(POWERED)).booleanValue())
+            if (!state.getValue(POWERED).booleanValue())
             {
                 this.updateState(worldIn, pos);
             }
@@ -194,7 +194,7 @@ public class BlockTripWire extends Block
     {
         if (!worldIn.isRemote)
         {
-            if (((Boolean)worldIn.getBlockState(pos).getValue(POWERED)).booleanValue())
+            if (worldIn.getBlockState(pos).getValue(POWERED).booleanValue())
             {
                 this.updateState(worldIn, pos);
             }
@@ -204,9 +204,9 @@ public class BlockTripWire extends Block
     private void updateState(World worldIn, BlockPos pos)
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
-        boolean flag = ((Boolean)iblockstate.getValue(POWERED)).booleanValue();
+        boolean flag = iblockstate.getValue(POWERED).booleanValue();
         boolean flag1 = false;
-        List <? extends Entity > list = worldIn.getEntitiesWithinAABBExcludingEntity((Entity)null, new AxisAlignedBB((double)pos.getX() + this.minX, (double)pos.getY() + this.minY, (double)pos.getZ() + this.minZ, (double)pos.getX() + this.maxX, (double)pos.getY() + this.maxY, (double)pos.getZ() + this.maxZ));
+        List <? extends Entity > list = worldIn.getEntitiesWithinAABBExcludingEntity(null, new AxisAlignedBB((double)pos.getX() + this.minX, (double)pos.getY() + this.minY, (double)pos.getZ() + this.minZ, (double)pos.getX() + this.maxX, (double)pos.getY() + this.maxY, (double)pos.getZ() + this.maxZ));
 
         if (!list.isEmpty())
         {
@@ -246,8 +246,8 @@ public class BlockTripWire extends Block
         }
         else if (block == Blocks.tripwire)
         {
-            boolean flag = ((Boolean)state.getValue(SUSPENDED)).booleanValue();
-            boolean flag1 = ((Boolean)iblockstate.getValue(SUSPENDED)).booleanValue();
+            boolean flag = state.getValue(SUSPENDED).booleanValue();
+            boolean flag1 = iblockstate.getValue(SUSPENDED).booleanValue();
             return flag == flag1;
         }
         else
@@ -271,22 +271,22 @@ public class BlockTripWire extends Block
     {
         int i = 0;
 
-        if (((Boolean)state.getValue(POWERED)).booleanValue())
+        if (state.getValue(POWERED).booleanValue())
         {
             i |= 1;
         }
 
-        if (((Boolean)state.getValue(SUSPENDED)).booleanValue())
+        if (state.getValue(SUSPENDED).booleanValue())
         {
             i |= 2;
         }
 
-        if (((Boolean)state.getValue(ATTACHED)).booleanValue())
+        if (state.getValue(ATTACHED).booleanValue())
         {
             i |= 4;
         }
 
-        if (((Boolean)state.getValue(DISARMED)).booleanValue())
+        if (state.getValue(DISARMED).booleanValue())
         {
             i |= 8;
         }

@@ -78,7 +78,7 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
             return;
         }
 
-        ItemStack offhand = ((ModernOffhandInventory) ((EntityPlayer) entitylivingbaseIn).inventory).viaforge$getOffhand();
+        ItemStack offhand = ((EntityPlayer) entitylivingbaseIn).inventory.viaforge$getOffhand();
         if (offhand == null || !(this.livingEntityRenderer.getMainModel() instanceof ModelBiped)) {
             return;
         }

@@ -171,7 +171,7 @@ public class BlockRendererDispatcher implements IResourceManagerReloadListener
                     break;
 
                 case 3:
-                    IBakedModel ibakedmodel = this.getBakedModel(state, (BlockPos)null);
+                    IBakedModel ibakedmodel = this.getBakedModel(state, null);
                     this.blockModelRenderer.renderModelBrightness(ibakedmodel, state, brightness, true);
             }
         }

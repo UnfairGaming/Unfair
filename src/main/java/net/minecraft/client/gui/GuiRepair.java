@@ -92,7 +92,7 @@ public class GuiRepair extends GuiContainer implements ICrafting
             if (flag)
             {
                 int j = -16777216 | (i & 16579836) >> 2 | i & -16777216;
-                int k = (int) (this.xSize - 8 - this.fontRendererObj.getStringWidth(s));
+                int k = this.xSize - 8 - this.fontRendererObj.getStringWidth(s);
                 int l = 67;
 
                 if (this.fontRendererObj.getUnicodeFlag())

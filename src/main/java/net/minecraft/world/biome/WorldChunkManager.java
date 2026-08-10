@@ -63,7 +63,7 @@ public class WorldChunkManager
      */
     public BiomeGenBase getBiomeGenerator(BlockPos pos)
     {
-        return this.getBiomeGenerator(pos, (BiomeGenBase)null);
+        return this.getBiomeGenerator(pos, null);
     }
 
     public BiomeGenBase getBiomeGenerator(BlockPos pos, BiomeGenBase biomeGenBaseIn)

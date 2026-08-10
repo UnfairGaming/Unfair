@@ -78,9 +78,9 @@ public class Explosion
                 {
                     if (j == 0 || j == 15 || k == 0 || k == 15 || l == 0 || l == 15)
                     {
-                        double d0 = (double)((float)j / 15.0F * 2.0F - 1.0F);
-                        double d1 = (double)((float)k / 15.0F * 2.0F - 1.0F);
-                        double d2 = (double)((float)l / 15.0F * 2.0F - 1.0F);
+                        double d0 = (float)j / 15.0F * 2.0F - 1.0F;
+                        double d1 = (float)k / 15.0F * 2.0F - 1.0F;
+                        double d2 = (float)l / 15.0F * 2.0F - 1.0F;
                         double d3 = Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
                         d0 = d0 / d3;
                         d1 = d1 / d3;
@@ -97,7 +97,7 @@ public class Explosion
 
                             if (iblockstate.getBlock().getMaterial() != Material.air)
                             {
-                                float f2 = this.exploder != null ? this.exploder.getExplosionResistance(this, this.worldObj, blockpos, iblockstate) : iblockstate.getBlock().getExplosionResistance((Entity)null);
+                                float f2 = this.exploder != null ? this.exploder.getExplosionResistance(this, this.worldObj, blockpos, iblockstate) : iblockstate.getBlock().getExplosionResistance(null);
                                 f -= (f2 + 0.3F) * 0.3F;
                             }
 
@@ -123,12 +123,12 @@ public class Explosion
         int i1 = MathHelper.floor_double(this.explosionY + (double)f3 + 1.0D);
         int j2 = MathHelper.floor_double(this.explosionZ - (double)f3 - 1.0D);
         int j1 = MathHelper.floor_double(this.explosionZ + (double)f3 + 1.0D);
-        List<Entity> list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this.exploder, new AxisAlignedBB((double)k1, (double)i2, (double)j2, (double)l1, (double)i1, (double)j1));
+        List<Entity> list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this.exploder, new AxisAlignedBB(k1, i2, j2, l1, i1, j1));
         Vec3 vec3 = new Vec3(this.explosionX, this.explosionY, this.explosionZ);
 
         for (int k2 = 0; k2 < list.size(); ++k2)
         {
-            Entity entity = (Entity)list.get(k2);
+            Entity entity = list.get(k2);
 
             if (!entity.isImmuneToExplosions())
             {
@@ -139,14 +139,14 @@ public class Explosion
                     double d5 = entity.posX - this.explosionX;
                     double d7 = entity.posY + (double)entity.getEyeHeight() - this.explosionY;
                     double d9 = entity.posZ - this.explosionZ;
-                    double d13 = (double)MathHelper.sqrt_double(d5 * d5 + d7 * d7 + d9 * d9);
+                    double d13 = MathHelper.sqrt_double(d5 * d5 + d7 * d7 + d9 * d9);
 
                     if (d13 != 0.0D)
                     {
                         d5 = d5 / d13;
                         d7 = d7 / d13;
                         d9 = d9 / d13;
-                        double d14 = (double)this.worldObj.getBlockDensity(vec3, entity.getEntityBoundingBox());
+                        double d14 = this.worldObj.getBlockDensity(vec3, entity.getEntityBoundingBox());
                         double d10 = (1.0D - d12) * d14;
                         entity.attackEntityFrom(DamageSource.setExplosionSource(this), (float)((int)((d10 * d10 + d10) / 2.0D * 8.0D * (double)f3 + 1.0D)));
                         double d11 = EnchantmentProtection.func_92092_a(entity, d10);
@@ -188,13 +188,13 @@ public class Explosion
 
                 if (spawnParticles)
                 {
-                    double d0 = (double)((float)blockpos.getX() + this.worldObj.rand.nextFloat());
-                    double d1 = (double)((float)blockpos.getY() + this.worldObj.rand.nextFloat());
-                    double d2 = (double)((float)blockpos.getZ() + this.worldObj.rand.nextFloat());
+                    double d0 = (float)blockpos.getX() + this.worldObj.rand.nextFloat();
+                    double d1 = (float)blockpos.getY() + this.worldObj.rand.nextFloat();
+                    double d2 = (float)blockpos.getZ() + this.worldObj.rand.nextFloat();
                     double d3 = d0 - this.explosionX;
                     double d4 = d1 - this.explosionY;
                     double d5 = d2 - this.explosionZ;
-                    double d6 = (double)MathHelper.sqrt_double(d3 * d3 + d4 * d4 + d5 * d5);
+                    double d6 = MathHelper.sqrt_double(d3 * d3 + d4 * d4 + d5 * d5);
                     d3 = d3 / d6;
                     d4 = d4 / d6;
                     d5 = d5 / d6;

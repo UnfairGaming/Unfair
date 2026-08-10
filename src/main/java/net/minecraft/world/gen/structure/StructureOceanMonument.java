@@ -34,13 +34,13 @@ public class StructureOceanMonument extends MapGenStructure
 
         for (Entry<String, String> entry : p_i45608_1_.entrySet())
         {
-            if (((String)entry.getKey()).equals("spacing"))
+            if (entry.getKey().equals("spacing"))
             {
-                this.field_175800_f = MathHelper.parseIntWithDefaultAndMax((String)entry.getValue(), this.field_175800_f, 1);
+                this.field_175800_f = MathHelper.parseIntWithDefaultAndMax(entry.getValue(), this.field_175800_f, 1);
             }
-            else if (((String)entry.getKey()).equals("separation"))
+            else if (entry.getKey().equals("separation"))
             {
-                this.field_175801_g = MathHelper.parseIntWithDefaultAndMax((String)entry.getValue(), this.field_175801_g, 1);
+                this.field_175801_g = MathHelper.parseIntWithDefaultAndMax(entry.getValue(), this.field_175801_g, 1);
             }
         }
     }
@@ -75,7 +75,7 @@ public class StructureOceanMonument extends MapGenStructure
 
         if (i == k && j == l)
         {
-            if (this.worldObj.getWorldChunkManager().getBiomeGenerator(new BlockPos(i * 16 + 8, 64, j * 16 + 8), (BiomeGenBase)null) != BiomeGenBase.deepOcean)
+            if (this.worldObj.getWorldChunkManager().getBiomeGenerator(new BlockPos(i * 16 + 8, 64, j * 16 + 8), null) != BiomeGenBase.deepOcean)
             {
                 return false;
             }

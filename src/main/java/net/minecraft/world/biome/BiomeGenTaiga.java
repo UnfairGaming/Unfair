@@ -43,7 +43,7 @@ public class BiomeGenTaiga extends BiomeGenBase
 
     public WorldGenAbstractTree genBigTreeChance(Random rand)
     {
-        return (WorldGenAbstractTree)((this.field_150644_aH == 1 || this.field_150644_aH == 2) && rand.nextInt(3) == 0 ? (this.field_150644_aH != 2 && rand.nextInt(13) != 0 ? field_150641_aE : field_150642_aF) : (rand.nextInt(3) == 0 ? field_150639_aC : field_150640_aD));
+        return (this.field_150644_aH == 1 || this.field_150644_aH == 2) && rand.nextInt(3) == 0 ? (this.field_150644_aH != 2 && rand.nextInt(13) != 0 ? field_150641_aE : field_150642_aF) : (rand.nextInt(3) == 0 ? field_150639_aC : field_150640_aD);
     }
 
     /**

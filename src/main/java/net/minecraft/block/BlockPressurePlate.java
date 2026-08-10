@@ -27,7 +27,7 @@ public class BlockPressurePlate extends BlockBasePressurePlate
 
     protected int getRedstoneStrength(IBlockState state)
     {
-        return ((Boolean)state.getValue(POWERED)).booleanValue() ? 15 : 0;
+        return state.getValue(POWERED).booleanValue() ? 15 : 0;
     }
 
     protected IBlockState setRedstoneStrength(IBlockState state, int strength)
@@ -43,7 +43,7 @@ public class BlockPressurePlate extends BlockBasePressurePlate
         switch (this.sensitivity)
         {
             case EVERYTHING:
-                list = worldIn.getEntitiesWithinAABBExcludingEntity((Entity)null, axisalignedbb);
+                list = worldIn.getEntitiesWithinAABBExcludingEntity(null, axisalignedbb);
                 break;
 
             case MOBS:
@@ -81,7 +81,7 @@ public class BlockPressurePlate extends BlockBasePressurePlate
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Boolean)state.getValue(POWERED)).booleanValue() ? 1 : 0;
+        return state.getValue(POWERED).booleanValue() ? 1 : 0;
     }
 
     protected BlockState createBlockState()

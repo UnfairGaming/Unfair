@@ -40,13 +40,13 @@ public class ShaderPackParser
 
             while (iterator.hasNext())
             {
-                int i = ((Integer)iterator.next()).intValue();
+                int i = iterator.next().intValue();
                 String s = "/shaders/world" + i;
                 collectShaderOptions(shaderPack, s, programNames, map);
             }
 
             Collection<ShaderOption> collection = map.values();
-            ShaderOption[] ashaderoption = (ShaderOption[])((ShaderOption[])collection.toArray(new ShaderOption[collection.size()]));
+            ShaderOption[] ashaderoption = collection.toArray(new ShaderOption[collection.size()]);
             Comparator<ShaderOption> comparator = new Comparator<ShaderOption>()
             {
                 public int compare(ShaderOption o1, ShaderOption o2)
@@ -87,15 +87,15 @@ public class ShaderPackParser
             if (shaderoption != null && !shaderoption.getName().startsWith(ShaderMacros.getPrefixMacro()) && (!shaderoption.checkUsed() || isOptionUsed(shaderoption, astring)))
             {
                 String s1 = shaderoption.getName();
-                ShaderOption shaderoption1 = (ShaderOption)mapOptions.get(s1);
+                ShaderOption shaderoption1 = mapOptions.get(s1);
 
                 if (shaderoption1 != null)
                 {
                     if (!Config.equals(shaderoption1.getValueDefault(), shaderoption.getValueDefault()))
                     {
                         Config.warn("Ambiguous shader option: " + shaderoption.getName());
-                        Config.warn(" - in " + Config.arrayToString((Object[])shaderoption1.getPaths()) + ": " + shaderoption1.getValueDefault());
-                        Config.warn(" - in " + Config.arrayToString((Object[])shaderoption.getPaths()) + ": " + shaderoption.getValueDefault());
+                        Config.warn(" - in " + Config.arrayToString(shaderoption1.getPaths()) + ": " + shaderoption1.getValueDefault());
+                        Config.warn(" - in " + Config.arrayToString(shaderoption.getPaths()) + ": " + shaderoption.getValueDefault());
                         shaderoption1.setEnabled(false);
                     }
 
@@ -143,7 +143,7 @@ public class ShaderPackParser
             else
             {
                 ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(s.getBytes());
-                String[] astring = Config.readLines((InputStream)bytearrayinputstream);
+                String[] astring = Config.readLines(bytearrayinputstream);
                 return astring;
             }
         }
@@ -258,7 +258,7 @@ public class ShaderPackParser
         }
         else
         {
-            ShaderProfile[] ashaderprofile = (ShaderProfile[])((ShaderProfile[])list.toArray(new ShaderProfile[list.size()]));
+            ShaderProfile[] ashaderprofile = list.toArray(new ShaderProfile[list.size()]);
             return ashaderprofile;
         }
     }
@@ -481,7 +481,7 @@ public class ShaderPackParser
 
                 if (s1.equals("<empty>"))
                 {
-                    list.add((ShaderOption)null);
+                    list.add(null);
                 }
                 else if (set.contains(s1))
                 {
@@ -533,7 +533,7 @@ public class ShaderPackParser
                         if (shaderoption == null)
                         {
                             Config.warn("[Shaders] Invalid option: " + s1 + ", key: " + key);
-                            list.add((ShaderOption)null);
+                            list.add(null);
                         }
                         else
                         {
@@ -544,7 +544,7 @@ public class ShaderPackParser
                 }
             }
 
-            ShaderOption[] ashaderoption = (ShaderOption[])((ShaderOption[])list.toArray(new ShaderOption[list.size()]));
+            ShaderOption[] ashaderoption = list.toArray(new ShaderOption[list.size()]);
             String s2 = props.getProperty(key + ".columns");
             int j = Config.parseInt(s2, 2);
             ScreenShaderOptions screenshaderoptions = new ScreenShaderOptions(key, ashaderoption, j);
@@ -681,7 +681,7 @@ public class ShaderPackParser
             }
         }
 
-        ShaderMacro[] ashadermacro = (ShaderMacro[])list.toArray(new ShaderMacro[list.size()]);
+        ShaderMacro[] ashadermacro = list.toArray(new ShaderMacro[list.size()]);
         return ashadermacro;
     }
 
@@ -772,7 +772,7 @@ public class ShaderPackParser
         }
         else
         {
-            CustomUniform[] acustomuniform = (CustomUniform[])((CustomUniform[])list.toArray(new CustomUniform[list.size()]));
+            CustomUniform[] acustomuniform = list.toArray(new CustomUniform[list.size()]);
             CustomUniforms customuniforms = new CustomUniforms(acustomuniform, map);
             return customuniforms;
         }
@@ -873,7 +873,7 @@ public class ShaderPackParser
         {
             String s2 = astring[0];
             String s1 = astring[1];
-            Integer integer = (Integer)mapAlphaFuncs.get(s2);
+            Integer integer = mapAlphaFuncs.get(s2);
             float f = Config.parseFloat(s1, -1.0F);
 
             if (integer != null && f >= 0.0F)
@@ -947,10 +947,10 @@ public class ShaderPackParser
                 s3 = astring[3];
             }
 
-            Integer integer = (Integer)mapBlendFactors.get(s4);
-            Integer integer1 = (Integer)mapBlendFactors.get(s1);
-            Integer integer2 = (Integer)mapBlendFactors.get(s2);
-            Integer integer3 = (Integer)mapBlendFactors.get(s3);
+            Integer integer = mapBlendFactors.get(s4);
+            Integer integer1 = mapBlendFactors.get(s1);
+            Integer integer2 = mapBlendFactors.get(s2);
+            Integer integer3 = mapBlendFactors.get(s3);
 
             if (integer != null && integer1 != null && integer2 != null && integer3 != null)
             {
@@ -1056,7 +1056,7 @@ public class ShaderPackParser
                         if (i >= 0 && i < aboolean.length)
                         {
                             String s4 = props.getProperty(s).trim();
-                            Boolean obool = Config.parseBoolean(s4, (Boolean)null);
+                            Boolean obool = Config.parseBoolean(s4, null);
 
                             if (obool == null)
                             {

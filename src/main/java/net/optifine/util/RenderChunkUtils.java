@@ -36,6 +36,6 @@ public class RenderChunkUtils
         d0 = d0 * 0.995D;
         double d1 = d0 * 2.0D - 1.0D;
         d1 = MathHelper.clamp_double(d1, -1.0D, 1.0D);
-        return (double)MathHelper.sqrt_double(1.0D - d1 * d1);
+        return MathHelper.sqrt_double(1.0D - d1 * d1);
     }
 }

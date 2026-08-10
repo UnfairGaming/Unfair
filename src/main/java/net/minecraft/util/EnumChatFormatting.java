@@ -130,7 +130,7 @@ public enum EnumChatFormatting
      */
     public static EnumChatFormatting getValueByName(String friendlyName)
     {
-        return friendlyName == null ? null : (EnumChatFormatting)nameMapping.get(func_175745_c(friendlyName));
+        return friendlyName == null ? null : nameMapping.get(func_175745_c(friendlyName));
     }
 
     public static EnumChatFormatting func_175744_a(int p_175744_0_)

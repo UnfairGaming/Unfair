@@ -182,7 +182,7 @@ public abstract class BlockBasePressurePlate extends Block
     protected AxisAlignedBB getSensitiveAABB(BlockPos pos)
     {
         float f = 0.125F;
-        return new AxisAlignedBB((double)((float)pos.getX() + 0.125F), (double)pos.getY(), (double)((float)pos.getZ() + 0.125F), (double)((float)(pos.getX() + 1) - 0.125F), (double)pos.getY() + 0.25D, (double)((float)(pos.getZ() + 1) - 0.125F));
+        return new AxisAlignedBB((float)pos.getX() + 0.125F, pos.getY(), (float)pos.getZ() + 0.125F, (float)(pos.getX() + 1) - 0.125F, (double)pos.getY() + 0.25D, (float)(pos.getZ() + 1) - 0.125F);
     }
 
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state)

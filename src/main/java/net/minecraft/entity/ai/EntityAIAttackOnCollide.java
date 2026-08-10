@@ -150,6 +150,6 @@ public class EntityAIAttackOnCollide extends EntityAIBase
 
     protected double func_179512_a(EntityLivingBase attackTarget)
     {
-        return (double)(this.attacker.width * 2.0F * this.attacker.width * 2.0F + attackTarget.width);
+        return this.attacker.width * 2.0F * this.attacker.width * 2.0F + attackTarget.width;
     }
 }

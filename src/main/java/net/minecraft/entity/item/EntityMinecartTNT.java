@@ -125,7 +125,7 @@ public class EntityMinecartTNT extends EntityMinecart
         if (distance >= 3.0F)
         {
             float f = distance / 10.0F;
-            this.explodeCart((double)(f * f));
+            this.explodeCart(f * f);
         }
 
         super.fall(distance, damageMultiplier);

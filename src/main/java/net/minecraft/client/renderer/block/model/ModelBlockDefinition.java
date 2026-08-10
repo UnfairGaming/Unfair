@@ -21,7 +21,7 @@ public class ModelBlockDefinition
 
     public static ModelBlockDefinition parseFromReader(Reader p_178331_0_)
     {
-        return (ModelBlockDefinition)GSON.fromJson(p_178331_0_, ModelBlockDefinition.class);
+        return GSON.fromJson(p_178331_0_, ModelBlockDefinition.class);
     }
 
     public ModelBlockDefinition(Collection<ModelBlockDefinition.Variants> p_i46221_1_)
@@ -42,7 +42,7 @@ public class ModelBlockDefinition
 
     public ModelBlockDefinition.Variants getVariants(String p_178330_1_)
     {
-        ModelBlockDefinition.Variants modelblockdefinition$variants = (ModelBlockDefinition.Variants)this.mapVariants.get(p_178330_1_);
+        ModelBlockDefinition.Variants modelblockdefinition$variants = this.mapVariants.get(p_178330_1_);
 
         if (modelblockdefinition$variants == null)
         {
@@ -100,20 +100,20 @@ public class ModelBlockDefinition
 
         protected ModelBlockDefinition.Variants parseVariants(JsonDeserializationContext p_178335_1_, Entry<String, JsonElement> p_178335_2_)
         {
-            String s = (String)p_178335_2_.getKey();
+            String s = p_178335_2_.getKey();
             List<ModelBlockDefinition.Variant> list = Lists.<ModelBlockDefinition.Variant>newArrayList();
-            JsonElement jsonelement = (JsonElement)p_178335_2_.getValue();
+            JsonElement jsonelement = p_178335_2_.getValue();
 
             if (jsonelement.isJsonArray())
             {
                 for (JsonElement jsonelement1 : jsonelement.getAsJsonArray())
                 {
-                    list.add((ModelBlockDefinition.Variant)p_178335_1_.deserialize(jsonelement1, ModelBlockDefinition.Variant.class));
+                    list.add(p_178335_1_.deserialize(jsonelement1, Variant.class));
                 }
             }
             else
             {
-                list.add((ModelBlockDefinition.Variant)p_178335_1_.deserialize(jsonelement, ModelBlockDefinition.Variant.class));
+                list.add(p_178335_1_.deserialize(jsonelement, Variant.class));
             }
 
             return new ModelBlockDefinition.Variants(s, list);

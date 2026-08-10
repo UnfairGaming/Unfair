@@ -17,12 +17,12 @@ public abstract class BaseAttributeMap
 
     public IAttributeInstance getAttributeInstance(IAttribute attribute)
     {
-        return (IAttributeInstance)this.attributes.get(attribute);
+        return this.attributes.get(attribute);
     }
 
     public IAttributeInstance getAttributeInstanceByName(String attributeName)
     {
-        return (IAttributeInstance)this.attributesByName.get(attributeName);
+        return this.attributesByName.get(attributeName);
     }
 
     /**
@@ -64,11 +64,11 @@ public abstract class BaseAttributeMap
     {
         for (Entry<String, AttributeModifier> entry : modifiers.entries())
         {
-            IAttributeInstance iattributeinstance = this.getAttributeInstanceByName((String)entry.getKey());
+            IAttributeInstance iattributeinstance = this.getAttributeInstanceByName(entry.getKey());
 
             if (iattributeinstance != null)
             {
-                iattributeinstance.removeModifier((AttributeModifier)entry.getValue());
+                iattributeinstance.removeModifier(entry.getValue());
             }
         }
     }
@@ -77,12 +77,12 @@ public abstract class BaseAttributeMap
     {
         for (Entry<String, AttributeModifier> entry : modifiers.entries())
         {
-            IAttributeInstance iattributeinstance = this.getAttributeInstanceByName((String)entry.getKey());
+            IAttributeInstance iattributeinstance = this.getAttributeInstanceByName(entry.getKey());
 
             if (iattributeinstance != null)
             {
-                iattributeinstance.removeModifier((AttributeModifier)entry.getValue());
-                iattributeinstance.applyModifier((AttributeModifier)entry.getValue());
+                iattributeinstance.removeModifier(entry.getValue());
+                iattributeinstance.applyModifier(entry.getValue());
             }
         }
     }

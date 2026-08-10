@@ -35,7 +35,7 @@ public class BiomeGenHills extends BiomeGenBase
 
     public WorldGenAbstractTree genBigTreeChance(Random rand)
     {
-        return (WorldGenAbstractTree)(rand.nextInt(3) > 0 ? this.field_150634_aD : super.genBigTreeChance(rand));
+        return rand.nextInt(3) > 0 ? this.field_150634_aD : super.genBigTreeChance(rand);
     }
 
     public void decorate(World worldIn, Random rand, BlockPos pos)

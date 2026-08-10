@@ -101,7 +101,7 @@ public class Lagometer
                 GlStateManager.pushMatrix();
                 GlStateManager.enableColorMaterial();
                 GlStateManager.loadIdentity();
-                GlStateManager.ortho(0.0D, (double)mc.displayWidth, (double)mc.displayHeight, 0.0D, 1000.0D, 3000.0D);
+                GlStateManager.ortho(0.0D, mc.displayWidth, mc.displayHeight, 0.0D, 1000.0D, 3000.0D);
                 GlStateManager.matrixMode(5888);
                 GlStateManager.pushMatrix();
                 GlStateManager.loadIdentity();
@@ -177,8 +177,8 @@ public class Lagometer
         }
         else
         {
-            tessellator.pos((double)((float)frameNum + 0.5F), (double)(baseHeight - (float)i + 0.5F), 0.0D).color(r, g, b, 255).endVertex();
-            tessellator.pos((double)((float)frameNum + 0.5F), (double)(baseHeight + 0.5F), 0.0D).color(r, g, b, 255).endVertex();
+            tessellator.pos((float)frameNum + 0.5F, baseHeight - (float)i + 0.5F, 0.0D).color(r, g, b, 255).endVertex();
+            tessellator.pos((float)frameNum + 0.5F, baseHeight + 0.5F, 0.0D).color(r, g, b, 255).endVertex();
             return i;
         }
     }
@@ -193,8 +193,8 @@ public class Lagometer
         }
         else
         {
-            tessellator.pos((double)((float)frameStart + 0.5F), (double)(baseHeight - (float)i + 0.5F), 0.0D).color(r, g, b, 255).endVertex();
-            tessellator.pos((double)((float)frameEnd + 0.5F), (double)(baseHeight - (float)i + 0.5F), 0.0D).color(r, g, b, 255).endVertex();
+            tessellator.pos((float)frameStart + 0.5F, baseHeight - (float)i + 0.5F, 0.0D).color(r, g, b, 255).endVertex();
+            tessellator.pos((float)frameEnd + 0.5F, baseHeight - (float)i + 0.5F, 0.0D).color(r, g, b, 255).endVertex();
             return i;
         }
     }

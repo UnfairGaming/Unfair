@@ -58,7 +58,7 @@ public class CommandHelp extends CommandBase
         catch (NumberInvalidException numberinvalidexception)
         {
             Map<String, ICommand> map = this.getCommands();
-            ICommand icommand = (ICommand)map.get(args[0]);
+            ICommand icommand = map.get(args[0]);
 
             if (icommand != null)
             {
@@ -80,7 +80,7 @@ public class CommandHelp extends CommandBase
 
         for (int i1 = k * 7; i1 < l; ++i1)
         {
-            ICommand icommand1 = (ICommand)list.get(i1);
+            ICommand icommand1 = list.get(i1);
             ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation(icommand1.getCommandUsage(sender), new Object[0]);
             chatcomponenttranslation.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + icommand1.getCommandName() + " "));
             sender.addChatMessage(chatcomponenttranslation);
@@ -111,7 +111,7 @@ public class CommandHelp extends CommandBase
         if (args.length == 1)
         {
             Set<String> set = this.getCommands().keySet();
-            return getListOfStringsMatchingLastWord(args, (String[])set.toArray(new String[set.size()]));
+            return getListOfStringsMatchingLastWord(args, set.toArray(new String[set.size()]));
         }
         else
         {

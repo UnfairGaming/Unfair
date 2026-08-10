@@ -72,7 +72,7 @@ public class ClippingHelperShadow extends ClippingHelper
 
     private void assignPlane(float[] plane, float a, float b, float c, float d)
     {
-        float f = (float)Math.sqrt((double)(a * a + b * b + c * c));
+        float f = (float)Math.sqrt(a * a + b * b + c * c);
         plane[0] = a / f;
         plane[1] = b / f;
         plane[2] = c / f;
@@ -101,7 +101,7 @@ public class ClippingHelperShadow extends ClippingHelper
 
     private float length(float x, float y, float z)
     {
-        return (float)Math.sqrt((double)(x * x + y * y + z * z));
+        return (float)Math.sqrt(x * x + y * y + z * z);
     }
 
     private float distance(float x1, float y1, float z1, float x2, float y2, float z2)

@@ -178,7 +178,7 @@ public class LongHashMap<V>
     public V remove(long p_76159_1_)
     {
         LongHashMap.Entry<V> entry = this.removeKey(p_76159_1_);
-        return (V)(entry == null ? null : entry.value);
+        return entry == null ? null : entry.value;
     }
 
     final LongHashMap.Entry<V> removeKey(long p_76152_1_)

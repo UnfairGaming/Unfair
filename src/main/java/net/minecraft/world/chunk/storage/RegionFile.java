@@ -214,7 +214,7 @@ public class RegionFile
                     {
                         if (j1 != 0)
                         {
-                            if (((Boolean)this.sectorFree.get(k1)).booleanValue())
+                            if (this.sectorFree.get(k1).booleanValue())
                             {
                                 ++j1;
                             }
@@ -223,7 +223,7 @@ public class RegionFile
                                 j1 = 0;
                             }
                         }
-                        else if (((Boolean)this.sectorFree.get(k1)).booleanValue())
+                        else if (this.sectorFree.get(k1).booleanValue())
                         {
                             l1 = k1;
                             j1 = 1;

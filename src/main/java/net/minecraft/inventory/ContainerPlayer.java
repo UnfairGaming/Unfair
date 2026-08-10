@@ -100,7 +100,7 @@ public class ContainerPlayer extends Container
             }
         }
 
-        this.craftResult.setInventorySlotContents(0, (ItemStack)null);
+        this.craftResult.setInventorySlotContents(0, null);
     }
 
     public boolean canInteractWith(EntityPlayer playerIn)
@@ -114,7 +114,7 @@ public class ContainerPlayer extends Container
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index)
     {
         ItemStack itemstack = null;
-        Slot slot = (Slot)this.inventorySlots.get(index);
+        Slot slot = this.inventorySlots.get(index);
 
         if (slot != null && slot.getHasStack())
         {
@@ -144,7 +144,7 @@ public class ContainerPlayer extends Container
                     return null;
                 }
             }
-            else if (itemstack.getItem() instanceof ItemArmor && !((Slot)this.inventorySlots.get(5 + ((ItemArmor)itemstack.getItem()).armorType)).getHasStack())
+            else if (itemstack.getItem() instanceof ItemArmor && !this.inventorySlots.get(5 + ((ItemArmor)itemstack.getItem()).armorType).getHasStack())
             {
                 int i = 5 + ((ItemArmor)itemstack.getItem()).armorType;
 
@@ -181,7 +181,7 @@ public class ContainerPlayer extends Container
 
             if (itemstack1.stackSize == 0)
             {
-                slot.putStack((ItemStack)null);
+                slot.putStack(null);
             }
             else
             {

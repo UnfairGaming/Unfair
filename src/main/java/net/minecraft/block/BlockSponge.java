@@ -43,7 +43,7 @@ public class BlockSponge extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        return ((Boolean)state.getValue(WET)).booleanValue() ? 1 : 0;
+        return state.getValue(WET).booleanValue() ? 1 : 0;
     }
 
     public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state)
@@ -62,7 +62,7 @@ public class BlockSponge extends Block
 
     protected void tryAbsorb(World worldIn, BlockPos pos, IBlockState state)
     {
-        if (!((Boolean)state.getValue(WET)).booleanValue() && this.absorb(worldIn, pos))
+        if (!state.getValue(WET).booleanValue() && this.absorb(worldIn, pos))
         {
             worldIn.setBlockState(pos, state.withProperty(WET, Boolean.valueOf(true)), 2);
             worldIn.playAuxSFX(2001, pos, Block.getIdFromBlock(Blocks.water));
@@ -135,7 +135,7 @@ public class BlockSponge extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Boolean)state.getValue(WET)).booleanValue() ? 1 : 0;
+        return state.getValue(WET).booleanValue() ? 1 : 0;
     }
 
     protected BlockState createBlockState()
@@ -145,15 +145,15 @@ public class BlockSponge extends Block
 
     public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
     {
-        if (((Boolean)state.getValue(WET)).booleanValue())
+        if (state.getValue(WET).booleanValue())
         {
             EnumFacing enumfacing = EnumFacing.random(rand);
 
             if (enumfacing != EnumFacing.UP && !World.doesBlockHaveSolidTopSurface(worldIn, pos.offset(enumfacing)))
             {
-                double d0 = (double)pos.getX();
-                double d1 = (double)pos.getY();
-                double d2 = (double)pos.getZ();
+                double d0 = pos.getX();
+                double d1 = pos.getY();
+                double d2 = pos.getZ();
 
                 if (enumfacing == EnumFacing.DOWN)
                 {

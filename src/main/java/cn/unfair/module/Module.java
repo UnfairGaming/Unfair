@@ -3,15 +3,24 @@ package cn.unfair.module;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.util.KeyBindUtil;
+import lombok.Getter;
+import lombok.Setter;
 
 public abstract class Module {
+    @Getter
     protected final String name;
+    @Getter
     protected final Category category;
     protected final boolean defaultEnabled;
     protected final int defaultKey;
     protected final boolean defaultHidden;
+    @Getter
     protected boolean enabled;
+    @Setter
+    @Getter
     protected int key;
+    @Setter
+    @Getter
     protected boolean hidden;
 
     public Module(String name, boolean enabled) {
@@ -26,14 +35,6 @@ public abstract class Module {
         this.hidden = this.defaultHidden = hidden;
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public Category getCategory() {
-        return this.category;
-    }
-
     public String formatModule() {
         return String.format(
                 "%s%s &r(%s&r)",
@@ -45,10 +46,6 @@ public abstract class Module {
 
     public String[] getSuffix() {
         return new String[0];
-    }
-
-    public boolean isEnabled() {
-        return this.enabled;
     }
 
     public void setEnabled(boolean enabled) {
@@ -73,22 +70,6 @@ public abstract class Module {
         } else {
             return false;
         }
-    }
-
-    public int getKey() {
-        return this.key;
-    }
-
-    public void setKey(int integer) {
-        this.key = integer;
-    }
-
-    public boolean isHidden() {
-        return this.hidden;
-    }
-
-    public void setHidden(boolean boolean1) {
-        this.hidden = boolean1;
     }
 
     public void resetSettings() {

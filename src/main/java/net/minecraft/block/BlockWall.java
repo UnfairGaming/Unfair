@@ -188,7 +188,7 @@ public class BlockWall extends Block
                 return true;
             }
 
-            EnumFacing gateFacing = (EnumFacing)state.getValue(BlockFenceGate.FACING);
+            EnumFacing gateFacing = state.getValue(BlockFenceGate.FACING);
             return gateFacing.getAxis() != direction.getAxis();
         }
 
@@ -244,7 +244,7 @@ public class BlockWall extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        return ((BlockWall.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
@@ -265,7 +265,7 @@ public class BlockWall extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockWall.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     /**

@@ -73,7 +73,7 @@ public class HttpPipelineReceiver extends Thread
                 if (s3.length() <= 0)
                 {
                     byte[] abyte = null;
-                    String s6 = (String)map.get("Content-Length");
+                    String s6 = map.get("Content-Length");
 
                     if (s6 != null)
                     {
@@ -87,7 +87,7 @@ public class HttpPipelineReceiver extends Thread
                     }
                     else
                     {
-                        String s7 = (String)map.get("Transfer-Encoding");
+                        String s7 = map.get("Transfer-Encoding");
 
                         if (Config.equals(s7, "chunked"))
                         {

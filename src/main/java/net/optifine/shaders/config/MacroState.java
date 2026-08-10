@@ -105,8 +105,8 @@ public class MacroState
         {
             if (name.equals("elif"))
             {
-                boolean flag3 = ((Boolean)this.dequeState.removeLast()).booleanValue();
-                boolean flag7 = ((Boolean)this.dequeResolved.removeLast()).booleanValue();
+                boolean flag3 = this.dequeState.removeLast().booleanValue();
+                boolean flag7 = this.dequeResolved.removeLast().booleanValue();
 
                 if (flag7)
                 {
@@ -122,8 +122,8 @@ public class MacroState
             }
             else if (name.equals("else"))
             {
-                boolean flag = ((Boolean)this.dequeState.removeLast()).booleanValue();
-                boolean flag1 = ((Boolean)this.dequeResolved.removeLast()).booleanValue();
+                boolean flag = this.dequeState.removeLast().booleanValue();
+                boolean flag1 = this.dequeResolved.removeLast().booleanValue();
                 boolean flag2 = !flag1;
                 this.dequeState.add(Boolean.valueOf(flag2));
                 this.dequeResolved.add(Boolean.valueOf(true));
@@ -160,7 +160,7 @@ public class MacroState
 
                     if ((Character.isLetter(c0) || c0 == 95) && this.mapMacroValues.containsKey(s))
                     {
-                        String s1 = (String)this.mapMacroValues.get(s);
+                        String s1 = this.mapMacroValues.get(s);
 
                         if (s1 == null)
                         {

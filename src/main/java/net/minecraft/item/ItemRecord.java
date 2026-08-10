@@ -37,7 +37,7 @@ public class ItemRecord extends Item
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
 
-        if (iblockstate.getBlock() == Blocks.jukebox && !((Boolean)iblockstate.getValue(BlockJukebox.HAS_RECORD)).booleanValue())
+        if (iblockstate.getBlock() == Blocks.jukebox && !iblockstate.getValue(BlockJukebox.HAS_RECORD).booleanValue())
         {
             if (worldIn.isRemote)
             {
@@ -46,7 +46,7 @@ public class ItemRecord extends Item
             else
             {
                 ((BlockJukebox)Blocks.jukebox).insertRecord(worldIn, pos, iblockstate, stack);
-                worldIn.playAuxSFXAtEntity((EntityPlayer)null, 1005, pos, Item.getIdFromItem(this));
+                worldIn.playAuxSFXAtEntity(null, 1005, pos, Item.getIdFromItem(this));
                 --stack.stackSize;
                 playerIn.triggerAchievement(StatList.field_181740_X);
                 return true;
@@ -84,6 +84,6 @@ public class ItemRecord extends Item
      */
     public static ItemRecord getRecord(String name)
     {
-        return (ItemRecord)RECORDS.get(name);
+        return RECORDS.get(name);
     }
 }

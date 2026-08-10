@@ -295,7 +295,7 @@ public class StructureMineshaftPieces
             {
                 int i = rand.nextBoolean() ? 1 : 0;
                 worldIn.setBlockState(blockpos, Blocks.rail.getStateFromMeta(this.getMetadataWithOffset(Blocks.rail, i)), 2);
-                EntityMinecartChest entityminecartchest = new EntityMinecartChest(worldIn, (double)((float)blockpos.getX() + 0.5F), (double)((float)blockpos.getY() + 0.5F), (double)((float)blockpos.getZ() + 0.5F));
+                EntityMinecartChest entityminecartchest = new EntityMinecartChest(worldIn, (float)blockpos.getX() + 0.5F, (float)blockpos.getY() + 0.5F, (float)blockpos.getZ() + 0.5F);
                 WeightedRandomChestContent.generateChestContents(rand, listIn, entityminecartchest, max);
                 worldIn.spawnEntityInWorld(entityminecartchest);
                 return true;

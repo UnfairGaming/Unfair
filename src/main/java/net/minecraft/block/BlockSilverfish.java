@@ -45,7 +45,7 @@ public class BlockSilverfish extends Block
 
     protected ItemStack createStackedBlock(IBlockState state)
     {
-        switch ((BlockSilverfish.EnumType)state.getValue(VARIANT))
+        switch (state.getValue(VARIANT))
         {
             case COBBLESTONE:
                 return new ItemStack(Blocks.cobblestone);
@@ -75,7 +75,7 @@ public class BlockSilverfish extends Block
         if (!worldIn.isRemote && worldIn.getGameRules().getBoolean("doTileDrops"))
         {
             EntitySilverfish entitysilverfish = new EntitySilverfish(worldIn);
-            entitysilverfish.setLocationAndAngles((double)pos.getX() + 0.5D, (double)pos.getY(), (double)pos.getZ() + 0.5D, 0.0F, 0.0F);
+            entitysilverfish.setLocationAndAngles((double)pos.getX() + 0.5D, pos.getY(), (double)pos.getZ() + 0.5D, 0.0F, 0.0F);
             worldIn.spawnEntityInWorld(entitysilverfish);
             entitysilverfish.spawnExplosionParticle();
         }
@@ -114,7 +114,7 @@ public class BlockSilverfish extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockSilverfish.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     protected BlockState createBlockState()

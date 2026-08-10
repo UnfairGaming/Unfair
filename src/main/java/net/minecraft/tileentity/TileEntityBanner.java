@@ -203,7 +203,7 @@ public class TileEntityBanner extends TileEntity
 
                     if (stack.getTagCompound().hasNoTags())
                     {
-                        stack.setTagCompound((NBTTagCompound)null);
+                        stack.setTagCompound(null);
                     }
                 }
             }

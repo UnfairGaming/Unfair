@@ -20,8 +20,8 @@ public class UserListWhitelistEntry extends UserListEntry<GameProfile>
     {
         if (this.getValue() != null)
         {
-            data.addProperty("uuid", ((GameProfile)this.getValue()).getId() == null ? "" : ((GameProfile)this.getValue()).getId().toString());
-            data.addProperty("name", ((GameProfile)this.getValue()).getName());
+            data.addProperty("uuid", this.getValue().getId() == null ? "" : this.getValue().getId().toString());
+            data.addProperty("name", this.getValue().getName());
             super.onSerialization(data);
         }
     }

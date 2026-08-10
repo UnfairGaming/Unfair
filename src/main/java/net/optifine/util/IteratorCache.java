@@ -22,7 +22,7 @@ public class IteratorCache
 
             iteratorreusable.setList(list);
             @SuppressWarnings("unchecked")
-            Iterator<E> iterator = (Iterator<E>) iteratorreusable;
+            Iterator<E> iterator = iteratorreusable;
             return iterator;
         }
     }

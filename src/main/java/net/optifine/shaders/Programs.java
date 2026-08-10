@@ -96,7 +96,7 @@ public class Programs
         {
             for (int i = 0; i < this.programs.size(); ++i)
             {
-                Program program = (Program)this.programs.get(i);
+                Program program = this.programs.get(i);
                 String s = program.getName();
 
                 if (s.equals(name))
@@ -115,7 +115,7 @@ public class Programs
 
         for (int i = 0; i < astring.length; ++i)
         {
-            astring[i] = ((Program)this.programs.get(i)).getName();
+            astring[i] = this.programs.get(i).getName();
         }
 
         return astring;
@@ -123,7 +123,7 @@ public class Programs
 
     public Program[] getPrograms()
     {
-        Program[] aprogram = (Program[])((Program[])this.programs.toArray(new Program[this.programs.size()]));
+        Program[] aprogram = this.programs.toArray(new Program[this.programs.size()]);
         return aprogram;
     }
 
@@ -143,7 +143,7 @@ public class Programs
 
         for (int l = 0; l < aprogram.length; ++l)
         {
-            aprogram[l] = (Program)this.programs.get(i + l);
+            aprogram[l] = this.programs.get(i + l);
         }
 
         return aprogram;

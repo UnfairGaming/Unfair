@@ -35,7 +35,7 @@ public class GameRules
 
     public void setOrCreateGameRule(String key, String ruleValue)
     {
-        GameRules.Value gamerules$value = (GameRules.Value)this.theGameRules.get(key);
+        GameRules.Value gamerules$value = this.theGameRules.get(key);
 
         if (gamerules$value != null)
         {
@@ -52,7 +52,7 @@ public class GameRules
      */
     public String getString(String name)
     {
-        GameRules.Value gamerules$value = (GameRules.Value)this.theGameRules.get(name);
+        GameRules.Value gamerules$value = this.theGameRules.get(name);
         return gamerules$value != null ? gamerules$value.getString() : "";
     }
 
@@ -61,13 +61,13 @@ public class GameRules
      */
     public boolean getBoolean(String name)
     {
-        GameRules.Value gamerules$value = (GameRules.Value)this.theGameRules.get(name);
+        GameRules.Value gamerules$value = this.theGameRules.get(name);
         return gamerules$value != null ? gamerules$value.getBoolean() : false;
     }
 
     public int getInt(String name)
     {
-        GameRules.Value gamerules$value = (GameRules.Value)this.theGameRules.get(name);
+        GameRules.Value gamerules$value = this.theGameRules.get(name);
         return gamerules$value != null ? gamerules$value.getInt() : 0;
     }
 
@@ -80,7 +80,7 @@ public class GameRules
 
         for (String s : this.theGameRules.keySet())
         {
-            GameRules.Value gamerules$value = (GameRules.Value)this.theGameRules.get(s);
+            GameRules.Value gamerules$value = this.theGameRules.get(s);
             nbttagcompound.setString(s, gamerules$value.getString());
         }
 
@@ -105,7 +105,7 @@ public class GameRules
     public String[] getRules()
     {
         Set<String> set = this.theGameRules.keySet();
-        return (String[])((String[])set.toArray(new String[set.size()]));
+        return set.toArray(new String[set.size()]);
     }
 
     /**
@@ -118,7 +118,7 @@ public class GameRules
 
     public boolean areSameType(String key, GameRules.ValueType otherValue)
     {
-        GameRules.Value gamerules$value = (GameRules.Value)this.theGameRules.get(key);
+        GameRules.Value gamerules$value = this.theGameRules.get(key);
         return gamerules$value != null && (gamerules$value.getType() == otherValue || otherValue == GameRules.ValueType.ANY_VALUE);
     }
 

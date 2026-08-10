@@ -175,7 +175,7 @@ public class CommandStats extends CommandBase
                 }
                 else if ("clear".equals(s))
                 {
-                    CommandResultStats.setScoreBoardStat(commandresultstats, commandresultstats$type, (String)null, (String)null);
+                    CommandResultStats.setScoreBoardStat(commandresultstats, commandresultstats$type, null, null);
                     notifyOperators(sender, this, "commands.stats.cleared", new Object[] {commandresultstats$type.getTypeName()});
                 }
 

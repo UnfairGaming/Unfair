@@ -100,7 +100,7 @@ public class BlockNote extends BlockContainer
             id = 0;
         }
 
-        return (String)INSTRUMENTS.get(id);
+        return INSTRUMENTS.get(id);
     }
 
     /**

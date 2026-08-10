@@ -91,7 +91,7 @@ public class DynamicLights
 
                     for (int j = 0; j < list.size(); ++j)
                     {
-                        DynamicLight dynamiclight = (DynamicLight)list.get(j);
+                        DynamicLight dynamiclight = list.get(j);
                         dynamiclight.update(renderGlobal);
                     }
                 }
@@ -243,7 +243,7 @@ public class DynamicLights
 
     public static int getCombinedLight(Entity entity, int combinedLight)
     {
-        double d0 = (double)getLightLevel(entity);
+        double d0 = getLightLevel(entity);
         combinedLight = getCombinedLight(d0, combinedLight);
         return combinedLight;
     }
@@ -276,7 +276,7 @@ public class DynamicLights
 
             for (int j = 0; j < i; ++j)
             {
-                DynamicLight dynamiclight = (DynamicLight)list.get(j);
+                DynamicLight dynamiclight = list.get(j);
                 int k = dynamiclight.getLastLightLevel();
 
                 if (k > 0)
@@ -361,7 +361,7 @@ public class DynamicLights
                 {
                     if (!mapItemLightLevels.isEmpty())
                     {
-                        Integer integer = (Integer)mapItemLightLevels.get(item);
+                        Integer integer = mapItemLightLevels.get(item);
 
                         if (integer != null)
                         {
@@ -405,7 +405,7 @@ public class DynamicLights
             {
                 if (!mapEntityLightLevels.isEmpty())
                 {
-                    Integer integer = (Integer)mapEntityLightLevels.get(entity.getClass());
+                    Integer integer = mapEntityLightLevels.get(entity.getClass());
 
                     if (integer != null)
                     {
@@ -475,7 +475,7 @@ public class DynamicLights
 
             for (int i = 0; i < list.size(); ++i)
             {
-                DynamicLight dynamiclight = (DynamicLight)list.get(i);
+                DynamicLight dynamiclight = list.get(i);
                 dynamiclight.updateLitChunks(renderGlobal);
             }
 

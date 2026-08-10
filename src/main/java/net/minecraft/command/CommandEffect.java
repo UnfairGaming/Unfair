@@ -46,7 +46,7 @@ public class CommandEffect extends CommandBase
         }
         else
         {
-            EntityLivingBase entitylivingbase = (EntityLivingBase)getEntity(sender, args[0], EntityLivingBase.class);
+            EntityLivingBase entitylivingbase = getEntity(sender, args[0], EntityLivingBase.class);
 
             if (args[1].equals("clear"))
             {

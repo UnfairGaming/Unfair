@@ -45,7 +45,7 @@ public class GenLayerBiome extends GenLayer
         {
             for (int j = 0; j < areaWidth; ++j)
             {
-                this.initChunkSeed((long)(j + areaX), (long)(i + areaY));
+                this.initChunkSeed(j + areaX, i + areaY);
                 int k = aint[j + i * areaWidth];
                 int l = (k & 3840) >> 8;
                 k = k & -3841;

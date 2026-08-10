@@ -64,7 +64,7 @@ public class MapGenNetherBridge extends MapGenStructure
             while (!list.isEmpty())
             {
                 int i = p_i2040_2_.nextInt(list.size());
-                StructureComponent structurecomponent = (StructureComponent)list.remove(i);
+                StructureComponent structurecomponent = list.remove(i);
                 structurecomponent.buildComponent(structurenetherbridgepieces$start, this.components, p_i2040_2_);
             }
 

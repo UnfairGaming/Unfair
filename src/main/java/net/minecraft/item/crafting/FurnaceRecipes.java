@@ -96,9 +96,9 @@ public class FurnaceRecipes
     {
         for (Entry<ItemStack, ItemStack> entry : this.smeltingList.entrySet())
         {
-            if (this.compareItemStacks(stack, (ItemStack)entry.getKey()))
+            if (this.compareItemStacks(stack, entry.getKey()))
             {
-                return (ItemStack)entry.getValue();
+                return entry.getValue();
             }
         }
 
@@ -122,9 +122,9 @@ public class FurnaceRecipes
     {
         for (Entry<ItemStack, Float> entry : this.experienceList.entrySet())
         {
-            if (this.compareItemStacks(stack, (ItemStack)entry.getKey()))
+            if (this.compareItemStacks(stack, entry.getKey()))
             {
-                return ((Float)entry.getValue()).floatValue();
+                return entry.getValue().floatValue();
             }
         }
 

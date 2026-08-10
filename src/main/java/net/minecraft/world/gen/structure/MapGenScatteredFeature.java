@@ -38,9 +38,9 @@ public class MapGenScatteredFeature extends MapGenStructure
 
         for (Entry<String, String> entry : p_i2061_1_.entrySet())
         {
-            if (((String)entry.getKey()).equals("distance"))
+            if (entry.getKey().equals("distance"))
             {
-                this.maxDistanceBetweenScatteredFeatures = MathHelper.parseIntWithDefaultAndMax((String)entry.getValue(), this.maxDistanceBetweenScatteredFeatures, this.minDistanceBetweenScatteredFeatures + 1);
+                this.maxDistanceBetweenScatteredFeatures = MathHelper.parseIntWithDefaultAndMax(entry.getValue(), this.maxDistanceBetweenScatteredFeatures, this.minDistanceBetweenScatteredFeatures + 1);
             }
         }
     }
@@ -105,7 +105,7 @@ public class MapGenScatteredFeature extends MapGenStructure
 
         if (structurestart != null && structurestart instanceof MapGenScatteredFeature.Start && !structurestart.components.isEmpty())
         {
-            StructureComponent structurecomponent = (StructureComponent)structurestart.components.getFirst();
+            StructureComponent structurecomponent = structurestart.components.getFirst();
             return structurecomponent instanceof ComponentScatteredFeaturePieces.SwampHut;
         }
         else

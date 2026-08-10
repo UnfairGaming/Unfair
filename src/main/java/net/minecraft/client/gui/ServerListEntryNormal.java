@@ -84,11 +84,11 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry
 
         for (int i = 0; i < Math.min(list.size(), 2); ++i)
         {
-            this.mc.fontRendererObj.drawString((String)list.get(i), x + 32 + 3, y + 12 + this.mc.fontRendererObj.FONT_HEIGHT * i, 8421504);
+            this.mc.fontRendererObj.drawString(list.get(i), x + 32 + 3, y + 12 + this.mc.fontRendererObj.FONT_HEIGHT * i, 8421504);
         }
 
         String s2 = flag2 ? EnumChatFormatting.DARK_RED + this.server.gameVersion : this.server.populationInfo;
-        int j = (int) this.mc.fontRendererObj.getStringWidth(s2);
+        int j = this.mc.fontRendererObj.getStringWidth(s2);
         this.mc.fontRendererObj.drawString(s2, x + listWidth - j - 15 - 2, y + 1, 8421504);
         int k = 0;
         String s = null;
@@ -251,7 +251,7 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry
         }
         else
         {
-            ByteBuf bytebuf = Unpooled.copiedBuffer((CharSequence)this.server.getBase64EncodedIconData(), Charsets.UTF_8);
+            ByteBuf bytebuf = Unpooled.copiedBuffer(this.server.getBase64EncodedIconData(), Charsets.UTF_8);
             ByteBuf bytebuf1 = Base64.decode(bytebuf);
             BufferedImage bufferedimage;
             label101:
@@ -266,7 +266,7 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry
                 catch (Throwable throwable)
                 {
                     logger.error("Invalid icon for server " + this.server.serverName + " (" + this.server.serverIP + ")", throwable);
-                    this.server.setBase64EncodedIconData((String)null);
+                    this.server.setBase64EncodedIconData(null);
                 }
                 finally
                 {

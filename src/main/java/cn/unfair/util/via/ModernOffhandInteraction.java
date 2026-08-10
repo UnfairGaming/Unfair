@@ -45,7 +45,7 @@ public final class ModernOffhandInteraction {
         if (player == null || !(player.inventory instanceof ModernOffhandInventory)) {
             return null;
         }
-        return ((ModernOffhandInventory) player.inventory).viaforge$getOffhand();
+        return player.inventory.viaforge$getOffhand();
     }
 
     public static boolean shouldUseItemAfterBlock(EntityPlayer player) {
@@ -80,7 +80,7 @@ public final class ModernOffhandInteraction {
         }
 
         player.sendQueue.addToSendQueue(new CPacketSwapItemWithOffHand());
-        ModernOffhandInventory inventory = (ModernOffhandInventory) player.inventory;
+        ModernOffhandInventory inventory = player.inventory;
         ItemStack mainHand = player.inventory.getCurrentItem();
         ItemStack offhand = inventory.viaforge$getOffhand();
         player.inventory.mainInventory[player.inventory.currentItem] = offhand;
@@ -105,7 +105,7 @@ public final class ModernOffhandInteraction {
         int previousSize = stack.stackSize;
         ItemStack result = stack.useItemRightClick(player.worldObj, player);
         if (result != stack || result == null || result.stackSize != previousSize) {
-            ((ModernOffhandInventory) player.inventory).viaforge$setOffhand(result != null && result.stackSize > 0 ? result : null);
+            player.inventory.viaforge$setOffhand(result != null && result.stackSize > 0 ? result : null);
         }
 
         ItemStack activeStack = getOffhand(player);

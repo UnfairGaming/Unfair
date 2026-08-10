@@ -28,7 +28,7 @@ public class BlockPotato extends BlockCrops
 
         if (!worldIn.isRemote)
         {
-            if (((Integer)state.getValue(AGE)).intValue() >= 7 && worldIn.rand.nextInt(50) == 0)
+            if (state.getValue(AGE).intValue() >= 7 && worldIn.rand.nextInt(50) == 0)
             {
                 spawnAsEntity(worldIn, pos, new ItemStack(Items.poisonous_potato));
             }

@@ -92,17 +92,17 @@ public class BlockPistonBase extends Block
 
     private void checkForMove(World worldIn, BlockPos pos, IBlockState state)
     {
-        EnumFacing enumfacing = (EnumFacing)state.getValue(FACING);
+        EnumFacing enumfacing = state.getValue(FACING);
         boolean flag = this.shouldBeExtended(worldIn, pos, enumfacing);
 
-        if (flag && !((Boolean)state.getValue(EXTENDED)).booleanValue())
+        if (flag && !state.getValue(EXTENDED).booleanValue())
         {
             if ((new BlockPistonStructureHelper(worldIn, pos, enumfacing, true)).canMove())
             {
                 worldIn.addBlockEvent(pos, this, 0, enumfacing.getIndex());
             }
         }
-        else if (!flag && ((Boolean)state.getValue(EXTENDED)).booleanValue())
+        else if (!flag && state.getValue(EXTENDED).booleanValue())
         {
             worldIn.setBlockState(pos, state.withProperty(EXTENDED, Boolean.valueOf(false)), 2);
             worldIn.addBlockEvent(pos, this, 1, enumfacing.getIndex());
@@ -144,7 +144,7 @@ public class BlockPistonBase extends Block
      */
     public boolean onBlockEventReceived(World worldIn, BlockPos pos, IBlockState state, int eventID, int eventParam)
     {
-        EnumFacing enumfacing = (EnumFacing)state.getValue(FACING);
+        EnumFacing enumfacing = state.getValue(FACING);
 
         if (!worldIn.isRemote)
         {
@@ -226,10 +226,10 @@ public class BlockPistonBase extends Block
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
 
-        if (iblockstate.getBlock() == this && ((Boolean)iblockstate.getValue(EXTENDED)).booleanValue())
+        if (iblockstate.getBlock() == this && iblockstate.getValue(EXTENDED).booleanValue())
         {
             float f = 0.25F;
-            EnumFacing enumfacing = (EnumFacing)iblockstate.getValue(FACING);
+            EnumFacing enumfacing = iblockstate.getValue(FACING);
 
             if (enumfacing != null)
             {
@@ -356,7 +356,7 @@ public class BlockPistonBase extends Block
                         return true;
                     }
                 }
-                else if (((Boolean)worldIn.getBlockState(pos).getValue(EXTENDED)).booleanValue())
+                else if (worldIn.getBlockState(pos).getValue(EXTENDED).booleanValue())
                 {
                     return false;
                 }
@@ -397,7 +397,7 @@ public class BlockPistonBase extends Block
 
             for (int j = list1.size() - 1; j >= 0; --j)
             {
-                BlockPos blockpos = (BlockPos)list1.get(j);
+                BlockPos blockpos = list1.get(j);
                 Block block = worldIn.getBlockState(blockpos).getBlock();
                 block.dropBlockAsItem(worldIn, blockpos, worldIn.getBlockState(blockpos), 0);
                 worldIn.setBlockToAir(blockpos);
@@ -407,7 +407,7 @@ public class BlockPistonBase extends Block
 
             for (int k = list.size() - 1; k >= 0; --k)
             {
-                BlockPos blockpos2 = (BlockPos)list.get(k);
+                BlockPos blockpos2 = list.get(k);
                 IBlockState iblockstate = worldIn.getBlockState(blockpos2);
                 Block block1 = iblockstate.getBlock();
                 block1.getMetaFromState(iblockstate);
@@ -432,12 +432,12 @@ public class BlockPistonBase extends Block
 
             for (int l = list1.size() - 1; l >= 0; --l)
             {
-                worldIn.notifyNeighborsOfStateChange((BlockPos)list1.get(l), ablock[i++]);
+                worldIn.notifyNeighborsOfStateChange(list1.get(l), ablock[i++]);
             }
 
             for (int i1 = list.size() - 1; i1 >= 0; --i1)
             {
-                worldIn.notifyNeighborsOfStateChange((BlockPos)list.get(i1), ablock[i++]);
+                worldIn.notifyNeighborsOfStateChange(list.get(i1), ablock[i++]);
             }
 
             if (extending)
@@ -472,9 +472,9 @@ public class BlockPistonBase extends Block
     public int getMetaFromState(IBlockState state)
     {
         int i = 0;
-        i = i | ((EnumFacing)state.getValue(FACING)).getIndex();
+        i = i | state.getValue(FACING).getIndex();
 
-        if (((Boolean)state.getValue(EXTENDED)).booleanValue())
+        if (state.getValue(EXTENDED).booleanValue())
         {
             i |= 8;
         }

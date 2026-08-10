@@ -112,7 +112,7 @@ public class S2APacketParticles implements Packet<INetHandlerPlayClient>
      */
     public double getXCoordinate()
     {
-        return (double)this.xCoord;
+        return this.xCoord;
     }
 
     /**
@@ -120,7 +120,7 @@ public class S2APacketParticles implements Packet<INetHandlerPlayClient>
      */
     public double getYCoordinate()
     {
-        return (double)this.yCoord;
+        return this.yCoord;
     }
 
     /**
@@ -128,7 +128,7 @@ public class S2APacketParticles implements Packet<INetHandlerPlayClient>
      */
     public double getZCoordinate()
     {
-        return (double)this.zCoord;
+        return this.zCoord;
     }
 
     /**

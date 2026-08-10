@@ -75,7 +75,7 @@ public class WorldBorder
 
         if (d0 < (double)(-this.worldSize))
         {
-            d0 = (double)(-this.worldSize);
+            d0 = -this.worldSize;
         }
 
         return d0;
@@ -87,7 +87,7 @@ public class WorldBorder
 
         if (d0 < (double)(-this.worldSize))
         {
-            d0 = (double)(-this.worldSize);
+            d0 = -this.worldSize;
         }
 
         return d0;
@@ -99,7 +99,7 @@ public class WorldBorder
 
         if (d0 > (double)this.worldSize)
         {
-            d0 = (double)this.worldSize;
+            d0 = this.worldSize;
         }
 
         return d0;
@@ -111,7 +111,7 @@ public class WorldBorder
 
         if (d0 > (double)this.worldSize)
         {
-            d0 = (double)this.worldSize;
+            d0 = this.worldSize;
         }
 
         return d0;
@@ -142,7 +142,7 @@ public class WorldBorder
     {
         if (this.getStatus() != EnumBorderStatus.STATIONARY)
         {
-            double d0 = (double)((float)(System.currentTimeMillis() - this.startTime) / (float)(this.endTime - this.startTime));
+            double d0 = (float)(System.currentTimeMillis() - this.startTime) / (float)(this.endTime - this.startTime);
 
             if (d0 < 1.0D)
             {

@@ -145,6 +145,7 @@ public class KillAura extends Module {
     private float serverYaw;
     private float serverPitch;
     private boolean easingOut;
+    private boolean controlledRotation;
     private final AdvancedRotationLimiter advancedLimiter = new AdvancedRotationLimiter();
     private double lastXOffset;
     private double lastYOffset;
@@ -583,7 +584,7 @@ public class KillAura extends Module {
             rot[1] += jitterOffset[1];
         }
 
-        return this.advancedLimiter.limit(
+        float[] limited = this.advancedLimiter.limit(
                 this.serverYaw,
                 this.serverPitch,
                 rot[0],
@@ -597,6 +598,29 @@ public class KillAura extends Module {
                 this.aimSpeedYaw.getValue(),
                 this.aimSpeedPitch.getValue()
         );
+
+        return this.applySensitivityGcd(this.serverYaw, this.serverPitch, limited[0], limited[1]);
+    }
+
+    private float[] applySensitivityGcd(float originYaw, float originPitch, float targetYaw, float targetPitch) {
+        float gcd = this.getRotationGcd();
+        if (gcd <= 0.0F || Float.isNaN(gcd) || Float.isInfinite(gcd)) {
+            return new float[]{targetYaw, targetPitch};
+        }
+
+        float yawDelta = MathHelper.wrapAngleTo180_float(targetYaw - originYaw);
+        float pitchDelta = targetPitch - originPitch;
+        yawDelta -= yawDelta % gcd;
+        pitchDelta -= pitchDelta % gcd;
+        return new float[]{originYaw + yawDelta, MathHelper.clamp_float(originPitch + pitchDelta, -90.0F, 90.0F)};
+    }
+
+    private float getRotationGcd() {
+        if (mc == null || mc.gameSettings == null) {
+            return 0.03404715F;
+        }
+        float f = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+        return f * f * f * 8.0F * 0.15F;
     }
 
     private boolean isPreferredPartHittable(String part, AxisAlignedBB box, Vec3 eyes, double pred, boolean outOfRange) {
@@ -605,7 +629,7 @@ public class KillAura extends Module {
         }
         double range = this.attackRange.getValue() + this.outOfRangeBuffer.getValue() + pred + this.finalXZTrim;
         for (Vec3 vec : AdvancedRotationMath.getVertices(box)) {
-            if (eyes.distanceTo(vec) < range || outOfRange) {
+            if (eyes.distanceTo(vec) < range) {
                 return true;
             }
         }
@@ -711,6 +735,32 @@ public class KillAura extends Module {
         this.normalisedRot = null;
     }
 
+    private boolean returnToMouseRotation(UpdateEvent event) {
+        if (!this.controlledRotation || this.rotations.getValue() != 2 && this.rotations.getValue() != 3) {
+            this.syncServerRotationToPlayer();
+            return false;
+        }
+
+        float targetYaw = event.getNewYaw();
+        float targetPitch = event.getNewPitch();
+        float[] rotations = this.interpolateRotation(targetYaw, targetPitch);
+
+        this.applyAuraRotation(event, rotations[0], rotations[1]);
+        if (this.moveFix.getValue() != 0 || this.lockView.getValue()) {
+            event.setPervRotation(rotations[0], 1);
+        }
+        if (this.isAtRotation(targetYaw, targetPitch)) {
+            this.finishReturnToMouseRotation();
+        }
+        return true;
+    }
+
+    private void finishReturnToMouseRotation() {
+        this.easingOut = false;
+        this.controlledRotation = false;
+        this.syncServerRotationToPlayer();
+    }
+
     private boolean isInventoryBlocked() {
         return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
@@ -724,6 +774,7 @@ public class KillAura extends Module {
         this.blockTick = 0;
         this.attackDelayMS = 0L;
         this.easingOut = false;
+        this.controlledRotation = false;
 
         if (mc.thePlayer != null) {
             this.serverYaw = mc.thePlayer.rotationYaw;
@@ -747,16 +798,7 @@ public class KillAura extends Module {
         }
 
         if (this.easingOut && event.getType() == EventType.PRE) {
-            float targetYaw = event.getNewYaw();
-            float targetPitch = event.getNewPitch();
-            float[] reset = this.interpolateRotation(targetYaw, targetPitch);
-            this.applyAuraRotation(event, reset[0], reset[1]);
-            if (this.moveFix.getValue() != 0) {
-                event.setPervRotation(reset[0], 1);
-            }
-            if (this.isAtRotation(targetYaw, targetPitch)) {
-                this.easingOut = false;
-            }
+            this.returnToMouseRotation(event);
             return;
         }
         if (this.isEnabled() && event.getType() == EventType.PRE) {
@@ -956,6 +998,7 @@ public class KillAura extends Module {
                                 smoothFactor
                         );
                         float[] smoothed = interpolateRotation(targetRotations[0], targetRotations[1]);
+                        this.controlledRotation = true;
                         this.applyAuraRotation(event, smoothed[0], smoothed[1]);
 
                         if (this.moveFix.getValue() != 0 || this.lockView.getValue()) {
@@ -965,6 +1008,7 @@ public class KillAura extends Module {
                         float[] advanced = this.getAdvancedRotations(event);
                         this.serverYaw = advanced[0];
                         this.serverPitch = advanced[1];
+                        this.controlledRotation = true;
                         this.applyAuraRotation(event, advanced[0], advanced[1]);
 
                         if (this.moveFix.getValue() != 0 || this.lockView.getValue()) {
@@ -975,7 +1019,7 @@ public class KillAura extends Module {
                         attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
                     }
                 } else if (this.rotations.getValue() == 2 || this.rotations.getValue() == 3) {
-                    this.syncServerRotationToPlayer();
+                    this.returnToMouseRotation(event);
                 }
                 if (swap) {
                     if (attacked) {
@@ -991,7 +1035,7 @@ public class KillAura extends Module {
             }
 
             if ((this.rotations.getValue() == 2 || this.rotations.getValue() == 3) && !attack) {
-                this.syncServerRotationToPlayer();
+                this.returnToMouseRotation(event);
             }
         }
     }
@@ -1139,6 +1183,7 @@ public class KillAura extends Module {
         boolean shouldEaseOut = !enabled
                 && this.enabled
                 && mc.thePlayer != null
+                && this.controlledRotation
                 && (this.rotations.getValue() == 2 || this.rotations.getValue() == 3)
                 && !this.isAtRotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         if (shouldEaseOut) {
@@ -1199,6 +1244,7 @@ public class KillAura extends Module {
     @Override
     public void onEnabled() {
         this.easingOut = false;
+        this.controlledRotation = false;
         target = null;
         this.switchTick = 0;
         this.hitRegistered = false;
@@ -1224,6 +1270,9 @@ public class KillAura extends Module {
         this.blockingState = false;
         this.isBlocking = false;
         this.fakeBlockState = false;
+        if (!this.easingOut) {
+            this.controlledRotation = false;
+        }
         this.normalisedRot = null;
         currentAimVec = null;
         AdvancedPredictionEngine.reset();

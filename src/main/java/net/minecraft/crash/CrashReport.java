@@ -111,7 +111,7 @@ public class CrashReport
     {
         if ((this.stacktrace == null || this.stacktrace.length <= 0) && !this.crashReportSections.isEmpty())
         {
-            this.stacktrace = (StackTraceElement[])((StackTraceElement[])ArrayUtils.subarray(((CrashReportCategory)this.crashReportSections.get(0)).getStackTrace(), 0, 1));
+            this.stacktrace = ArrayUtils.subarray(this.crashReportSections.get(0).getStackTrace(), 0, 1);
         }
 
         if (this.stacktrace != null && this.stacktrace.length > 0)
@@ -175,8 +175,8 @@ public class CrashReport
         }
         finally
         {
-            IOUtils.closeQuietly((Writer)stringwriter);
-            IOUtils.closeQuietly((Writer)printwriter);
+            IOUtils.closeQuietly(stringwriter);
+            IOUtils.closeQuietly(printwriter);
         }
 
         return s;
@@ -304,7 +304,7 @@ public class CrashReport
 
             if (i > 0 && !this.crashReportSections.isEmpty())
             {
-                CrashReportCategory crashreportcategory1 = (CrashReportCategory)this.crashReportSections.get(this.crashReportSections.size() - 1);
+                CrashReportCategory crashreportcategory1 = this.crashReportSections.get(this.crashReportSections.size() - 1);
                 crashreportcategory1.trimStackTraceEntriesFromBottom(i);
             }
             else if (astacktraceelement != null && astacktraceelement.length >= i && 0 <= j && j < astacktraceelement.length)

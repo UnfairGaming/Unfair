@@ -45,7 +45,7 @@ public class S42PacketCombatEvent implements Packet<INetHandlerPlayClient>
      */
     public void readPacketData(PacketBuffer buf) throws IOException
     {
-        this.eventType = (S42PacketCombatEvent.Event)buf.readEnumValue(S42PacketCombatEvent.Event.class);
+        this.eventType = buf.readEnumValue(Event.class);
 
         if (this.eventType == S42PacketCombatEvent.Event.END_COMBAT)
         {

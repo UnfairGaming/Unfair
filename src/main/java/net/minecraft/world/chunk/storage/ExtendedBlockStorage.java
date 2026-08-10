@@ -44,7 +44,7 @@ public class ExtendedBlockStorage
 
     public IBlockState get(int x, int y, int z)
     {
-        IBlockState iblockstate = (IBlockState)Block.BLOCK_STATE_IDS.getByValue(this.data[y << 8 | z << 4 | x]);
+        IBlockState iblockstate = Block.BLOCK_STATE_IDS.getByValue(this.data[y << 8 | z << 4 | x]);
         return iblockstate != null ? iblockstate : Blocks.air.getDefaultState();
     }
 

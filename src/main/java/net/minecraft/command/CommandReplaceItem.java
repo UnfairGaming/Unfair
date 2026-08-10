@@ -188,7 +188,7 @@ public class CommandReplaceItem extends CommandBase
         }
         else
         {
-            return ((Integer)SHORTCUTS.get(shortcut)).intValue();
+            return SHORTCUTS.get(shortcut).intValue();
         }
     }
 

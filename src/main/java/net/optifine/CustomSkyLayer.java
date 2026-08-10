@@ -408,7 +408,7 @@ public class CustomSkyLayer {
                 long i = world.getWorldTime();
                 long j;
 
-                for (j = i - (long) this.startFadeIn; j < 0L; j += (long) (24000 * this.daysLoop)) {
+                for (j = i - (long) this.startFadeIn; j < 0L; j += 24000 * this.daysLoop) {
                     ;
                 }
 

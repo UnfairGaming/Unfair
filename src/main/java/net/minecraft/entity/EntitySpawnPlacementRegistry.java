@@ -14,7 +14,7 @@ public class EntitySpawnPlacementRegistry
 
     public static EntityLiving.SpawnPlacementType getPlacementForEntity(Class entityClass)
     {
-        return (EntityLiving.SpawnPlacementType)ENTITY_PLACEMENTS.get(entityClass);
+        return ENTITY_PLACEMENTS.get(entityClass);
     }
 
     static

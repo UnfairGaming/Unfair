@@ -116,7 +116,7 @@ public class CommandTitle extends CommandBase
             }
             else
             {
-                S45PacketTitle s45packettitle = new S45PacketTitle(s45packettitle$type, (IChatComponent)null);
+                S45PacketTitle s45packettitle = new S45PacketTitle(s45packettitle$type, null);
                 entityplayermp.playerNetServerHandler.sendPacket(s45packettitle);
                 notifyOperators(sender, this, "commands.title.success", new Object[0]);
             }

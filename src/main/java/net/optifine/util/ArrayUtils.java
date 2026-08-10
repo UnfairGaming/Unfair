@@ -72,7 +72,7 @@ public class ArrayUtils
         {
             int i = arr.length;
             int j = i + objs.length;
-            Object[] aobject = (Object[])((Object[])Array.newInstance(arr.getClass().getComponentType(), j));
+            Object[] aobject = (Object[]) Array.newInstance(arr.getClass().getComponentType(), j);
             System.arraycopy(arr, 0, aobject, 0, i);
             System.arraycopy(objs, 0, aobject, i, objs.length);
             return aobject;
@@ -89,7 +89,7 @@ public class ArrayUtils
         {
             int i = arr.length;
             int j = i + 1;
-            Object[] aobject = (Object[])((Object[])Array.newInstance(arr.getClass().getComponentType(), j));
+            Object[] aobject = (Object[]) Array.newInstance(arr.getClass().getComponentType(), j);
             System.arraycopy(arr, 0, aobject, 0, i);
             aobject[i] = obj;
             return aobject;
@@ -100,7 +100,7 @@ public class ArrayUtils
     {
         List list = new ArrayList(Arrays.asList(arr));
         list.add(index, obj);
-        Object[] aobject = (Object[])((Object[])Array.newInstance(arr.getClass().getComponentType(), list.size()));
+        Object[] aobject = (Object[]) Array.newInstance(arr.getClass().getComponentType(), list.size());
         return list.toArray(aobject);
     }
 
@@ -292,7 +292,7 @@ public class ArrayUtils
         }
         else
         {
-            Object[] aobject = (Object[])((Object[])Array.newInstance(elementClass, coll.size()));
+            Object[] aobject = (Object[]) Array.newInstance(elementClass, coll.size());
             return coll.toArray(aobject);
         }
     }

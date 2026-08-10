@@ -240,9 +240,9 @@ public abstract class EntityMinecartContainer extends EntityMinecart implements 
     {
         int i = 15 - Container.calcRedstoneFromInventory(this);
         float f = 0.98F + (float)i * 0.001F;
-        this.motionX *= (double)f;
+        this.motionX *= f;
         this.motionY *= 0.0D;
-        this.motionZ *= (double)f;
+        this.motionZ *= f;
     }
 
     public int getField(int id)

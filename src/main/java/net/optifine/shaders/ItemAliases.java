@@ -166,7 +166,7 @@ public class ItemAliases
 
         for (int i = 0; i < aint.length; ++i)
         {
-            aint[i] = ((Integer)list.get(i)).intValue();
+            aint[i] = list.get(i).intValue();
         }
 
         return aint;

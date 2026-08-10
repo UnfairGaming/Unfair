@@ -64,7 +64,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
             this.setModelPartVisible(t, armorSlot);
             boolean flag = this.isSlotForLeggings(armorSlot);
 
-            if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(itemstack, flag ? 2 : 1, (String) null)) {
+            if (!Config.isCustomItems() || !CustomItems.bindCustomArmorTexture(itemstack, flag ? 2 : 1, null)) {
                 String modernArmorMaterial = this.getModernArmorMaterial(itemstack);
                 this.renderer.bindTexture(modernArmorMaterial == null ? this.getArmorResource(itemarmor, flag) : this.getArmorResource(modernArmorMaterial, flag, null));
             }
@@ -103,7 +103,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
 
     public T getArmorModel(int armorSlot)
     {
-        return (T)(this.isSlotForLeggings(armorSlot) ? this.modelLeggings : this.modelArmor);
+        return this.isSlotForLeggings(armorSlot) ? this.modelLeggings : this.modelArmor;
     }
 
     private boolean isSlotForLeggings(int armorSlot)
@@ -161,7 +161,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
     }
 
     private ResourceLocation getArmorResource(ItemArmor p_177181_1_, boolean p_177181_2_) {
-        return this.getArmorResource(p_177181_1_, p_177181_2_, (String) null);
+        return this.getArmorResource(p_177181_1_, p_177181_2_, null);
     }
 
     private ResourceLocation getArmorResource(ItemArmor p_177178_1_, boolean p_177178_2_, String p_177178_3_) {
@@ -171,7 +171,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
     private ResourceLocation getArmorResource(String armorMaterial, boolean leggings, String overlay) {
         String suffix = overlay == null ? "" : "_" + overlay;
         String path = "textures/models/armor/" + armorMaterial + "_layer_" + (leggings ? 2 : 1) + suffix + ".png";
-        return (ResourceLocation) ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
+        return ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
     }
 
     private String getModernArmorMaterial(ItemStack stack) {
@@ -184,7 +184,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
     protected abstract void setModelPartVisible(T model, int armorSlot);
 
     protected T getArmorModelHook(EntityLivingBase p_getArmorModelHook_1_, ItemStack p_getArmorModelHook_2_, int p_getArmorModelHook_3_, T p_getArmorModelHook_4_) {
-        return (T) p_getArmorModelHook_4_;
+        return p_getArmorModelHook_4_;
     }
 
     public ResourceLocation getArmorResource(Entity p_getArmorResource_1_, ItemStack p_getArmorResource_2_, int p_getArmorResource_3_, String p_getArmorResource_4_) {
@@ -200,6 +200,6 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
 
         String suffix = p_getArmorResource_4_ == null ? "" : "_" + p_getArmorResource_4_;
         String path = s1 + ":textures/models/armor/" + s + "_layer_" + (this.isSlotForLeggings(p_getArmorResource_3_) ? 2 : 1) + suffix + ".png";
-        return (ResourceLocation) ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
+        return ARMOR_TEXTURE_RES_MAP.computeIfAbsent(path, ResourceLocation::of);
     }
 }

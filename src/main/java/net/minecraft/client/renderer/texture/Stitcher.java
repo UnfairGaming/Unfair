@@ -56,8 +56,8 @@ public class Stitcher
 
     public void doStitch()
     {
-        Stitcher.Holder[] astitcher$holder = (Stitcher.Holder[])((Stitcher.Holder[])this.setStitchHolders.toArray(new Stitcher.Holder[this.setStitchHolders.size()]));
-        Arrays.sort((Object[])astitcher$holder);
+        Stitcher.Holder[] astitcher$holder = this.setStitchHolders.toArray(new Holder[this.setStitchHolders.size()]);
+        Arrays.sort(astitcher$holder);
 
         for (Stitcher.Holder stitcher$holder : astitcher$holder)
         {
@@ -109,14 +109,14 @@ public class Stitcher
     {
         for (int i = 0; i < this.stitchSlots.size(); ++i)
         {
-            if (((Stitcher.Slot)this.stitchSlots.get(i)).addSlot(p_94310_1_))
+            if (this.stitchSlots.get(i).addSlot(p_94310_1_))
             {
                 return true;
             }
 
             p_94310_1_.rotate();
 
-            if (((Stitcher.Slot)this.stitchSlots.get(i)).addSlot(p_94310_1_))
+            if (this.stitchSlots.get(i).addSlot(p_94310_1_))
             {
                 return true;
             }

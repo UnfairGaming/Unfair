@@ -16,7 +16,7 @@ public class EntityLavaFX extends EntityFX
         this.motionX *= 0.800000011920929D;
         this.motionY *= 0.800000011920929D;
         this.motionZ *= 0.800000011920929D;
-        this.motionY = (double)(this.rand.nextFloat() * 0.4F + 0.05F);
+        this.motionY = this.rand.nextFloat() * 0.4F + 0.05F;
         this.particleRed = this.particleGreen = this.particleBlue = 1.0F;
         this.particleScale *= this.rand.nextFloat() * 2.0F + 0.2F;
         this.lavaParticleScale = this.particleScale;

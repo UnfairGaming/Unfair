@@ -195,7 +195,7 @@ public class Items
 
     private static Item getRegisteredItem(String name)
     {
-        return (Item)Item.itemRegistry.getObject(ResourceLocation.of(name));
+        return Item.itemRegistry.getObject(ResourceLocation.of(name));
     }
 
     static

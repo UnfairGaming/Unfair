@@ -15,7 +15,7 @@ public class ParametersVariable implements IParameters
 
     public ParametersVariable()
     {
-        this((ExpressionType[])null, (ExpressionType[])null, (ExpressionType[])null);
+        this(null, null, null);
     }
 
     public ParametersVariable(ExpressionType[] first, ExpressionType[] repeat, ExpressionType[] last)
@@ -77,7 +77,7 @@ public class ParametersVariable implements IParameters
         }
 
         list.addAll(Arrays.<ExpressionType>asList(this.last));
-        ExpressionType[] aexpressiontype = (ExpressionType[])list.toArray(new ExpressionType[list.size()]);
+        ExpressionType[] aexpressiontype = list.toArray(new ExpressionType[list.size()]);
         return aexpressiontype;
     }
 

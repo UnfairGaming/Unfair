@@ -40,7 +40,7 @@ public class BlockStone extends Block
      */
     public MapColor getMapColor(IBlockState state)
     {
-        return ((BlockStone.EnumType)state.getValue(VARIANT)).func_181072_c();
+        return state.getValue(VARIANT).func_181072_c();
     }
 
     /**
@@ -57,7 +57,7 @@ public class BlockStone extends Block
      */
     public int damageDropped(IBlockState state)
     {
-        return ((BlockStone.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     /**
@@ -84,7 +84,7 @@ public class BlockStone extends Block
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((BlockStone.EnumType)state.getValue(VARIANT)).getMetadata();
+        return state.getValue(VARIANT).getMetadata();
     }
 
     protected BlockState createBlockState()

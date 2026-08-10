@@ -77,12 +77,12 @@ public class GuiPlayerTabOverlay extends Gui
 
         for (NetworkPlayerInfo networkplayerinfo : list)
         {
-            int k = (int) this.mc.fontRendererObj.getStringWidth(this.getPlayerName(networkplayerinfo));
+            int k = this.mc.fontRendererObj.getStringWidth(this.getPlayerName(networkplayerinfo));
             i = Math.max(i, k);
 
             if (scoreObjectiveIn != null && scoreObjectiveIn.getRenderType() != IScoreObjectiveCriteria.EnumRenderType.HEARTS)
             {
-                k = (int) this.mc.fontRendererObj.getStringWidth(" " + scoreboardIn.getValueFromObjective(networkplayerinfo.getGameProfile().getName(), scoreObjectiveIn).getScorePoints());
+                k = this.mc.fontRendererObj.getStringWidth(" " + scoreboardIn.getValueFromObjective(networkplayerinfo.getGameProfile().getName(), scoreObjectiveIn).getScorePoints());
                 j = Math.max(j, k);
             }
         }
@@ -129,7 +129,7 @@ public class GuiPlayerTabOverlay extends Gui
 
             for (String s : list1)
             {
-                l1 = (int) Math.max(l1, this.mc.fontRendererObj.getStringWidth(s));
+                l1 = Math.max(l1, this.mc.fontRendererObj.getStringWidth(s));
             }
         }
 
@@ -139,7 +139,7 @@ public class GuiPlayerTabOverlay extends Gui
 
             for (String s2 : list2)
             {
-                l1 = (int) Math.max(l1, this.mc.fontRendererObj.getStringWidth(s2));
+                l1 = Math.max(l1, this.mc.fontRendererObj.getStringWidth(s2));
             }
         }
 
@@ -149,7 +149,7 @@ public class GuiPlayerTabOverlay extends Gui
 
             for (String s3 : list1)
             {
-                int i2 = (int) this.mc.fontRendererObj.getStringWidth(s3);
+                int i2 = this.mc.fontRendererObj.getStringWidth(s3);
                 this.mc.fontRendererObj.drawStringWithShadow(s3, (float)(width / 2 - i2 / 2), (float)k1, -1);
                 k1 += this.mc.fontRendererObj.FONT_HEIGHT;
             }
@@ -173,7 +173,7 @@ public class GuiPlayerTabOverlay extends Gui
 
             if (k4 < list.size())
             {
-                NetworkPlayerInfo networkplayerinfo1 = (NetworkPlayerInfo)list.get(k4);
+                NetworkPlayerInfo networkplayerinfo1 = list.get(k4);
                 String s1 = this.getPlayerName(networkplayerinfo1);
                 GameProfile gameprofile = networkplayerinfo1.getGameProfile();
 
@@ -228,7 +228,7 @@ public class GuiPlayerTabOverlay extends Gui
 
             for (String s4 : list2)
             {
-                int j5 = (int) this.mc.fontRendererObj.getStringWidth(s4);
+                int j5 = this.mc.fontRendererObj.getStringWidth(s4);
                 this.mc.fontRendererObj.drawStringWithShadow(s4, (float)(width / 2 - j5 / 2), (float)k1, -1);
                 k1 += this.mc.fontRendererObj.FONT_HEIGHT;
             }
@@ -285,12 +285,12 @@ public class GuiPlayerTabOverlay extends Gui
                 if (i < p_175247_6_.func_178835_l())
                 {
                     p_175247_6_.func_178846_a(Minecraft.getSystemTime());
-                    p_175247_6_.func_178844_b((long)(this.guiIngame.getUpdateCounter() + 20));
+                    p_175247_6_.func_178844_b(this.guiIngame.getUpdateCounter() + 20);
                 }
                 else if (i > p_175247_6_.func_178835_l())
                 {
                     p_175247_6_.func_178846_a(Minecraft.getSystemTime());
-                    p_175247_6_.func_178844_b((long)(this.guiIngame.getUpdateCounter() + 10));
+                    p_175247_6_.func_178844_b(this.guiIngame.getUpdateCounter() + 10);
                 }
             }
 

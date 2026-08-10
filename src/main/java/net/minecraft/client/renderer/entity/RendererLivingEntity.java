@@ -724,7 +724,7 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
                     GlStateManager.enableBlend();
                     GlStateManager.disableTexture2D();
                     GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-                    int i = (int) (fontrenderer.getStringWidth(s) / 2);
+                    int i = fontrenderer.getStringWidth(s) / 2;
                     Tessellator tessellator = Tessellator.getInstance();
                     WorldRenderer worldrenderer = tessellator.getWorldRenderer();
                     worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);

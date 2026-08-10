@@ -137,7 +137,7 @@ public class OldServerPinger
                     }
                     else
                     {
-                        server.setBase64EncodedIconData((String)null);
+                        server.setBase64EncodedIconData(null);
                     }
 
                     this.field_175092_e = Minecraft.getSystemTime();
@@ -171,14 +171,14 @@ public class OldServerPinger
         }
         catch (Throwable throwable)
         {
-            logger.error((Object)throwable);
+            logger.error(throwable);
         }
     }
 
     private void tryCompatibilityPing(final ServerData server)
     {
         final ServerAddress serveraddress = ServerAddress.fromString(server.serverIP);
-        ((Bootstrap)((Bootstrap)((Bootstrap)(new Bootstrap()).group((EventLoopGroup)NetworkManager.CLIENT_NIO_EVENTLOOP.getValue())).handler(new ChannelInitializer<Channel>()
+        (new Bootstrap()).group(NetworkManager.CLIENT_NIO_EVENTLOOP.getValue()).handler(new ChannelInitializer<Channel>()
         {
             protected void initChannel(Channel p_initChannel_1_) throws Exception
             {
@@ -236,7 +236,7 @@ public class OldServerPinger
                             if (short1 == 255)
                             {
                                 String s = new String(p_channelRead0_2_.readBytes(p_channelRead0_2_.readShort() * 2).array(), Charsets.UTF_16BE);
-                                String[] astring = (String[])Iterables.toArray(OldServerPinger.PING_RESPONSE_SPLITTER.split(s), String.class);
+                                String[] astring = Iterables.toArray(OldServerPinger.PING_RESPONSE_SPLITTER.split(s), String.class);
 
                                 if ("\u00a71".equals(astring[0]))
                                 {
@@ -261,7 +261,7 @@ public class OldServerPinger
                     }
                 });
             }
-        })).channel(NioSocketChannel.class)).connect(serveraddress.getIP(), serveraddress.getPort());
+        }).channel(NioSocketChannel.class).connect(serveraddress.getIP(), serveraddress.getPort());
     }
 
     public void pingPendingNetworks()
@@ -272,7 +272,7 @@ public class OldServerPinger
 
             while (iterator.hasNext())
             {
-                NetworkManager networkmanager = (NetworkManager)iterator.next();
+                NetworkManager networkmanager = iterator.next();
 
                 if (networkmanager.isChannelOpen())
                 {
@@ -295,7 +295,7 @@ public class OldServerPinger
 
             while (iterator.hasNext())
             {
-                NetworkManager networkmanager = (NetworkManager)iterator.next();
+                NetworkManager networkmanager = iterator.next();
 
                 if (networkmanager.isChannelOpen())
                 {

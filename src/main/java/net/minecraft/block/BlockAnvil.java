@@ -61,7 +61,7 @@ public class BlockAnvil extends BlockFalling
         if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_20())
         {
             addModernCollisionBox(pos, mask, list, 2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
-            EnumFacing facing = (EnumFacing)state.getValue(FACING);
+            EnumFacing facing = state.getValue(FACING);
             if (facing.getAxis() == EnumFacing.Axis.Z)
             {
                 addModernCollisionBox(pos, mask, list, 4.0D, 4.0D, 3.0D, 12.0D, 5.0D, 13.0D);
@@ -121,12 +121,12 @@ public class BlockAnvil extends BlockFalling
      */
     public int damageDropped(IBlockState state)
     {
-        return ((Integer)state.getValue(DAMAGE)).intValue();
+        return state.getValue(DAMAGE).intValue();
     }
 
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
-        EnumFacing enumfacing = (EnumFacing)worldIn.getBlockState(pos).getValue(FACING);
+        EnumFacing enumfacing = worldIn.getBlockState(pos).getValue(FACING);
 
         if (enumfacing.getAxis() == EnumFacing.Axis.X)
         {
@@ -185,8 +185,8 @@ public class BlockAnvil extends BlockFalling
     public int getMetaFromState(IBlockState state)
     {
         int i = 0;
-        i = i | ((EnumFacing)state.getValue(FACING)).getHorizontalIndex();
-        i = i | ((Integer)state.getValue(DAMAGE)).intValue() << 2;
+        i = i | state.getValue(FACING).getHorizontalIndex();
+        i = i | state.getValue(DAMAGE).intValue() << 2;
         return i;
     }
 

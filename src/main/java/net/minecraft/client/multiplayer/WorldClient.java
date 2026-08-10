@@ -92,7 +92,7 @@ public class WorldClient extends World
 
         for (int i = 0; i < 10 && !this.entitySpawnQueue.isEmpty(); ++i)
         {
-            Entity entity = (Entity)this.entitySpawnQueue.iterator().next();
+            Entity entity = this.entitySpawnQueue.iterator().next();
             this.entitySpawnQueue.remove(entity);
 
             if (!this.loadedEntityList.contains(entity))
@@ -271,12 +271,12 @@ public class WorldClient extends World
      */
     public Entity getEntityByID(int id)
     {
-        return (Entity)(id == this.mc.thePlayer.getEntityId() ? this.mc.thePlayer : super.getEntityByID(id));
+        return id == this.mc.thePlayer.getEntityId() ? this.mc.thePlayer : super.getEntityByID(id);
     }
 
     public Entity removeEntityFromWorld(int entityID)
     {
-        Entity entity = (Entity)this.entitiesById.removeObject(entityID);
+        Entity entity = this.entitiesById.removeObject(entityID);
 
         if (entity != null)
         {
@@ -341,7 +341,7 @@ public class WorldClient extends World
 
             if (flag && iblockstate.getBlock() == Blocks.barrier)
             {
-                this.spawnParticle(EnumParticleTypes.BARRIER, (double)((float)k + 0.5F), (double)((float)l + 0.5F), (double)((float)i1 + 0.5F), 0.0D, 0.0D, 0.0D, new int[0]);
+                this.spawnParticle(EnumParticleTypes.BARRIER, (float)k + 0.5F, (float)l + 0.5F, (float)i1 + 0.5F, 0.0D, 0.0D, 0.0D, new int[0]);
             }
         }
     }
@@ -355,7 +355,7 @@ public class WorldClient extends World
 
         for (int i = 0; i < this.unloadedEntityList.size(); ++i)
         {
-            Entity entity = (Entity)this.unloadedEntityList.get(i);
+            Entity entity = this.unloadedEntityList.get(i);
             int j = entity.chunkCoordX;
             int k = entity.chunkCoordZ;
 
@@ -367,14 +367,14 @@ public class WorldClient extends World
 
         for (int l = 0; l < this.unloadedEntityList.size(); ++l)
         {
-            this.onEntityRemoved((Entity)this.unloadedEntityList.get(l));
+            this.onEntityRemoved(this.unloadedEntityList.get(l));
         }
 
         this.unloadedEntityList.clear();
 
         for (int i1 = 0; i1 < this.loadedEntityList.size(); ++i1)
         {
-            Entity entity1 = (Entity)this.loadedEntityList.get(i1);
+            Entity entity1 = this.loadedEntityList.get(i1);
 
             if (entity1.ridingEntity != null)
             {

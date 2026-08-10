@@ -552,7 +552,7 @@ public class LightingEngine implements ILightingEngine {
     }
 
     private int getCursorCachedLight(final EnumSkyBlock lightType) {
-        return ((IChunkLighting) this.curChunk).getCachedLightFor(lightType, this.curPos);
+        return this.curChunk.getCachedLightFor(lightType, this.curPos);
     }
 
     /**

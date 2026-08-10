@@ -246,19 +246,19 @@ public class ShadersRender
             int i = 0;
             i = entityRenderer.frameCount;
             entityRenderer.frameCount = i + 1;
-            renderglobal.setupTerrain(entity, (double)partialTicks, frustum, i, minecraft.thePlayer.isSpectator());
+            renderglobal.setupTerrain(entity, partialTicks, frustum, i, minecraft.thePlayer.isSpectator());
             minecraft.mcProfiler.endStartSection("shadow updatechunks");
             minecraft.mcProfiler.endStartSection("shadow terrain");
             GlStateManager.matrixMode(5888);
             GlStateManager.pushMatrix();
             GlStateManager.disableAlpha();
-            renderglobal.renderBlockLayer(EnumWorldBlockLayer.SOLID, (double)partialTicks, 2, entity);
+            renderglobal.renderBlockLayer(EnumWorldBlockLayer.SOLID, partialTicks, 2, entity);
             Shaders.checkGLError("shadow terrain solid");
             GlStateManager.enableAlpha();
-            renderglobal.renderBlockLayer(EnumWorldBlockLayer.CUTOUT_MIPPED, (double)partialTicks, 2, entity);
+            renderglobal.renderBlockLayer(EnumWorldBlockLayer.CUTOUT_MIPPED, partialTicks, 2, entity);
             Shaders.checkGLError("shadow terrain cutoutmipped");
             minecraft.getTextureManager().getTexture(TextureMap.locationBlocksTexture).setBlurMipmap(false, false);
-            renderglobal.renderBlockLayer(EnumWorldBlockLayer.CUTOUT, (double)partialTicks, 2, entity);
+            renderglobal.renderBlockLayer(EnumWorldBlockLayer.CUTOUT, partialTicks, 2, entity);
             Shaders.checkGLError("shadow terrain cutout");
             minecraft.getTextureManager().getTexture(TextureMap.locationBlocksTexture).restoreLastBlurMipmap();
             GlStateManager.shadeModel(7424);
@@ -298,7 +298,7 @@ public class ShadersRender
             if (Shaders.isRenderShadowTranslucent())
             {
                 minecraft.mcProfiler.endStartSection("shadow translucent");
-                renderglobal.renderBlockLayer(EnumWorldBlockLayer.TRANSLUCENT, (double)partialTicks, 2, entity);
+                renderglobal.renderBlockLayer(EnumWorldBlockLayer.TRANSLUCENT, partialTicks, 2, entity);
                 Shaders.checkGLError("shadow translucent");
             }
 
@@ -486,10 +486,10 @@ public class ShadersRender
             float f5 = 0.2F;
             float f6 = (float)(System.currentTimeMillis() % 100000L) / 100000.0F;
             int i = 240;
-            worldrenderer.pos(x, y + (double)offset, z + 1.0D).color(f1, f2, f3, 1.0F).tex((double)(f4 + f6), (double)(f4 + f6)).lightmap(i, i).endVertex();
-            worldrenderer.pos(x + 1.0D, y + (double)offset, z + 1.0D).color(f1, f2, f3, 1.0F).tex((double)(f4 + f6), (double)(f5 + f6)).lightmap(i, i).endVertex();
-            worldrenderer.pos(x + 1.0D, y + (double)offset, z).color(f1, f2, f3, 1.0F).tex((double)(f5 + f6), (double)(f5 + f6)).lightmap(i, i).endVertex();
-            worldrenderer.pos(x, y + (double)offset, z).color(f1, f2, f3, 1.0F).tex((double)(f5 + f6), (double)(f4 + f6)).lightmap(i, i).endVertex();
+            worldrenderer.pos(x, y + (double)offset, z + 1.0D).color(f1, f2, f3, 1.0F).tex(f4 + f6, f4 + f6).lightmap(i, i).endVertex();
+            worldrenderer.pos(x + 1.0D, y + (double)offset, z + 1.0D).color(f1, f2, f3, 1.0F).tex(f4 + f6, f5 + f6).lightmap(i, i).endVertex();
+            worldrenderer.pos(x + 1.0D, y + (double)offset, z).color(f1, f2, f3, 1.0F).tex(f5 + f6, f5 + f6).lightmap(i, i).endVertex();
+            worldrenderer.pos(x, y + (double)offset, z).color(f1, f2, f3, 1.0F).tex(f5 + f6, f4 + f6).lightmap(i, i).endVertex();
             tessellator.draw();
             GlStateManager.enableLighting();
             return true;

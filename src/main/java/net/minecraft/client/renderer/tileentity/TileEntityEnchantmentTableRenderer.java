@@ -37,8 +37,8 @@ public class TileEntityEnchantmentTableRenderer extends TileEntitySpecialRendere
         this.bindTexture(TEXTURE_BOOK);
         float f3 = te.pageFlipPrev + (te.pageFlip - te.pageFlipPrev) * partialTicks + 0.25F;
         float f4 = te.pageFlipPrev + (te.pageFlip - te.pageFlipPrev) * partialTicks + 0.75F;
-        f3 = (f3 - (float)MathHelper.truncateDoubleToInt((double)f3)) * 1.6F - 0.3F;
-        f4 = (f4 - (float)MathHelper.truncateDoubleToInt((double)f4)) * 1.6F - 0.3F;
+        f3 = (f3 - (float)MathHelper.truncateDoubleToInt(f3)) * 1.6F - 0.3F;
+        f4 = (f4 - (float)MathHelper.truncateDoubleToInt(f4)) * 1.6F - 0.3F;
 
         if (f3 < 0.0F)
         {
@@ -62,7 +62,7 @@ public class TileEntityEnchantmentTableRenderer extends TileEntitySpecialRendere
 
         float f5 = te.bookSpreadPrev + (te.bookSpread - te.bookSpreadPrev) * partialTicks;
         GlStateManager.enableCull();
-        this.field_147541_c.render((Entity)null, f, f3, f4, f5, 0.0F, 0.0625F);
+        this.field_147541_c.render(null, f, f3, f4, f5, 0.0F, 0.0625F);
         GlStateManager.popMatrix();
     }
 }

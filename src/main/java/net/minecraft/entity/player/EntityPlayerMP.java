@@ -133,7 +133,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
         if (!worldIn.provider.getHasNoSky() && worldIn.getWorldInfo().getGameType() != WorldSettings.GameType.ADVENTURE)
         {
             int i = Math.max(5, server.getSpawnProtectionSize() - 6);
-            int j = MathHelper.floor_double(worldIn.getWorldBorder().getClosestDistance((double)blockpos.getX(), (double)blockpos.getZ()));
+            int j = MathHelper.floor_double(worldIn.getWorldBorder().getClosestDistance(blockpos.getX(), blockpos.getZ()));
 
             if (j < i)
             {
@@ -256,7 +256,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
             while (iterator.hasNext() && j < i)
             {
-                aint[j++] = ((Integer)iterator.next()).intValue();
+                aint[j++] = iterator.next().intValue();
                 iterator.remove();
             }
 
@@ -269,9 +269,9 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
             Iterator<ChunkCoordIntPair> iterator1 = this.loadedChunks.iterator();
             List<TileEntity> list1 = Lists.<TileEntity>newArrayList();
 
-            while (iterator1.hasNext() && ((List)list).size() < 10)
+            while (iterator1.hasNext() && list.size() < 10)
             {
-                ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair)iterator1.next();
+                ChunkCoordIntPair chunkcoordintpair = iterator1.next();
 
                 if (chunkcoordintpair != null)
                 {
@@ -297,7 +297,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
             {
                 if (list.size() == 1)
                 {
-                    this.playerNetServerHandler.sendPacket(new S21PacketChunkData((Chunk)list.get(0), true, 65535));
+                    this.playerNetServerHandler.sendPacket(new S21PacketChunkData(list.get(0), true, 65535));
                 }
                 else
                 {
@@ -403,11 +403,11 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
     {
         BiomeGenBase biomegenbase = this.worldObj.getBiomeGenForCoords(new BlockPos(MathHelper.floor_double(this.posX), 0, MathHelper.floor_double(this.posZ)));
         String s = biomegenbase.biomeName;
-        JsonSerializableSet jsonserializableset = (JsonSerializableSet)this.getStatFile().func_150870_b(AchievementList.exploreAllBiomes);
+        JsonSerializableSet jsonserializableset = this.getStatFile().func_150870_b(AchievementList.exploreAllBiomes);
 
         if (jsonserializableset == null)
         {
-            jsonserializableset = (JsonSerializableSet)this.getStatFile().func_150872_a(AchievementList.exploreAllBiomes, new JsonSerializableSet());
+            jsonserializableset = this.getStatFile().func_150872_a(AchievementList.exploreAllBiomes, new JsonSerializableSet());
         }
 
         jsonserializableset.add(s);
@@ -422,7 +422,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
                 while (iterator.hasNext())
                 {
-                    BiomeGenBase biomegenbase1 = (BiomeGenBase)iterator.next();
+                    BiomeGenBase biomegenbase1 = iterator.next();
 
                     if (biomegenbase1.biomeName.equals(s1))
                     {
@@ -484,7 +484,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
         if (entitylivingbase != null)
         {
-            EntityList.EntityEggInfo entitylist$entityegginfo = (EntityList.EntityEggInfo)EntityList.entityEggs.get(Integer.valueOf(EntityList.getEntityID(entitylivingbase)));
+            EntityList.EntityEggInfo entitylist$entityegginfo = EntityList.entityEggs.get(Integer.valueOf(EntityList.getEntityID(entitylivingbase)));
 
             if (entitylist$entityegginfo != null)
             {
@@ -577,7 +577,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
                 if (blockpos != null)
                 {
-                    this.playerNetServerHandler.setPlayerLocation((double)blockpos.getX(), (double)blockpos.getY(), (double)blockpos.getZ(), 0.0F, 0.0F);
+                    this.playerNetServerHandler.setPlayerLocation(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0.0F, 0.0F);
                 }
 
                 dimensionId = 1;
@@ -1069,7 +1069,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
         if (gameType == WorldSettings.GameType.SPECTATOR)
         {
-            this.mountEntity((Entity)null);
+            this.mountEntity(null);
         }
         else
         {
@@ -1109,7 +1109,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
         {
             if (this.mcServer.getConfigurationManager().canSendCommands(this.getGameProfile()))
             {
-                UserListOpsEntry userlistopsentry = (UserListOpsEntry)this.mcServer.getConfigurationManager().getOppedPlayers().getEntry(this.getGameProfile());
+                UserListOpsEntry userlistopsentry = this.mcServer.getConfigurationManager().getOppedPlayers().getEntry(this.getGameProfile());
                 return userlistopsentry != null ? userlistopsentry.getPermissionLevel() >= permLevel : this.mcServer.getOpPermissionLevel() >= permLevel;
             }
             else
@@ -1210,13 +1210,13 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
     public Entity getSpectatingEntity()
     {
-        return (Entity)(this.spectatingEntity == null ? this : this.spectatingEntity);
+        return this.spectatingEntity == null ? this : this.spectatingEntity;
     }
 
     public void setSpectatingEntity(Entity entityToSpectate)
     {
         Entity entity = this.getSpectatingEntity();
-        this.spectatingEntity = (Entity)(entityToSpectate == null ? this : entityToSpectate);
+        this.spectatingEntity = entityToSpectate == null ? this : entityToSpectate;
 
         if (entity != this.spectatingEntity)
         {

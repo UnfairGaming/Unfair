@@ -15,7 +15,7 @@ public class GlVersion
 
     public GlVersion(int major, int minor, int release)
     {
-        this(major, minor, release, (String)null);
+        this(major, minor, release, null);
     }
 
     public GlVersion(int major, int minor, int release, String suffix)

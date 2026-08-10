@@ -37,11 +37,11 @@ public class C02PacketUseEntity implements Packet<INetHandlerPlayServer>
     public void readPacketData(PacketBuffer buf) throws IOException
     {
         this.entityId = buf.readVarIntFromBuffer();
-        this.action = (C02PacketUseEntity.Action)buf.readEnumValue(C02PacketUseEntity.Action.class);
+        this.action = buf.readEnumValue(Action.class);
 
         if (this.action == C02PacketUseEntity.Action.INTERACT_AT)
         {
-            this.hitVec = new Vec3((double)buf.readFloat(), (double)buf.readFloat(), (double)buf.readFloat());
+            this.hitVec = new Vec3(buf.readFloat(), buf.readFloat(), buf.readFloat());
         }
     }
 

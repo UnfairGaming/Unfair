@@ -268,7 +268,7 @@ public class ChunkProviderHell implements IChunkProvider
         }
 
         Chunk chunk = new Chunk(this.worldObj, chunkprimer, x, z);
-        BiomeGenBase[] abiomegenbase = this.worldObj.getWorldChunkManager().loadBlockGeneratorData((BiomeGenBase[])null, x * 16, z * 16, 16, 16);
+        BiomeGenBase[] abiomegenbase = this.worldObj.getWorldChunkManager().loadBlockGeneratorData(null, x * 16, z * 16, 16, 16);
         byte[] abyte = chunk.getBiomeArray();
 
         for (int i = 0; i < abyte.length; ++i)
@@ -304,11 +304,11 @@ public class ChunkProviderHell implements IChunkProvider
         for (int j = 0; j < p_73164_6_; ++j)
         {
             adouble[j] = Math.cos((double)j * Math.PI * 6.0D / (double)p_73164_6_) * 2.0D;
-            double d2 = (double)j;
+            double d2 = j;
 
             if (j > p_73164_6_ / 2)
             {
-                d2 = (double)(p_73164_6_ - 1 - j);
+                d2 = p_73164_6_ - 1 - j;
             }
 
             if (d2 < 4.0D)
@@ -349,7 +349,7 @@ public class ChunkProviderHell implements IChunkProvider
 
                     if (k > p_73164_6_ - 4)
                     {
-                        double d9 = (double)((float)(k - (p_73164_6_ - 4)) / 3.0F);
+                        double d9 = (float)(k - (p_73164_6_ - 4)) / 3.0F;
                         d4 = d4 * (1.0D - d9) + -10.0D * d9;
                     }
 
@@ -507,7 +507,7 @@ public class ChunkProviderHell implements IChunkProvider
 
     public void recreateStructures(Chunk chunkIn, int x, int z)
     {
-        this.genNetherBridge.generate(this, this.worldObj, x, z, (ChunkPrimer)null);
+        this.genNetherBridge.generate(this, this.worldObj, x, z, null);
     }
 
     public Chunk provideChunk(BlockPos blockPosIn)

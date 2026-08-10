@@ -65,7 +65,7 @@ public class EntityAIFindEntityNearestPlayer extends EntityAIBase
                             f = 0.1F;
                         }
 
-                        d0 *= (double)(0.7F * f);
+                        d0 *= 0.7F * f;
                     }
 
                     return (double)p_apply_1_.getDistanceToEntity(EntityAIFindEntityNearestPlayer.this.entityLiving) > d0 ? false : EntityAITarget.isSuitableTarget(EntityAIFindEntityNearestPlayer.this.entityLiving, (EntityLivingBase)p_apply_1_, false, true);
@@ -90,7 +90,7 @@ public class EntityAIFindEntityNearestPlayer extends EntityAIBase
         }
         else
         {
-            this.entityTarget = (EntityLivingBase)list.get(0);
+            this.entityTarget = list.get(0);
             return true;
         }
     }
@@ -145,7 +145,7 @@ public class EntityAIFindEntityNearestPlayer extends EntityAIBase
      */
     public void resetTask()
     {
-        this.entityLiving.setAttackTarget((EntityLivingBase)null);
+        this.entityLiving.setAttackTarget(null);
         super.startExecuting();
     }
 

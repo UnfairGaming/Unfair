@@ -373,7 +373,7 @@ public class CommandScoreboard extends CommandBase
         String s = args[index++];
         String s1 = args[index++];
         Scoreboard scoreboard = this.getScoreboard();
-        IScoreObjectiveCriteria iscoreobjectivecriteria = (IScoreObjectiveCriteria)IScoreObjectiveCriteria.INSTANCES.get(s1);
+        IScoreObjectiveCriteria iscoreobjectivecriteria = IScoreObjectiveCriteria.INSTANCES.get(s1);
 
         if (iscoreobjectivecriteria == null)
         {
@@ -958,7 +958,7 @@ public class CommandScoreboard extends CommandBase
         }
         else
         {
-            scoreboard.removeObjectiveFromEntity(s, (ScoreObjective)null);
+            scoreboard.removeObjectiveFromEntity(s, null);
             notifyOperators(p_147187_1_, this, "commands.scoreboard.players.reset.success", new Object[] {s});
         }
     }

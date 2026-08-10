@@ -34,7 +34,7 @@ public class NbtTagValue
     public NbtTagValue(String tag, String value)
     {
         String[] astring = Config.tokenize(tag, ".");
-        this.parents = (String[])Arrays.copyOfRange(astring, 0, astring.length - 1);
+        this.parents = Arrays.copyOfRange(astring, 0, astring.length - 1);
         this.name = astring[astring.length - 1];
 
         if (value.startsWith("!"))

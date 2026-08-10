@@ -73,7 +73,7 @@ public class UserList<K, V extends UserListEntry<K>>
         }
         catch (IOException ioexception)
         {
-            logger.warn((String)"Could not save the list after adding a user.", (Throwable)ioexception);
+            logger.warn("Could not save the list after adding a user.", ioexception);
         }
     }
 
@@ -81,7 +81,7 @@ public class UserList<K, V extends UserListEntry<K>>
     public V getEntry(K obj)
     {
         this.removeExpired();
-        return (V)((UserListEntry)this.values.get(this.getObjectKey(obj)));
+        return this.values.get(this.getObjectKey(obj));
     }
 
     public void removeEntry(K entry)
@@ -94,13 +94,13 @@ public class UserList<K, V extends UserListEntry<K>>
         }
         catch (IOException ioexception)
         {
-            logger.warn((String)"Could not save the list after removing a user.", (Throwable)ioexception);
+            logger.warn("Could not save the list after removing a user.", ioexception);
         }
     }
 
     public String[] getKeys()
     {
-        return (String[])this.values.keySet().toArray(new String[this.values.size()]);
+        return this.values.keySet().toArray(new String[this.values.size()]);
     }
 
     /**
@@ -150,7 +150,7 @@ public class UserList<K, V extends UserListEntry<K>>
     public void writeChanges() throws IOException
     {
         Collection<V> collection = this.values.values();
-        String s = this.gson.toJson((Object)collection);
+        String s = this.gson.toJson(collection);
         BufferedWriter bufferedwriter = null;
 
         try
@@ -160,7 +160,7 @@ public class UserList<K, V extends UserListEntry<K>>
         }
         finally
         {
-            IOUtils.closeQuietly((Writer)bufferedwriter);
+            IOUtils.closeQuietly(bufferedwriter);
         }
     }
 

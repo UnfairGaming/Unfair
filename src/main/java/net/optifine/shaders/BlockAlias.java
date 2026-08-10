@@ -51,7 +51,7 @@ public class BlockAlias
             set.add(Integer.valueOf(j));
         }
 
-        Integer[] ainteger = (Integer[])set.toArray(new Integer[set.size()]);
+        Integer[] ainteger = set.toArray(new Integer[set.size()]);
         int[] aint = Config.toPrimitive(ainteger);
         return aint;
     }
@@ -70,12 +70,12 @@ public class BlockAlias
             }
         }
 
-        MatchBlock[] amatchblock = (MatchBlock[])((MatchBlock[])list.toArray(new MatchBlock[list.size()]));
+        MatchBlock[] amatchblock = list.toArray(new MatchBlock[list.size()]);
         return amatchblock;
     }
 
     public String toString()
     {
-        return "block." + this.blockAliasId + "=" + Config.arrayToString((Object[])this.matchBlocks);
+        return "block." + this.blockAliasId + "=" + Config.arrayToString(this.matchBlocks);
     }
 }

@@ -101,7 +101,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
 
         if ((long)this.networkTickCount - this.lastSentPingPacket > 40L)
         {
-            this.lastSentPingPacket = (long)this.networkTickCount;
+            this.lastSentPingPacket = this.networkTickCount;
             this.lastPingTime = this.currentTimeMillis();
             this.field_147378_h = (int)this.lastPingTime;
             this.sendPacket(new S00PacketKeepAlive(this.field_147378_h));
@@ -321,7 +321,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
                     }
 
                     float f3 = 0.0625F;
-                    boolean flag = worldserver.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.getEntityBoundingBox().contract((double)f3, (double)f3, (double)f3)).isEmpty();
+                    boolean flag = worldserver.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.getEntityBoundingBox().contract(f3, f3, f3)).isEmpty();
 
                     if (this.playerEntity.onGround && !packetIn.isOnGround() && d12 > 0.0D)
                     {
@@ -353,7 +353,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
 
                     if (!this.playerEntity.noClip)
                     {
-                        boolean flag2 = worldserver.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.getEntityBoundingBox().contract((double)f3, (double)f3, (double)f3)).isEmpty();
+                        boolean flag2 = worldserver.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.getEntityBoundingBox().contract(f3, f3, f3)).isEmpty();
 
                         if (flag && (flag1 || !flag2) && !this.playerEntity.isPlayerSleeping())
                         {
@@ -362,7 +362,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
                         }
                     }
 
-                    AxisAlignedBB axisalignedbb = this.playerEntity.getEntityBoundingBox().expand((double)f3, (double)f3, (double)f3).addCoord(0.0D, -0.55D, 0.0D);
+                    AxisAlignedBB axisalignedbb = this.playerEntity.getEntityBoundingBox().expand(f3, f3, f3).addCoord(0.0D, -0.55D, 0.0D);
 
                     if (!this.serverController.isFlightAllowed() && !this.playerEntity.capabilities.allowFlying && !worldserver.checkBlockCollision(axisalignedbb))
                     {
@@ -619,7 +619,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
             if (entity != null)
             {
                 this.playerEntity.setSpectatingEntity(this.playerEntity);
-                this.playerEntity.mountEntity((Entity)null);
+                this.playerEntity.mountEntity(null);
 
                 if (entity.worldObj != this.playerEntity.worldObj)
                 {
@@ -919,7 +919,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
                     }
                     else
                     {
-                        UserListBansEntry userlistbansentry = new UserListBansEntry(this.playerEntity.getGameProfile(), (Date)null, "(You just lost the game)", (Date)null, "Death in Hardcore");
+                        UserListBansEntry userlistbansentry = new UserListBansEntry(this.playerEntity.getGameProfile(), null, "(You just lost the game)", null, "Death in Hardcore");
                         this.serverController.getConfigurationManager().getBannedPlayers().addEntry(userlistbansentry);
                         this.playerEntity.playerNetServerHandler.kickPlayerFromServer("You have died. Game over, man, it\'s game over!");
                     }
@@ -972,7 +972,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
 
                 for (int i = 0; i < this.playerEntity.openContainer.inventorySlots.size(); ++i)
                 {
-                    list.add(((Slot)this.playerEntity.openContainer.inventorySlots.get(i)).getStack());
+                    list.add(this.playerEntity.openContainer.inventorySlots.get(i).getStack());
                 }
 
                 this.playerEntity.updateCraftingInventory(this.playerEntity.openContainer, list);
@@ -998,7 +998,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
 
                     for (int j = 0; j < this.playerEntity.openContainer.inventorySlots.size(); ++j)
                     {
-                        list1.add(((Slot)this.playerEntity.openContainer.inventorySlots.get(j)).getStack());
+                        list1.add(this.playerEntity.openContainer.inventorySlots.get(j).getStack());
                     }
 
                     this.playerEntity.updateCraftingInventory(this.playerEntity.openContainer, list1);
@@ -1064,7 +1064,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
             {
                 if (itemstack == null)
                 {
-                    this.playerEntity.inventoryContainer.putStackInSlot(packetIn.getSlotId(), (ItemStack)null);
+                    this.playerEntity.inventoryContainer.putStackInSlot(packetIn.getSlotId(), null);
                 }
                 else
                 {
@@ -1094,7 +1094,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
     public void processConfirmTransaction(C0FPacketConfirmTransaction packetIn)
     {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.playerEntity.getServerForPlayer());
-        Short oshort = (Short)this.field_147372_n.lookup(this.playerEntity.openContainer.windowId);
+        Short oshort = this.field_147372_n.lookup(this.playerEntity.openContainer.windowId);
 
         if (oshort != null && packetIn.getUid() == oshort.shortValue() && this.playerEntity.openContainer.windowId == packetIn.getWindowId() && !this.playerEntity.openContainer.getCanCraft(this.playerEntity) && !this.playerEntity.isSpectator())
         {
@@ -1177,7 +1177,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
             list.add(s);
         }
 
-        this.playerEntity.playerNetServerHandler.sendPacket(new S3APacketTabComplete((String[])list.toArray(new String[list.size()])));
+        this.playerEntity.playerNetServerHandler.sendPacket(new S3APacketTabComplete(list.toArray(new String[list.size()])));
     }
 
     /**
@@ -1199,7 +1199,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
 
         if ("MC|BEdit".equals(packetIn.getChannelName()))
         {
-            PacketBuffer packetbuffer3 = new PacketBuffer(Unpooled.wrappedBuffer((ByteBuf)packetIn.getBufferData()));
+            PacketBuffer packetbuffer3 = new PacketBuffer(Unpooled.wrappedBuffer(packetIn.getBufferData()));
 
             try
             {
@@ -1229,7 +1229,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
             }
             catch (Exception exception3)
             {
-                logger.error((String)"Couldn\'t handle book info", (Throwable)exception3);
+                logger.error("Couldn\'t handle book info", exception3);
                 return;
             }
             finally
@@ -1241,7 +1241,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
         }
         else if ("MC|BSign".equals(packetIn.getChannelName()))
         {
-            PacketBuffer packetbuffer2 = new PacketBuffer(Unpooled.wrappedBuffer((ByteBuf)packetIn.getBufferData()));
+            PacketBuffer packetbuffer2 = new PacketBuffer(Unpooled.wrappedBuffer(packetIn.getBufferData()));
 
             try
             {
@@ -1274,7 +1274,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
             }
             catch (Exception exception4)
             {
-                logger.error((String)"Couldn\'t sign book", (Throwable)exception4);
+                logger.error("Couldn\'t sign book", exception4);
                 return;
             }
             finally
@@ -1298,7 +1298,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
             }
             catch (Exception exception2)
             {
-                logger.error((String)"Couldn\'t select trade", (Throwable)exception2);
+                logger.error("Couldn\'t select trade", exception2);
             }
         }
         else if ("MC|AdvCdm".equals(packetIn.getChannelName()))
@@ -1345,7 +1345,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
 
                         if (!flag)
                         {
-                            commandblocklogic.setLastOutput((IChatComponent)null);
+                            commandblocklogic.setLastOutput(null);
                         }
 
                         commandblocklogic.updateCommand();
@@ -1354,7 +1354,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
                 }
                 catch (Exception exception1)
                 {
-                    logger.error((String)"Couldn\'t set command block", (Throwable)exception1);
+                    logger.error("Couldn\'t set command block", exception1);
                 }
                 finally
                 {
@@ -1389,7 +1389,7 @@ public class NetHandlerPlayServer implements INetHandlerPlayServer, ITickable
                 }
                 catch (Exception exception)
                 {
-                    logger.error((String)"Couldn\'t set beacon", (Throwable)exception);
+                    logger.error("Couldn\'t set beacon", exception);
                 }
             }
         }

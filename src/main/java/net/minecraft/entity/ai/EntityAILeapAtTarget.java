@@ -58,6 +58,6 @@ public class EntityAILeapAtTarget extends EntityAIBase
         float f = MathHelper.sqrt_double(d0 * d0 + d1 * d1);
         this.leaper.motionX += d0 / (double)f * 0.5D * 0.800000011920929D + this.leaper.motionX * 0.20000000298023224D;
         this.leaper.motionZ += d1 / (double)f * 0.5D * 0.800000011920929D + this.leaper.motionZ * 0.20000000298023224D;
-        this.leaper.motionY = (double)this.leapMotionY;
+        this.leaper.motionY = this.leapMotionY;
     }
 }

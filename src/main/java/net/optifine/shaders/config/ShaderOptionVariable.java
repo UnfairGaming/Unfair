@@ -120,7 +120,7 @@ public class ShaderOptionVariable extends ShaderOption
                 {
                     if (!Arrays.asList(astring1).contains(value))
                     {
-                        astring1 = (String[])((String[])Config.addObjectToArray(astring1, value, 0));
+                        astring1 = (String[]) Config.addObjectToArray(astring1, value, 0);
                     }
 
                     return astring1;

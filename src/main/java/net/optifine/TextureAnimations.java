@@ -100,13 +100,13 @@ public class TextureAnimations
             }
         }
 
-        TextureAnimation[] atextureanimation1 = (TextureAnimation[])((TextureAnimation[])list.toArray(new TextureAnimation[list.size()]));
+        TextureAnimation[] atextureanimation1 = (TextureAnimation[]) list.toArray(new TextureAnimation[list.size()]);
         return atextureanimation1;
     }
 
     private static TextureAnimation[] getTextureAnimations(IResourcePack rp)
     {
-        String[] astring = ResUtils.collectFiles(rp, (String)"mcpatcher/anim/", (String)".properties", (String[])null);
+        String[] astring = ResUtils.collectFiles(rp, "mcpatcher/anim/", ".properties", null);
 
         if (astring.length <= 0)
         {
@@ -154,7 +154,7 @@ public class TextureAnimations
                 }
             }
 
-            TextureAnimation[] atextureanimation = (TextureAnimation[])((TextureAnimation[])list.toArray(new TextureAnimation[list.size()]));
+            TextureAnimation[] atextureanimation = (TextureAnimation[]) list.toArray(new TextureAnimation[list.size()]);
             return atextureanimation;
         }
     }
@@ -283,7 +283,7 @@ public class TextureAnimations
                 {
                     if (targetWidth > 0 && bufferedimage.getWidth() != targetWidth)
                     {
-                        double d0 = (double)(bufferedimage.getHeight() / bufferedimage.getWidth());
+                        double d0 = bufferedimage.getHeight() / bufferedimage.getWidth();
                         int j = (int)((double)targetWidth * d0);
                         bufferedimage = scaleBufferedImage(bufferedimage, targetWidth, j);
                     }
@@ -344,7 +344,7 @@ public class TextureAnimations
         BufferedImage bufferedimage = new BufferedImage(width, height, 2);
         Graphics2D graphics2d = bufferedimage.createGraphics();
         graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        graphics2d.drawImage(image, 0, 0, width, height, (ImageObserver)null);
+        graphics2d.drawImage(image, 0, 0, width, height, null);
         return bufferedimage;
     }
 

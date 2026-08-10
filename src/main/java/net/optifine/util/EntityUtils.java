@@ -21,19 +21,19 @@ public class EntityUtils
 
     public static int getEntityIdByClass(Class cls)
     {
-        Integer integer = (Integer)mapIdByClass.get(cls);
+        Integer integer = mapIdByClass.get(cls);
         return integer == null ? -1 : integer.intValue();
     }
 
     public static int getEntityIdByName(String name)
     {
-        Integer integer = (Integer)mapIdByName.get(name);
+        Integer integer = mapIdByName.get(name);
         return integer == null ? -1 : integer.intValue();
     }
 
     public static Class getEntityClassByName(String name)
     {
-        Class oclass = (Class)mapClassByName.get(name);
+        Class oclass = mapClassByName.get(name);
         return oclass;
     }
 

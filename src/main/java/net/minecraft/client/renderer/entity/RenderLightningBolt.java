@@ -37,8 +37,8 @@ public class RenderLightningBolt extends Render<EntityLightningBolt>
         {
             adouble[i] = d0;
             adouble1[i] = d1;
-            d0 += (double)(random.nextInt(11) - 5);
-            d1 += (double)(random.nextInt(11) - 5);
+            d0 += random.nextInt(11) - 5;
+            d1 += random.nextInt(11) - 5;
         }
 
         for (int k1 = 0; k1 < 4; ++k1)
@@ -70,13 +70,13 @@ public class RenderLightningBolt extends Render<EntityLightningBolt>
 
                     if (j == 0)
                     {
-                        d2 += (double)(random1.nextInt(11) - 5);
-                        d3 += (double)(random1.nextInt(11) - 5);
+                        d2 += random1.nextInt(11) - 5;
+                        d3 += random1.nextInt(11) - 5;
                     }
                     else
                     {
-                        d2 += (double)(random1.nextInt(31) - 15);
-                        d3 += (double)(random1.nextInt(31) - 15);
+                        d2 += random1.nextInt(31) - 15;
+                        d3 += random1.nextInt(31) - 15;
                     }
 
                     worldrenderer.begin(5, DefaultVertexFormats.POSITION_COLOR);

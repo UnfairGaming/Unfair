@@ -127,7 +127,7 @@ public final class ModernFluidPhysics {
         }
 
         if (block instanceof BlockTrapDoor) {
-            return ((Boolean) state.getValue(BlockTrapDoor.OPEN)).booleanValue()
+            return state.getValue(BlockTrapDoor.OPEN).booleanValue()
                     && state.getValue(BlockTrapDoor.FACING).getOpposite() == direction;
         }
 

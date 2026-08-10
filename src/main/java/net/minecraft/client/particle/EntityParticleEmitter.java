@@ -35,9 +35,9 @@ public class EntityParticleEmitter extends EntityFX
     {
         for (int i = 0; i < 16; ++i)
         {
-            double d0 = (double)(this.rand.nextFloat() * 2.0F - 1.0F);
-            double d1 = (double)(this.rand.nextFloat() * 2.0F - 1.0F);
-            double d2 = (double)(this.rand.nextFloat() * 2.0F - 1.0F);
+            double d0 = this.rand.nextFloat() * 2.0F - 1.0F;
+            double d1 = this.rand.nextFloat() * 2.0F - 1.0F;
+            double d2 = this.rand.nextFloat() * 2.0F - 1.0F;
 
             if (d0 * d0 + d1 * d1 + d2 * d2 <= 1.0D)
             {

@@ -46,7 +46,7 @@ public class ItemSnow extends ItemBlock
 
             if (block == this.block)
             {
-                int i = ((Integer)iblockstate.getValue(BlockSnow.LAYERS)).intValue();
+                int i = iblockstate.getValue(BlockSnow.LAYERS).intValue();
 
                 if (i <= 7)
                 {
@@ -55,7 +55,7 @@ public class ItemSnow extends ItemBlock
 
                     if (axisalignedbb != null && worldIn.checkNoEntityCollision(axisalignedbb) && worldIn.setBlockState(blockpos, iblockstate1, 2))
                     {
-                        worldIn.playSoundEffect((double)((float)blockpos.getX() + 0.5F), (double)((float)blockpos.getY() + 0.5F), (double)((float)blockpos.getZ() + 0.5F), this.block.stepSound.getPlaceSound(), (this.block.stepSound.getVolume() + 1.0F) / 2.0F, this.block.stepSound.getFrequency() * 0.8F);
+                        worldIn.playSoundEffect((float)blockpos.getX() + 0.5F, (float)blockpos.getY() + 0.5F, (float)blockpos.getZ() + 0.5F, this.block.stepSound.getPlaceSound(), (this.block.stepSound.getVolume() + 1.0F) / 2.0F, this.block.stepSound.getFrequency() * 0.8F);
                         --stack.stackSize;
                         return true;
                     }

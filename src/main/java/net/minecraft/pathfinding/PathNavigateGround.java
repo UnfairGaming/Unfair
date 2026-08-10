@@ -39,7 +39,7 @@ public class PathNavigateGround extends PathNavigate
 
     protected Vec3 getEntityPosition()
     {
-        return new Vec3(this.theEntity.posX, (double)this.getPathablePosY(), this.theEntity.posZ);
+        return new Vec3(this.theEntity.posX, this.getPathablePosY(), this.theEntity.posZ);
     }
 
     /**

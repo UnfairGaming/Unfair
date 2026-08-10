@@ -46,7 +46,7 @@ public class MerchantRecipe
 
     public MerchantRecipe(ItemStack buy1, ItemStack sell)
     {
-        this(buy1, (ItemStack)null, sell);
+        this(buy1, null, sell);
     }
 
     public MerchantRecipe(ItemStack buy1, Item sellItem)

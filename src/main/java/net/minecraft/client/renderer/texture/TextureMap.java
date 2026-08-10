@@ -765,7 +765,7 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                                 }
                                 else
                                 {
-                                    int k = (Integer) map.get(j);
+                                    int k = map.get(j);
                                     map.put(j, k + 1);
                                 }
                             }

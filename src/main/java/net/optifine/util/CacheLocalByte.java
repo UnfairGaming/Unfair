@@ -9,7 +9,7 @@ public class CacheLocalByte
     private int offsetX = 0;
     private int offsetY = 0;
     private int offsetZ = 0;
-    private byte[][][] cache = (byte[][][])null;
+    private byte[][][] cache = null;
     private byte[] lastZs = null;
     private int lastDz = 0;
 

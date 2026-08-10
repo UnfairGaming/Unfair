@@ -65,7 +65,7 @@ public class RandomEntityRule {
         this.baby = cp.parseBooleanObject(props.getProperty("baby." + index));
         this.moonPhases = cp.parseRangeListInt(props.getProperty("moonPhase." + index));
         this.dayTimes = cp.parseRangeListInt(props.getProperty("dayTime." + index));
-        this.weatherList = cp.parseWeather(props.getProperty("weather." + index), "weather." + index, (Weather[]) null);
+        this.weatherList = cp.parseWeather(props.getProperty("weather." + index), "weather." + index, null);
     }
 
     private RangeListInt parseMinMaxHeight(Properties props, int index) {

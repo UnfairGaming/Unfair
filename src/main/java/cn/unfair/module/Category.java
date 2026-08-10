@@ -1,5 +1,8 @@
 package cn.unfair.module;
 
+import lombok.Getter;
+
+@Getter
 public enum Category {
     COMBAT("Combat", "cn.unfair.module.modules.combat"),
     MOVEMENT("Movement", "cn.unfair.module.modules.movement"),
@@ -25,11 +28,4 @@ public enum Category {
         throw new IllegalArgumentException("Unknown category for class: " + className);
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getPackageName() {
-        return packageName;
-    }
 }

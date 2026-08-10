@@ -212,7 +212,7 @@ public class Blocks
      */
     private static Block getRegisteredBlock(String blockName)
     {
-        return (Block)Block.blockRegistry.getObject(ResourceLocation.of(blockName));
+        return Block.blockRegistry.getObject(ResourceLocation.of(blockName));
     }
 
     static

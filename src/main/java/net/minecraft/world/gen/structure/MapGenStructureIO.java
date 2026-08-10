@@ -30,12 +30,12 @@ public class MapGenStructureIO
 
     public static String getStructureStartName(StructureStart start)
     {
-        return (String)startClassToNameMap.get(start.getClass());
+        return startClassToNameMap.get(start.getClass());
     }
 
     public static String getStructureComponentName(StructureComponent component)
     {
-        return (String)componentClassToNameMap.get(component.getClass());
+        return componentClassToNameMap.get(component.getClass());
     }
 
     public static StructureStart getStructureStart(NBTTagCompound tagCompound, World worldIn)

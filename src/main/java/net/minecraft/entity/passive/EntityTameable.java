@@ -241,7 +241,7 @@ public abstract class EntityTameable extends EntityAnimal implements IEntityOwna
     {
         if (!this.worldObj.isRemote && this.worldObj.getGameRules().getBoolean("showDeathMessages") && this.hasCustomName() && this.getOwner() instanceof EntityPlayerMP)
         {
-            ((EntityPlayerMP)this.getOwner()).addChatMessage(this.getCombatTracker().getDeathMessage());
+            this.getOwner().addChatMessage(this.getCombatTracker().getDeathMessage());
         }
 
         super.onDeath(cause);

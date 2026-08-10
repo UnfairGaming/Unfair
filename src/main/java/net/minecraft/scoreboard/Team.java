@@ -44,12 +44,12 @@ public abstract class Team
 
         public static String[] func_178825_a()
         {
-            return (String[])field_178828_g.keySet().toArray(new String[field_178828_g.size()]);
+            return field_178828_g.keySet().toArray(new String[field_178828_g.size()]);
         }
 
         public static Team.EnumVisible func_178824_a(String p_178824_0_)
         {
-            return (Team.EnumVisible)field_178828_g.get(p_178824_0_);
+            return field_178828_g.get(p_178824_0_);
         }
 
         private EnumVisible(String p_i45550_3_, int p_i45550_4_)

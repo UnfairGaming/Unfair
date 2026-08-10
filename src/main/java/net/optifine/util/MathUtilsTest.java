@@ -27,8 +27,8 @@ public class MathUtilsTest
         {
             case SIN:
             case COS:
-                d0 = (double)(-MathHelper.PI);
-                d1 = (double)MathHelper.PI;
+                d0 = -MathHelper.PI;
+                d1 = MathHelper.PI;
                 break;
 
             case ASIN:

@@ -71,11 +71,11 @@ public class GuiLabel extends Gui
             {
                 if (this.centered)
                 {
-                    this.drawCenteredString(this.fontRenderer, (String)this.field_146173_k.get(k), this.field_146162_g + this.field_146167_a / 2, j + k * 10, this.field_146168_n);
+                    this.drawCenteredString(this.fontRenderer, this.field_146173_k.get(k), this.field_146162_g + this.field_146167_a / 2, j + k * 10, this.field_146168_n);
                 }
                 else
                 {
-                    this.drawString(this.fontRenderer, (String)this.field_146173_k.get(k), this.field_146162_g, j + k * 10, this.field_146168_n);
+                    this.drawString(this.fontRenderer, this.field_146173_k.get(k), this.field_146162_g, j + k * 10, this.field_146168_n);
                 }
             }
         }

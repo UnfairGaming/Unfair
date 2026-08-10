@@ -105,7 +105,7 @@ public class NaturalProperties
 
     private int[] transformVertexData(int[] vertexData, int rotate, boolean flipU)
     {
-        int[] aint = (int[])vertexData.clone();
+        int[] aint = vertexData.clone();
         int i = 4 - rotate;
 
         if (flipU)

@@ -31,7 +31,7 @@ public class ThreadSafeBoundList<T>
         }
 
         this.field_152761_c.writeLock().unlock();
-        return (T)p_152757_1_;
+        return p_152757_1_;
     }
 
     public int func_152758_b()
@@ -45,7 +45,7 @@ public class ThreadSafeBoundList<T>
     @SuppressWarnings("unchecked")
     public T[] func_152756_c()
     {
-        T[] at = (T[])((Object[])Array.newInstance(this.field_152760_b, this.field_152762_d));
+        T[] at = (T[]) Array.newInstance(this.field_152760_b, this.field_152762_d);
         this.field_152761_c.readLock().lock();
 
         for (int i = 0; i < this.field_152762_d; ++i)

@@ -203,8 +203,8 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         this.resetButtonAnimation();
 
         synchronized (this.threadLock) {
-            this.field_92023_s = (int) this.fontRendererObj.getStringWidth(this.openGLWarning1);
-            this.field_92024_r = (int) this.fontRendererObj.getStringWidth(this.openGLWarning2);
+            this.field_92023_s = this.fontRendererObj.getStringWidth(this.openGLWarning1);
+            this.field_92024_r = this.fontRendererObj.getStringWidth(this.openGLWarning2);
             int k = Math.max(this.field_92023_s, this.field_92024_r);
             this.field_92022_t = (this.width - k) / 2;
             this.field_92021_u = this.buttonList.get(0).yPosition - 24;

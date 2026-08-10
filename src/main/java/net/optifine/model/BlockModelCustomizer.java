@@ -52,7 +52,7 @@ public class BlockModelCustomizer
 
         for (int i = 0; i < quads.size(); ++i)
         {
-            BakedQuad bakedquad = (BakedQuad)quads.get(i);
+            BakedQuad bakedquad = quads.get(i);
             BakedQuad[] abakedquad = getRenderQuads(bakedquad, worldIn, stateIn, posIn, enumfacing, rand, renderEnv);
 
             if (i == 0 && quads.size() == 1 && abakedquad.length == 1 && abakedquad[0] == bakedquad && bakedquad.getQuadEmissive() == null)

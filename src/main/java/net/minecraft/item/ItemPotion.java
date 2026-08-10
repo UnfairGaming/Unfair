@@ -228,7 +228,7 @@ public class ItemPotion extends Item
 
             if (list != null && !list.isEmpty())
             {
-                String s2 = ((PotionEffect)list.get(0)).getEffectName();
+                String s2 = list.get(0).getEffectName();
                 s2 = s2 + ".postfix";
                 return s + StatCollector.translateToLocal(s2).trim();
             }
@@ -262,9 +262,9 @@ public class ItemPotion extends Item
                     {
                         for (Entry<IAttribute, AttributeModifier> entry : map.entrySet())
                         {
-                            AttributeModifier attributemodifier = (AttributeModifier)entry.getValue();
+                            AttributeModifier attributemodifier = entry.getValue();
                             AttributeModifier attributemodifier1 = new AttributeModifier(attributemodifier.getName(), potion.getAttributeModifierAmount(potioneffect.getAmplifier(), attributemodifier), attributemodifier.getOperation());
-                            multimap.put(((IAttribute)entry.getKey()).getAttributeUnlocalizedName(), attributemodifier1);
+                            multimap.put(entry.getKey().getAttributeUnlocalizedName(), attributemodifier1);
                         }
                     }
 
@@ -301,7 +301,7 @@ public class ItemPotion extends Item
 
                 for (Entry<String, AttributeModifier> entry1 : multimap.entries())
                 {
-                    AttributeModifier attributemodifier2 = (AttributeModifier)entry1.getValue();
+                    AttributeModifier attributemodifier2 = entry1.getValue();
                     double d0 = attributemodifier2.getAmount();
                     double d1;
 
@@ -316,12 +316,12 @@ public class ItemPotion extends Item
 
                     if (d0 > 0.0D)
                     {
-                        tooltip.add(EnumChatFormatting.BLUE + StatCollector.translateToLocalFormatted("attribute.modifier.plus." + attributemodifier2.getOperation(), new Object[] {ItemStack.DECIMALFORMAT.format(d1), StatCollector.translateToLocal("attribute.name." + (String)entry1.getKey())}));
+                        tooltip.add(EnumChatFormatting.BLUE + StatCollector.translateToLocalFormatted("attribute.modifier.plus." + attributemodifier2.getOperation(), new Object[] {ItemStack.DECIMALFORMAT.format(d1), StatCollector.translateToLocal("attribute.name." + entry1.getKey())}));
                     }
                     else if (d0 < 0.0D)
                     {
                         d1 = d1 * -1.0D;
-                        tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocalFormatted("attribute.modifier.take." + attributemodifier2.getOperation(), new Object[] {ItemStack.DECIMALFORMAT.format(d1), StatCollector.translateToLocal("attribute.name." + (String)entry1.getKey())}));
+                        tooltip.add(EnumChatFormatting.RED + StatCollector.translateToLocalFormatted("attribute.modifier.take." + attributemodifier2.getOperation(), new Object[] {ItemStack.DECIMALFORMAT.format(d1), StatCollector.translateToLocal("attribute.name." + entry1.getKey())}));
                     }
                 }
             }

@@ -23,7 +23,7 @@ public class ModelManager implements IResourceManagerReloadListener
     {
         ModelBakery modelbakery = new ModelBakery(resourceManager, this.texMap, this.modelProvider);
         this.modelRegistry = modelbakery.setupModelRegistry();
-        this.defaultModel = (IBakedModel)this.modelRegistry.getObject(ModelBakery.MODEL_MISSING);
+        this.defaultModel = this.modelRegistry.getObject(ModelBakery.MODEL_MISSING);
         this.modelProvider.reloadModels();
     }
 
@@ -35,7 +35,7 @@ public class ModelManager implements IResourceManagerReloadListener
         }
         else
         {
-            IBakedModel ibakedmodel = (IBakedModel)this.modelRegistry.getObject(modelLocation);
+            IBakedModel ibakedmodel = this.modelRegistry.getObject(modelLocation);
             return ibakedmodel == null ? this.defaultModel : ibakedmodel;
         }
     }

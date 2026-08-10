@@ -126,7 +126,7 @@ public abstract class EntityAITarget extends EntityAIBase
      */
     public void resetTask()
     {
-        this.taskOwner.setAttackTarget((EntityLivingBase)null);
+        this.taskOwner.setAttackTarget(null);
     }
 
     /**

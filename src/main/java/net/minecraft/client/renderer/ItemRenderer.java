@@ -518,7 +518,7 @@ public class ItemRenderer {
             return;
         }
 
-        ItemStack stack = ((ModernOffhandInventory) this.mc.thePlayer.inventory).viaforge$getOffhand();
+        ItemStack stack = this.mc.thePlayer.inventory.viaforge$getOffhand();
         if (stack == null) {
             return;
         }
@@ -543,7 +543,7 @@ public class ItemRenderer {
     }
 
     private void applyOffhandUseTransform(ItemStack stack, float partialTicks) {
-        float swingProgress = ((ModernOffhandPlayer) this.mc.thePlayer).viaforge$getOffhandSwingProgress(partialTicks);
+        float swingProgress = this.mc.thePlayer.viaforge$getOffhandSwingProgress(partialTicks);
         if (!this.mc.thePlayer.isUsingItem()
                 || this.mc.thePlayer.getItemInUse() != stack
                 || this.mc.thePlayer.getItemInUseCount() <= 0) {

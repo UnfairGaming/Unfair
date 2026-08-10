@@ -31,7 +31,7 @@ public class AttributeModifier
         this.amount = amountIn;
         this.operation = operationIn;
         Validate.notEmpty(nameIn, "Modifier name cannot be empty", new Object[0]);
-        Validate.inclusiveBetween(0L, 2L, (long)operationIn, "Invalid operation");
+        Validate.inclusiveBetween(0L, 2L, operationIn, "Invalid operation");
     }
 
     public UUID getID()

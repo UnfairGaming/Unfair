@@ -31,7 +31,7 @@ public class BlockJukebox extends BlockContainer
 
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        if (((Boolean)state.getValue(HAS_RECORD)).booleanValue())
+        if (state.getValue(HAS_RECORD).booleanValue())
         {
             this.dropRecord(worldIn, pos, state);
             state = state.withProperty(HAS_RECORD, Boolean.valueOf(false));
@@ -72,8 +72,8 @@ public class BlockJukebox extends BlockContainer
                 if (itemstack != null)
                 {
                     worldIn.playAuxSFX(1005, pos, 0);
-                    worldIn.playRecord(pos, (String)null);
-                    blockjukebox$tileentityjukebox.setRecord((ItemStack)null);
+                    worldIn.playRecord(pos, null);
+                    blockjukebox$tileentityjukebox.setRecord(null);
                     float f = 0.7F;
                     double d0 = (double)(worldIn.rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
                     double d1 = (double)(worldIn.rand.nextFloat() * f) + (double)(1.0F - f) * 0.2D + 0.6D;
@@ -155,7 +155,7 @@ public class BlockJukebox extends BlockContainer
      */
     public int getMetaFromState(IBlockState state)
     {
-        return ((Boolean)state.getValue(HAS_RECORD)).booleanValue() ? 1 : 0;
+        return state.getValue(HAS_RECORD).booleanValue() ? 1 : 0;
     }
 
     protected BlockState createBlockState()

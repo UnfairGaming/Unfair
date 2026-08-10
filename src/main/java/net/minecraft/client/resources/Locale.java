@@ -104,7 +104,7 @@ public class Locale
         {
             if (!s.isEmpty() && s.charAt(0) != 35)
             {
-                String[] astring = (String[])Iterables.toArray(splitter.split(s), String.class);
+                String[] astring = Iterables.toArray(splitter.split(s), String.class);
 
                 if (astring != null && astring.length == 2)
                 {
@@ -121,7 +121,7 @@ public class Locale
      */
     private String translateKeyPrivate(String translateKey)
     {
-        String s = (String)this.properties.get(translateKey);
+        String s = this.properties.get(translateKey);
         return s == null ? translateKey : s;
     }
 

@@ -140,7 +140,7 @@ public class EntityWither extends EntityMob implements IBossDisplayData, IRanged
 
                 if (d3 > 9.0D)
                 {
-                    double d5 = (double)MathHelper.sqrt_double(d3);
+                    double d5 = MathHelper.sqrt_double(d3);
                     this.motionX += (d0 / d5 * 0.5D - this.motionX) * 0.6000000238418579D;
                     this.motionZ += (d1 / d5 * 0.5D - this.motionZ) * 0.6000000238418579D;
                 }
@@ -178,7 +178,7 @@ public class EntityWither extends EntityMob implements IBossDisplayData, IRanged
                 double d6 = entity1.posX - d11;
                 double d7 = entity1.posY + (double)entity1.getEyeHeight() - d12;
                 double d8 = entity1.posZ - d13;
-                double d9 = (double)MathHelper.sqrt_double(d6 * d6 + d8 * d8);
+                double d9 = MathHelper.sqrt_double(d6 * d6 + d8 * d8);
                 float f = (float)(MathHelper.atan2(d8, d6) * 180.0D / Math.PI) - 90.0F;
                 float f1 = (float)(-(MathHelper.atan2(d7, d9) * 180.0D / Math.PI));
                 this.field_82220_d[j] = this.func_82204_b(this.field_82220_d[j], f1, 40.0F);
@@ -291,7 +291,7 @@ public class EntityWither extends EntityMob implements IBossDisplayData, IRanged
 
                         for (int j2 = 0; j2 < 10 && !list.isEmpty(); ++j2)
                         {
-                            EntityLivingBase entitylivingbase = (EntityLivingBase)list.get(this.rand.nextInt(list.size()));
+                            EntityLivingBase entitylivingbase = list.get(this.rand.nextInt(list.size()));
 
                             if (entitylivingbase != this && entitylivingbase.isEntityAlive() && this.canEntityBeSeen(entitylivingbase))
                             {
@@ -358,7 +358,7 @@ public class EntityWither extends EntityMob implements IBossDisplayData, IRanged
 
                     if (flag)
                     {
-                        this.worldObj.playAuxSFXAtEntity((EntityPlayer)null, 1012, new BlockPos(this), 0);
+                        this.worldObj.playAuxSFXAtEntity(null, 1012, new BlockPos(this), 0);
                     }
                 }
             }
@@ -456,7 +456,7 @@ public class EntityWither extends EntityMob implements IBossDisplayData, IRanged
      */
     private void launchWitherSkullToCoords(int p_82209_1_, double x, double y, double z, boolean invulnerable)
     {
-        this.worldObj.playAuxSFXAtEntity((EntityPlayer)null, 1014, new BlockPos(this), 0);
+        this.worldObj.playAuxSFXAtEntity(null, 1014, new BlockPos(this), 0);
         double d0 = this.func_82214_u(p_82209_1_);
         double d1 = this.func_82208_v(p_82209_1_);
         double d2 = this.func_82213_w(p_82209_1_);
