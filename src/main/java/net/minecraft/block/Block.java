@@ -1497,6 +1497,7 @@ public class Block
         registerBlock(195, "jungle_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorJungle").disableStats());
         registerBlock(196, "acacia_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorAcacia").disableStats());
         registerBlock(197, "dark_oak_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorDarkOak").disableStats());
+        registerBlock(198, "dirt_path", (new BlockDirtPath()).setHardness(0.65F).setStepSound(soundTypeGrass).setUnlocalizedName("dirtPath"));
         blockRegistry.validateKey();
 
         for (Block block13 : blockRegistry)
