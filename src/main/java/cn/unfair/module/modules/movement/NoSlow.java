@@ -19,17 +19,23 @@ import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.PlayerUtil;
 import cn.unfair.util.TeamUtil;
+import cn.unfair.util.via.ModernOffhandInteraction;
 import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemPotion;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C0DPacketCloseWindow;
 import net.minecraft.network.play.client.C0FPacketConfirmTransaction;
 import net.minecraft.network.play.client.CPacketSwapItemWithOffHand;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.util.BlockPos;
 
@@ -43,6 +49,8 @@ public class NoSlow extends Module {
     public final ModeProperty foodMode = new ModeProperty("food-mode", 0, new String[]{"NONE", "VANILLA", "FLOAT", "C0F"});
     public final PercentProperty foodMotion = new PercentProperty("food-motion", 100, () -> this.foodMode.getValue() != 0);
     public final BooleanProperty foodSprint = new BooleanProperty("food-sprint", true, () -> this.foodMode.getValue() != 0);
+    public final BooleanProperty c0fDelayKnockback = new BooleanProperty("c0f-delay-knockback", true, () -> this.foodMode.getValue() == 3);
+    public final BooleanProperty c0fDelayInteract = new BooleanProperty("c0f-delay-interact", true, () -> this.foodMode.getValue() == 3);
     public final ModeProperty bowMode = new ModeProperty("bow-mode", 0, new String[]{"NONE", "VANILLA", "FLOAT"});
     public final PercentProperty bowMotion = new PercentProperty("bow-motion", 100, () -> this.bowMode.getValue() != 0);
     public final BooleanProperty bowSprint = new BooleanProperty("bow-sprint", true, () -> this.bowMode.getValue() != 0);
@@ -53,6 +61,8 @@ public class NoSlow extends Module {
     private C0FStep c0fStep = C0FStep.NONE;
     private int c0fNoUsingItemTicks = 0;
     private final LinkedBlockingQueue<Packet<?>> c0fPackets = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Packet<?>> c0fDelayedVelocity = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Packet<?>> c0fDelayedInteraction = new LinkedBlockingQueue<>();
 
     public static boolean fakeEating = false;
 
@@ -69,6 +79,8 @@ public class NoSlow extends Module {
         if (this.c0fStep != C0FStep.NONE) {
             this.releaseC0F();
         }
+        this.flushDelayedVelocity();
+        this.flushDelayedInteraction();
         fakeEating = false;
         this.c0fNoUsingItemTicks = 0;
     }
@@ -194,6 +206,13 @@ public class NoSlow extends Module {
             return;
         }
 
+        // If the food is sitting in the offhand instead of the mainhand, the whole
+        // C0F trick can never start (it relies on eating from the mainhand). Swap it
+        // back to the mainhand first, then let vanilla begin the eat next tick.
+        if (this.c0fStep == C0FStep.NONE && this.trySwapOffhandFoodToMainHand()) {
+            return;
+        }
+
         boolean usingFood = ItemUtil.isEating() && mc.thePlayer.isUsingItem();
 
         if (this.c0fStep != C0FStep.EATING) {
@@ -231,6 +250,32 @@ public class NoSlow extends Module {
         }
 
         Packet<?> packet = event.getPacket();
+
+        if (event.getType() == EventType.RECEIVE
+                && this.c0fDelayKnockback.getValue()
+                && this.c0fStep != C0FStep.NONE
+                && packet instanceof S12PacketEntityVelocity) {
+            S12PacketEntityVelocity velocity = (S12PacketEntityVelocity) packet;
+            if (mc.thePlayer != null && velocity.getEntityID() == mc.thePlayer.getEntityId()) {
+                event.setCancelled(true);
+                this.c0fDelayedVelocity.offer(packet);
+                return;
+            }
+        }
+
+        if (event.getType() == EventType.SEND
+                && this.c0fDelayInteract.getValue()
+                && this.c0fStep != C0FStep.NONE
+                && packet instanceof C08PacketPlayerBlockPlacement) {
+            // Direction 255 is the "use item in air" sentinel (the eat itself) — leave it.
+            // A real block/chest right-click carries a valid face, so hold it back and
+            // replay it once the eat is over instead of letting it fire mid-trick.
+            if (((C08PacketPlayerBlockPlacement) packet).getPlacedBlockDirection() != 255) {
+                event.setCancelled(true);
+                this.c0fDelayedInteraction.offer(packet);
+                return;
+            }
+        }
 
         if (event.getType() == EventType.SEND) {
             if (this.c0fStep != C0FStep.NONE && packet instanceof C0FPacketConfirmTransaction) {
@@ -277,6 +322,63 @@ public class NoSlow extends Module {
         this.c0fStep = C0FStep.NONE;
         this.c0fNoUsingItemTicks = 0;
         fakeEating = false;
+
+        // Eating is over (whether it finished or the player let go early). Replay everything
+        // we held back: the block/chest interactions first, now that the real hand is restored,
+        // then the knockback. We never force the eat to complete — releaseC0F is driven by the
+        // player actually stopping (RELEASE_USE_ITEM / key up), so a half-eaten food just flushes.
+        this.flushDelayedInteraction();
+        this.flushDelayedVelocity();
+    }
+
+    private void flushDelayedInteraction() {
+        while (!this.c0fDelayedInteraction.isEmpty()) {
+            Packet<?> packet = this.c0fDelayedInteraction.poll();
+            if (packet != null && mc.getNetHandler() != null) {
+                PacketUtil.sendPacketNoEvent(packet);
+            }
+        }
+        this.c0fDelayedInteraction.clear();
+    }
+
+    private void flushDelayedVelocity() {
+        while (!this.c0fDelayedVelocity.isEmpty()) {
+            Packet<?> packet = this.c0fDelayedVelocity.poll();
+            if (packet != null && mc.getNetHandler() != null) {
+                PacketUtil.receivePacketNoEvent(packet);
+            }
+        }
+        this.c0fDelayedVelocity.clear();
+    }
+
+    private boolean isFood(ItemStack itemStack) {
+        if (itemStack == null || itemStack.stackSize < 1) {
+            return false;
+        }
+        if (ItemPotion.isSplash(itemStack.getItem().getMetadata(itemStack))) {
+            return false;
+        }
+        EnumAction action = itemStack.getItemUseAction();
+        return action == EnumAction.EAT || action == EnumAction.DRINK;
+    }
+
+    private boolean trySwapOffhandFoodToMainHand() {
+        if (mc.thePlayer == null || !ModernOffhandInteraction.isModernTarget()) {
+            return false;
+        }
+        // Only act while the player is actually trying to eat (physical use key held).
+        if (!KeyBindUtil.isKeyDown(mc.gameSettings.keyBindUseItem.getKeyCode())) {
+            return false;
+        }
+        // Mainhand already holds food -> normal C0F flow handles it.
+        if (this.isFood(mc.thePlayer.getHeldItem())) {
+            return false;
+        }
+        ItemStack offhand = ModernOffhandInteraction.getOffhand(mc.thePlayer);
+        if (!this.isFood(offhand)) {
+            return false;
+        }
+        return ModernOffhandInteraction.sendSwapItemWithOffhand(mc.thePlayer);
     }
 
     @Override
