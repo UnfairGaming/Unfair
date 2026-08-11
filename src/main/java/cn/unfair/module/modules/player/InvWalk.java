@@ -42,8 +42,8 @@ public class InvWalk extends Module {
         super("InvWalk", false);
     }
 
-    public void pressMovementKeys() {
-        KeyBinding[] movementKeys = new KeyBinding[]{
+    private KeyBinding[] getMovementKeys() {
+        return new KeyBinding[]{
                 mc.gameSettings.keyBindForward,
                 mc.gameSettings.keyBindBack,
                 mc.gameSettings.keyBindLeft,
@@ -51,7 +51,10 @@ public class InvWalk extends Module {
                 mc.gameSettings.keyBindJump,
                 mc.gameSettings.keyBindSprint
         };
-        for (KeyBinding keyBinding : movementKeys) {
+    }
+
+    public void pressMovementKeys() {
+        for (KeyBinding keyBinding : getMovementKeys()) {
             KeyBindUtil.updateKeyState(keyBinding.getKeyCode());
         }
         if (Unfair.moduleManager.modules.get(Sprint.class).isEnabled()) {
@@ -77,6 +80,10 @@ public class InvWalk extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
+        if (!this.isEnabled()) {
+            this.clickQueue.clear();
+            return;
+        }
         if (event.type() == EventType.PRE) {
             while (!this.clickQueue.isEmpty()) {
                 PacketUtil.sendPacketNoEvent(this.clickQueue.poll());
@@ -140,6 +147,7 @@ public class InvWalk extends Module {
                         }
                         if (this.pendingStatus != null) {
                             KeyBinding.unPressAllKeys();
+                            this.keysPressed = false;
                             event.setCancelled(true);
                             this.clickQueue.offer(packet);
                         }
@@ -150,6 +158,7 @@ public class InvWalk extends Module {
                         event.setCancelled(true);
                     } else {
                         KeyBinding.unPressAllKeys();
+                        this.keysPressed = false;
                         event.setCancelled(true);
                         this.clickQueue.offer(packet);
                         this.delayTicks = 8;
@@ -164,17 +173,20 @@ public class InvWalk extends Module {
 
     @Override
     public void onDisabled() {
-        if (this.keysPressed) {
-            if (mc.currentScreen != null) {
-                KeyBinding.unPressAllKeys();
+        if (mc.currentScreen != null) {
+            KeyBinding.unPressAllKeys();
+        } else {
+            for (KeyBinding keyBinding : getMovementKeys()) {
+                KeyBindUtil.updateKeyState(keyBinding.getKeyCode());
             }
-            this.keysPressed = false;
         }
+        this.keysPressed = false;
+        this.clickQueue.clear();
+        this.delayTicks = 0;
         if (this.pendingStatus != null) {
             PacketUtil.sendPacketNoEvent(this.pendingStatus);
             this.pendingStatus = null;
         }
-        this.delayTicks = 0;
     }
 
     @Override
