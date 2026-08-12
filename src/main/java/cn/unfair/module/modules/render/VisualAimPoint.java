@@ -1,9 +1,9 @@
 package cn.unfair.module.modules.render;
 
 import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
 import cn.unfair.events.Render3DEvent;
 import cn.unfair.events.UpdateEvent;
-import cn.unfair.event.types.EventType;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;

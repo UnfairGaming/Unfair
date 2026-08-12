@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
-import net.minecraft.rendering.phosphor.api.IChunkLighting;
 import net.minecraft.rendering.phosphor.api.IChunkLightingData;
 import net.minecraft.rendering.phosphor.api.ILightingEngine;
 import net.minecraft.rendering.phosphor.api.ILightingEngineProvider;

@@ -1,5 +1,6 @@
 package net.minecraft.client.network;
 
+import cn.unfair.util.via.*;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -12,15 +13,6 @@ import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
-import cn.unfair.util.via.ViaProtocol;
-import cn.unfair.util.via.ModernOffhandInteraction;
-import cn.unfair.util.via.ModernOffhandInventory;
-import cn.unfair.util.via.ModernOffhandStorage;
-import cn.unfair.util.via.ModernPlayerPhysics;
-import cn.unfair.util.via.ModernSequenceStorage;
-import cn.unfair.util.via.ViaBackwardsItemModels;
-import cn.unfair.util.via.RespawnAnchorBlockTracker;
-import cn.unfair.util.via.DirtPathBlockTracker;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;

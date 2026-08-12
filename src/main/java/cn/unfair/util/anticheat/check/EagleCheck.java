@@ -5,8 +5,6 @@ import cn.unfair.util.anticheat.AntiCheatCheck;
 import cn.unfair.util.anticheat.AnticheatManager;
 import net.minecraft.entity.player.EntityPlayer;
 
-import java.util.List;
-
 public class EagleCheck extends AntiCheatCheck {
     public EagleCheck() {
         super("Eagle", "Detects mechanical eagle patterns.");

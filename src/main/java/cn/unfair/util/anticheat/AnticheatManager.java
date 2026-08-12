@@ -1,34 +1,19 @@
 package cn.unfair.util.anticheat;
 
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.PacketEvent;
 import cn.unfair.module.modules.misc.AntiCheat;
 import cn.unfair.util.ChatUtil;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.event.types.EventType;
-import cn.unfair.util.anticheat.check.AutoBlockCheck;
-import cn.unfair.util.anticheat.check.EagleCheck;
-import cn.unfair.util.anticheat.check.NoSlowCCheck;
-import cn.unfair.util.anticheat.check.ScaffoldCheck;
-import cn.unfair.util.anticheat.check.AutoClickerACheck;
-import cn.unfair.util.anticheat.check.AutoClickerBCheck;
-import cn.unfair.util.anticheat.check.InvalidSwingCheck;
-import cn.unfair.util.anticheat.check.MotionACheck;
-import cn.unfair.util.anticheat.check.MotionBCheck;
-import cn.unfair.util.anticheat.check.NoSlowACheck;
-import cn.unfair.util.anticheat.check.NoSlowBCheck;
+import cn.unfair.util.anticheat.check.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S0BPacketAnimation;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.network.play.server.S14PacketEntity;
 import net.minecraft.network.play.server.S18PacketEntityTeleport;
-import net.minecraft.network.play.server.S0BPacketAnimation;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AnticheatManager {

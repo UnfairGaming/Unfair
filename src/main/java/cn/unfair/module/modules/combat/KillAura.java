@@ -17,8 +17,8 @@ import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
-import cn.unfair.util.rotation.*;
 import cn.unfair.util.player.DelayGenerator;
+import cn.unfair.util.rotation.*;
 import com.google.common.base.CaseFormat;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
@@ -48,8 +48,11 @@ import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.WorldSettings.GameType;
 
-import java.awt.Color;
-import java.util.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class KillAura extends Module {

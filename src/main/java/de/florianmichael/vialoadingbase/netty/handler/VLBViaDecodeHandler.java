@@ -18,6 +18,7 @@
 
 package de.florianmichael.vialoadingbase.netty.handler;
 
+import cn.unfair.util.via.ModernOffhandStorage;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.minecraft.item.Item;
@@ -30,9 +31,8 @@ import com.viaversion.viaversion.exception.CancelCodecException;
 import com.viaversion.viaversion.exception.CancelDecoderException;
 import com.viaversion.viaversion.exception.InformativeException;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ClientboundPackets1_9;
-import cn.unfair.util.via.ModernOffhandStorage;
-import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import com.viaversion.viaversion.util.PipelineUtil;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;

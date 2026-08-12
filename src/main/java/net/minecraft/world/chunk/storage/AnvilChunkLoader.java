@@ -6,7 +6,6 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.rendering.phosphor.api.IChunkLightingData;
 import net.minecraft.rendering.phosphor.api.ILightingEngineProvider;
 import net.minecraft.rendering.phosphor.lighting.LightingHooks;
 import net.minecraft.tileentity.TileEntity;

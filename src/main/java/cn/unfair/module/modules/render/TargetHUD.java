@@ -30,7 +30,6 @@ import net.minecraft.util.ResourceLocation;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.List;
 import java.util.Locale;
 
 public class TargetHUD extends ModuleWithModuleSettings {

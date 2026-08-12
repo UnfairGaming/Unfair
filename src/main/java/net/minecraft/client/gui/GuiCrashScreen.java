@@ -2,7 +2,7 @@ package net.minecraft.client.gui;
 
 import net.minecraft.crash.CrashReport;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.File;
 import java.util.Locale;
 

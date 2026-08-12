@@ -4,11 +4,9 @@ import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
 import cn.unfair.util.anticheat.AnticheatManager;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemSword;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class AutoBlockCheck extends AntiCheatCheck {

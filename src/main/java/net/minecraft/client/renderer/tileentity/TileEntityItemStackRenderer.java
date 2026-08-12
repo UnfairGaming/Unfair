@@ -19,8 +19,6 @@ import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 
-import java.util.UUID;
-
 public class TileEntityItemStackRenderer
 {
     private static final ResourceLocation SHIELD_BASE_TEXTURE = ResourceLocation.of("textures/entity/shield_base_nopattern.png");

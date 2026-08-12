@@ -6,7 +6,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.dispenser.*;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IProjectile;
 import net.minecraft.entity.item.EntityBoat;
@@ -31,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.PrintStream;
 import java.util.Random;
-import java.util.UUID;
 
 public class Bootstrap
 {

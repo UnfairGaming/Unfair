@@ -1,11 +1,11 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.RenderItemEvent;
 import cn.unfair.events.SwingAnimationEvent;
-import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
@@ -18,8 +18,8 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemMap;
 import net.minecraft.network.play.client.C07PacketPlayerDigging;
 import net.minecraft.network.play.client.C0APacketAnimation;
-import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import org.lwjgl.opengl.GL11;
 
 public class Animations extends Module {

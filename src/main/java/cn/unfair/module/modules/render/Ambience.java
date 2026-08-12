@@ -5,18 +5,14 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S03PacketTimeUpdate;
 import net.minecraft.network.play.server.S2BPacketChangeGameState;
 import net.minecraft.util.Vec3;
 
-import java.awt.Color;
+import java.awt.*;
 
 public class Ambience extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

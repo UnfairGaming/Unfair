@@ -1,6 +1,5 @@
 package net.minecraft.client.renderer;
 
-import cn.unfair.module.modules.render.Animations;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.PickEvent;
@@ -11,6 +10,7 @@ import cn.unfair.module.modules.player.AntiDebuff;
 import cn.unfair.module.modules.player.AutoBlockIn;
 import cn.unfair.module.modules.player.GhostHand;
 import cn.unfair.module.modules.player.Scaffold;
+import cn.unfair.module.modules.render.Animations;
 import cn.unfair.module.modules.render.FreeLook;
 import cn.unfair.module.modules.render.NoHurtCam;
 import cn.unfair.module.modules.render.ViewClip;

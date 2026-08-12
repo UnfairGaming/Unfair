@@ -11,7 +11,6 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.*;
-import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 
 import java.util.Iterator;

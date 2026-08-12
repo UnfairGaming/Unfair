@@ -10,7 +10,6 @@ import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.property.properties.IntProperty;
@@ -22,8 +21,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
-import static cn.unfair.util.BadPacketUtil.bad;
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
+import static cn.unfair.util.BadPacketUtil.bad;
 
 public class GrimReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();

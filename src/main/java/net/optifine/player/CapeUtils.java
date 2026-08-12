@@ -11,8 +11,6 @@ import net.minecraft.util.ResourceLocation;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.io.File;
 import java.util.regex.Pattern;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})

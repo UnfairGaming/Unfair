@@ -1,7 +1,6 @@
 package net.minecraft.client.renderer.entity.layers;
 
 import cn.unfair.util.via.ModernOffhandInteraction;
-import cn.unfair.util.via.ModernOffhandInventory;
 import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;

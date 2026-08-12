@@ -1,14 +1,13 @@
 package net.minecraft.entity.player;
 
-import cn.unfair.util.via.ViaBackwardsItemModels;
-import cn.unfair.util.via.ModernOffhandInteraction;
-import cn.unfair.util.via.ModernOffhandInventory;
-import cn.unfair.util.via.ModernPlayerPhysics;
-import cn.unfair.util.via.ViaProtocol;
-import cn.unfair.module.modules.render.Animations;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.combat.velocity.PolarVelocity;
 import cn.unfair.module.modules.movement.KeepSprint;
+import cn.unfair.module.modules.render.Animations;
+import cn.unfair.util.via.ModernOffhandInteraction;
+import cn.unfair.util.via.ModernPlayerPhysics;
+import cn.unfair.util.via.ViaBackwardsItemModels;
+import cn.unfair.util.via.ViaProtocol;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;

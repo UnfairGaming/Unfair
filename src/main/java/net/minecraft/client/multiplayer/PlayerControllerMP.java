@@ -1,16 +1,10 @@
 package net.minecraft.client.multiplayer;
 
-import cn.unfair.util.via.ViaBackwardsItemModels;
-import cn.unfair.util.via.RespawnAnchorBlockTracker;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.CancelUseEvent;
 import cn.unfair.events.WindowClickEvent;
-import cn.unfair.util.via.ViaVersionFix;
-import cn.unfair.util.via.BlockStatePredictionHandler;
-import cn.unfair.util.via.ViaProtocol;
-import cn.unfair.util.via.ModernOffhandInteraction;
-import cn.unfair.util.via.DirtPathBlockTracker;
+import cn.unfair.util.via.*;
 import com.viaversion.viabackwards.protocol.v1_19_1to1_19.Protocol1_19_1To1_19;
 import com.viaversion.viabackwards.protocol.v1_19_3to1_19_1.Protocol1_19_3To1_19_1;
 import com.viaversion.viabackwards.protocol.v1_19_4to1_19_3.Protocol1_19_4To1_19_3;

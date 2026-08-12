@@ -1,6 +1,8 @@
 package cn.unfair.util.anticheat.check;
 
-import cn.unfair.util.anticheat.*;
+import cn.unfair.util.anticheat.ACPlayerData;
+import cn.unfair.util.anticheat.AntiCheatCheck;
+import cn.unfair.util.anticheat.AnticheatManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S0BPacketAnimation;
 

@@ -18,7 +18,6 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 import java.util.List;
-import java.util.UUID;
 
 public class ItemSkull extends Item
 {

@@ -4,7 +4,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.rendering.phosphor.PooledLongQueue;
-import net.minecraft.rendering.phosphor.api.IChunkLighting;
 import net.minecraft.rendering.phosphor.api.ILightingEngine;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;

@@ -10,8 +10,6 @@ import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
 
-import java.util.UUID;
-
 public class TileEntitySkull extends TileEntity
 {
     private int skullType;

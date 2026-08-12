@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.UserListBansEntry;
 import net.minecraft.util.BlockPos;
 
-import java.util.Date;
 import java.util.List;
 
 public class CommandBanPlayer extends CommandBase
