@@ -366,6 +366,9 @@ public class Scaffold extends Module {
             maxDeltaYaw = clutchSpeed;
             maxDeltaPitch = clutchSpeed;
         }
+        if (!mc.thePlayer.onGround && mc.gameSettings.keyBindJump.isKeyDown()) {
+            maxDeltaYaw = Math.min(maxDeltaYaw, 45.0F);
+        }
         float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - this.serverYaw);
         if (Math.abs(deltaYaw) > maxDeltaYaw) {
             this.serverYaw = RotationUtil.quantizeAngle(this.serverYaw + Math.signum(deltaYaw) * maxDeltaYaw);
