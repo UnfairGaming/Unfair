@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ShaderUtils {
+public class ShaderUtil {
     private static final String DEFAULT_VERTEX = "#version 120\n" +
             "void main() {\n" +
             "gl_TexCoord[0] = gl_MultiTexCoord0;\n" +
@@ -88,19 +88,19 @@ public class ShaderUtils {
     private final int programID;
     private final Map<String, Integer> uniformLocations = new HashMap<>();
 
-    public ShaderUtils(String fragmentName) {
+    public ShaderUtil(String fragmentName) {
         this(fragmentName, DEFAULT_VERTEX);
     }
 
-    public ShaderUtils(String fragment, boolean inlineSource) {
+    public ShaderUtil(String fragment, boolean inlineSource) {
         this(fragment, DEFAULT_VERTEX, inlineSource);
     }
 
-    public ShaderUtils(String fragmentName, String vertexSource) {
+    public ShaderUtil(String fragmentName, String vertexSource) {
         this(fragmentName, vertexSource, false);
     }
 
-    public ShaderUtils(String fragment, String vertexSource, boolean inlineSource) {
+    public ShaderUtil(String fragment, String vertexSource, boolean inlineSource) {
         int program = GL20.glCreateProgram();
         int vertexShader = createShader(vertexSource, GL20.GL_VERTEX_SHADER);
         int fragmentShader = createShader(inlineSource ? fragment : loadFragment(fragment), GL20.GL_FRAGMENT_SHADER);

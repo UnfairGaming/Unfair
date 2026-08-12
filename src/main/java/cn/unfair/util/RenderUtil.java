@@ -1,7 +1,7 @@
 package cn.unfair.util;
 
 import cn.unfair.enums.ChatColors;
-import cn.unfair.util.postprocessing.ShaderUtils;
+import cn.unfair.util.postprocessing.ShaderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -287,12 +287,12 @@ public class RenderUtil {
                         vec4 texColor = texture2D(tex, gl_TexCoord[0].st) * color;
                         gl_FragColor = vec4(texColor.rgb, texColor.a * smoothedAlpha);
                     }""";
-    private static final ShaderUtils roundedShader = new ShaderUtils(ROUNDED_RECT_SRC, true);
-    private static final ShaderUtils multiRadiusShader = new ShaderUtils(MULTI_RADIUS_SRC, true);
-    private static final ShaderUtils roundedGradientShader = new ShaderUtils(ROUNDED_GRADIENT_SRC, true);
-    private static final ShaderUtils roundedGradientOutlineShader = new ShaderUtils(ROUNDED_GRADIENT_OUTLINE_SRC, true);
-    private static final ShaderUtils circleShader = new ShaderUtils(CIRCLE_SRC, true);
-    private static ShaderUtils roundedTextureShader;
+    private static final ShaderUtil roundedShader = new ShaderUtil(ROUNDED_RECT_SRC, true);
+    private static final ShaderUtil multiRadiusShader = new ShaderUtil(MULTI_RADIUS_SRC, true);
+    private static final ShaderUtil roundedGradientShader = new ShaderUtil(ROUNDED_GRADIENT_SRC, true);
+    private static final ShaderUtil roundedGradientOutlineShader = new ShaderUtil(ROUNDED_GRADIENT_OUTLINE_SRC, true);
+    private static final ShaderUtil circleShader = new ShaderUtil(CIRCLE_SRC, true);
+    private static ShaderUtil roundedTextureShader;
     private static Minecraft mc;
     private static Frustum cameraFrustum;
     private static IntBuffer viewportBuffer;
@@ -1544,7 +1544,7 @@ public class RenderUtil {
 
         if (roundedTextureShader == null) {
             try {
-                roundedTextureShader = new ShaderUtils(ROUNDED_TEXTURE_SRC, true);
+                roundedTextureShader = new ShaderUtil(ROUNDED_TEXTURE_SRC, true);
             } catch (IllegalStateException ignored) {
                 renderPlayerHead(entity, x, y, size, color);
                 return;
@@ -2027,7 +2027,7 @@ public class RenderUtil {
         return cachedScaleFactor;
     }
 
-    private static void setupRoundedRectUniforms(ShaderUtils shader, float x, float y, float width, float height) {
+    private static void setupRoundedRectUniforms(ShaderUtil shader, float x, float y, float width, float height) {
         int sf = getScaleFactor();
         float locX = x * sf;
         float locY = y * sf;
@@ -2059,7 +2059,7 @@ public class RenderUtil {
         cachedScaledHeight = sr.getScaledHeight();
     }
 
-    private static void setShaderColor(ShaderUtils shader, String uniform, int color) {
+    private static void setShaderColor(ShaderUtil shader, String uniform, int color) {
         shader.setUniformf(
                 uniform,
                 (color >> 16 & 255) / 255.0F,

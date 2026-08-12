@@ -3,7 +3,7 @@ package cn.unfair.ui.mainmenu;
 import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
-import cn.unfair.util.postprocessing.ShaderUtils;
+import cn.unfair.util.postprocessing.ShaderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;
@@ -19,7 +19,7 @@ public final class MainMenuStyle {
     public static final int WHITE_208 = new Color(255, 255, 255, 208).getRGB();
     public static final int WHITE_170 = new Color(255, 255, 255, 170).getRGB();
     private static final int ANDROID_BACKGROUND_COLOR = 0xFFA3A5A2;
-    private static ShaderUtils backgroundShader;
+    private static ShaderUtil backgroundShader;
 
     private MainMenuStyle() {
     }
@@ -33,14 +33,14 @@ public final class MainMenuStyle {
         }
 
         if (backgroundShader == null) {
-            backgroundShader = new ShaderUtils("minecraft:shaders/dark_mainmenu.fsh");
+            backgroundShader = new ShaderUtil("minecraft:shaders/dark_mainmenu.fsh");
         }
         Minecraft mc = Minecraft.getMinecraft();
         GlStateManager.disableAlpha();
         backgroundShader.init();
         backgroundShader.setUniformf("TIME", (System.currentTimeMillis() % 1000000L) / 1000.0F + partialTicks * 0.05F);
         backgroundShader.setUniformf("RESOLUTION", mc.displayWidth, mc.displayHeight);
-        ShaderUtils.drawQuads((float) width, (float) height);
+        ShaderUtil.drawQuads((float) width, (float) height);
         backgroundShader.unload();
         GlStateManager.enableAlpha();
         RenderUtil.drawRect(0.0D, 0.0D, width, height, OVERLAY);

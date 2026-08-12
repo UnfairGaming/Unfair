@@ -32,7 +32,7 @@ public class GlowESPOutlineShader {
             "}"
     );
 
-    private final ShaderUtils shader = new ShaderUtils(SHADER, true);
+    private final ShaderUtil shader = new ShaderUtil(SHADER, true);
 
     public void use() {
         this.shader.init();

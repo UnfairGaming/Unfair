@@ -60,7 +60,7 @@ public class BlurShader {
             "    }\n" +
             "}";
 
-    private static ShaderUtils shader;
+    private static ShaderUtil shader;
     private static Framebuffer pass1;
     private static Framebuffer pass2;
 
@@ -81,9 +81,9 @@ public class BlurShader {
         }
     }
 
-    private static ShaderUtils ensureShader() {
+    private static ShaderUtil ensureShader() {
         if (shader == null) {
-            shader = new ShaderUtils(FRAGMENT, VERTEX, true);
+            shader = new ShaderUtil(FRAGMENT, VERTEX, true);
         }
         return shader;
     }
@@ -95,7 +95,7 @@ public class BlurShader {
         }
 
         ensureFramebuffers();
-        ShaderUtils s = ensureShader();
+        ShaderUtil s = ensureShader();
 
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         GL11.glClearColor(0, 0, 0, 0);
@@ -109,7 +109,7 @@ public class BlurShader {
         s.setUniformf("BlurCoord", w, h);
         s.setUniformf("Radius", radius);
         GlStateManager.bindTexture(inputTexture);
-        ShaderUtils.drawQuads();
+        ShaderUtil.drawQuads();
         s.unload();
 
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
@@ -124,7 +124,7 @@ public class BlurShader {
         s.setUniformf("BlurCoord", w, h);
         s.setUniformf("Radius", radius);
         GlStateManager.bindTexture(pass1.framebufferTexture);
-        ShaderUtils.drawQuads();
+        ShaderUtil.drawQuads();
         s.unload();
 
         mc.getFramebuffer().forceBind(true);

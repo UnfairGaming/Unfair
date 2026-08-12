@@ -16,8 +16,8 @@ import static org.lwjgl.opengl.GL11.GL_ONE;
 
 public class BloomShader {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final ShaderUtils KAWASE_DOWN = new ShaderUtils("kawaseDownBloom");
-    private static final ShaderUtils KAWASE_UP = new ShaderUtils("kawaseUpBloom");
+    private static final ShaderUtil KAWASE_DOWN = new ShaderUtil("kawaseDownBloom");
+    private static final ShaderUtil KAWASE_UP = new ShaderUtil("kawaseUpBloom");
     private static final List<Framebuffer> framebufferList = new ArrayList<>();
     private static Framebuffer inputFramebuffer;
     private static int currentIterations;
@@ -100,7 +100,7 @@ public class BloomShader {
         GlStateManager.bindTexture(framebufferTexture);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         GlStateManager.bindTexture(framebufferList.get(1).framebufferTexture);
-        ShaderUtils.drawQuads();
+        ShaderUtil.drawQuads();
         KAWASE_UP.unload();
 
         GL11.glClearColor(0, 0, 0, 0);
@@ -108,7 +108,7 @@ public class BloomShader {
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GlStateManager.bindTexture(framebufferList.get(0).framebufferTexture);
-        ShaderUtils.drawFixedQuads();
+        ShaderUtil.drawFixedQuads();
         GlStateManager.bindTexture(0);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
     }
@@ -123,7 +123,7 @@ public class BloomShader {
         KAWASE_DOWN.setUniformf("iResolution", fb.framebufferWidth, fb.framebufferHeight);
         KAWASE_DOWN.setUniformi("inTexture", 0);
         GlStateManager.bindTexture(texture);
-        ShaderUtils.drawQuads();
+        ShaderUtil.drawQuads();
         KAWASE_DOWN.unload();
     }
 
@@ -140,7 +140,7 @@ public class BloomShader {
         KAWASE_UP.setUniformi("textureToCheck", 1);
         KAWASE_UP.setUniformf("color", color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f);
         GlStateManager.bindTexture(texture);
-        ShaderUtils.drawQuads();
+        ShaderUtil.drawQuads();
         KAWASE_UP.unload();
     }
 }

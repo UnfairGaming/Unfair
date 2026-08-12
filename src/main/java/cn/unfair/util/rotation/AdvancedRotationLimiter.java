@@ -269,10 +269,10 @@ public class AdvancedRotationLimiter {
                     float basePitch = (Math.abs(pitchDiff * 0.7F) + Math.abs(avgPitchDiff * RandomUtil.nextFloat(0.8F, 1.6F))) / 180.0F;
                     basePitch = MathHelper.clamp_float(basePitch, 0.0F, 1.0F);
 
-                    float factorYaw = MathHelper.clamp_float(AdvancedRotationMath.interpolate(0.14F, 0.29F, smooth(baseYaw, 2.0F)), 0.0F, 0.29F);
-                    float factorPitch = MathHelper.clamp_float(AdvancedRotationMath.interpolate(0.14F, 0.29F, smooth(basePitch, 2.0F)), 0.0F, 0.29F);
+                    float factorYaw = MathHelper.clamp_float(AdvancedRotationMath.interpolate(0.14F, 0.35F, smooth(baseYaw, 2.0F)), 0.0F, 0.35F);
+                    float factorPitch = MathHelper.clamp_float(AdvancedRotationMath.interpolate(0.14F, 0.35F, smooth(basePitch, 2.0F)), 0.0F, 0.35F);
 
-                    float f = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+                    float f = mc.gameSettings.mouseSensitivity * 0.5F + 0.2F;
                     float f1 = f * f * f * 8.0F;
                     if (Math.abs(lastAccelDeltaYaw) < f1 * 0.15F) {
                         float incYaw = MathHelper.clamp_float(0.15F * (Math.abs(yawDifference) / 50.0F), 0.0F, 1.0F);

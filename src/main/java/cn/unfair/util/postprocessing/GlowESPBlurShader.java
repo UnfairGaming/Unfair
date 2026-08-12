@@ -52,7 +52,7 @@ public class GlowESPBlurShader {
             "}"
     );
 
-    private final ShaderUtils shader = new ShaderUtils(SHADER, true);
+    private final ShaderUtil shader = new ShaderUtil(SHADER, true);
     private final FloatBuffer weights = BufferUtils.createFloatBuffer(256);
     private float lastRadius = -1.0F;
 

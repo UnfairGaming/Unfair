@@ -70,7 +70,7 @@ public class PostProcessing {
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         GlStateManager.bindTexture(tex);
-        ShaderUtils.drawQuads();
+        ShaderUtil.drawQuads();
         GlStateManager.bindTexture(0);
     }
 

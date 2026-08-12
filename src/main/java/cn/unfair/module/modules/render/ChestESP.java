@@ -10,7 +10,7 @@ import cn.unfair.property.properties.*;
 import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.postprocessing.GlowESPBlurShader;
-import cn.unfair.util.postprocessing.ShaderUtils;
+import cn.unfair.util.postprocessing.ShaderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -180,7 +180,7 @@ public class ChestESP extends Module {
             this.blurShader.use();
             this.blurShader.setup(2.0F, 0.0F, radius, this.glowExposure.getValue(), color);
             RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
-            ShaderUtils.drawQuads();
+            ShaderUtil.drawQuads();
             this.blurShader.stop();
             this.glowFrameBuffer.unbindFramebuffer();
 
@@ -192,7 +192,7 @@ public class ChestESP extends Module {
             GL13.glActiveTexture(GL13.GL_TEXTURE16);
             RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
-            ShaderUtils.drawQuads();
+            ShaderUtil.drawQuads();
             this.blurShader.stop();
         } finally {
             this.glowFrameBuffer.unbindFramebuffer();
