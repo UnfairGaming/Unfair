@@ -19,6 +19,7 @@
 package de.florianmichael.vialoadingbase.netty.handler;
 
 import cn.unfair.util.via.ModernOffhandStorage;
+import cn.unfair.util.via.ModernBlockStateTracker;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.minecraft.item.Item;
@@ -47,6 +48,7 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
 
     public VLBViaDecodeHandler(UserConnection user) {
         this.user = user;
+        ModernBlockStateTracker.clear();
     }
 
     @Override

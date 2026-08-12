@@ -11,6 +11,8 @@ import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
+import cn.unfair.util.animation.Animation;
+import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiGameOver;
@@ -38,28 +40,46 @@ public class BackTrack extends Module {
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
     public static boolean shouldLag;
-    public final BooleanProperty onlyWhenNeeded = new BooleanProperty("only-when-needed", false);
-    public final FloatProperty attackRange = new FloatProperty("attack-range", 3.0F, 0.1F, 8.0F, this.onlyWhenNeeded::getValue);
-    public final FloatProperty rangeStart = new FloatProperty("range-start", 3.0F, 1.0F, 8.0F, () -> !this.onlyWhenNeeded.getValue());
-    public final FloatProperty rangeEnd = new FloatProperty("range-end", 6.0F, 1.0F, 8.0F, () -> !this.onlyWhenNeeded.getValue());
-    public final ModeProperty rangeBase = new ModeProperty("range-base", 0, new String[]{"MOUSE_OVER", "HURT_TIME", "ATTACK"}, this.onlyWhenNeeded::getValue);
-    public final BooleanProperty attackTickFix = new BooleanProperty("attack-tick-fix", false, this.onlyWhenNeeded::getValue);
-    public final IntProperty predictionTicks = new IntProperty("prediction-ticks", 1, 0, 10, this.onlyWhenNeeded::getValue);
-    public final IntProperty hurtTimeToWork = new IntProperty("hurt-time-to-work", 3, 0, 10, this.onlyWhenNeeded::getValue);
-    public final BooleanProperty extraCheck = new BooleanProperty("extra-check", true);
-    public final IntProperty ms = new IntProperty("delay-ms", 50, 0, 1000);
-    public final BooleanProperty extraMS = new BooleanProperty("extra-ms", false);
-    public final IntProperty extraRand = new IntProperty("extra-rand", 50, 0, 500);
-    public final IntProperty delayForNextLag = new IntProperty("delay-for-next-lag", 0, 0, 1000);
-    public final ModeProperty esp = new ModeProperty("mode", 1, new String[]{"FAKE_PLAYER", "BOX", "NONE"});
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"CLASSIC", "LEIGTREACH"}) {
+        @Override
+        public boolean read(JsonObject jsonObject) {
+            String configuredMode = jsonObject.get(this.getName()).getAsString();
+            if (configuredMode.equalsIgnoreCase("FAKE_PLAYER")
+                    || configuredMode.equalsIgnoreCase("BOX")
+                    || configuredMode.equalsIgnoreCase("NONE")) {
+                BackTrack.this.esp.parseString(configuredMode);
+                return this.setValue(0);
+            }
+            return super.read(jsonObject);
+        }
+    };
+    public final BooleanProperty onlyWhenNeeded = new BooleanProperty("only-when-needed", false, this::isClassic);
+    public final FloatProperty attackRange = new FloatProperty("attack-range", 3.0F, 0.1F, 8.0F, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final FloatProperty rangeStart = new FloatProperty("range-start", 3.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
+    public final FloatProperty rangeEnd = new FloatProperty("range-end", 6.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
+    public final ModeProperty rangeBase = new ModeProperty("range-base", 0, new String[]{"MOUSE_OVER", "HURT_TIME", "ATTACK"}, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final BooleanProperty attackTickFix = new BooleanProperty("attack-tick-fix", false, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final IntProperty predictionTicks = new IntProperty("prediction-ticks", 1, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final IntProperty hurtTimeToWork = new IntProperty("hurt-time-to-work", 3, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final BooleanProperty extraCheck = new BooleanProperty("extra-check", true, this::isClassic);
+    public final IntProperty ms = new IntProperty("delay-ms", 50, 0, 1000, this::isClassic);
+    public final BooleanProperty extraMS = new BooleanProperty("extra-ms", false, this::isClassic);
+    public final IntProperty extraRand = new IntProperty("extra-rand", 50, 0, 500, this::isClassic);
+    public final IntProperty delayForNextLag = new IntProperty("delay-for-next-lag", 0, 0, 1000, this::isClassic);
+    public final IntProperty maxPingSpoof = new IntProperty("max-ping-spoof", 1000, 50, 10000, this::isLegitReach);
+    public final BooleanProperty renderRealLocation = new BooleanProperty("render-real-location", true, this::isLegitReach);
+    public final ModeProperty esp = new ModeProperty("render-mode", 1, new String[]{"FAKE_PLAYER", "BOX", "NONE"}, this::isClassic);
     public final BooleanProperty players = new BooleanProperty("players", true);
     public final BooleanProperty mobs = new BooleanProperty("mobs", false);
     public final BooleanProperty animals = new BooleanProperty("animals", false);
-    public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.esp.getValue() == 1);
-    public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
-    public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.esp.getValue() == 1);
+    public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
+    public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
+    private final Animation animatedX = new Animation(150L);
+    private final Animation animatedY = new Animation(150L);
+    private final Animation animatedZ = new Animation(150L);
     public boolean isBackTracking;
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
@@ -69,9 +89,18 @@ public class BackTrack extends Module {
     private boolean outOfRange;
     private boolean attacked;
     private int nextRand;
+    private int activeMode;
 
     public BackTrack() {
         super("BackTrack", false);
+    }
+
+    private boolean isClassic() {
+        return this.mode.getValue() == 0;
+    }
+
+    private boolean isLegitReach() {
+        return this.mode.getValue() == 1;
     }
 
     private static double getDistanceToEntityBox(Entity entity) {
@@ -188,6 +217,7 @@ public class BackTrack extends Module {
 
     @Override
     public void onEnabled() {
+        this.activeMode = this.mode.getValue();
         realPosition = zeroVec();
         realLastPos = zeroVec();
         this.lastRenderPosition = null;
@@ -212,7 +242,7 @@ public class BackTrack extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{this.getDelayMs() + "ms"};
+        return new String[]{this.mode.getModeString()};
     }
 
     @EventTarget
@@ -221,9 +251,10 @@ public class BackTrack extends Module {
             return;
         }
 
+        this.checkModeChange();
         if (event.type() == EventType.PRE) {
             BackTrackLagUtils.onPreTick();
-        } else if (event.type() == EventType.POST) {
+        } else if (event.type() == EventType.POST && this.isClassic()) {
             if (this.target != null && realPosition != null) {
                 if (this.currentRenderPosition == null) {
                     this.lastRenderPosition = realPosition;
@@ -244,7 +275,66 @@ public class BackTrack extends Module {
             return;
         }
 
-        this.runBackTrack();
+        this.checkModeChange();
+        if (this.isClassic()) {
+            this.runBackTrack();
+        } else {
+            this.runLegitReach();
+        }
+    }
+
+    private void runLegitReach() {
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            this.resetTargetState();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
+            this.stopLaggingForRespawn();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        EntityLivingBase newTarget = this.getTarget(9.0D);
+        if (newTarget == null) {
+            this.resetTargetState();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        if (newTarget != this.target || realPosition == null) {
+            this.target = newTarget;
+            this.lastTarget = newTarget;
+            realPosition = getPositionVector(newTarget);
+            realLastPos = realPosition;
+            this.animatedX.snap(realPosition.xCoord);
+            this.animatedY.snap(realPosition.yCoord);
+            this.animatedZ.snap(realPosition.zCoord);
+        }
+
+        KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
+        if (!mc.thePlayer.isSwingInProgress && (killAura == null || !killAura.isEnabled())) {
+            shouldLag = false;
+            this.isBackTracking = false;
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        double realDistance = distance(mc.thePlayer, realPosition);
+        double clientDistance = this.target.getDistanceToEntity(mc.thePlayer);
+        shouldLag = realDistance > clientDistance && realDistance > 2.3D && realDistance < 5.9D;
+        this.isBackTracking = shouldLag;
+
+        if (shouldLag) {
+            BackTrackLagUtils.spoof(this.maxPingSpoof.getValue(), true, true, true, true, false, false);
+            this.dispatched = false;
+        } else if (!this.dispatched) {
+            BackTrackLagUtils.disable();
+            BackTrackLagUtils.dispatch();
+            this.dispatched = true;
+        }
+        BackTrackLagUtils.onPostTick();
     }
 
     private void runBackTrack() {
@@ -342,7 +432,7 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onAttack(AttackEvent event) {
-        if (!this.isEnabled() || event.getTarget() != this.target || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
+        if (!this.isEnabled() || !this.isClassic() || event.getTarget() != this.target || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
             return;
         }
 
@@ -369,7 +459,7 @@ public class BackTrack extends Module {
         }
 
         if (event.getType() == EventType.RECEIVE) {
-            if (this.target != null) {
+            if (this.target != null && realPosition != null) {
                 realLastPos = realPosition;
 
                 if (packet instanceof S14PacketEntity s14PacketEntity) {
@@ -390,7 +480,8 @@ public class BackTrack extends Module {
             }
             BackTrackLagUtils.onPacket(event, PacketDirection.INCOMING);
         } else if (event.getType() == EventType.SEND) {
-            if (packet instanceof C02PacketUseEntity
+            if (this.isClassic()
+                    && packet instanceof C02PacketUseEntity
                     && ((C02PacketUseEntity) packet).getAction().equals(C02PacketUseEntity.Action.ATTACK)
                     && this.attackTickFix.getValue()
                     && !this.dispatched
@@ -403,7 +494,15 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onRender3D(Render3DEvent event) {
-        if (!this.isEnabled() || this.target == null || !shouldLag || this.esp.getValue() != 1) {
+        if (!this.isEnabled() || this.target == null || realPosition == null) {
+            return;
+        }
+
+        if (this.isLegitReach()) {
+            this.renderLegitReachPosition();
+            return;
+        }
+        if (!shouldLag || this.esp.getValue() != 1) {
             return;
         }
 
@@ -417,7 +516,7 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onRenderEntity(RenderEntityEvent event) {
-        if (!this.isEnabled() || this.target == null || this.esp.getValue() != 0 || !shouldLag) {
+        if (!this.isEnabled() || !this.isClassic() || this.target == null || this.esp.getValue() != 0 || !shouldLag) {
             return;
         }
 
@@ -429,6 +528,32 @@ public class BackTrack extends Module {
         );
 
         mc.getRenderManager().doRenderEntity(this.target, renderPosition.xCoord, renderPosition.yCoord, renderPosition.zCoord, this.target.rotationYawHead, partialTicks, true);
+    }
+
+    private void renderLegitReachPosition() {
+        if (!this.renderRealLocation.getValue()) {
+            return;
+        }
+
+        this.animatedX.run(realPosition.xCoord);
+        this.animatedY.run(realPosition.yCoord);
+        this.animatedZ.run(realPosition.zCoord);
+
+        double expand = 0.14D;
+        AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox()
+                .offset(-mc.thePlayer.posX, -mc.thePlayer.posY, -mc.thePlayer.posZ)
+                .offset(this.animatedX.getValue(), this.animatedY.getValue(), this.animatedZ.getValue())
+                .expand(expand, expand, expand)
+                .offset(
+                        -mc.getRenderManager().getRenderPosX(),
+                        -mc.getRenderManager().getRenderPosY(),
+                        -mc.getRenderManager().getRenderPosZ()
+                );
+        Unfair.moduleManager.modules.get(HUD.class);
+        Color color = HUD.getColor(System.currentTimeMillis());
+        RenderUtil.enableRenderState();
+        RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 50);
+        RenderUtil.disableRenderState();
     }
 
     private Color getBoxColor() {
@@ -508,16 +633,35 @@ public class BackTrack extends Module {
                 .orElse(null);
     }
 
+    private void checkModeChange() {
+        if (this.activeMode == this.mode.getValue()) {
+            return;
+        }
+
+        BackTrackLagUtils.disable();
+        BackTrackLagUtils.dispatch();
+        this.activeMode = this.mode.getValue();
+        this.resetTargetState();
+        realPosition = zeroVec();
+        realLastPos = zeroVec();
+    }
+
+    private void resetTargetState() {
+        shouldLag = false;
+        this.isBackTracking = false;
+        this.target = null;
+        this.lastTarget = null;
+        this.lastRenderPosition = null;
+        this.currentRenderPosition = null;
+        this.outOfRange = false;
+        this.attacked = false;
+    }
+
     private void stopLaggingForRespawn() {
         BackTrackLagUtils.disable();
         BackTrackLagUtils.dispatch();
-        shouldLag = false;
         this.dispatched = true;
-        this.outOfRange = false;
-        this.attacked = false;
-        this.target = null;
-        this.lastTarget = null;
-        this.isBackTracking = false;
+        this.resetTargetState();
     }
 
     private enum PacketDirection {

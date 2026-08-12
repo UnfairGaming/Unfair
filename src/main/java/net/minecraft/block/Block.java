@@ -1498,8 +1498,8 @@ public class Block
         registerBlock(196, "acacia_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorAcacia").disableStats());
         registerBlock(197, "dark_oak_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorDarkOak").disableStats());
         registerBlock(208, "dirt_path", (new BlockDirtPath()).setHardness(0.65F).setStepSound(soundTypeGrass).setUnlocalizedName("dirtPath"));
-        registerBlock(209, "campfire", (new BlockCampfire()).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("campfire"));
-        registerBlock(210, "soul_campfire", (new BlockCampfire()).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("soulCampfire"));
+        registerBlock(209, "campfire", (new BlockCampfire(false)).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("campfire"));
+        registerBlock(210, "soul_campfire", (new BlockCampfire(true)).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("soulCampfire"));
         blockRegistry.validateKey();
 
         for (Block block13 : blockRegistry)

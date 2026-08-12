@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.CampfireBlockTracker;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -19,13 +20,16 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Random;
 
-public class BlockCampfire extends BlockDirectional
+public class BlockCampfire extends ModernBlockDirectional
 {
     public static final PropertyBool LIT = PropertyBool.create("lit");
+    private static final EnumFacing[] VIA_FACINGS = {EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
+    private final boolean soul;
 
-    protected BlockCampfire()
+    protected BlockCampfire(boolean soul)
     {
         super(Material.wood);
+        this.soul = soul;
         this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.SOUTH).withProperty(LIT, Boolean.TRUE));
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.4375F, 1.0F);
         this.setLightOpacity(0);
@@ -126,5 +130,28 @@ public class BlockCampfire extends BlockDirectional
     protected BlockState createBlockState()
     {
         return new BlockState(this, new IProperty[] {FACING, LIT});
+    }
+
+    public int getViaStateIdMin()
+    {
+        return this.soul ? 1 : 11216;
+    }
+
+    public int getViaStateIdMax()
+    {
+        return this.soul ? 0 : 11247;
+    }
+
+    public IBlockState getStateFromViaStateId(int stateId)
+    {
+        int data = stateId - this.getViaStateIdMin();
+        return this.getDefaultState()
+                .withProperty(FACING, VIA_FACINGS[data >> 3])
+                .withProperty(LIT, (data & 8) == 0);
+    }
+
+    public void onModernStateApplied(BlockPos pos, IBlockState state)
+    {
+        CampfireBlockTracker.mark(pos, state);
     }
 }

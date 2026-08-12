@@ -584,9 +584,10 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         for (S22PacketMultiBlockChange.BlockUpdateData s22packetmultiblockchange$blockupdatedata : packetIn.getChangedBlocks()) {
             this.clientWorldController.invalidateRegionAndSetBlock(s22packetmultiblockchange$blockupdatedata.getPos(),
-                    RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
-                            CampfireBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
-                                    DirtPathBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState()))));
+                    ModernBlockStateTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
+                            RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
+                                    CampfireBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
+                                            DirtPathBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState())))));
         }
     }
 
@@ -602,6 +603,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         if (packetIn.func_149274_i()) {
             if (packetIn.getExtractedSize() == 0) {
+                ModernBlockStateTracker.clearChunk(packetIn.getChunkX(), packetIn.getChunkZ());
                 this.clientWorldController.doPreChunk(packetIn.getChunkX(), packetIn.getChunkZ(), false);
                 return;
             }
@@ -612,6 +614,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         this.clientWorldController.invalidateBlockReceiveRegion(packetIn.getChunkX() << 4, 0, packetIn.getChunkZ() << 4, (packetIn.getChunkX() << 4) + 15, 256, (packetIn.getChunkZ() << 4) + 15);
         Chunk chunk = this.clientWorldController.getChunkFromChunkCoords(packetIn.getChunkX(), packetIn.getChunkZ());
         chunk.fillChunk(packetIn.getExtractedDataBytes(), packetIn.getExtractedSize(), packetIn.func_149274_i());
+        ModernBlockStateTracker.applyChunk(chunk);
         this.clientWorldController.markBlockRangeForRenderUpdate(packetIn.getChunkX() << 4, 0, packetIn.getChunkZ() << 4, (packetIn.getChunkX() << 4) + 15, 256, (packetIn.getChunkZ() << 4) + 15);
 
         if (!packetIn.func_149274_i() || !(this.clientWorldController.provider instanceof WorldProviderSurface)) {
@@ -629,9 +632,10 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             return;
         }
         this.clientWorldController.invalidateRegionAndSetBlock(packetIn.getBlockPosition(),
-                RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(),
-                        CampfireBlockTracker.remap(packetIn.getBlockPosition(),
-                                DirtPathBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState()))));
+                ModernBlockStateTracker.remap(packetIn.getBlockPosition(),
+                        RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(),
+                                CampfireBlockTracker.remap(packetIn.getBlockPosition(),
+                                        DirtPathBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState())))));
     }
 
     /**
@@ -1286,6 +1290,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             this.clientWorldController.invalidateBlockReceiveRegion(j << 4, 0, k << 4, (j << 4) + 15, 256, (k << 4) + 15);
             Chunk chunk = this.clientWorldController.getChunkFromChunkCoords(j, k);
             chunk.fillChunk(packetIn.getChunkBytes(i), packetIn.getChunkSize(i), true);
+            ModernBlockStateTracker.applyChunk(chunk);
             this.clientWorldController.markBlockRangeForRenderUpdate(j << 4, 0, k << 4, (j << 4) + 15, 256, (k << 4) + 15);
 
             if (!(this.clientWorldController.provider instanceof WorldProviderSurface)) {

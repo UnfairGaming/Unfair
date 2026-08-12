@@ -19,6 +19,7 @@
 package de.florianmichael.viamcp;
 
 import cn.unfair.util.via.BlockStatePredictionHandler;
+import cn.unfair.util.via.ModernBlockStateTracker;
 import com.mojang.authlib.GameProfile;
 import com.viaversion.viabackwards.protocol.v1_11to1_10.Protocol1_11To1_10;
 import com.viaversion.viabackwards.protocol.v1_17to1_16_4.Protocol1_17To1_16_4;
@@ -72,6 +73,8 @@ public class ViaMCP {
                 getAsyncVersionSlider().setVersion(protocolVersion.getVersion());
             }
         }).build();
+
+        ModernBlockStateTracker.install();
 
         //1.17 Logging ViaFix
         Protocol1_20_3To1_20_2 protocol1_20_3To1_20_2 = Via.getManager().getProtocolManager().getProtocol(Protocol1_20_3To1_20_2.class);

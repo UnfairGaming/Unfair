@@ -1,6 +1,11 @@
-# 1.8.9 新增高版本方块支持指南
+# 1.8.9 高版本方块支持指南
 
-本文以 `dirt_path`、`farmland` 和 `campfire` 为例，说明如何把 1.8.9 原本不存在的高版本方块接入客户端，使它能正常显示、放置、同步状态，并按目标协议处理碰撞箱。
+本文说明两类跨版本方块的处理方式：
+
+- 1.8.9 已有、但高版本修改了模型或碰撞的方块，例如 `farmland` 和 `anvil`。
+- 1.8.9 完全不存在、ViaBackwards 会回退成其他旧方块的方块，例如 `dirt_path` 和 `campfire`。
+
+这两类情况必须分开处理。只有第二类方块需要新增本地方块类并继承 `ModernBlock`；第一类方块直接修改原有方块类和资源即可。
 
 ## 1. 先确定方块的协议行为
 
@@ -13,6 +18,11 @@
 - 玩家放置时服务端实际发送什么替代方块。
 - 1.8.9 客户端是否需要本地虚拟方块保存真实状态。
 
+首先检查 1.8.9 是否已经注册了这个方块，并确认 ViaBackwards 转换后是否仍然保留同一个方块身份：
+
+- 身份仍然存在：不要新建方块类，也不要继承 `ModernBlock`。直接像 `BlockAnvil`、`BlockFarmland` 一样，在原类中按目标协议修改模型、边界或碰撞。
+- 身份已经丢失：新增 `ModernBlock`，让 `ModernBlockStateTracker` 在 ViaBackwards fallback 前保存真实状态，并在进入 world 或收到方块更新时恢复本地模型。
+
 推荐把协议判断集中放在 `ViaProtocol`，方块类只负责调用：
 
 ```java
@@ -23,13 +33,58 @@ if (ViaProtocol.olderThanOrEqualsTo1_13_2()) {
 }
 ```
 
-## 2. 新建本地方块类
+## 2. 判断是否需要 ModernBlock
+
+### 2.1 1.8.9 已有的方块
+
+如果 1.8.9 原生已经有该方块，高版本只是修改了模型、渲染边界或碰撞箱，不要新建另一个 block，也不要让原类继承 `ModernBlock`。
+
+参考：
+
+- `src/main/java/net/minecraft/block/BlockAnvil.java`
+- `src/main/java/net/minecraft/block/BlockFarmland.java`
+
+继续使用原生注册项，在原方块类中通过 `ViaProtocol` 选择目标版本行为。例如耕地在 1.8.9 使用完整方块高度的碰撞，从 1.10 开始使用 15/16 高度：
+
+```java
+public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state) {
+    double maxY = ViaProtocol.newerThanOrEqualTo1_10() ? 0.9375D : 1.0D;
+    return new AxisAlignedBB(
+            pos.getX(), pos.getY(), pos.getZ(),
+            pos.getX() + 1.0D, pos.getY() + maxY, pos.getZ() + 1.0D);
+}
+```
+
+模型变化则修改原方块对应的 blockstate、block model 或渲染选择逻辑，不要为了换模型复制一个方块类或占用新的本地方块 ID。必须保证模型边界、选择框和实体碰撞使用相同版本规则。
+
+### 2.2 1.8.9 不存在的方块
+
+只有当 1.8.9 没有该方块，并且 ViaBackwards 会将其 fallback 成另一个旧方块时，才新增本地方块类并继承 `ModernBlock`。
 
 参考：
 
 - `src/main/java/net/minecraft/block/BlockDirtPath.java`
-- `src/main/java/net/minecraft/block/BlockFarmland.java`
 - `src/main/java/net/minecraft/block/BlockCampfire.java`
+- `src/main/java/net/minecraft/block/ModernBlock.java`
+- `src/main/java/net/minecraft/block/ModernBlockDirectional.java`
+
+普通方块继承 `ModernBlock`；需要水平朝向属性的方块继承 `ModernBlockDirectional`。每个现代方块自行声明 Via 1.14 状态 ID 范围并负责解码：
+
+```java
+public int getViaStateIdMin() {
+    return FIRST_STATE_ID;
+}
+
+public int getViaStateIdMax() {
+    return LAST_STATE_ID;
+}
+
+public IBlockState getStateFromViaStateId(int stateId) {
+    return this.getDefaultState();
+}
+```
+
+方块注册完成后，`ModernBlockStateTracker` 会自动扫描所有 `ModernBlock`，无需再在 tracker 内添加方块类型判断。若方块还需要维护放置或交互缓存，可覆写 `onModernStateApplied()`。
 
 方块类至少要处理：
 
@@ -45,7 +100,9 @@ if (ViaProtocol.olderThanOrEqualsTo1_13_2()) {
 
 不要只修改一个固定的 `setBlockBounds`。实体碰撞查询会走 `getCollisionBoundingBox` 和 `addCollisionBoxesToList`，两条路径都要保持一致。
 
-## 3. 注册 Block 和 ItemBlock
+## 3. 注册新增的 Block 和 ItemBlock
+
+本节只适用于 1.8.9 不存在、需要新增 `ModernBlock` 的方块。原生已有方块继续使用原注册项，不要重复注册。
 
 在 `Block.java` 注册方块 ID 和名称，在 `Blocks.java` 增加字段并从注册表取回：
 
@@ -188,7 +245,9 @@ this.registerBlock(Blocks.campfire, "campfire");
 
 ## 7. 处理高版本放置和服务端替换
 
-1.8.9 没有高版本方块时，ViaVersion/ViaBackwards 可能把放置结果临时替换成旧方块。
+本节只适用于 ViaVersion/ViaBackwards 会把真实方块身份替换掉的新增方块。对于 `farmland`、`anvil` 这类 1.8.9 已有且 fallback 后身份仍然正确的方块，不需要本地放置 tracker，也不需要 `ModernBlockStateTracker`。
+
+进入 world 或重新加载区块时，`ModernBlockStateTracker` 会在 ViaBackwards fallback 前读取真实状态，并在 1.8.9 区块加载完成后自动恢复所有已注册 `ModernBlock` 的模型和状态。单方块更新与批量方块更新也走同一套恢复逻辑。
 
 参考：
 
@@ -209,7 +268,7 @@ this.registerBlock(Blocks.campfire, "campfire");
 
 ## 8. 碰撞和渲染测试清单
 
-每新增一个高版本方块，至少测试：
+每新增或适配一个高版本方块，至少测试：
 
 - 世界中放置后模型是否正确。
 - 不同朝向是否正确旋转。
@@ -221,8 +280,10 @@ this.registerBlock(Blocks.campfire, "campfire");
 - 重载资源包后模型和贴图是否仍然存在。
 - 实体从各方向碰撞是否与 Grim 一致。
 - 不同目标协议版本碰撞是否符合对应分支。
-- 服务端发送替代方块后本地显示是否恢复。
-- 方块被破坏、替换、区块重载后 tracker 是否清理。
+- 对于 `ModernBlock`，服务端发送替代方块后本地显示是否恢复。
+- 对于 `ModernBlock`，进入 world、重连和区块重载后是否无需交互就能恢复模型。
+- 对于 `ModernBlock`，方块被破坏、替换、区块卸载后 tracker 是否清理。
+- 对于原生已有方块，确认没有重复注册、本地替换或多余 tracker 状态。
 
 ## 9. 编译和资源校验
 
@@ -241,10 +302,11 @@ Get-Content src/main/resources/assets/minecraft/models/block/example.json -Raw |
 
 按下面顺序实现，排错最省时间：
 
-1. 先加纹理和一个最简单的自包含 block 模型。
-2. 加 blockstate，确认世界显示。
-3. 加 ItemBlock 和 `RenderItem` 注册，确认物品栏/手持。
-4. 再加状态属性和朝向。
-5. 最后接放置拦截、服务端替换和 tracker。
-6. 依据 Grim 补齐碰撞分支。
-7. 运行编译和完整游戏内测试。
+1. 先确认 1.8.9 是否已有该方块，以及 ViaBackwards fallback 后是否保留方块身份。
+2. 原生已有方块直接修改原类和资源，按 `ViaProtocol` 补齐模型与碰撞分支，到此不接 `ModernBlock` 或 tracker。
+3. 原生不存在的方块先加纹理、自包含 block 模型和 blockstate，确认世界显示。
+4. 为新增方块继承 `ModernBlock` 或 `ModernBlockDirectional`，声明协议状态范围和解码规则。
+5. 添加 ItemBlock、`ModelBakery` 和 `RenderItem` 注册，确认物品栏与手持。
+6. 再接放置拦截及必要的交互 tracker；进入 world 的恢复由 `ModernBlockStateTracker` 自动处理。
+7. 依据 Grim 补齐各协议版本的碰撞分支。
+8. 运行编译和完整游戏内测试。
