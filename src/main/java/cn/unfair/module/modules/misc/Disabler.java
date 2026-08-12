@@ -21,7 +21,7 @@ import java.util.Random;
 public class Disabler extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "Grim"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "GrimAC"});
     public final BooleanProperty inventory = new BooleanProperty("Inventory", true, () -> mode.getValue() == 0);
     public final BooleanProperty logging = new BooleanProperty("Logging", false, () -> mode.getValue() == 1);
     public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("GrimDuplicateRotPlace", false, () -> mode.getValue() == 1);
