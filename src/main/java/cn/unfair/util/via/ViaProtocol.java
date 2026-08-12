@@ -33,6 +33,10 @@ public class ViaProtocol {
         return notIsSinglePlayer() && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_9);
     }
 
+    public static boolean newerThanOrEqualTo1_10() {
+        return notIsSinglePlayer() && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_10);
+    }
+
     public static boolean newerThanOrEqualTo1_13() {
         return notIsSinglePlayer() && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13);
     }

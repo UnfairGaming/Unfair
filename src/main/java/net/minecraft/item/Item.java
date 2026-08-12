@@ -547,6 +547,8 @@ public class Item
             }
         })).setUnlocalizedName("dirt"));
         registerItemBlock(Blocks.dirt_path);
+        registerItemBlock(Blocks.campfire);
+        registerItemBlock(Blocks.soul_campfire);
         registerItemBlock(Blocks.cobblestone);
         registerItemBlock(Blocks.planks, (new ItemMultiTexture(Blocks.planks, Blocks.planks, new Function<ItemStack, String>()
         {

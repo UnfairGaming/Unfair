@@ -585,7 +585,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         for (S22PacketMultiBlockChange.BlockUpdateData s22packetmultiblockchange$blockupdatedata : packetIn.getChangedBlocks()) {
             this.clientWorldController.invalidateRegionAndSetBlock(s22packetmultiblockchange$blockupdatedata.getPos(),
                     RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
-                            DirtPathBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState())));
+                            CampfireBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
+                                    DirtPathBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState()))));
         }
     }
 
@@ -629,7 +630,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
         this.clientWorldController.invalidateRegionAndSetBlock(packetIn.getBlockPosition(),
                 RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(),
-                        DirtPathBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState())));
+                        CampfireBlockTracker.remap(packetIn.getBlockPosition(),
+                                DirtPathBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState()))));
     }
 
     /**

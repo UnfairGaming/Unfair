@@ -95,6 +95,9 @@ public final class ViaBackwardsItemModels {
         addModelName("respawn_anchor");
         addModelName("dirt_path");
         addModelName("grass_path");
+        addModelName("farmland");
+        addModelName("campfire");
+        addModelName("soul_campfire");
         addModelName("crossbow");
         addModelName("shield");
         addModelName("shield_blocking");
@@ -275,6 +278,15 @@ public final class ViaBackwardsItemModels {
         if (normalized.equals("grass_path") || normalized.endsWith("_grass_path")) {
             return "grass_path";
         }
+        if (normalized.equals("farmland") || normalized.endsWith("_farmland")) {
+            return "farmland";
+        }
+        if (normalized.equals("soul_campfire") || normalized.endsWith("_soul_campfire")) {
+            return "soul_campfire";
+        }
+        if (normalized.equals("campfire") || normalized.endsWith("_campfire")) {
+            return "campfire";
+        }
         if (normalized.equals("end_crystal") || normalized.endsWith("_end_crystal")) {
             return "end_crystal";
         }
@@ -387,6 +399,22 @@ public final class ViaBackwardsItemModels {
                 || lowered.contains("minecraft:grass_path") || lowered.contains("block.minecraft.grass_path")
                 || text.contains("草径") || text.contains("草径方块")) {
             return "grass_path";
+        }
+
+        if (lowered.contains("farmland")
+                || lowered.contains("minecraft:farmland") || lowered.contains("block.minecraft.farmland")
+                || text.contains("耕地")) {
+            return "farmland";
+        }
+        if (lowered.contains("soul_campfire") || lowered.contains("soul campfire")
+                || lowered.contains("minecraft:soul_campfire") || lowered.contains("block.minecraft.soul_campfire")
+                || text.contains("灵魂营火") || text.contains("灵魂篝火")) {
+            return "soul_campfire";
+        }
+        if (lowered.contains("campfire") || lowered.contains("camp fire")
+                || lowered.contains("minecraft:campfire") || lowered.contains("block.minecraft.campfire")
+                || text.contains("营火") || text.contains("篝火")) {
+            return "campfire";
         }
 
         return null;

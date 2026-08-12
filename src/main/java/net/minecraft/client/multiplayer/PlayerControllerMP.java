@@ -514,6 +514,11 @@ public class PlayerControllerMP
                             || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 
+                if (heldStack != null && CampfireBlockTracker.isCampfireItem(heldStack)) {
+                    return CampfireBlockTracker.place(heldStack, player, worldIn, hitPos, side)
+                            || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
+                }
+
                 if (heldStack == null)
                 {
                     return this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);

@@ -205,6 +205,8 @@ public class Blocks
     public static final BlockSlab double_stone_slab2;
     public static final BlockSlab stone_slab2;
     public static final Block dirt_path;
+    public static final Block campfire;
+    public static final Block soul_campfire;
 
     /**
      * Returns the Block in the blockRegistry with the specified name.
@@ -424,6 +426,8 @@ public class Blocks
             double_stone_slab2 = (BlockSlab)getRegisteredBlock("double_stone_slab2");
             stone_slab2 = (BlockSlab)getRegisteredBlock("stone_slab2");
             dirt_path = getRegisteredBlock("dirt_path");
+            campfire = getRegisteredBlock("campfire");
+            soul_campfire = getRegisteredBlock("soul_campfire");
         }
     }
 }

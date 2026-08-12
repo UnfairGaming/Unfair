@@ -415,6 +415,7 @@ public class RenderItem implements IResourceManagerReloadListener {
     public void renderItemIntoGUI(ItemStack stack, int x, int y) {
         this.renderItemGui = true;
         IBakedModel ibakedmodel = this.itemModelMesher.getItemModel(stack);
+        boolean campfireItem = isCampfireItem(stack);
         GlStateManager.pushMatrix();
         this.textureManager.bindTexture(TextureMap.locationBlocksTexture);
         this.textureManager.getTexture(TextureMap.locationBlocksTexture).setBlurMipmap(false, false);
@@ -426,6 +427,13 @@ public class RenderItem implements IResourceManagerReloadListener {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.setupGuiTransform(x, y, ibakedmodel.isGui3d());
 
+        // Campfire textures are already authored with their intended brightness.
+        // GUI standard item lighting makes this thin model noticeably darker than
+        // the same model in the world and in first person.
+        if (campfireItem) {
+            GlStateManager.disableLighting();
+        }
+
         ibakedmodel.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GUI);
 
         this.renderItem(stack, ibakedmodel);
@@ -436,6 +444,18 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.textureManager.bindTexture(TextureMap.locationBlocksTexture);
         this.textureManager.getTexture(TextureMap.locationBlocksTexture).restoreLastBlurMipmap();
         this.renderItemGui = false;
+    }
+
+    private static boolean isCampfireItem(ItemStack stack) {
+        if (stack == null || stack.getItem() == null) {
+            return false;
+        }
+
+        Item item = stack.getItem();
+        return item == Item.getItemFromBlock(Blocks.campfire)
+                || item == Item.getItemFromBlock(Blocks.soul_campfire)
+                || "campfire".equals(ViaBackwardsItemModels.getModelName(stack))
+                || "soul_campfire".equals(ViaBackwardsItemModels.getModelName(stack));
     }
 
     private void setupGuiTransform(int xPosition, int yPosition, boolean isGui3d) {
@@ -608,6 +628,9 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.registerBlock(Blocks.dirt, BlockDirt.DirtType.DIRT.getMetadata(), "dirt");
         this.registerBlock(Blocks.dirt, BlockDirt.DirtType.PODZOL.getMetadata(), "podzol");
         this.registerBlock(Blocks.dirt_path, "dirt_path");
+        this.registerBlock(Blocks.farmland, "farmland");
+        this.registerBlock(Blocks.campfire, "campfire");
+        this.registerBlock(Blocks.soul_campfire, "soul_campfire");
         this.registerBlock(Blocks.double_plant, BlockDoublePlant.EnumPlantType.FERN.getMeta(), "double_fern");
         this.registerBlock(Blocks.double_plant, BlockDoublePlant.EnumPlantType.GRASS.getMeta(), "double_grass");
         this.registerBlock(Blocks.double_plant, BlockDoublePlant.EnumPlantType.PAEONIA.getMeta(), "paeonia");
