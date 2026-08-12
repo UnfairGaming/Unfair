@@ -10,10 +10,8 @@ import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
-import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;
 import net.minecraft.block.Block;
@@ -1096,11 +1094,6 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         if (entityplayer == null) {
             return;
         }
-        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_17)) {
-            this.addToSendQueue(new C0FPacketConfirmTransaction(packetIn.getWindowId(), (short) ViaMCP.INSTANCE.TransactionCount, false));
-            return;
-        }
-
         Container container = null;
 
         if (packetIn.getWindowId() == 0) {

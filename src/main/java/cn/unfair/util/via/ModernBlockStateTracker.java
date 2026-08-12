@@ -15,8 +15,8 @@ import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMappings;
 import com.viaversion.viaversion.api.protocol.remapper.PacketHandler;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_14;
-import com.viaversion.viaversion.protocols.v1_12_2to1_13.packet.ClientboundPackets1_13;
 import com.viaversion.viaversion.protocols.v1_13_2to1_14.packet.ClientboundPackets1_14;
+import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.ModernBlock;
 import net.minecraft.block.state.IBlockState;
@@ -29,18 +29,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
 
 /** Preserves selected modern block states before ViaBackwards replaces them. */
 public final class ModernBlockStateTracker {
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, ModernState>> CHUNKS = Maps.newConcurrentMap();
     private static List<ModernBlock> modernBlocks = Collections.emptyList();
+    private static boolean installationScheduled;
     private static boolean installed;
 
     private ModernBlockStateTracker() {
     }
 
     public static synchronized void install() {
-        if (installed) {
+        if (installationScheduled || installed) {
             return;
         }
 
@@ -49,15 +51,38 @@ public final class ModernBlockStateTracker {
             return;
         }
 
+        installationScheduled = true;
+        Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_14To1_13_2.class)
+                .whenComplete((ignored, throwable) -> {
+                    synchronized (ModernBlockStateTracker.class) {
+                        if (throwable != null) {
+                            installationScheduled = false;
+                            ViaLoadingBase.LOGGER.log(Level.SEVERE,
+                                    "Unable to load mappings before installing modern block tracking", throwable);
+                            return;
+                        }
+                        try {
+                            finishInstall(protocol);
+                            installed = true;
+                        } catch (RuntimeException exception) {
+                            installationScheduled = false;
+                            ViaLoadingBase.LOGGER.log(Level.SEVERE,
+                                    "Unable to install modern block state tracking", exception);
+                        }
+                    }
+                });
+    }
+
+    private static void finishInstall(Protocol1_14To1_13_2 protocol) {
         discoverModernBlocks();
 
-        prepend(protocol, ClientboundPackets1_14.LEVEL_CHUNK, ClientboundPackets1_13.LEVEL_CHUNK, wrapper -> {
+        prepend(protocol, ClientboundPackets1_14.LEVEL_CHUNK, wrapper -> {
             com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk = wrapper.read(ChunkType1_14.TYPE);
             captureChunk(chunk);
             wrapper.write(ChunkType1_14.TYPE, chunk);
             wrapper.resetReader();
         });
-        prepend(protocol, ClientboundPackets1_14.BLOCK_UPDATE, ClientboundPackets1_13.BLOCK_UPDATE, wrapper -> {
+        prepend(protocol, ClientboundPackets1_14.BLOCK_UPDATE, wrapper -> {
             BlockPosition pos = wrapper.read(Types.BLOCK_POSITION1_14);
             int stateId = wrapper.read(Types.VAR_INT);
             capture(pos.x(), pos.y(), pos.z(), stateId);
@@ -65,7 +90,7 @@ public final class ModernBlockStateTracker {
             wrapper.write(Types.VAR_INT, stateId);
             wrapper.resetReader();
         });
-        prepend(protocol, ClientboundPackets1_14.CHUNK_BLOCKS_UPDATE, ClientboundPackets1_13.CHUNK_BLOCKS_UPDATE, wrapper -> {
+        prepend(protocol, ClientboundPackets1_14.CHUNK_BLOCKS_UPDATE, wrapper -> {
             int chunkX = wrapper.read(Types.INT);
             int chunkZ = wrapper.read(Types.INT);
             BlockChangeRecord[] records = wrapper.read(Types.BLOCK_CHANGE_ARRAY);
@@ -78,7 +103,6 @@ public final class ModernBlockStateTracker {
             wrapper.write(Types.BLOCK_CHANGE_ARRAY, records);
             wrapper.resetReader();
         });
-        installed = true;
     }
 
     public static void clear() {
@@ -181,16 +205,17 @@ public final class ModernBlockStateTracker {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void prepend(Protocol1_14To1_13_2 protocol, ClientboundPackets1_14 source,
-                                ClientboundPackets1_13 target, PacketHandler capture) {
+    private static void prepend(Protocol1_14To1_13_2 protocol, ClientboundPackets1_14 source, PacketHandler capture) {
         try {
             Field field = AbstractProtocol.class.getDeclaredField("clientboundMappings");
             field.setAccessible(true);
             PacketMappings mappings = (PacketMappings) field.get(protocol);
             PacketMapping mapping = mappings.mappedPacket(source.state(), source.getId());
-            PacketHandler original = mapping != null ? mapping.handler() : null;
-            PacketHandler handler = original != null ? capture.then(original) : capture;
-            protocol.registerClientbound(source, target, handler, true);
+            if (mapping == null) {
+                throw new IllegalStateException("No clientbound mapping for " + source);
+            }
+            PacketHandler original = mapping.handler();
+            mapping.setHandler(original != null ? capture.then(original) : capture);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Unable to install modern block state capture for " + source, exception);
         }
