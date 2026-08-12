@@ -7,14 +7,13 @@ import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.PacketUtil;
+import cn.unfair.util.player.BackTrackLagUtils;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
-import cn.unfair.util.animation.Animation;
+import cn.unfair.util.AnimationUtil;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -29,10 +28,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BackTrack extends Module {
@@ -40,7 +36,7 @@ public class BackTrack extends Module {
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
     public static boolean shouldLag;
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"CLASSIC", "LEIGTREACH"}) {
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"CLASSIC", "RISE"}) {
         @Override
         public boolean read(JsonObject jsonObject) {
             String configuredMode = jsonObject.get(this.getName()).getAsString();
@@ -77,9 +73,9 @@ public class BackTrack extends Module {
     public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
-    private final Animation animatedX = new Animation(150L);
-    private final Animation animatedY = new Animation(150L);
-    private final Animation animatedZ = new Animation(150L);
+    private Vec3 animatedFrom;
+    private Vec3 animatedDestination;
+    private long animatedStartTime;
     public boolean isBackTracking;
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
@@ -242,7 +238,7 @@ public class BackTrack extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{this.mode.getModeString()};
+        return new String[]{(this.isClassic() ? this.getDelayMs() : this.maxPingSpoof.getValue()) + "ms"};
     }
 
     @EventTarget
@@ -308,9 +304,7 @@ public class BackTrack extends Module {
             this.lastTarget = newTarget;
             realPosition = getPositionVector(newTarget);
             realLastPos = realPosition;
-            this.animatedX.snap(realPosition.xCoord);
-            this.animatedY.snap(realPosition.yCoord);
-            this.animatedZ.snap(realPosition.zCoord);
+            this.resetAnimation(realPosition);
         }
 
         KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
@@ -478,7 +472,7 @@ public class BackTrack extends Module {
                     }
                 }
             }
-            BackTrackLagUtils.onPacket(event, PacketDirection.INCOMING);
+            BackTrackLagUtils.onPacket(event, false);
         } else if (event.getType() == EventType.SEND) {
             if (this.isClassic()
                     && packet instanceof C02PacketUseEntity
@@ -488,7 +482,7 @@ public class BackTrack extends Module {
                     && this.onlyWhenNeeded.getValue()) {
                 this.attackTimer.reset();
             }
-            BackTrackLagUtils.onPacket(event, PacketDirection.OUTGOING);
+            BackTrackLagUtils.onPacket(event, true);
         }
     }
 
@@ -535,14 +529,23 @@ public class BackTrack extends Module {
             return;
         }
 
-        this.animatedX.run(realPosition.xCoord);
-        this.animatedY.run(realPosition.yCoord);
-        this.animatedZ.run(realPosition.zCoord);
+        if (this.animatedDestination == null
+                || this.animatedDestination.xCoord != realPosition.xCoord
+                || this.animatedDestination.yCoord != realPosition.yCoord
+                || this.animatedDestination.zCoord != realPosition.zCoord) {
+            this.animatedFrom = this.animatedDestination == null ? realPosition : this.animatedDestination;
+            this.animatedDestination = realPosition;
+            this.animatedStartTime = AnimationUtil.start();
+        }
+
+        double animatedX = AnimationUtil.value((float) this.animatedFrom.xCoord, (float) this.animatedDestination.xCoord, this.animatedStartTime, 150.0F, 0.0F, 0);
+        double animatedY = AnimationUtil.value((float) this.animatedFrom.yCoord, (float) this.animatedDestination.yCoord, this.animatedStartTime, 150.0F, 0.0F, 0);
+        double animatedZ = AnimationUtil.value((float) this.animatedFrom.zCoord, (float) this.animatedDestination.zCoord, this.animatedStartTime, 150.0F, 0.0F, 0);
 
         double expand = 0.14D;
         AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox()
                 .offset(-mc.thePlayer.posX, -mc.thePlayer.posY, -mc.thePlayer.posZ)
-                .offset(this.animatedX.getValue(), this.animatedY.getValue(), this.animatedZ.getValue())
+                .offset(animatedX, animatedY, animatedZ)
                 .expand(expand, expand, expand)
                 .offset(
                         -mc.getRenderManager().getRenderPosX(),
@@ -644,6 +647,8 @@ public class BackTrack extends Module {
         this.resetTargetState();
         realPosition = zeroVec();
         realLastPos = zeroVec();
+        this.animatedFrom = null;
+        this.animatedDestination = null;
     }
 
     private void resetTargetState() {
@@ -657,6 +662,12 @@ public class BackTrack extends Module {
         this.attacked = false;
     }
 
+    private void resetAnimation(Vec3 position) {
+        this.animatedFrom = position;
+        this.animatedDestination = position;
+        this.animatedStartTime = AnimationUtil.start();
+    }
+
     private void stopLaggingForRespawn() {
         BackTrackLagUtils.disable();
         BackTrackLagUtils.dispatch();
@@ -664,137 +675,4 @@ public class BackTrack extends Module {
         this.resetTargetState();
     }
 
-    private enum PacketDirection {
-        INCOMING,
-        OUTGOING
-    }
-
-    private enum PacketType {
-        REGULAR(new Class[]{C0FPacketConfirmTransaction.class, C00PacketKeepAlive.class, S1CPacketEntityMetadata.class}),
-        VELOCITY(new Class[]{S12PacketEntityVelocity.class, S27PacketExplosion.class}),
-        TELEPORTS(new Class[]{S08PacketPlayerPosLook.class, S39PacketPlayerAbilities.class, S09PacketHeldItemChange.class}),
-        PLAYERS(new Class[]{S13PacketDestroyEntities.class, S14PacketEntity.class, S14PacketEntity.S16PacketEntityLook.class, S14PacketEntity.S15PacketEntityRelMove.class, S14PacketEntity.S17PacketEntityLookMove.class, S18PacketEntityTeleport.class, S20PacketEntityProperties.class, S19PacketEntityHeadLook.class}),
-        ACTION(new Class[]{C02PacketUseEntity.class, C0DPacketCloseWindow.class, C0EPacketClickWindow.class, C0CPacketInput.class, C0BPacketEntityAction.class, C08PacketPlayerBlockPlacement.class, C07PacketPlayerDigging.class, C09PacketHeldItemChange.class, C13PacketPlayerAbilities.class, C15PacketClientSettings.class, C16PacketClientStatus.class, C17PacketCustomPayload.class, C18PacketSpectate.class, C19PacketResourcePackStatus.class, C0APacketAnimation.class}),
-        MOVEMENT(new Class[]{C03PacketPlayer.class, C03PacketPlayer.C04PacketPlayerPosition.class, C03PacketPlayer.C05PacketPlayerLook.class, C03PacketPlayer.C06PacketPlayerPosLook.class});
-
-        private final Class<?>[] packetClasses;
-        private boolean enabled;
-
-        PacketType(Class<?>[] packetClasses) {
-            this.packetClasses = packetClasses;
-        }
-
-        private boolean containsPacket(Class<?> packetClass) {
-            return Arrays.asList(this.packetClasses).contains(packetClass);
-        }
-    }
-
-    private static final class BackTrackLagUtils {
-        private static final long DEFAULT_TIMER_DELAY = 100L;
-        private static final long BLINK_DELAY = 9999999L;
-        private static final Queue<TimedPacket> packets = new ConcurrentLinkedQueue<>();
-        private static final TimerUtil enabledTimer = new TimerUtil();
-        private static boolean enabled;
-        private static long delayAmount;
-        private static boolean post;
-
-        private static void onPacket(PacketEvent event, PacketDirection direction) {
-            if (!event.isCancelled() && enabled && shouldHandlePacket(event.getPacket())) {
-                event.setCancelled(true);
-                packets.add(new TimedPacket(event.getPacket(), direction));
-            }
-        }
-
-        private static void onPreTick() {
-            if (!post) {
-                sendPackets();
-            }
-        }
-
-        private static void onPostTick() {
-            if (post) {
-                sendPackets();
-            }
-        }
-
-        private static void sendPackets() {
-            if (!(enabled = !enabledTimer.hasTimeElapsed(DEFAULT_TIMER_DELAY) && !(mc.currentScreen instanceof GuiDownloadTerrain))) {
-                dispatch();
-                return;
-            }
-
-            enabled = false;
-            releaseTimedOutPackets();
-            enabled = true;
-        }
-
-        private static void releaseTimedOutPackets() {
-            long now = System.currentTimeMillis();
-            TimedPacket packet;
-            while ((packet = packets.peek()) != null) {
-                if (packet.millis + delayAmount > now) {
-                    break;
-                }
-                queue(packet);
-                packets.poll();
-            }
-        }
-
-        private static void spoof(int amount, boolean regular, boolean velocity, boolean teleports, boolean players, boolean action, boolean movement) {
-            enabledTimer.reset();
-            PacketType.REGULAR.enabled = regular;
-            PacketType.VELOCITY.enabled = velocity;
-            PacketType.TELEPORTS.enabled = teleports;
-            PacketType.PLAYERS.enabled = players;
-            PacketType.ACTION.enabled = action;
-            PacketType.MOVEMENT.enabled = movement;
-            post = true;
-            delayAmount = Math.max(0L, amount);
-        }
-
-        private static void dispatch() {
-            if (!packets.isEmpty()) {
-                boolean wasEnabled = enabled;
-                enabled = false;
-                TimedPacket packet;
-                while ((packet = packets.poll()) != null) {
-                    queue(packet);
-                }
-                enabled = wasEnabled;
-            }
-        }
-
-        private static void disable() {
-            enabled = false;
-            enabledTimer.setTime(enabledTimer.getElapsedTime() - BLINK_DELAY);
-        }
-
-        private static boolean shouldHandlePacket(Packet<?> packet) {
-            return Arrays.stream(PacketType.values()).anyMatch(type -> type.enabled && type.containsPacket(packet.getClass()));
-        }
-
-        private static int size() {
-            return packets.size();
-        }
-
-        private static void queue(TimedPacket timedPacket) {
-            if (timedPacket.direction == PacketDirection.OUTGOING) {
-                PacketUtil.sendPacketNoEvent(timedPacket.packet);
-            } else {
-                PacketUtil.receivePacketNoEvent(timedPacket.packet);
-            }
-        }
-    }
-
-    private static final class TimedPacket {
-        private final Packet<?> packet;
-        private final PacketDirection direction;
-        private final long millis;
-
-        private TimedPacket(Packet<?> packet, PacketDirection direction) {
-            this.packet = packet;
-            this.direction = direction;
-            this.millis = System.currentTimeMillis();
-        }
-    }
 }
