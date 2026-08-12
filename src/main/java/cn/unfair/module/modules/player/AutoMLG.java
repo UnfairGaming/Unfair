@@ -70,7 +70,7 @@ public class AutoMLG extends Module {
 
         if (preTicks >= 0) {
             preTicks++;
-            BlockPos updatedTarget = this.findLandingBlock();
+            BlockPos updatedTarget = this.findCurrentLandingBlock();
             if (updatedTarget == null) {
                 this.resetState(false);
                 return;
@@ -80,7 +80,7 @@ public class AutoMLG extends Module {
         }
 
         if (preTicks >= 3) {
-            if (this.placeWater(event.getNewYaw(), event.getNewPitch())) {
+            if (this.placeWater(event)) {
                 this.finishPlacement();
             }
             return;
@@ -90,7 +90,7 @@ public class AutoMLG extends Module {
             return;
         }
 
-        BlockPos landingPos = this.findLandingBlock();
+        BlockPos landingPos = this.findCurrentLandingBlock();
         if (landingPos == null) {
             return;
         }
@@ -105,7 +105,7 @@ public class AutoMLG extends Module {
             this.rotateToTarget(event);
             preTicks = 0;
             active = true;
-        } else if (this.targetPos != null && this.placeWater(event.getNewYaw(), event.getNewPitch())) {
+        } else if (this.targetPos != null && this.placeWater(event)) {
             this.finishPlacement();
         }
     }
@@ -135,13 +135,21 @@ public class AutoMLG extends Module {
         event.setPervRotation(rotations[0], 6);
     }
 
-    private boolean placeWater(float yaw, float pitch) {
+    private boolean placeWater(UpdateEvent event) {
         if (this.targetPos == null || this.waterSlot == -1) {
             return false;
         }
+        BlockPos currentTarget = this.findCurrentLandingBlock();
+        if (currentTarget == null) {
+            return false;
+        }
+        this.targetPos = currentTarget;
+        this.rotateToTarget(event);
         if (!this.canReachTarget(this.targetPos)) {
             return false;
         }
+        float yaw = event.getNewYaw();
+        float pitch = event.getNewPitch();
         MovingObjectPosition mop = RotationUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
         if (mop == null
                 || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK
@@ -150,7 +158,7 @@ public class AutoMLG extends Module {
             return false;
         }
         this.switchToWaterSlot();
-        boolean placed = mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
+        boolean placed = this.useCurrentItemWithRotation(yaw, pitch);
         PacketUtil.sendPacket(new C0APacketAnimation());
         return placed;
     }
@@ -271,38 +279,22 @@ public class AutoMLG extends Module {
         return minDistance <= reach * reach;
     }
 
-    private BlockPos findLandingBlock() {
-        double predictedX = mc.thePlayer.posX + mc.thePlayer.motionX;
-        double predictedZ = mc.thePlayer.posZ + mc.thePlayer.motionZ;
-        int x = MathHelper.floor_double(predictedX);
-        int z = MathHelper.floor_double(predictedZ);
+    private BlockPos findCurrentLandingBlock() {
+        int x = MathHelper.floor_double(mc.thePlayer.posX);
+        int z = MathHelper.floor_double(mc.thePlayer.posZ);
         int startY = MathHelper.floor_double(mc.thePlayer.posY + mc.thePlayer.motionY);
 
-        BlockPos bestPos = null;
-        double bestDistance = 0.0D;
         for (int y = startY; y >= Math.max(0, startY - 8); y--) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    BlockPos pos = new BlockPos(x + dx, y, z + dz);
-                    Block block = mc.theWorld.getBlockState(pos).getBlock();
-                    if (block != Blocks.air
-                            && BlockUtil.isSolid(block)
-                            && BlockUtil.isReplaceable(pos.up())) {
-                        double distance = mc.thePlayer.getDistanceSq(
-                                (double) pos.getX() + 0.5D,
-                                (double) pos.getY() + 1.0D,
-                                (double) pos.getZ() + 0.5D
-                        );
-                        if (bestPos == null || distance < bestDistance) {
-                            bestPos = pos;
-                            bestDistance = distance;
-                        }
-                    }
-                }
+            BlockPos pos = new BlockPos(x, y, z);
+            Block block = mc.theWorld.getBlockState(pos).getBlock();
+            if (block != Blocks.air
+                    && BlockUtil.isSolid(block)
+                    && BlockUtil.isReplaceable(pos.up())) {
+                return pos;
             }
         }
 
-        return bestPos;
+        return null;
     }
 
     private void finishPlacement() {
