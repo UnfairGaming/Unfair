@@ -60,6 +60,7 @@ public class KillAura extends Module {
     public final ModeProperty autoBlock = new ModeProperty(
             "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE", "HYPIXEL_LAG", "HYPIXEL_LAG2"}
     );
+    private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
     public final BooleanProperty autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
     public final IntProperty autoBlockCPS = new IntProperty("auto-block-aps", 10, 1, 20);
     public final FloatProperty autoBlockRange = new FloatProperty("auto-block-range", 6.0F, 3.0F, 8.0F);
@@ -131,7 +132,6 @@ public class KillAura extends Module {
     public final BooleanProperty golems = new BooleanProperty("golems", false);
     public final BooleanProperty silverfish = new BooleanProperty("silverfish", false);
     public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "3DBOX"});
-    private final BooleanProperty c09Instead = new BooleanProperty("c09-instead", true, () -> this.autoBlock.getValue() == 5);
     private final TimerUtil timer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();
     public boolean attackDisabled = false;
