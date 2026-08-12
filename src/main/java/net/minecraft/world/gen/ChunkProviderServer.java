@@ -269,13 +269,13 @@ public class ChunkProviderServer implements IChunkProvider {
             for (int i = 0; i < 100; ++i) {
                 if (!this.droppedChunksSet.isEmpty()) {
                     Long olong = this.droppedChunksSet.iterator().next();
-                    Chunk chunk = this.id2ChunkMap.getValueByKey(olong.longValue());
+                    Chunk chunk = this.id2ChunkMap.getValueByKey(olong);
 
                     if (chunk != null) {
                         chunk.onChunkUnload();
                         this.saveChunkData(chunk);
                         this.saveChunkExtraData(chunk);
-                        this.id2ChunkMap.remove(olong.longValue());
+                        this.id2ChunkMap.remove(olong);
                         this.loadedChunks.remove(chunk);
                     }
 

@@ -159,7 +159,7 @@ public class ContainerBrewingStand extends Container
 
         public boolean isItemValid(ItemStack stack)
         {
-            return stack != null ? stack.getItem().isPotionIngredient(stack) : false;
+            return stack != null && stack.getItem().isPotionIngredient(stack);
         }
 
         public int getSlotStackLimit()

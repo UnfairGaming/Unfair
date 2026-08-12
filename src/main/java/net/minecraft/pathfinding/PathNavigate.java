@@ -143,7 +143,7 @@ public abstract class PathNavigate
     public boolean tryMoveToEntityLiving(Entity entityIn, double speedIn)
     {
         PathEntity pathentity = this.getPathToEntityLiving(entityIn);
-        return pathentity != null ? this.setPath(pathentity, speedIn) : false;
+        return pathentity != null && this.setPath(pathentity, speedIn);
     }
 
     /**

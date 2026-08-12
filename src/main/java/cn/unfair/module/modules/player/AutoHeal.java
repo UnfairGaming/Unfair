@@ -66,7 +66,7 @@ public class AutoHeal extends Module {
                     if (this.shouldHeal
                             && precent
                             && !this.hasRegenEffect()
-                            && this.timer.hasTimeElapsed(this.delay.getValue().intValue())) {
+                            && this.timer.hasTimeElapsed(this.delay.getValue())) {
                         int slot = this.findHealingItem();
                         if (slot != -1) {
                             this.prevSlot = mc.thePlayer.inventory.currentItem;

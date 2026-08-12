@@ -31,7 +31,7 @@ public class BlockPane extends Block
     protected BlockPane(Material materialIn, boolean canDrop)
     {
         super(materialIn);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(NORTH, Boolean.valueOf(false)).withProperty(EAST, Boolean.valueOf(false)).withProperty(SOUTH, Boolean.valueOf(false)).withProperty(WEST, Boolean.valueOf(false)));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(NORTH, Boolean.FALSE).withProperty(EAST, Boolean.FALSE).withProperty(SOUTH, Boolean.FALSE).withProperty(WEST, Boolean.FALSE));
         this.canDrop = canDrop;
         this.setCreativeTab(CreativeTabs.tabDecorations);
     }
@@ -42,7 +42,7 @@ public class BlockPane extends Block
      */
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
     {
-        return state.withProperty(NORTH, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.NORTH))).withProperty(SOUTH, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.SOUTH))).withProperty(WEST, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.WEST))).withProperty(EAST, Boolean.valueOf(this.canPaneConnectTo(worldIn, pos, EnumFacing.EAST)));
+        return state.withProperty(NORTH, this.canPaneConnectTo(worldIn, pos, EnumFacing.NORTH)).withProperty(SOUTH, this.canPaneConnectTo(worldIn, pos, EnumFacing.SOUTH)).withProperty(WEST, this.canPaneConnectTo(worldIn, pos, EnumFacing.WEST)).withProperty(EAST, this.canPaneConnectTo(worldIn, pos, EnumFacing.EAST));
     }
 
     /**
@@ -68,7 +68,7 @@ public class BlockPane extends Block
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
     {
-        return worldIn.getBlockState(pos).getBlock() == this ? false : super.shouldSideBeRendered(worldIn, pos, side);
+        return worldIn.getBlockState(pos).getBlock() != this && super.shouldSideBeRendered(worldIn, pos, side);
     }
 
     /**

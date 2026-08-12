@@ -125,7 +125,7 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
 
                 for (int i = 0; i < BlockBrewingStand.HAS_BOTTLE.length; ++i)
                 {
-                    iblockstate = iblockstate.withProperty(BlockBrewingStand.HAS_BOTTLE[i], Boolean.valueOf(aboolean[i]));
+                    iblockstate = iblockstate.withProperty(BlockBrewingStand.HAS_BOTTLE[i], aboolean[i]);
                 }
 
                 this.worldObj.setBlockState(this.pos, iblockstate, 2);
@@ -349,7 +349,7 @@ public class TileEntityBrewingStand extends TileEntityLockable implements ITicka
      */
     public boolean isUseableByPlayer(EntityPlayer player)
     {
-        return this.worldObj.getTileEntity(this.pos) != this ? false : player.getDistanceSq((double)this.pos.getX() + 0.5D, (double)this.pos.getY() + 0.5D, (double)this.pos.getZ() + 0.5D) <= 64.0D;
+        return this.worldObj.getTileEntity(this.pos) == this && player.getDistanceSq((double) this.pos.getX() + 0.5D, (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
     public void openInventory(EntityPlayer player)

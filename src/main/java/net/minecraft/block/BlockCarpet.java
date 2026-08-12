@@ -106,7 +106,7 @@ public class BlockCarpet extends Block
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
     {
-        return side == EnumFacing.UP ? true : super.shouldSideBeRendered(worldIn, pos, side);
+        return side == EnumFacing.UP || super.shouldSideBeRendered(worldIn, pos, side);
     }
 
     /**

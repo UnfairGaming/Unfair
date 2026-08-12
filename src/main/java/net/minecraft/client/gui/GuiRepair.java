@@ -73,7 +73,7 @@ public class GuiRepair extends GuiContainer implements ICrafting
         {
             int i = 8453920;
             boolean flag = true;
-            String s = I18n.format("container.repair.cost", new Object[] {Integer.valueOf(this.anvil.maximumCost)});
+            String s = I18n.format("container.repair.cost", new Object[] {this.anvil.maximumCost});
 
             if (this.anvil.maximumCost >= 40 && !this.mc.thePlayer.capabilities.isCreativeMode)
             {

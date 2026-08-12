@@ -331,12 +331,12 @@ public class PlayerSelector
                         Score score = scoreboard.getValueFromObjective(s1, scoreobjective);
                         int i = score.getScorePoints();
 
-                        if (i < entry.getValue().intValue() && flag)
+                        if (i < entry.getValue() && flag)
                         {
                             return false;
                         }
 
-                        if (i > entry.getValue().intValue() && !flag)
+                        if (i > entry.getValue() && !flag)
                         {
                             return false;
                         }
@@ -492,7 +492,7 @@ public class PlayerSelector
                     {
                         public boolean apply(Entity p_apply_1_)
                         {
-                            return p_apply_1_.posX >= axisalignedbb.minX && p_apply_1_.posY >= axisalignedbb.minY && p_apply_1_.posZ >= axisalignedbb.minZ ? p_apply_1_.posX < axisalignedbb.maxX && p_apply_1_.posY < axisalignedbb.maxY && p_apply_1_.posZ < axisalignedbb.maxZ : false;
+                            return p_apply_1_.posX >= axisalignedbb.minX && p_apply_1_.posY >= axisalignedbb.minY && p_apply_1_.posZ >= axisalignedbb.minZ && p_apply_1_.posX < axisalignedbb.maxX && p_apply_1_.posY < axisalignedbb.maxY && p_apply_1_.posZ < axisalignedbb.maxZ;
                         }
                     };
                     list.addAll(worldIn.<T>getPlayers(entityClass, Predicates.<T> and (predicate1, predicate2)));
@@ -628,7 +628,7 @@ public class PlayerSelector
         {
             if (s.startsWith("score_") && s.length() > "score_".length())
             {
-                map.put(s.substring("score_".length()), Integer.valueOf(MathHelper.parseIntWithDefault(p_96560_0_.get(s), 1)));
+                map.put(s.substring("score_".length()), MathHelper.parseIntWithDefault(p_96560_0_.get(s), 1));
             }
         }
 

@@ -30,7 +30,7 @@ public class TextureMetadataSectionSerializer extends BaseMetadataSectionSeriali
                     {
                         try
                         {
-                            list.add(Integer.valueOf(jsonelement.getAsInt()));
+                            list.add(jsonelement.getAsInt());
                         }
                         catch (NumberFormatException numberformatexception)
                         {

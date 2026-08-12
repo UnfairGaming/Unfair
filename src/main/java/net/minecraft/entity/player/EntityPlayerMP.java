@@ -256,7 +256,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
             while (iterator.hasNext() && j < i)
             {
-                aint[j++] = iterator.next().intValue();
+                aint[j++] = iterator.next();
                 iterator.remove();
             }
 
@@ -484,7 +484,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
         if (entitylivingbase != null)
         {
-            EntityList.EntityEggInfo entitylist$entityegginfo = EntityList.entityEggs.get(Integer.valueOf(EntityList.getEntityID(entitylivingbase)));
+            EntityList.EntityEggInfo entitylist$entityegginfo = EntityList.entityEggs.get(EntityList.getEntityID(entitylivingbase));
 
             if (entitylist$entityegginfo != null)
             {
@@ -545,7 +545,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
     public boolean canAttackPlayer(EntityPlayer other)
     {
-        return !this.canPlayersAttack() ? false : super.canAttackPlayer(other);
+        return this.canPlayersAttack() && super.canAttackPlayer(other);
     }
 
     /**
@@ -596,7 +596,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
 
     public boolean isSpectatedByPlayer(EntityPlayerMP player)
     {
-        return player.isSpectator() ? this.getSpectatingEntity() == this : (this.isSpectator() ? false : super.isSpectatedByPlayer(player));
+        return player.isSpectator() ? this.getSpectatingEntity() == this : (!this.isSpectator() && super.isSpectatedByPlayer(player));
     }
 
     private void sendTileEntityUpdate(TileEntity p_147097_1_)
@@ -1139,7 +1139,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
         this.translator = packetIn.getLang();
         this.chatVisibility = packetIn.getChatVisibility();
         this.chatColours = packetIn.isColorsEnabled();
-        this.getDataWatcher().updateObject(10, Byte.valueOf((byte)packetIn.getModelPartFlags()));
+        this.getDataWatcher().updateObject(10, (byte) packetIn.getModelPartFlags());
     }
 
     public EntityPlayer.EnumChatVisibility getChatVisibility()
@@ -1185,7 +1185,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting
         }
         else
         {
-            this.destroyedItemsNetCache.add(Integer.valueOf(p_152339_1_.getEntityId()));
+            this.destroyedItemsNetCache.add(p_152339_1_.getEntityId());
         }
     }
 

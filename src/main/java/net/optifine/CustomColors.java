@@ -221,7 +221,7 @@ public class CustomColors
             myceliumParticleColors = getCustomColors(s, astring11, -1, -1);
             Pair<LightMapPack[], Integer> pair = parseLightMapPacks();
             lightMapPacks = pair.getLeft();
-            lightmapMinDimensionId = pair.getRight().intValue();
+            lightmapMinDimensionId = pair.getRight();
             readColorProperties("mcpatcher/color.properties");
             blockColormaps = readBlockColormaps(new String[] {s + "custom/", s + "blocks/"}, colorsBlockColormaps, 256, 256);
             updateUseDefaultGrassFoliageColors();
@@ -298,7 +298,7 @@ public class CustomColors
             }
             else
             {
-                map.put(Integer.valueOf(j), s2);
+                map.put(j, s2);
             }
         }
 
@@ -308,12 +308,12 @@ public class CustomColors
 
         if (ainteger.length <= 0)
         {
-            return new ImmutablePair(null, Integer.valueOf(0));
+            return new ImmutablePair(null, 0);
         }
         else
         {
-            int j1 = ainteger[0].intValue();
-            int k1 = ainteger[ainteger.length - 1].intValue();
+            int j1 = ainteger[0];
+            int k1 = ainteger[ainteger.length - 1];
             int k = k1 - j1 + 1;
             CustomColormap[] acustomcolormap = new CustomColormap[k];
 
@@ -331,7 +331,7 @@ public class CustomColors
                     }
                     else
                     {
-                        int i1 = integer.intValue() - j1;
+                        int i1 = integer - j1;
                         acustomcolormap[i1] = customcolormap;
                     }
                 }
@@ -357,7 +357,7 @@ public class CustomColors
                 }
             }
 
-            return new ImmutablePair(alightmappack, Integer.valueOf(j1));
+            return new ImmutablePair(alightmappack, j1);
         }
     }
 
@@ -1075,7 +1075,7 @@ public class CustomColors
             else
             {
                 Integer integer = (Integer)object;
-                return integer.intValue();
+                return integer;
             }
         }
     }
@@ -1294,7 +1294,7 @@ public class CustomColors
             if (j >= 0 && j < lightMapPacks.length)
             {
                 LightMapPack lightmappack = lightMapPacks[j];
-                return lightmappack == null ? false : lightmappack.updateLightmap(world, torchFlickerX, lmColors, nightvision, partialTicks);
+                return lightmappack != null && lightmappack.updateLightmap(world, torchFlickerX, lmColors, nightvision, partialTicks);
             }
             else
             {
@@ -1375,10 +1375,10 @@ public class CustomColors
                     {
                         while (list.size() <= j)
                         {
-                            list.add(Integer.valueOf(-1));
+                            list.add(-1);
                         }
 
-                        list.set(j, Integer.valueOf(k));
+                        list.set(j, k);
                         ++i;
                     }
                 }
@@ -1396,7 +1396,7 @@ public class CustomColors
 
             for (int l = 0; l < aint.length; ++l)
             {
-                aint[l] = list.get(l).intValue();
+                aint[l] = list.get(l);
             }
 
             return aint;

@@ -45,7 +45,7 @@ public class ContainerPlayer extends Container
                 }
                 public boolean isItemValid(ItemStack stack)
                 {
-                    return stack == null ? false : (stack.getItem() instanceof ItemArmor ? ((ItemArmor)stack.getItem()).armorType == k_f : (stack.getItem() != Item.getItemFromBlock(Blocks.pumpkin) && stack.getItem() != Items.skull ? false : k_f == 0));
+                    return stack != null && (stack.getItem() instanceof ItemArmor ? ((ItemArmor) stack.getItem()).armorType == k_f : ((stack.getItem() == Item.getItemFromBlock(Blocks.pumpkin) || stack.getItem() == Items.skull) && k_f == 0));
                 }
                 public String getSlotTexture()
                 {

@@ -41,7 +41,7 @@ public class BlockEndPortal extends BlockContainer
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
     {
-        return side == EnumFacing.DOWN ? super.shouldSideBeRendered(worldIn, pos, side) : false;
+        return side == EnumFacing.DOWN && super.shouldSideBeRendered(worldIn, pos, side);
     }
 
     /**

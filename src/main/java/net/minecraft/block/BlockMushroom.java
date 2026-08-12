@@ -75,7 +75,7 @@ public class BlockMushroom extends BlockBush implements IGrowable
         if (pos.getY() >= 0 && pos.getY() < 256)
         {
             IBlockState iblockstate = worldIn.getBlockState(pos.down());
-            return iblockstate.getBlock() == Blocks.mycelium ? true : (iblockstate.getBlock() == Blocks.dirt && iblockstate.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.PODZOL ? true : worldIn.getLight(pos) < 13 && this.canPlaceBlockOn(iblockstate.getBlock()));
+            return iblockstate.getBlock() == Blocks.mycelium || (iblockstate.getBlock() == Blocks.dirt && iblockstate.getValue(BlockDirt.VARIANT) == BlockDirt.DirtType.PODZOL || worldIn.getLight(pos) < 13 && this.canPlaceBlockOn(iblockstate.getBlock()));
         }
         else
         {

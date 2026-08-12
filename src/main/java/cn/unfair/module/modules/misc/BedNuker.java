@@ -112,7 +112,7 @@ public class BedNuker extends Module {
                 int slot = ItemUtil.findInventorySlot(mc.thePlayer.inventory.currentItem, mc.theWorld.getBlockState(this.targetBed).getBlock());
                 progress = (float) this.tickCounter * this.getBreakDelta(mc.theWorld.getBlockState(this.targetBed), this.targetBed, slot, true);
             }
-            return Math.min(1.0F, progress / (1.0F - 0.3F * ((float) this.speed.getValue().intValue() / 100.0F)));
+            return Math.min(1.0F, progress / (1.0F - 0.3F * ((float) this.speed.getValue() / 100.0F)));
         }
     }
 
@@ -387,8 +387,8 @@ public class BedNuker extends Module {
                         BlockPos target = this.targetBed;
                         float delta = tick * this.getBreakDelta(blockState, target, slot, canBreak);
                         mc.effectRenderer.addBlockHitEffects(this.targetBed, this.getHitFacing(this.targetBed));
-                        if (this.breakProgress >= 1.0F - 0.3F * ((float) this.speed.getValue().intValue() / 100.0F)
-                                || delta >= 1.0F - 0.3F * ((float) this.speed.getValue().intValue() / 100.0F)) {
+                        if (this.breakProgress >= 1.0F - 0.3F * ((float) this.speed.getValue() / 100.0F)
+                                || delta >= 1.0F - 0.3F * ((float) this.speed.getValue() / 100.0F)) {
                             if (this.mode.getValue() == 1) {
                                 this.readyToBreak = true;
                                 this.savedSlot = mc.thePlayer.inventory.currentItem;

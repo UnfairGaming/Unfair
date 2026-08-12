@@ -204,7 +204,7 @@ public class IntegratedServer extends MinecraftServer
 
             if (this.mc.gameSettings.renderDistanceChunks != this.getConfigurationManager().getViewDistance())
             {
-                logger.info("Changing view distance to {}, from {}", new Object[] {Integer.valueOf(this.mc.gameSettings.renderDistanceChunks), Integer.valueOf(this.getConfigurationManager().getViewDistance())});
+                logger.info("Changing view distance to {}, from {}", new Object[] {this.mc.gameSettings.renderDistanceChunks, this.getConfigurationManager().getViewDistance()});
                 this.getConfigurationManager().setViewDistance(this.mc.gameSettings.renderDistanceChunks);
             }
 

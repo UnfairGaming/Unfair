@@ -50,10 +50,6 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Config {
-    public static final String OF_NAME = "OptiFine";
-    public static final String MC_VERSION = "1.8.9";
-    public static final String OF_EDITION = "HD_U";
-    public static final String OF_RELEASE = "M6_pre2";
     public static final String VERSION = "OptiFine_1.8.9_HD_U_M6_pre2";
     private static String build = null;
     private static String newRelease = null;
@@ -1166,11 +1162,11 @@ public class Config {
 
         if (i != 0 && GlErrors.isEnabled(i)) {
             String s = getGlErrorString(i);
-            String s1 = String.format("OpenGL error: %s (%s), at: %s", Integer.valueOf(i), s, p_checkGlError_0_);
+            String s1 = String.format("OpenGL error: %s (%s), at: %s", i, s, p_checkGlError_0_);
             error(s1);
 
             if (isShowGlErrors() && TimedEvent.isActive("ShowGlError", 10000L)) {
-                String s2 = I18n.format("of.message.openglError", Integer.valueOf(i), s);
+                String s2 = I18n.format("of.message.openglError", i, s);
                 minecraft.ingameGUI.getChatGUI().printChatMessage(new ChatComponentText(s2));
             }
         }
@@ -1826,7 +1822,7 @@ public class Config {
             int[] aint = new int[p_toPrimitive_0_.length];
 
             for (int i = 0; i < aint.length; ++i) {
-                aint[i] = p_toPrimitive_0_[i].intValue();
+                aint[i] = p_toPrimitive_0_[i];
             }
 
             return aint;

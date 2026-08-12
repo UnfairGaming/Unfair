@@ -169,7 +169,7 @@ public class Material
      */
     public boolean isOpaque()
     {
-        return this.isTranslucent ? false : this.blocksMovement();
+        return !this.isTranslucent && this.blocksMovement();
     }
 
     /**

@@ -454,8 +454,8 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory
             {
                 CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Adding item to inventory");
                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Item being added");
-                crashreportcategory.addCrashSection("Item ID", Integer.valueOf(Item.getIdFromItem(itemStackIn.getItem())));
-                crashreportcategory.addCrashSection("Item data", Integer.valueOf(itemStackIn.getMetadata()));
+                crashreportcategory.addCrashSection("Item ID", Item.getIdFromItem(itemStackIn.getItem()));
+                crashreportcategory.addCrashSection("Item data", itemStackIn.getMetadata());
                 crashreportcategory.addCrashSectionCallable("Item name", new Callable<String>()
                 {
                     public String call() throws Exception
@@ -736,7 +736,7 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory
         else
         {
             ItemStack itemstack = this.getStackInSlot(this.currentItem);
-            return itemstack != null ? itemstack.canHarvestBlock(blockIn) : false;
+            return itemstack != null && itemstack.canHarvestBlock(blockIn);
         }
     }
 
@@ -849,7 +849,7 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory
      */
     public boolean isUseableByPlayer(EntityPlayer player)
     {
-        return this.player.isDead ? false : player.getDistanceSqToEntity(this.player) <= 64.0D;
+        return !this.player.isDead && player.getDistanceSqToEntity(this.player) <= 64.0D;
     }
 
     /**

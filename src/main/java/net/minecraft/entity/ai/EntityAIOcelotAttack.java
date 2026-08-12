@@ -41,7 +41,7 @@ public class EntityAIOcelotAttack extends EntityAIBase
      */
     public boolean continueExecuting()
     {
-        return !this.theVictim.isEntityAlive() ? false : (this.theEntity.getDistanceSqToEntity(this.theVictim) > 225.0D ? false : !this.theEntity.getNavigator().noPath() || this.shouldExecute());
+        return this.theVictim.isEntityAlive() && (!(this.theEntity.getDistanceSqToEntity(this.theVictim) > 225.0D) && (!this.theEntity.getNavigator().noPath() || this.shouldExecute()));
     }
 
     /**

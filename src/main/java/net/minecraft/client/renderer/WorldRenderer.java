@@ -546,7 +546,7 @@ public class WorldRenderer {
         }
 
         Xray xray = (Xray) Unfair.moduleManager.modules.get(Xray.class);
-        return xray.isEnabled() ? color & 16777215 | (int) ((float) xray.opacity.getValue().intValue() * 255.0F / 100.0F) << 24 : color;
+        return xray.isEnabled() ? color & 16777215 | (int) ((float) xray.opacity.getValue() * 255.0F / 100.0F) << 24 : color;
     }
 
     public void putColor(int argb, int p_178988_2_) {

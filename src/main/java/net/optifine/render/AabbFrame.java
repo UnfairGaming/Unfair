@@ -19,7 +19,7 @@ public class AabbFrame extends AxisAlignedBB
     {
         if (this.frameCount != frameCount)
         {
-            this.inFrustumFully = camera instanceof Frustum ? ((Frustum)camera).isBoxInFrustumFully(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ) : false;
+            this.inFrustumFully = camera instanceof Frustum && ((Frustum) camera).isBoxInFrustumFully(this.minX, this.minY, this.minZ, this.maxX, this.maxY, this.maxZ);
             this.frameCount = frameCount;
         }
 

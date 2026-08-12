@@ -32,7 +32,7 @@ public abstract class BlockRedstoneDiode extends BlockDirectional
 
     public boolean canPlaceBlockAt(World worldIn, BlockPos pos)
     {
-        return World.doesBlockHaveSolidTopSurface(worldIn, pos.down()) ? super.canPlaceBlockAt(worldIn, pos) : false;
+        return World.doesBlockHaveSolidTopSurface(worldIn, pos.down()) && super.canPlaceBlockAt(worldIn, pos);
     }
 
     public boolean canBlockStay(World worldIn, BlockPos pos)
@@ -157,7 +157,7 @@ public abstract class BlockRedstoneDiode extends BlockDirectional
         else
         {
             IBlockState iblockstate = worldIn.getBlockState(blockpos);
-            return Math.max(i, iblockstate.getBlock() == Blocks.redstone_wire ? iblockstate.getValue(BlockRedstoneWire.POWER).intValue() : 0);
+            return Math.max(i, iblockstate.getBlock() == Blocks.redstone_wire ? iblockstate.getValue(BlockRedstoneWire.POWER) : 0);
         }
     }
 
@@ -173,7 +173,7 @@ public abstract class BlockRedstoneDiode extends BlockDirectional
     {
         IBlockState iblockstate = worldIn.getBlockState(pos);
         Block block = iblockstate.getBlock();
-        return this.canPowerSide(block) ? (block == Blocks.redstone_wire ? iblockstate.getValue(BlockRedstoneWire.POWER).intValue() : worldIn.getStrongPower(pos, side)) : 0;
+        return this.canPowerSide(block) ? (block == Blocks.redstone_wire ? iblockstate.getValue(BlockRedstoneWire.POWER) : worldIn.getStrongPower(pos, side)) : 0;
     }
 
     /**
@@ -265,7 +265,7 @@ public abstract class BlockRedstoneDiode extends BlockDirectional
     {
         EnumFacing enumfacing = state.getValue(FACING).getOpposite();
         BlockPos blockpos = pos.offset(enumfacing);
-        return isRedstoneRepeaterBlockID(worldIn.getBlockState(blockpos).getBlock()) ? worldIn.getBlockState(blockpos).getValue(FACING) != enumfacing : false;
+        return isRedstoneRepeaterBlockID(worldIn.getBlockState(blockpos).getBlock()) && worldIn.getBlockState(blockpos).getValue(FACING) != enumfacing;
     }
 
     protected int getTickDelay(IBlockState state)

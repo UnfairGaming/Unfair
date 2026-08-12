@@ -163,7 +163,7 @@ public class ConnectedProperties
 
                                 if (j >= 0 && j < this.tiles.length)
                                 {
-                                    map.put(Integer.valueOf(i), Integer.valueOf(j));
+                                    map.put(i, j);
                                 }
                                 else
                                 {
@@ -191,9 +191,9 @@ public class ConnectedProperties
                 {
                     aint[k] = -1;
 
-                    if (map.containsKey(Integer.valueOf(k)))
+                    if (map.containsKey(k))
                     {
-                        aint[k] = map.get(Integer.valueOf(k)).intValue();
+                        aint[k] = map.get(k);
                     }
                 }
 
@@ -1205,7 +1205,7 @@ public class ConnectedProperties
 
     public boolean matchesBlock(int blockId, int metadata)
     {
-        return !Matches.block(blockId, metadata, this.matchBlocks) ? false : Matches.metadata(metadata, this.metadatas);
+        return Matches.block(blockId, metadata, this.matchBlocks) && Matches.metadata(metadata, this.metadatas);
     }
 
     public boolean matchesIcon(TextureAtlasSprite icon)

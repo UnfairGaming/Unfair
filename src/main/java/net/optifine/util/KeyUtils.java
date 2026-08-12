@@ -16,7 +16,7 @@ public class KeyUtils
         for (int i = 0; i < keysPrio.length; ++i)
         {
             KeyBinding keybinding = keysPrio[i];
-            set.add(Integer.valueOf(keybinding.getKeyCode()));
+            set.add(keybinding.getKeyCode());
         }
 
         Set<KeyBinding> set1 = new HashSet(Arrays.asList(keys));
@@ -24,7 +24,7 @@ public class KeyUtils
 
         for (KeyBinding keybinding1 : set1)
         {
-            Integer integer = Integer.valueOf(keybinding1.getKeyCode());
+            Integer integer = keybinding1.getKeyCode();
 
             if (set.contains(integer))
             {

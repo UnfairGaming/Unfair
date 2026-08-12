@@ -172,7 +172,7 @@ public class BlockPortal extends BlockBreakable
         boolean flag3 = worldIn.getBlockState(pos.south()).getBlock() == this && worldIn.getBlockState(pos.south(2)).getBlock() != this;
         boolean flag4 = flag || flag1 || enumfacing$axis == EnumFacing.Axis.X;
         boolean flag5 = flag2 || flag3 || enumfacing$axis == EnumFacing.Axis.Z;
-        return flag4 && side == EnumFacing.WEST ? true : (flag4 && side == EnumFacing.EAST ? true : (flag5 && side == EnumFacing.NORTH ? true : flag5 && side == EnumFacing.SOUTH));
+        return flag4 && side == EnumFacing.WEST || (flag4 && side == EnumFacing.EAST || (flag5 && side == EnumFacing.NORTH || flag5 && side == EnumFacing.SOUTH));
     }
 
     /**

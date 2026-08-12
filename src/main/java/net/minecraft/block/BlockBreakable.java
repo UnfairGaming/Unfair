@@ -49,6 +49,6 @@ public class BlockBreakable extends Block
             }
         }
 
-        return !this.ignoreSimilarity && block == this ? false : super.shouldSideBeRendered(worldIn, pos, side);
+        return (this.ignoreSimilarity || block != this) && super.shouldSideBeRendered(worldIn, pos, side);
     }
 }

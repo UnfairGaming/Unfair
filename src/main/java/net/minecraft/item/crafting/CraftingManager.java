@@ -251,9 +251,9 @@ public class CraftingManager
         {
             char c0 = s.charAt(i1);
 
-            if (map.containsKey(Character.valueOf(c0)))
+            if (map.containsKey(c0))
             {
-                aitemstack[i1] = map.get(Character.valueOf(c0)).copy();
+                aitemstack[i1] = map.get(c0).copy();
             }
             else
             {

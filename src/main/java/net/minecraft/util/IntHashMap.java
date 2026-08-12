@@ -251,8 +251,8 @@ public class IntHashMap<V>
             else
             {
                 IntHashMap.Entry<?> entry = (IntHashMap.Entry<?>)p_equals_1_;
-                Object object = Integer.valueOf(this.getHash());
-                Object object1 = Integer.valueOf(entry.getHash());
+                Object object = this.getHash();
+                Object object1 = entry.getHash();
 
                 if (object == object1 || object != null && object.equals(object1))
                 {

@@ -84,7 +84,7 @@ public class CompoundKey
 
     private static boolean compareKeys(Object key1, Object key2)
     {
-        return key1 == key2 ? true : (key1 == null ? false : (key2 == null ? false : key1.equals(key2)));
+        return key1 == key2 || (key1 != null && (key2 != null && key1.equals(key2)));
     }
 
     private Object[] getKeys()

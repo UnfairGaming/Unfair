@@ -147,7 +147,7 @@ public class ShaderManager
                 for (String s2 : this.attributes)
                 {
                     int l = OpenGlHelper.glGetAttribLocation(this.program, s2);
-                    this.attribLocations.add(Integer.valueOf(l));
+                    this.attribLocations.add(l);
                 }
             }
         }
@@ -227,7 +227,7 @@ public class ShaderManager
                 }
                 else if (object instanceof Integer)
                 {
-                    j = ((Integer)object).intValue();
+                    j = (Integer) object;
                 }
 
                 if (j != -1)
@@ -286,7 +286,7 @@ public class ShaderManager
             }
             else
             {
-                this.shaderSamplerLocations.add(Integer.valueOf(k));
+                this.shaderSamplerLocations.add(k);
             }
 
             ++i;
@@ -303,7 +303,7 @@ public class ShaderManager
             }
             else
             {
-                this.shaderUniformLocations.add(Integer.valueOf(l));
+                this.shaderUniformLocations.add(l);
                 shaderuniform.setUniformLocation(l);
                 this.mappedShaderUniforms.put(s1, shaderuniform);
             }

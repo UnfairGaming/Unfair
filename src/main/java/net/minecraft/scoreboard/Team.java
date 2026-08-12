@@ -11,7 +11,7 @@ public abstract class Team
      */
     public boolean isSameTeam(Team other)
     {
-        return other == null ? false : this == other;
+        return other != null && this == other;
     }
 
     /**

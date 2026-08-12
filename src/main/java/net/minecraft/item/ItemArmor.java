@@ -127,7 +127,7 @@ public class ItemArmor extends Item
      */
     public boolean hasColor(ItemStack stack)
     {
-        return this.material != ItemArmor.ArmorMaterial.LEATHER ? false : (!stack.hasTagCompound() ? false : (!stack.getTagCompound().hasKey("display", 10) ? false : stack.getTagCompound().getCompoundTag("display").hasKey("color", 3)));
+        return this.material == ArmorMaterial.LEATHER && (stack.hasTagCompound() && (stack.getTagCompound().hasKey("display", 10) && stack.getTagCompound().getCompoundTag("display").hasKey("color", 3)));
     }
 
     /**
@@ -213,7 +213,7 @@ public class ItemArmor extends Item
      */
     public boolean getIsRepairable(ItemStack toRepair, ItemStack repair)
     {
-        return this.material.getRepairItem() == repair.getItem() ? true : super.getIsRepairable(toRepair, repair);
+        return this.material.getRepairItem() == repair.getItem() || super.getIsRepairable(toRepair, repair);
     }
 
     /**

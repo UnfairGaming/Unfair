@@ -178,10 +178,10 @@ public abstract class EntityPlayer extends EntityLivingBase {
     protected void entityInit()
     {
         super.entityInit();
-        this.dataWatcher.addObject(16, Byte.valueOf((byte)0));
-        this.dataWatcher.addObject(17, Float.valueOf(0.0F));
-        this.dataWatcher.addObject(18, Integer.valueOf(0));
-        this.dataWatcher.addObject(10, Byte.valueOf((byte)0));
+        this.dataWatcher.addObject(16, (byte) 0);
+        this.dataWatcher.addObject(17, 0.0F);
+        this.dataWatcher.addObject(18, 0);
+        this.dataWatcher.addObject(10, (byte) 0);
     }
 
     /**
@@ -713,7 +713,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
      */
     public void setScore(int p_85040_1_)
     {
-        this.dataWatcher.updateObject(18, Integer.valueOf(p_85040_1_));
+        this.dataWatcher.updateObject(18, p_85040_1_);
     }
 
     /**
@@ -722,7 +722,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
     public void addScore(int p_85039_1_)
     {
         int i = this.getScore();
-        this.dataWatcher.updateObject(18, Integer.valueOf(i + p_85039_1_));
+        this.dataWatcher.updateObject(18, i + p_85039_1_);
     }
 
     /**
@@ -1132,7 +1132,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
     {
         Team team = this.getTeam();
         Team team1 = other.getTeam();
-        return team == null ? true : (!team.isSameTeam(team1) ? true : team.getAllowFriendlyFire());
+        return team == null || (!team.isSameTeam(team1) || team.getAllowFriendlyFire());
     }
 
     protected void damageArmor(float p_70675_1_)
@@ -1665,7 +1665,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
         if (this.playerLocation != null && iblockstate.getBlock() == Blocks.bed)
         {
-            this.worldObj.setBlockState(this.playerLocation, iblockstate.withProperty(BlockBed.OCCUPIED, Boolean.valueOf(false)), 4);
+            this.worldObj.setBlockState(this.playerLocation, iblockstate.withProperty(BlockBed.OCCUPIED, Boolean.FALSE), 4);
             BlockPos blockpos = BlockBed.getSafeExitLocation(this.worldObj, this.playerLocation, 0);
 
             if (blockpos == null)
@@ -2022,7 +2022,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
             this.triggerAchievement(AchievementList.killEnemy);
         }
 
-        EntityList.EntityEggInfo entitylist$entityegginfo = EntityList.entityEggs.get(Integer.valueOf(EntityList.getEntityID(entityLivingIn)));
+        EntityList.EntityEggInfo entitylist$entityegginfo = EntityList.entityEggs.get(EntityList.getEntityID(entityLivingIn));
 
         if (entitylist$entityegginfo != null)
         {
@@ -2252,7 +2252,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
         this.xpSeed = oldPlayer.xpSeed;
         this.theInventoryEnderChest = oldPlayer.theInventoryEnderChest;
-        this.getDataWatcher().updateObject(10, Byte.valueOf(oldPlayer.getDataWatcher().getWatchableObjectByte(10)));
+        this.getDataWatcher().updateObject(10, oldPlayer.getDataWatcher().getWatchableObjectByte(10));
     }
 
     /**
@@ -2429,7 +2429,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
             amount = 0.0F;
         }
 
-        this.getDataWatcher().updateObject(17, Float.valueOf(amount));
+        this.getDataWatcher().updateObject(17, amount);
     }
 
     public float getAbsorptionAmount()
@@ -2469,7 +2469,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
         else
         {
             ItemStack itemstack = this.getCurrentEquippedItem();
-            return itemstack != null && itemstack.hasDisplayName() ? itemstack.getDisplayName().equals(code.getLock()) : false;
+            return itemstack != null && itemstack.hasDisplayName() && itemstack.getDisplayName().equals(code.getLock());
         }
     }
 

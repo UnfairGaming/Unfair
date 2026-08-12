@@ -9,7 +9,7 @@ public class JsonUtils
      */
     public static boolean isString(JsonObject p_151205_0_, String p_151205_1_)
     {
-        return !isJsonPrimitive(p_151205_0_, p_151205_1_) ? false : p_151205_0_.getAsJsonPrimitive(p_151205_1_).isString();
+        return isJsonPrimitive(p_151205_0_, p_151205_1_) && p_151205_0_.getAsJsonPrimitive(p_151205_1_).isString();
     }
 
     /**
@@ -17,12 +17,12 @@ public class JsonUtils
      */
     public static boolean isString(JsonElement p_151211_0_)
     {
-        return !p_151211_0_.isJsonPrimitive() ? false : p_151211_0_.getAsJsonPrimitive().isString();
+        return p_151211_0_.isJsonPrimitive() && p_151211_0_.getAsJsonPrimitive().isString();
     }
 
     public static boolean isBoolean(JsonObject p_180199_0_, String p_180199_1_)
     {
-        return !isJsonPrimitive(p_180199_0_, p_180199_1_) ? false : p_180199_0_.getAsJsonPrimitive(p_180199_1_).isBoolean();
+        return isJsonPrimitive(p_180199_0_, p_180199_1_) && p_180199_0_.getAsJsonPrimitive(p_180199_1_).isBoolean();
     }
 
     /**
@@ -30,7 +30,7 @@ public class JsonUtils
      */
     public static boolean isJsonArray(JsonObject p_151202_0_, String p_151202_1_)
     {
-        return !hasField(p_151202_0_, p_151202_1_) ? false : p_151202_0_.get(p_151202_1_).isJsonArray();
+        return hasField(p_151202_0_, p_151202_1_) && p_151202_0_.get(p_151202_1_).isJsonArray();
     }
 
     /**
@@ -39,7 +39,7 @@ public class JsonUtils
      */
     public static boolean isJsonPrimitive(JsonObject p_151201_0_, String p_151201_1_)
     {
-        return !hasField(p_151201_0_, p_151201_1_) ? false : p_151201_0_.get(p_151201_1_).isJsonPrimitive();
+        return hasField(p_151201_0_, p_151201_1_) && p_151201_0_.get(p_151201_1_).isJsonPrimitive();
     }
 
     /**
@@ -47,7 +47,7 @@ public class JsonUtils
      */
     public static boolean hasField(JsonObject p_151204_0_, String p_151204_1_)
     {
-        return p_151204_0_ == null ? false : p_151204_0_.get(p_151204_1_) != null;
+        return p_151204_0_ != null && p_151204_0_.get(p_151204_1_) != null;
     }
 
     /**

@@ -72,7 +72,7 @@ public class AntiVoid extends Module {
                 }
                 if (Unfair.blinkManager.getBlinkingModule() == BlinkModules.ANTI_VOID
                         && this.lastSafePosition != null
-                        && this.lastSafePosition[1] - (double) this.distance.getValue().floatValue() > mc.thePlayer.posY) {
+                        && this.lastSafePosition[1] - (double) this.distance.getValue() > mc.thePlayer.posY) {
                     Unfair.blinkManager
                             .blinkedPackets
                             .offerFirst(

@@ -96,7 +96,7 @@ public class AntiFireball extends Module {
                     event.setPervRotation(this.moveFix.getValue() != 0 ? rotations[0] : mc.thePlayer.rotationYaw, 0);
                 }
                 if (!Unfair.playerStateManager.attacking && !Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
-                    if (RotationUtil.distanceToEntity(this.target) <= (double) this.range.getValue().floatValue()) {
+                    if (RotationUtil.distanceToEntity(this.target) <= (double) this.range.getValue()) {
                         if (this.swing.getValue()) {
                             AttackOrder.sendFixedPacketAttack(this.target);
                         } else {

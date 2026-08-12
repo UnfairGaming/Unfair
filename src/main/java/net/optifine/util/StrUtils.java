@@ -343,7 +343,7 @@ public class StrUtils
 
     public static boolean isEmpty(String string)
     {
-        return string == null ? true : string.trim().length() <= 0;
+        return string == null || string.trim().length() <= 0;
     }
 
     public static String stringInc(String str)
@@ -450,7 +450,7 @@ public class StrUtils
 
     public static boolean equals(Object a, Object b)
     {
-        return a == b ? true : (a != null && a.equals(b) ? true : b != null && b.equals(a));
+        return a == b || (a != null && a.equals(b) || b != null && b.equals(a));
     }
 
     public static boolean startsWith(String str, String[] prefixes)

@@ -49,7 +49,7 @@ public class EntityIronGolem extends EntityGolem
     protected void entityInit()
     {
         super.entityInit();
-        this.dataWatcher.addObject(16, Byte.valueOf((byte)0));
+        this.dataWatcher.addObject(16, (byte) 0);
     }
 
     protected void updateAITasks()
@@ -136,7 +136,7 @@ public class EntityIronGolem extends EntityGolem
      */
     public boolean canAttackClass(Class <? extends EntityLivingBase > cls)
     {
-        return this.isPlayerCreated() && EntityPlayer.class.isAssignableFrom(cls) ? false : (cls == EntityCreeper.class ? false : super.canAttackClass(cls));
+        return (!this.isPlayerCreated() || !EntityPlayer.class.isAssignableFrom(cls)) && (cls != EntityCreeper.class && super.canAttackClass(cls));
     }
 
     /**
@@ -267,11 +267,11 @@ public class EntityIronGolem extends EntityGolem
 
         if (p_70849_1_)
         {
-            this.dataWatcher.updateObject(16, Byte.valueOf((byte)(b0 | 1)));
+            this.dataWatcher.updateObject(16, (byte) (b0 | 1));
         }
         else
         {
-            this.dataWatcher.updateObject(16, Byte.valueOf((byte)(b0 & -2)));
+            this.dataWatcher.updateObject(16, (byte) (b0 & -2));
         }
     }
 

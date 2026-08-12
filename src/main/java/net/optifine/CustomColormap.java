@@ -187,7 +187,7 @@ public class CustomColormap implements CustomColors.IColorizer
 
             ConnectedParser connectedparser = new ConnectedParser("Colormap");
             MatchBlock[] amatchblock = connectedparser.parseMatchBlock(this.name);
-            return amatchblock != null ? amatchblock : null;
+            return amatchblock;
         }
     }
 
@@ -547,7 +547,7 @@ public class CustomColormap implements CustomColors.IColorizer
 
                 if (matchblock.getBlockId() >= 0)
                 {
-                    set.add(Integer.valueOf(matchblock.getBlockId()));
+                    set.add(matchblock.getBlockId());
                 }
             }
 
@@ -556,7 +556,7 @@ public class CustomColormap implements CustomColors.IColorizer
 
             for (int j = 0; j < ainteger.length; ++j)
             {
-                aint[j] = ainteger[j].intValue();
+                aint[j] = ainteger[j];
             }
 
             return aint;

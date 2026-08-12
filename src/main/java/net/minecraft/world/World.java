@@ -1870,7 +1870,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                             Block block = iblockstate.getBlock();
 
                             if (block.getMaterial() == materialIn) {
-                                double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL).intValue());
+                                double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL));
 
                                 if ((double) l >= d0) {
                                     flag = true;
@@ -1905,7 +1905,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                         Block block = iblockstate.getBlock();
 
                         if (block.getMaterial() == materialIn) {
-                            double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL).intValue());
+                            double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL));
 
                             if ((double) l >= d0) {
                                 flag = true;
@@ -2004,7 +2004,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                     Block block = iblockstate.getBlock();
 
                     if (block.getMaterial() == materialIn) {
-                        int j2 = iblockstate.getValue(BlockLiquid.LEVEL).intValue();
+                        int j2 = iblockstate.getValue(BlockLiquid.LEVEL);
                         double d0 = l1 + 1;
 
                         if (j2 < 8) {
@@ -2192,7 +2192,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
     public static boolean doesBlockHaveSolidTopSurface(IBlockAccess blockAccess, BlockPos pos) {
         IBlockState iblockstate = blockAccess.getBlockState(pos);
         Block block = iblockstate.getBlock();
-        return block.getMaterial().isOpaque() && block.isFullCube() || (block instanceof BlockStairs ? iblockstate.getValue(BlockStairs.HALF) == BlockStairs.EnumHalf.TOP : (block instanceof BlockSlab ? iblockstate.getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP : (block instanceof BlockHopper || (block instanceof BlockSnow && iblockstate.getValue(BlockSnow.LAYERS).intValue() == 7))));
+        return block.getMaterial().isOpaque() && block.isFullCube() || (block instanceof BlockStairs ? iblockstate.getValue(BlockStairs.HALF) == BlockStairs.EnumHalf.TOP : (block instanceof BlockSlab ? iblockstate.getValue(BlockSlab.HALF) == BlockSlab.EnumBlockHalf.TOP : (block instanceof BlockHopper || (block instanceof BlockSnow && iblockstate.getValue(BlockSnow.LAYERS) == 7))));
     }
 
     /**

@@ -115,7 +115,7 @@ public class ChunkProviderFlat implements IChunkProvider
         }
 
         worldIn.setSeaLevel(j);
-        this.hasDecoration = flag ? false : this.flatWorldGenInfo.getWorldFeatures().containsKey("decoration");
+        this.hasDecoration = !flag && this.flatWorldGenInfo.getWorldFeatures().containsKey("decoration");
     }
 
     /**

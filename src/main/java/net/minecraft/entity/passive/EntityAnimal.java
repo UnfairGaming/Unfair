@@ -142,7 +142,7 @@ public abstract class EntityAnimal extends EntityAgeable implements IAnimals
      */
     public boolean isBreedingItem(ItemStack stack)
     {
-        return stack == null ? false : stack.getItem() == Items.wheat;
+        return stack != null && stack.getItem() == Items.wheat;
     }
 
     /**
@@ -218,7 +218,7 @@ public abstract class EntityAnimal extends EntityAgeable implements IAnimals
      */
     public boolean canMateWith(EntityAnimal otherAnimal)
     {
-        return otherAnimal == this ? false : (otherAnimal.getClass() != this.getClass() ? false : this.isInLove() && otherAnimal.isInLove());
+        return otherAnimal != this && (otherAnimal.getClass() == this.getClass() && this.isInLove() && otherAnimal.isInLove());
     }
 
     public void handleStatusUpdate(byte id)

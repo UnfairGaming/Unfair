@@ -153,10 +153,10 @@ public class EntityAliases
     {
         while (list.size() <= index)
         {
-            list.add(Integer.valueOf(-1));
+            list.add(-1);
         }
 
-        list.set(index, Integer.valueOf(val));
+        list.set(index, val);
     }
 
     private static int[] toArray(List<Integer> list)
@@ -165,7 +165,7 @@ public class EntityAliases
 
         for (int i = 0; i < aint.length; ++i)
         {
-            aint[i] = list.get(i).intValue();
+            aint[i] = list.get(i);
         }
 
         return aint;

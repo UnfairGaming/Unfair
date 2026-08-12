@@ -16,7 +16,7 @@ public class RenderResolverEntity implements IRenderResolver
         else
         {
             RenderEntityParameterFloat renderentityparameterfloat = RenderEntityParameterFloat.parse(name);
-            return renderentityparameterfloat != null ? renderentityparameterfloat : null;
+            return renderentityparameterfloat;
         }
     }
 }

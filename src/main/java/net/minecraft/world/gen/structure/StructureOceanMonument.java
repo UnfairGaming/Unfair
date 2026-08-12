@@ -150,7 +150,7 @@ public class StructureOceanMonument extends MapGenStructure
 
         public boolean func_175788_a(ChunkCoordIntPair pair)
         {
-            return this.field_175791_c.contains(pair) ? false : super.func_175788_a(pair);
+            return !this.field_175791_c.contains(pair) && super.func_175788_a(pair);
         }
 
         public void func_175787_b(ChunkCoordIntPair pair)

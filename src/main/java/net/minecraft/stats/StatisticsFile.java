@@ -180,7 +180,7 @@ public class StatisticsFile extends StatFileWriter
             if (entry.getValue().getJsonSerializableValue() != null)
             {
                 JsonObject jsonobject1 = new JsonObject();
-                jsonobject1.addProperty("value", Integer.valueOf(entry.getValue().getIntegerValue()));
+                jsonobject1.addProperty("value", entry.getValue().getIntegerValue());
 
                 try
                 {
@@ -195,7 +195,7 @@ public class StatisticsFile extends StatFileWriter
             }
             else
             {
-                jsonobject.addProperty(entry.getKey().statId, Integer.valueOf(entry.getValue().getIntegerValue()));
+                jsonobject.addProperty(entry.getKey().statId, entry.getValue().getIntegerValue());
             }
         }
 
@@ -221,7 +221,7 @@ public class StatisticsFile extends StatFileWriter
 
             for (StatBase statbase : this.func_150878_c())
             {
-                map.put(statbase, Integer.valueOf(this.readStat(statbase)));
+                map.put(statbase, this.readStat(statbase));
             }
         }
 
@@ -236,7 +236,7 @@ public class StatisticsFile extends StatFileWriter
         {
             if (this.hasAchievementUnlocked(achievement))
             {
-                map.put(achievement, Integer.valueOf(this.readStat(achievement)));
+                map.put(achievement, this.readStat(achievement));
                 this.field_150888_e.remove(achievement);
             }
         }

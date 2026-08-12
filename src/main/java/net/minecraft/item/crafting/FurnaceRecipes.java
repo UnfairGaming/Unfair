@@ -86,7 +86,7 @@ public class FurnaceRecipes
     public void addSmeltingRecipe(ItemStack input, ItemStack stack, float experience)
     {
         this.smeltingList.put(input, stack);
-        this.experienceList.put(stack, Float.valueOf(experience));
+        this.experienceList.put(stack, experience);
     }
 
     /**
@@ -124,7 +124,7 @@ public class FurnaceRecipes
         {
             if (this.compareItemStacks(stack, entry.getKey()))
             {
-                return entry.getValue().floatValue();
+                return entry.getValue();
             }
         }
 

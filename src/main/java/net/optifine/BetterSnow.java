@@ -32,13 +32,13 @@ public class BetterSnow
     public static boolean shouldRender(IBlockAccess blockAccess, IBlockState blockState, BlockPos blockPos)
     {
         Block block = blockState.getBlock();
-        return !checkBlock(block, blockState) ? false : hasSnowNeighbours(blockAccess, blockPos);
+        return checkBlock(block, blockState) && hasSnowNeighbours(blockAccess, blockPos);
     }
 
     private static boolean hasSnowNeighbours(IBlockAccess blockAccess, BlockPos pos)
     {
         Block block = Blocks.snow_layer;
-        return blockAccess.getBlockState(pos.north()).getBlock() != block && blockAccess.getBlockState(pos.south()).getBlock() != block && blockAccess.getBlockState(pos.west()).getBlock() != block && blockAccess.getBlockState(pos.east()).getBlock() != block ? false : blockAccess.getBlockState(pos.down()).getBlock().isOpaqueCube();
+        return (blockAccess.getBlockState(pos.north()).getBlock() == block || blockAccess.getBlockState(pos.south()).getBlock() == block || blockAccess.getBlockState(pos.west()).getBlock() == block || blockAccess.getBlockState(pos.east()).getBlock() == block) && blockAccess.getBlockState(pos.down()).getBlock().isOpaqueCube();
     }
 
     private static boolean checkBlock(Block block, IBlockState blockState)

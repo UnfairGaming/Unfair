@@ -38,7 +38,7 @@ public class Speed extends Module {
             if (mc.thePlayer.onGround) {
                 mc.thePlayer.motionY = 0.42F;
                 MoveUtil.setSpeed(
-                        MoveUtil.getJumpMotion() * (double) this.multiplier.getValue().floatValue(),
+                        MoveUtil.getJumpMotion() * (double) this.multiplier.getValue(),
                         MoveUtil.getMoveYaw()
                 );
             } else {
@@ -49,7 +49,7 @@ public class Speed extends Module {
                     double speed = MoveUtil.getSpeed();
                     MoveUtil.setSpeed(speed * (double) ((float) (100 - this.strafe.getValue()) / 100.0F), MoveUtil.getDirectionYaw());
                     MoveUtil.addSpeed(
-                            speed * (double) ((float) this.strafe.getValue().intValue() / 100.0F), MoveUtil.getMoveYaw()
+                            speed * (double) ((float) this.strafe.getValue() / 100.0F), MoveUtil.getMoveYaw()
                     );
                     MoveUtil.setSpeed(speed);
                 }

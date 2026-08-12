@@ -14,14 +14,14 @@ public class DynamicLightsMap
 
     public DynamicLight put(int id, DynamicLight dynamicLight)
     {
-        DynamicLight dynamiclight = this.map.put(Integer.valueOf(id), dynamicLight);
+        DynamicLight dynamiclight = this.map.put(id, dynamicLight);
         this.setDirty();
         return dynamiclight;
     }
 
     public DynamicLight get(int id)
     {
-        return this.map.get(Integer.valueOf(id));
+        return this.map.get(id);
     }
 
     public int size()
@@ -31,7 +31,7 @@ public class DynamicLightsMap
 
     public DynamicLight remove(int id)
     {
-        DynamicLight dynamiclight = this.map.remove(Integer.valueOf(id));
+        DynamicLight dynamiclight = this.map.remove(id);
 
         if (dynamiclight != null)
         {

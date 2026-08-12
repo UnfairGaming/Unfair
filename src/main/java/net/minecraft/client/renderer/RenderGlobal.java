@@ -832,7 +832,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             }
         }
 
-        return String.format("C: %d/%d %sD: %d, %s", Integer.valueOf(j), Integer.valueOf(i), this.mc.renderChunksMany ? "(s) " : "", Integer.valueOf(this.renderDistanceChunks), this.renderDispatcher.getDebugInfo());
+        return String.format("C: %d/%d %sD: %d, %s", j, i, this.mc.renderChunksMany ? "(s) " : "", this.renderDistanceChunks, this.renderDispatcher.getDebugInfo());
     }
 
     /**
@@ -2348,7 +2348,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
         } catch (Throwable throwable) {
             CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Exception while adding particle");
             CrashReportCategory crashreportcategory = crashreport.makeCategory("Particle being added");
-            crashreportcategory.addCrashSection("ID", Integer.valueOf(particleID));
+            crashreportcategory.addCrashSection("ID", particleID);
 
             if (parameters != null) {
                 crashreportcategory.addCrashSection("Parameters", parameters);
@@ -2715,17 +2715,17 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
 
     public void sendBlockBreakProgress(int breakerId, BlockPos pos, int progress) {
         if (progress >= 0 && progress < 10) {
-            DestroyBlockProgress destroyblockprogress = this.damagedBlocks.get(Integer.valueOf(breakerId));
+            DestroyBlockProgress destroyblockprogress = this.damagedBlocks.get(breakerId);
 
             if (destroyblockprogress == null || destroyblockprogress.getPosition().getX() != pos.getX() || destroyblockprogress.getPosition().getY() != pos.getY() || destroyblockprogress.getPosition().getZ() != pos.getZ()) {
                 destroyblockprogress = new DestroyBlockProgress(breakerId, pos);
-                this.damagedBlocks.put(Integer.valueOf(breakerId), destroyblockprogress);
+                this.damagedBlocks.put(breakerId, destroyblockprogress);
             }
 
             destroyblockprogress.setPartialBlockDamage(progress);
             destroyblockprogress.setCloudUpdateTick(this.cloudTickCounter);
         } else {
-            this.damagedBlocks.remove(Integer.valueOf(breakerId));
+            this.damagedBlocks.remove(breakerId);
         }
     }
 

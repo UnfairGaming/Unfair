@@ -58,7 +58,7 @@ public class KillAura extends Module {
     public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"SINGLE", "SWITCH"});
     public final ModeProperty sort = new ModeProperty("sort", 0, new String[]{"DISTANCE", "HEALTH", "HURT_TIME", "FOV"});
     public final ModeProperty autoBlock = new ModeProperty(
-            "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE", "HYPIXEL_LAG"}
+            "auto-block", 0, new String[]{"NONE", "VANILLA", "HYPIXEL", "LEGIT", "FAKE", "HYPIXEL_LAG", "HYPIXEL_LAG2"}
     );
     public final BooleanProperty autoBlockRequirePress = new BooleanProperty("auto-block-require-press", false);
     public final IntProperty autoBlockCPS = new IntProperty("auto-block-aps", 10, 1, 20);
@@ -434,7 +434,8 @@ public class KillAura extends Module {
                     && (this.autoBlock.getValue() == 2
                     || this.autoBlock.getValue() == 3
                     || this.autoBlock.getValue() == 4
-                    || this.autoBlock.getValue() == 5);
+                    || this.autoBlock.getValue() == 5
+                    || this.autoBlock.getValue() == 6);
         } else {
             return false;
         }
@@ -963,6 +964,72 @@ public class KillAura extends Module {
                                             this.blockTick = 2;
                                             break;
                                         case 2:
+                                            blocked = true;
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blockTick = 3;
+                                            break;
+                                        case 3:
+                                            if (this.isPlayerBlocking()) {
+                                                if (this.c09Instead.getValue()) {
+                                                    int handle = mc.thePlayer.inventory.currentItem;
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(handle % 8 + 1));
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(handle % 7 + 2));
+                                                    PacketUtil.sendPacket(new C09PacketHeldItemChange(handle));
+                                                }
+                                                this.stopBlock();
+                                            }
+                                            this.blockTick = 4;
+                                            break;
+                                        case 4:
+                                            Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                            if (this.attackDelayMS <= 50L) {
+                                                this.blockTick = 0;
+                                            }
+                                            break;
+                                        default:
+                                            this.blockTick = 0;
+                                    }
+                                }
+                                this.isBlocking = true;
+                                this.fakeBlockState = true;
+                            } else {
+                                Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+                                if (this.isBlocking) {
+                                    this.stopBlock();
+                                }
+                                this.isBlocking = false;
+                                this.fakeBlockState = false;
+                            }
+                            break;
+                        case 6:
+                            if (this.hasValidTarget()) {
+                                if (!Unfair.playerStateManager.digging && !Unfair.playerStateManager.placing) {
+                                    switch (this.blockTick) {
+                                        case 0:
+                                            if (!this.isPlayerBlocking()) {
+                                                swap = true;
+                                            }
+                                            this.blockTick = 1;
+                                            break;
+                                        case 1:
+                                            Unfair.blinkManager.setBlinkState(true, BlinkModules.AUTO_BLOCK);
+                                            if (this.isPlayerBlocking()) {
+                                                this.stopBlock();
+                                            }
+                                            attack = false;
+                                            this.blockTick = 2;
+                                            break;
+                                        case 2:
+                                            attack = false;
+                                            this.blockTick = 3;
+                                            break;
+                                        case 3:
+                                            attack = false;
+                                            this.blockTick = 4;
+                                            break;
+                                        case 4:
                                             Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
                                             if (this.attackDelayMS <= 50L) {
                                                 this.blockTick = 0;

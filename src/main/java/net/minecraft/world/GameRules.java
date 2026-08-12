@@ -62,7 +62,7 @@ public class GameRules
     public boolean getBoolean(String name)
     {
         GameRules.Value gamerules$value = this.theGameRules.get(name);
-        return gamerules$value != null ? gamerules$value.getBoolean() : false;
+        return gamerules$value != null && gamerules$value.getBoolean();
     }
 
     public int getInt(String name)

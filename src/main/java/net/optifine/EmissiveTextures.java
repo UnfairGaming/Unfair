@@ -169,7 +169,7 @@ public class EmissiveTextures
 
     public static boolean isEmissive(ResourceLocation loc)
     {
-        return suffixEmissivePng == null ? false : loc.getResourcePath().endsWith(suffixEmissivePng);
+        return suffixEmissivePng != null && loc.getResourcePath().endsWith(suffixEmissivePng);
     }
 
     public static void loadTexture(ResourceLocation loc, SimpleTexture tex)

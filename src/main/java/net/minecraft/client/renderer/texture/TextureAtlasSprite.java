@@ -288,7 +288,7 @@ public class TextureAtlasSprite {
                 }
 
                 if (k > 0 && (bufferedimage.getWidth() != i >> k || bufferedimage.getHeight() != j >> k)) {
-                    throw new RuntimeException(String.format("Unable to load miplevel: %d, image is size: %dx%d, expected %dx%d", Integer.valueOf(k), Integer.valueOf(bufferedimage.getWidth()), Integer.valueOf(bufferedimage.getHeight()), Integer.valueOf(i >> k), Integer.valueOf(j >> k)));
+                    throw new RuntimeException(String.format("Unable to load miplevel: %d, image is size: %dx%d, expected %dx%d", k, bufferedimage.getWidth(), bufferedimage.getHeight(), i >> k, j >> k));
                 }
 
                 aint[k] = new int[bufferedimage.getWidth() * bufferedimage.getHeight()];
@@ -369,7 +369,7 @@ public class TextureAtlasSprite {
                 } catch (Throwable throwable) {
                     CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Generating mipmaps for frame");
                     CrashReportCategory crashreportcategory = crashreport.makeCategory("Frame being iterated");
-                    crashreportcategory.addCrashSection("Frame index", Integer.valueOf(i));
+                    crashreportcategory.addCrashSection("Frame index", i);
                     crashreportcategory.addCrashSectionCallable("Frame sizes", new Callable<String>() {
                         public String call() throws Exception {
                             StringBuilder stringbuilder = new StringBuilder();

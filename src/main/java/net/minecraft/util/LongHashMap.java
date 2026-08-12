@@ -279,8 +279,8 @@ public class LongHashMap<V>
             else
             {
                 LongHashMap.Entry<?> entry = (LongHashMap.Entry<?>)p_equals_1_;
-                Object object = Long.valueOf(this.getKey());
-                Object object1 = Long.valueOf(entry.getKey());
+                Object object = this.getKey();
+                Object object1 = entry.getKey();
 
                 if (object == object1 || object != null && object.equals(object1))
                 {

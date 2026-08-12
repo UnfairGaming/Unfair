@@ -265,7 +265,7 @@ public class ModelBlockDefinition
             else
             {
                 ModelBlockDefinition.Variants modelblockdefinition$variants = (ModelBlockDefinition.Variants)p_equals_1_;
-                return !this.name.equals(modelblockdefinition$variants.name) ? false : this.listVariants.equals(modelblockdefinition$variants.listVariants);
+                return this.name.equals(modelblockdefinition$variants.name) && this.listVariants.equals(modelblockdefinition$variants.listVariants);
             }
         }
 

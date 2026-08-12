@@ -44,7 +44,7 @@ public class BlockFence extends Block
     public BlockFence(Material p_i46395_1_, MapColor p_i46395_2_)
     {
         super(p_i46395_1_, p_i46395_2_);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(NORTH, Boolean.valueOf(false)).withProperty(EAST, Boolean.valueOf(false)).withProperty(SOUTH, Boolean.valueOf(false)).withProperty(WEST, Boolean.valueOf(false)));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(NORTH, Boolean.FALSE).withProperty(EAST, Boolean.FALSE).withProperty(SOUTH, Boolean.FALSE).withProperty(WEST, Boolean.FALSE));
         this.setCreativeTab(CreativeTabs.tabDecorations);
     }
 
@@ -195,7 +195,7 @@ public class BlockFence extends Block
     public boolean canConnectTo(IBlockAccess worldIn, BlockPos pos)
     {
         Block block = worldIn.getBlockState(pos).getBlock();
-        return block == Blocks.barrier ? false : ((!(block instanceof BlockFence) || block.blockMaterial != this.blockMaterial) && !(block instanceof BlockFenceGate) ? (block.blockMaterial.isOpaque() && block.isFullCube() ? block.blockMaterial != Material.gourd : false) : true);
+        return block != Blocks.barrier && ((block instanceof BlockFence && block.blockMaterial == this.blockMaterial) || block instanceof BlockFenceGate || (block.blockMaterial.isOpaque() && block.isFullCube() && block.blockMaterial != Material.gourd));
     }
 
     private boolean canConnectToModern(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
@@ -288,7 +288,7 @@ public class BlockFence extends Block
 
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        return worldIn.isRemote ? true : ItemLead.attachToFence(playerIn, worldIn, pos);
+        return worldIn.isRemote || ItemLead.attachToFence(playerIn, worldIn, pos);
     }
 
     /**
@@ -307,10 +307,10 @@ public class BlockFence extends Block
     {
         if (ViaProtocol.newerThanOrEqualTo1_9())
         {
-            return state.withProperty(NORTH, Boolean.valueOf(this.canConnectToModern(worldIn, pos, EnumFacing.NORTH))).withProperty(EAST, Boolean.valueOf(this.canConnectToModern(worldIn, pos, EnumFacing.EAST))).withProperty(SOUTH, Boolean.valueOf(this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH))).withProperty(WEST, Boolean.valueOf(this.canConnectToModern(worldIn, pos, EnumFacing.WEST)));
+            return state.withProperty(NORTH, this.canConnectToModern(worldIn, pos, EnumFacing.NORTH)).withProperty(EAST, this.canConnectToModern(worldIn, pos, EnumFacing.EAST)).withProperty(SOUTH, this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH)).withProperty(WEST, this.canConnectToModern(worldIn, pos, EnumFacing.WEST));
         }
 
-        return state.withProperty(NORTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.north()))).withProperty(EAST, Boolean.valueOf(this.canConnectTo(worldIn, pos.east()))).withProperty(SOUTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.south()))).withProperty(WEST, Boolean.valueOf(this.canConnectTo(worldIn, pos.west())));
+        return state.withProperty(NORTH, this.canConnectTo(worldIn, pos.north())).withProperty(EAST, this.canConnectTo(worldIn, pos.east())).withProperty(SOUTH, this.canConnectTo(worldIn, pos.south())).withProperty(WEST, this.canConnectTo(worldIn, pos.west()));
     }
 
     protected BlockState createBlockState()

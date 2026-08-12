@@ -185,7 +185,7 @@ public enum EnumConnectionState
         }
         else
         {
-            bimap.put(Integer.valueOf(bimap.size()), packetClass);
+            bimap.put(bimap.size(), packetClass);
             return this;
         }
     }
@@ -196,7 +196,7 @@ public enum EnumConnectionState
     }
 
     public Packet<?> getPacket(EnumPacketDirection direction, int packetId) throws ReflectiveOperationException {
-        Class<? extends Packet> packetClass = this.directionMaps.get(direction).get(Integer.valueOf(packetId));
+        Class<? extends Packet> packetClass = this.directionMaps.get(direction).get(packetId);
         return packetClass == null ? null : packetClass.getDeclaredConstructor().newInstance();
     }
 

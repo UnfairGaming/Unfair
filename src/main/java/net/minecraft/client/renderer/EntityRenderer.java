@@ -1359,12 +1359,12 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                     });
                     crashreportcategory.addCrashSectionCallable("Mouse location", new Callable<String>() {
                         public String call() throws Exception {
-                            return String.format("Scaled: (%d, %d). Absolute: (%d, %d)", Integer.valueOf(k1), Integer.valueOf(l1), Integer.valueOf(Mouse.getX()), Integer.valueOf(Mouse.getY()));
+                            return String.format("Scaled: (%d, %d). Absolute: (%d, %d)", k1, l1, Mouse.getX(), Mouse.getY());
                         }
                     });
                     crashreportcategory.addCrashSectionCallable("Screen size", new Callable<String>() {
                         public String call() throws Exception {
-                            return String.format("Scaled: (%d, %d). Absolute: (%d, %d). Scale factor of %d", Integer.valueOf(scaledresolution.getScaledWidth()), Integer.valueOf(scaledresolution.getScaledHeight()), Integer.valueOf(EntityRenderer.this.mc.displayWidth), Integer.valueOf(EntityRenderer.this.mc.displayHeight), Integer.valueOf(scaledresolution.getScaleFactor()));
+                            return String.format("Scaled: (%d, %d). Absolute: (%d, %d). Scale factor of %d", scaledresolution.getScaledWidth(), scaledresolution.getScaledHeight(), EntityRenderer.this.mc.displayWidth, EntityRenderer.this.mc.displayHeight, scaledresolution.getScaleFactor());
                         }
                     });
                     throw new ReportedException(crashreport);
@@ -2466,7 +2466,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
 
             if (i != 0 && GlErrors.isEnabled(i)) {
                 String s = Config.getGlErrorString(i);
-                ChatComponentText chatcomponenttext = new ChatComponentText(I18n.format("of.message.openglError", Integer.valueOf(i), s));
+                ChatComponentText chatcomponenttext = new ChatComponentText(I18n.format("of.message.openglError", i, s));
                 this.mc.ingameGUI.getChatGUI().printChatMessage(chatcomponenttext);
             }
         }

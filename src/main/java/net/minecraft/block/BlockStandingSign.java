@@ -13,7 +13,7 @@ public class BlockStandingSign extends BlockSign
 
     public BlockStandingSign()
     {
-        this.setDefaultState(this.blockState.getBaseState().withProperty(ROTATION, Integer.valueOf(0)));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(ROTATION, 0));
     }
 
     /**
@@ -35,7 +35,7 @@ public class BlockStandingSign extends BlockSign
      */
     public IBlockState getStateFromMeta(int meta)
     {
-        return this.getDefaultState().withProperty(ROTATION, Integer.valueOf(meta));
+        return this.getDefaultState().withProperty(ROTATION, meta);
     }
 
     /**
@@ -43,7 +43,7 @@ public class BlockStandingSign extends BlockSign
      */
     public int getMetaFromState(IBlockState state)
     {
-        return state.getValue(ROTATION).intValue();
+        return state.getValue(ROTATION);
     }
 
     protected BlockState createBlockState()

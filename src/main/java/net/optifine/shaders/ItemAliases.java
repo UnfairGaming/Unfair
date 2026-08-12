@@ -154,10 +154,10 @@ public class ItemAliases
     {
         while (list.size() <= index)
         {
-            list.add(Integer.valueOf(Integer.MIN_VALUE));
+            list.add(Integer.MIN_VALUE);
         }
 
-        list.set(index, Integer.valueOf(val));
+        list.set(index, val);
     }
 
     private static int[] toArray(List<Integer> list)
@@ -166,7 +166,7 @@ public class ItemAliases
 
         for (int i = 0; i < aint.length; ++i)
         {
-            aint[i] = list.get(i).intValue();
+            aint[i] = list.get(i);
         }
 
         return aint;

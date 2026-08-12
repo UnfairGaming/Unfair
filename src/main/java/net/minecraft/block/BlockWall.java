@@ -30,7 +30,7 @@ public class BlockWall extends Block
     public BlockWall(Block modelBlock)
     {
         super(modelBlock.blockMaterial);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(UP, Boolean.valueOf(false)).withProperty(NORTH, Boolean.valueOf(false)).withProperty(EAST, Boolean.valueOf(false)).withProperty(SOUTH, Boolean.valueOf(false)).withProperty(WEST, Boolean.valueOf(false)).withProperty(VARIANT, BlockWall.EnumType.NORMAL));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(UP, Boolean.FALSE).withProperty(NORTH, Boolean.FALSE).withProperty(EAST, Boolean.FALSE).withProperty(SOUTH, Boolean.FALSE).withProperty(WEST, Boolean.FALSE).withProperty(VARIANT, BlockWall.EnumType.NORMAL));
         this.setHardness(modelBlock.blockHardness);
         this.setResistance(modelBlock.blockResistance / 3.0F);
         this.setStepSound(modelBlock.stepSound);
@@ -161,7 +161,7 @@ public class BlockWall extends Block
     public boolean canConnectTo(IBlockAccess worldIn, BlockPos pos)
     {
         Block block = worldIn.getBlockState(pos).getBlock();
-        return block == Blocks.barrier ? false : (block != this && !(block instanceof BlockFenceGate) ? (block.blockMaterial.isOpaque() && block.isFullCube() ? block.blockMaterial != Material.gourd : false) : true);
+        return block != Blocks.barrier && (block == this || block instanceof BlockFenceGate || (block.blockMaterial.isOpaque() && block.isFullCube() && block.blockMaterial != Material.gourd));
     }
 
     private boolean canConnectToModern(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
@@ -249,7 +249,7 @@ public class BlockWall extends Block
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
     {
-        return side == EnumFacing.DOWN ? super.shouldSideBeRendered(worldIn, pos, side) : true;
+        return side != EnumFacing.DOWN || super.shouldSideBeRendered(worldIn, pos, side);
     }
 
     /**
@@ -280,10 +280,10 @@ public class BlockWall extends Block
             boolean south = this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH);
             boolean west = this.canConnectToModern(worldIn, pos, EnumFacing.WEST);
             boolean east = this.canConnectToModern(worldIn, pos, EnumFacing.EAST);
-            return state.withProperty(UP, Boolean.valueOf(this.shouldHaveModernPost(worldIn, pos, north, south, west, east))).withProperty(NORTH, Boolean.valueOf(north)).withProperty(EAST, Boolean.valueOf(east)).withProperty(SOUTH, Boolean.valueOf(south)).withProperty(WEST, Boolean.valueOf(west));
+            return state.withProperty(UP, this.shouldHaveModernPost(worldIn, pos, north, south, west, east)).withProperty(NORTH, north).withProperty(EAST, east).withProperty(SOUTH, south).withProperty(WEST, west);
         }
 
-        return state.withProperty(UP, Boolean.valueOf(!worldIn.isAirBlock(pos.up()))).withProperty(NORTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.north()))).withProperty(EAST, Boolean.valueOf(this.canConnectTo(worldIn, pos.east()))).withProperty(SOUTH, Boolean.valueOf(this.canConnectTo(worldIn, pos.south()))).withProperty(WEST, Boolean.valueOf(this.canConnectTo(worldIn, pos.west())));
+        return state.withProperty(UP, !worldIn.isAirBlock(pos.up())).withProperty(NORTH, this.canConnectTo(worldIn, pos.north())).withProperty(EAST, this.canConnectTo(worldIn, pos.east())).withProperty(SOUTH, this.canConnectTo(worldIn, pos.south())).withProperty(WEST, this.canConnectTo(worldIn, pos.west()));
     }
 
     protected BlockState createBlockState()

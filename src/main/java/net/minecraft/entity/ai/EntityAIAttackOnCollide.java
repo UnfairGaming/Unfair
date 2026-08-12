@@ -80,7 +80,7 @@ public class EntityAIAttackOnCollide extends EntityAIBase
     public boolean continueExecuting()
     {
         EntityLivingBase entitylivingbase = this.attacker.getAttackTarget();
-        return entitylivingbase == null ? false : (!entitylivingbase.isEntityAlive() ? false : (!this.longMemory ? !this.attacker.getNavigator().noPath() : this.attacker.isWithinHomeDistanceFromPosition(new BlockPos(entitylivingbase))));
+        return entitylivingbase != null && (entitylivingbase.isEntityAlive() && (!this.longMemory ? !this.attacker.getNavigator().noPath() : this.attacker.isWithinHomeDistanceFromPosition(new BlockPos(entitylivingbase))));
     }
 
     /**

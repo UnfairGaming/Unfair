@@ -348,7 +348,7 @@ public class ContainerEnchantment extends Container
 
     public boolean canInteractWith(EntityPlayer playerIn)
     {
-        return this.worldPointer.getBlockState(this.position).getBlock() != Blocks.enchanting_table ? false : playerIn.getDistanceSq((double)this.position.getX() + 0.5D, (double)this.position.getY() + 0.5D, (double)this.position.getZ() + 0.5D) <= 64.0D;
+        return this.worldPointer.getBlockState(this.position).getBlock() == Blocks.enchanting_table && playerIn.getDistanceSq((double) this.position.getX() + 0.5D, (double) this.position.getY() + 0.5D, (double) this.position.getZ() + 0.5D) <= 64.0D;
     }
 
     /**

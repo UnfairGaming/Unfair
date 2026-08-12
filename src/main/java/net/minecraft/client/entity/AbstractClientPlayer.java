@@ -202,7 +202,7 @@ public abstract class AbstractClientPlayer extends EntityPlayer {
     public boolean hasElytraCape()
     {
         ResourceLocation resourcelocation = this.getLocationCape();
-        return resourcelocation == null ? false : (resourcelocation == this.locationOfCape ? this.elytraOfCape : true);
+        return resourcelocation != null && (resourcelocation != this.locationOfCape || this.elytraOfCape);
     }
 
     public void setElytraOfCape(boolean p_setElytraOfCape_1_)

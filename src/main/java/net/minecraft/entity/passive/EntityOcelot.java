@@ -50,7 +50,7 @@ public class EntityOcelot extends EntityTameable
     protected void entityInit()
     {
         super.entityInit();
-        this.dataWatcher.addObject(18, Byte.valueOf((byte)0));
+        this.dataWatcher.addObject(18, (byte) 0);
     }
 
     public void updateAITasks()
@@ -281,7 +281,7 @@ public class EntityOcelot extends EntityTameable
         else
         {
             EntityOcelot entityocelot = (EntityOcelot)otherAnimal;
-            return !entityocelot.isTamed() ? false : this.isInLove() && entityocelot.isInLove();
+            return entityocelot.isTamed() && this.isInLove() && entityocelot.isInLove();
         }
     }
 
@@ -292,7 +292,7 @@ public class EntityOcelot extends EntityTameable
 
     public void setTameSkin(int skinId)
     {
-        this.dataWatcher.updateObject(18, Byte.valueOf((byte)skinId));
+        this.dataWatcher.updateObject(18, (byte) skinId);
     }
 
     /**

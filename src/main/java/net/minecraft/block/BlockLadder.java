@@ -103,7 +103,7 @@ public class BlockLadder extends Block
 
     public boolean canPlaceBlockAt(World worldIn, BlockPos pos)
     {
-        return worldIn.getBlockState(pos.west()).getBlock().isNormalCube() ? true : (worldIn.getBlockState(pos.east()).getBlock().isNormalCube() ? true : (worldIn.getBlockState(pos.north()).getBlock().isNormalCube() ? true : worldIn.getBlockState(pos.south()).getBlock().isNormalCube()));
+        return worldIn.getBlockState(pos.west()).getBlock().isNormalCube() || (worldIn.getBlockState(pos.east()).getBlock().isNormalCube() || (worldIn.getBlockState(pos.north()).getBlock().isNormalCube() || worldIn.getBlockState(pos.south()).getBlock().isNormalCube()));
     }
 
     /**

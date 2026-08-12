@@ -29,7 +29,7 @@ public class BlockFlowerPot extends BlockContainer
     public BlockFlowerPot()
     {
         super(Material.circuits);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(CONTENTS, BlockFlowerPot.EnumFlowerType.EMPTY).withProperty(LEGACY_DATA, Integer.valueOf(0)));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(CONTENTS, BlockFlowerPot.EnumFlowerType.EMPTY).withProperty(LEGACY_DATA, 0));
         this.setBlockBoundsForItemRender();
     }
 
@@ -137,7 +137,7 @@ public class BlockFlowerPot extends BlockContainer
 
     private boolean canNotContain(Block blockIn, int meta)
     {
-        return blockIn != Blocks.yellow_flower && blockIn != Blocks.red_flower && blockIn != Blocks.cactus && blockIn != Blocks.brown_mushroom && blockIn != Blocks.red_mushroom && blockIn != Blocks.sapling && blockIn != Blocks.deadbush ? blockIn == Blocks.tallgrass && meta == BlockTallGrass.EnumType.FERN.getMeta() : true;
+        return blockIn == Blocks.yellow_flower || blockIn == Blocks.red_flower || blockIn == Blocks.cactus || blockIn == Blocks.brown_mushroom || blockIn == Blocks.red_mushroom || blockIn == Blocks.sapling || blockIn == Blocks.deadbush || blockIn == Blocks.tallgrass && meta == BlockTallGrass.EnumType.FERN.getMeta();
     }
 
     public Item getItem(World worldIn, BlockPos pos)
@@ -304,7 +304,7 @@ public class BlockFlowerPot extends BlockContainer
      */
     public int getMetaFromState(IBlockState state)
     {
-        return state.getValue(LEGACY_DATA).intValue();
+        return state.getValue(LEGACY_DATA);
     }
 
     /**

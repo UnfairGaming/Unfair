@@ -31,7 +31,7 @@ public abstract class BlockStoneSlabNew extends BlockSlab
 
         if (this.isDouble())
         {
-            iblockstate = iblockstate.withProperty(SEAMLESS, Boolean.valueOf(false));
+            iblockstate = iblockstate.withProperty(SEAMLESS, Boolean.FALSE);
         }
         else
         {
@@ -104,7 +104,7 @@ public abstract class BlockStoneSlabNew extends BlockSlab
 
         if (this.isDouble())
         {
-            iblockstate = iblockstate.withProperty(SEAMLESS, Boolean.valueOf((meta & 8) != 0));
+            iblockstate = iblockstate.withProperty(SEAMLESS, (meta & 8) != 0);
         }
         else
         {
@@ -124,7 +124,7 @@ public abstract class BlockStoneSlabNew extends BlockSlab
 
         if (this.isDouble())
         {
-            if (state.getValue(SEAMLESS).booleanValue())
+            if (state.getValue(SEAMLESS))
             {
                 i |= 8;
             }

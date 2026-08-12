@@ -42,7 +42,7 @@ public class CustomLoadingScreens
         screensMinDimensionId = 0;
         Pair<CustomLoadingScreen[], Integer> pair = parseScreens();
         screens = pair.getLeft();
-        screensMinDimensionId = pair.getRight().intValue();
+        screensMinDimensionId = pair.getRight();
     }
 
     private static Pair<CustomLoadingScreen[], Integer> parseScreens()
@@ -64,7 +64,7 @@ public class CustomLoadingScreens
             }
             else
             {
-                map.put(Integer.valueOf(j), s2);
+                map.put(j, s2);
             }
         }
 
@@ -74,14 +74,14 @@ public class CustomLoadingScreens
 
         if (ainteger.length <= 0)
         {
-            return new ImmutablePair(null, Integer.valueOf(0));
+            return new ImmutablePair(null, 0);
         }
         else
         {
             String s5 = "optifine/gui/loading/loading.properties";
             Properties properties = ResUtils.readProperties(s5, "CustomLoadingScreens");
-            int k = ainteger[0].intValue();
-            int l = ainteger[ainteger.length - 1].intValue();
+            int k = ainteger[0];
+            int l = ainteger[ainteger.length - 1];
             int i1 = l - k + 1;
             CustomLoadingScreen[] acustomloadingscreen = new CustomLoadingScreen[i1];
 
@@ -89,10 +89,10 @@ public class CustomLoadingScreens
             {
                 Integer integer = ainteger[j1];
                 String s4 = map.get(integer);
-                acustomloadingscreen[integer.intValue() - k] = CustomLoadingScreen.parseScreen(s4, integer.intValue(), properties);
+                acustomloadingscreen[integer - k] = CustomLoadingScreen.parseScreen(s4, integer, properties);
             }
 
-            return new ImmutablePair(acustomloadingscreen, Integer.valueOf(k));
+            return new ImmutablePair(acustomloadingscreen, k);
         }
     }
 

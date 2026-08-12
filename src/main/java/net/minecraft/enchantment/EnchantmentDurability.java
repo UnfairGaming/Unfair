@@ -43,7 +43,7 @@ public class EnchantmentDurability extends Enchantment
      */
     public boolean canApply(ItemStack stack)
     {
-        return stack.isItemStackDamageable() ? true : super.canApply(stack);
+        return stack.isItemStackDamageable() || super.canApply(stack);
     }
 
     /**
@@ -53,6 +53,6 @@ public class EnchantmentDurability extends Enchantment
      */
     public static boolean negateDamage(ItemStack p_92097_0_, int p_92097_1_, Random p_92097_2_)
     {
-        return p_92097_0_.getItem() instanceof ItemArmor && p_92097_2_.nextFloat() < 0.6F ? false : p_92097_2_.nextInt(p_92097_1_ + 1) > 0;
+        return (!(p_92097_0_.getItem() instanceof ItemArmor) || !(p_92097_2_.nextFloat() < 0.6F)) && p_92097_2_.nextInt(p_92097_1_ + 1) > 0;
     }
 }

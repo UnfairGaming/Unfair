@@ -93,8 +93,8 @@ public class EntityGuardian extends EntityMob
     protected void entityInit()
     {
         super.entityInit();
-        this.dataWatcher.addObject(16, Integer.valueOf(0));
-        this.dataWatcher.addObject(17, Integer.valueOf(0));
+        this.dataWatcher.addObject(16, 0);
+        this.dataWatcher.addObject(17, 0);
     }
 
     /**
@@ -114,11 +114,11 @@ public class EntityGuardian extends EntityMob
 
         if (state)
         {
-            this.dataWatcher.updateObject(16, Integer.valueOf(i | flagId));
+            this.dataWatcher.updateObject(16, i | flagId);
         }
         else
         {
-            this.dataWatcher.updateObject(16, Integer.valueOf(i & ~flagId));
+            this.dataWatcher.updateObject(16, i & ~flagId);
         }
     }
 
@@ -168,7 +168,7 @@ public class EntityGuardian extends EntityMob
 
     private void setTargetedEntity(int entityId)
     {
-        this.dataWatcher.updateObject(17, Integer.valueOf(entityId));
+        this.dataWatcher.updateObject(17, entityId);
     }
 
     public boolean hasTargetedEntity()

@@ -122,7 +122,7 @@ public class CommandEffect extends CommandBase
                     {
                         PotionEffect potioneffect = new PotionEffect(i, j, k, false, flag);
                         entitylivingbase.addPotionEffect(potioneffect);
-                        notifyOperators(sender, this, "commands.effect.success", new Object[] {new ChatComponentTranslation(potioneffect.getEffectName(), new Object[0]), Integer.valueOf(i), Integer.valueOf(k), entitylivingbase.getName(), Integer.valueOf(l)});
+                        notifyOperators(sender, this, "commands.effect.success", new Object[] {new ChatComponentTranslation(potioneffect.getEffectName(), new Object[0]), i, k, entitylivingbase.getName(), l});
                     }
                     else if (entitylivingbase.isPotionActive(i))
                     {
@@ -136,7 +136,7 @@ public class CommandEffect extends CommandBase
                 }
                 else
                 {
-                    throw new NumberInvalidException("commands.effect.notFound", new Object[] {Integer.valueOf(i)});
+                    throw new NumberInvalidException("commands.effect.notFound", new Object[] {i});
                 }
             }
         }

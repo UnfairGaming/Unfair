@@ -95,7 +95,7 @@ public class ItemTool extends Item
      */
     public boolean getIsRepairable(ItemStack toRepair, ItemStack repair)
     {
-        return this.toolMaterial.getRepairItem() == repair.getItem() ? true : super.getIsRepairable(toRepair, repair);
+        return this.toolMaterial.getRepairItem() == repair.getItem() || super.getIsRepairable(toRepair, repair);
     }
 
     public Multimap<String, AttributeModifier> getItemAttributeModifiers()

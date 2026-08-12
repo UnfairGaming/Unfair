@@ -99,7 +99,7 @@ public class EnchantmentProtection extends Enchantment
         if (ench instanceof EnchantmentProtection)
         {
             EnchantmentProtection enchantmentprotection = (EnchantmentProtection)ench;
-            return enchantmentprotection.protectionType == this.protectionType ? false : this.protectionType == 2 || enchantmentprotection.protectionType == 2;
+            return enchantmentprotection.protectionType != this.protectionType && (this.protectionType == 2 || enchantmentprotection.protectionType == 2);
         }
         else
         {

@@ -292,7 +292,7 @@ public class OpenGlHelper {
 
         try {
             Processor[] aprocessor = (new SystemInfo()).getHardware().getProcessors();
-            cpu = String.format("%dx %s", new Object[]{Integer.valueOf(aprocessor.length), aprocessor[0]}).replaceAll("\\s+", " ");
+            cpu = String.format("%dx %s", new Object[]{aprocessor.length, aprocessor[0]}).replaceAll("\\s+", " ");
         } catch (Throwable var5) {
             ;
         }
@@ -522,7 +522,7 @@ public class OpenGlHelper {
     }
 
     public static boolean useVbo() {
-        return Config.isMultiTexture() ? false : (Config.isRenderRegions() && !vboRegions ? false : vboSupported && Minecraft.getMinecraft().gameSettings.useVbo);
+        return !Config.isMultiTexture() && ((!Config.isRenderRegions() || vboRegions) && vboSupported && Minecraft.getMinecraft().gameSettings.useVbo);
     }
 
     public static void glBindFramebuffer(int target, int framebufferIn) {
@@ -758,7 +758,7 @@ public class OpenGlHelper {
     }
 
     public static boolean isFramebufferEnabled() {
-        return Config.isFastRender() ? false : (Config.isAntialiasing() ? false : framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable);
+        return !Config.isFastRender() && (!Config.isAntialiasing() && framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable);
     }
 
     public static void glBufferData(int p_glBufferData_0_, long p_glBufferData_1_, int p_glBufferData_3_) {

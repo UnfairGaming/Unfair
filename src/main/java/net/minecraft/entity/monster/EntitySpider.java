@@ -54,7 +54,7 @@ public class EntitySpider extends EntityMob
     protected void entityInit()
     {
         super.entityInit();
-        this.dataWatcher.addObject(16, Byte.valueOf((byte)0));
+        this.dataWatcher.addObject(16, (byte) 0);
     }
 
     /**
@@ -153,7 +153,7 @@ public class EntitySpider extends EntityMob
 
     public boolean isPotionApplicable(PotionEffect potioneffectIn)
     {
-        return potioneffectIn.getPotionID() == Potion.poison.id ? false : super.isPotionApplicable(potioneffectIn);
+        return potioneffectIn.getPotionID() != Potion.poison.id && super.isPotionApplicable(potioneffectIn);
     }
 
     /**
@@ -182,7 +182,7 @@ public class EntitySpider extends EntityMob
             b0 = (byte)(b0 & -2);
         }
 
-        this.dataWatcher.updateObject(16, Byte.valueOf(b0));
+        this.dataWatcher.updateObject(16, b0);
     }
 
     /**
@@ -268,7 +268,7 @@ public class EntitySpider extends EntityMob
         public boolean shouldExecute()
         {
             float f = this.taskOwner.getBrightness(1.0F);
-            return f >= 0.5F ? false : super.shouldExecute();
+            return !(f >= 0.5F) && super.shouldExecute();
         }
     }
 

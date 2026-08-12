@@ -102,7 +102,7 @@ public class EntityAIFollowOwner extends EntityAIBase
     {
         IBlockState iblockstate = this.theWorld.getBlockState(p_181065_1_);
         Block block = iblockstate.getBlock();
-        return block == Blocks.air ? true : !block.isFullCube();
+        return block == Blocks.air || !block.isFullCube();
     }
 
     /**

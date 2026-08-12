@@ -81,7 +81,7 @@ public class EntityAIAvoidEntity<T extends Entity> extends EntityAIBase
             else
             {
                 this.entityPathEntity = this.entityPathNavigate.getPathToXYZ(vec3.xCoord, vec3.yCoord, vec3.zCoord);
-                return this.entityPathEntity == null ? false : this.entityPathEntity.isDestinationSame(vec3);
+                return this.entityPathEntity != null && this.entityPathEntity.isDestinationSame(vec3);
             }
         }
     }

@@ -180,7 +180,7 @@ public class ArrayUtils
                     stringbuffer.append(separator);
                 }
 
-                stringbuffer.append(String.format(format, new Object[] {Float.valueOf(f)}));
+                stringbuffer.append(String.format(format, new Object[] {f}));
             }
 
             return stringbuffer.toString();
@@ -334,7 +334,7 @@ public class ArrayUtils
 
     public static boolean equals(Object o1, Object o2)
     {
-        return o1 == o2 ? true : (o1 == null ? false : o1.equals(o2));
+        return o1 == o2 || (o1 != null && o1.equals(o2));
     }
 
     public static boolean isSameOne(Object a, Object[] bs)
@@ -383,7 +383,7 @@ public class ArrayUtils
 
             for (int i = 0; i < aint.length; ++i)
             {
-                aint[i] = arr[i].intValue();
+                aint[i] = arr[i];
             }
 
             return aint;

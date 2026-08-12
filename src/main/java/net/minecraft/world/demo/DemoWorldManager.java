@@ -110,7 +110,7 @@ public class DemoWorldManager extends ItemInWorldManager
      */
     public boolean tryHarvestBlock(BlockPos pos)
     {
-        return this.demoTimeExpired ? false : super.tryHarvestBlock(pos);
+        return !this.demoTimeExpired && super.tryHarvestBlock(pos);
     }
 
     /**

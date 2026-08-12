@@ -399,7 +399,7 @@ public class HttpPipelineConnection
 
     public synchronized boolean isClosed()
     {
-        return this.terminated ? true : this.countRequests >= this.keepaliveMaxCount;
+        return this.terminated || this.countRequests >= this.keepaliveMaxCount;
     }
 
     public int getCountRequests()

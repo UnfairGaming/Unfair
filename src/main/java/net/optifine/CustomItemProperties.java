@@ -168,7 +168,7 @@ public class CustomItemProperties
                 int j = Config.parseInt(s, -1);
 
                 if (j >= 0) {
-                    set.add(Integer.valueOf(j));
+                    set.add(j);
                 } else {
                     if (s.contains("-")) {
                         String[] astring1 = Config.tokenize(s, "-");

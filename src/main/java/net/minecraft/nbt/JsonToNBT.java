@@ -60,12 +60,12 @@ public class JsonToNBT
             {
                 if (c0 != 123 && c0 != 91)
                 {
-                    if (c0 == 125 && (stack.isEmpty() || stack.pop().charValue() != 123))
+                    if (c0 == 125 && (stack.isEmpty() || stack.pop() != 123))
                     {
                         throw new NBTException("Unbalanced curly brackets {}: " + p_150310_0_);
                     }
 
-                    if (c0 == 93 && (stack.isEmpty() || stack.pop().charValue() != 91))
+                    if (c0 == 93 && (stack.isEmpty() || stack.pop() != 91))
                     {
                         throw new NBTException("Unbalanced square brackets []: " + p_150310_0_);
                     }
@@ -77,7 +77,7 @@ public class JsonToNBT
                         ++i;
                     }
 
-                    stack.push(Character.valueOf(c0));
+                    stack.push(c0);
                 }
             }
         }
@@ -250,12 +250,12 @@ public class JsonToNBT
             {
                 if (c0 != 123 && c0 != 91)
                 {
-                    if (c0 == 125 && (stack.isEmpty() || stack.pop().charValue() != 123))
+                    if (c0 == 125 && (stack.isEmpty() || stack.pop() != 123))
                     {
                         throw new NBTException("Unbalanced curly brackets {}: " + p_179269_0_);
                     }
 
-                    if (c0 == 93 && (stack.isEmpty() || stack.pop().charValue() != 91))
+                    if (c0 == 93 && (stack.isEmpty() || stack.pop() != 91))
                     {
                         throw new NBTException("Unbalanced square brackets []: " + p_179269_0_);
                     }
@@ -267,7 +267,7 @@ public class JsonToNBT
                 }
                 else
                 {
-                    stack.push(Character.valueOf(c0));
+                    stack.push(c0);
                 }
             }
 

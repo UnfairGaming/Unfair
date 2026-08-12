@@ -29,7 +29,7 @@ public abstract class BlockButton extends Block
     protected BlockButton(boolean wooden)
     {
         super(Material.circuits);
-        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(POWERED, Boolean.valueOf(false)));
+        this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(POWERED, Boolean.FALSE));
         this.setTickRandomly(true);
         this.setCreativeTab(CreativeTabs.tabRedstone);
         this.wooden = wooden;
@@ -94,7 +94,7 @@ public abstract class BlockButton extends Block
      */
     public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer)
     {
-        return func_181088_a(worldIn, pos, facing.getOpposite()) ? this.getDefaultState().withProperty(FACING, facing).withProperty(POWERED, Boolean.valueOf(false)) : this.getDefaultState().withProperty(FACING, EnumFacing.DOWN).withProperty(POWERED, Boolean.valueOf(false));
+        return func_181088_a(worldIn, pos, facing.getOpposite()) ? this.getDefaultState().withProperty(FACING, facing).withProperty(POWERED, Boolean.FALSE) : this.getDefaultState().withProperty(FACING, EnumFacing.DOWN).withProperty(POWERED, Boolean.FALSE);
     }
 
     /**
@@ -131,7 +131,7 @@ public abstract class BlockButton extends Block
     private void updateBlockBounds(IBlockState state)
     {
         EnumFacing enumfacing = state.getValue(FACING);
-        boolean flag = state.getValue(POWERED).booleanValue();
+        boolean flag = state.getValue(POWERED);
         float f = 0.25F;
         float f1 = 0.375F;
         float f2 = (float)(flag ? 1 : 2) / 16.0F;
@@ -167,13 +167,13 @@ public abstract class BlockButton extends Block
 
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        if (state.getValue(POWERED).booleanValue())
+        if (state.getValue(POWERED))
         {
             return true;
         }
         else
         {
-            worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.valueOf(true)), 3);
+            worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.TRUE), 3);
             worldIn.markBlockRangeForRenderUpdate(pos, pos);
             worldIn.playSoundEffect((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, "random.click", 0.3F, 0.6F);
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
@@ -184,7 +184,7 @@ public abstract class BlockButton extends Block
 
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state)
     {
-        if (state.getValue(POWERED).booleanValue())
+        if (state.getValue(POWERED))
         {
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
         }
@@ -194,12 +194,12 @@ public abstract class BlockButton extends Block
 
     public int getWeakPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
     {
-        return state.getValue(POWERED).booleanValue() ? 15 : 0;
+        return state.getValue(POWERED) ? 15 : 0;
     }
 
     public int getStrongPower(IBlockAccess worldIn, BlockPos pos, IBlockState state, EnumFacing side)
     {
-        return !state.getValue(POWERED).booleanValue() ? 0 : (state.getValue(FACING) == side ? 15 : 0);
+        return !state.getValue(POWERED) ? 0 : (state.getValue(FACING) == side ? 15 : 0);
     }
 
     /**
@@ -221,7 +221,7 @@ public abstract class BlockButton extends Block
     {
         if (!worldIn.isRemote)
         {
-            if (state.getValue(POWERED).booleanValue())
+            if (state.getValue(POWERED))
             {
                 if (this.wooden)
                 {
@@ -229,7 +229,7 @@ public abstract class BlockButton extends Block
                 }
                 else
                 {
-                    worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.valueOf(false)));
+                    worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.FALSE));
                     this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
                     worldIn.playSoundEffect((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, "random.click", 0.3F, 0.5F);
                     worldIn.markBlockRangeForRenderUpdate(pos, pos);
@@ -258,7 +258,7 @@ public abstract class BlockButton extends Block
         {
             if (this.wooden)
             {
-                if (!state.getValue(POWERED).booleanValue())
+                if (!state.getValue(POWERED))
                 {
                     this.checkForArrows(worldIn, pos, state);
                 }
@@ -271,11 +271,11 @@ public abstract class BlockButton extends Block
         this.updateBlockBounds(state);
         List <? extends Entity > list = worldIn.<Entity>getEntitiesWithinAABB(EntityArrow.class, new AxisAlignedBB((double)pos.getX() + this.minX, (double)pos.getY() + this.minY, (double)pos.getZ() + this.minZ, (double)pos.getX() + this.maxX, (double)pos.getY() + this.maxY, (double)pos.getZ() + this.maxZ));
         boolean flag = !list.isEmpty();
-        boolean flag1 = state.getValue(POWERED).booleanValue();
+        boolean flag1 = state.getValue(POWERED);
 
         if (flag && !flag1)
         {
-            worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.valueOf(true)));
+            worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.TRUE));
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
             worldIn.markBlockRangeForRenderUpdate(pos, pos);
             worldIn.playSoundEffect((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, "random.click", 0.3F, 0.6F);
@@ -283,7 +283,7 @@ public abstract class BlockButton extends Block
 
         if (!flag && flag1)
         {
-            worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.valueOf(false)));
+            worldIn.setBlockState(pos, state.withProperty(POWERED, Boolean.FALSE));
             this.notifyNeighbors(worldIn, pos, state.getValue(FACING));
             worldIn.markBlockRangeForRenderUpdate(pos, pos);
             worldIn.playSoundEffect((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D, "random.click", 0.3F, 0.5F);
@@ -335,7 +335,7 @@ public abstract class BlockButton extends Block
                 enumfacing = EnumFacing.UP;
         }
 
-        return this.getDefaultState().withProperty(FACING, enumfacing).withProperty(POWERED, Boolean.valueOf((meta & 8) > 0));
+        return this.getDefaultState().withProperty(FACING, enumfacing).withProperty(POWERED, (meta & 8) > 0);
     }
 
     /**
@@ -372,7 +372,7 @@ public abstract class BlockButton extends Block
                 i = 0;
         }
 
-        if (state.getValue(POWERED).booleanValue())
+        if (state.getValue(POWERED))
         {
             i |= 8;
         }
