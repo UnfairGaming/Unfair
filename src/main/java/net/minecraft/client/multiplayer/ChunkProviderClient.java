@@ -49,7 +49,7 @@ public class ChunkProviderClient implements IChunkProvider {
      * Checks to see if a chunk exists at x, z
      */
     public boolean chunkExists(int x, int z) {
-        return true;
+        return this.chunkMapping.containsItem(ChunkCoordIntPair.chunkXZ2Int(x, z));
     }
 
     /**
@@ -74,8 +74,17 @@ public class ChunkProviderClient implements IChunkProvider {
      * @param chunkZ z coord of the chunk to load (block coord >> 4)
      */
     public Chunk loadChunk(int chunkX, int chunkZ) {
+        long chunkKey = ChunkCoordIntPair.chunkXZ2Int(chunkX, chunkZ);
+        Chunk loadedChunk = this.chunkMapping.getValueByKey(chunkKey);
+
+        // Via can emit another full-chunk packet for a coordinate that is already loaded.
+        // Keep the same object so its entity lists and RenderChunk's cached reference stay valid.
+        if (loadedChunk != null) {
+            return loadedChunk;
+        }
+
         Chunk chunk = new Chunk(this.worldObj, chunkX, chunkZ);
-        this.chunkMapping.add(ChunkCoordIntPair.chunkXZ2Int(chunkX, chunkZ), chunk);
+        this.chunkMapping.add(chunkKey, chunk);
         this.chunkListing.add(chunk);
         chunk.setChunkLoaded(true);
         return chunk;

@@ -1837,8 +1837,10 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 this.displayGuiScreen(new GuiChat("/"));
             }
 
+            boolean delayFoodUseRestart = this.thePlayer.viaforge$consumeFoodUseRestartDelayTick();
+
             if (this.thePlayer.isUsingItem()) {
-                if (!this.gameSettings.keyBindUseItem.isKeyDown()) {
+                if (delayFoodUseRestart || !this.gameSettings.keyBindUseItem.isKeyDown()) {
                     this.playerController.onStoppedUsingItem(this.thePlayer);
                 }
             } else {
@@ -1846,7 +1848,8 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                     this.clickMouse();
                 }
 
-                if (this.gameSettings.keyBindUseItem.isPressed()) {
+                boolean useItemPressed = this.gameSettings.keyBindUseItem.isPressed();
+                if (!delayFoodUseRestart && useItemPressed) {
                     this.rightClickMouse();
                 }
 
@@ -1855,7 +1858,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 }
             }
 
-            if (this.gameSettings.keyBindUseItem.isKeyDown() && this.rightClickDelayTimer == 0 && !this.thePlayer.isUsingItem()) {
+            if (!delayFoodUseRestart && this.gameSettings.keyBindUseItem.isKeyDown() && this.rightClickDelayTimer == 0 && !this.thePlayer.isUsingItem()) {
                 this.rightClickMouse();
             }
 

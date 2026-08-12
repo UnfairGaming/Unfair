@@ -4,6 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.RenderEntityEvent;
 import cn.unfair.module.modules.render.BlockOverlay;
+import cn.unfair.util.via.ViaProtocol;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -965,7 +966,10 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             this.clearRenderInfos();
             this.visibilityDeque.clear();
             Deque<ContainerLocalRenderInformation> deque = this.visibilityDeque;
-            boolean flag1 = this.mc.renderChunksMany;
+            // ViaBackwards can only approximate modern block states with 1.8 blocks. Their
+            // opaque-cube flags are not always equivalent, so the 1.8 face-visibility graph
+            // can incorrectly stop traversal and hide both chunks and their entities.
+            boolean flag1 = this.mc.renderChunksMany && !ViaProtocol.newerThan1_8();
 
             if (renderchunk != null && renderchunk.getPosition().getY() <= j) {
                 boolean flag2 = false;
@@ -2470,6 +2474,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
      * necessary textures. On server worlds, adds the entity to the entity tracker.
      */
     public void onEntityAdded(Entity entityIn) {
+        this.displayListEntitiesDirty = true;
         RandomEntities.entityLoaded(entityIn, this.theWorld);
 
         if (Config.isDynamicLights()) {
@@ -2482,6 +2487,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
      * textures. On server worlds, removes the entity from the entity tracker.
      */
     public void onEntityRemoved(Entity entityIn) {
+        this.displayListEntitiesDirty = true;
         RandomEntities.entityUnloaded(entityIn, this.theWorld);
 
         if (Config.isDynamicLights()) {

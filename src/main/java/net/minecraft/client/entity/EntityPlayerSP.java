@@ -36,6 +36,7 @@ import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.*;
 import net.minecraft.potion.Potion;
@@ -138,6 +139,9 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     private boolean carryItemUseSlowdown;
     private boolean localItemUseFinished;
     private boolean serverItemUseFinished;
+    private int foodUseRestartDelayTicks;
+    private int foodUseRestartSlot = -1;
+    private Item foodUseRestartItem;
     private int itemUseFinishGraceTicks;
     private float overrideYaw = Float.NaN;
     private float overridePitch = Float.NaN;
@@ -1166,6 +1170,29 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     @Override
     public void viaforge$confirmServerItemUseFinished() {
         this.serverItemUseFinished = true;
+    }
+
+    public void viaforge$delayFoodUseRestart() {
+        this.foodUseRestartDelayTicks = 1;
+        this.foodUseRestartSlot = this.inventory.currentItem;
+        ItemStack held = this.inventory.getCurrentItem();
+        this.foodUseRestartItem = held == null ? null : held.getItem();
+    }
+
+    public boolean viaforge$consumeFoodUseRestartDelayTick() {
+        if (this.foodUseRestartDelayTicks <= 0) {
+            return false;
+        }
+
+        --this.foodUseRestartDelayTicks;
+        ItemStack held = this.inventory.getCurrentItem();
+        boolean sameFood = this.inventory.currentItem == this.foodUseRestartSlot
+                && held != null
+                && held.getItem() == this.foodUseRestartItem
+                && held.getItem() instanceof ItemFood;
+        this.foodUseRestartSlot = -1;
+        this.foodUseRestartItem = null;
+        return sameFood;
     }
 
     private boolean isModernTarget() {
