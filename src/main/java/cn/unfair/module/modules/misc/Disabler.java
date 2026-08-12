@@ -21,12 +21,12 @@ import java.util.Random;
 public class Disabler extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Prediction"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "Grim"});
     public final BooleanProperty inventory = new BooleanProperty("Inventory", true, () -> mode.getValue() == 0);
-    public final BooleanProperty logging = new BooleanProperty("Logging", false);
-    public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("GrimDuplicateRotPlace", false);
-    public final BooleanProperty acaAimStep = new BooleanProperty("ACAAimStep", false);
-    public final BooleanProperty acaPerfectRotation = new BooleanProperty("ACAPerfectRotation", false);
+    public final BooleanProperty logging = new BooleanProperty("Logging", false, () -> mode.getValue() == 1);
+    public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("GrimDuplicateRotPlace", false, () -> mode.getValue() == 1);
+    public final BooleanProperty acaAimStep = new BooleanProperty("ACAAimStep", false, () -> mode.getValue() == 1);
+    public final BooleanProperty acaPerfectRotation = new BooleanProperty("ACAPerfectRotation", false, () -> mode.getValue() == 1);
 
     private final List<Packet<?>> inventoryPackets = new ArrayList<>();
 
@@ -100,12 +100,6 @@ public class Disabler extends Module {
             }
         }
         this.handleAntiCheatRotations(event);
-    }
-
-    private void log(String message) {
-        if (this.logging.getValue()) {
-            ChatUtil.sendFormatted(message);
-        }
     }
 
     private float normalizeYaw(float yaw) {
@@ -203,7 +197,7 @@ public class Disabler extends Module {
                 if (this.deltaYaw > 2.0F) {
                     float xDiff = Math.abs(this.deltaYaw - this.lastPlacedDeltaYaw);
                     if (xDiff < 1.0E-4) {
-                        this.log("Disabling DuplicateRotPlace!");
+                        ChatUtil.dbg("Disabling DuplicateRotPlace!");
                         packet.setYaw(packet.getYaw() + 0.002F);
                     }
                 }
@@ -234,7 +228,7 @@ public class Disabler extends Module {
                     currentYaw = antiPerfectRotation[0];
                     currentPitch = antiPerfectRotation[1];
                     modified = true;
-                    this.log("PerfectRotation: Modified rotation");
+                    ChatUtil.dbg("PerfectRotation: Modified rotation");
                 }
             }
 

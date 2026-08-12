@@ -2,13 +2,17 @@ package cn.unfair.module.modules.player;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
+import cn.unfair.events.AttackEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.util.BadPacketUtil;
+import cn.unfair.util.ItemUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +39,24 @@ public class AutoSwap extends Module {
     }
 
     @EventTarget
+    public void onAttack(AttackEvent event) {
+        if (!this.isEnabled() || !this.swords.getValue() || BadPacketUtil.bad()) {
+            return;
+        }
+
+        if (mc.theWorld == null || mc.thePlayer == null || mc.currentScreen != null) {
+            return;
+        }
+
+        int swordSlot = this.findBestSwordHotbarSlot();
+        if (swordSlot != -1 && swordSlot != mc.thePlayer.inventory.currentItem) {
+            mc.thePlayer.inventory.currentItem = swordSlot;
+        }
+    }
+
+    @EventTarget
     public void onTick(TickEvent event) {
-        if (!this.isEnabled() || event.type() != EventType.PRE) {
+        if (!this.isEnabled() || event.type() != EventType.PRE || BadPacketUtil.bad()) {
             return;
         }
 
@@ -126,6 +146,28 @@ public class AutoSwap extends Module {
 
         String id = stack.getItem().getUnlocalizedName().toLowerCase();
         return containsAny(id, ALLOWED_BLOCKS);
+    }
+
+    private int findBestSwordHotbarSlot() {
+        int currentSlot = mc.thePlayer.inventory.currentItem;
+        ItemStack held = mc.thePlayer.getHeldItem();
+        int bestSlot = held != null && held.stackSize >= 1 && held.getItem() instanceof ItemSword ? currentSlot : -1;
+        double bestAttackBonus = bestSlot != -1 ? ItemUtil.getAttackBonus(held) : -1.0D;
+
+        for (int i = 0; i < 9; ++i) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (stack == null || stack.stackSize < 1 || !(stack.getItem() instanceof ItemSword)) {
+                continue;
+            }
+
+            double attackBonus = ItemUtil.getAttackBonus(stack);
+            if (attackBonus > bestAttackBonus) {
+                bestSlot = i;
+                bestAttackBonus = attackBonus;
+            }
+        }
+
+        return bestSlot;
     }
 
     private boolean containsAny(String str, List<String> items) {

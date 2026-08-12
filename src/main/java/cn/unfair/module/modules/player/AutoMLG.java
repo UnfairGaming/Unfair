@@ -2,9 +2,9 @@ package cn.unfair.module.modules.player;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.BlockUtil;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RotationUtil;
@@ -22,13 +22,15 @@ import net.minecraft.util.Vec3;
 public class AutoMLG extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static int preTicks = -1;
-
-    public final BooleanProperty cubecraft = new BooleanProperty("cubecraft", true);
+    private static boolean active;
 
     private int waterSlot = -1;
     private int previousSlot = -1;
     private int restoreSlotTicks = 0;
     private BlockPos targetPos;
+    private BlockPos recoveryPos;
+    private boolean recoveryPending;
+    private boolean recoveryUsePending;
 
     public AutoMLG() {
         super("AutoMLG", false);
@@ -38,10 +40,19 @@ public class AutoMLG extends Module {
         return preTicks >= 0;
     }
 
-    @EventTarget
+    public static boolean isActiveMLG() {
+        return active;
+    }
+
+    @EventTarget(Priority.HIGHEST)
     public void onUpdate(UpdateEvent event) {
         if (event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null
                 || !mc.playerController.gameIsSurvivalOrAdventure()) {
+            return;
+        }
+
+        if (this.recoveryPending) {
+            this.recoverWater(event);
             return;
         }
 
@@ -68,7 +79,7 @@ public class AutoMLG extends Module {
             this.rotateToTarget(event);
         }
 
-        if (preTicks >= (this.cubecraft.getValue() ? 5 : 3)) {
+        if (preTicks >= 3) {
             if (this.placeWater(event.getNewYaw(), event.getNewPitch())) {
                 this.finishPlacement();
             }
@@ -93,19 +104,24 @@ public class AutoMLG extends Module {
             this.switchToWaterSlot();
             this.rotateToTarget(event);
             preTicks = 0;
+            active = true;
         } else if (this.targetPos != null && this.placeWater(event.getNewYaw(), event.getNewPitch())) {
             this.finishPlacement();
         }
     }
 
     private void rotateToTarget(UpdateEvent event) {
-        if (this.targetPos == null) {
+        this.rotateToPosition(event, this.targetPos, 1.0D);
+    }
+
+    private void rotateToPosition(UpdateEvent event, BlockPos pos, double yOffset) {
+        if (pos == null) {
             return;
         }
         Vec3 hitVec = new Vec3(
-                (double) this.targetPos.getX() + 0.5D,
-                (double) this.targetPos.getY() + 1.0D,
-                (double) this.targetPos.getZ() + 0.5D
+                (double) pos.getX() + 0.5D,
+                (double) pos.getY() + yOffset,
+                (double) pos.getZ() + 0.5D
         );
         float[] rotations = RotationUtil.getRotations(
                 hitVec.xCoord,
@@ -139,6 +155,73 @@ public class AutoMLG extends Module {
         return placed;
     }
 
+    private void recoverWater(UpdateEvent event) {
+        if (this.recoveryPos == null) {
+            this.finishRecovery();
+            return;
+        }
+
+        if (!mc.thePlayer.onGround) {
+            return;
+        }
+
+        int bucketSlot = this.findEmptyBucketSlot();
+        if (bucketSlot == -1 || !this.canReachTarget(this.recoveryPos) || !this.isWaterBlock(this.recoveryPos)) {
+            this.finishRecovery();
+            return;
+        }
+
+        this.rotateToPosition(event, this.recoveryPos, 0.5D);
+
+        if (!this.recoveryUsePending) {
+            this.recoveryUsePending = true;
+            return;
+        }
+
+        MovingObjectPosition mop = RotationUtil.rayTraceWater(
+                event.getNewYaw(),
+                event.getNewPitch(),
+                mc.playerController.getBlockReachDistance(),
+                1.0F
+        );
+
+        if (mop == null
+                || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK
+                || !this.recoveryPos.equals(mop.getBlockPos())
+                || !this.isWaterBlock(this.recoveryPos)) {
+            this.finishRecovery();
+            return;
+        }
+
+        this.waterSlot = bucketSlot;
+        this.switchToWaterSlot();
+        if (this.useCurrentItemWithRotation(event.getNewYaw(), event.getNewPitch())) {
+            PacketUtil.sendPacket(new C0APacketAnimation());
+        }
+        this.finishRecovery();
+    }
+
+    private void finishRecovery() {
+        this.waterSlot = -1;
+        this.recoveryPos = null;
+        this.recoveryPending = false;
+        this.recoveryUsePending = false;
+        this.restoreSlotTicks = 1;
+    }
+
+    private boolean useCurrentItemWithRotation(float yaw, float pitch) {
+        float oldYaw = mc.thePlayer.rotationYaw;
+        float oldPitch = mc.thePlayer.rotationPitch;
+        mc.thePlayer.rotationYaw = yaw;
+        mc.thePlayer.rotationPitch = pitch;
+        try {
+            return mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
+        } finally {
+            mc.thePlayer.rotationYaw = oldYaw;
+            mc.thePlayer.rotationPitch = oldPitch;
+        }
+    }
+
     private void switchToWaterSlot() {
         if (this.waterSlot != -1 && mc.thePlayer.inventory.currentItem != this.waterSlot) {
             mc.thePlayer.inventory.currentItem = this.waterSlot;
@@ -154,6 +237,21 @@ public class AutoMLG extends Module {
             }
         }
         return -1;
+    }
+
+    private int findEmptyBucketSlot() {
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (stack != null && stack.getItem() == Items.bucket) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean isWaterBlock(BlockPos pos) {
+        Block block = mc.theWorld.getBlockState(pos).getBlock();
+        return block == Blocks.water || block == Blocks.flowing_water;
     }
 
     private boolean canReachTarget(BlockPos pos) {
@@ -210,8 +308,11 @@ public class AutoMLG extends Module {
     private void finishPlacement() {
         preTicks = -1;
         this.waterSlot = -1;
+        this.recoveryPos = this.targetPos == null ? null : this.targetPos.up();
+        this.recoveryPending = this.recoveryPos != null;
+        this.recoveryUsePending = false;
         this.targetPos = null;
-        this.restoreSlotTicks = 2;
+        this.restoreSlotTicks = 0;
     }
 
     private void restorePreviousSlot() {
@@ -220,12 +321,17 @@ public class AutoMLG extends Module {
             mc.playerController.syncCurrentPlayItem();
         }
         this.previousSlot = -1;
+        active = false;
     }
 
     private void resetState(boolean restoreSlot) {
         preTicks = -1;
+        active = false;
         this.waterSlot = -1;
         this.targetPos = null;
+        this.recoveryPos = null;
+        this.recoveryPending = false;
+        this.recoveryUsePending = false;
         this.restoreSlotTicks = 0;
         if (restoreSlot) {
             this.restorePreviousSlot();

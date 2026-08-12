@@ -119,6 +119,13 @@ public class RotationUtil {
         return RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPos);
     }
 
+    public static MovingObjectPosition rayTraceWater(float yaw, float pitch, double distance, float partialTicks) {
+        Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(partialTicks);
+        Vec3 lookVec = RotationUtil.mc.thePlayer.getVectorForRotation(pitch, yaw);
+        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
+        return RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPos, true, false, false);
+    }
+
     public static MovingObjectPosition rayTrace(Entity entity) {
         Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(1.0f);
         float borderSize = entity.getCollisionBorderSize();

@@ -216,6 +216,9 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && this.isInventoryBlocked()) {
             this.resetRuntimeState(true);
             return;
@@ -654,6 +657,9 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onUpdate(UpdateEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if ((this.isEnabled() || this.easingOut) && event.getType() == EventType.PRE && this.isInventoryBlocked()) {
             this.resetRuntimeState(true);
             return;
@@ -1111,6 +1117,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onStrafe(StrafeEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && this.isInventoryBlocked()) {
             this.resetRuntimeState(true);
             return;
@@ -1256,6 +1265,9 @@ public class Scaffold extends Module {
 
     @EventTarget(Priority.LOWEST)
     public void onMoveInput(MoveInputEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             if (this.moveFix.getValue() == 1
                     && RotationState.isActived()
@@ -1280,6 +1292,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onLivingUpdate(LivingUpdateEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             float speed = this.getSpeed();
             if (speed != 1.0F) {
@@ -1298,6 +1313,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onSafeWalk(SafeWalkEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked() && this.safeWalk.getValue()) {
             if (mc.thePlayer.onGround && mc.thePlayer.motionY <= 0.0 && PlayerUtil.canMove(mc.thePlayer.motionX, mc.thePlayer.motionZ, -1.0)) {
                 event.setSafeWalk(true);
@@ -1377,6 +1395,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onLeftClick(LeftClickMouseEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             event.setCancelled(true);
         }
@@ -1384,6 +1405,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onRightClick(RightClickMouseEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             event.setCancelled(true);
         }
@@ -1391,6 +1415,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onHitBlock(HitBlockEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             event.setCancelled(true);
         }
@@ -1398,6 +1425,9 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onSwap(SwapItemEvent event) {
+        if (AutoMLG.isActiveMLG()) {
+            return;
+        }
         if (this.isEnabled() && !this.isInventoryBlocked()) {
             this.lastSlot = event.setSlot(this.lastSlot);
             event.setCancelled(true);
