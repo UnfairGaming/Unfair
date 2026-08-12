@@ -14,7 +14,6 @@ import cn.unfair.util.ChatUtil;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.RotationUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.KeyBinding;
@@ -41,7 +40,6 @@ public class LegitTelly extends Module {
     public final BooleanProperty disableSafeWalk = new BooleanProperty("disable-safewalk", true);
     public final BooleanProperty showActivationHitbox = new BooleanProperty("show-activation-hitbox", true);
     public final BooleanProperty print = new BooleanProperty("print", false);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
     final int[] YAW_NUDGE_PATTERN = {0, 1, -1, 2, -2};
     final double ACTIVATION_ACROSS_MIN = 0.38;
     final double ACTIVATION_ACROSS_MAX = 0.65;
@@ -226,10 +224,6 @@ public class LegitTelly extends Module {
     @EventTarget(Priority.HIGHEST)
     public void handleUpdate(UpdateEvent event) {
         if (!this.isEnabled()) return;
-        if (this.isInventoryBlocked()) {
-            stopAutomation(false);
-            return;
-        }
         if (event.getType() == EventType.PRE) {
             // Raven/Flux cadence adapted to OpenMyau:
             // 1) PreUpdate/autoplace still sees the stable rotation from the previous tick.
@@ -250,7 +244,7 @@ public class LegitTelly extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void handleMoveInput(MoveInputEvent event) {
-        if (this.isEnabled() && !this.isInventoryBlocked()) applyTellyMovementInput();
+        if (this.isEnabled()) applyTellyMovementInput();
     }
 
     @EventTarget(Priority.HIGHEST)
@@ -308,7 +302,7 @@ public class LegitTelly extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void handleSafeWalk(SafeWalkEvent event) {
-        if (this.isEnabled() && running && this.disableSafeWalk.getValue() && !this.isInventoryBlocked()) event.setSafeWalk(false);
+        if (this.isEnabled() && running && this.disableSafeWalk.getValue()) event.setSafeWalk(false);
     }
 
     void onEnable() {
@@ -1703,10 +1697,6 @@ public class LegitTelly extends Module {
 
     boolean isInGameContext() {
         return getPlayer() != null && (mc.currentScreen == null);
-    }
-
-    boolean isInventoryBlocked() {
-        return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
     boolean areAutoPlaceConditionsMet(Entity player) {
