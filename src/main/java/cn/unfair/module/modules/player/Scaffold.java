@@ -40,6 +40,7 @@ import java.util.Comparator;
 
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final int RAYTRACE_SEARCH_BUFFER_TICKS = 5;
     private static final double[] placeOffsets = new double[]{0.03125, 0.09375, 0.15625, 0.21875, 0.28125, 0.34375, 0.40625, 0.46875, 0.53125, 0.59375, 0.65625, 0.71875, 0.78125, 0.84375, 0.90625, 0.96875
     };
     public final ModeProperty rotationMode = new ModeProperty("rotations", 5, new String[]{"None", "Vanilla", "BackWards", "Strafe", "Test", "Prediction"});
@@ -96,6 +97,7 @@ public class Scaffold extends Module {
     private EnumFacing targetFacing = null;
     private boolean easingOut = false;
     private long nextClickDelay = 0L;
+    private int raytraceSearchBuffer = 0;
 
     public Scaffold() {
         super("Scaffold", false);
@@ -130,6 +132,7 @@ public class Scaffold extends Module {
         this.easingOut = false;
         this.errorIndex = 0;
         this.nextClickDelay = 0L;
+        this.raytraceSearchBuffer = 0;
         this.clickTimer.setTime();
         this.delayGenerator.reset();
         for (int i = 0; i < this.lastErrors.length; i++) {
@@ -175,9 +178,18 @@ public class Scaffold extends Module {
     }
 
     private boolean isClutchPlacementState() {
-        return mc.thePlayer != null
-                && !mc.thePlayer.onGround
-                && (this.canMoveSafely() || BlockUtil.isReplaceable(this.getTargetPos()));
+        if (mc.thePlayer == null || mc.thePlayer.onGround) {
+            return false;
+        }
+        BlockPos feetPos = new BlockPos(
+                MathHelper.floor_double(mc.thePlayer.posX),
+                MathHelper.floor_double(mc.thePlayer.posY),
+                MathHelper.floor_double(mc.thePlayer.posZ)
+        );
+        if (!BlockUtil.isReplaceable(feetPos.down()) || !BlockUtil.isReplaceable(feetPos.down(2))) {
+            return false;
+        }
+        return this.canMoveSafely() || BlockUtil.isReplaceable(this.getTargetPos());
     }
 
     private boolean shouldSneak() {
@@ -655,6 +667,9 @@ public class Scaffold extends Module {
             if (this.rotationTick > 0) {
                 this.rotationTick--;
             }
+            if (this.raytraceSearchBuffer > 0) {
+                this.raytraceSearchBuffer--;
+            }
             if (predictionTower.getValue() && mc.thePlayer.motionY <= 0.0
                     && Math.sqrt(mc.thePlayer.motionX * mc.thePlayer.motionX + mc.thePlayer.motionZ * mc.thePlayer.motionZ) <= 0.02D
                     && mc.thePlayer.motionY >= -0.09
@@ -842,13 +857,32 @@ public class Scaffold extends Module {
                 boolean clicked = false;
                 if (blockData != null) {
                     if (this.raytraceCheck.getValue()) {
-                        PlacementTarget target = this.findClosestPlacementTarget(RotationUtil.wrapAngleDiff(this.yaw, event.getYaw()), this.pitch);
-                        if (target != null) {
-                            blockData = target.blockData;
-                            this.yaw = target.yaw;
-                            this.pitch = target.pitch;
-                            hitVec = target.hitVec;
+                        MovingObjectPosition currentMop = this.getMatchingRaytrace(blockData.blockPos(), blockData.facing(), this.yaw, this.pitch);
+                        if (currentMop != null) {
+                            hitVec = currentMop.hitVec;
                             this.canRotate = true;
+                            this.raytraceSearchBuffer = 0;
+                        } else if (this.isClutchPlacementState()) {
+                            PlacementTarget target = this.findClosestPlacementTarget(RotationUtil.wrapAngleDiff(this.yaw, event.getYaw()), this.pitch);
+                            if (target != null) {
+                                blockData = target.blockData;
+                                this.yaw = target.yaw;
+                                this.pitch = target.pitch;
+                                hitVec = target.hitVec;
+                                this.canRotate = true;
+                            }
+                        } else if (this.raytraceSearchBuffer <= 0) {
+                            PlacementTarget target = this.findClosestPlacementTarget(RotationUtil.wrapAngleDiff(this.yaw, event.getYaw()), this.pitch);
+                            if (target != null) {
+                                blockData = target.blockData;
+                                this.yaw = target.yaw;
+                                this.pitch = target.pitch;
+                                hitVec = target.hitVec;
+                                this.canRotate = true;
+                                this.raytraceSearchBuffer = 0;
+                            } else {
+                                this.raytraceSearchBuffer = RAYTRACE_SEARCH_BUFFER_TICKS;
+                            }
                         }
                     } else {
                         double[] x = placeOffsets;
