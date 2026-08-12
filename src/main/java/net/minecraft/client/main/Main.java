@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Main {
-    public static final long startupTime = System.currentTimeMillis();
 
     public static void main(String[] args) {
         Configuration.MEMORY_ALLOCATOR.set("jemalloc");

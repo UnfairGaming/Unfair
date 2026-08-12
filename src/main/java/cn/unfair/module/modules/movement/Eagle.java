@@ -3,7 +3,6 @@ package cn.unfair.module.modules.movement;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
-import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
@@ -12,6 +11,7 @@ import cn.unfair.util.ItemUtil;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.PlayerUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import org.apache.commons.lang3.RandomUtils;
 import org.lwjgl.input.Keyboard;
 
@@ -26,6 +26,7 @@ public class Eagle extends Module {
     public final BooleanProperty blocksOnly = new BooleanProperty("blocks-only", true);
     public final BooleanProperty sneakOnly = new BooleanProperty("sneaking-only", false);
     private int sneakDelay = 0;
+    private boolean pressingSneak = false;
 
     public Eagle() {
         super("Eagle", false);
@@ -48,6 +49,15 @@ public class Eagle extends Module {
         }
     }
 
+    private void setSneakKey(boolean pressed) {
+        KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), pressed);
+        this.pressingSneak = pressed;
+    }
+
+    private void restoreSneakKey() {
+        this.setSneakKey(Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
+    }
+
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
         if (this.isEnabled() && event.type() == EventType.PRE) {
@@ -57,32 +67,26 @@ public class Eagle extends Module {
             if (this.sneakDelay == 0 && this.canMoveSafely()) {
                 this.sneakDelay = RandomUtils.nextInt(this.minDelay.getValue(), this.maxDelay.getValue() + 1);
             }
-        }
-    }
 
-    @EventTarget(Priority.LOWEST)
-    public void onMoveInput(MoveInputEvent event) {
-        if (this.isEnabled() && mc.currentScreen == null) {
-
-            if (sneakOnly.getValue() && Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()) && shouldSneak()) {
-                mc.thePlayer.movementInput.sneak = false;
-                mc.thePlayer.movementInput.moveForward /= 0.3F;
-                mc.thePlayer.movementInput.moveStrafe /= 0.3F;
+            boolean shouldPressSneak = mc.currentScreen == null
+                    && this.shouldSneak()
+                    && (this.sneakDelay > 0 || this.canMoveSafely());
+            if (shouldPressSneak) {
+                this.setSneakKey(true);
+            } else if (this.pressingSneak) {
+                this.restoreSneakKey();
             }
-
-            if (!mc.thePlayer.movementInput.sneak) {
-                if (this.shouldSneak() && (this.sneakDelay > 0 || this.canMoveSafely())) {
-                    mc.thePlayer.movementInput.sneak = true;
-                    mc.thePlayer.movementInput.moveStrafe *= 0.3F;
-                    mc.thePlayer.movementInput.moveForward *= 0.3F;
-                }
-            }
+        } else if (this.pressingSneak) {
+            this.restoreSneakKey();
         }
     }
 
     @Override
     public void onDisabled() {
         this.sneakDelay = 0;
+        if (this.pressingSneak) {
+            this.restoreSneakKey();
+        }
     }
 
     @Override

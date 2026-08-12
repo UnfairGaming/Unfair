@@ -13,6 +13,7 @@ import cn.unfair.util.BlockUtil;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.RotationUtil;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -288,11 +289,6 @@ public class LegitTelly extends Module {
     @EventTarget(Priority.HIGHEST)
     public void handleLeftClick(LeftClickMouseEvent event) {
         if (this.isEnabled() && !onMouse(0, true, 0, 0)) event.setCancelled(true);
-    }
-
-    @EventTarget(Priority.HIGHEST)
-    public void handleRightClick(RightClickMouseEvent event) {
-        if (this.isEnabled() && !onMouse(1, true, 0, 0)) event.setCancelled(true);
     }
 
     @EventTarget(Priority.HIGHEST)
@@ -856,10 +852,27 @@ public class LegitTelly extends Module {
         }
         int[] placedTarget = null;
         if (packet instanceof C08 placement) {
+            if (placement.direction == 255) {
+                if (isAutoPlaceActiveWindow(getPlayer()) || shouldCancelAutoPlaceUseItem()) {
+                    suppressUse();
+                    return false;
+                }
+            }
             if (placement.direction != 255 && placement.position != null) {
-                placedTarget = offsetPos(posFromVec(placement.position), placement.direction);
+                int[] supportPos = posFromVec(placement.position);
+                placedTarget = offsetPos(supportPos, placement.direction);
                 if (!isStraightTellyTarget(placedTarget)) {
                     cancelledGhostBlocks.add(posKey(placedTarget));
+                    return false;
+                }
+                if (!isSupportAvailable(supportPos[0], supportPos[1], supportPos[2])
+                        || isReplaceable(supportPos[0], supportPos[1], supportPos[2])
+                        || !isReplaceable(placedTarget[0], placedTarget[1], placedTarget[2])) {
+                    cancelledGhostBlocks.add(posKey(placedTarget));
+                    return false;
+                }
+                if (!placingViaModule && isAutoPlaceActiveWindow(getPlayer())) {
+                    suppressUse();
                     return false;
                 }
             }
@@ -1680,6 +1693,7 @@ public class LegitTelly extends Module {
     boolean shouldCancelAutoPlaceUseItem() {
         if (!isInGameContext()) return false;
         if (shouldSuppressManualClicksThisTick()) return true;
+        if (ViaProtocol.newerThan1_8() && lastPlacementAttemptTick == currentClientTick) return true;
         return useSuppressed && silentPitchActive;
     }
 
@@ -1783,6 +1797,14 @@ public class LegitTelly extends Module {
         }
 
         // 运行中用脚本视角搜点；相机视角会导致候选块偏到后左并首块放空�?
+        if (ViaProtocol.newerThan1_8()) {
+            setKeyPressed("use", true);
+            tellyAutoPlaceWindow = true;
+            autoPlaceDebugActive = true;
+            forceSuppressTick = currentClientTick;
+            return;
+        }
+
         float yaw = running ? scriptedRotationYaw : player.getYaw();
         float basePitch = sanitizePitch(running ? scriptedRotationPitch : player.getPitch(), player.getPitch());
         Object[] candidate = resolveCandidateWithOffCursorSilentPitch(player, yaw, basePitch, heldStack);
@@ -1815,6 +1837,12 @@ public class LegitTelly extends Module {
         if (attemptPlacement(player, candidate, heldStack)) return;
 
         if (placedInCurrentWindow()) return;
+        if (ViaProtocol.newerThan1_8()) {
+            suppressUse();
+            forceSuppressTick = currentClientTick;
+            releaseExperimentalPlacementClaim();
+            return;
+        }
 
         float retryYaw = running ? scriptedRotationYaw : player.getYaw();
         float retryPitch = running ? scriptedRotationPitch : player.getPitch();

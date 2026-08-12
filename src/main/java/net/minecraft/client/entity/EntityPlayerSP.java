@@ -771,6 +771,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         boolean flag2 = this.movementInput.moveForward >= f;
         this.movementInput.updatePlayerMoveState();
         EventManager.call(new MoveInputEvent());
+        this.viaforge$updateModernMovementInput(this.movementInput);
         boolean currentlySneaking = this.movementInput.sneak;
 
         if (this.isUsingItemForSlowdown() && !this.isRiding()) {
