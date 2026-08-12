@@ -31,7 +31,7 @@ public class MoreKB extends Module {
             return;
         }
         Entity targetEntity = event.getTarget();
-        if (targetEntity != null && targetEntity instanceof EntityLivingBase) {
+        if (targetEntity instanceof EntityLivingBase) {
             this.target = (EntityLivingBase) targetEntity;
         }
     }
