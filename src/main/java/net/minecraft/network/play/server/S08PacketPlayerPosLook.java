@@ -1,7 +1,5 @@
 package net.minecraft.network.play.server;
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.INetHandlerPlayClient;
@@ -18,7 +16,6 @@ public class S08PacketPlayerPosLook implements Packet<INetHandlerPlayClient>
     private float yaw;
     private float pitch;
     private Set<S08PacketPlayerPosLook.EnumFlags> field_179835_f;
-    private int teleportId;
 
     public S08PacketPlayerPosLook()
     {
@@ -46,9 +43,6 @@ public class S08PacketPlayerPosLook implements Packet<INetHandlerPlayClient>
         this.pitch = buf.readFloat();
         this.field_179835_f = S08PacketPlayerPosLook.EnumFlags.func_180053_a(buf.readUnsignedByte());
 
-        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_9)) {
-            this.teleportId = buf.readVarIntFromBuffer();
-        }
     }
 
     /**
@@ -100,10 +94,6 @@ public class S08PacketPlayerPosLook implements Packet<INetHandlerPlayClient>
     public Set<S08PacketPlayerPosLook.EnumFlags> func_179834_f()
     {
         return this.field_179835_f;
-    }
-
-    public int getTeleportId() {
-        return this.teleportId;
     }
 
     public static enum EnumFlags

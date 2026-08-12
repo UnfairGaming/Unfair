@@ -106,8 +106,6 @@ public class ViaMCP {
 
         afterMappings(Protocol1_9To1_8.class, () -> {
             Protocol1_9To1_8 protocol = protocol(Protocol1_9To1_8.class);
-            protocol.replaceClientbound(ClientboundPackets1_9.PLAYER_POSITION, wrapper -> {
-            });
             protocol.replaceClientbound(ClientboundPackets1_9.ENTITY_EVENT, wrapper -> {
             });
         });

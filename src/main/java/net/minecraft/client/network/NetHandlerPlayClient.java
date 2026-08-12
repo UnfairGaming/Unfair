@@ -6,12 +6,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.mojang.authlib.GameProfile;
-import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
-import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
-import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
-import com.viaversion.viaversion.api.type.Types;
-import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
 import de.florianmichael.viamcp.ViaMCP;
 import io.netty.buffer.Unpooled;
 import net.minecraft.block.Block;
@@ -551,12 +546,6 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
 
         entityplayer.setPositionAndRotation(d0, d1, d2, f, f1);
-        if (ViaProtocol.newerThanOrEqualTo1_9()) {
-            UserConnection userConnection = Via.getManager().getConnectionManager().getConnections().iterator().next();
-            PacketWrapper packetWrapper = PacketWrapper.create(ServerboundPackets1_9.ACCEPT_TELEPORTATION, userConnection);
-            packetWrapper.write(Types.VAR_INT, packetIn.getTeleportId());
-            packetWrapper.sendToServer(Protocol1_9To1_8.class);
-        }
         this.netManager.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(d0, d1, d2, f, f1, false));
 
         if (!this.doneLoadingTerrain) {

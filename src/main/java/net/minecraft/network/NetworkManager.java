@@ -59,7 +59,6 @@ import org.apache.logging.log4j.MarkerManager;
 import javax.crypto.SecretKey;
 import java.net.InetAddress;
 import java.net.SocketAddress;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -494,15 +493,6 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                                 swap.write(Types.BLOCK_POSITION1_8, new BlockPosition(0, 0, 0));
                                 swap.write(Types.BYTE, (byte) 0);
                                 swap.sendToServer(Protocol1_9To1_8.class);
-                            }
-                        } else if (packet instanceof CPacketConfirmTeleport confirmTeleportPacket) {
-                            Collection<UserConnection> connections = Via.getManager().getConnectionManager().getConnections();
-                            if (!connections.isEmpty()) {
-                                PacketWrapper packetWrapper = PacketWrapper.create(ServerboundPackets1_9.ACCEPT_TELEPORTATION, connections.iterator().next());
-                                packetWrapper.write(Types.VAR_INT, confirmTeleportPacket.getTeleportId());
-                                packetWrapper.sendToServer(Protocol1_9To1_8.class);
-                            } else {
-                                logger.warn("No ViaVersion connections available when handling player position look packet");
                             }
                         } else if (packet instanceof ServerBoundUseItem useItem) {
                             ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
