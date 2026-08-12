@@ -62,7 +62,7 @@ public class BackTrack extends Module {
     public final BooleanProperty extraMS = new BooleanProperty("extra-ms", false, this::isClassic);
     public final IntProperty extraRand = new IntProperty("extra-rand", 50, 0, 500, this::isClassic);
     public final IntProperty delayForNextLag = new IntProperty("delay-for-next-lag", 0, 0, 1000, this::isClassic);
-    public final IntProperty maxPingSpoof = new IntProperty("max-ping-spoof", 1000, 50, 10000, this::isLegitReach);
+    public final IntProperty maxPingSpoof = new IntProperty("max-ping-spoof", 1000, 50, 2000, this::isLegitReach);
     public final BooleanProperty renderRealLocation = new BooleanProperty("render-real-location", true, this::isLegitReach);
     public final ModeProperty esp = new ModeProperty("render-mode", 1, new String[]{"FAKE_PLAYER", "BOX", "NONE"}, this::isClassic);
     public final BooleanProperty players = new BooleanProperty("players", true);
@@ -73,9 +73,8 @@ public class BackTrack extends Module {
     public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
-    private Vec3 animatedFrom;
-    private Vec3 animatedDestination;
-    private long animatedStartTime;
+    private Vec3 animatedPosition;
+    private long animatedFrameTime;
     public boolean isBackTracking;
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
@@ -529,23 +528,23 @@ public class BackTrack extends Module {
             return;
         }
 
-        if (this.animatedDestination == null
-                || this.animatedDestination.xCoord != realPosition.xCoord
-                || this.animatedDestination.yCoord != realPosition.yCoord
-                || this.animatedDestination.zCoord != realPosition.zCoord) {
-            this.animatedFrom = this.animatedDestination == null ? realPosition : this.animatedDestination;
-            this.animatedDestination = realPosition;
-            this.animatedStartTime = AnimationUtil.start();
+        long now = AnimationUtil.start();
+        if (this.animatedPosition == null) {
+            this.resetAnimation(realPosition);
         }
 
-        double animatedX = AnimationUtil.value((float) this.animatedFrom.xCoord, (float) this.animatedDestination.xCoord, this.animatedStartTime, 150.0F, 0.0F, 0);
-        double animatedY = AnimationUtil.value((float) this.animatedFrom.yCoord, (float) this.animatedDestination.yCoord, this.animatedStartTime, 150.0F, 0.0F, 0);
-        double animatedZ = AnimationUtil.value((float) this.animatedFrom.zCoord, (float) this.animatedDestination.zCoord, this.animatedStartTime, 150.0F, 0.0F, 0);
+        long deltaMillis = Math.min(50L, Math.max(0L, now - this.animatedFrameTime));
+        this.animatedPosition = new Vec3(
+                AnimationUtil.smooth(this.animatedPosition.xCoord, realPosition.xCoord, deltaMillis, 65.0D),
+                AnimationUtil.smooth(this.animatedPosition.yCoord, realPosition.yCoord, deltaMillis, 65.0D),
+                AnimationUtil.smooth(this.animatedPosition.zCoord, realPosition.zCoord, deltaMillis, 65.0D)
+        );
+        this.animatedFrameTime = now;
 
         double expand = 0.14D;
         AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox()
                 .offset(-mc.thePlayer.posX, -mc.thePlayer.posY, -mc.thePlayer.posZ)
-                .offset(animatedX, animatedY, animatedZ)
+                .offset(this.animatedPosition.xCoord, this.animatedPosition.yCoord, this.animatedPosition.zCoord)
                 .expand(expand, expand, expand)
                 .offset(
                         -mc.getRenderManager().getRenderPosX(),
@@ -647,8 +646,8 @@ public class BackTrack extends Module {
         this.resetTargetState();
         realPosition = zeroVec();
         realLastPos = zeroVec();
-        this.animatedFrom = null;
-        this.animatedDestination = null;
+        this.animatedPosition = null;
+        this.animatedFrameTime = 0L;
     }
 
     private void resetTargetState() {
@@ -663,9 +662,8 @@ public class BackTrack extends Module {
     }
 
     private void resetAnimation(Vec3 position) {
-        this.animatedFrom = position;
-        this.animatedDestination = position;
-        this.animatedStartTime = AnimationUtil.start();
+        this.animatedPosition = position;
+        this.animatedFrameTime = AnimationUtil.start();
     }
 
     private void stopLaggingForRespawn() {

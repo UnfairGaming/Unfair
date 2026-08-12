@@ -31,6 +31,15 @@ public class AnimationUtil {
         return Math.round(value((float) begin, (float) end, startTime, duration, partialTicks, easing));
     }
 
+    public static double smooth(double current, double target, long deltaMillis, double responseMillis) {
+        if (deltaMillis <= 0L) {
+            return current;
+        }
+        double response = Math.max(1.0D, responseMillis);
+        double factor = 1.0D - Math.exp(-(double) deltaMillis / response);
+        return current + (target - current) * factor;
+    }
+
     public static float ease(float t, int type) {
         switch (type) {
             case 1:
