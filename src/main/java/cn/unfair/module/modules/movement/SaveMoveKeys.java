@@ -47,6 +47,8 @@ public class SaveMoveKeys extends Module {
                             Keyboard.isKeyDown(mc.gameSettings.keyBindSprint.getKeyCode()));
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), 
                             Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
+                    KeyBinding.setKeyBindState(mc.gameSettings.keyBindJump.getKeyCode(),
+                            Keyboard.isKeyDown(mc.gameSettings.keyBindJump.getKeyCode()));
                 });
                 wasInventoryOpen = false;
             }
