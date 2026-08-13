@@ -34,6 +34,7 @@ import net.minecraft.util.Vec3;
 public final class ModernOffhandInteraction {
 
     private static boolean clientOffhandAction;
+    private static boolean clientMainHandSwing;
 
     private ModernOffhandInteraction() {
     }
@@ -79,10 +80,19 @@ public final class ModernOffhandInteraction {
 
     public static void beginRightClick() {
         clientOffhandAction = false;
+        clientMainHandSwing = false;
     }
 
     public static boolean wasClientOffhandAction() {
         return clientOffhandAction;
+    }
+
+    public static void markClientMainHandSwing() {
+        clientMainHandSwing = true;
+    }
+
+    public static boolean wasClientMainHandSwing() {
+        return clientMainHandSwing;
     }
 
     public static boolean sendSwapItemWithOffhand(EntityPlayerSP player) {
@@ -223,7 +233,7 @@ public final class ModernOffhandInteraction {
         wrapper.write(Types.FLOAT, hitZ);
         wrapper.write(Types.BOOLEAN, false);
         if (sequence) {
-            wrapper.write(Types.VAR_INT, ViaVersionFix.sequence());
+            wrapper.write(Types.VAR_INT, ViaVersionFix.sequence(wrapper.user()));
         }
     }
 

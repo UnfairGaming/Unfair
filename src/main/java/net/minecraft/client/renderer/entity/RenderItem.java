@@ -312,7 +312,8 @@ public class RenderItem implements IResourceManagerReloadListener {
                 ModelResourceLocation modelresourcelocation = null;
 
                 ItemStack activeStack = entityplayer.getItemInUse();
-                boolean usingThisStack = activeStack == stack;
+                boolean usingThisStack = activeStack != null
+                        && (activeStack == stack || ItemStack.areItemStacksEqual(activeStack, stack));
 
                 if (item == Items.fishing_rod && entityplayer.fishEntity != null) {
                     modelresourcelocation = new ModelResourceLocation("fishing_rod_cast", "inventory");
@@ -375,14 +376,12 @@ public class RenderItem implements IResourceManagerReloadListener {
                 boolean usingHeldStack = p.getItemInUseCount() > 0 && p.getItemInUse() == heldStack;
                 EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
                 if (lastEntityToRenderFor == player) {
-                    if ((heldStack.getItem() instanceof ItemSword
-                            || "shield".equals(ViaBackwardsItemModels.getModelName(heldStack)))
-                            && usingHeldStack) {
+                    if (heldStack.getItem() instanceof ItemSword && usingHeldStack) {
                         doThirdPersonBlockTransformations();
                     }
                 } else if (usingHeldStack
-                        && (heldStack.getItemUseAction() == EnumAction.BLOCK
-                        || "shield".equals(ViaBackwardsItemModels.getModelName(heldStack)))) {
+                        && heldStack.getItemUseAction() == EnumAction.BLOCK
+                        && !"shield".equals(ViaBackwardsItemModels.getModelName(heldStack))) {
                     doThirdPersonBlockTransformations();
                 }
             }
@@ -1123,6 +1122,19 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.registerBlock(Blocks.brown_mushroom_block, BlockHugeMushroom.EnumType.ALL_INSIDE.getMetadata(), "brown_mushroom_block");
         this.registerBlock(Blocks.red_mushroom_block, BlockHugeMushroom.EnumType.ALL_INSIDE.getMetadata(), "red_mushroom_block");
         this.registerBlock(Blocks.dragon_egg, "dragon_egg");
+
+        // Keep every registered modern ItemBlock on the same inventory model
+        // path used by ViaBackwards model-name resolution.
+        for (Block block : Block.blockRegistry) {
+            if (!(block instanceof ModernBlock)) {
+                continue;
+            }
+            Item item = Item.getItemFromBlock(block);
+            ResourceLocation name = Block.blockRegistry.getNameForObject(block);
+            if (item != null && name != null) {
+                this.registerBlock(block, name.getResourcePath());
+            }
+        }
     }
 
     public void onResourceManagerReload(IResourceManager resourceManager) {

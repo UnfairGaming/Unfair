@@ -6,10 +6,15 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.mojang.authlib.GameProfile;
+import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
+import com.viaversion.viarewind.protocol.v1_9to1_8.storage.PlayerPositionTracker;
 import com.viaversion.viaversion.api.connection.UserConnection;
-import de.florianmichael.viamcp.ViaMCP;
+import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
+import com.viaversion.viaversion.api.type.Types;
+import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
 import io.netty.buffer.Unpooled;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.GuardianSound;
@@ -546,6 +551,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
 
         entityplayer.setPositionAndRotation(d0, d1, d2, f, f1);
+        this.confirmViaTeleport();
         this.netManager.sendPacket(new C03PacketPlayer.C06PacketPlayerPosLook(d0, d1, d2, f, f1, false));
 
         if (!this.doneLoadingTerrain) {
@@ -554,6 +560,30 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             this.gameController.thePlayer.prevPosZ = this.gameController.thePlayer.posZ;
             this.doneLoadingTerrain = true;
             this.gameController.displayGuiScreen(null);
+        }
+    }
+
+    private void confirmViaTeleport() {
+        UserConnection connection = ViaVersionFix.connection();
+        if (connection == null) {
+            return;
+        }
+
+        PlayerPositionTracker tracker = connection.get(PlayerPositionTracker.class);
+        if (tracker == null || tracker.getConfirmId() == -1) {
+            return;
+        }
+
+        int confirmId = tracker.getConfirmId();
+        tracker.setConfirmId(-1);
+
+        try {
+            PacketWrapper confirmation = PacketWrapper.create(ServerboundPackets1_9.ACCEPT_TELEPORTATION, connection);
+            confirmation.write(Types.VAR_INT, confirmId);
+            confirmation.sendToServer(Protocol1_9To1_8.class);
+        } catch (Exception exception) {
+            tracker.setConfirmId(confirmId);
+            logger.warn("Failed to confirm ViaRewind teleport {}", confirmId, exception);
         }
     }
 
@@ -570,11 +600,15 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
 
         for (S22PacketMultiBlockChange.BlockUpdateData s22packetmultiblockchange$blockupdatedata : packetIn.getChangedBlocks()) {
-            this.clientWorldController.invalidateRegionAndSetBlock(s22packetmultiblockchange$blockupdatedata.getPos(),
-                    ModernBlockStateTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
-                            RespawnAnchorBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
-                                    CampfireBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(),
-                                            DirtPathBlockTracker.remap(s22packetmultiblockchange$blockupdatedata.getPos(), s22packetmultiblockchange$blockupdatedata.getBlockState())))));
+            BlockPos pos = s22packetmultiblockchange$blockupdatedata.getPos();
+            IBlockState state = ModernBlockStateTracker.remap(pos,
+                    RespawnAnchorBlockTracker.remap(pos,
+                            CampfireBlockTracker.remap(pos,
+                                    DirtPathBlockTracker.remap(pos, s22packetmultiblockchange$blockupdatedata.getBlockState()))));
+            this.clientWorldController.invalidateRegionAndSetBlock(pos, state);
+            // The previous state may have been a locally restored modern block.
+            // Refresh even when the server replaces it with air or a legacy block.
+            this.clientWorldController.markBlockForUpdate(pos);
         }
     }
 
@@ -618,11 +652,13 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         if (this.isWorldUnavailable()) {
             return;
         }
-        this.clientWorldController.invalidateRegionAndSetBlock(packetIn.getBlockPosition(),
-                ModernBlockStateTracker.remap(packetIn.getBlockPosition(),
-                        RespawnAnchorBlockTracker.remap(packetIn.getBlockPosition(),
-                                CampfireBlockTracker.remap(packetIn.getBlockPosition(),
-                                        DirtPathBlockTracker.remap(packetIn.getBlockPosition(), packetIn.getBlockState())))));
+        BlockPos pos = packetIn.getBlockPosition();
+        IBlockState state = ModernBlockStateTracker.remap(pos,
+                RespawnAnchorBlockTracker.remap(pos,
+                        CampfireBlockTracker.remap(pos,
+                                DirtPathBlockTracker.remap(pos, packetIn.getBlockState()))));
+        this.clientWorldController.invalidateRegionAndSetBlock(pos, state);
+        this.clientWorldController.markBlockForUpdate(pos);
     }
 
     /**
@@ -960,7 +996,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             return;
         }
 
-        UserConnection connection = ViaMCP.INSTANCE != null ? ViaMCP.INSTANCE.user : null;
+        UserConnection connection = ViaVersionFix.connection();
         if (connection == null) {
             return;
         }
@@ -1031,6 +1067,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     public void handleSetSlot(S2FPacketSetSlot packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
         EntityPlayer entityplayer = this.gameController.thePlayer;
+        if (entityplayer == null) {
+            return;
+        }
 
         if (packetIn.func_149175_c() == -1) {
             entityplayer.inventory.setItemStack(packetIn.func_149174_e());
@@ -1103,6 +1142,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     public void handleWindowItems(S30PacketWindowItems packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
         EntityPlayer entityplayer = this.gameController.thePlayer;
+        if (entityplayer == null) {
+            return;
+        }
 
         if (packetIn.func_148911_c() == 0) {
             entityplayer.inventoryContainer.putStacksInSlots(packetIn.getItemStacks());
@@ -1242,6 +1284,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
         if (this.isWorldUnavailable()) {
             return;
+        }
+        if (this.gameController.theWorld.getBlockState(packetIn.getBlockPosition()).getBlock() instanceof net.minecraft.block.BlockShulkerBox) {
+            net.minecraft.block.BlockShulkerBox.handleBlockAction(packetIn.getBlockPosition(), packetIn.getData2() > 0);
         }
         this.gameController.theWorld.addBlockEvent(packetIn.getBlockPosition(), packetIn.getBlockType(), packetIn.getData1(), packetIn.getData2());
     }

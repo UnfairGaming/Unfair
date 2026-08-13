@@ -68,6 +68,10 @@ public abstract class Entity implements ICommandSender, Cullable {
     private double viaforge$moveStartX;
     private double viaforge$moveStartZ;
     private int viaforge$lastModernFluidTick = Integer.MIN_VALUE;
+    private boolean viaforge$hasStuckSpeedMultiplier;
+    private double viaforge$stuckSpeedX;
+    private double viaforge$stuckSpeedY;
+    private double viaforge$stuckSpeedZ;
 
     /**
      * Blocks entities from spawning when they do their AABB check to make sure the spot is clear of entities that can
@@ -696,6 +700,15 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Tries to moves the entity by the passed in displacement. Args: x, y, z
      */
     public void moveEntity(double x, double y, double z) {
+        if (this.viaforge$hasStuckSpeedMultiplier) {
+            x *= this.viaforge$stuckSpeedX;
+            y *= this.viaforge$stuckSpeedY;
+            z *= this.viaforge$stuckSpeedZ;
+            this.viaforge$hasStuckSpeedMultiplier = false;
+            this.motionX = 0.0D;
+            this.motionY = 0.0D;
+            this.motionZ = 0.0D;
+        }
         this.viaforge$modernStepDesiredY = this.isInWeb ? y * 0.05F : y;
         this.viaforge$modernStepDownAdjusted = false;
         if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
@@ -1051,6 +1064,13 @@ public abstract class Entity implements ICommandSender, Cullable {
             zThenXX = collision.calculateXOffset(zThenXBox, zThenXX);
         }
         zThenXBox = zThenXBox.offset(zThenXX, 0.0D, 0.0D);
+
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_18_2)) {
+            // 1.14-1.18.1 keeps the protocol's deterministic YXZ/YZX order.
+            return Math.abs(x) < Math.abs(z)
+                    ? new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox)
+                    : new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
+        }
 
         if (zThenXX * zThenXX + zThenXZ * zThenXZ > xThenZX * xThenZX + xThenZZ * xThenZZ) {
             return new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox);
@@ -1725,6 +1745,10 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Applies a velocity to each of the entities pushing them away from each other. Args: entity
      */
     public void applyEntityCollision(Entity entityIn) {
+        if (this.worldObj != null && this.worldObj.isRemote && ViaProtocol.newerThanOrEqualTo1_9()) {
+            return;
+        }
+
         if (entityIn.riddenByEntity != this && entityIn.ridingEntity != this) {
             if (!entityIn.noClip && !this.noClip) {
                 double d0 = entityIn.posX - this.posX;
@@ -2568,6 +2592,14 @@ public abstract class Entity implements ICommandSender, Cullable {
     public void setInWeb() {
         this.isInWeb = true;
         this.fallDistance = 0.0F;
+    }
+
+    public void viaforge$slowMovement(double x, double y, double z) {
+        this.fallDistance = 0.0F;
+        this.viaforge$stuckSpeedX = x;
+        this.viaforge$stuckSpeedY = y;
+        this.viaforge$stuckSpeedZ = z;
+        this.viaforge$hasStuckSpeedMultiplier = true;
     }
 
     /**

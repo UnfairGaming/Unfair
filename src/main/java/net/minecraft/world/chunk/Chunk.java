@@ -486,7 +486,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
         if (y >= 0 && y >> 4 < this.getBlockStorageArray().length) {
             final ExtendedBlockStorage storage = this.getBlockStorageArray()[y >> 4];
-            if (storage != null) return storage.get(pos.getX() & 15, y & 15, pos.getZ() & 15);
+            if (storage != null) return cn.unfair.util.via.ModernBlockStateTracker.remap(pos, storage.get(pos.getX() & 15, y & 15, pos.getZ() & 15));
         }
 
         return Blocks.air.getDefaultState();
@@ -495,7 +495,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     public IBlockState getBlockState(int x, int y, int z) {
         if (y >= 0 && y >> 4 < this.getBlockStorageArray().length) {
             final ExtendedBlockStorage storage = this.getBlockStorageArray()[y >> 4];
-            if (storage != null) return storage.get(x & 15, y & 15, z & 15);
+            if (storage != null) return cn.unfair.util.via.ModernBlockStateTracker.remap(new BlockPos(x, y, z), storage.get(x & 15, y & 15, z & 15));
         }
 
         return Blocks.air.getDefaultState();

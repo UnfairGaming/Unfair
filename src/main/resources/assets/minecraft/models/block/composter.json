@@ -1,5 +1,4 @@
 {
-    "parent": "block/block",
     "textures": {
         "particle": "blocks/composter_side",
         "top": "blocks/composter_top",

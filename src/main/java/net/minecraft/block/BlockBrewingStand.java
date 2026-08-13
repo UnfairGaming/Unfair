@@ -6,7 +6,6 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -76,7 +75,7 @@ public class BlockBrewingStand extends BlockContainer
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13())
+        if (ViaProtocol.newerThanOrEqualTo1_13())
         {
             addCollisionBox(pos, mask, list, 1.0D, 0.0D, 1.0D, 15.0D, 2.0D, 15.0D);
             addCollisionBox(pos, mask, list, 7.0D, 0.0D, 7.0D, 9.0D, 14.0D, 9.0D);

@@ -2,6 +2,7 @@ package net.minecraft.block;
 
 import cn.unfair.util.via.CampfireBlockTracker;
 import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -49,6 +50,11 @@ public class BlockCampfire extends ModernBlockDirectional
     public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
     {
         return this.getCampfireCollisionBox(pos, state);
+    }
+
+    public List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
+    {
+        return this.getCollisionBoxesForSelection(worldIn, pos);
     }
 
     private AxisAlignedBB getCampfireCollisionBox(BlockPos pos, IBlockState state)
@@ -134,12 +140,17 @@ public class BlockCampfire extends ModernBlockDirectional
 
     public int getViaStateIdMin()
     {
-        return this.soul ? 1 : 11216;
+        return this.soul ? 14922 : 11216;
     }
 
     public int getViaStateIdMax()
     {
-        return this.soul ? 0 : 11247;
+        return this.soul ? 14953 : 11247;
+    }
+
+    public ProtocolVersion getViaStateProtocol()
+    {
+        return this.soul ? ProtocolVersion.v1_16 : ProtocolVersion.v1_14;
     }
 
     public IBlockState getStateFromViaStateId(int stateId)

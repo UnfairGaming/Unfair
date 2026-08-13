@@ -54,6 +54,66 @@ public class ModelBlockDefinition
         }
     }
 
+    /** Returns the single-state definition used by 1.8 item/block mappers. */
+    public ModelBlockDefinition.Variants getDefaultVariants()
+    {
+        ModelBlockDefinition.Variants variants = this.mapVariants.get("");
+        if (variants == null)
+        {
+            variants = this.mapVariants.get("normal");
+        }
+        if (variants == null && this.mapVariants.size() == 1)
+        {
+            variants = this.mapVariants.values().iterator().next();
+        }
+        if (variants == null)
+        {
+            throw new ModelBlockDefinition.MissingVariantException();
+        }
+        return variants;
+    }
+
+    /** Finds the most specific model variant whose properties are a subset of the state. */
+    public ModelBlockDefinition.Variants getCompatibleVariants(String requested)
+    {
+        Map<String, String> requestedProperties = parseProperties(requested);
+        ModelBlockDefinition.Variants best = null;
+        int bestProperties = -1;
+        for (Entry<String, ModelBlockDefinition.Variants> entry : this.mapVariants.entrySet())
+        {
+            String key = entry.getKey();
+            if (key.isEmpty() || "normal".equals(key))
+            {
+                continue;
+            }
+            Map<String, String> candidate = parseProperties(key);
+            if (requestedProperties.entrySet().containsAll(candidate.entrySet()) && candidate.size() > bestProperties)
+            {
+                best = entry.getValue();
+                bestProperties = candidate.size();
+            }
+        }
+        return best != null ? best : this.getDefaultVariants();
+    }
+
+    private static Map<String, String> parseProperties(String value)
+    {
+        Map<String, String> properties = Maps.newHashMap();
+        if (value == null || value.isEmpty() || "normal".equals(value))
+        {
+            return properties;
+        }
+        for (String part : value.split(","))
+        {
+            int separator = part.indexOf('=');
+            if (separator > 0)
+            {
+                properties.put(part.substring(0, separator), part.substring(separator + 1));
+            }
+        }
+        return properties;
+    }
+
     public boolean equals(Object p_equals_1_)
     {
         if (this == p_equals_1_)

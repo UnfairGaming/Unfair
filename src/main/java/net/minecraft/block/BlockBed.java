@@ -9,7 +9,6 @@ import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -152,7 +151,7 @@ public class BlockBed extends BlockDirectional
     @Override
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, java.util.List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (!(collidingEntity instanceof EntityPlayerSP) || !cn.unfair.util.via.ViaProtocol.newerThanOrEqualTo1_14())
+        if (!cn.unfair.util.via.ViaProtocol.newerThanOrEqualTo1_14())
         {
             super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
             return;
@@ -176,6 +175,12 @@ public class BlockBed extends BlockDirectional
             addCollisionBox(pos, mask, list, minX, 0.0D, 0.0D, maxX, 3.0D, 3.0D);
             addCollisionBox(pos, mask, list, minX, 0.0D, 13.0D, maxX, 3.0D, 16.0D);
         }
+    }
+
+    public java.util.List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
+    {
+        return cn.unfair.util.via.ViaProtocol.newerThanOrEqualTo1_14()
+                ? this.getCollisionBoxesForSelection(worldIn, pos) : super.getSelectedBoundingBoxes(worldIn, pos);
     }
 
     private static void addCollisionBox(BlockPos pos, AxisAlignedBB mask, java.util.List<AxisAlignedBB> list,

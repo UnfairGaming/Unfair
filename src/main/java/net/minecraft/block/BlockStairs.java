@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ModernBlockStateTracker;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -527,6 +529,15 @@ public class BlockStairs extends Block
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
+        String modernShape = ViaProtocol.newerThanOrEqualTo1_13()
+                ? ModernBlockStateTracker.getNativeProperty(pos, "shape") : null;
+        if (modernShape != null)
+        {
+            BlockStairs.EnumShape shape = BlockStairs.EnumShape.byName(modernShape);
+            this.addModernCollisionBoxes(worldIn, pos, state.withProperty(SHAPE, shape), mask, list, collidingEntity);
+            return;
+        }
+
         this.setBaseCollisionBounds(worldIn, pos);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         boolean flag = this.func_176306_h(worldIn, pos);
@@ -539,6 +550,48 @@ public class BlockStairs extends Block
 
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
+
+    private void addModernCollisionBoxes(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask,
+                                         List<AxisAlignedBB> list, Entity collidingEntity)
+    {
+        boolean top = state.getValue(HALF) == BlockStairs.EnumHalf.TOP;
+        this.setBlockBounds(0.0F, top ? 0.5F : 0.0F, 0.0F, 1.0F, top ? 1.0F : 0.5F, 1.0F);
+        super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
+
+        int direction = directionToModernShapeIndex(state.getValue(FACING));
+        int shapeIndex = state.getValue(SHAPE).ordinal() * 4 + direction;
+        int shapeMask = MODERN_SHAPE_MASKS[shapeIndex];
+        float minY = top ? 0.0F : 0.5F;
+        float maxY = top ? 0.5F : 1.0F;
+        for (int quadrant = 0; quadrant < 4; quadrant++)
+        {
+            if ((shapeMask & 1 << quadrant) == 0)
+            {
+                continue;
+            }
+            float minX = (quadrant & 1) == 0 ? 0.0F : 0.5F;
+            float minZ = (quadrant & 2) == 0 ? 0.0F : 0.5F;
+            this.setBlockBounds(minX, minY, minZ, minX + 0.5F, maxY, minZ + 0.5F);
+            super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
+        }
+        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static int directionToModernShapeIndex(EnumFacing facing)
+    {
+        switch (facing)
+        {
+            case NORTH: return 2;
+            case SOUTH: return 0;
+            case WEST: return 1;
+            case EAST: return 3;
+            default: return 0;
+        }
+    }
+
+    private static final int[] MODERN_SHAPE_MASKS = new int[] {
+            12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8
+    };
 
     public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
     {
@@ -747,6 +800,15 @@ public class BlockStairs extends Block
      */
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
     {
+        if (ViaProtocol.newerThanOrEqualTo1_13())
+        {
+            String shape = ModernBlockStateTracker.getNativeProperty(pos, "shape");
+            if (shape != null)
+            {
+                return state.withProperty(SHAPE, BlockStairs.EnumShape.byName(shape));
+            }
+        }
+
         if (this.func_176306_h(worldIn, pos))
         {
             switch (this.func_176305_g(worldIn, pos))
@@ -834,6 +896,18 @@ public class BlockStairs extends Block
         public String getName()
         {
             return this.name;
+        }
+
+        public static EnumShape byName(String name)
+        {
+            for (EnumShape shape : values())
+            {
+                if (shape.name.equals(name))
+                {
+                    return shape;
+                }
+            }
+            return STRAIGHT;
         }
     }
 }

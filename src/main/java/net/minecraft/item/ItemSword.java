@@ -2,6 +2,7 @@ package net.minecraft.item;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
+import net.minecraft.block.ModernBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
@@ -36,6 +37,10 @@ public class ItemSword extends Item
 
     public float getStrVsBlock(ItemStack stack, Block state)
     {
+        if (state instanceof ModernBlock)
+        {
+            return ((ModernBlock) state).getModernSwordSpeed();
+        }
         if (state == Blocks.web)
         {
             return 15.0F;

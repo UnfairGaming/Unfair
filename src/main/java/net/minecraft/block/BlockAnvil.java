@@ -7,7 +7,6 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -54,7 +53,7 @@ public class BlockAnvil extends BlockFalling
 
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13())
+        if (ViaProtocol.newerThanOrEqualTo1_13())
         {
             addModernCollisionBox(pos, mask, list, 2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
             EnumFacing facing = state.getValue(FACING);
@@ -74,6 +73,11 @@ public class BlockAnvil extends BlockFalling
         }
 
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
+    }
+
+    public List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
+    {
+        return ViaProtocol.newerThanOrEqualTo1_13() ? this.getCollisionBoxesForSelection(worldIn, pos) : super.getSelectedBoundingBoxes(worldIn, pos);
     }
 
     private static void addModernCollisionBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list, double minX, double minY, double minZ, double maxX, double maxY, double maxZ)

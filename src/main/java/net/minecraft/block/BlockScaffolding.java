@@ -7,6 +7,11 @@ import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.client.Minecraft;
+import cn.unfair.util.via.ViaBackwardsItemModels;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumWorldBlockLayer;
@@ -33,7 +38,7 @@ public class BlockScaffolding extends ModernBlock
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask,
                                         java.util.List<AxisAlignedBB> list, Entity entityIn)
     {
-        if (entityIn != null && entityIn.getEntityBoundingBox().minY > pos.getY() + 1.0D - 1.0E-5D && !entityIn.isSneaking())
+        if (entityIn != null && entityIn.prevPosY > pos.getY() + 1.0D - 1.0E-5D && !entityIn.isSneaking())
         {
             addBox(pos, mask, list, 0, 14, 0, 16, 16, 16);
             addBox(pos, mask, list, 0, 0, 0, 2, 16, 2);
@@ -42,7 +47,7 @@ public class BlockScaffolding extends ModernBlock
             addBox(pos, mask, list, 14, 0, 14, 16, 16, 16);
         }
         else if (state.getValue(DISTANCE) != 0 && state.getValue(BOTTOM) && entityIn != null
-                && entityIn.getEntityBoundingBox().minY > pos.getY() - 1.0E-5D)
+                && entityIn.prevPosY > pos.getY() - 1.0E-5D)
         {
             addBox(pos, mask, list, 0, 0, 0, 16, 2, 16);
         }
@@ -58,6 +63,78 @@ public class BlockScaffolding extends ModernBlock
     }
 
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos) { this.setBlockBounds(0, 0, 0, 1, 1, 1); }
+
+    public java.util.List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
+    {
+        ItemStack held = Minecraft.getMinecraft().thePlayer == null ? null : Minecraft.getMinecraft().thePlayer.getHeldItem();
+        if (held != null && (held.getItem() == Item.getItemFromBlock(Blocks.scaffolding)
+                || "scaffolding".equals(ViaBackwardsItemModels.getModelName(held))))
+        {
+            return java.util.Collections.singletonList(new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(),
+                    pos.getX() + 1.0D, pos.getY() + 1.0D, pos.getZ() + 1.0D));
+        }
+
+        java.util.List<AxisAlignedBB> boxes = new java.util.ArrayList<>();
+        AxisAlignedBB mask = new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(),
+                pos.getX() + 1.0D, pos.getY() + 1.0D, pos.getZ() + 1.0D);
+        addBox(pos, mask, boxes, 0, 14, 0, 16, 16, 16);
+        addBox(pos, mask, boxes, 0, 0, 0, 2, 16, 2);
+        addBox(pos, mask, boxes, 14, 0, 0, 16, 16, 2);
+        addBox(pos, mask, boxes, 0, 0, 14, 2, 16, 16);
+        addBox(pos, mask, boxes, 14, 0, 14, 16, 16, 16);
+        if (worldIn.getBlockState(pos).getValue(BOTTOM))
+        {
+            addBox(pos, mask, boxes, 0, 0, 0, 2, 2, 16);
+            addBox(pos, mask, boxes, 14, 0, 0, 16, 2, 16);
+            addBox(pos, mask, boxes, 0, 0, 14, 16, 2, 16);
+            addBox(pos, mask, boxes, 0, 0, 0, 16, 2, 2);
+        }
+        return boxes;
+    }
+
+    public IBlockState onBlockPlaced(World worldIn, BlockPos pos, net.minecraft.util.EnumFacing facing,
+                                     float hitX, float hitY, float hitZ, int meta,
+                                     net.minecraft.entity.EntityLivingBase placer)
+    {
+        int distance = calculateDistance(worldIn, pos);
+        return this.getDefaultState()
+                .withProperty(DISTANCE, distance)
+                .withProperty(BOTTOM, distance > 0 && worldIn.getBlockState(pos.down()).getBlock() != this);
+    }
+
+    public boolean canPlaceBlockAt(World worldIn, BlockPos pos)
+    {
+        return calculateDistance(worldIn, pos) < 7;
+    }
+
+    public static int calculateDistance(IBlockAccess world, BlockPos pos)
+    {
+        IBlockState below = world.getBlockState(pos.down());
+        int distance = 7;
+        if (below.getBlock() instanceof BlockScaffolding)
+        {
+            distance = below.getValue(DISTANCE);
+        }
+        else if (World.doesBlockHaveSolidTopSurface(world, pos.down()))
+        {
+            return 0;
+        }
+
+        net.minecraft.util.EnumFacing[] horizontal = {
+                net.minecraft.util.EnumFacing.NORTH, net.minecraft.util.EnumFacing.SOUTH,
+                net.minecraft.util.EnumFacing.WEST, net.minecraft.util.EnumFacing.EAST
+        };
+        for (net.minecraft.util.EnumFacing facing : horizontal)
+        {
+            IBlockState neighbor = world.getBlockState(pos.offset(facing));
+            if (neighbor.getBlock() instanceof BlockScaffolding)
+            {
+                distance = Math.min(distance, neighbor.getValue(DISTANCE) + 1);
+                if (distance == 1) break;
+            }
+        }
+        return distance;
+    }
     public int getViaStateIdMin() { return 11099; }
     public int getViaStateIdMax() { return 11130; }
     public IBlockState getStateFromViaStateId(int stateId)

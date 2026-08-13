@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ModernBlockStateTracker;
 import cn.unfair.util.via.ViaProtocol;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.MapColor;
@@ -8,7 +9,6 @@ import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -54,12 +54,12 @@ public class BlockFence extends Block
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
         boolean modernTarget = ViaProtocol.newerThanOrEqualTo1_9();
-        boolean flag = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.NORTH) : this.canConnectTo(worldIn, pos.north());
-        boolean flag1 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH) : this.canConnectTo(worldIn, pos.south());
-        boolean flag2 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.WEST) : this.canConnectTo(worldIn, pos.west());
-        boolean flag3 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.EAST) : this.canConnectTo(worldIn, pos.east());
+        boolean flag = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.NORTH) : this.canConnectTo(worldIn, pos.north());
+        boolean flag1 = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.SOUTH) : this.canConnectTo(worldIn, pos.south());
+        boolean flag2 = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.WEST) : this.canConnectTo(worldIn, pos.west());
+        boolean flag3 = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.EAST) : this.canConnectTo(worldIn, pos.east());
 
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_9())
+        if (ViaProtocol.newerThanOrEqualTo1_9())
         {
             addModernCollisionBox(pos, mask, list, 6.0D, 0.0D, 6.0D, 10.0D, 24.0D, 10.0D);
 
@@ -142,10 +142,10 @@ public class BlockFence extends Block
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
         boolean modernTarget = ViaProtocol.newerThanOrEqualTo1_9();
-        boolean flag = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.NORTH) : this.canConnectTo(worldIn, pos.north());
-        boolean flag1 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH) : this.canConnectTo(worldIn, pos.south());
-        boolean flag2 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.WEST) : this.canConnectTo(worldIn, pos.west());
-        boolean flag3 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.EAST) : this.canConnectTo(worldIn, pos.east());
+        boolean flag = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.NORTH) : this.canConnectTo(worldIn, pos.north());
+        boolean flag1 = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.SOUTH) : this.canConnectTo(worldIn, pos.south());
+        boolean flag2 = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.WEST) : this.canConnectTo(worldIn, pos.west());
+        boolean flag3 = modernTarget ? this.hasModernConnection(worldIn, pos, EnumFacing.EAST) : this.canConnectTo(worldIn, pos.east());
         float f = 0.375F;
         float f1 = 0.625F;
         float f2 = 0.375F;
@@ -266,6 +266,19 @@ public class BlockFence extends Block
         return block.isFullCube() && block.isBlockSolid(worldIn, neighbor, direction.getOpposite());
     }
 
+    private boolean hasModernConnection(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
+    {
+        if (ViaProtocol.newerThanOrEqualTo1_13())
+        {
+            String value = ModernBlockStateTracker.getNativeProperty(pos, direction.getName());
+            if (value != null)
+            {
+                return !"false".equals(value) && !"none".equals(value);
+            }
+        }
+        return this.canConnectToModern(worldIn, pos, direction);
+    }
+
     private static void addModernCollisionBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list, double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
     {
         AxisAlignedBB box = new AxisAlignedBB(
@@ -307,7 +320,7 @@ public class BlockFence extends Block
     {
         if (ViaProtocol.newerThanOrEqualTo1_9())
         {
-            return state.withProperty(NORTH, this.canConnectToModern(worldIn, pos, EnumFacing.NORTH)).withProperty(EAST, this.canConnectToModern(worldIn, pos, EnumFacing.EAST)).withProperty(SOUTH, this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH)).withProperty(WEST, this.canConnectToModern(worldIn, pos, EnumFacing.WEST));
+            return state.withProperty(NORTH, this.hasModernConnection(worldIn, pos, EnumFacing.NORTH)).withProperty(EAST, this.hasModernConnection(worldIn, pos, EnumFacing.EAST)).withProperty(SOUTH, this.hasModernConnection(worldIn, pos, EnumFacing.SOUTH)).withProperty(WEST, this.hasModernConnection(worldIn, pos, EnumFacing.WEST));
         }
 
         return state.withProperty(NORTH, this.canConnectTo(worldIn, pos.north())).withProperty(EAST, this.canConnectTo(worldIn, pos.east())).withProperty(SOUTH, this.canConnectTo(worldIn, pos.south())).withProperty(WEST, this.canConnectTo(worldIn, pos.west()));

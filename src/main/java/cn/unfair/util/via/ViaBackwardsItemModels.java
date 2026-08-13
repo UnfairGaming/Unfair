@@ -23,9 +23,13 @@ import net.minecraft.util.ResourceLocation;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class ViaBackwardsItemModels {
     private static final Map<Integer, String> MODELS_BY_CUSTOM_MODEL_DATA = Maps.newHashMap();
@@ -33,6 +37,7 @@ public final class ViaBackwardsItemModels {
     private static final Map<String, String> MODELS_BY_BACKUP_SOURCE_ID = Maps.newHashMap();
     private static final Map<String, String> MODELS_BY_DISPLAY_NAME = Maps.newHashMap();
     private static final List<String> MODEL_NAMES = Lists.newArrayList();
+    private static final Set<String> BLOCK_MODEL_NAMES = new HashSet<>();
     private static boolean initialized;
 
     private ViaBackwardsItemModels() {
@@ -41,6 +46,11 @@ public final class ViaBackwardsItemModels {
     public static synchronized List<String> getModelNames() {
         initialize();
         return MODEL_NAMES;
+    }
+
+    public static synchronized boolean isBlockModel(String modelName) {
+        initialize();
+        return modelName != null && BLOCK_MODEL_NAMES.contains(modelName);
     }
 
     public static ModelResourceLocation getModelLocation(ItemStack stack) {
@@ -129,6 +139,31 @@ public final class ViaBackwardsItemModels {
 
         if (!MODEL_NAMES.contains(model)) {
             MODEL_NAMES.add(model);
+        }
+        if (hasBlockModelParent(model)) {
+            BLOCK_MODEL_NAMES.add(model);
+        }
+    }
+
+    private static boolean hasBlockModelParent(String model) {
+        ResourceLocation location = ResourceLocation.of("minecraft", "models/item/" + model + ".json");
+        try (InputStream stream = getResourceStream(location);
+             InputStreamReader reader = stream == null ? null : new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+            if (reader == null) {
+                return false;
+            }
+            JsonElement element = new JsonParser().parse(reader);
+            if (!element.isJsonObject()) {
+                return false;
+            }
+            JsonElement parent = element.getAsJsonObject().get("parent");
+            if (parent == null || !parent.isJsonPrimitive()) {
+                return false;
+            }
+            String value = parent.getAsString();
+            return value.startsWith("block/") || value.startsWith("minecraft:block/");
+        } catch (IOException | RuntimeException ignored) {
+            return false;
         }
     }
 
@@ -289,6 +324,9 @@ public final class ViaBackwardsItemModels {
         if (normalized.equals("respawn_anchor") || normalized.endsWith("_respawn_anchor")) {
             return "respawn_anchor";
         }
+        if (normalized.equals("honey_block") || normalized.endsWith("_honey_block")) {
+            return "honey_block";
+        }
         if (normalized.equals("dirt_path") || normalized.endsWith("_dirt_path")) {
             return "dirt_path";
         }
@@ -317,6 +355,16 @@ public final class ViaBackwardsItemModels {
 
         NBTTagCompound tag = stack.getTagCompound();
         for (String key : tag.getKeySet()) {
+            if ("VR|Protocol1_9To1_8|id".equals(key) && tag.hasKey(key, 99)) {
+                if (tag.getInteger(key) == 198) {
+                    return "end_rod";
+                }
+            }
+            if ("VB|Protocol1_15To1_14_4|id".equals(key) && tag.hasKey(key, 99)
+                    && tag.getInteger(key) == 882) {
+                return "honey_block";
+            }
+
             if (!key.startsWith("VB|") || !key.endsWith("|id") || !tag.hasKey(key, 99)) {
                 continue;
             }
@@ -430,6 +478,11 @@ public final class ViaBackwardsItemModels {
                 || lowered.contains("minecraft:farmland") || lowered.contains("block.minecraft.farmland")
                 || text.contains("耕地")) {
             return "farmland";
+        }
+        if (lowered.equals("1.15 honey block") || lowered.equals("honey block")
+                || lowered.contains("minecraft:honey_block")
+                || lowered.contains("block.minecraft.honey_block")) {
+            return "honey_block";
         }
         if (lowered.contains("soul_campfire") || lowered.contains("soul campfire")
                 || lowered.contains("minecraft:soul_campfire") || lowered.contains("block.minecraft.soul_campfire")

@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ModernBlockStateTracker;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyDirection;
@@ -65,6 +67,17 @@ public class BlockChest extends BlockContainer
 
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
+        if (ViaProtocol.newerThanOrEqualTo1_13())
+        {
+            String type = ModernBlockStateTracker.getNativeProperty(pos, "type");
+            String facingName = ModernBlockStateTracker.getNativeProperty(pos, "facing");
+            if (type != null && facingName != null)
+            {
+                this.setModernChestBounds(type, EnumFacing.byName(facingName));
+                return;
+            }
+        }
+
         if (worldIn.getBlockState(pos.north()).getBlock() == this)
         {
             this.setBlockBounds(0.0625F, 0.0F, 0.0F, 0.9375F, 0.875F, 0.9375F);
@@ -84,6 +97,33 @@ public class BlockChest extends BlockContainer
         else
         {
             this.setBlockBounds(0.0625F, 0.0F, 0.0625F, 0.9375F, 0.875F, 0.9375F);
+        }
+    }
+
+    private void setModernChestBounds(String type, EnumFacing facing)
+    {
+        if ("single".equals(type) || facing == null)
+        {
+            this.setBlockBounds(0.0625F, 0.0F, 0.0625F, 0.9375F, 0.875F, 0.9375F);
+        }
+        else if (facing == EnumFacing.SOUTH && "right".equals(type)
+                || facing == EnumFacing.NORTH && "left".equals(type))
+        {
+            this.setBlockBounds(0.0625F, 0.0F, 0.0625F, 1.0F, 0.875F, 0.9375F);
+        }
+        else if (facing == EnumFacing.SOUTH && "left".equals(type)
+                || facing == EnumFacing.NORTH && "right".equals(type))
+        {
+            this.setBlockBounds(0.0F, 0.0F, 0.0625F, 0.9375F, 0.875F, 0.9375F);
+        }
+        else if (facing == EnumFacing.WEST && "right".equals(type)
+                || facing == EnumFacing.EAST && "left".equals(type))
+        {
+            this.setBlockBounds(0.0625F, 0.0F, 0.0625F, 0.9375F, 0.875F, 1.0F);
+        }
+        else
+        {
+            this.setBlockBounds(0.0625F, 0.0F, 0.0F, 0.9375F, 0.875F, 0.9375F);
         }
     }
 

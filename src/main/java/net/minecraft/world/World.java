@@ -1870,7 +1870,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                             Block block = iblockstate.getBlock();
 
                             if (block.getMaterial() == materialIn) {
-                                double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL));
+                                double d0 = this.getMaterialSurfaceY(iblockstate, l1);
 
                                 if ((double) l >= d0) {
                                     flag = true;
@@ -1905,12 +1905,14 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                         Block block = iblockstate.getBlock();
 
                         if (block.getMaterial() == materialIn) {
-                            double d0 = (float) (l1 + 1) - BlockLiquid.getLiquidHeightPercent(iblockstate.getValue(BlockLiquid.LEVEL));
+                            double d0 = this.getMaterialSurfaceY(iblockstate, l1);
 
                             if ((double) l >= d0) {
                                 flag = true;
                                 maxLiquidHeight = Math.max(d0 - bb.minY, maxLiquidHeight);
-                                Vec3 flowVector = ((BlockLiquid) block).getFlowVector(this, blockpos$mutableblockpos);
+                                Vec3 flowVector = block instanceof BlockLiquid
+                                        ? ((BlockLiquid) block).getFlowVector(this, blockpos$mutableblockpos)
+                                        : new Vec3(0.0D, 0.0D, 0.0D);
 
                                 if (newerThanOrEqualTo1_13 && maxLiquidHeight < 0.4D) {
                                     flowVector = this.scaleVector(flowVector, maxLiquidHeight);
@@ -1954,6 +1956,13 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
 
             return flag;
         }
+    }
+
+    private double getMaterialSurfaceY(IBlockState state, int blockY) {
+        if (state.getPropertyNames().contains(BlockLiquid.LEVEL)) {
+            return (float) (blockY + 1) - BlockLiquid.getLiquidHeightPercent(state.getValue(BlockLiquid.LEVEL));
+        }
+        return blockY + 1.0D;
     }
 
     private Vec3 scaleVector(Vec3 vec, double scale) {
@@ -2004,12 +2013,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                     Block block = iblockstate.getBlock();
 
                     if (block.getMaterial() == materialIn) {
-                        int j2 = iblockstate.getValue(BlockLiquid.LEVEL);
-                        double d0 = l1 + 1;
-
-                        if (j2 < 8) {
-                            d0 = (double) (l1 + 1) - (double) j2 / 8.0D;
-                        }
+                        double d0 = this.getMaterialSurfaceY(iblockstate, l1);
 
                         if (d0 >= bb.minY) {
                             return true;

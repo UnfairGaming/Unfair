@@ -10,10 +10,14 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.block.Block;
+import net.minecraft.block.ModernBlock;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.src.Config;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.optifine.CustomItems;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -63,7 +67,18 @@ public class ItemModelMesher {
             ibakedmodel = CustomItems.getCustomItemModel(stack, ibakedmodel, null, true);
         }
 
-        return LegacyHandBakedModel.wrap(ibakedmodel, itemModelName);
+        return LegacyHandBakedModel.wrap(ibakedmodel, itemModelName, isModernBlockItem(stack, itemModelName));
+    }
+
+    private static boolean isModernBlockItem(ItemStack stack, String modelName) {
+        if (ViaBackwardsItemModels.isBlockModel(modelName)) {
+            return true;
+        }
+        Block block = modelName == null ? null : Block.blockRegistry.getObject(ResourceLocation.of(modelName));
+        if (!(block instanceof ModernBlock) && stack.getItem() instanceof ItemBlock) {
+            block = ((ItemBlock) stack.getItem()).getBlock();
+        }
+        return block instanceof ModernBlock;
     }
 
     private static boolean isElytraModel(String modelName) {
@@ -108,15 +123,25 @@ public class ItemModelMesher {
         private final IBakedModel parent;
         private final ItemCameraTransforms transforms;
 
-        private LegacyHandBakedModel(IBakedModel parent, ItemTransformVec3f thirdPerson) {
+        private LegacyHandBakedModel(IBakedModel parent, ItemTransformVec3f thirdPerson, boolean resetGuiTransform) {
             this.parent = parent;
             ItemCameraTransforms original = parent.getItemCameraTransforms();
-            this.transforms = new ItemCameraTransforms(thirdPerson, LEGACY_FIRST_PERSON, original.head, original.gui, original.ground, original.fixed);
+            this.transforms = new ItemCameraTransforms(
+                    thirdPerson == null ? original.thirdPerson : thirdPerson,
+                    thirdPerson == null ? original.firstPerson : LEGACY_FIRST_PERSON,
+                    original.head,
+                    resetGuiTransform ? ItemTransformVec3f.DEFAULT : original.gui,
+                    original.ground,
+                    original.fixed
+            );
         }
 
-        private static IBakedModel wrap(IBakedModel model, String viaModelName) {
+        private static IBakedModel wrap(IBakedModel model, String viaModelName, boolean modernBlockItem) {
             ItemTransformVec3f thirdPerson = getLegacyThirdPersonTransform(model, viaModelName);
-            return thirdPerson == null ? model : new LegacyHandBakedModel(model, thirdPerson);
+            boolean resetGuiTransform = modernBlockItem && model.isGui3d();
+            return thirdPerson == null && !resetGuiTransform
+                    ? model
+                    : new LegacyHandBakedModel(model, thirdPerson, resetGuiTransform);
         }
 
         private static ItemTransformVec3f getLegacyThirdPersonTransform(IBakedModel model, String modelName) {

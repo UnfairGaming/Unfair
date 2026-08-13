@@ -2,6 +2,7 @@ package net.minecraft.item;
 
 import com.google.common.collect.Sets;
 import net.minecraft.block.Block;
+import net.minecraft.block.ModernBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 
@@ -18,6 +19,7 @@ public class ItemAxe extends ItemTool
 
     public float getStrVsBlock(ItemStack stack, Block state)
     {
+        if (state instanceof ModernBlock) return ((ModernBlock) state).isModernToolEffective(stack) ? this.efficiencyOnProperMaterial : 1.0F;
         return state.getMaterial() != Material.wood && state.getMaterial() != Material.plants && state.getMaterial() != Material.vine ? super.getStrVsBlock(stack, state) : this.efficiencyOnProperMaterial;
     }
 }

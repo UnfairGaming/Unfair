@@ -1021,6 +1021,10 @@ public abstract class EntityLivingBase extends Entity {
         IBlockState state = this.worldObj.getBlockState(position);
         Block block = state.getBlock();
         boolean legacyLadder = (block == Blocks.ladder || block == Blocks.vine) && (!(this instanceof EntityPlayer) || !((EntityPlayer) this).isSpectator());
+        boolean scaffolding = this instanceof EntityPlayerSP && viaforge$isInScaffolding((EntityPlayerSP) this);
+        if (scaffolding) {
+            return true;
+        }
         if (legacyLadder || !(this instanceof EntityPlayerSP) || !viaforge$isModernTarget()) {
             return legacyLadder;
         }
@@ -1411,7 +1415,12 @@ public abstract class EntityLivingBase extends Entity {
      * Causes this entity to do an upwards motion (jumping).
      */
     protected void jump() {
-        this.motionY = this.getJumpUpwardsMotion();
+        float baseJumpMotion = this.getJumpUpwardsMotion();
+        if (this instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_15)
+                && viaforge$isOnHoneyBlock((EntityPlayerSP) this)) {
+            baseJumpMotion *= 0.5F;
+        }
+        this.motionY = baseJumpMotion;
 
         if (this.isPotionActive(Potion.jump)) {
             this.motionY += (float) (this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F;
@@ -1512,7 +1521,9 @@ public abstract class EntityLivingBase extends Entity {
 
                         boolean flag = this.isSneaking() && this instanceof EntityPlayer;
 
-                        if (flag && this.motionY < 0.0D) {
+                        if (flag && this.motionY < 0.0D
+                                && (!(this instanceof EntityPlayerSP)
+                                || !viaforge$wasInScaffolding((EntityPlayerSP) this))) {
                             this.motionY = 0.0D;
                         }
                     }
@@ -1846,8 +1857,44 @@ public abstract class EntityLivingBase extends Entity {
         return viaforge$getBlockSpeedFactor(player.worldObj.getBlockState(support).getBlock());
     }
 
+    private static boolean viaforge$isOnHoneyBlock(EntityPlayerSP player) {
+        Block inBlock = player.worldObj.getBlockState(new BlockPos(player.prevPosX, player.prevPosY, player.prevPosZ)).getBlock();
+        if (inBlock instanceof BlockHoney) {
+            return true;
+        }
+
+        BlockPos support = new BlockPos(player.prevPosX, player.prevPosY - 0.5000001D, player.prevPosZ);
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_19_4)) {
+            BlockPos trackedSupport = player.viaforge$getMainSupportingBlock();
+            if (trackedSupport != null) {
+                Block supportBlock = player.worldObj.getBlockState(trackedSupport).getBlock();
+                support = supportBlock instanceof BlockWall || supportBlock instanceof BlockFenceGate
+                        ? trackedSupport
+                        : new BlockPos(trackedSupport.getX(), MathHelper.floor_double(player.prevPosY - 0.500001D), trackedSupport.getZ());
+            }
+        }
+        return player.worldObj.getBlockState(support).getBlock() instanceof BlockHoney;
+    }
+
+    private static boolean viaforge$isInScaffolding(EntityPlayerSP player) {
+        return ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_14)
+                && !player.isSpectator()
+                && player.worldObj.getBlockState(new BlockPos(player.posX,
+                player.getEntityBoundingBox().minY, player.posZ)).getBlock() instanceof BlockScaffolding;
+    }
+
+    private static boolean viaforge$wasInScaffolding(EntityPlayerSP player) {
+        return ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_14)
+                && player.worldObj.getBlockState(new BlockPos(player.prevPosX,
+                player.prevPosY, player.prevPosZ)).getBlock() instanceof BlockScaffolding;
+    }
+
     private static float viaforge$getBlockSpeedFactor(Block block) {
         if (block == Blocks.soul_sand && ViaProtocol.newerThanOrEqualTo1_16()) {
+            return 0.4F;
+        }
+
+        if (block instanceof BlockHoney && ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_15)) {
             return 0.4F;
         }
 
@@ -2101,11 +2148,7 @@ public abstract class EntityLivingBase extends Entity {
         this.worldObj.theProfiler.endSection();
         this.worldObj.theProfiler.startSection("push");
 
-        boolean modernLocalPlayerCollision = this instanceof EntityPlayerSP
-                && ViaProtocol.newerThanOrEqualTo1_9()
-                && !this.isRiding()
-                && !((EntityPlayerSP) this).isSpectator();
-        if (!this.worldObj.isRemote || modernLocalPlayerCollision) {
+        if (!this.worldObj.isRemote) {
             this.collideWithNearbyEntities();
         }
 

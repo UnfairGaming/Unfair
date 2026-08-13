@@ -2,6 +2,7 @@ package net.minecraft.item;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
+import net.minecraft.block.ModernBlock;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -35,6 +36,10 @@ public class ItemTool extends Item
 
     public float getStrVsBlock(ItemStack stack, Block state)
     {
+        if (state instanceof ModernBlock && ((ModernBlock) state).isModernToolEffective(stack))
+        {
+            return this.efficiencyOnProperMaterial;
+        }
         return this.effectiveBlocks.contains(state) ? this.efficiencyOnProperMaterial : 1.0F;
     }
 

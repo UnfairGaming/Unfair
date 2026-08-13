@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.renderer.entity.ModernShieldRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -435,6 +436,11 @@ public class ItemRenderer {
                 {
                     this.renderItemMap(abstractclientplayer, f2, f, f1);
                 }
+                else if ("shield".equals(modernModel))
+                {
+                    // Shield swing, equip and hand transforms are all applied
+                    // by ModernShieldRenderer below.
+                }
                 else if (useItem)
                 {
                     if (!event.isCancelled()) switch (enumaction)
@@ -451,7 +457,9 @@ public class ItemRenderer {
 
                         case BLOCK:
                             this.transformFirstPersonItem(f, 0.0F);
-                            this.doBlockTransformations();
+                            if (!"shield".equals(modernModel)) {
+                                this.doBlockTransformations();
+                            }
                             break;
 
                         case BOW:
@@ -469,7 +477,12 @@ public class ItemRenderer {
                     }
                 }
 
-                this.renderItem(abstractclientplayer, renderedStack, ItemCameraTransforms.TransformType.FIRST_PERSON);
+                if ("shield".equals(modernModel)) {
+                    ModernShieldRenderer.renderFirstPerson(
+                            abstractclientplayer, renderedStack, false, useItem, f, useItem ? 0.0F : f1);
+                } else {
+                    this.renderItem(abstractclientplayer, renderedStack, ItemCameraTransforms.TransformType.FIRST_PERSON);
+                }
             }
             else if (!abstractclientplayer.isInvisible())
             {
@@ -522,9 +535,16 @@ public class ItemRenderer {
         try {
             this.itemToRender = stack;
             GlStateManager.disableCull();
-            GlStateManager.scale(-1.0F, 1.0F, 1.0F);
-            this.applyOffhandUseTransform(stack, partialTicks);
-            this.renderItem(this.mc.thePlayer, stack, ItemCameraTransforms.TransformType.FIRST_PERSON);
+            if ("shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
+                float swingProgress = this.mc.thePlayer.viaforge$getOffhandSwingProgress(partialTicks);
+                boolean blocking = ModernShieldRenderer.isActivelyBlocking(this.mc.thePlayer, stack);
+                ModernShieldRenderer.renderFirstPerson(
+                        this.mc.thePlayer, stack, true, blocking, 0.0F, blocking ? 0.0F : swingProgress);
+            } else {
+                GlStateManager.scale(-1.0F, 1.0F, 1.0F);
+                this.applyOffhandUseTransform(stack, partialTicks);
+                this.renderItem(this.mc.thePlayer, stack, ItemCameraTransforms.TransformType.FIRST_PERSON);
+            }
         } finally {
             this.itemToRender = previousItemToRender;
             GlStateManager.popMatrix();
@@ -549,7 +569,9 @@ public class ItemRenderer {
         }
         this.transformFirstPersonItem(0.0F, swingProgress);
         if (action == EnumAction.BLOCK) {
-            this.doBlockTransformations();
+            if (!"shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
+                this.doBlockTransformations();
+            }
         } else if (action == EnumAction.BOW) {
             this.doBowTransformations(partialTicks, this.mc.thePlayer);
         }

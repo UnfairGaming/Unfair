@@ -2205,14 +2205,13 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
                 double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double) partialTicks;
                 double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double) partialTicks;
                 double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double) partialTicks;
-                AxisAlignedBB axisalignedbb = block.getSelectedBoundingBox(this.theWorld, blockpos);
                 Block.EnumOffsetType block$enumoffsettype = block.getOffsetType();
-
-                if (block$enumoffsettype != Block.EnumOffsetType.NONE) {
-                    axisalignedbb = BlockModelUtils.getOffsetBoundingBox(axisalignedbb, block$enumoffsettype, blockpos);
+                for (AxisAlignedBB axisalignedbb : block.getSelectedBoundingBoxes(this.theWorld, blockpos)) {
+                    if (block$enumoffsettype != Block.EnumOffsetType.NONE) {
+                        axisalignedbb = BlockModelUtils.getOffsetBoundingBox(axisalignedbb, block$enumoffsettype, blockpos, block.getMaxHorizontalModelOffset());
+                    }
+                    drawSelectionBoundingBox(axisalignedbb.expand(0.0020000000949949026D, 0.0020000000949949026D, 0.0020000000949949026D).offset(-d0, -d1, -d2));
                 }
-
-                drawSelectionBoundingBox(axisalignedbb.expand(0.0020000000949949026D, 0.0020000000949949026D, 0.0020000000949949026D).offset(-d0, -d1, -d2));
             }
 
             GlStateManager.depthMask(true);

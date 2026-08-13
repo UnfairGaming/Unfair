@@ -63,7 +63,7 @@ public class ModelBlock
 
     public List<BlockPart> getElements()
     {
-        return this.hasParent() ? this.parent.getElements() : this.elements;
+        return !this.elements.isEmpty() ? this.elements : (this.hasParent() ? this.parent.getElements() : this.elements);
     }
 
     private boolean hasParent()
@@ -219,11 +219,12 @@ public class ModelBlock
 
             if (flag1 && flag)
             {
-                throw new JsonParseException("BlockModel requires either elements or parent, found neither");
-            }
-            else if (!flag && !flag1)
-            {
-                throw new JsonParseException("BlockModel requires either elements or parent, found both");
+                Map<String, String> map = this.getTextures(jsonobject);
+                boolean ambient = this.getAmbientOcclusionEnabled(jsonobject);
+                ItemCameraTransforms transforms = jsonobject.has("display")
+                        ? p_deserialize_3_.deserialize(JsonUtils.getJsonObject(jsonobject, "display"), ItemCameraTransforms.class)
+                        : ItemCameraTransforms.DEFAULT;
+                return new ModelBlock(Collections.<BlockPart>emptyList(), map, ambient, true, transforms);
             }
             else
             {
@@ -237,7 +238,8 @@ public class ModelBlock
                     itemcameratransforms = p_deserialize_3_.deserialize(jsonobject1, ItemCameraTransforms.class);
                 }
 
-                return flag1 ? new ModelBlock(ResourceLocation.of(s), map, flag2, true, itemcameratransforms) : new ModelBlock(list, map, flag2, true, itemcameratransforms);
+                return flag1 ? new ModelBlock(ResourceLocation.of(s), map, flag2, true, itemcameratransforms)
+                        : new ModelBlock(flag ? null : ResourceLocation.of(s), list, map, flag2, true, itemcameratransforms);
             }
         }
 

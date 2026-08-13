@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ModernBlockStateTracker;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -236,6 +237,15 @@ public class BlockPane extends Block
 
     private boolean canPaneConnectTo(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
     {
+        if (ViaProtocol.newerThanOrEqualTo1_13())
+        {
+            String value = ModernBlockStateTracker.getNativeProperty(pos, direction.getName());
+            if (value != null)
+            {
+                return !"false".equals(value) && !"none".equals(value);
+            }
+        }
+
         BlockPos neighbor = pos.offset(direction);
         Block block = worldIn.getBlockState(neighbor).getBlock();
 

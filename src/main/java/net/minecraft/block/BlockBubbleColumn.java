@@ -6,6 +6,7 @@ import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumWorldBlockLayer;
@@ -39,13 +40,17 @@ public class BlockBubbleColumn extends ModernBlock
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
     {
         boolean surface = worldIn.isAirBlock(pos.up());
+        boolean boat = entityIn instanceof EntityBoat;
+        if (boat && surface) {
+            return;
+        }
         if (state.getValue(DRAG))
         {
-            entityIn.motionY = Math.max(surface ? -0.9D : -0.3D, entityIn.motionY - (surface ? 0.03D : 0.03D));
+            entityIn.motionY = Math.max(surface && !boat ? -0.9D : -0.3D, entityIn.motionY - 0.03D);
         }
         else
         {
-            entityIn.motionY = Math.min(surface ? 1.8D : 0.7D, entityIn.motionY + (surface ? 0.1D : 0.06D));
+            entityIn.motionY = Math.min(surface && !boat ? 1.8D : 0.7D, entityIn.motionY + (surface && !boat ? 0.1D : 0.06D));
         }
         entityIn.fallDistance = 0.0F;
     }

@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
@@ -7,6 +8,7 @@ import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumWorldBlockLayer;
@@ -38,10 +40,9 @@ public class BlockSweetBerryBush extends ModernBlock
 
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
     {
-        if (!(entityIn instanceof EntityLivingBase)) return;
-        entityIn.motionX *= 0.8D;
-        entityIn.motionY *= 0.75D;
-        entityIn.motionZ *= 0.8D;
+        if (!ViaProtocol.newerThanOrEqualTo1_14() || !(entityIn instanceof EntityLivingBase)) return;
+        if (entityIn instanceof EntityPlayer && ((EntityPlayer) entityIn).capabilities.isFlying) return;
+        entityIn.viaforge$slowMovement(0.8F, 0.75D, 0.8F);
     }
 
     public int getViaStateIdMin() { return 11248; }

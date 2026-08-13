@@ -38,6 +38,8 @@ import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPacke
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.vialoadingbase.netty.handler.VLBViaDecodeHandler;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockScaffolding;
+import net.minecraft.block.ModernBlock;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -196,6 +198,7 @@ public class PlayerControllerMP
             else
             {
                 world.playAuxSFX(2001, pos, Block.getStateId(iblockstate));
+                ModernBlockStateTracker.remove(pos);
                 boolean flag = world.setBlockToAir(pos);
 
                 if (flag)
@@ -454,6 +457,7 @@ public class PlayerControllerMP
         float f = (float)(hitVec.xCoord - (double)hitPos.getX());
         float f1 = (float)(hitVec.yCoord - (double)hitPos.getY());
         float f2 = (float)(hitVec.zCoord - (double)hitPos.getZ());
+        boolean hitInsideBlock = this.isHitInsideBlock(player, hitPos);
         boolean flag = false;
 
         if (!this.mc.theWorld.getWorldBorder().contains(hitPos))
@@ -475,7 +479,8 @@ public class PlayerControllerMP
                 {
                     ItemBlock itemblock = (ItemBlock)heldStack.getItem();
 
-                    if (!itemblock.canPlaceBlockOnSide(worldIn, hitPos, side, player, heldStack))
+                    if (this.resolveModernBlock(heldStack) == null
+                            && !itemblock.canPlaceBlockOnSide(worldIn, hitPos, side, player, heldStack))
                     {
                         return this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                     }
@@ -493,20 +498,30 @@ public class PlayerControllerMP
                     packetWrapperCreate.write(Types.FLOAT, f);
                     packetWrapperCreate.write(Types.FLOAT, f1);
                     packetWrapperCreate.write(Types.FLOAT, f2);
-                    packetWrapperCreate.write(Types.BOOLEAN, false);
-                    packetWrapperCreate.write(Types.VAR_INT, ViaVersionFix.sequence());
+                    packetWrapperCreate.write(Types.BOOLEAN, hitInsideBlock);
+                    packetWrapperCreate.write(Types.VAR_INT, ViaVersionFix.sequence(userConnection));
                     packetWrapperCreate.sendToServer(Protocol1_19To1_18_2.class);
                 }
             } else {
                 this.netClientHandler.addToSendQueue(new C08PacketPlayerBlockPlacement(hitPos, side.getIndex(), player.inventory.getCurrentItem(), f, f1, f2));
             }
 
+            // Modern block placement is sent through Via's use-on packet. Start
+            // the local arm animation here so it is independent of whether the
+            // legacy client-side prediction can construct the modern state.
+            if (!flag && this.currentGameType != WorldSettings.GameType.SPECTATOR
+                    && (this.resolveModernBlock(heldStack) != null
+                    || (heldStack != null && ("respawn_anchor".equals(ViaBackwardsItemModels.getModelName(heldStack))
+                    || DirtPathBlockTracker.isDirtPathItem(heldStack)
+                    || CampfireBlockTracker.isCampfireItem(heldStack))))) {
+                this.swingPlacedBlock(player);
+            }
+
             if (!flag && this.currentGameType != WorldSettings.GameType.SPECTATOR)
             {
                 if (heldStack != null && "respawn_anchor".equals(ViaBackwardsItemModels.getModelName(heldStack))) {
-                    BlockPos anchorPos = hitPos.offset(side);
-                    RespawnAnchorBlockTracker.mark(anchorPos);
-                    worldIn.setBlockState(anchorPos, net.minecraft.init.Blocks.respawn_anchor.getDefaultState(), 3);
+                    return this.placeRespawnAnchor(heldStack, player, worldIn, hitPos, side)
+                            || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 
                 if (heldStack != null && DirtPathBlockTracker.isDirtPathItem(heldStack)) {
@@ -517,6 +532,12 @@ public class PlayerControllerMP
                 if (heldStack != null && CampfireBlockTracker.isCampfireItem(heldStack)) {
                     return CampfireBlockTracker.place(heldStack, player, worldIn, hitPos, side)
                             || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
+                }
+
+                Boolean modernPlacement = this.placeModernBlock(heldStack, player, worldIn, hitPos, side,
+                        f, f1, f2, hitInsideBlock);
+                if (modernPlacement != null) {
+                    return modernPlacement || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 
                 if (heldStack == null)
@@ -543,6 +564,127 @@ public class PlayerControllerMP
                 return true;
             }
         }
+    }
+
+    private Boolean placeModernBlock(ItemStack stack, EntityPlayerSP player, WorldClient world, BlockPos hitPos,
+                                     EnumFacing side, float hitX, float hitY, float hitZ,
+                                     boolean hitInsideBlock) {
+        if (stack == null) {
+            return null;
+        }
+
+        ModernBlock block = this.resolveModernBlock(stack);
+        if (block == null) {
+            return null;
+        }
+
+        BlockPos placePos;
+        if (block instanceof BlockScaffolding) {
+            placePos = this.getScaffoldingPlacementPos(player, world, hitPos, side, hitInsideBlock);
+            if (placePos == null) return false;
+        } else {
+            placePos = hitPos;
+            if (!world.getBlockState(hitPos).getBlock().isReplaceable(world, hitPos)) {
+                placePos = hitPos.offset(side);
+            }
+        }
+        if (stack.stackSize == 0 || !player.canPlayerEdit(placePos, side, stack)
+                || !world.canBlockBePlaced(block, placePos, false, side, null, stack)) {
+            return false;
+        }
+
+        IBlockState state = block.onBlockPlaced(world, placePos, side, hitX, hitY, hitZ, 0, player);
+        ModernBlockStateTracker.predict(placePos, state);
+        if (!world.setBlockState(placePos, state, 3)) {
+            ModernBlockStateTracker.remove(placePos);
+            return false;
+        }
+
+        ItemBlock.setTileEntityNBT(world, player, placePos, stack);
+        block.onBlockPlacedBy(world, placePos, state, player, stack);
+        world.playSoundEffect((float) placePos.getX() + 0.5F, (float) placePos.getY() + 0.5F, (float) placePos.getZ() + 0.5F,
+                block.stepSound.getPlaceSound(), (block.stepSound.getVolume() + 1.0F) / 2.0F,
+                block.stepSound.getFrequency() * 0.8F);
+        if (!player.capabilities.isCreativeMode) {
+            --stack.stackSize;
+        }
+        return true;
+    }
+
+    private boolean placeRespawnAnchor(ItemStack stack, EntityPlayerSP player, WorldClient world,
+                                       BlockPos hitPos, EnumFacing side) {
+        BlockPos placePos = world.getBlockState(hitPos).getBlock().isReplaceable(world, hitPos)
+                ? hitPos : hitPos.offset(side);
+        Block block = net.minecraft.init.Blocks.respawn_anchor;
+        if (stack.stackSize == 0 || !player.canPlayerEdit(placePos, side, stack)
+                || !world.canBlockBePlaced(block, placePos, false, side, null, stack)) {
+            return false;
+        }
+
+        if (!world.setBlockState(placePos, block.getDefaultState(), 3)) {
+            return false;
+        }
+        RespawnAnchorBlockTracker.mark(placePos);
+        world.playSoundEffect((float) placePos.getX() + 0.5F, (float) placePos.getY() + 0.5F,
+                (float) placePos.getZ() + 0.5F, block.stepSound.getPlaceSound(),
+                (block.stepSound.getVolume() + 1.0F) / 2.0F, block.stepSound.getFrequency() * 0.8F);
+        if (!player.capabilities.isCreativeMode) {
+            --stack.stackSize;
+        }
+        return true;
+    }
+
+    private void swingPlacedBlock(EntityPlayerSP player) {
+        player.swingClientSide();
+        ModernOffhandInteraction.markClientMainHandSwing();
+    }
+
+    private ModernBlock resolveModernBlock(ItemStack stack) {
+        if (stack == null) return null;
+        String modelName = ViaBackwardsItemModels.getModelName(stack);
+        Block block = modelName != null ? Block.blockRegistry.getObject(ResourceLocation.of(modelName)) : null;
+        if (!(block instanceof ModernBlock) && stack.getItem() instanceof ItemBlock) {
+            block = ((ItemBlock) stack.getItem()).getBlock();
+        }
+        return block instanceof ModernBlock ? (ModernBlock) block : null;
+    }
+
+    private BlockPos getScaffoldingPlacementPos(EntityPlayerSP player, WorldClient world, BlockPos hitPos,
+                                                EnumFacing side, boolean hitInsideBlock) {
+        if (!(world.getBlockState(hitPos).getBlock() instanceof BlockScaffolding)) {
+            BlockPos placePos = world.getBlockState(hitPos).getBlock().isReplaceable(world, hitPos)
+                    ? hitPos : hitPos.offset(side);
+            return BlockScaffolding.calculateDistance(world, placePos) < 7 ? placePos : null;
+        }
+
+        EnumFacing direction;
+        if (player.isSneaking()) {
+            direction = hitInsideBlock ? side.getOpposite() : side;
+        } else {
+            direction = side == EnumFacing.UP ? player.getHorizontalFacing() : EnumFacing.UP;
+        }
+
+        BlockPos cursor = hitPos.offset(direction);
+        int horizontalDistance = 0;
+        while (cursor.getY() >= 0 && cursor.getY() < 256 && horizontalDistance < 7) {
+            Block cursorBlock = world.getBlockState(cursor).getBlock();
+            if (!(cursorBlock instanceof BlockScaffolding)) {
+                return cursorBlock.isReplaceable(world, cursor)
+                        && BlockScaffolding.calculateDistance(world, cursor) < 7 ? cursor : null;
+            }
+            cursor = cursor.offset(direction);
+            if (direction.getAxis() != EnumFacing.Axis.Y) ++horizontalDistance;
+        }
+        return null;
+    }
+
+    private boolean isHitInsideBlock(EntityPlayerSP player, BlockPos pos) {
+        double eyeX = player.posX;
+        double eyeY = player.posY + player.getEyeHeight();
+        double eyeZ = player.posZ;
+        return eyeX > pos.getX() && eyeX < pos.getX() + 1.0D
+                && eyeY > pos.getY() && eyeY < pos.getY() + 1.0D
+                && eyeZ > pos.getZ() && eyeZ < pos.getZ() + 1.0D;
     }
 
     private boolean tryOffhandUseOnBlock(EntityPlayerSP player, BlockPos hitPos, EnumFacing side, Vec3 hitVec) {

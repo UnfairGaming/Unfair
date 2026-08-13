@@ -31,7 +31,6 @@ public class AutoMLG extends Module {
     private BlockPos targetPos;
     private BlockPos recoveryPos;
     private boolean recoveryPending;
-    private boolean recoveryUsePending;
 
     public AutoMLG() {
         super("AutoMLG", false);
@@ -193,11 +192,6 @@ public class AutoMLG extends Module {
 
         this.rotateToPosition(event, this.recoveryPos, 0.5D);
 
-        if (!this.recoveryUsePending) {
-            this.recoveryUsePending = true;
-            return;
-        }
-
         MovingObjectPosition mop = RotationUtil.rayTraceWater(
                 event.getNewYaw(),
                 event.getNewPitch(),
@@ -225,7 +219,6 @@ public class AutoMLG extends Module {
         this.waterSlot = -1;
         this.recoveryPos = null;
         this.recoveryPending = false;
-        this.recoveryUsePending = false;
         this.restoreSlotTicks = 1;
     }
 
@@ -314,7 +307,6 @@ public class AutoMLG extends Module {
         this.waterSlot = -1;
         this.recoveryPos = this.targetPos == null ? null : this.targetPos.up();
         this.recoveryPending = this.recoveryPos != null;
-        this.recoveryUsePending = false;
         this.targetPos = null;
         this.restoreSlotTicks = 0;
     }
@@ -335,7 +327,6 @@ public class AutoMLG extends Module {
         this.targetPos = null;
         this.recoveryPos = null;
         this.recoveryPending = false;
-        this.recoveryUsePending = false;
         this.restoreSlotTicks = 0;
         if (restoreSlot) {
             this.restorePreviousSlot();

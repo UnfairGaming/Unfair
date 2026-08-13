@@ -181,8 +181,9 @@ public class BlockModelRenderer
         if (block$enumoffsettype != Block.EnumOffsetType.NONE)
         {
             long i = MathHelper.getPositionRandom(p_renderQuadsSmooth_3_);
-            d0 += ((double)((float)(i >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D;
-            d2 += ((double)((float)(i >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D;
+            double maxOffset = block.getMaxHorizontalModelOffset();
+            d0 += MathHelper.clamp_double(((double)((float)(i >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D, -maxOffset, maxOffset);
+            d2 += MathHelper.clamp_double(((double)((float)(i >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D, -maxOffset, maxOffset);
 
             if (block$enumoffsettype == Block.EnumOffsetType.XYZ)
             {
@@ -363,8 +364,9 @@ public class BlockModelRenderer
             int j = p_renderQuadsFlat_3_.getZ();
             long k = (long)(i * 3129871) ^ (long)j * 116129781L;
             k = k * k * 42317861L + k * 11L;
-            d0 += ((double)((float)(k >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D;
-            d2 += ((double)((float)(k >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D;
+            double maxOffset = block.getMaxHorizontalModelOffset();
+            d0 += MathHelper.clamp_double(((double)((float)(k >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D, -maxOffset, maxOffset);
+            d2 += MathHelper.clamp_double(((double)((float)(k >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D, -maxOffset, maxOffset);
 
             if (block$enumoffsettype == Block.EnumOffsetType.XYZ)
             {

@@ -9,6 +9,7 @@ import net.minecraft.src.Config;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MathHelper;
 import org.lwjgl.util.vector.Vector3f;
 
 import java.util.ArrayList;
@@ -166,12 +167,17 @@ public class BlockModelUtils
 
     public static AxisAlignedBB getOffsetBoundingBox(AxisAlignedBB aabb, Block.EnumOffsetType offsetType, BlockPos pos)
     {
+        return getOffsetBoundingBox(aabb, offsetType, pos, 0.25F);
+    }
+
+    public static AxisAlignedBB getOffsetBoundingBox(AxisAlignedBB aabb, Block.EnumOffsetType offsetType, BlockPos pos, float maxHorizontalOffset)
+    {
         int i = pos.getX();
         int j = pos.getZ();
         long k = (long)(i * 3129871) ^ (long)j * 116129781L;
         k = k * k * 42317861L + k * 11L;
-        double d0 = ((double)((float)(k >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D;
-        double d1 = ((double)((float)(k >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D;
+        double d0 = MathHelper.clamp_double(((double)((float)(k >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D, -maxHorizontalOffset, maxHorizontalOffset);
+        double d1 = MathHelper.clamp_double(((double)((float)(k >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D, -maxHorizontalOffset, maxHorizontalOffset);
         double d2 = 0.0D;
 
         if (offsetType == Block.EnumOffsetType.XYZ)

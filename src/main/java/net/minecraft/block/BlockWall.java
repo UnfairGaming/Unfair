@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ModernBlockStateTracker;
 import cn.unfair.util.via.ViaProtocol;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.Material;
@@ -127,12 +128,12 @@ public class BlockWall extends Block
             return;
         }
 
-        boolean north = this.canConnectToModern(worldIn, pos, EnumFacing.NORTH);
-        boolean south = this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH);
-        boolean west = this.canConnectToModern(worldIn, pos, EnumFacing.WEST);
-        boolean east = this.canConnectToModern(worldIn, pos, EnumFacing.EAST);
+        boolean north = this.hasModernConnection(worldIn, pos, EnumFacing.NORTH);
+        boolean south = this.hasModernConnection(worldIn, pos, EnumFacing.SOUTH);
+        boolean west = this.hasModernConnection(worldIn, pos, EnumFacing.WEST);
+        boolean east = this.hasModernConnection(worldIn, pos, EnumFacing.EAST);
 
-        if (this.shouldHaveModernPost(worldIn, pos, north, south, west, east))
+        if (this.hasModernPost(worldIn, pos, north, south, west, east))
         {
             this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.25F, 0.0F, 0.25F, 0.75F, 1.5F, 0.75F);
         }
@@ -211,6 +212,22 @@ public class BlockWall extends Block
         return block.isFullCube() && block.isBlockSolid(worldIn, neighbor, direction.getOpposite());
     }
 
+    private boolean hasModernConnection(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
+    {
+        String value = ModernBlockStateTracker.getNativeProperty(pos, direction.getName());
+        if (value != null)
+        {
+            return !"false".equals(value) && !"none".equals(value);
+        }
+        return this.canConnectToModern(worldIn, pos, direction);
+    }
+
+    private boolean hasModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east)
+    {
+        String up = ModernBlockStateTracker.getNativeProperty(pos, "up");
+        return up != null ? Boolean.parseBoolean(up) : this.shouldHaveModernPost(worldIn, pos, north, south, west, east);
+    }
+
     private boolean shouldHaveModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east)
     {
         if (!worldIn.isAirBlock(pos.up()))
@@ -276,11 +293,11 @@ public class BlockWall extends Block
     {
         if (ViaProtocol.newerThanOrEqualTo1_9())
         {
-            boolean north = this.canConnectToModern(worldIn, pos, EnumFacing.NORTH);
-            boolean south = this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH);
-            boolean west = this.canConnectToModern(worldIn, pos, EnumFacing.WEST);
-            boolean east = this.canConnectToModern(worldIn, pos, EnumFacing.EAST);
-            return state.withProperty(UP, this.shouldHaveModernPost(worldIn, pos, north, south, west, east)).withProperty(NORTH, north).withProperty(EAST, east).withProperty(SOUTH, south).withProperty(WEST, west);
+            boolean north = this.hasModernConnection(worldIn, pos, EnumFacing.NORTH);
+            boolean south = this.hasModernConnection(worldIn, pos, EnumFacing.SOUTH);
+            boolean west = this.hasModernConnection(worldIn, pos, EnumFacing.WEST);
+            boolean east = this.hasModernConnection(worldIn, pos, EnumFacing.EAST);
+            return state.withProperty(UP, this.hasModernPost(worldIn, pos, north, south, west, east)).withProperty(NORTH, north).withProperty(EAST, east).withProperty(SOUTH, south).withProperty(WEST, west);
         }
 
         return state.withProperty(UP, !worldIn.isAirBlock(pos.up())).withProperty(NORTH, this.canConnectTo(worldIn, pos.north())).withProperty(EAST, this.canConnectTo(worldIn, pos.east())).withProperty(SOUTH, this.canConnectTo(worldIn, pos.south())).withProperty(WEST, this.canConnectTo(worldIn, pos.west()));

@@ -16,11 +16,17 @@ public final class ModernFluidPhysics {
     public static float getFluidHeight(World world, BlockPos position, Material material) {
         IBlockState state = world.getBlockState(position);
         Block block = state.getBlock();
-        if (block.getMaterial() != material) {
+        boolean waterlogged = material == Material.water && isWaterlogged(state);
+        if (block.getMaterial() != material && !waterlogged) {
             return 0.0F;
         }
 
-        if (world.getBlockState(position.up()).getBlock().getMaterial() == material) {
+        if (hasFluid(world.getBlockState(position.up()), material)) {
+            return 1.0F;
+        }
+
+        if (block instanceof BlockBubbleColumn) {
+            // Bubble columns are full water sources in modern clients.
             return 1.0F;
         }
 
@@ -30,6 +36,16 @@ public final class ModernFluidPhysics {
 
         int level = state.getValue(BlockLiquid.LEVEL);
         return (level & 8) == 8 ? 8.0F / 9.0F : (8 - level) / 9.0F;
+    }
+
+    private static boolean isWaterlogged(IBlockState state) {
+        for (net.minecraft.block.properties.IProperty<?> property : state.getPropertyNames()) {
+            if ("waterlogged".equals(property.getName())) {
+                Object value = state.getValue(property);
+                return Boolean.TRUE.equals(value);
+            }
+        }
+        return false;
     }
 
     public static float getWaterHeight(World world, BlockPos position) {
@@ -94,15 +110,20 @@ public final class ModernFluidPhysics {
     }
 
     private static boolean isSameFluid(World world, BlockPos first, BlockPos second) {
-        Material firstMaterial = world.getBlockState(first).getBlock().getMaterial();
-        Material secondMaterial = world.getBlockState(second).getBlock().getMaterial();
-        return firstMaterial == secondMaterial && (firstMaterial == Material.water || firstMaterial == Material.lava);
+        IBlockState firstState = world.getBlockState(first);
+        IBlockState secondState = world.getBlockState(second);
+        return hasFluid(firstState, Material.water) && hasFluid(secondState, Material.water)
+                || hasFluid(firstState, Material.lava) && hasFluid(secondState, Material.lava);
     }
 
     private static boolean canFlowDownThrough(World world, BlockPos position, Material material) {
         Block block = world.getBlockState(position).getBlock();
         Material blockMaterial = block.getMaterial();
         return blockMaterial != material && blockMaterial != Material.lava && !blockMaterial.blocksMovement();
+    }
+
+    private static boolean hasFluid(IBlockState state, Material material) {
+        return state.getBlock().getMaterial() == material || material == Material.water && isWaterlogged(state);
     }
 
     private static boolean isSolidFace(World world, BlockPos fluidPosition, EnumFacing direction, Material material) {

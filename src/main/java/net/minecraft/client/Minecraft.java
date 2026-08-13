@@ -1427,7 +1427,8 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
 
                             if (this.playerController.onPlayerRightClick(this.thePlayer, this.theWorld, itemstack, blockpos, this.objectMouseOver.sideHit, this.objectMouseOver.hitVec)) {
                                 flag = false;
-                                if (!ModernOffhandInteraction.wasClientOffhandAction()) {
+                                if (!ModernOffhandInteraction.wasClientOffhandAction()
+                                        && !ModernOffhandInteraction.wasClientMainHandSwing()) {
                                     this.thePlayer.swingItem();
                                 }
                             }

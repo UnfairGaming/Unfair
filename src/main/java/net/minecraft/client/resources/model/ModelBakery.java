@@ -8,6 +8,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.collect.Sets;
 import net.minecraft.client.renderer.BlockModelShapes;
+import net.minecraft.block.Block;
+import net.minecraft.block.ModernBlock;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.IIconCreator;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -94,6 +96,18 @@ public class ModelBakery {
                 try {
                     this.registerVariant(modelblockdefinition, modelresourcelocation);
                 } catch (Exception exception) {
+                    Block block = "minecraft".equals(modelresourcelocation.getResourceDomain())
+                            ? Block.blockRegistry.getObject(ResourceLocation.of("minecraft", modelresourcelocation.getResourcePath()))
+                            : null;
+                    if (block instanceof ModernBlock) {
+                        try {
+                            this.variants.put(modelresourcelocation,
+                                    modelblockdefinition.getCompatibleVariants(modelresourcelocation.getVariant()));
+                            continue;
+                        } catch (Exception ignored) {
+                            // Keep the normal diagnostic below when even the default is absent.
+                        }
+                    }
                     LOGGER.warn("Unable to load variant: {} from {}", modelresourcelocation.getVariant(), modelresourcelocation, exception);
                 }
             } catch (Exception exception1) {
@@ -113,7 +127,32 @@ public class ModelBakery {
         if (modelblockdefinition == null) {
             List<ModelBlockDefinition> list = Lists.newArrayList();
 
+            // A legacy resource pack can contain an old blockstate JSON with the same
+            // name and thereby hide variants required by a ModernBlock. Keep the
+            // project's complete modern state definition as the authoritative source;
+            // model files and textures are still resolved through the active packs.
+            Block registered = "minecraft".equals(resourcelocation.getResourceDomain())
+                    ? Block.blockRegistry.getObject(ResourceLocation.of("minecraft", p_177586_1_.getResourcePath()))
+                    : null;
+            if (registered instanceof ModernBlock) {
+                String path = "assets/" + resourcelocation.getResourceDomain() + "/" +
+                        resourcelocation.getResourcePath();
+                InputStream builtin = ModelBakery.class.getClassLoader().getResourceAsStream(path);
+                if (builtin != null) {
+                    try (InputStream input = builtin) {
+                        list.add(ModelBlockDefinition.parseFromReader(new InputStreamReader(input, Charsets.UTF_8)));
+                    } catch (Exception exception) {
+                        throw new RuntimeException("Unable to load built-in modern blockstate definition '" + resourcelocation + "'", exception);
+                    }
+                }
+            }
+
             try {
+                if (registered instanceof ModernBlock && !list.isEmpty()) {
+                    modelblockdefinition = new ModelBlockDefinition(list);
+                    this.blockDefinitions.put(resourcelocation, modelblockdefinition);
+                    return modelblockdefinition;
+                }
                 for (IResource iresource : this.resourceManager.getAllResources(resourcelocation)) {
                     InputStream inputstream = null;
 
@@ -282,6 +321,26 @@ public class ModelBakery {
         this.variantNames.put(Item.getItemFromBlock(Blocks.soul_campfire), Lists.newArrayList("soul_campfire"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.scaffolding), Lists.newArrayList("scaffolding"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.honey_block), Lists.newArrayList("honey_block"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.end_rod), Lists.newArrayList("end_rod"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.chorus_plant), Lists.newArrayList("chorus_plant"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.chorus_flower), Lists.newArrayList("chorus_flower"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.shulker_box), Lists.newArrayList("shulker_box"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.stonecutter), Lists.newArrayList("stonecutter"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.composter), Lists.newArrayList("composter"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.lantern), Lists.newArrayList("lantern"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.soul_lantern), Lists.newArrayList("soul_lantern"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.lectern), Lists.newArrayList("lectern"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.grindstone), Lists.newArrayList("grindstone"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.bell), Lists.newArrayList("bell"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.chain), Lists.newArrayList("chain"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.bamboo), Lists.newArrayList("bamboo"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.tube_coral), Lists.newArrayList("tube_coral"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.tube_coral_fan), Lists.newArrayList("tube_coral_fan"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.tube_coral_wall_fan), Lists.newArrayList("tube_coral_wall_fan"));
+        String[] modernCorals = {"brain_coral_block","bubble_coral_block","fire_coral_block","horn_coral_block","tube_coral_block","dead_brain_coral_block","dead_bubble_coral_block","dead_fire_coral_block","dead_horn_coral_block","dead_tube_coral_block","brain_coral","bubble_coral","fire_coral","horn_coral","dead_brain_coral","dead_bubble_coral","dead_fire_coral","dead_horn_coral","dead_tube_coral","brain_coral_fan","bubble_coral_fan","fire_coral_fan","horn_coral_fan","dead_brain_coral_fan","dead_bubble_coral_fan","dead_fire_coral_fan","dead_horn_coral_fan","dead_tube_coral_fan","brain_coral_wall_fan","bubble_coral_wall_fan","fire_coral_wall_fan","horn_coral_wall_fan","dead_brain_coral_wall_fan","dead_bubble_coral_wall_fan","dead_fire_coral_wall_fan","dead_horn_coral_wall_fan","dead_tube_coral_wall_fan"};
+        for (String name : modernCorals) { Block coral = Block.blockRegistry.getObject(ResourceLocation.of(name)); if (coral != null) this.variantNames.put(Item.getItemFromBlock(coral), Lists.newArrayList(name)); }
+        String[] modern17 = {"candle","candle_cake","sculk_sensor","big_dripleaf","pointed_dripstone","amethyst_cluster","large_amethyst_bud","medium_amethyst_bud","small_amethyst_bud"}; for(String name:modern17){Block block=Block.blockRegistry.getObject(ResourceLocation.of(name));this.variantNames.put(Item.getItemFromBlock(block),Lists.newArrayList(name));}
+        String[] modern19 = {"mud","sculk_shrieker","decorated_pot","sniffer_egg"}; for(String name:modern19){Block block=Block.blockRegistry.getObject(ResourceLocation.of(name));this.variantNames.put(Item.getItemFromBlock(block),Lists.newArrayList(name));}
         this.variantNames.put(Item.getItemFromBlock(Blocks.planks), Lists.newArrayList("oak_planks", "spruce_planks", "birch_planks", "jungle_planks", "acacia_planks", "dark_oak_planks"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.sapling), Lists.newArrayList("oak_sapling", "spruce_sapling", "birch_sapling", "jungle_sapling", "acacia_sapling", "dark_oak_sapling"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.sand), Lists.newArrayList("sand", "red_sand"));

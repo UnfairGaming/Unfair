@@ -2,7 +2,6 @@ package net.minecraft.block;
 
 import com.google.common.base.Predicate;
 import cn.unfair.util.via.ViaProtocol;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -58,7 +57,7 @@ public class BlockHopper extends BlockContainer
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13())
+        if (ViaProtocol.newerThanOrEqualTo1_13())
         {
             EnumFacing facing = state.getValue(FACING);
             switch (facing)
@@ -90,6 +89,11 @@ public class BlockHopper extends BlockContainer
         this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    public List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
+    {
+        return this.getCollisionBoxesForSelection(worldIn, pos);
     }
 
     private static void addBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list,

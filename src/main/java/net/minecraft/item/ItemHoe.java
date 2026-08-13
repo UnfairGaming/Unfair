@@ -1,6 +1,8 @@
 package net.minecraft.item;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.ModernBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.block.BlockDirt;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -85,6 +87,12 @@ public class ItemHoe extends Item
     public boolean isFull3D()
     {
         return true;
+    }
+
+    public float getStrVsBlock(ItemStack stack, Block state)
+    {
+        return state instanceof ModernBlock && ((ModernBlock) state).isModernToolEffective(stack)
+                ? this.theToolMaterial.getEfficiencyOnProperMaterial() : 1.0F;
     }
 
     /**

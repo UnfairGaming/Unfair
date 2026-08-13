@@ -506,7 +506,7 @@ public class EntityBoat extends Entity
         if (this.modernOldStatus == BoatStatus.IN_AIR && this.modernStatus != BoatStatus.IN_AIR && this.modernStatus != BoatStatus.ON_LAND)
         {
             this.modernWaterLevel = this.getWaterLevelAbove();
-            this.setPosition(this.posX, this.modernWaterLevel - (double)this.height + 0.101D, this.posZ);
+            this.setPosition(this.posX, this.modernWaterLevel - 0.5625D + 0.101D, this.posZ);
             this.motionY = 0.0D;
             this.modernStatus = BoatStatus.IN_WATER;
         }
@@ -637,12 +637,21 @@ public class EntityBoat extends Entity
                 this.getEntityBoundingBox().maxZ);
         float friction = 0.0F;
         int count = 0;
-        for (int x = MathHelper.floor_double(below.minX); x < MathHelper.ceiling_double_int(below.maxX); x++)
+        int minX = MathHelper.floor_double(below.minX) - 1;
+        int maxX = MathHelper.ceiling_double_int(below.maxX) + 1;
+        int minY = MathHelper.floor_double(below.minY) - 1;
+        int maxY = MathHelper.ceiling_double_int(below.maxY) + 1;
+        int minZ = MathHelper.floor_double(below.minZ) - 1;
+        int maxZ = MathHelper.ceiling_double_int(below.maxZ) + 1;
+        for (int x = minX; x < maxX; x++)
         {
-            for (int y = MathHelper.floor_double(below.minY); y < MathHelper.ceiling_double_int(below.maxY); y++)
+            for (int z = minZ; z < maxZ; z++)
             {
-                for (int z = MathHelper.floor_double(below.minZ); z < MathHelper.ceiling_double_int(below.maxZ); z++)
+                int edge = (x != minX && x != maxX - 1 ? 0 : 1) + (z != minZ && z != maxZ - 1 ? 0 : 1);
+                if (edge == 2) continue;
+                for (int y = minY; y < maxY; y++)
                 {
+                    if (edge == 1 && (y == minY || y == maxY - 1)) continue;
                     BlockPos pos = new BlockPos(x, y, z);
                     IBlockState state = this.worldObj.getBlockState(pos);
                     Block block = state.getBlock();
@@ -655,7 +664,7 @@ public class EntityBoat extends Entity
                 }
             }
         }
-        return count == 0 ? 0.0F : friction / (float)count;
+        return count == 0 ? Float.NaN : friction / (float)count;
     }
 
     private double getWaterLevelAbove()

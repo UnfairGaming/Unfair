@@ -1,7 +1,6 @@
 package net.minecraft.block;
 
 import cn.unfair.util.via.ViaProtocol;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -43,13 +42,13 @@ public class BlockCauldron extends Block
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_14())
+        if (ViaProtocol.newerThanOrEqualTo1_14())
         {
             addModernCollisionBoxes(pos, mask, list);
             return;
         }
 
-        float floorHeight = collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13() ? 0.25F : 0.3125F;
+        float floorHeight = ViaProtocol.newerThanOrEqualTo1_13() ? 0.25F : 0.3125F;
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, floorHeight, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         float f = 0.125F;
@@ -62,6 +61,11 @@ public class BlockCauldron extends Block
         this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         this.setBlockBoundsForItemRender();
+    }
+
+    public List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
+    {
+        return this.getCollisionBoxesForSelection(worldIn, pos);
     }
 
     private static void addModernCollisionBoxes(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list)
