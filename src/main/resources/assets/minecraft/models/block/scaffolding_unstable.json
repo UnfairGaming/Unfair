@@ -1,5 +1,4 @@
 {
-    "parent": "block/block",
     "textures": {
         "particle": "blocks/scaffolding_top",
         "top": "blocks/scaffolding_top",

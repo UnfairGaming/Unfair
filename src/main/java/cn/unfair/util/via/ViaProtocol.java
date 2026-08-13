@@ -13,6 +13,22 @@ public class ViaProtocol {
         return notIsSinglePlayer() ? ViaLoadingBase.getInstance().getTargetVersion().getVersion() : ProtocolVersion.v1_8.getVersion();
     }
 
+    public static boolean newerThanOrEqualTo(ProtocolVersion version) {
+        return notIsSinglePlayer() && targetProtocolVersion() >= version.getVersion();
+    }
+
+    public static boolean olderThan(ProtocolVersion version) {
+        return notIsSinglePlayer() && targetProtocolVersion() < version.getVersion();
+    }
+
+    public static boolean olderThanOrEqualTo(ProtocolVersion version) {
+        return notIsSinglePlayer() && targetProtocolVersion() <= version.getVersion();
+    }
+
+    public static boolean is(ProtocolVersion version) {
+        return notIsSinglePlayer() && targetProtocolVersion() == version.getVersion();
+    }
+
     public static boolean newerThan1_8() {
         return notIsSinglePlayer() && ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_8);
     }

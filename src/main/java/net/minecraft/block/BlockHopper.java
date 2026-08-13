@@ -1,6 +1,8 @@
 package net.minecraft.block;
 
 import com.google.common.base.Predicate;
+import cn.unfair.util.via.ViaProtocol;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -56,6 +58,26 @@ public class BlockHopper extends BlockContainer
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
+        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13())
+        {
+            EnumFacing facing = state.getValue(FACING);
+            switch (facing)
+            {
+                case DOWN: addBox(pos, mask, list, 6, 0, 6, 10, 4, 10); break;
+                case EAST: addBox(pos, mask, list, 12, 4, 6, 16, 8, 10); break;
+                case NORTH: addBox(pos, mask, list, 6, 4, 0, 10, 8, 4); break;
+                case SOUTH: addBox(pos, mask, list, 6, 4, 12, 10, 8, 16); break;
+                case WEST: addBox(pos, mask, list, 0, 4, 6, 4, 8, 10); break;
+            }
+            addBox(pos, mask, list, 0, 10, 0, 16, 11, 16);
+            addBox(pos, mask, list, 0, 11, 0, 2, 16, 16);
+            addBox(pos, mask, list, 2, 11, 0, 16, 16, 2);
+            addBox(pos, mask, list, 2, 11, 14, 16, 16, 16);
+            addBox(pos, mask, list, 4, 4, 4, 12, 10, 12);
+            addBox(pos, mask, list, 14, 11, 2, 16, 16, 14);
+            return;
+        }
+
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         float f = 0.125F;
@@ -68,6 +90,15 @@ public class BlockHopper extends BlockContainer
         this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void addBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list,
+                               double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
+    {
+        AxisAlignedBB box = new AxisAlignedBB(pos.getX() + minX / 16.0D, pos.getY() + minY / 16.0D,
+                pos.getZ() + minZ / 16.0D, pos.getX() + maxX / 16.0D, pos.getY() + maxY / 16.0D,
+                pos.getZ() + maxZ / 16.0D);
+        if (box.intersectsWith(mask)) list.add(box);
     }
 
     /**

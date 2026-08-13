@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -55,7 +56,8 @@ public class BlockEndPortalFrame extends Block
 
         if (worldIn.getBlockState(pos).getValue(EYE))
         {
-            this.setBlockBounds(0.3125F, 0.8125F, 0.3125F, 0.6875F, 1.0F, 0.6875F);
+            float inset = ViaProtocol.newerThanOrEqualTo1_13() ? 0.25F : 0.3125F;
+            this.setBlockBounds(inset, 0.8125F, inset, 1.0F - inset, 1.0F, 1.0F - inset);
             super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         }
 

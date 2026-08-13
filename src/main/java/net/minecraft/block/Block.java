@@ -1500,6 +1500,11 @@ public class Block
         registerBlock(208, "dirt_path", (new BlockDirtPath()).setHardness(0.65F).setStepSound(soundTypeGrass).setUnlocalizedName("dirtPath"));
         registerBlock(209, "campfire", (new BlockCampfire(false)).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("campfire"));
         registerBlock(210, "soul_campfire", (new BlockCampfire(true)).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("soulCampfire"));
+        registerBlock(211, "bubble_column", (new BlockBubbleColumn()).setUnlocalizedName("bubbleColumn"));
+        registerBlock(212, "scaffolding", (new BlockScaffolding()).setHardness(0.0F).setStepSound(soundTypeWood).setUnlocalizedName("scaffolding"));
+        registerBlock(213, "sweet_berry_bush", (new BlockSweetBerryBush()).setHardness(0.0F).setStepSound(soundTypeGrass).setUnlocalizedName("sweetBerryBush"));
+        registerBlock(214, "honey_block", (new BlockHoney()).setHardness(0.0F).setStepSound(SLIME_SOUND).setUnlocalizedName("honeyBlock"));
+        registerBlock(215, "powder_snow", (new BlockPowderSnow()).setHardness(0.25F).setStepSound(soundTypeSnow).setUnlocalizedName("powderSnow"));
         blockRegistry.validateKey();
 
         for (Block block13 : blockRegistry)

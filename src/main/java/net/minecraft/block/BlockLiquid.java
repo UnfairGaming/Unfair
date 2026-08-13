@@ -45,7 +45,9 @@ public abstract class BlockLiquid extends Block {
     }
 
     protected int getLevel(IBlockAccess worldIn, BlockPos pos) {
-        return worldIn.getBlockState(pos).getBlock().getMaterial() == this.blockMaterial ? worldIn.getBlockState(pos).getValue(LEVEL) : -1;
+        IBlockState state = worldIn.getBlockState(pos);
+        return state.getBlock() instanceof BlockLiquid && state.getBlock().getMaterial() == this.blockMaterial
+                ? state.getValue(LEVEL) : -1;
     }
 
     protected int getEffectiveFlowDecay(IBlockAccess worldIn, BlockPos pos) {
@@ -147,7 +149,8 @@ public abstract class BlockLiquid extends Block {
                 }
             }
 
-            if (worldIn.getBlockState(pos).getValue(LEVEL) >= 8) {
+            IBlockState state = worldIn.getBlockState(pos);
+            if (state.getBlock() instanceof BlockLiquid && state.getValue(LEVEL) >= 8) {
                 for (EnumFacing enumfacing1 : EnumFacing.Plane.HORIZONTAL) {
                     BlockPos blockpos1 = blockpos$associated.associateWithOwnBlockPos().move(enumfacing1);
 

@@ -631,6 +631,8 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.registerBlock(Blocks.farmland, "farmland");
         this.registerBlock(Blocks.campfire, "campfire");
         this.registerBlock(Blocks.soul_campfire, "soul_campfire");
+        this.registerBlock(Blocks.scaffolding, "scaffolding");
+        this.registerBlock(Blocks.honey_block, "honey_block");
         this.registerBlock(Blocks.double_plant, BlockDoublePlant.EnumPlantType.FERN.getMeta(), "double_fern");
         this.registerBlock(Blocks.double_plant, BlockDoublePlant.EnumPlantType.GRASS.getMeta(), "double_grass");
         this.registerBlock(Blocks.double_plant, BlockDoublePlant.EnumPlantType.PAEONIA.getMeta(), "paeonia");

@@ -1,8 +1,5 @@
 package net.minecraft.util;
 
-import cn.unfair.util.via.ModernPlayerPhysics;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.settings.GameSettings;
 
 public class MovementInputFromOptions extends MovementInput {
@@ -40,9 +37,5 @@ public class MovementInputFromOptions extends MovementInput {
             this.moveForward = (float) ((double) this.moveForward * 0.3D);
         }
 
-        EntityPlayerSP player = Minecraft.getMinecraft().thePlayer;
-        if (player instanceof ModernPlayerPhysics) {
-            player.viaforge$updateModernMovementInput(this);
-        }
     }
 }

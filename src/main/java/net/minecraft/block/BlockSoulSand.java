@@ -30,7 +30,7 @@ public class BlockSoulSand extends Block
      */
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
     {
-        if (entityIn instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_15()) {
+        if (entityIn instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_14()) {
             return;
         }
 

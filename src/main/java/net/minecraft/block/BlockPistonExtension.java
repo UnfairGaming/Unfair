@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -118,36 +119,46 @@ public class BlockPistonExtension extends Block
 
     private void applyCoreBounds(IBlockState state)
     {
-        float f = 0.25F;
-        float f1 = 0.375F;
-        float f2 = 0.625F;
-        float f3 = 0.25F;
-        float f4 = 0.75F;
+        boolean longHead = ViaProtocol.newerThanOrEqualTo1_9();
 
         switch (state.getValue(FACING))
         {
             case DOWN:
-                this.setBlockBounds(0.375F, 0.25F, 0.375F, 0.625F, 1.0F, 0.625F);
+                this.setBlockBounds(0.375F, 0.25F, 0.375F, 0.625F, longHead ? 1.25F : 1.0F, 0.625F);
                 break;
 
             case UP:
-                this.setBlockBounds(0.375F, 0.0F, 0.375F, 0.625F, 0.75F, 0.625F);
+                this.setBlockBounds(0.375F, longHead ? -0.25F : 0.0F, 0.375F, 0.625F, 0.75F, 0.625F);
                 break;
 
             case NORTH:
-                this.setBlockBounds(0.25F, 0.375F, 0.25F, 0.75F, 0.625F, 1.0F);
+                this.setBlockBounds(0.375F, 0.375F, 0.25F, 0.625F, 0.625F, longHead ? 1.25F : 1.0F);
                 break;
 
             case SOUTH:
-                this.setBlockBounds(0.25F, 0.375F, 0.0F, 0.75F, 0.625F, 0.75F);
+                if (longHead)
+                {
+                    this.setBlockBounds(0.375F, 0.375F, -0.25F, 0.625F, 0.625F, 0.75F);
+                }
+                else
+                {
+                    this.setBlockBounds(0.25F, 0.375F, 0.0F, 0.75F, 0.625F, 0.75F);
+                }
                 break;
 
             case WEST:
-                this.setBlockBounds(0.375F, 0.25F, 0.25F, 0.625F, 0.75F, 1.0F);
+                if (longHead)
+                {
+                    this.setBlockBounds(0.25F, 0.375F, 0.375F, 1.25F, 0.625F, 0.625F);
+                }
+                else
+                {
+                    this.setBlockBounds(0.375F, 0.25F, 0.25F, 0.625F, 0.75F, 1.0F);
+                }
                 break;
 
             case EAST:
-                this.setBlockBounds(0.0F, 0.375F, 0.25F, 0.75F, 0.625F, 0.75F);
+                this.setBlockBounds(longHead ? -0.25F : 0.0F, 0.375F, 0.25F, 0.75F, 0.625F, 0.75F);
         }
     }
 

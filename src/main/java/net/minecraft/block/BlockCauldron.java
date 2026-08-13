@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -41,7 +43,14 @@ public class BlockCauldron extends Block
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.3125F, 1.0F);
+        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_14())
+        {
+            addModernCollisionBoxes(pos, mask, list);
+            return;
+        }
+
+        float floorHeight = collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13() ? 0.25F : 0.3125F;
+        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, floorHeight, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         float f = 0.125F;
         this.setBlockBounds(0.0F, 0.0F, 0.0F, f, 1.0F, 1.0F);
@@ -53,6 +62,23 @@ public class BlockCauldron extends Block
         this.setBlockBounds(0.0F, 0.0F, 1.0F - f, 1.0F, 1.0F, 1.0F);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         this.setBlockBoundsForItemRender();
+    }
+
+    private static void addModernCollisionBoxes(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list)
+    {
+        double[][] boxes = {
+                {0,0,0,2,16,4},{0,0,12,2,16,16},{2,0,0,4,16,2},{2,0,14,4,16,16},
+                {12,0,0,16,16,2},{12,0,14,16,16,16},{14,0,2,16,16,4},{14,0,12,16,16,14},
+                {0,3,4,16,4,12},{2,3,2,14,4,4},{2,3,12,14,4,14},{4,3,0,12,16,2},
+                {4,3,14,12,16,16},{0,4,4,2,16,12},{14,4,4,16,16,12}
+        };
+        for (double[] bounds : boxes)
+        {
+            AxisAlignedBB box = new AxisAlignedBB(pos.getX() + bounds[0] / 16.0D, pos.getY() + bounds[1] / 16.0D,
+                    pos.getZ() + bounds[2] / 16.0D, pos.getX() + bounds[3] / 16.0D,
+                    pos.getY() + bounds[4] / 16.0D, pos.getZ() + bounds[5] / 16.0D);
+            if (box.intersectsWith(mask)) list.add(box);
+        }
     }
 
     /**

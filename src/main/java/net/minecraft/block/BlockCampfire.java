@@ -147,7 +147,7 @@ public class BlockCampfire extends ModernBlockDirectional
         int data = stateId - this.getViaStateIdMin();
         return this.getDefaultState()
                 .withProperty(FACING, VIA_FACINGS[data >> 3])
-                .withProperty(LIT, (data & 8) == 0);
+                .withProperty(LIT, (data & 4) == 0);
     }
 
     public void onModernStateApplied(BlockPos pos, IBlockState state)

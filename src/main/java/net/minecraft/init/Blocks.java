@@ -207,6 +207,11 @@ public class Blocks
     public static final Block dirt_path;
     public static final Block campfire;
     public static final Block soul_campfire;
+    public static final Block bubble_column;
+    public static final Block scaffolding;
+    public static final Block sweet_berry_bush;
+    public static final Block honey_block;
+    public static final Block powder_snow;
 
     /**
      * Returns the Block in the blockRegistry with the specified name.
@@ -428,6 +433,11 @@ public class Blocks
             dirt_path = getRegisteredBlock("dirt_path");
             campfire = getRegisteredBlock("campfire");
             soul_campfire = getRegisteredBlock("soul_campfire");
+            bubble_column = getRegisteredBlock("bubble_column");
+            scaffolding = getRegisteredBlock("scaffolding");
+            sweet_berry_bush = getRegisteredBlock("sweet_berry_bush");
+            honey_block = getRegisteredBlock("honey_block");
+            powder_snow = getRegisteredBlock("powder_snow");
         }
     }
 }
