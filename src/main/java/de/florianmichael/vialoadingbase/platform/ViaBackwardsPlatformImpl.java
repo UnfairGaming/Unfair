@@ -28,7 +28,13 @@ public class ViaBackwardsPlatformImpl implements ViaBackwardsPlatform {
     private final File directory;
 
     public ViaBackwardsPlatformImpl(final File directory) {
-        this.init(new File(this.directory = directory, "viabackwards.yml"));
+        File configFile = new File(this.directory = directory, "viabackwards.yml");
+        this.init(new com.viaversion.viabackwards.ViaBackwardsConfig(configFile, getLogger()) {
+            @Override
+            public boolean handlePingsAsInvAcknowledgements() {
+                return true;
+            }
+        });
     }
 
     @Override

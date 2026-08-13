@@ -2,6 +2,7 @@ package net.minecraft.client.renderer.chunk;
 
 import com.google.common.collect.Sets;
 import net.minecraft.block.*;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
@@ -11,6 +12,7 @@ import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexBuffer;
+import net.minecraft.init.Blocks;
 import net.minecraft.src.Config;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -18,6 +20,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumWorldBlockLayer;
 import net.minecraft.world.ChunkCache;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.optifine.BlockPosM;
@@ -179,6 +182,7 @@ public class RenderChunk {
             ++renderChunksUpdated;
             ChunkCacheOF chunkcacheof = this.makeChunkCacheOF(blockpos);
             chunkcacheof.renderStart();
+            BubbleColumnFluidBlockAccess fluidBlockAccess = new BubbleColumnFluidBlockAccess(chunkcacheof);
             boolean[] aboolean = new boolean[ENUM_WORLD_BLOCK_LAYERS.length];
             BlockRendererDispatcher blockrendererdispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
 
@@ -187,6 +191,31 @@ public class RenderChunk {
                 BlockPosM blockposm = (BlockPosM) blockposm0;
                 IBlockState iblockstate = chunkcacheof.getBlockState(blockposm);
                 Block block = iblockstate.getBlock();
+
+                if (block instanceof BlockBubbleColumn)
+                {
+                    IBlockState waterState = Blocks.water.getDefaultState().withProperty(BlockLiquid.LEVEL, 0);
+                    EnumWorldBlockLayer waterLayer = EnumWorldBlockLayer.TRANSLUCENT;
+                    int waterLayerIndex = waterLayer.ordinal();
+                    WorldRenderer waterRenderer = generator.getRegionRenderCacheBuilder().getWorldRendererByLayerId(waterLayerIndex);
+                    waterRenderer.setBlockLayer(waterLayer);
+                    RenderEnv waterRenderEnv = waterRenderer.getRenderEnv(waterState, blockposm);
+                    waterRenderEnv.setRegionRenderCacheBuilder(generator.getRegionRenderCacheBuilder());
+
+                    if (!compiledchunk.isLayerStarted(waterLayer))
+                    {
+                        compiledchunk.setLayerStarted(waterLayer);
+                        this.preRenderBlocks(waterRenderer, blockpos);
+                    }
+
+                    aboolean[waterLayerIndex] |= blockrendererdispatcher.renderBlock(waterState, blockposm, fluidBlockAccess, waterRenderer);
+
+                    if (waterRenderEnv.isOverlaysRendered())
+                    {
+                        this.postRenderOverlays(generator.getRegionRenderCacheBuilder(), compiledchunk, aboolean);
+                        waterRenderEnv.setOverlaysRendered(false);
+                    }
+                }
 
                 if (isDistantDecoration(block, blockposm)) {
                     continue;
@@ -238,7 +267,9 @@ public class RenderChunk {
                             this.preRenderBlocks(worldrenderer, blockpos);
                         }
 
-                        aboolean[k] |= blockrendererdispatcher.renderBlock(iblockstate, blockposm, chunkcacheof, worldrenderer);
+                        IBlockAccess renderAccess = block instanceof BlockLiquid && block.getMaterial() == Material.water
+                                ? fluidBlockAccess : chunkcacheof;
+                        aboolean[k] |= blockrendererdispatcher.renderBlock(iblockstate, blockposm, renderAccess, worldrenderer);
 
                         if (renderenv.isOverlaysRendered())
                         {

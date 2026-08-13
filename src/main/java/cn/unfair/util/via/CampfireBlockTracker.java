@@ -69,6 +69,14 @@ public final class CampfireBlockTracker {
         }
     }
 
+    public static void clear() {
+        STATES.clear();
+    }
+
+    public static void clearChunk(int chunkX, int chunkZ) {
+        STATES.keySet().removeIf(pos -> pos.getX() >> 4 == chunkX && pos.getZ() >> 4 == chunkZ);
+    }
+
     public static IBlockState remap(BlockPos pos, IBlockState state) {
         if (pos == null || state == null) {
             return state;

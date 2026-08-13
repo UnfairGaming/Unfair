@@ -4,6 +4,7 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.UpdateEvent;
+import cn.unfair.events.SwapItemEvent;
 import cn.unfair.module.Module;
 import cn.unfair.util.BlockUtil;
 import cn.unfair.util.PacketUtil;
@@ -42,6 +43,17 @@ public class AutoMLG extends Module {
 
     public static boolean isActiveMLG() {
         return active;
+    }
+
+    public static boolean shouldLockInventorySlot() {
+        return active || preTicks >= 0;
+    }
+
+    @EventTarget(Priority.HIGHEST)
+    public void onSwap(SwapItemEvent event) {
+        if (this.isEnabled() && shouldLockInventorySlot()) {
+            event.setCancelled(true);
+        }
     }
 
     @EventTarget(Priority.HIGHEST)

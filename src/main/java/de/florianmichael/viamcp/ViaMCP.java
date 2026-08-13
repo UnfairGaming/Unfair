@@ -19,23 +19,19 @@
 package de.florianmichael.viamcp;
 
 import cn.unfair.util.via.BlockStatePredictionHandler;
+import cn.unfair.util.via.ModernBlockStateTracker;
 import com.mojang.authlib.GameProfile;
 import com.viaversion.viabackwards.protocol.v1_11to1_10.Protocol1_11To1_10;
-import com.viaversion.viabackwards.protocol.v1_17to1_16_4.Protocol1_17To1_16_4;
 import com.viaversion.viabackwards.protocol.v1_20_3to1_20_2.Protocol1_20_3To1_20_2;
 import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.protocol.Protocol;
 import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.packet.State;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.base.ServerboundLoginPackets;
-import com.viaversion.viaversion.protocols.v1_16_1to1_16_2.packet.ClientboundPackets1_16_2;
-import com.viaversion.viaversion.protocols.v1_16_1to1_16_2.packet.ServerboundPackets1_16_2;
-import com.viaversion.viaversion.protocols.v1_16_4to1_17.packet.ClientboundPackets1_17;
-import com.viaversion.viaversion.protocols.v1_16_4to1_17.packet.ServerboundPackets1_17;
 import com.viaversion.viaversion.protocols.v1_20_2to1_20_3.packet.ClientboundPackets1_20_3;
-import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ClientboundPackets1_8;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ClientboundPackets1_9;
 import com.viaversion.viaversion.protocols.v1_9_1to1_9_3.packet.ClientboundPackets1_9_3;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
@@ -46,6 +42,7 @@ import net.minecraft.client.Minecraft;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class ViaMCP {
     public final static int NATIVE_VERSION = 47;
@@ -54,8 +51,6 @@ public class ViaMCP {
 
     @Getter
     public static int sequence;
-    public int TransactionCount = 0;
-
     public static synchronized ViaMCP create() {
         if (INSTANCE == null) {
             INSTANCE = new ViaMCP();
@@ -73,75 +68,80 @@ public class ViaMCP {
             }
         }).build();
 
-        //1.17 Logging ViaFix
-        Protocol1_20_3To1_20_2 protocol1_20_3To1_20_2 = Via.getManager().getProtocolManager().getProtocol(Protocol1_20_3To1_20_2.class);
-        protocol1_20_3To1_20_2.registerServerbound(State.LOGIN, ServerboundLoginPackets.LOGIN_ACKNOWLEDGED, packetWrapper -> {
-            this.user = packetWrapper.user();
-        });
-        protocol1_20_3To1_20_2.registerServerbound(State.LOGIN, ServerboundLoginPackets.HELLO, packetWrapper -> {
-            packetWrapper.cancel();
-            PacketWrapper packetWrapper2 = PacketWrapper.create(ServerboundLoginPackets.HELLO, packetWrapper.user());
-            Minecraft mc = Minecraft.getMinecraft();
-            GameProfile gameProfile = mc.getSession().getProfile();
-            packetWrapper2.write(Types.STRING, gameProfile.getName());
-            UUID uUID = gameProfile.getId();
-            if (uUID != null) {
-                System.out.println("Online Login.");
-                packetWrapper2.write(Types.UUID, uUID);
-            } else {
-                System.out.println("Offline Login");
-                packetWrapper2.write(Types.UUID, UUID.nameUUIDFromBytes(gameProfile.getName().getBytes(StandardCharsets.UTF_8)));
-            }
-            packetWrapper2.sendToServer(Protocol1_20_3To1_20_2.class);
-        // 1.20.3+ BLOCK_CHANGED_ACK -> sequence number sync
-        protocol1_20_3To1_20_2.registerClientbound(
-                State.PLAY,
-                ClientboundPackets1_20_3.BLOCK_CHANGED_ACK,
-                wrapper -> {
-                    sequence = wrapper.read(Types.VAR_INT);
-                    if (Minecraft.getMinecraft().theWorld != null && Minecraft.getMinecraft().theWorld.predictionHandler != null) {
-                        try (BlockStatePredictionHandler h = Minecraft.getMinecraft().theWorld.predictionHandler) {
-                            h.endPredictionsUpTo(sequence, Minecraft.getMinecraft().theWorld);
-                        }
-                    }
-                    wrapper.cancel();
-                }
-        );
-        });
+        ModernBlockStateTracker.install();
 
-        // Add this line if you implement the transaction fixes into the game code
-        fixTransactions();
-
-        Protocol1_9To1_8 protocol1_9To1_8 = Via.getManager().getProtocolManager().getProtocol(Protocol1_9To1_8.class);
-        protocol1_9To1_8.registerClientbound(ClientboundPackets1_9.PLAYER_POSITION, ClientboundPackets1_8.PLAYER_POSITION, packetWrapper -> {}, true);
-        protocol1_9To1_8.registerClientbound(ClientboundPackets1_9.ENTITY_EVENT, ClientboundPackets1_8.ENTITY_EVENT, packetWrapper -> {
-
-        }, true);
-
-        Protocol1_11To1_10 protocol1_11To1_10 = Via.getManager().getProtocolManager().getProtocol(Protocol1_11To1_10.class);
-        protocol1_11To1_10.registerClientbound(
-                ClientboundPackets1_9_3.ENTITY_EVENT,
-                ClientboundPackets1_9_3.ENTITY_EVENT,
-                wrapper -> {
-                    int entityId = wrapper.passthrough(Types.INT);
-                    byte status = wrapper.passthrough(Types.BYTE);
-
-                    if (status == 35) {
-                        wrapper.setPacketType(ClientboundPackets1_9_3.ENTITY_EVENT);
-                    }
-                },
-                true
-        );
+        installProtocolPatches();
     }
 
-    private void fixTransactions() {
-        // We handle the differences between those versions in the net code, so we can make the Via handlers pass through
-        final Protocol1_17To1_16_4 protocol = Via.getManager().getProtocolManager().getProtocol(Protocol1_17To1_16_4.class);
-        protocol.registerClientbound(ClientboundPackets1_17.PING, ClientboundPackets1_16_2.CONTAINER_ACK, wrapper -> {
-            TransactionCount++;
-        }, true);
-        protocol.registerServerbound(ServerboundPackets1_16_2.CONTAINER_ACK, ServerboundPackets1_17.PONG, wrapper -> {
-        }, true);
+    private void installProtocolPatches() {
+        afterMappings(Protocol1_20_3To1_20_2.class, () -> {
+            Protocol1_20_3To1_20_2 protocol = protocol(Protocol1_20_3To1_20_2.class);
+            protocol.registerServerbound(State.LOGIN, ServerboundLoginPackets.LOGIN_ACKNOWLEDGED,
+                    wrapper -> this.user = wrapper.user());
+            protocol.registerServerbound(State.LOGIN, ServerboundLoginPackets.HELLO, wrapper -> {
+                wrapper.cancel();
+                PacketWrapper replacement = PacketWrapper.create(ServerboundLoginPackets.HELLO, wrapper.user());
+                GameProfile gameProfile = Minecraft.getMinecraft().getSession().getProfile();
+                replacement.write(Types.STRING, gameProfile.getName());
+                UUID uuid = gameProfile.getId();
+                if (uuid != null) {
+                    System.out.println("Online Login.");
+                    replacement.write(Types.UUID, uuid);
+                } else {
+                    System.out.println("Offline Login");
+                    replacement.write(Types.UUID, UUID.nameUUIDFromBytes(gameProfile.getName().getBytes(StandardCharsets.UTF_8)));
+                }
+                replacement.sendToServer(Protocol1_20_3To1_20_2.class);
+            });
+            protocol.appendClientbound(ClientboundPackets1_20_3.BLOCK_CHANGED_ACK, wrapper -> {
+                sequence = wrapper.read(Types.VAR_INT);
+                if (Minecraft.getMinecraft().theWorld != null && Minecraft.getMinecraft().theWorld.predictionHandler != null) {
+                    try (BlockStatePredictionHandler handler = Minecraft.getMinecraft().theWorld.predictionHandler) {
+                        handler.endPredictionsUpTo(sequence, Minecraft.getMinecraft().theWorld);
+                    }
+                }
+                wrapper.cancel();
+            });
+        });
+
+        afterMappings(Protocol1_9To1_8.class, () -> {
+            Protocol1_9To1_8 protocol = protocol(Protocol1_9To1_8.class);
+            protocol.replaceClientbound(ClientboundPackets1_9.ENTITY_EVENT, wrapper -> {
+            });
+        });
+
+        afterMappings(Protocol1_11To1_10.class, () -> {
+            Protocol1_11To1_10 protocol = protocol(Protocol1_11To1_10.class);
+            protocol.replaceClientbound(ClientboundPackets1_9_3.ENTITY_EVENT, wrapper -> {
+                wrapper.passthrough(Types.INT);
+                byte status = wrapper.passthrough(Types.BYTE);
+                if (status == 35) {
+                    wrapper.setPacketType(ClientboundPackets1_9_3.ENTITY_EVENT);
+                }
+            });
+        });
+    }
+
+    private static <T extends Protocol<?, ?, ?, ?>> T protocol(Class<T> protocolClass) {
+        T protocol = Via.getManager().getProtocolManager().getProtocol(protocolClass);
+        if (protocol == null) {
+            throw new IllegalStateException("Protocol is not registered: " + protocolClass.getName());
+        }
+        return protocol;
+    }
+
+    private static void afterMappings(Class<? extends Protocol<?, ?, ?, ?>> protocolClass, Runnable patch) {
+        Via.getManager().getProtocolManager().getMappingLoaderFuture(protocolClass).whenComplete((ignored, throwable) -> {
+            if (throwable != null) {
+                ViaLoadingBase.LOGGER.log(Level.SEVERE, "Unable to load mappings before patching " + protocolClass.getSimpleName(), throwable);
+                return;
+            }
+            try {
+                patch.run();
+            } catch (RuntimeException exception) {
+                ViaLoadingBase.LOGGER.log(Level.SEVERE, "Unable to patch " + protocolClass.getSimpleName(), exception);
+            }
+        });
     }
 
     public void initAsyncSlider() {

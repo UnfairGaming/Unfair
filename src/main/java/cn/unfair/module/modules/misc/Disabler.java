@@ -21,9 +21,8 @@ import java.util.Random;
 public class Disabler extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "Grim"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "GrimAC"});
     public final BooleanProperty inventory = new BooleanProperty("Inventory", true, () -> mode.getValue() == 0);
-    public final BooleanProperty logging = new BooleanProperty("Logging", false, () -> mode.getValue() == 1);
     public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("GrimDuplicateRotPlace", false, () -> mode.getValue() == 1);
     public final BooleanProperty acaAimStep = new BooleanProperty("ACAAimStep", false, () -> mode.getValue() == 1);
     public final BooleanProperty acaPerfectRotation = new BooleanProperty("ACAPerfectRotation", false, () -> mode.getValue() == 1);
@@ -184,7 +183,7 @@ public class Disabler extends Module {
         }
 
         // GrimDuplicateRotPlace: break Grim's "duplicate rotation on place" check by offsetting yaw.
-        if (this.grimDuplicateRotPlace.getValue()) {
+        if (this.grimDuplicateRotPlace.getValue() && this.mode.getValue() == 1) {
             if (event.getPacket() instanceof C03PacketPlayer packet && packet.getRotating()) {
                 float yaw = packet.getYaw();
                 if (yaw < 360.0F && yaw > -360.0F) {
@@ -208,7 +207,7 @@ public class Disabler extends Module {
         }
 
         // ACAAimStep / ACAPerfectRotation: jitter step-like / perfectly-patterned rotations.
-        if ((this.acaAimStep.getValue() || this.acaPerfectRotation.getValue())
+        if ((this.acaAimStep.getValue() || this.acaPerfectRotation.getValue() && this.mode.getValue() == 1)
                 && event.getPacket() instanceof C03PacketPlayer movePacket
                 && movePacket.getRotating()) {
             float currentYaw = movePacket.getYaw();
@@ -222,7 +221,7 @@ public class Disabler extends Module {
                 modified = true;
             }
 
-            if (this.acaPerfectRotation.getValue()) {
+            if (this.acaPerfectRotation.getValue() && this.mode.getValue() == 1) {
                 float[] antiPerfectRotation = this.getAntiPerfectRotation(currentYaw, currentPitch);
                 if (antiPerfectRotation[0] != currentYaw || antiPerfectRotation[1] != currentPitch) {
                     currentYaw = antiPerfectRotation[0];

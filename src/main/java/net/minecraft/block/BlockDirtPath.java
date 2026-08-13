@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.DirtPathBlockTracker;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -15,7 +16,7 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Random;
 
-public class BlockDirtPath extends Block
+public class BlockDirtPath extends ModernBlock
 {
     protected BlockDirtPath()
     {
@@ -99,5 +100,25 @@ public class BlockDirtPath extends Block
     public Item getItem(World worldIn, BlockPos pos)
     {
         return Item.getItemFromBlock(Blocks.dirt);
+    }
+
+    public int getViaStateIdMin()
+    {
+        return 8687;
+    }
+
+    public int getViaStateIdMax()
+    {
+        return 8687;
+    }
+
+    public IBlockState getStateFromViaStateId(int stateId)
+    {
+        return this.getDefaultState();
+    }
+
+    public void onModernStateApplied(BlockPos pos, IBlockState state)
+    {
+        DirtPathBlockTracker.mark(pos);
     }
 }

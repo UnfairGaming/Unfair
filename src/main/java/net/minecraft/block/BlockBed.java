@@ -9,6 +9,7 @@ import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -146,6 +147,47 @@ public class BlockBed extends BlockDirectional
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
         this.setBedBounds();
+    }
+
+    @Override
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, java.util.List<AxisAlignedBB> list, Entity collidingEntity)
+    {
+        if (!(collidingEntity instanceof EntityPlayerSP) || !cn.unfair.util.via.ViaProtocol.newerThanOrEqualTo1_14())
+        {
+            super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
+            return;
+        }
+
+        addCollisionBox(pos, mask, list, 0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D);
+        EnumFacing facing = state.getValue(PART) == EnumPartType.HEAD
+                ? state.getValue(FACING)
+                : state.getValue(FACING).getOpposite();
+        if (facing == EnumFacing.NORTH || facing == EnumFacing.SOUTH)
+        {
+            double minZ = facing == EnumFacing.NORTH ? 0.0D : 13.0D;
+            double maxZ = minZ + 3.0D;
+            addCollisionBox(pos, mask, list, 0.0D, 0.0D, minZ, 3.0D, 3.0D, maxZ);
+            addCollisionBox(pos, mask, list, 13.0D, 0.0D, minZ, 16.0D, 3.0D, maxZ);
+        }
+        else
+        {
+            double minX = facing == EnumFacing.WEST ? 0.0D : 13.0D;
+            double maxX = minX + 3.0D;
+            addCollisionBox(pos, mask, list, minX, 0.0D, 0.0D, maxX, 3.0D, 3.0D);
+            addCollisionBox(pos, mask, list, minX, 0.0D, 13.0D, maxX, 3.0D, 16.0D);
+        }
+    }
+
+    private static void addCollisionBox(BlockPos pos, AxisAlignedBB mask, java.util.List<AxisAlignedBB> list,
+                                        double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
+    {
+        AxisAlignedBB box = new AxisAlignedBB(pos.getX() + minX / 16.0D, pos.getY() + minY / 16.0D,
+                pos.getZ() + minZ / 16.0D, pos.getX() + maxX / 16.0D, pos.getY() + maxY / 16.0D,
+                pos.getZ() + maxZ / 16.0D);
+        if (box.intersectsWith(mask))
+        {
+            list.add(box);
+        }
     }
 
     /**

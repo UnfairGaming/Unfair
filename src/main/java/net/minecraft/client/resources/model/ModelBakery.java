@@ -280,6 +280,8 @@ public class ModelBakery {
         this.variantNames.put(Item.getItemFromBlock(Blocks.farmland), Lists.newArrayList("farmland"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.campfire), Lists.newArrayList("campfire"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.soul_campfire), Lists.newArrayList("soul_campfire"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.scaffolding), Lists.newArrayList("scaffolding"));
+        this.variantNames.put(Item.getItemFromBlock(Blocks.honey_block), Lists.newArrayList("honey_block"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.planks), Lists.newArrayList("oak_planks", "spruce_planks", "birch_planks", "jungle_planks", "acacia_planks", "dark_oak_planks"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.sapling), Lists.newArrayList("oak_sapling", "spruce_sapling", "birch_sapling", "jungle_sapling", "acacia_sapling", "dark_oak_sapling"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.sand), Lists.newArrayList("sand", "red_sand"));

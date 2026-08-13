@@ -1,7 +1,12 @@
 package net.minecraft.entity.item;
 
+import cn.unfair.util.via.ModernFluidPhysics;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -28,6 +33,11 @@ public class EntityBoat extends Entity
     private double velocityX;
     private double velocityY;
     private double velocityZ;
+    private BoatStatus modernStatus = BoatStatus.IN_AIR;
+    private BoatStatus modernOldStatus = BoatStatus.IN_AIR;
+    private double modernWaterLevel;
+    private float modernLandFriction;
+    private float modernDeltaRotation;
 
     public EntityBoat(World worldIn)
     {
@@ -241,6 +251,11 @@ public class EntityBoat extends Entity
         this.prevPosX = this.posX;
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
+        if (this.worldObj.isRemote && this.riddenByEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_9())
+        {
+            this.updateModernControlledBoat((EntityPlayerSP)this.riddenByEntity);
+            return;
+        }
         int i = 5;
         double d0 = 0.0D;
 
@@ -478,6 +493,196 @@ public class EntityBoat extends Entity
                 }
             }
         }
+    }
+
+    private void updateModernControlledBoat(EntityPlayerSP rider)
+    {
+        this.modernOldStatus = this.modernStatus;
+        this.modernStatus = this.getModernStatus();
+        double gravity = -0.04F;
+        double buoyancy = 0.0D;
+        float friction = 0.05F;
+
+        if (this.modernOldStatus == BoatStatus.IN_AIR && this.modernStatus != BoatStatus.IN_AIR && this.modernStatus != BoatStatus.ON_LAND)
+        {
+            this.modernWaterLevel = this.getWaterLevelAbove();
+            this.setPosition(this.posX, this.modernWaterLevel - (double)this.height + 0.101D, this.posZ);
+            this.motionY = 0.0D;
+            this.modernStatus = BoatStatus.IN_WATER;
+        }
+        else
+        {
+            switch (this.modernStatus)
+            {
+                case IN_WATER:
+                    buoyancy = (this.modernWaterLevel - this.posY) / (double)this.height;
+                    friction = 0.9F;
+                    break;
+                case UNDER_FLOWING_WATER:
+                    gravity = -7.0E-4D;
+                    friction = 0.9F;
+                    break;
+                case UNDER_WATER:
+                    buoyancy = 0.01F;
+                    friction = 0.45F;
+                    break;
+                case IN_AIR:
+                    friction = 0.9F;
+                    break;
+                case ON_LAND:
+                    friction = this.modernLandFriction;
+                    this.modernLandFriction /= 2.0F;
+                    break;
+            }
+
+            this.motionX *= friction;
+            this.motionY += gravity;
+            this.motionZ *= friction;
+            if (buoyancy > 0.0D)
+            {
+                this.motionY = (this.motionY + buoyancy * 0.06153846016296973D) * 0.75D;
+            }
+        }
+
+        boolean left = rider.movementInput.moveStrafe > 0.0F;
+        boolean right = rider.movementInput.moveStrafe < 0.0F;
+        boolean forward = rider.movementInput.moveForward > 0.0F;
+        boolean backward = rider.movementInput.moveForward < 0.0F;
+        if (left) this.modernDeltaRotation--;
+        if (right) this.modernDeltaRotation++;
+
+        float acceleration = 0.0F;
+        if (left != right && !forward && !backward) acceleration += 0.005F;
+        this.rotationYaw += this.modernDeltaRotation;
+        if (forward) acceleration += 0.04F;
+        if (backward) acceleration -= 0.005F;
+        this.motionX += MathHelper.sin(-this.rotationYaw * ((float)Math.PI / 180.0F)) * acceleration;
+        this.motionZ += MathHelper.cos(this.rotationYaw * ((float)Math.PI / 180.0F)) * acceleration;
+
+        this.moveEntity(this.motionX, this.motionY, this.motionZ);
+        this.rotationPitch = 0.0F;
+        this.setRotation(this.rotationYaw, this.rotationPitch);
+    }
+
+    private BoatStatus getModernStatus()
+    {
+        BoatStatus underwater = this.getUnderwaterStatus();
+        if (underwater != null)
+        {
+            this.modernWaterLevel = this.getEntityBoundingBox().maxY;
+            return underwater;
+        }
+        if (this.checkModernInWater()) return BoatStatus.IN_WATER;
+        float friction = this.getModernGroundFriction();
+        if (friction > 0.0F)
+        {
+            this.modernLandFriction = friction;
+            return BoatStatus.ON_LAND;
+        }
+        return BoatStatus.IN_AIR;
+    }
+
+    private BoatStatus getUnderwaterStatus()
+    {
+        AxisAlignedBB box = this.getEntityBoundingBox();
+        double top = box.maxY + 0.001D;
+        boolean underwater = false;
+        for (int x = MathHelper.floor_double(box.minX); x < MathHelper.ceiling_double_int(box.maxX); x++)
+        {
+            for (int y = MathHelper.floor_double(box.maxY); y < MathHelper.ceiling_double_int(top); y++)
+            {
+                for (int z = MathHelper.floor_double(box.minZ); z < MathHelper.ceiling_double_int(box.maxZ); z++)
+                {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    float level = ModernFluidPhysics.getWaterHeight(this.worldObj, pos);
+                    if (top < y + (double)level)
+                    {
+                        IBlockState state = this.worldObj.getBlockState(pos);
+                        if (state.getBlock() instanceof BlockLiquid && state.getValue(BlockLiquid.LEVEL) != 0)
+                            return BoatStatus.UNDER_FLOWING_WATER;
+                        underwater = true;
+                    }
+                }
+            }
+        }
+        return underwater ? BoatStatus.UNDER_WATER : null;
+    }
+
+    private boolean checkModernInWater()
+    {
+        AxisAlignedBB box = this.getEntityBoundingBox();
+        boolean inWater = false;
+        this.modernWaterLevel = -Double.MAX_VALUE;
+        int y = MathHelper.floor_double(box.minY + 0.001D);
+        for (int x = MathHelper.floor_double(box.minX); x < MathHelper.ceiling_double_int(box.maxX); x++)
+        {
+            for (int z = MathHelper.floor_double(box.minZ); z < MathHelper.ceiling_double_int(box.maxZ); z++)
+            {
+                float level = ModernFluidPhysics.getWaterHeight(this.worldObj, new BlockPos(x, y, z));
+                if (level > 0.0F)
+                {
+                    double surface = y + (double)level;
+                    this.modernWaterLevel = Math.max(surface, this.modernWaterLevel);
+                    inWater |= box.minY < surface;
+                }
+            }
+        }
+        return inWater;
+    }
+
+    private float getModernGroundFriction()
+    {
+        AxisAlignedBB below = new AxisAlignedBB(this.getEntityBoundingBox().minX, this.getEntityBoundingBox().minY - 0.001D,
+                this.getEntityBoundingBox().minZ, this.getEntityBoundingBox().maxX, this.getEntityBoundingBox().minY,
+                this.getEntityBoundingBox().maxZ);
+        float friction = 0.0F;
+        int count = 0;
+        for (int x = MathHelper.floor_double(below.minX); x < MathHelper.ceiling_double_int(below.maxX); x++)
+        {
+            for (int y = MathHelper.floor_double(below.minY); y < MathHelper.ceiling_double_int(below.maxY); y++)
+            {
+                for (int z = MathHelper.floor_double(below.minZ); z < MathHelper.ceiling_double_int(below.maxZ); z++)
+                {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    IBlockState state = this.worldObj.getBlockState(pos);
+                    Block block = state.getBlock();
+                    AxisAlignedBB collision = block.getCollisionBoundingBox(this.worldObj, pos, state);
+                    if (block != Blocks.waterlily && collision != null && collision.intersectsWith(below))
+                    {
+                        friction += block.slipperiness;
+                        count++;
+                    }
+                }
+            }
+        }
+        return count == 0 ? 0.0F : friction / (float)count;
+    }
+
+    private double getWaterLevelAbove()
+    {
+        AxisAlignedBB box = this.getEntityBoundingBox();
+        int minX = MathHelper.floor_double(box.minX);
+        int maxX = MathHelper.ceiling_double_int(box.maxX);
+        int minZ = MathHelper.floor_double(box.minZ);
+        int maxZ = MathHelper.ceiling_double_int(box.maxZ);
+        for (int y = MathHelper.floor_double(box.maxY); y < MathHelper.ceiling_double_int(box.maxY - this.motionY); y++)
+        {
+            float maxLevel = 0.0F;
+            for (int x = minX; x < maxX; x++)
+                for (int z = minZ; z < maxZ; z++)
+                    maxLevel = Math.max(maxLevel, ModernFluidPhysics.getWaterHeight(this.worldObj, new BlockPos(x, y, z)));
+            if (maxLevel < 1.0F) return y + (double)maxLevel;
+        }
+        return MathHelper.ceiling_double_int(box.maxY - this.motionY) + 1.0D;
+    }
+
+    private enum BoatStatus
+    {
+        IN_WATER,
+        UNDER_WATER,
+        UNDER_FLOWING_WATER,
+        ON_LAND,
+        IN_AIR
     }
 
     public void updateRiderPosition()

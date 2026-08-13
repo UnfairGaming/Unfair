@@ -1,10 +1,20 @@
 {
   "variants": {
-    "bottom=false": {
-      "model": "scaffolding_stable"
-    },
-    "bottom=true": {
-      "model": "scaffolding_unstable"
-    }
+    "bottom=false,distance=0": { "model": "scaffolding_stable" },
+    "bottom=false,distance=1": { "model": "scaffolding_stable" },
+    "bottom=false,distance=2": { "model": "scaffolding_stable" },
+    "bottom=false,distance=3": { "model": "scaffolding_stable" },
+    "bottom=false,distance=4": { "model": "scaffolding_stable" },
+    "bottom=false,distance=5": { "model": "scaffolding_stable" },
+    "bottom=false,distance=6": { "model": "scaffolding_stable" },
+    "bottom=false,distance=7": { "model": "scaffolding_stable" },
+    "bottom=true,distance=0": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=1": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=2": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=3": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=4": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=5": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=6": { "model": "scaffolding_unstable" },
+    "bottom=true,distance=7": { "model": "scaffolding_unstable" }
   }
 }

@@ -54,7 +54,7 @@ public class BlockAnvil extends BlockFalling
 
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_20())
+        if (collidingEntity instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_13())
         {
             addModernCollisionBox(pos, mask, list, 2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
             EnumFacing facing = state.getValue(FACING);

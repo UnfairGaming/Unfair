@@ -485,6 +485,13 @@ public abstract class EntityPlayer extends EntityLivingBase {
     {
         if (this.itemInUse != null)
         {
+            if (this instanceof EntityPlayerSP
+                    && ViaProtocol.newerThanOrEqualTo1_9()
+                    && this.itemInUse.getItem() instanceof ItemFood
+                    && this.itemInUse.stackSize > 1) {
+                ((EntityPlayerSP) this).viaforge$delayFoodUseRestart();
+            }
+
             if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
                 ((ModernPlayerPhysics) this).viaforge$markLocalItemUseFinished();
                 ItemStack offhand = ModernOffhandInteraction.getOffhand(this);

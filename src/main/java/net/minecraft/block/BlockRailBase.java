@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.google.common.collect.Lists;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
@@ -64,7 +66,12 @@ public abstract class BlockRailBase extends Block
 
         if (blockrailbase$enumraildirection != null && blockrailbase$enumraildirection.isAscending())
         {
-            this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.625F, 1.0F);
+            float height;
+            if (ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_11)) height = 0.5F;
+            else if (ViaProtocol.newerThanOrEqualTo1_10()) height = 1.0F;
+            else if (ViaProtocol.newerThanOrEqualTo1_9()) height = 0.15625F;
+            else height = 0.625F;
+            this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, height, 1.0F);
         }
         else
         {

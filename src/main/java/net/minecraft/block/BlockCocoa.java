@@ -1,5 +1,7 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
@@ -86,6 +88,10 @@ public class BlockCocoa extends BlockDirectional implements IGrowable
         IBlockState iblockstate = worldIn.getBlockState(pos);
         EnumFacing enumfacing = iblockstate.getValue(FACING);
         int i = iblockstate.getValue(AGE);
+        if (ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_9_1) && ViaProtocol.olderThan(ProtocolVersion.v1_11))
+        {
+            i = Math.min(i, 1);
+        }
         int j = 4 + i * 2;
         int k = 5 + i * 2;
         float f = (float)j / 2.0F;

@@ -1,4 +1,4 @@
-{   "parent": "block/block",
+{
     "textures": {
         "particle": "blocks/honey_block_top",
         "down": "blocks/honey_block_bottom",
@@ -30,4 +30,3 @@
         }
     ]
 }
-

@@ -30,6 +30,7 @@ import java.util.Map;
 public final class ViaBackwardsItemModels {
     private static final Map<Integer, String> MODELS_BY_CUSTOM_MODEL_DATA = Maps.newHashMap();
     private static final Map<String, String> MODELS_BY_BACKUP_TAG = Maps.newHashMap();
+    private static final Map<String, String> MODELS_BY_BACKUP_SOURCE_ID = Maps.newHashMap();
     private static final Map<String, String> MODELS_BY_DISPLAY_NAME = Maps.newHashMap();
     private static final List<String> MODEL_NAMES = Lists.newArrayList();
     private static boolean initialized;
@@ -154,46 +155,62 @@ public final class ViaBackwardsItemModels {
         try {
             CompoundTag mappings = readMappings("assets/viabackwards/data/mappings-" + mappingsVersion + ".nbt");
             CompoundTag itemNames = mappings.getCompoundTag("itemnames");
-            if (itemNames == null || itemNames.isEmpty()) {
-                return;
-            }
-
             CompoundTag itemData = mappings.getCompoundTag("itemdata");
             List<String> identifiers = readIdentifiers("assets/viaversion/data/identifiers-" + identifierVersion + ".nbt");
             if (identifiers == null || identifiers.isEmpty()) {
                 return;
             }
 
-            for (Map.Entry<String, com.viaversion.nbt.tag.Tag> entry : itemNames.entrySet()) {
-                int itemId = Integer.parseInt(entry.getKey());
-                if (itemId < 0 || itemId >= identifiers.size()) {
-                    continue;
+            if (itemNames != null) {
+                for (Map.Entry<String, com.viaversion.nbt.tag.Tag> entry : itemNames.entrySet()) {
+                    int itemId = Integer.parseInt(entry.getKey());
+                    String displayName = entry.getValue() instanceof StringTag stringTag ? stringTag.getValue() : null;
+                    registerMappedItem(mappingsVersion, identifiers, itemData, itemId, displayName, null);
                 }
+            }
 
-                String displayName = entry.getValue() instanceof StringTag stringTag ? stringTag.getValue() : null;
-                String identifier = identifiers.get(itemId);
-                String model = normalizeModelName(identifier);
-                if (model == null || displayName == null) {
-                    continue;
-                }
-
-                if (!hasModelResource(model)) {
-                    continue;
-                }
-
-                addModelName(model);
-                MODELS_BY_DISPLAY_NAME.putIfAbsent(normalizeDisplayName(displayName), model);
-                MODELS_BY_BACKUP_TAG.putIfAbsent(makeBackupKey(mappingsVersion, itemId), model);
-
-                if (itemData != null) {
-                    CompoundTag data = itemData.getCompoundTag(entry.getKey());
-                    NumberTag customModelData = data == null ? null : data.getNumberTag("custom_model_data");
-                    if (customModelData != null) {
-                        MODELS_BY_CUSTOM_MODEL_DATA.putIfAbsent(customModelData.asInt(), model);
+            CompoundTag customModelData = mappings.getCompoundTag("custom_model_data");
+            if (customModelData != null) {
+                for (Map.Entry<String, com.viaversion.nbt.tag.Tag> entry : customModelData.entrySet()) {
+                    if (!(entry.getValue() instanceof NumberTag numberTag)) {
+                        continue;
                     }
+                    int itemId = Integer.parseInt(entry.getKey());
+                    registerMappedItem(mappingsVersion, identifiers, null, itemId, null, numberTag.asInt());
                 }
             }
         } catch (Throwable ignored) {
+        }
+    }
+
+    private static void registerMappedItem(String mappingsVersion, List<String> identifiers, CompoundTag itemData,
+                                           int itemId, String displayName, Integer customModelData) {
+        if (itemId < 0 || itemId >= identifiers.size()) {
+            return;
+        }
+
+        String identifier = identifiers.get(itemId);
+        String model = normalizeModelName(identifier);
+        if (model == null || !hasModelResource(model)) {
+            return;
+        }
+
+        addModelName(model);
+        if (displayName != null) {
+            MODELS_BY_DISPLAY_NAME.putIfAbsent(normalizeDisplayName(displayName), model);
+        }
+        MODELS_BY_BACKUP_TAG.putIfAbsent(makeBackupKey(mappingsVersion, itemId), model);
+        MODELS_BY_BACKUP_SOURCE_ID.putIfAbsent(makeBackupSourceKey(sourceVersion(mappingsVersion), itemId), model);
+
+        if (customModelData != null) {
+            MODELS_BY_CUSTOM_MODEL_DATA.putIfAbsent(customModelData, model);
+        }
+        if (itemData != null) {
+            CompoundTag data = itemData.getCompoundTag(Integer.toString(itemId));
+            NumberTag legacyCustomModelData = data == null ? null : data.getNumberTag("custom_model_data");
+            if (legacyCustomModelData != null) {
+                MODELS_BY_CUSTOM_MODEL_DATA.putIfAbsent(legacyCustomModelData.asInt(), model);
+            }
         }
     }
 
@@ -215,17 +232,17 @@ public final class ViaBackwardsItemModels {
             return displayModel;
         }
 
+        String backupModel = getBackupModel(stack);
+        if (backupModel != null) {
+            return backupModel;
+        }
+
         Integer customModelData = getCustomModelData(stack);
         if (customModelData != null) {
             String model = MODELS_BY_CUSTOM_MODEL_DATA.get(customModelData);
             if (model != null) {
                 return model;
             }
-        }
-
-        String backupModel = getBackupModel(stack);
-        if (backupModel != null) {
-            return backupModel;
         }
 
         String stackDisplayModel = getKnownModernModelFromDisplayName(stack.getDisplayName());
@@ -307,6 +324,14 @@ public final class ViaBackwardsItemModels {
             String model = MODELS_BY_BACKUP_TAG.get(key + ":" + tag.getInteger(key));
             if (model != null) {
                 return model;
+            }
+
+            String sourceVersion = getBackupSourceVersion(key);
+            if (sourceVersion != null) {
+                model = MODELS_BY_BACKUP_SOURCE_ID.get(makeBackupSourceKey(sourceVersion, tag.getInteger(key)));
+                if (model != null) {
+                    return model;
+                }
             }
         }
 
@@ -428,6 +453,25 @@ public final class ViaBackwardsItemModels {
 
     private static String makeBackupKey(String mappingsVersion, int itemId) {
         return "VB|Protocol" + mappingsVersion.replace(".", "_").replace("to", "To") + "|id:" + itemId;
+    }
+
+    private static String sourceVersion(String mappingsVersion) {
+        int separator = mappingsVersion.indexOf("to");
+        String source = separator >= 0 ? mappingsVersion.substring(0, separator) : mappingsVersion;
+        return source.replace('.', '_');
+    }
+
+    private static String getBackupSourceVersion(String backupKey) {
+        int protocolStart = backupKey.indexOf("Protocol");
+        int targetStart = backupKey.indexOf("To", protocolStart + "Protocol".length());
+        if (protocolStart < 0 || targetStart < 0) {
+            return null;
+        }
+        return backupKey.substring(protocolStart + "Protocol".length(), targetStart);
+    }
+
+    private static String makeBackupSourceKey(String sourceVersion, int itemId) {
+        return sourceVersion + ':' + itemId;
     }
 
     private static List<String> readIdentifiers(String resource) throws Exception {

@@ -1,0 +1,20 @@
+{
+    "textures": {
+        "particle": "blocks/water_still",
+        "water": "blocks/water_still"
+    },
+    "elements": [
+        {
+            "from": [0, 0, 0],
+            "to": [16, 16, 16],
+            "faces": {
+                "down": {"texture": "blocks/water_still"},
+                "up": {"texture": "blocks/water_still"},
+                "north": {"texture": "blocks/water_still"},
+                "south": {"texture": "blocks/water_still"},
+                "west": {"texture": "blocks/water_still"},
+                "east": {"texture": "blocks/water_still"}
+            }
+        }
+    ]
+}

@@ -7,12 +7,13 @@ import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.PacketUtil;
+import cn.unfair.util.player.BackTrackLagUtils;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
+import cn.unfair.util.AnimationUtil;
+import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -27,10 +28,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 
 import java.awt.*;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BackTrack extends Module {
@@ -38,28 +36,45 @@ public class BackTrack extends Module {
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
     public static boolean shouldLag;
-    public final BooleanProperty onlyWhenNeeded = new BooleanProperty("only-when-needed", false);
-    public final FloatProperty attackRange = new FloatProperty("attack-range", 3.0F, 0.1F, 8.0F, this.onlyWhenNeeded::getValue);
-    public final FloatProperty rangeStart = new FloatProperty("range-start", 3.0F, 1.0F, 8.0F, () -> !this.onlyWhenNeeded.getValue());
-    public final FloatProperty rangeEnd = new FloatProperty("range-end", 6.0F, 1.0F, 8.0F, () -> !this.onlyWhenNeeded.getValue());
-    public final ModeProperty rangeBase = new ModeProperty("range-base", 0, new String[]{"MOUSE_OVER", "HURT_TIME", "ATTACK"}, this.onlyWhenNeeded::getValue);
-    public final BooleanProperty attackTickFix = new BooleanProperty("attack-tick-fix", false, this.onlyWhenNeeded::getValue);
-    public final IntProperty predictionTicks = new IntProperty("prediction-ticks", 1, 0, 10, this.onlyWhenNeeded::getValue);
-    public final IntProperty hurtTimeToWork = new IntProperty("hurt-time-to-work", 3, 0, 10, this.onlyWhenNeeded::getValue);
-    public final BooleanProperty extraCheck = new BooleanProperty("extra-check", true);
-    public final IntProperty ms = new IntProperty("delay-ms", 50, 0, 1000);
-    public final BooleanProperty extraMS = new BooleanProperty("extra-ms", false);
-    public final IntProperty extraRand = new IntProperty("extra-rand", 50, 0, 500);
-    public final IntProperty delayForNextLag = new IntProperty("delay-for-next-lag", 0, 0, 1000);
-    public final ModeProperty esp = new ModeProperty("mode", 1, new String[]{"FAKE_PLAYER", "BOX", "NONE"});
+    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"CLASSIC", "RISE"}) {
+        @Override
+        public boolean read(JsonObject jsonObject) {
+            String configuredMode = jsonObject.get(this.getName()).getAsString();
+            if (configuredMode.equalsIgnoreCase("FAKE_PLAYER")
+                    || configuredMode.equalsIgnoreCase("BOX")
+                    || configuredMode.equalsIgnoreCase("NONE")) {
+                BackTrack.this.esp.parseString(configuredMode);
+                return this.setValue(0);
+            }
+            return super.read(jsonObject);
+        }
+    };
+    public final BooleanProperty onlyWhenNeeded = new BooleanProperty("only-when-needed", false, this::isClassic);
+    public final FloatProperty attackRange = new FloatProperty("attack-range", 3.0F, 0.1F, 8.0F, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final FloatProperty rangeStart = new FloatProperty("range-start", 3.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
+    public final FloatProperty rangeEnd = new FloatProperty("range-end", 6.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
+    public final ModeProperty rangeBase = new ModeProperty("range-base", 0, new String[]{"MOUSE_OVER", "HURT_TIME", "ATTACK"}, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final BooleanProperty attackTickFix = new BooleanProperty("attack-tick-fix", false, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final IntProperty predictionTicks = new IntProperty("prediction-ticks", 1, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final IntProperty hurtTimeToWork = new IntProperty("hurt-time-to-work", 3, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final BooleanProperty extraCheck = new BooleanProperty("extra-check", true, this::isClassic);
+    public final IntProperty ms = new IntProperty("delay-ms", 50, 0, 1000, this::isClassic);
+    public final BooleanProperty extraMS = new BooleanProperty("extra-ms", false, this::isClassic);
+    public final IntProperty extraRand = new IntProperty("extra-rand", 50, 0, 500, this::isClassic);
+    public final IntProperty delayForNextLag = new IntProperty("delay-for-next-lag", 0, 0, 1000, this::isClassic);
+    public final IntProperty maxPingSpoof = new IntProperty("max-ping-spoof", 1000, 50, 2000, this::isLegitReach);
+    public final BooleanProperty renderRealLocation = new BooleanProperty("render-real-location", true, this::isLegitReach);
+    public final ModeProperty esp = new ModeProperty("render-mode", 1, new String[]{"FAKE_PLAYER", "BOX", "NONE"}, this::isClassic);
     public final BooleanProperty players = new BooleanProperty("players", true);
     public final BooleanProperty mobs = new BooleanProperty("mobs", false);
     public final BooleanProperty animals = new BooleanProperty("animals", false);
-    public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.esp.getValue() == 1);
-    public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
-    public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.esp.getValue() == 1);
+    public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
+    public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
+    private Vec3 animatedPosition;
+    private long animatedFrameTime;
     public boolean isBackTracking;
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
@@ -69,9 +84,18 @@ public class BackTrack extends Module {
     private boolean outOfRange;
     private boolean attacked;
     private int nextRand;
+    private int activeMode;
 
     public BackTrack() {
         super("BackTrack", false);
+    }
+
+    private boolean isClassic() {
+        return this.mode.getValue() == 0;
+    }
+
+    private boolean isLegitReach() {
+        return this.mode.getValue() == 1;
     }
 
     private static double getDistanceToEntityBox(Entity entity) {
@@ -188,6 +212,7 @@ public class BackTrack extends Module {
 
     @Override
     public void onEnabled() {
+        this.activeMode = this.mode.getValue();
         realPosition = zeroVec();
         realLastPos = zeroVec();
         this.lastRenderPosition = null;
@@ -212,7 +237,7 @@ public class BackTrack extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{this.getDelayMs() + "ms"};
+        return new String[]{(this.isClassic() ? this.getDelayMs() : this.maxPingSpoof.getValue()) + "ms"};
     }
 
     @EventTarget
@@ -221,9 +246,10 @@ public class BackTrack extends Module {
             return;
         }
 
+        this.checkModeChange();
         if (event.type() == EventType.PRE) {
             BackTrackLagUtils.onPreTick();
-        } else if (event.type() == EventType.POST) {
+        } else if (event.type() == EventType.POST && this.isClassic()) {
             if (this.target != null && realPosition != null) {
                 if (this.currentRenderPosition == null) {
                     this.lastRenderPosition = realPosition;
@@ -244,7 +270,64 @@ public class BackTrack extends Module {
             return;
         }
 
-        this.runBackTrack();
+        this.checkModeChange();
+        if (this.isClassic()) {
+            this.runBackTrack();
+        } else {
+            this.runLegitReach();
+        }
+    }
+
+    private void runLegitReach() {
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            this.resetTargetState();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
+            this.stopLaggingForRespawn();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        EntityLivingBase newTarget = this.getTarget(9.0D);
+        if (newTarget == null) {
+            this.resetTargetState();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        if (newTarget != this.target || realPosition == null) {
+            this.target = newTarget;
+            this.lastTarget = newTarget;
+            realPosition = getPositionVector(newTarget);
+            realLastPos = realPosition;
+            this.resetAnimation(realPosition);
+        }
+
+        KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
+        if (!mc.thePlayer.isSwingInProgress && (killAura == null || !killAura.isEnabled())) {
+            shouldLag = false;
+            this.isBackTracking = false;
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        double realDistance = distance(mc.thePlayer, realPosition);
+        double clientDistance = this.target.getDistanceToEntity(mc.thePlayer);
+        shouldLag = realDistance > clientDistance && realDistance > 2.3D && realDistance < 5.9D;
+        this.isBackTracking = shouldLag;
+
+        if (shouldLag) {
+            BackTrackLagUtils.spoof(this.maxPingSpoof.getValue(), true, true, true, true, false, false);
+            this.dispatched = false;
+        } else if (!this.dispatched) {
+            BackTrackLagUtils.disable();
+            BackTrackLagUtils.dispatch();
+            this.dispatched = true;
+        }
+        BackTrackLagUtils.onPostTick();
     }
 
     private void runBackTrack() {
@@ -342,7 +425,7 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onAttack(AttackEvent event) {
-        if (!this.isEnabled() || event.getTarget() != this.target || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
+        if (!this.isEnabled() || !this.isClassic() || event.getTarget() != this.target || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
             return;
         }
 
@@ -369,7 +452,7 @@ public class BackTrack extends Module {
         }
 
         if (event.getType() == EventType.RECEIVE) {
-            if (this.target != null) {
+            if (this.target != null && realPosition != null) {
                 realLastPos = realPosition;
 
                 if (packet instanceof S14PacketEntity s14PacketEntity) {
@@ -388,22 +471,31 @@ public class BackTrack extends Module {
                     }
                 }
             }
-            BackTrackLagUtils.onPacket(event, PacketDirection.INCOMING);
+            BackTrackLagUtils.onPacket(event, false);
         } else if (event.getType() == EventType.SEND) {
-            if (packet instanceof C02PacketUseEntity
+            if (this.isClassic()
+                    && packet instanceof C02PacketUseEntity
                     && ((C02PacketUseEntity) packet).getAction().equals(C02PacketUseEntity.Action.ATTACK)
                     && this.attackTickFix.getValue()
                     && !this.dispatched
                     && this.onlyWhenNeeded.getValue()) {
                 this.attackTimer.reset();
             }
-            BackTrackLagUtils.onPacket(event, PacketDirection.OUTGOING);
+            BackTrackLagUtils.onPacket(event, true);
         }
     }
 
     @EventTarget
     public void onRender3D(Render3DEvent event) {
-        if (!this.isEnabled() || this.target == null || !shouldLag || this.esp.getValue() != 1) {
+        if (!this.isEnabled() || this.target == null || realPosition == null) {
+            return;
+        }
+
+        if (this.isLegitReach()) {
+            this.renderLegitReachPosition();
+            return;
+        }
+        if (!shouldLag || this.esp.getValue() != 1) {
             return;
         }
 
@@ -417,7 +509,7 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onRenderEntity(RenderEntityEvent event) {
-        if (!this.isEnabled() || this.target == null || this.esp.getValue() != 0 || !shouldLag) {
+        if (!this.isEnabled() || !this.isClassic() || this.target == null || this.esp.getValue() != 0 || !shouldLag) {
             return;
         }
 
@@ -429,6 +521,41 @@ public class BackTrack extends Module {
         );
 
         mc.getRenderManager().doRenderEntity(this.target, renderPosition.xCoord, renderPosition.yCoord, renderPosition.zCoord, this.target.rotationYawHead, partialTicks, true);
+    }
+
+    private void renderLegitReachPosition() {
+        if (!this.renderRealLocation.getValue()) {
+            return;
+        }
+
+        long now = AnimationUtil.start();
+        if (this.animatedPosition == null) {
+            this.resetAnimation(realPosition);
+        }
+
+        long deltaMillis = Math.min(50L, Math.max(0L, now - this.animatedFrameTime));
+        this.animatedPosition = new Vec3(
+                AnimationUtil.smooth(this.animatedPosition.xCoord, realPosition.xCoord, deltaMillis, 65.0D),
+                AnimationUtil.smooth(this.animatedPosition.yCoord, realPosition.yCoord, deltaMillis, 65.0D),
+                AnimationUtil.smooth(this.animatedPosition.zCoord, realPosition.zCoord, deltaMillis, 65.0D)
+        );
+        this.animatedFrameTime = now;
+
+        double expand = 0.14D;
+        AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox()
+                .offset(-mc.thePlayer.posX, -mc.thePlayer.posY, -mc.thePlayer.posZ)
+                .offset(this.animatedPosition.xCoord, this.animatedPosition.yCoord, this.animatedPosition.zCoord)
+                .expand(expand, expand, expand)
+                .offset(
+                        -mc.getRenderManager().getRenderPosX(),
+                        -mc.getRenderManager().getRenderPosY(),
+                        -mc.getRenderManager().getRenderPosZ()
+                );
+        Unfair.moduleManager.modules.get(HUD.class);
+        Color color = HUD.getColor(System.currentTimeMillis());
+        RenderUtil.enableRenderState();
+        RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 50);
+        RenderUtil.disableRenderState();
     }
 
     private Color getBoxColor() {
@@ -508,149 +635,42 @@ public class BackTrack extends Module {
                 .orElse(null);
     }
 
+    private void checkModeChange() {
+        if (this.activeMode == this.mode.getValue()) {
+            return;
+        }
+
+        BackTrackLagUtils.disable();
+        BackTrackLagUtils.dispatch();
+        this.activeMode = this.mode.getValue();
+        this.resetTargetState();
+        realPosition = zeroVec();
+        realLastPos = zeroVec();
+        this.animatedPosition = null;
+        this.animatedFrameTime = 0L;
+    }
+
+    private void resetTargetState() {
+        shouldLag = false;
+        this.isBackTracking = false;
+        this.target = null;
+        this.lastTarget = null;
+        this.lastRenderPosition = null;
+        this.currentRenderPosition = null;
+        this.outOfRange = false;
+        this.attacked = false;
+    }
+
+    private void resetAnimation(Vec3 position) {
+        this.animatedPosition = position;
+        this.animatedFrameTime = AnimationUtil.start();
+    }
+
     private void stopLaggingForRespawn() {
         BackTrackLagUtils.disable();
         BackTrackLagUtils.dispatch();
-        shouldLag = false;
         this.dispatched = true;
-        this.outOfRange = false;
-        this.attacked = false;
-        this.target = null;
-        this.lastTarget = null;
-        this.isBackTracking = false;
+        this.resetTargetState();
     }
 
-    private enum PacketDirection {
-        INCOMING,
-        OUTGOING
-    }
-
-    private enum PacketType {
-        REGULAR(new Class[]{C0FPacketConfirmTransaction.class, C00PacketKeepAlive.class, S1CPacketEntityMetadata.class}),
-        VELOCITY(new Class[]{S12PacketEntityVelocity.class, S27PacketExplosion.class}),
-        TELEPORTS(new Class[]{S08PacketPlayerPosLook.class, S39PacketPlayerAbilities.class, S09PacketHeldItemChange.class}),
-        PLAYERS(new Class[]{S13PacketDestroyEntities.class, S14PacketEntity.class, S14PacketEntity.S16PacketEntityLook.class, S14PacketEntity.S15PacketEntityRelMove.class, S14PacketEntity.S17PacketEntityLookMove.class, S18PacketEntityTeleport.class, S20PacketEntityProperties.class, S19PacketEntityHeadLook.class}),
-        ACTION(new Class[]{C02PacketUseEntity.class, C0DPacketCloseWindow.class, C0EPacketClickWindow.class, C0CPacketInput.class, C0BPacketEntityAction.class, C08PacketPlayerBlockPlacement.class, C07PacketPlayerDigging.class, C09PacketHeldItemChange.class, C13PacketPlayerAbilities.class, C15PacketClientSettings.class, C16PacketClientStatus.class, C17PacketCustomPayload.class, C18PacketSpectate.class, C19PacketResourcePackStatus.class, C0APacketAnimation.class}),
-        MOVEMENT(new Class[]{C03PacketPlayer.class, C03PacketPlayer.C04PacketPlayerPosition.class, C03PacketPlayer.C05PacketPlayerLook.class, C03PacketPlayer.C06PacketPlayerPosLook.class});
-
-        private final Class<?>[] packetClasses;
-        private boolean enabled;
-
-        PacketType(Class<?>[] packetClasses) {
-            this.packetClasses = packetClasses;
-        }
-
-        private boolean containsPacket(Class<?> packetClass) {
-            return Arrays.asList(this.packetClasses).contains(packetClass);
-        }
-    }
-
-    private static final class BackTrackLagUtils {
-        private static final long DEFAULT_TIMER_DELAY = 100L;
-        private static final long BLINK_DELAY = 9999999L;
-        private static final Queue<TimedPacket> packets = new ConcurrentLinkedQueue<>();
-        private static final TimerUtil enabledTimer = new TimerUtil();
-        private static boolean enabled;
-        private static long delayAmount;
-        private static boolean post;
-
-        private static void onPacket(PacketEvent event, PacketDirection direction) {
-            if (!event.isCancelled() && enabled && shouldHandlePacket(event.getPacket())) {
-                event.setCancelled(true);
-                packets.add(new TimedPacket(event.getPacket(), direction));
-            }
-        }
-
-        private static void onPreTick() {
-            if (!post) {
-                sendPackets();
-            }
-        }
-
-        private static void onPostTick() {
-            if (post) {
-                sendPackets();
-            }
-        }
-
-        private static void sendPackets() {
-            if (!(enabled = !enabledTimer.hasTimeElapsed(DEFAULT_TIMER_DELAY) && !(mc.currentScreen instanceof GuiDownloadTerrain))) {
-                dispatch();
-                return;
-            }
-
-            enabled = false;
-            releaseTimedOutPackets();
-            enabled = true;
-        }
-
-        private static void releaseTimedOutPackets() {
-            long now = System.currentTimeMillis();
-            TimedPacket packet;
-            while ((packet = packets.peek()) != null) {
-                if (packet.millis + delayAmount > now) {
-                    break;
-                }
-                queue(packet);
-                packets.poll();
-            }
-        }
-
-        private static void spoof(int amount, boolean regular, boolean velocity, boolean teleports, boolean players, boolean action, boolean movement) {
-            enabledTimer.reset();
-            PacketType.REGULAR.enabled = regular;
-            PacketType.VELOCITY.enabled = velocity;
-            PacketType.TELEPORTS.enabled = teleports;
-            PacketType.PLAYERS.enabled = players;
-            PacketType.ACTION.enabled = action;
-            PacketType.MOVEMENT.enabled = movement;
-            post = true;
-            delayAmount = Math.max(0L, amount);
-        }
-
-        private static void dispatch() {
-            if (!packets.isEmpty()) {
-                boolean wasEnabled = enabled;
-                enabled = false;
-                TimedPacket packet;
-                while ((packet = packets.poll()) != null) {
-                    queue(packet);
-                }
-                enabled = wasEnabled;
-            }
-        }
-
-        private static void disable() {
-            enabled = false;
-            enabledTimer.setTime(enabledTimer.getElapsedTime() - BLINK_DELAY);
-        }
-
-        private static boolean shouldHandlePacket(Packet<?> packet) {
-            return Arrays.stream(PacketType.values()).anyMatch(type -> type.enabled && type.containsPacket(packet.getClass()));
-        }
-
-        private static int size() {
-            return packets.size();
-        }
-
-        private static void queue(TimedPacket timedPacket) {
-            if (timedPacket.direction == PacketDirection.OUTGOING) {
-                PacketUtil.sendPacketNoEvent(timedPacket.packet);
-            } else {
-                PacketUtil.receivePacketNoEvent(timedPacket.packet);
-            }
-        }
-    }
-
-    private static final class TimedPacket {
-        private final Packet<?> packet;
-        private final PacketDirection direction;
-        private final long millis;
-
-        private TimedPacket(Packet<?> packet, PacketDirection direction) {
-            this.packet = packet;
-            this.direction = direction;
-            this.millis = System.currentTimeMillis();
-        }
-    }
 }

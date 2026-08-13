@@ -461,7 +461,7 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Sets the width and height of the entity. Args: width, height
      */
     protected void setSize(float width, float height) {
-        if (viaforge$isModernTarget()) {
+        if (viaforge$usesModernEntitySize()) {
             width = this.viaforge$modernEntityWidth(width);
             height = this.viaforge$modernEntityHeight(height);
         }
@@ -595,7 +595,7 @@ public abstract class Entity implements ICommandSender, Cullable {
         this.handleWaterMovement();
 
         if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13)
-                && (!(this instanceof EntityPlayerSP) || !viaforge$isModernTarget())) {
+                && (!(this instanceof EntityPlayerSP) || !viaforge$usesModernFluidPhysics())) {
             this.worldObj.handleMaterialAcceleration(getEntityBoundingBox().contract(0.001D, 0.001D, 0.001D), Material.lava, this, this.worldObj.provider.doesWaterVaporize() ? 0.007D : 0.0023333333333333335D);
         }
 
@@ -698,7 +698,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     public void moveEntity(double x, double y, double z) {
         this.viaforge$modernStepDesiredY = this.isInWeb ? y * 0.05F : y;
         this.viaforge$modernStepDownAdjusted = false;
-        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+        if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
             this.viaforge$moveStartX = this.posX;
             this.viaforge$moveStartZ = this.posZ;
         }
@@ -736,8 +736,11 @@ public abstract class Entity implements ICommandSender, Cullable {
 
             if (flag) {
                 double d6;
+                double maxStepDown = ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_11)
+                        ? -(double) this.stepHeight
+                        : -1.0D + 1.0E-7D;
 
-                for (d6 = 0.05D; x != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(x, -1.0D, 0.0D)).isEmpty(); d3 = x) {
+                for (d6 = 0.05D; x != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(x, maxStepDown, 0.0D)).isEmpty(); d3 = x) {
                     if (x < d6 && x >= -d6) {
                         x = 0.0D;
                     } else if (x > 0.0D) {
@@ -747,7 +750,7 @@ public abstract class Entity implements ICommandSender, Cullable {
                     }
                 }
 
-                for (; z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(0.0D, -1.0D, z)).isEmpty(); d5 = z) {
+                for (; z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(0.0D, maxStepDown, z)).isEmpty(); d5 = z) {
                     if (z < d6 && z >= -d6) {
                         z = 0.0D;
                     } else if (z > 0.0D) {
@@ -757,7 +760,7 @@ public abstract class Entity implements ICommandSender, Cullable {
                     }
                 }
 
-                for (; x != 0.0D && z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(x, -1.0D, z)).isEmpty(); d5 = z) {
+                for (; x != 0.0D && z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox().offset(x, maxStepDown, z)).isEmpty(); d5 = z) {
                     if (x < d6 && x >= -d6) {
                         x = 0.0D;
                     } else if (x > 0.0D) {
@@ -788,7 +791,7 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
             boolean flag1 = this.onGround || d4 != y && d4 < 0.0D;
 
-            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
                 AxisAlignedBB afterY = this.getEntityBoundingBox();
                 ModernCollisionResult result = viaforge$collideHorizontalModern(afterY, list1, x, z);
                 x = result.x;
@@ -839,7 +842,7 @@ public abstract class Entity implements ICommandSender, Cullable {
                 axisalignedbb4 = axisalignedbb4.offset(0.0D, d9, 0.0D);
                 double d15 = d3;
                 double d16 = d5;
-                if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
                     ModernCollisionResult result = viaforge$collideHorizontalModern(axisalignedbb4, list, d15, d16);
                     d15 = result.x;
                     d16 = result.z;
@@ -867,7 +870,7 @@ public abstract class Entity implements ICommandSender, Cullable {
                 axisalignedbb14 = axisalignedbb14.offset(0.0D, d17, 0.0D);
                 double d18 = d3;
                 double d19 = d5;
-                if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
                     ModernCollisionResult result = viaforge$collideHorizontalModern(axisalignedbb14, list, d18, d19);
                     d18 = result.x;
                     d19 = result.z;
@@ -901,7 +904,7 @@ public abstract class Entity implements ICommandSender, Cullable {
                 }
 
                 for (AxisAlignedBB axisalignedbb12 : list) {
-                    if (!this.viaforge$modernStepDownAdjusted && this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+                    if (!this.viaforge$modernStepDownAdjusted && this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
                         this.viaforge$modernStepDownAdjusted = true;
                         y += this.viaforge$modernStepDesiredY;
                     }
@@ -1216,7 +1219,7 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Returns if this entity is in water and will end up adding the waters velocity to the entity
      */
     public boolean handleWaterMovement() {
-        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+        if (this instanceof EntityPlayerSP && viaforge$usesModernFluidPhysics()) {
             return this.viaforge$modernFluidBaseTick((EntityPlayerSP) this);
         }
 
@@ -1291,7 +1294,7 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Checks if the current block the entity is within of the specified material type
      */
     public boolean isInsideOfMaterial(Material materialIn) {
-        if (this instanceof EntityPlayerSP && viaforge$isModernTarget() && (materialIn == Material.water || materialIn == Material.lava)) {
+        if (this instanceof EntityPlayerSP && viaforge$usesModernFluidPhysics() && (materialIn == Material.water || materialIn == Material.lava)) {
             EntityPlayerSP player = (EntityPlayerSP) this;
             double eyeY = player.posY + (double) player.viaforge$getModernEyeHeight() - 0.1111111119389534D;
             BlockPos eyePosition = new BlockPos(player.posX, eyeY, player.posZ);
@@ -1317,7 +1320,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     public boolean isInLava() {
-        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+        if (this instanceof EntityPlayerSP && viaforge$usesModernFluidPhysics()) {
             return ((ModernPlayerPhysics) this).viaforge$isTouchingModernLava();
         }
 
@@ -1328,7 +1331,7 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Used in both water and by flying objects
      */
     public void moveFlying(float strafe, float forward, float friction) {
-        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+        if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
             double lengthSquared = (double) strafe * (double) strafe + (double) forward * (double) forward;
             if (lengthSquared >= 1.0E-7D) {
                 double scale = lengthSquared > 1.0D ? (double) friction / Math.sqrt(lengthSquared) : friction;
@@ -1443,7 +1446,9 @@ public abstract class Entity implements ICommandSender, Cullable {
         }
 
         viaforge$applyModernFluidPush(player, waterFlow, waterFlowCount, 0.014D);
-        viaforge$applyModernFluidPush(player, lavaFlow, lavaFlowCount, player.worldObj.provider.doesWaterVaporize() ? 0.007D : 0.0023333333333333335D);
+        if (ViaProtocol.newerThanOrEqualTo1_16()) {
+            viaforge$applyModernFluidPush(player, lavaFlow, lavaFlowCount, player.worldObj.provider.doesWaterVaporize() ? 0.007D : 0.0023333333333333335D);
+        }
 
         physics.viaforge$setModernWaterHeight(waterHeight);
         physics.viaforge$setModernLavaHeight(lavaHeight);
@@ -1480,7 +1485,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     private void viaforge$updateMainSupportingBlock() {
-        if (!(this instanceof EntityPlayerSP) || !viaforge$isModernTarget()) {
+        if (!(this instanceof EntityPlayerSP) || !viaforge$usesModernLandPhysics()) {
             return;
         }
 
@@ -1590,7 +1595,15 @@ public abstract class Entity implements ICommandSender, Cullable {
         return height;
     }
 
-    private static boolean viaforge$isModernTarget() {
+    private static boolean viaforge$usesModernEntitySize() {
+        return ViaProtocol.newerThanOrEqualTo1_9();
+    }
+
+    private static boolean viaforge$usesModernFluidPhysics() {
+        return ViaProtocol.newerThanOrEqualTo1_13();
+    }
+
+    private static boolean viaforge$usesModernLandPhysics() {
         return ViaProtocol.newerThanOrEqualTo1_14();
     }
 
@@ -2399,6 +2412,11 @@ public abstract class Entity implements ICommandSender, Cullable {
      */
     public boolean isSprinting() {
         return this.getFlag(3);
+    }
+
+    /** Entity flag introduced in 1.9 for active elytra flight. */
+    public boolean isElytraFlying() {
+        return ViaProtocol.newerThanOrEqualTo1_9() && this.getFlag(7);
     }
 
     /**

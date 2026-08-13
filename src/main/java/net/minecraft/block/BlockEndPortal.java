@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -35,8 +36,15 @@ public class BlockEndPortal extends BlockContainer
 
     public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
     {
-        float f = 0.0625F;
-        this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, f, 1.0F);
+        if (ViaProtocol.newerThanOrEqualTo1_17())
+        {
+            this.setBlockBounds(0.0F, 0.375F, 0.0F, 1.0F, 0.75F, 1.0F);
+        }
+        else
+        {
+            float height = ViaProtocol.newerThanOrEqualTo1_9() ? 0.75F : 0.0625F;
+            this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, height, 1.0F);
+        }
     }
 
     public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)

@@ -549,6 +549,8 @@ public class Item
         registerItemBlock(Blocks.dirt_path);
         registerItemBlock(Blocks.campfire);
         registerItemBlock(Blocks.soul_campfire);
+        registerItemBlock(Blocks.scaffolding);
+        registerItemBlock(Blocks.honey_block);
         registerItemBlock(Blocks.cobblestone);
         registerItemBlock(Blocks.planks, (new ItemMultiTexture(Blocks.planks, Blocks.planks, new Function<ItemStack, String>()
         {

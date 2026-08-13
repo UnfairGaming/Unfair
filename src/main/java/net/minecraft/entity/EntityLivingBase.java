@@ -1442,6 +1442,11 @@ public abstract class EntityLivingBase extends Entity {
      * Moves the entity based on the specified heading.  Args: strafe, forward
      */
     public void moveEntityWithHeading(float strafe, float forward) {
+        if (this instanceof EntityPlayerSP && this.isElytraFlying() && !this.isRiding()) {
+            this.viaforge$elytraTravel((EntityPlayerSP) this);
+            return;
+        }
+
         if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
             EntityPlayerSP player = (EntityPlayerSP) this;
             if (!player.capabilities.isFlying && !player.isRiding()
@@ -1469,7 +1474,9 @@ public abstract class EntityLivingBase extends Entity {
                     float moveFactor;
 
                     if (this.onGround) {
-                        float frictionDivisor = isNewPhysics ? 0.21600002F : 0.16277136F;
+                        float frictionDivisor = isNewPhysics
+                                ? 0.21600002F
+                                : ViaProtocol.newerThanOrEqualTo1_13() ? 0.16277137F : 0.16277136F;
                         float movementSpeed = this instanceof EntityPlayerSP && viaforge$isModernTarget()
                                 ? viaforge$getCurrentMovementSpeed((EntityPlayerSP) this)
                                 : this.getAIMoveSpeed();
@@ -1681,7 +1688,7 @@ public abstract class EntityLivingBase extends Entity {
 
         moveFlyingWithStrafeEvent(strafe, forward, swimmingSpeed);
         player.moveEntity(player.motionX, player.motionY, player.motionZ);
-        if (player.isCollidedHorizontally && player.isOnLadder()) {
+        if (ViaProtocol.newerThanOrEqualTo1_14() && player.isCollidedHorizontally && player.isOnLadder()) {
             player.motionY = 0.2D;
         }
 
@@ -1703,6 +1710,47 @@ public abstract class EntityLivingBase extends Entity {
 
         viaforge$updateLimbSwing(player);
         return true;
+    }
+
+    private void viaforge$elytraTravel(EntityPlayerSP player) {
+        Vec3 look = player.getLook(1.0F);
+        float pitchRadians = player.rotationPitch * ((float) Math.PI / 180.0F);
+        double horizontalLook = Math.sqrt(look.xCoord * look.xCoord + look.zCoord * look.zCoord);
+        double horizontalVelocity = Math.sqrt(player.motionX * player.motionX + player.motionZ * player.motionZ);
+        double lookLength = look.lengthVector();
+        double pitchCos = ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_18_2)
+                ? Math.cos(pitchRadians)
+                : MathHelper.cos(pitchRadians);
+        double lift = pitchCos * pitchCos * Math.min(1.0D, lookLength / 0.4D);
+        if (ViaProtocol.olderThanOrEqualTo(ProtocolVersion.v1_16_4)) {
+            lift = (float) lift;
+        }
+
+        player.motionY += 0.08D * (-1.0D + lift * 0.75D);
+        if (player.motionY < 0.0D && horizontalLook > 0.0D) {
+            double fallingLift = player.motionY * -0.1D * lift;
+            player.motionX += look.xCoord * fallingLift / horizontalLook;
+            player.motionY += fallingLift;
+            player.motionZ += look.zCoord * fallingLift / horizontalLook;
+        }
+
+        if (pitchRadians < 0.0F && horizontalLook > 0.0D) {
+            double diveLift = horizontalVelocity * -MathHelper.sin(pitchRadians) * 0.04D;
+            player.motionX -= look.xCoord * diveLift / horizontalLook;
+            player.motionY += diveLift * 3.2D;
+            player.motionZ -= look.zCoord * diveLift / horizontalLook;
+        }
+
+        if (horizontalLook > 0.0D) {
+            player.motionX += (look.xCoord / horizontalLook * horizontalVelocity - player.motionX) * 0.1D;
+            player.motionZ += (look.zCoord / horizontalLook * horizontalVelocity - player.motionZ) * 0.1D;
+        }
+
+        player.moveEntity(player.motionX, player.motionY, player.motionZ);
+        player.motionX *= 0.99F;
+        player.motionY *= 0.98F;
+        player.motionZ *= 0.99F;
+        viaforge$updateLimbSwing(player);
     }
 
     private void viaforge$modernLavaTravel(EntityPlayerSP player, float strafe, float forward) {
@@ -1799,7 +1847,7 @@ public abstract class EntityLivingBase extends Entity {
     }
 
     private static float viaforge$getBlockSpeedFactor(Block block) {
-        if (block == Blocks.soul_sand) {
+        if (block == Blocks.soul_sand && ViaProtocol.newerThanOrEqualTo1_16()) {
             return 0.4F;
         }
 
@@ -2053,7 +2101,11 @@ public abstract class EntityLivingBase extends Entity {
         this.worldObj.theProfiler.endSection();
         this.worldObj.theProfiler.startSection("push");
 
-        if (!this.worldObj.isRemote) {
+        boolean modernLocalPlayerCollision = this instanceof EntityPlayerSP
+                && ViaProtocol.newerThanOrEqualTo1_9()
+                && !this.isRiding()
+                && !((EntityPlayerSP) this).isSpectator();
+        if (!this.worldObj.isRemote || modernLocalPlayerCollision) {
             this.collideWithNearbyEntities();
         }
 

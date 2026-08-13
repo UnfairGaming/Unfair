@@ -170,6 +170,11 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
     private boolean fullscreen;
     private boolean hasCrashed;
 
+    /** OpenGL strings must be captured on the render thread. Chunk workers do not have a context. */
+    private volatile String cachedOpenGlRenderer = "unknown";
+    private volatile String cachedOpenGlVersion = "unknown";
+    private volatile String cachedOpenGlVendor = "unknown";
+
     /**
      * Instance of CrashReport.
      */
@@ -474,6 +479,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         this.setWindowIcon();
         this.setInitialDisplayMode();
         this.createDisplay();
+        this.cacheOpenGlInfo();
 
         OpenGlHelper.initializeTextures();
 
@@ -1837,8 +1843,10 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 this.displayGuiScreen(new GuiChat("/"));
             }
 
+            boolean delayFoodUseRestart = this.thePlayer.viaforge$consumeFoodUseRestartDelayTick();
+
             if (this.thePlayer.isUsingItem()) {
-                if (!this.gameSettings.keyBindUseItem.isKeyDown()) {
+                if (delayFoodUseRestart || !this.gameSettings.keyBindUseItem.isKeyDown()) {
                     this.playerController.onStoppedUsingItem(this.thePlayer);
                 }
             } else {
@@ -1846,7 +1854,8 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                     this.clickMouse();
                 }
 
-                if (this.gameSettings.keyBindUseItem.isPressed()) {
+                boolean useItemPressed = this.gameSettings.keyBindUseItem.isPressed();
+                if (!delayFoodUseRestart && useItemPressed) {
                     this.rightClickMouse();
                 }
 
@@ -1855,7 +1864,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 }
             }
 
-            if (this.gameSettings.keyBindUseItem.isKeyDown() && this.rightClickDelayTimer == 0 && !this.thePlayer.isUsingItem()) {
+            if (!delayFoodUseRestart && this.gameSettings.keyBindUseItem.isKeyDown() && this.rightClickDelayTimer == 0 && !this.thePlayer.isUsingItem()) {
                 this.rightClickMouse();
             }
 
@@ -2297,7 +2306,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
     public CrashReport addGraphicsAndWorldToCrashReport(CrashReport theCrash) {
         theCrash.getCategory().addCrashSectionCallable("Launched Version", () -> Minecraft.this.launchedVersion);
         theCrash.getCategory().addCrashSectionCallable("LWJGL", Sys::getVersion);
-        theCrash.getCategory().addCrashSectionCallable("OpenGL", () -> GL11.glGetString(GL11.GL_RENDERER) + " GL version " + GL11.glGetString(GL11.GL_VERSION) + ", " + GL11.glGetString(GL11.GL_VENDOR));
+        theCrash.getCategory().addCrashSectionCallable("OpenGL", () -> this.cachedOpenGlRenderer + " GL version " + this.cachedOpenGlVersion + ", " + this.cachedOpenGlVendor);
         theCrash.getCategory().addCrashSectionCallable("GL Caps", OpenGlHelper::getLogText);
         theCrash.getCategory().addCrashSectionCallable("Using VBOs", () -> Minecraft.this.gameSettings.useVbo ? "Yes" : "No");
         theCrash.getCategory().addCrashSectionCallable("Is Modded", () -> {
@@ -2331,6 +2340,12 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         }
 
         return theCrash;
+    }
+
+    private void cacheOpenGlInfo() {
+        this.cachedOpenGlRenderer = String.valueOf(GL11.glGetString(GL11.GL_RENDERER));
+        this.cachedOpenGlVersion = String.valueOf(GL11.glGetString(GL11.GL_VERSION));
+        this.cachedOpenGlVendor = String.valueOf(GL11.glGetString(GL11.GL_VENDOR));
     }
 
     /**

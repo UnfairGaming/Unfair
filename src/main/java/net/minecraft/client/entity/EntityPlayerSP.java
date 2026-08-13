@@ -11,6 +11,7 @@ import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.NoSlow;
 import cn.unfair.module.modules.player.AntiDebuff;
 import cn.unfair.util.via.*;
+import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
@@ -18,6 +19,7 @@ import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
+import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,10 +34,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.*;
 import net.minecraft.potion.Potion;
@@ -130,6 +134,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     private boolean supportingBlockOnGround;
     private float modernEyeHeight = 1.62F;
     private boolean slowMovementFromPreviousPose;
+    private boolean movementInputAdjustedThisTick;
     private double modernWaterHeight;
     private double modernLavaHeight;
     private boolean touchingModernLava;
@@ -138,6 +143,9 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     private boolean carryItemUseSlowdown;
     private boolean localItemUseFinished;
     private boolean serverItemUseFinished;
+    private int foodUseRestartDelayTicks;
+    private int foodUseRestartSlot = -1;
+    private Item foodUseRestartItem;
     private int itemUseFinishGraceTicks;
     private float overrideYaw = Float.NaN;
     private float overridePitch = Float.NaN;
@@ -240,6 +248,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             if (this.isRiding()) {
                 this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(this.rotationYaw, this.rotationPitch, this.onGround));
                 this.sendQueue.addToSendQueue(new C0CPacketInput(this.moveStrafing, this.moveForward, this.movementInput.jump, this.movementInput.sneak));
+                this.sendModernBoatPaddles();
             } else {
                 EventManager.call(new PlayerUpdateEvent());
                 this.onUpdateWalkingPlayer();
@@ -712,6 +721,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      * use this to react to sunlight and start to burn.
      */
     public void onLivingUpdate() {
+        this.movementInputAdjustedThisTick = false;
         this.updateModernSwimmingStateHead();
         this.updateModernSneakingPose();
 
@@ -934,7 +944,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     private void updateModernSwimmingStateHead() {
-        if (!this.isModernTarget()) {
+        if (!this.usesModernInputPhysics()) {
             this.modernSwimming = false;
             this.wasModernSwimming = false;
             this.modernSubmergedInWater = false;
@@ -956,7 +966,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             return;
         }
 
-        this.wasModernSwimming = false;
+        this.wasModernSwimming = this.modernSwimming;
         this.wasSprintingBeforeInput = this.isSprinting();
         this.usingItemAtTickStart = this.isUsingItem();
         if (this.localItemUseFinished) {
@@ -978,63 +988,79 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
 
     @Override
     public void viaforge$updateModernMovementInput(MovementInput input) {
-        if (!this.isModernTarget()) {
+        if (this.movementInputAdjustedThisTick || !this.usesModernInputPhysics()) {
             return;
         }
+        this.movementInputAdjustedThisTick = true;
 
-        if (input.sneak && !this.slowMovementFromPreviousPose) {
+        if (ViaProtocol.newerThanOrEqualTo1_14() && input.sneak && !this.slowMovementFromPreviousPose) {
             input.moveStrafe /= 0.3F;
             input.moveForward /= 0.3F;
-        } else if (!input.sneak && this.slowMovementFromPreviousPose) {
+        } else if (ViaProtocol.newerThanOrEqualTo1_14() && !input.sneak && this.slowMovementFromPreviousPose) {
             input.moveStrafe *= 0.3F;
             input.moveForward *= 0.3F;
         }
 
-        if (this.carryItemUseSlowdown) {
+        if (ViaProtocol.newerThanOrEqualTo1_14() && this.carryItemUseSlowdown) {
             input.moveStrafe *= 0.2F;
             input.moveForward *= 0.2F;
         }
 
         this.updateSwimmingAndPose();
 
-        if ((this.isUsingItem() || this.carryItemUseSlowdown) && !this.isRiding()) {
+        if (ViaProtocol.newerThanOrEqualTo1_14()
+                && (this.isUsingItem() || this.carryItemUseSlowdown) && !this.isRiding()) {
             this.setSprinting(false);
         }
 
-        if (this.isSprinting()
-                && this.isInWater()) {
-            this.setSprinting(false);
-        }
-
-        if (this.isInWater()
+        if (ViaProtocol.newerThanOrEqualTo1_13() && this.isInWater()
                 && input.sneak
                 && !this.capabilities.isFlying
                 && !this.isRiding()) {
             this.motionY -= 0.04F;
         }
 
-        this.jumpMovementFactor = this.isSprinting() ? 0.025999999F : 0.02F;
+        if (ViaProtocol.newerThanOrEqualTo1_14()) {
+            this.jumpMovementFactor = this.isSprinting() ? 0.025999999F : 0.02F;
+        }
     }
 
     private void updateSwimmingAndPose() {
         boolean eyeInWater = this.isModernEyeInWater();
+        this.wasEyeInWater = ViaProtocol.olderThanOrEqualTo(ProtocolVersion.v1_15_2)
+                ? eyeInWater
+                : this.modernSubmergedInWater;
         this.modernSubmergedInWater = eyeInWater;
-        this.modernSwimming = false;
-        this.wasEyeInWater = eyeInWater;
+        boolean feetInWater = !ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_17)
+                || ModernFluidPhysics.getWaterHeight(this.worldObj, new BlockPos(this.posX, this.posY, this.posZ)) > 0.0F;
+        if (this.capabilities.isFlying || this.isRiding()) {
+            this.modernSwimming = false;
+        } else if (this.wasModernSwimming) {
+            this.modernSwimming = this.wasSprintingBeforeInput && this.isInWater();
+        } else {
+            this.modernSwimming = this.wasSprintingBeforeInput && this.wasEyeInWater && this.isInWater() && feetInWater;
+        }
 
         float desiredHeight;
         boolean canCrouch = this.canUseHeight(1.5F);
         boolean canStand = this.canUseHeight(1.8F);
-        if (this.isSneaking() || !canStand) {
+        if (this.isElytraFlying() || this.modernSwimming || ViaProtocol.newerThanOrEqualTo1_14() && !canCrouch) {
+            desiredHeight = 0.6F;
+            this.modernEyeHeight = 0.4F;
+        } else if (ViaProtocol.newerThanOrEqualTo1_14() && (this.isSneaking() || !canStand)) {
             desiredHeight = 1.5F;
             this.modernEyeHeight = 1.27F;
+        } else if (this.isSneaking()) {
+            desiredHeight = 1.65F;
+            this.modernEyeHeight = 1.54F;
         } else {
             desiredHeight = 1.8F;
             this.modernEyeHeight = 1.62F;
         }
         this.setModernHeight(desiredHeight);
 
-        this.slowMovementFromPreviousPose = !this.capabilities.isFlying
+        this.slowMovementFromPreviousPose = ViaProtocol.newerThanOrEqualTo1_14()
+                && !this.capabilities.isFlying
                 && !this.isRiding()
                 && !this.modernSwimming
                 && canCrouch
@@ -1043,6 +1069,12 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
 
     private void updateModernSneakingPose() {
         if (this.isModernTarget() || !this.usesModernSneakPose()) {
+            return;
+        }
+
+        if (this.isElytraFlying()) {
+            this.modernEyeHeight = 0.4F;
+            this.setModernHeight(0.6F);
             return;
         }
 
@@ -1084,12 +1116,12 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
 
     @Override
     public boolean viaforge$isModernSwimming() {
-        return false;
+        return this.modernSwimming;
     }
 
     @Override
     public boolean viaforge$wasModernSwimming() {
-        return false;
+        return this.wasModernSwimming;
     }
 
     @Override
@@ -1168,8 +1200,53 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         this.serverItemUseFinished = true;
     }
 
+    private void sendModernBoatPaddles() {
+        if (!(this.ridingEntity instanceof EntityBoat) || !ViaProtocol.newerThanOrEqualTo1_9()) {
+            return;
+        }
+
+        boolean leftPaddle = this.movementInput.moveForward > 0.0F || this.movementInput.moveStrafe < 0.0F;
+        boolean rightPaddle = this.movementInput.moveForward > 0.0F || this.movementInput.moveStrafe > 0.0F;
+        UserConnection connection = Via.getManager().getConnectionManager().getConnections().stream().findFirst().orElse(null);
+        if (connection == null) {
+            return;
+        }
+
+        PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_9.PADDLE_BOAT, connection);
+        wrapper.write(Types.BOOLEAN, leftPaddle);
+        wrapper.write(Types.BOOLEAN, rightPaddle);
+        wrapper.scheduleSendToServer(Protocol1_9To1_8.class);
+    }
+
+    public void viaforge$delayFoodUseRestart() {
+        this.foodUseRestartDelayTicks = 1;
+        this.foodUseRestartSlot = this.inventory.currentItem;
+        ItemStack held = this.inventory.getCurrentItem();
+        this.foodUseRestartItem = held == null ? null : held.getItem();
+    }
+
+    public boolean viaforge$consumeFoodUseRestartDelayTick() {
+        if (this.foodUseRestartDelayTicks <= 0) {
+            return false;
+        }
+
+        --this.foodUseRestartDelayTicks;
+        ItemStack held = this.inventory.getCurrentItem();
+        boolean sameFood = this.inventory.currentItem == this.foodUseRestartSlot
+                && held != null
+                && held.getItem() == this.foodUseRestartItem
+                && held.getItem() instanceof ItemFood;
+        this.foodUseRestartSlot = -1;
+        this.foodUseRestartItem = null;
+        return sameFood;
+    }
+
     private boolean isModernTarget() {
         return ViaProtocol.newerThanOrEqualTo1_14();
+    }
+
+    private boolean usesModernInputPhysics() {
+        return ViaProtocol.newerThanOrEqualTo1_13();
     }
 
     private boolean usesModernSneakPose() {
