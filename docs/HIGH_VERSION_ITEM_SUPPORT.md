@@ -162,11 +162,11 @@ if (useTicks >= 18) {
 - `RenderItem.renderItemModelForEntity()`：检测当前使用栈并切换到 `shield_blocking#inventory`。
 - `TileEntityItemStackRenderer.ModelShield`：绘制 12×22×1 的盾面和 2×6×6 的手柄。
 - `textures/entity/shield_base_nopattern.png`：无图案盾牌纹理。
-- `ModernShieldRenderer`：专门负责第一人称和第三人称的左右手、普通/格挡四组矩阵，并以 `TransformType.NONE` 绘制实体模型。
+- `ModernShieldRenderer`：专门负责第一人称和第三人称的左右手、普通/格挡四组矩阵，并调用 `RenderItem.renderBuiltinItemDirect()` 绘制实体模型。
 - `ItemRenderer`：保留原版挥手和装备进度，将盾牌手持变换完全交给 `ModernShieldRenderer`，避免 1.8.9 单一 `firstperson/thirdperson` 字段造成左右手互换。
 - `LayerHeldItem`：分别挂接右臂和左臂的手部锚点，不再镜像整条右手渲染链。
 
-盾牌手持矩阵必须写在 Java renderer 中，不能重新加回 JSON 的 `firstperson` 或 `thirdperson`。1.8.9 的 JSON 解析器没有左右手字段，而 `builtin/entity` 又会经过 `RenderItem` 的内部缩放；专用 renderer 用 `TransformType.NONE` 绕过模型手持变换，并补偿内部 0.5 缩放。新增其他非对称 special/entity 物品时，沿用同样的边界：模型 JSON 只负责 GUI/地面/展示框，左右手和使用状态由代码显式处理。
+盾牌手持矩阵必须写在 Java renderer 中，不能重新加回 JSON 的 `firstperson` 或 `thirdperson`。1.8.9 的 JSON 解析器没有左右手字段，而旧版 `RenderItem.renderItem(IBakedModel)` 还会额外执行 0.5 缩放、Y 轴 180° 旋转和中心平移；`renderBuiltinItemDirect()` 只保留现代 special model 所需的 `-0.5` 模型中心平移。新增其他非对称 special/entity 物品时，沿用同样的边界：模型 JSON 只负责 GUI/地面/展示框，左右手和使用状态由代码显式处理。
 
 盾牌专用 renderer 内部只执行与现代实现一致的：
 

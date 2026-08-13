@@ -426,11 +426,16 @@ public class ItemRenderer {
                         && activeStack != null
                         && !useItem;
                 RenderItemEvent event = new RenderItemEvent(enumaction, useItem, f, partialTicks, f1, renderedStack);
-                EventManager.call(event);
-                enumaction = event.getEnumAction();
-                useItem = event.isUseItem();
-                f = event.getAnimationProgression();
-                f1 = event.getSwingProgress();
+                if (!"shield".equals(modernModel)) {
+                    // Legacy animation modules mutate the active OpenGL matrix
+                    // inside this event. Modern shields own their complete
+                    // first-person transform and must bypass those mutations.
+                    EventManager.call(event);
+                    enumaction = event.getEnumAction();
+                    useItem = event.isUseItem();
+                    f = event.getAnimationProgression();
+                    f1 = event.getSwingProgress();
+                }
 
                 if (renderedStack.getItem() instanceof ItemMap)
                 {

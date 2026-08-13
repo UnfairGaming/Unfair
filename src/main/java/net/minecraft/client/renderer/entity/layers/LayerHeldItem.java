@@ -67,7 +67,7 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
                 GlStateManager.scale(-f1, -f1, f1);
             }
 
-            if (entitylivingbaseIn.isSneaking())
+            if (!shield && entitylivingbaseIn.isSneaking())
             {
                 GlStateManager.translate(0.0F, 0.203125F, 0.0F);
             }
@@ -114,7 +114,7 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
             GlStateManager.scale(-0.375F, -0.375F, 0.375F);
         }
 
-        if (entitylivingbaseIn.isSneaking())
+        if (!shield && entitylivingbaseIn.isSneaking())
         {
             GlStateManager.translate(0.0F, 0.203125F, 0.0F);
         }

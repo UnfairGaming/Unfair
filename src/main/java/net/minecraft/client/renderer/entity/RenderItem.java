@@ -303,6 +303,32 @@ public class RenderItem implements IResourceManagerReloadListener {
         }
     }
 
+    /**
+     * Render a builtin/entity item using the modern model coordinate contract.
+     * The legacy renderItem(IBakedModel) wrapper adds a 0.5 scale, a 180 degree
+     * Y rotation and an extra -0.5 translation; those are not part of the
+     * modern special-model path and must not be applied to shields.
+     */
+    public void renderBuiltinItemDirect(ItemStack stack) {
+        if (stack == null) {
+            return;
+        }
+
+        GlStateManager.pushMatrix();
+        try {
+            GlStateManager.translate(-0.5F, -0.5F, -0.5F);
+            GlStateManager.enableRescaleNormal();
+            GlStateManager.alphaFunc(516, 0.1F);
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+            TileEntityItemStackRenderer.instance.renderByItem(stack);
+        } finally {
+            GlStateManager.disableBlend();
+            GlStateManager.disableRescaleNormal();
+            GlStateManager.popMatrix();
+        }
+    }
+
     public void renderItemModelForEntity(ItemStack stack, EntityLivingBase entityToRenderFor, ItemCameraTransforms.TransformType cameraTransformType) {
         if (stack != null && entityToRenderFor != null) {
             IBakedModel ibakedmodel = this.itemModelMesher.getItemModel(stack);

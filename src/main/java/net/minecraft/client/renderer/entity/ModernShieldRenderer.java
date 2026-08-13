@@ -3,7 +3,6 @@ package net.minecraft.client.renderer.entity;
 import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -92,17 +91,16 @@ public final class ModernShieldRenderer {
                                        float translationX, float translationY, float translationZ,
                                        float scale) {
         GlStateManager.translate(translationX * MODEL_UNIT, translationY * MODEL_UNIT, translationZ * MODEL_UNIT);
-        GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
+        // 1.21.11 Transformation uses Quaternionf.rotationXYZ.
         GlStateManager.rotate(rotationX, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(rotationY, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(rotationZ, 0.0F, 0.0F, 1.0F);
         GlStateManager.scale(scale, scale, scale);
     }
 
     private static void renderModel(EntityLivingBase entity, ItemStack shield) {
-        // RenderItem halves all models internally; compensate before rendering
-        // the dedicated shield geometry with no JSON hand transform.
-        GlStateManager.scale(2.0F, 2.0F, 2.0F);
-        Minecraft.getMinecraft().getRenderItem().renderItemModelForEntity(
-                shield, entity, ItemCameraTransforms.TransformType.NONE);
+        // Use the modern special-model coordinate path. The legacy generic
+        // item wrapper has an extra half-scale and 180 degree Y rotation.
+        Minecraft.getMinecraft().getRenderItem().renderBuiltinItemDirect(shield);
     }
 }
