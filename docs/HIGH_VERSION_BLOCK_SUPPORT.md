@@ -383,7 +383,7 @@ block.setModernMining(
 
 | 方块 | 硬度 | 有效工具 | 必须正确工具 |
 | --- | ---: | --- | --- |
-| 末地烛、脚手架、甜浆果丛、珊瑚植物/扇、装饰陶罐 | 0.0 | 无 | 否 |
+| 末地烛、气泡柱、脚手架、甜浆果丛、活珊瑚植物/扇、装饰陶罐 | 0.0 | 无 | 否 |
 | 蜂蜜块 | 0.0 | 无 | 否 |
 | 竹子 | 1.0 | 斧；剑瞬间破坏 | 否 |
 | 紫颂植物、紫颂花 | 0.4 | 斧；剑 1.5 倍 | 否 |
@@ -399,6 +399,7 @@ block.setModernMining(
 | 钟 | 5.0 | 镐 | 否 |
 | 锁链 | 5.0 | 镐 | 是 |
 | 珊瑚块 | 1.5 | 镐 | 是 |
+| 死珊瑚植物/扇/墙扇 | 0.0 | 镐 | 是 |
 | 蜡烛 | 0.1 | 无 | 否 |
 | 蜡烛蛋糕、嗅探兽蛋 | 0.5 | 无 | 否 |
 | 幽匿感测体 | 1.5 | 锄 | 否 |
@@ -408,7 +409,7 @@ block.setModernMining(
 | 泥巴 | 0.5 | 锹 | 否 |
 | 重生锚 | 50.0 | 钻石镐 | 是 |
 
-新增现代方块时必须同时核对目标版本 `Blocks` 的 `strength`/`breakInstantly`、`requiresTool`，以及 `AXE_MINEABLE`、`PICKAXE_MINEABLE`、`SHOVEL_MINEABLE`、`HOE_MINEABLE` 和剑效率标签。不要从渲染或碰撞使用的旧版 `Material` 推断挖掘规则。
+新增现代方块时必须同时核对目标版本 `Blocks` 的 `strength`/`breakInstantly`、`requiresTool`，以及 `AXE_MINEABLE`、`PICKAXE_MINEABLE`、`SHOVEL_MINEABLE`、`HOE_MINEABLE` 和剑效率标签。不要从渲染或碰撞使用的旧版 `Material` 推断挖掘规则。注册结束时会检查每个 `ModernBlock` 是否调用了 `setModernMining()`；漏配会直接抛出异常，禁止静默回退到 1.8 的材质挖掘逻辑。
 
 Grim 回归测试至少覆盖：空手、错误工具、木质工具、钻石工具、效率附魔、急迫/挖掘疲劳、水下和离地状态。砂轮空手应约 10 秒完成，不能再次出现约 7000ms 的 `FastBreak` 差值。
 

@@ -80,6 +80,7 @@ public abstract class ModernBlock extends Block
     }
 
     public boolean requiresModernTool() { return this.modernRequiresTool; }
+    public boolean isModernMiningConfigured() { return this.modernMiningConfigured; }
     public boolean isModernToolEffective(ItemStack stack) { return isModernToolCorrect(stack); }
     public float getModernSwordSpeed() { return this.modernSwordSpeed; }
 

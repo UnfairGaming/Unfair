@@ -1541,15 +1541,15 @@ public class Block
         registerBlock(195, "jungle_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorJungle").disableStats());
         registerBlock(196, "acacia_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorAcacia").disableStats());
         registerBlock(197, "dark_oak_door", (new BlockDoor(Material.wood)).setHardness(3.0F).setStepSound(soundTypeWood).setUnlocalizedName("doorDarkOak").disableStats());
-        registerBlock(198, "end_rod", (new BlockEndRod()).setHardness(0.0F).setLightLevel(0.9375F).setUnlocalizedName("endRod"));
+        registerBlock(198, "end_rod", new BlockEndRod().setModernMining(0.0F, ModernBlock.MiningTool.NONE, false).setLightLevel(0.9375F).setUnlocalizedName("endRod"));
         registerBlock(199, "chorus_plant", new BlockChorusPlant().setModernMining(0.4F, ModernBlock.MiningTool.AXE, false).setModernSwordSpeed(1.5F).setUnlocalizedName("chorusPlant"));
         registerBlock(200, "chorus_flower", new BlockChorusFlower().setModernMining(0.4F, ModernBlock.MiningTool.AXE, false).setModernSwordSpeed(1.5F).setUnlocalizedName("chorusFlower"));
-        registerBlock(208, "dirt_path", (new BlockDirtPath()).setHardness(0.65F).setStepSound(soundTypeGrass).setUnlocalizedName("dirtPath"));
-        registerBlock(209, "campfire", (new BlockCampfire(false)).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("campfire"));
-        registerBlock(210, "soul_campfire", (new BlockCampfire(true)).setHardness(2.0F).setStepSound(soundTypeWood).setUnlocalizedName("soulCampfire"));
-        registerBlock(211, "bubble_column", (new BlockBubbleColumn()).setUnlocalizedName("bubbleColumn"));
-        registerBlock(212, "scaffolding", (new BlockScaffolding()).setHardness(0.0F).setStepSound(soundTypeWood).setUnlocalizedName("scaffolding"));
-        registerBlock(213, "sweet_berry_bush", (new BlockSweetBerryBush()).setHardness(0.0F).setStepSound(soundTypeGrass).setUnlocalizedName("sweetBerryBush"));
+        registerBlock(208, "dirt_path", new BlockDirtPath().setModernMining(0.65F, ModernBlock.MiningTool.SHOVEL, false).setStepSound(soundTypeGrass).setUnlocalizedName("dirtPath"));
+        registerBlock(209, "campfire", new BlockCampfire(false).setModernMining(2.0F, ModernBlock.MiningTool.AXE, false).setStepSound(soundTypeWood).setUnlocalizedName("campfire"));
+        registerBlock(210, "soul_campfire", new BlockCampfire(true).setModernMining(2.0F, ModernBlock.MiningTool.AXE, false).setStepSound(soundTypeWood).setUnlocalizedName("soulCampfire"));
+        registerBlock(211, "bubble_column", new BlockBubbleColumn().setModernMining(0.0F, ModernBlock.MiningTool.NONE, false).setUnlocalizedName("bubbleColumn"));
+        registerBlock(212, "scaffolding", new BlockScaffolding().setModernMining(0.0F, ModernBlock.MiningTool.NONE, false).setStepSound(soundTypeWood).setUnlocalizedName("scaffolding"));
+        registerBlock(213, "sweet_berry_bush", new BlockSweetBerryBush().setModernMining(0.0F, ModernBlock.MiningTool.NONE, false).setStepSound(soundTypeGrass).setUnlocalizedName("sweetBerryBush"));
         registerBlock(214, "honey_block", new BlockHoney().setModernMining(0.0F, ModernBlock.MiningTool.NONE, false).setStepSound(SLIME_SOUND).setUnlocalizedName("honeyBlock"));
         registerBlock(215, "powder_snow", new BlockPowderSnow().setModernMining(0.25F, ModernBlock.MiningTool.NONE, false).setStepSound(soundTypeSnow).setUnlocalizedName("powderSnow"));
         String[] shulkerColors = {"shulker_box", "white_shulker_box", "orange_shulker_box", "magenta_shulker_box", "light_blue_shulker_box", "yellow_shulker_box", "lime_shulker_box", "pink_shulker_box", "gray_shulker_box", "light_gray_shulker_box", "cyan_shulker_box", "purple_shulker_box", "blue_shulker_box", "brown_shulker_box", "green_shulker_box", "red_shulker_box", "black_shulker_box"};
@@ -1566,17 +1566,21 @@ public class Block
         registerBlock(3007, "chain", new BlockModernShape(Material.iron, ProtocolVersion.v1_16, 4729, 4734, new double[]{6.5,0,6.5,9.5,16,9.5}).setModernMining(5.0F, ModernBlock.MiningTool.PICKAXE, true));
         registerBlock(3008, "bamboo", new BlockModernShape(Material.wood, ProtocolVersion.v1_14, 9116, 9127, new double[]{6.5,0,6.5,9.5,16,9.5}).setModernMining(1.0F, ModernBlock.MiningTool.AXE, false).setModernSwordSpeed(Float.MAX_VALUE));
         registerBlock(3009, "tube_coral", new BlockModernShape(Material.coral, ProtocolVersion.v1_14, 8994, 8995, new double[]{2,0,2,14,15,14}).setModernMining(0.0F, ModernBlock.MiningTool.NONE, false));
-        registerBlock(3010, "tube_coral_fan", (new BlockModernShape(Material.coral, ProtocolVersion.v1_14, 9014, 9015)).setHardness(0.0F));
+        registerBlock(3010, "tube_coral_fan", new BlockModernShape(Material.coral, ProtocolVersion.v1_14, 9014, 9015).setModernMining(0.0F, ModernBlock.MiningTool.NONE, false));
         registerBlock(3011, "tube_coral_wall_fan", new BlockModernWallCoralFan(9064).setModernMining(0.0F, ModernBlock.MiningTool.NONE, false));
         String[] coralNames = {"brain_coral_block","bubble_coral_block","fire_coral_block","horn_coral_block","tube_coral_block","dead_brain_coral_block","dead_bubble_coral_block","dead_fire_coral_block","dead_horn_coral_block","dead_tube_coral_block","brain_coral","bubble_coral","fire_coral","horn_coral","dead_brain_coral","dead_bubble_coral","dead_fire_coral","dead_horn_coral","dead_tube_coral","brain_coral_fan","bubble_coral_fan","fire_coral_fan","horn_coral_fan","dead_brain_coral_fan","dead_bubble_coral_fan","dead_fire_coral_fan","dead_horn_coral_fan","dead_tube_coral_fan","brain_coral_wall_fan","bubble_coral_wall_fan","fire_coral_wall_fan","horn_coral_wall_fan","dead_brain_coral_wall_fan","dead_bubble_coral_wall_fan","dead_fire_coral_wall_fan","dead_horn_coral_wall_fan","dead_tube_coral_wall_fan"};
         int[] coralStateRanges = {8980,8981,8982,8983,8979,8975,8976,8977,8978,8974,8996,8998,9000,9002,8986,8988,8990,8992,8984,9016,9018,9020,9022,9006,9008,9010,9012,9004,9072,9080,9088,9096,9032,9040,9048,9056,9024};
         for (int i = 0; i < coralNames.length; i++) {
             String name = coralNames[i]; int first = coralStateRanges[i]; int count = name.contains("wall_fan") ? 8 : (name.contains("fan") ? 2 : 1); double[][] shape = name.contains("block") ? new double[][]{{0,0,0,16,16,16}} : name.contains("fan") ? new double[][]{} : new double[][]{{2,0,2,14,15,14}};
+            boolean coralBlock = name.contains("block");
+            boolean deadCoral = name.startsWith("dead_");
+            ModernBlock.MiningTool miningTool = coralBlock || deadCoral ? ModernBlock.MiningTool.PICKAXE : ModernBlock.MiningTool.NONE;
+            boolean requiresTool = coralBlock || deadCoral;
             registerBlock(3012 + i, name, name.contains("wall_fan")
-                    ? new BlockModernWallCoralFan(first).setModernMining(0.0F, ModernBlock.MiningTool.NONE, false)
-                    : new BlockModernShape(Material.coral, ProtocolVersion.v1_14, first, first + count - 1, shape).setModernMining(name.contains("block") ? 1.5F : 0.0F, name.contains("block") ? ModernBlock.MiningTool.PICKAXE : ModernBlock.MiningTool.NONE, name.contains("block")));
+                    ? new BlockModernWallCoralFan(first).setModernMining(0.0F, miningTool, requiresTool)
+                    : new BlockModernShape(Material.coral, ProtocolVersion.v1_14, first, first + count - 1, shape).setModernMining(coralBlock ? 1.5F : 0.0F, miningTool, requiresTool));
         }
-        registerBlock(3050, "candle", (new BlockModernCandle(17358,17373)).setHardness(0.1F));
+        registerBlock(3050, "candle", new BlockModernCandle(17358,17373).setModernMining(0.1F, ModernBlock.MiningTool.NONE, false));
         registerBlock(3051, "candle_cake", new BlockModernCandleCake(17630).setModernMining(0.5F, ModernBlock.MiningTool.NONE, false));
         registerBlock(3052, "sculk_sensor", new BlockModernSculkSensor(17718).setModernMining(1.5F, ModernBlock.MiningTool.HOE, false));
         registerBlock(3053, "big_dripleaf", new BlockModernDripleaf(18624).setModernMining(0.1F, ModernBlock.MiningTool.AXE, false).setModernSwordSpeed(1.5F));
@@ -1590,6 +1594,15 @@ public class Block
         registerBlock(3062,"decorated_pot",new BlockModernFacingShape(Material.rock,ProtocolVersion.v1_20,24119,24134,new double[]{1,0,1,15,16,15}).setModernMining(0.0F, ModernBlock.MiningTool.NONE, false));
         registerBlock(3063,"sniffer_egg",new BlockModernSnifferEgg(12659).setModernMining(0.5F, ModernBlock.MiningTool.NONE, false));
         blockRegistry.validateKey();
+
+        for (Block registeredBlock : blockRegistry)
+        {
+            if (registeredBlock instanceof ModernBlock && !((ModernBlock) registeredBlock).isModernMiningConfigured())
+            {
+                throw new IllegalStateException("Modern block " + blockRegistry.getNameForObject(registeredBlock)
+                        + " must declare hardness and tool rules with setModernMining()");
+            }
+        }
 
         for (Block block13 : blockRegistry)
         {
