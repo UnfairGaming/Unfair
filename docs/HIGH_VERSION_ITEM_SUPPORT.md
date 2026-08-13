@@ -176,16 +176,69 @@ GlStateManager.scale(1.0F, -1.0F, -1.0F);
 
 不要再叠加 1.8 剑格挡的 `doBlockTransformations()`，也不要在第三人称路径额外放大两倍；这些都会与盾牌 base model transform 重复。
 
-1.21.11 的原始参数必须转换成 1.8/1.9 旧模型坐标，不能直接把现代 `*_righthand` 数值改名为 `firstperson`/`thirdperson`。当前旧格式右手关键参数为：
+1.21.11 的原始参数必须转换成 1.8/1.9 旧模型坐标，不能直接把现代 `*_righthand` 数值改名为 `firstperson`/`thirdperson`。当前实现由 `ModernShieldRenderer` 直接应用四组状态矩阵：
 
 | 状态 | 视角 | rotation | translation | scale |
 | --- | --- | --- | --- | --- |
 | 普通 | 第三人称 | `[0, 90, 0]` | `[10, 6, -4]` | `[1, 1, 1]` |
-| 普通 | 第一人称 | `[0, 180, 5]` | `[10, 2, -10]` | `[1.25, 1.25, 1.25]` |
-| 格挡 | 第三人称 | `[45, 135, 0]` | `[3.51, 11, -2]` | `[1, 1, 1]` |
-| 格挡 | 第一人称 | `[0, 180, -5]` | `[15, 5, -11]` | `[1.25, 1.25, 1.25]` |
+| 普通 | 第一人称 | `[0, 180, 5]` | `[-10, 2, -10]` | `[1.25, 1.25, 1.25]` |
+| 格挡 | 第三人称 | `[45, 155, 0]` | `[-3.49, 11, -2]` | `[1, 1, 1]` |
+| 格挡 | 第一人称 | `[0, 180, -5]` | `[-15, 5, -11]` | `[1.25, 1.25, 1.25]` |
 
-1.8.9 的 `ItemCameraTransforms` 没有左右手独立字段。兼容实现应保留经过旧格式校准的右手 `firstperson`/`thirdperson`，副手在调用旧版完整渲染链之前执行 X 轴镜像。不要把现代 `firstperson_righthand` 的负 X translation 直接写进旧版 `firstperson`；这样会让右手盾牌出现在左侧，并导致左右手对调。
+左手不是简单复制右手数值。当前实现使用 1.21.11 的 left-handed 规则，在应用变换时反转 X 平移、Y/Z 旋转方向，并单独挂接左臂锚点：
+
+| 状态 | 视角 | rotation | translation | scale |
+| --- | --- | --- | --- | --- |
+| 普通 | 第三人称左手 | `[0, -90, 0]` | `[-10, 6, 12]` | `[1, 1, 1]` |
+| 普通 | 第一人称左手 | `[0, -180, -5]` | `[-10, 0, -10]` | `[1.25, 1.25, 1.25]` |
+| 格挡 | 第三人称左手 | `[45, -155, 0]` | `[-11.51, 7, 2.5]` | `[1, 1, 1]` |
+| 格挡 | 第一人称左手 | `[0, -180, 5]` | `[-5, 5, -11]` | `[1.25, 1.25, 1.25]` |
+
+1.8.9 的 `ItemCameraTransforms` 没有左右手独立字段。兼容实现不应依赖 JSON 的 `firstperson`/`thirdperson` 表达盾牌手持，而应由 `ModernShieldRenderer.renderFirstPerson()` 和 `renderThirdPerson()` 显式传入 `leftHand`。`LayerHeldItem` 必须分别使用右臂、左臂锚点；不要镜像整条右手渲染链，也不要把现代 `firstperson_righthand` 的负 X translation 直接写进旧版 `firstperson`，否则会让右手盾牌出现在左侧并导致左右手对调。
+
+### 6.2 盾牌物品栏 / GUI 渲染
+
+物品栏不是手持渲染的缩小版。1.21.11 的 GUI 路径先建立一个以格子中心为原点的 `16 x (-16) x 16` 槽位坐标，再应用模型 JSON 的 `gui` 变换，最后调用 special model renderer。1.8.9 原版 GUI 路径对所有 `isGui3d()` 模型都会额外执行：
+
+```text
+0.5 缩放 -> X 210° -> Y -135° -> JSON GUI transform
+```
+
+这会让盾牌再被缩放和旋转一次，表现为物品栏中斜着、过小或中心偏移。因此盾牌必须在 `RenderItem.renderItemIntoGUI()` 中走专用分支：
+
+1. 通过 `ViaBackwardsItemModels.getModelName(stack)` 判断 `shield` 或 `shield_blocking`。
+2. 使用 `setupModernGuiTransform(x, y)`：平移到格子中心，应用 `scale(16, -16, 16)`，关闭旧版 GUI 光照旋转。
+3. 从当前 baked model 读取 `ItemCameraTransforms.TransformType.GUI`，按现代 `rotationXYZ` 顺序应用 X、Y、Z 旋转、平移和缩放。
+4. 调用 `renderBuiltinItemDirect(stack)`，跳过旧版 builtin/entity 的 0.5 缩放和 Y 轴 180° 旋转，只保留 special model 所需的 `translate(-0.5, -0.5, -0.5)`。
+
+对应代码位置：
+
+```text
+src/main/java/net/minecraft/client/renderer/entity/RenderItem.java
+  renderItemIntoGUI()
+  setupModernGuiTransform()
+  applyModernGuiTransform()
+  renderBuiltinItemDirect()
+src/main/java/net/minecraft/client/renderer/tileentity/TileEntityItemStackRenderer.java
+  renderByItem()
+  renderShield()
+```
+
+普通状态和格挡状态可以各自保留 `gui` JSON 变换，例如 `shield.json` 与 `shield_blocking.json`；手持字段不要重新添加。GUI 中使用状态的模型切换仍由 `renderItemModelForEntity()` 选择 `shield_blocking#inventory`，物品栏本身不应自行推断左右手。
+
+### 6.3 special/entity 物品的通用实现边界
+
+新增高版本特殊手持模型时，按以下责任分层：
+
+| 层 | 负责内容 | 不应负责 |
+| --- | --- | --- |
+| `ViaBackwardsItemModels` | 稳定身份名、来源协议和 Via NBT | 当前是否使用、左右手矩阵 |
+| item JSON | `gui`、`ground`、`fixed` 等模型显示变换 | 1.8.9 不支持的左右手字段、实体动画 |
+| `RenderItem` | GUI 基础槽位、状态模型选择、special model 入口 | 手臂骨骼和使用动画 |
+| 专用 renderer | 几何、纹理、第一/第三人称、左右手、使用状态 | 普通方块 GUI 兜底 |
+| `LayerHeldItem` / `ItemRenderer` | 左右臂锚点、装备进度、swing 和事件隔离 | 修改服务器协议状态 |
+
+三叉戟、旗帜、头颅等也应沿用这个边界：先让模型 JSON 只描述非手持视角，再为实体几何提供独立 renderer。若 renderer 需要使用图案或 NBT，应在 `renderByItem(ItemStack)` 中读取 stack，而不是把每种状态复制成大量身份模型名。
 
 ## 7. 交互、使用动作和副手
 

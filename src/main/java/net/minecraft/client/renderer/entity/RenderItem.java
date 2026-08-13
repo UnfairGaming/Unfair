@@ -441,6 +441,8 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.renderItemGui = true;
         IBakedModel ibakedmodel = this.itemModelMesher.getItemModel(stack);
         boolean campfireItem = isCampfireItem(stack);
+        String modernModelName = ViaBackwardsItemModels.getModelName(stack);
+        boolean modernShield = "shield".equals(modernModelName) || "shield_blocking".equals(modernModelName);
         GlStateManager.pushMatrix();
         this.textureManager.bindTexture(TextureMap.locationBlocksTexture);
         this.textureManager.getTexture(TextureMap.locationBlocksTexture).setBlurMipmap(false, false);
@@ -450,7 +452,11 @@ public class RenderItem implements IResourceManagerReloadListener {
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(770, 771);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        this.setupGuiTransform(x, y, ibakedmodel.isGui3d());
+        if (modernShield) {
+            this.setupModernGuiTransform(x, y);
+        } else {
+            this.setupGuiTransform(x, y, ibakedmodel.isGui3d());
+        }
 
         // Campfire textures are already authored with their intended brightness.
         // GUI standard item lighting makes this thin model noticeably darker than
@@ -459,9 +465,13 @@ public class RenderItem implements IResourceManagerReloadListener {
             GlStateManager.disableLighting();
         }
 
-        ibakedmodel.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GUI);
-
-        this.renderItem(stack, ibakedmodel);
+        if (modernShield) {
+            this.applyModernGuiTransform(ibakedmodel.getItemCameraTransforms().getTransform(ItemCameraTransforms.TransformType.GUI));
+            this.renderBuiltinItemDirect(stack);
+        } else {
+            ibakedmodel.getItemCameraTransforms().applyTransform(ItemCameraTransforms.TransformType.GUI);
+            this.renderItem(stack, ibakedmodel);
+        }
         GlStateManager.disableAlpha();
         GlStateManager.disableRescaleNormal();
         GlStateManager.disableLighting();
@@ -499,6 +509,20 @@ public class RenderItem implements IResourceManagerReloadListener {
             GlStateManager.rotate(180.0F, 1.0F, 0.0F, 0.0F);
             GlStateManager.disableLighting();
         }
+    }
+
+    private void setupModernGuiTransform(int xPosition, int yPosition) {
+        GlStateManager.translate((float)xPosition + 8.0F, (float)yPosition + 8.0F, 100.0F + this.zLevel);
+        GlStateManager.scale(16.0F, -16.0F, 16.0F);
+        GlStateManager.disableLighting();
+    }
+
+    private void applyModernGuiTransform(ItemTransformVec3f transform) {
+        GlStateManager.translate(transform.translation.x, transform.translation.y, transform.translation.z);
+        GlStateManager.rotate(transform.rotation.x, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(transform.rotation.y, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(transform.rotation.z, 0.0F, 0.0F, 1.0F);
+        GlStateManager.scale(transform.scale.x, transform.scale.y, transform.scale.z);
     }
 
     public void renderItemAndEffectIntoGUI(final ItemStack stack, int xPosition, int yPosition) {
