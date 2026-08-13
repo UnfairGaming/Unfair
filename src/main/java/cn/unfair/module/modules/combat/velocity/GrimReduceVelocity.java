@@ -19,7 +19,9 @@ import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.util.BlockPos;
 
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 import static cn.unfair.util.BadPacketUtil.bad;
@@ -45,7 +47,8 @@ public class GrimReduceVelocity extends SubModule {
         if (!(event.getPacket() instanceof S12PacketEntityVelocity packet)) return;
         if (packet.getEntityID() != mc.thePlayer.getEntityId()) return;
         if (suspending) return;
-        if (isInLiquidOrWeb()) return;
+        if (!isPlayerKnockback()) return;
+        if (isBlockedState()) return;
 
         Stuck stuck = (Stuck) Unfair.moduleManager.modules.get(Stuck.class);
         if (stuck != null && stuck.isEnabled()) return;
@@ -92,7 +95,7 @@ public class GrimReduceVelocity extends SubModule {
 
         if (knockback) {
             knockback = false;
-            if (bad() || isInLiquidOrWeb()) return;
+            if (bad() || isBlockedState()) return;
             if (!mc.thePlayer.isSprinting()) return;
             Entity target = findTarget();
             if (isValidTarget(target)) {
@@ -144,6 +147,29 @@ public class GrimReduceVelocity extends SubModule {
         suspending = false;
         suspendTicks = 0;
         knockback = false;
+    }
+
+    private boolean isPlayerKnockback() {
+        double radius = reach.getValue() + 2.0;
+        double radiusSq = radius * radius;
+        for (EntityPlayer player : mc.theWorld.playerEntities) {
+            if (player == mc.thePlayer || !player.isEntityAlive()) continue;
+            if (mc.thePlayer.getDistanceSqToEntity(player) <= radiusSq) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isBlockedState() {
+        return mc.thePlayer.isOnLadder() || isInLiquidOrWeb() || isOnFireBlock();
+    }
+
+    private boolean isOnFireBlock() {
+        double x = mc.thePlayer.posX;
+        double z = mc.thePlayer.posZ;
+        return mc.theWorld.getBlockState(new BlockPos(x, mc.thePlayer.posY, z)).getBlock() == Blocks.fire
+                || mc.theWorld.getBlockState(new BlockPos(x, mc.thePlayer.posY - 0.2, z)).getBlock() == Blocks.fire;
     }
 
     private Entity findTarget() {
