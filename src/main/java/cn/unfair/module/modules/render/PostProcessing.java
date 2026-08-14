@@ -18,7 +18,7 @@ public class PostProcessing extends Module {
     public final FloatProperty bloomColorSpeed = new FloatProperty("Bloom Color Speed", 1.0F, 0.5F, 1.5F);
     public final PercentProperty bloomColorSaturation = new PercentProperty("Bloom Saturation", 50);
     public final PercentProperty bloomColorBrightness = new PercentProperty("Bloom Brightness", 100);
-    public final ColorProperty bloomCustom1 = new ColorProperty("Bloom Color 1", Color.BLACK.getRGB(), () -> this.bloomColorMode.getValue() == 3 || this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
+    public final ColorProperty bloomCustom1 = new ColorProperty("Bloom Color 1", 0, () -> this.bloomColorMode.getValue() == 3 || this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
     public final ColorProperty bloomCustom2 = new ColorProperty("Bloom Color 2", Color.BLUE.getRGB(), () -> this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
     public final ColorProperty bloomCustom3 = new ColorProperty("Bloom Color 3", Color.WHITE.getRGB(), () -> this.bloomColorMode.getValue() == 5);
     public final IntProperty bloomIterations = new IntProperty("Bloom Iterations", 2, 1, 10);
