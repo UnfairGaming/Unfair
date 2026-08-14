@@ -11,7 +11,6 @@ import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.NoSlow;
 import cn.unfair.module.modules.player.AntiDebuff;
 import cn.unfair.util.via.*;
-import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
@@ -19,7 +18,6 @@ import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
 import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
-import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,9 +30,9 @@ import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IMerchant;
+import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
@@ -248,7 +246,6 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             if (this.isRiding()) {
                 this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(this.rotationYaw, this.rotationPitch, this.onGround));
                 this.sendQueue.addToSendQueue(new C0CPacketInput(this.moveStrafing, this.moveForward, this.movementInput.jump, this.movementInput.sneak));
-                this.sendModernBoatPaddles();
             } else {
                 EventManager.call(new PlayerUpdateEvent());
                 this.onUpdateWalkingPlayer();
@@ -940,6 +937,9 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
 
     @Override
     public float getEyeHeight() {
+        if (this.ridingEntity instanceof EntityBoat) {
+            return super.getEyeHeight();
+        }
         return this.usesModernSneakPose() || this.isModernTarget() ? this.modernEyeHeight : super.getEyeHeight();
     }
 
@@ -953,6 +953,9 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             this.mainSupportingBlock = null;
             this.supportingBlockOnGround = false;
             this.modernEyeHeight = 1.62F;
+            if (this.ridingEntity instanceof EntityBoat) {
+                this.setModernHeight(1.8F);
+            }
             this.slowMovementFromPreviousPose = false;
             this.modernWaterHeight = 0.0D;
             this.modernLavaHeight = 0.0D;
@@ -1204,24 +1207,6 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         return !ViaProtocol.newerThanOrEqualTo1_9() && this.pushOutOfBlocks(x, y, z);
     }
 
-    private void sendModernBoatPaddles() {
-        if (!(this.ridingEntity instanceof EntityBoat) || !ViaProtocol.newerThanOrEqualTo1_9()) {
-            return;
-        }
-
-        boolean leftPaddle = this.movementInput.moveForward > 0.0F || this.movementInput.moveStrafe < 0.0F;
-        boolean rightPaddle = this.movementInput.moveForward > 0.0F || this.movementInput.moveStrafe > 0.0F;
-        UserConnection connection = Via.getManager().getConnectionManager().getConnections().stream().findFirst().orElse(null);
-        if (connection == null) {
-            return;
-        }
-
-        PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_9.PADDLE_BOAT, connection);
-        wrapper.write(Types.BOOLEAN, leftPaddle);
-        wrapper.write(Types.BOOLEAN, rightPaddle);
-        wrapper.scheduleSendToServer(Protocol1_9To1_8.class);
-    }
-
     public void viaforge$delayFoodUseRestart() {
         this.foodUseRestartDelayTicks = 1;
         this.foodUseRestartSlot = this.inventory.currentItem;
@@ -1246,15 +1231,15 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     private boolean isModernTarget() {
-        return ViaProtocol.newerThanOrEqualTo1_14();
+        return !(this.ridingEntity instanceof EntityBoat) && ViaProtocol.newerThanOrEqualTo1_14();
     }
 
     private boolean usesModernInputPhysics() {
-        return ViaProtocol.newerThanOrEqualTo1_13();
+        return !(this.ridingEntity instanceof EntityBoat) && ViaProtocol.newerThanOrEqualTo1_13();
     }
 
     private boolean usesModernSneakPose() {
-        return ViaProtocol.newerThanOrEqualTo1_9();
+        return !(this.ridingEntity instanceof EntityBoat) && ViaProtocol.newerThanOrEqualTo1_9();
     }
 
     private boolean isUsingItemForSlowdown() {

@@ -1582,8 +1582,6 @@ public abstract class Entity implements ICommandSender, Cullable {
             return width * (0.8F / 0.95F);
         } else if (this instanceof EntityHorse) {
             return width * (1.3964844F / 1.4F);
-        } else if (this instanceof EntityBoat) {
-            return width * (1.375F / 1.5F);
         } else if (this instanceof EntitySkeleton && width > 0.7F) {
             return width * (0.7F / 0.72F);
         } else if (this instanceof EntitySlime) {
@@ -1597,8 +1595,6 @@ public abstract class Entity implements ICommandSender, Cullable {
             return height * (0.5F / 0.7F);
         } else if (this instanceof EntitySquid) {
             return height * (0.8F / 0.95F);
-        } else if (this instanceof EntityBoat) {
-            return height * (0.5625F / 0.6F);
         } else if (this instanceof EntityCow) {
             return height * (1.4F / 1.3F);
         } else if (this instanceof EntityIronGolem) {
@@ -1615,16 +1611,20 @@ public abstract class Entity implements ICommandSender, Cullable {
         return height;
     }
 
-    private static boolean viaforge$usesModernEntitySize() {
-        return ViaProtocol.newerThanOrEqualTo1_9();
+    private boolean viaforge$usesModernEntitySize() {
+        return !this.viaforge$isRidingLegacyBoat() && ViaProtocol.newerThanOrEqualTo1_9();
     }
 
-    private static boolean viaforge$usesModernFluidPhysics() {
-        return ViaProtocol.newerThanOrEqualTo1_13();
+    private boolean viaforge$usesModernFluidPhysics() {
+        return !this.viaforge$isRidingLegacyBoat() && ViaProtocol.newerThanOrEqualTo1_13();
     }
 
-    private static boolean viaforge$usesModernLandPhysics() {
-        return ViaProtocol.newerThanOrEqualTo1_14();
+    private boolean viaforge$usesModernLandPhysics() {
+        return !this.viaforge$isRidingLegacyBoat() && ViaProtocol.newerThanOrEqualTo1_14();
+    }
+
+    private boolean viaforge$isRidingLegacyBoat() {
+        return this instanceof EntityPlayerSP && this.ridingEntity instanceof EntityBoat;
     }
 
     public int getBrightnessForRender(float partialTicks) {
@@ -1745,10 +1745,6 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Applies a velocity to each of the entities pushing them away from each other. Args: entity
      */
     public void applyEntityCollision(Entity entityIn) {
-        if (this.worldObj != null && this.worldObj.isRemote && ViaProtocol.newerThanOrEqualTo1_9()) {
-            return;
-        }
-
         if (entityIn.riddenByEntity != this && entityIn.ridingEntity != this) {
             if (!entityIn.noClip && !this.noClip) {
                 double d0 = entityIn.posX - this.posX;

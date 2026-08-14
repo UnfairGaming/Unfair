@@ -13,6 +13,7 @@ import net.minecraft.util.EnumWorldBlockLayer;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import cn.unfair.util.via.ViaProtocol;
 
 public class BlockBubbleColumn extends ModernBlock
 {
@@ -39,18 +40,20 @@ public class BlockBubbleColumn extends ModernBlock
 
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
     {
-        boolean surface = worldIn.isAirBlock(pos.up());
-        boolean boat = entityIn instanceof EntityBoat;
-        if (boat && surface) {
+        if (!ViaProtocol.newerThanOrEqualTo1_13() || entityIn instanceof EntityBoat)
+        {
             return;
         }
-        if (state.getValue(DRAG))
+
+        boolean surface = worldIn.isAirBlock(pos.up());
+        boolean drag = state.getValue(DRAG);
+        if (drag)
         {
-            entityIn.motionY = Math.max(surface && !boat ? -0.9D : -0.3D, entityIn.motionY - 0.03D);
+            entityIn.motionY = Math.max(surface ? -0.9D : -0.3D, entityIn.motionY - 0.03D);
         }
         else
         {
-            entityIn.motionY = Math.min(surface && !boat ? 1.8D : 0.7D, entityIn.motionY + (surface && !boat ? 0.1D : 0.06D));
+            entityIn.motionY = Math.min(surface ? 1.8D : 0.7D, entityIn.motionY + (surface ? 0.1D : 0.06D));
         }
         entityIn.fallDistance = 0.0F;
     }
@@ -59,7 +62,8 @@ public class BlockBubbleColumn extends ModernBlock
     public int getViaStateIdMax() { return 9132; }
     public IBlockState getStateFromViaStateId(int stateId)
     {
-        return this.getDefaultState().withProperty(DRAG, stateId == 9131);
+        // 1.13 registry order is drag=false (soul-sand lift), then drag=true (magma drag).
+        return this.getDefaultState().withProperty(DRAG, stateId == 9132);
     }
     protected BlockState createBlockState() { return new BlockState(this, new IProperty[] {DRAG}); }
 }

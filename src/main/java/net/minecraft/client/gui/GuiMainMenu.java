@@ -539,9 +539,9 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         int day = calendar.get(Calendar.DATE);
         int month = calendar.get(Calendar.MONTH) + 1;
 
-        if (day == 27 && month == 6) {
-            this.splashText = "Happy birthday Miko!";
-        } else if (day == 8 && month == 3) {
+        if (day == 12 && month == 3) {
+            this.splashText = "Happy birthday UnfairGaming!";
+        } else if (day == 15 && month == 7) {
             this.splashText = "Happy birthday Karuizawa!";
         } else {
             this.splashText = CUSTOM_SPLASHES[RANDOM.nextInt(CUSTOM_SPLASHES.length)];

@@ -4,7 +4,6 @@ import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
@@ -30,7 +29,14 @@ public class BlockSoulSand extends Block
      */
     public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
     {
-        if (entityIn instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_14()) {
+        // Grim's client-version split: 1.14-1.15 removed the slowdown, while
+        // 1.16 restored it only when the entity intersects the 0.875-high box.
+        if (ViaProtocol.newerThanOrEqualTo1_14() && !ViaProtocol.newerThanOrEqualTo1_16()) {
+            return;
+        }
+
+        if (ViaProtocol.newerThanOrEqualTo1_16()
+                && !entityIn.getEntityBoundingBox().intersectsWith(this.getCollisionBoundingBox(worldIn, pos, state))) {
             return;
         }
 

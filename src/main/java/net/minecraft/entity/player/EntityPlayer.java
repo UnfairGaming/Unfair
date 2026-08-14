@@ -2424,8 +2424,8 @@ public abstract class EntityPlayer extends EntityLivingBase {
         return f;
     }
 
-    private static boolean viaforge$isModernTarget() {
-        return ViaProtocol.newerThanOrEqualTo1_9();
+    private boolean viaforge$isModernTarget() {
+        return !(this.ridingEntity instanceof EntityBoat) && ViaProtocol.newerThanOrEqualTo1_9();
     }
 
     public void setAbsorptionAmount(float amount)

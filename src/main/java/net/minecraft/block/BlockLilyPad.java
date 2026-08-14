@@ -1,7 +1,5 @@
 package net.minecraft.block;
 
-import cn.unfair.util.via.ViaProtocol;
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -31,8 +29,7 @@ public class BlockLilyPad extends BlockBush
      */
     public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
     {
-        if (!(collidingEntity instanceof EntityBoat)
-                || ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_13))
+        if (collidingEntity == null || !(collidingEntity instanceof EntityBoat))
         {
             super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
         }
