@@ -61,7 +61,7 @@ public class AutoProjectiles extends Module {
     }
 
     private boolean isValidTarget(EntityLivingBase entity) {
-        if (entity == mc.thePlayer || entity.deathTime > 0) {
+        if (!mc.theWorld.loadedEntityList.contains(entity) || entity == mc.thePlayer || entity.deathTime > 0) {
             return false;
         }
         if (!(entity instanceof EntityOtherPlayerMP player)) {
@@ -78,7 +78,7 @@ public class AutoProjectiles extends Module {
             return false;
         }
         if (!isEntityHeightVisible(entity)) return false;
-        if (RotationUtil.angleToEntity(player) > (float) this.fov.getValue()) return false;
+        if (RotationUtil.angleToEntity(player) > this.fov.getValue().floatValue()) return false;
         return !TeamUtil.shouldBlockTeam(player);
     }
 
@@ -305,6 +305,11 @@ public class AutoProjectiles extends Module {
         }
 
         if (!this.hasProjectile()) {
+            this.resetState(true);
+            return;
+        }
+
+        if (this.throwState != 0 && (this.target == null || !this.isValidTarget(this.target))) {
             this.resetState(true);
             return;
         }
