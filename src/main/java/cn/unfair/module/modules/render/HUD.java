@@ -427,7 +427,7 @@ public class HUD extends Module {
                 if (animProgress > 0.02F) {
                     RenderUtil.enableRenderState();
                     HudEntry entry = this.buildHudEntry(renderList, module, currentX, currentY, totalWidth, height, alignLeft, alignTop, offset);
-                    this.drawHudBackground(entry, maskColor);
+                    this.drawHudMask(entry, maskColor);
                     RenderUtil.disableRenderState();
                 }
             } else {
@@ -634,21 +634,42 @@ public class HUD extends Module {
 
     private void drawHudBackground(HudEntry entry, int color) {
         if (this.round.getValue()) {
-            RenderUtil.drawRoundedRectWithCorners(
-                    entry.left,
-                    entry.top,
-                    entry.right,
-                    entry.bottom,
-                    color,
-                    2.0F,
-                    entry.leftTop,
-                    entry.rightTop,
-                    entry.leftBot,
-                    entry.rightBot
-            );
+            this.drawHudRoundedRect(entry, color, false);
         } else {
             RenderUtil.drawRect(entry.left, entry.top, entry.right, entry.bottom, color);
         }
+    }
+
+    private void drawHudMask(HudEntry entry, int color) {
+        if (this.round.getValue()) {
+            this.drawHudRoundedRect(entry, color, true);
+        } else {
+            RenderUtil.drawRect(entry.left, entry.top, entry.right, entry.bottom, color);
+        }
+    }
+
+    private void drawHudRoundedRect(HudEntry entry, int color, boolean mask) {
+        float hudScale = this.scale.getValue();
+        float radius = 2.0F * hudScale;
+        float left = entry.left * hudScale;
+        float top = entry.top * hudScale;
+        float right = entry.right * hudScale;
+        float bottom = entry.bottom * hudScale;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(1.0F / hudScale, 1.0F / hudScale, 1.0F);
+        if (mask) {
+            RenderUtil.drawRoundedRectMaskWithCorners(
+                    left, top, right, bottom, color, radius,
+                    entry.leftTop, entry.rightTop, entry.leftBot, entry.rightBot
+            );
+        } else {
+            RenderUtil.drawRoundedRectWithCorners(
+                    left, top, right, bottom, color, radius,
+                    entry.leftTop, entry.rightTop, entry.leftBot, entry.rightBot
+            );
+        }
+        GlStateManager.popMatrix();
     }
 
     private record HudEntry(float left, float top, float right, float bottom, boolean leftTop, boolean rightTop,

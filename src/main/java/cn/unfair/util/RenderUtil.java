@@ -1568,8 +1568,8 @@ public class RenderUtil {
                 color.getAlpha() / 255.0F
         );
 
-        drawTexturedQuads(x - 1.0F, y - 1.0F, size + 2.0F, size + 2.0F, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
-        drawTexturedQuads(x - 1.0F, y - 1.0F, size + 2.0F, size + 2.0F, 40.0F / 64.0F, 8.0F / 64.0F, 48.0F / 64.0F, 16.0F / 64.0F);
+        drawTexturedQuads(x, y, size, size, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
+        drawTexturedQuads(x, y, size, size, 40.0F / 64.0F, 8.0F / 64.0F, 48.0F / 64.0F, 16.0F / 64.0F);
 
         roundedTextureShader.unload();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1671,7 +1671,7 @@ public class RenderUtil {
                 alpha
         );
 
-        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+        drawQuads(x, y, width, height);
 
         roundedShader.unload();
         GlStateManager.disableBlend();
@@ -1709,7 +1709,7 @@ public class RenderUtil {
         float blue = (color & 255) / 255.0F;
         multiRadiusShader.setUniformf("color", red, green, blue, alpha);
 
-        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+        drawQuads(x, y, width, height);
 
         multiRadiusShader.unload();
         GlStateManager.disableBlend();
@@ -1747,7 +1747,7 @@ public class RenderUtil {
         setShaderColor(roundedGradientShader, "color3", n9);
         setShaderColor(roundedGradientShader, "color4", n8);
 
-        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+        drawQuads(x, y, width, height);
 
         roundedGradientShader.unload();
         GlStateManager.disableBlend();
@@ -1894,7 +1894,7 @@ public class RenderUtil {
         setShaderColor(roundedGradientOutlineShader, "color1", color1);
         setShaderColor(roundedGradientOutlineShader, "color2", color2);
 
-        drawQuads(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F);
+        drawQuads(x, y, width, height);
 
         roundedGradientOutlineShader.unload();
         GlStateManager.disableBlend();
@@ -1941,48 +1941,23 @@ public class RenderUtil {
             return;
         }
 
-        radius = Math.min(radius, Math.min(x1 - x, y1 - y) / 2.0);
-
-        GL11.glPushMatrix();
-
-        drawRect(x + radius, y, x1 - radius, y1, color);
-        drawRect(x, y + (leftTop ? radius : 0.0), x + radius, y1 - (leftBot ? radius : 0.0), color);
-        drawRect(x1 - radius, y + (rightTop ? radius : 0.0), x1, y1 - (rightBot ? radius : 0.0), color);
-
-        if (leftTop) {
-            drawCirclePart(x + radius, y + radius, radius, 270, 360, color);
-        }
-        if (rightTop) {
-            drawCirclePart(x1 - radius, y + radius, radius, 0, 90, color);
-        }
-        if (leftBot) {
-            drawCirclePart(x + radius, y1 - radius, radius, 180, 270, color);
-        }
-        if (rightBot) {
-            drawCirclePart(x1 - radius, y1 - radius, radius, 90, 180, color);
-        }
-
-        GL11.glPopMatrix();
+        float cornerRadius = (float) Math.max(0.0, radius);
+        drawRoundedRect(
+                (float) x,
+                (float) y,
+                (float) (x1 - x),
+                (float) (y1 - y),
+                leftTop ? cornerRadius : 0.0F,
+                rightTop ? cornerRadius : 0.0F,
+                leftBot ? cornerRadius : 0.0F,
+                rightBot ? cornerRadius : 0.0F,
+                color
+        );
     }
 
-    private static void drawCirclePart(double x, double y, double radius, double from, double to, int color) {
-        GlStateManager.enableBlend();
-        GlStateManager.disableTexture2D();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        setColor(color);
-
-        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-        GL11.glVertex2d(x, y);
-        for (double i = from; i <= to; i += 2.0) {
-            GL11.glVertex2d(
-                    x + Math.sin(i * Math.PI / 180.0) * radius,
-                    y - Math.cos(i * Math.PI / 180.0) * radius
-            );
-        }
-        GL11.glEnd();
-
-        GlStateManager.enableTexture2D();
-        GlStateManager.disableBlend();
+    public static void drawRoundedRectMaskWithCorners(double x, double y, double x1, double y1, int color, double radius,
+                                                      boolean leftTop, boolean rightTop, boolean leftBot, boolean rightBot) {
+        drawRoundedRectWithCorners(x, y, x1, y1, color, radius, leftTop, rightTop, leftBot, rightBot);
     }
 
     public static void fillCircle(double x, double y, double radius, int segments, int color) {
