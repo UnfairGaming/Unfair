@@ -18,7 +18,7 @@ public class LightingEngineHelpers {
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
     static IBlockState posToState(final BlockPos pos, final Chunk chunk) {
-        return posToState(pos, chunk.getBlockStorageArray()[pos.getY() >> 4]);
+        return posToState(pos, chunk.getBlockStorage(pos.getY()));
     }
 
     static IBlockState posToState(final BlockPos pos, final ExtendedBlockStorage section) {

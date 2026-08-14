@@ -874,14 +874,15 @@ public class FontRenderer implements IResourceManagerReloadListener {
     String wrapFormattedStringToWidth(String str, int wrapWidth) {
         int i = this.sizeStringToWidth(str, wrapWidth);
 
+        // A trailing newline produces a split index of zero. Advance once, then
+        // re-check the bound before reading the character at the split point.
+        if (i <= 0 && !str.isEmpty()) {
+            i = 1;
+        }
+
         if (str.length() <= i) {
             return str;
         } else {
-            // at least advance 1 char
-            if (i <= 0) {
-                i = 1;
-            }
-
             String s = str.substring(0, i);
             char c0 = str.charAt(i);
             boolean flag = c0 == 32 || c0 == 10;

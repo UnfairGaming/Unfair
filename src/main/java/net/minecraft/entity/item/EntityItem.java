@@ -14,13 +14,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class EntityItem extends Entity
 {
-    private static final Logger logger = LogManager.getLogger();
-
     /**
      * The age of this EntityItem (used to animate it up and down as well as expire it)
      */
@@ -46,6 +42,7 @@ public class EntityItem extends Entity
         this.motionX = (float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D);
         this.motionY = 0.20000000298023224D;
         this.motionZ = (float)(Math.random() * 0.20000000298023224D - 0.10000000149011612D);
+        this.setEntityItemStack(new ItemStack(Blocks.air, 0));
     }
 
     public EntityItem(World worldIn, double x, double y, double z, ItemStack stack)
@@ -75,6 +72,16 @@ public class EntityItem extends Entity
     protected void entityInit()
     {
         this.getDataWatcher().addObjectByDataType(10, 5);
+    }
+
+    @Override
+    public void onDataWatcherUpdate(int dataID)
+    {
+        super.onDataWatcherUpdate(dataID);
+        if (dataID == 10 && this.getDataWatcher().getWatchableObjectItemStack(10) == null)
+        {
+            this.setDead();
+        }
     }
 
     /**
@@ -449,8 +456,8 @@ public class EntityItem extends Entity
     }
 
     /**
-     * Returns the ItemStack corresponding to the Entity (Note: if no item exists, will log an error but still return an
-     * ItemStack containing Block.stone)
+     * Returns the ItemStack corresponding to the Entity. Invalid network metadata falls back to an ItemStack containing
+     * Block.stone while the entity is removed from the world.
      */
     public ItemStack getEntityItem()
     {
@@ -458,11 +465,6 @@ public class EntityItem extends Entity
 
         if (itemstack == null)
         {
-            if (this.worldObj != null)
-            {
-                logger.error("Item entity " + this.getEntityId() + " has no item?!");
-            }
-
             return new ItemStack(Blocks.stone);
         }
         else

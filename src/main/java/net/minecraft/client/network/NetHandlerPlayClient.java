@@ -151,6 +151,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleJoinGame(S01PacketJoinGame packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        ModernWorldHeight.sync(ViaVersionFix.connection());
         this.gameController.playerController = new PlayerControllerMP(this.gameController, this);
         this.clientWorldController = new WorldClient(this, new WorldSettings(0L, packetIn.getGameType(), false, packetIn.isHardcoreMode(), packetIn.getWorldType()), packetIn.getDimension(), packetIn.getDifficulty(), this.gameController.mcProfiler);
         this.gameController.gameSettings.difficulty = packetIn.getDifficulty();
@@ -632,11 +633,14 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             this.clientWorldController.doPreChunk(packetIn.getChunkX(), packetIn.getChunkZ(), true);
         }
 
-        this.clientWorldController.invalidateBlockReceiveRegion(packetIn.getChunkX() << 4, 0, packetIn.getChunkZ() << 4, (packetIn.getChunkX() << 4) + 15, 256, (packetIn.getChunkZ() << 4) + 15);
+        this.clientWorldController.invalidateBlockReceiveRegion(packetIn.getChunkX() << 4, this.clientWorldController.getBottomY(), packetIn.getChunkZ() << 4, (packetIn.getChunkX() << 4) + 15, this.clientWorldController.getTopYInclusive(), (packetIn.getChunkZ() << 4) + 15);
         Chunk chunk = this.clientWorldController.getChunkFromChunkCoords(packetIn.getChunkX(), packetIn.getChunkZ());
+        if (packetIn.func_149274_i()) {
+            chunk.clearExtendedBlockStorage();
+        }
         chunk.fillChunk(packetIn.getExtractedDataBytes(), packetIn.getExtractedSize(), packetIn.func_149274_i());
         ModernBlockStateTracker.applyChunk(chunk);
-        this.clientWorldController.markBlockRangeForRenderUpdate(packetIn.getChunkX() << 4, 0, packetIn.getChunkZ() << 4, (packetIn.getChunkX() << 4) + 15, 256, (packetIn.getChunkZ() << 4) + 15);
+        this.clientWorldController.markBlockRangeForRenderUpdate(packetIn.getChunkX() << 4, this.clientWorldController.getBottomY(), packetIn.getChunkZ() << 4, (packetIn.getChunkX() << 4) + 15, this.clientWorldController.getTopYInclusive(), (packetIn.getChunkZ() << 4) + 15);
 
         if (!packetIn.func_149274_i() || !(this.clientWorldController.provider instanceof WorldProviderSurface)) {
             chunk.resetRelightChecks();
@@ -976,6 +980,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             return;
         }
 
+        ModernWorldHeight.sync(ViaVersionFix.connection());
         if (packetIn.getDimensionID() != this.gameController.thePlayer.dimension) {
             this.doneLoadingTerrain = false;
             Scoreboard scoreboard = this.clientWorldController.getScoreboard();
@@ -1314,11 +1319,11 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             int j = packetIn.getChunkX(i);
             int k = packetIn.getChunkZ(i);
             this.clientWorldController.doPreChunk(j, k, true);
-            this.clientWorldController.invalidateBlockReceiveRegion(j << 4, 0, k << 4, (j << 4) + 15, 256, (k << 4) + 15);
+            this.clientWorldController.invalidateBlockReceiveRegion(j << 4, this.clientWorldController.getBottomY(), k << 4, (j << 4) + 15, this.clientWorldController.getTopYInclusive(), (k << 4) + 15);
             Chunk chunk = this.clientWorldController.getChunkFromChunkCoords(j, k);
             chunk.fillChunk(packetIn.getChunkBytes(i), packetIn.getChunkSize(i), true);
             ModernBlockStateTracker.applyChunk(chunk);
-            this.clientWorldController.markBlockRangeForRenderUpdate(j << 4, 0, k << 4, (j << 4) + 15, 256, (k << 4) + 15);
+            this.clientWorldController.markBlockRangeForRenderUpdate(j << 4, this.clientWorldController.getBottomY(), k << 4, (j << 4) + 15, this.clientWorldController.getTopYInclusive(), (k << 4) + 15);
 
             if (!(this.clientWorldController.provider instanceof WorldProviderSurface)) {
                 chunk.resetRelightChecks();

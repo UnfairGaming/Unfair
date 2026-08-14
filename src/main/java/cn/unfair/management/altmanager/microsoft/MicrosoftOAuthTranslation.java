@@ -81,7 +81,6 @@ public class MicrosoftOAuthTranslation {
                 return result;
             }
 
-            System.out.println("Token response: " + tokenResponse);
             AuthTokenResponse res = gson.fromJson(tokenResponse, AuthTokenResponse.class);
             if (res == null || res.access_token == null) {
                 if (res != null && res.error != null) {
@@ -90,7 +89,7 @@ public class MicrosoftOAuthTranslation {
                     result.errorMessage = "Microsoft auth error: " + res.error_description;
                     return result;
                 }
-                System.err.println("Invalid token response: " + tokenResponse);
+                System.err.println("Invalid token response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid token response from Microsoft";
                 return result;
@@ -114,7 +113,7 @@ public class MicrosoftOAuthTranslation {
             XblXstsResponse xblRes = gson.fromJson(xblResponse, XblXstsResponse.class);
             if (xblRes == null || xblRes.Token == null || xblRes.DisplayClaims == null ||
                     xblRes.DisplayClaims.xui == null || xblRes.DisplayClaims.xui.length == 0) {
-                System.err.println("Invalid XBL response: " + xblResponse);
+                System.err.println("Invalid XBL response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid XBL response";
                 return result;
@@ -134,7 +133,7 @@ public class MicrosoftOAuthTranslation {
 
             XblXstsResponse xstsRes = gson.fromJson(xstsResponse, XblXstsResponse.class);
             if (xstsRes == null || xstsRes.Token == null) {
-                System.err.println("Invalid XSTS response: " + xstsResponse);
+                System.err.println("Invalid XSTS response");
                 if (xstsResponse.contains("XErr")) {
                     if (xstsResponse.contains("2148916233")) {
                         System.err.println("No Xbox account associated with Microsoft account");
@@ -173,7 +172,7 @@ public class MicrosoftOAuthTranslation {
 
             McResponse mcRes = gson.fromJson(mcResponse, McResponse.class);
             if (mcRes == null || mcRes.access_token == null) {
-                System.err.println("Invalid Minecraft response: " + mcResponse);
+                System.err.println("Invalid Minecraft response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid Minecraft response";
                 return result;
@@ -191,7 +190,7 @@ public class MicrosoftOAuthTranslation {
 
             GameOwnershipResponse gameOwnershipRes = gson.fromJson(ownershipResponse, GameOwnershipResponse.class);
             if (gameOwnershipRes == null || !gameOwnershipRes.hasGameOwnership()) {
-                System.err.println("No game ownership found: " + ownershipResponse);
+                System.err.println("No game ownership found");
                 LoginData result = new LoginData();
                 result.errorMessage = "No Minecraft license found on this account";
                 return result;
@@ -209,7 +208,7 @@ public class MicrosoftOAuthTranslation {
 
             ProfileResponse profileRes = gson.fromJson(profileResponse, ProfileResponse.class);
             if (profileRes == null || profileRes.id == null || profileRes.name == null) {
-                System.err.println("Invalid profile response: " + profileResponse);
+                System.err.println("Invalid profile response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid profile response";
                 return result;
@@ -314,7 +313,6 @@ public class MicrosoftOAuthTranslation {
                 return;
             }
 
-            System.out.println("Token exchange response: " + response);
             AuthTokenResponse res = gson.fromJson(response, AuthTokenResponse.class);
             if (res == null || res.refresh_token == null) {
                 if (res != null && res.error != null) {
@@ -371,7 +369,7 @@ public class MicrosoftOAuthTranslation {
                 }
                 String responseBody = response.toString();
                 if (responseCode >= 400) {
-                    System.err.println("HTTP Error " + responseCode + ": " + responseBody);
+                    System.err.println("HTTP Error " + responseCode);
                 }
                 return responseBody;
             }
@@ -409,7 +407,7 @@ public class MicrosoftOAuthTranslation {
                 }
                 String responseBody = response.toString();
                 if (responseCode != 200) {
-                    System.err.println("Bearer request failed: " + responseBody);
+                    System.err.println("Bearer request failed with HTTP " + responseCode);
                 }
                 return responseBody;
             }

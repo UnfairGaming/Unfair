@@ -666,7 +666,7 @@ public class PlayerControllerMP
 
         BlockPos cursor = hitPos.offset(direction);
         int horizontalDistance = 0;
-        while (cursor.getY() >= 0 && cursor.getY() < 256 && horizontalDistance < 7) {
+        while (cursor.getY() >= world.getBottomY() && cursor.getY() <= world.getTopYInclusive() && horizontalDistance < 7) {
             Block cursorBlock = world.getBlockState(cursor).getBlock();
             if (!(cursorBlock instanceof BlockScaffolding)) {
                 return cursorBlock.isReplaceable(world, cursor)

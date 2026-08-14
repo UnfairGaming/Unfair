@@ -9,18 +9,9 @@ public class RenderChunkUtils
 {
     public static int getCountBlocks(RenderChunk renderChunk)
     {
-        ExtendedBlockStorage[] aextendedblockstorage = renderChunk.getChunk().getBlockStorageArray();
-
-        if (aextendedblockstorage == null)
-        {
-            return 0;
-        }
-        else
-        {
-            int i = renderChunk.getPosition().getY() >> 4;
-            ExtendedBlockStorage extendedblockstorage = aextendedblockstorage[i];
-            return extendedblockstorage == null ? 0 : extendedblockstorage.getBlockRefCount();
-        }
+        int y = renderChunk.getPosition().getY();
+        ExtendedBlockStorage storage = renderChunk.getChunk().getBlockStorage(y);
+        return storage == null ? 0 : storage.getBlockRefCount();
     }
 
     public static double getRelativeBufferSize(RenderChunk renderChunk)

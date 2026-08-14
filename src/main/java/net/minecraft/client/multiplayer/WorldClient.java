@@ -173,7 +173,8 @@ public class WorldClient extends World
 
         if (!loadChunk)
         {
-            this.markBlockRangeForRenderUpdate(chuncX * 16, 0, chuncZ * 16, chuncX * 16 + 15, 256, chuncZ * 16 + 15);
+            this.markBlockRangeForRenderUpdate(chuncX * 16, this.getBottomY(), chuncZ * 16,
+                    chuncX * 16 + 15, this.getTopYInclusive(), chuncZ * 16 + 15);
         }
     }
 

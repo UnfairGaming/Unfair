@@ -8,6 +8,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.minecraft.InsecureTextureException;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+import com.mojang.authlib.properties.Property;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.IImageBuffer;
 import net.minecraft.client.renderer.ImageBufferDownload;
@@ -18,6 +19,14 @@ import net.minecraft.util.ResourceLocation;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SkinManager {
     private static final ExecutorService THREAD_POOL = new ThreadPoolExecutor(0, 2, 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+    private static final PublicKey YGGDRASIL_PUBLIC_KEY = loadYggdrasilPublicKey();
     private final TextureManager textureManager;
     private final File skinCacheDir;
     private final LoadingCache<GameProfile, Map<Type, MinecraftProfileTexture>> skinCacheLoader;
@@ -106,7 +116,9 @@ public class SkinManager {
             final Map<Type, MinecraftProfileTexture> map = Maps.newHashMap();
 
             try {
-                map.putAll(Minecraft.getMinecraft().getSessionService().getTextures(profile, requireSecure));
+                if (!requireSecure || hasValidSecureTextures(profile)) {
+                    map.putAll(Minecraft.getMinecraft().getSessionService().getTextures(profile, requireSecure));
+                }
             } catch (InsecureTextureException ignored) {
             }
 
@@ -126,6 +138,39 @@ public class SkinManager {
                 }
             });
         });
+    }
+
+    private static boolean hasValidSecureTextures(GameProfile profile) {
+        if (YGGDRASIL_PUBLIC_KEY == null) {
+            return true;
+        }
+
+        for (Property property : profile.getProperties().get("textures")) {
+            if (!property.hasSignature()) {
+                return false;
+            }
+
+            try {
+                byte[] signature = Base64.getDecoder().decode(property.getSignature());
+                int expectedLength = (((RSAPublicKey) YGGDRASIL_PUBLIC_KEY).getModulus().bitLength() + 7) >> 3;
+                return signature.length == expectedLength && property.isSignatureValid(YGGDRASIL_PUBLIC_KEY);
+            } catch (IllegalArgumentException exception) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private static PublicKey loadYggdrasilPublicKey() {
+        try (InputStream stream = SkinManager.class.getResourceAsStream("/yggdrasil_session_pubkey.der")) {
+            if (stream == null) {
+                return null;
+            }
+            return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(stream.readAllBytes()));
+        } catch (IOException | GeneralSecurityException exception) {
+            return null;
+        }
     }
 
     public Map<Type, MinecraftProfileTexture> loadSkinFromCache(GameProfile profile) {

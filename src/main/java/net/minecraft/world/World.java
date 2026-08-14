@@ -4,6 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.module.modules.misc.AntiObbyTrap;
 import cn.unfair.module.modules.movement.Jesus;
 import cn.unfair.module.modules.render.Ambience;
+import cn.unfair.util.via.ModernWorldHeight;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -250,11 +251,13 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
      * Check if the given BlockPos has valid coordinates
      */
     private boolean isValid(int x, int y, int z) {
-        return x >= -30000000 && z >= -30000000 && x < 30000000 && z < 30000000 && y >= 0 && y < 256;
+        return x >= -30000000 && z >= -30000000 && x < 30000000 && z < 30000000
+                && ModernWorldHeight.isValidY(y);
     }
 
     private boolean isValid(BlockPos pos) {
-        return pos.getX() >= -30000000 && pos.getZ() >= -30000000 && pos.getX() < 30000000 && pos.getZ() < 30000000 && pos.getY() >= 0 && pos.getY() < 256;
+        return pos.getX() >= -30000000 && pos.getZ() >= -30000000 && pos.getX() < 30000000
+                && pos.getZ() < 30000000 && ModernWorldHeight.isValidY(pos.getY());
     }
 
     /**
@@ -306,7 +309,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
     }
 
     private boolean isAreaLoaded(int xStart, int yStart, int zStart, int xEnd, int yEnd, int zEnd, boolean allowEmpty) {
-        if (yEnd >= 0 && yStart < 256) {
+        if (yEnd >= this.getBottomY() && yStart <= this.getTopYInclusive()) {
             xStart = xStart >> 4;
             zStart = zStart >> 4;
             xEnd = xEnd >> 4;
@@ -365,7 +368,8 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
             } else {
                 Block block1 = iblockstate.getBlock();
 
-                if (block.getLightOpacity() != block1.getLightOpacity() || block.getLightValue() != block1.getLightValue()) {
+                if (pos.getY() >= 0 && pos.getY() < 256
+                        && (block.getLightOpacity() != block1.getLightOpacity() || block.getLightValue() != block1.getLightValue())) {
                     this.theProfiler.startSection("checkLight");
                     this.checkLight(pos);
                     this.theProfiler.endSection();
@@ -537,11 +541,11 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
     }
 
     public int getLight(BlockPos pos) {
-        if (pos.getY() < 0) {
+        if (pos.getY() < this.getBottomY()) {
             return 0;
         } else {
-            if (pos.getY() >= 256) {
-                pos = new BlockPos(pos.getX(), 255, pos.getZ());
+            if (pos.getY() > this.getTopYInclusive()) {
+                pos = new BlockPos(pos.getX(), this.getTopYInclusive(), pos.getZ());
             }
 
             return this.getChunkFromBlockCoords(pos).getLightSubtracted(pos, 0);
@@ -582,11 +586,11 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                 }
 
                 return i1;
-            } else if (y < 0) {
+            } else if (y < this.getBottomY()) {
                 return 0;
             } else {
-                if (y >= 256) {
-                    y = 255;
+                if (y > this.getTopYInclusive()) {
+                    y = this.getTopYInclusive();
                 }
 
                 Chunk chunk = this.getChunkFromBlockCoords(x, z);
@@ -636,8 +640,8 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
         if (this.provider.getHasNoSky() && type == EnumSkyBlock.SKY) {
             return 0;
         } else {
-            if (pos.getY() < 0) {
-                pos = new BlockPos(pos.getX(), 0, pos.getZ());
+            if (pos.getY() < this.getBottomY()) {
+                pos = new BlockPos(pos.getX(), this.getBottomY(), pos.getZ());
             }
 
             if (!this.isValid(pos)) {
@@ -1402,7 +1406,8 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
         BlockPos blockpos;
         BlockPos blockpos1;
 
-        for (blockpos = new BlockPos(pos.getX(), chunk.getTopFilledSegment() + 16, pos.getZ()); blockpos.getY() >= 0; blockpos = blockpos1) {
+        for (blockpos = new BlockPos(pos.getX(), chunk.getTopFilledSegment() + 16, pos.getZ());
+             blockpos.getY() >= this.getBottomY(); blockpos = blockpos1) {
             blockpos1 = blockpos.down();
             Material material = chunk.getBlock(blockpos1).getMaterial();
 
@@ -2421,7 +2426,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
         float f = biomegenbase.getFloatTemperature(pos);
 
         if (!(f > 0.15F)) {
-            if (pos.getY() >= 0 && pos.getY() < 256 && this.getLightFor(EnumSkyBlock.BLOCK, pos.getX(), pos.getY(), pos.getZ()) < 10) {
+            if (ModernWorldHeight.isValidY(pos.getY()) && this.getLightFor(EnumSkyBlock.BLOCK, pos.getX(), pos.getY(), pos.getZ()) < 10) {
                 IBlockState iblockstate = this.getBlockState(pos);
                 Block block = iblockstate.getBlock();
 
@@ -2456,7 +2461,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
         } else if (!checkLight) {
             return true;
         } else {
-            if (pos.getY() >= 0 && pos.getY() < 256 && this.getLightFor(EnumSkyBlock.BLOCK, pos.getX(), pos.getY(), pos.getZ()) < 10) {
+            if (ModernWorldHeight.isValidY(pos.getY()) && this.getLightFor(EnumSkyBlock.BLOCK, pos.getX(), pos.getY(), pos.getZ()) < 10) {
                 Block block = this.getBlockState(pos).getBlock();
 
                 return block.getMaterial() == Material.air && Blocks.snow_layer.canPlaceBlockAt(this, pos);
@@ -3202,14 +3207,22 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
      * Returns maximum world height.
      */
     public int getHeight() {
-        return 256;
+        return ModernWorldHeight.getHeight();
     }
 
     /**
      * Returns current world height.
      */
     public int getActualHeight() {
-        return this.provider.getHasNoSky() ? 128 : 256;
+        return ModernWorldHeight.isModern() ? ModernWorldHeight.getHeight() : (this.provider.getHasNoSky() ? 128 : 256);
+    }
+
+    public int getBottomY() {
+        return ModernWorldHeight.getBottomY();
+    }
+
+    public int getTopYInclusive() {
+        return ModernWorldHeight.getTopYInclusive();
     }
 
     /**

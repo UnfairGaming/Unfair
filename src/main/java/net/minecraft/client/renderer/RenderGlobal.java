@@ -667,7 +667,11 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             for (Object renderglobal$containerlocalrenderinformation0 : this.renderInfosEntities) {
                 RenderGlobal.ContainerLocalRenderInformation renderglobal$containerlocalrenderinformation = (RenderGlobal.ContainerLocalRenderInformation) renderglobal$containerlocalrenderinformation0;
                 Chunk chunk = renderglobal$containerlocalrenderinformation.renderChunk.getChunk();
-                ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.getEntityLists()[renderglobal$containerlocalrenderinformation.renderChunk.getPosition().getY() / 16];
+                int entitySection = MathHelper.clamp_int(
+                        renderglobal$containerlocalrenderinformation.renderChunk.getPosition().getY() >> 4,
+                        0,
+                        chunk.getEntityLists().length - 1);
+                ClassInheritanceMultiMap<Entity> classinheritancemultimap = chunk.getEntityLists()[entitySection];
 
                 if (!classinheritancemultimap.isEmpty()) {
                     Iterator iterator = classinheritancemultimap.iterator();

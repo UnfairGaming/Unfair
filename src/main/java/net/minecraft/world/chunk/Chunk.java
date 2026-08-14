@@ -3,6 +3,7 @@ package net.minecraft.world.chunk;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
+import cn.unfair.util.via.ModernWorldHeight;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -44,6 +45,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      * logical segment of 16x16x16 blocks, stacked vertically.
      */
     private final ExtendedBlockStorage[] storageArrays;
+    private final Map<Integer, ExtendedBlockStorage> extendedStorageArrays = Maps.newConcurrentMap();
 
     /**
      * Contains a 16x16 mapping on the X/Z plane of the biome ID to which each colum belongs.
@@ -201,13 +203,19 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      * Returns the topmost ExtendedBlockStorage instance for this Chunk that actually contains a block.
      */
     public int getTopFilledSegment() {
+        int top = Integer.MIN_VALUE;
         for (int i = this.storageArrays.length - 1; i >= 0; --i) {
             if (this.storageArrays[i] != null) {
-                return this.storageArrays[i].getYLocation();
+                top = this.storageArrays[i].getYLocation();
+                break;
             }
         }
-
-        return 0;
+        for (ExtendedBlockStorage storage : this.extendedStorageArrays.values()) {
+            if (!storage.isEmpty() && storage.getYLocation() > top) {
+                top = storage.getYLocation();
+            }
+        }
+        return top == Integer.MIN_VALUE ? ModernWorldHeight.getBottomY() : top;
     }
 
     /**
@@ -227,8 +235,9 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         for (int j = 0; j < 16; ++j) {
             for (int k = 0; k < 16; ++k) {
                 this.precipitationHeightMap[j + (k << 4)] = -999;
+                this.heightMap[k << 4 | j] = ModernWorldHeight.getBottomY();
 
-                for (int l = i + 16; l > 0; --l) {
+                for (int l = i + 16; l > ModernWorldHeight.getBottomY(); --l) {
                     Block block = this.getBlock0(j, l - 1, k);
 
                     if (block.getLightOpacity() != 0) {
@@ -257,8 +266,9 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         for (int j = 0; j < 16; ++j) {
             for (int k = 0; k < 16; ++k) {
                 this.precipitationHeightMap[j + (k << 4)] = -999;
+                this.heightMap[k << 4 | j] = ModernWorldHeight.getBottomY();
 
-                for (int l = i + 16; l > 0; --l) {
+                for (int l = i + 16; l > ModernWorldHeight.getBottomY(); --l) {
                     if (this.getBlockLightOpacity(j, l - 1, k) != 0) {
                         this.heightMap[k << 4 | j] = l;
 
@@ -284,7 +294,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
                         k1 -= j1;
 
                         if (k1 > 0) {
-                            ExtendedBlockStorage extendedblockstorage = this.storageArrays[i1 >> 4];
+                            ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(i1);
 
                             if (extendedblockstorage != null) {
                                 extendedblockstorage.setExtSkylightValue(j, i1 & 15, k, k1);
@@ -294,7 +304,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
                         --i1;
 
-                    } while (i1 > 0 && k1 > 0);
+                    } while (i1 > ModernWorldHeight.getBottomY() && k1 > 0);
                 }
             }
         }
@@ -395,14 +405,14 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      * Initiates the recalculation of both the block-light and sky-light for a given block inside a chunk.
      */
     private void relightBlock(int x, int y, int z) {
-        int i = this.heightMap[z << 4 | x] & 255;
+        int i = this.heightMap[z << 4 | x];
         int j = i;
 
         if (y > i) {
             j = y;
         }
 
-        while (j > 0 && this.getBlockLightOpacity(x, j - 1, z) == 0) {
+        while (j > ModernWorldHeight.getBottomY() && this.getBlockLightOpacity(x, j - 1, z) == 0) {
             --j;
         }
 
@@ -437,8 +447,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     private Block getBlock0(int x, int y, int z) {
         Block block = Blocks.air;
 
-        if (y >= 0 && y >> 4 < this.storageArrays.length) {
-            ExtendedBlockStorage extendedblockstorage = this.storageArrays[y >> 4];
+        if (this.isValidY(y)) {
+            ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(y);
 
             if (extendedblockstorage != null) {
                 try {
@@ -484,8 +494,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     public IBlockState getBlockState(final BlockPos pos) {
         final int y = pos.getY();
 
-        if (y >= 0 && y >> 4 < this.getBlockStorageArray().length) {
-            final ExtendedBlockStorage storage = this.getBlockStorageArray()[y >> 4];
+        if (this.isValidY(y)) {
+            final ExtendedBlockStorage storage = this.getBlockStorage(y);
             if (storage != null) return cn.unfair.util.via.ModernBlockStateTracker.remap(pos, storage.get(pos.getX() & 15, y & 15, pos.getZ() & 15));
         }
 
@@ -493,8 +503,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     }
 
     public IBlockState getBlockState(int x, int y, int z) {
-        if (y >= 0 && y >> 4 < this.getBlockStorageArray().length) {
-            final ExtendedBlockStorage storage = this.getBlockStorageArray()[y >> 4];
+        if (this.isValidY(y)) {
+            final ExtendedBlockStorage storage = this.getBlockStorage(y);
             if (storage != null) return cn.unfair.util.via.ModernBlockStateTracker.remap(new BlockPos(x, y, z), storage.get(x & 15, y & 15, z & 15));
         }
 
@@ -505,10 +515,10 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      * Return the metadata corresponding to the given coordinates inside a chunk.
      */
     private int getBlockMetadata(int x, int y, int z) {
-        if (y >> 4 >= this.storageArrays.length) {
+        if (!this.isValidY(y)) {
             return 0;
         } else {
-            ExtendedBlockStorage extendedblockstorage = this.storageArrays[y >> 4];
+            ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(y);
             return extendedblockstorage != null ? extendedblockstorage.getExtBlockMetadata(x, y & 15, z) : 0;
         }
     }
@@ -521,6 +531,11 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
+
+        if (!this.isValidY(j)) {
+            return null;
+        }
+
         int l = k << 4 | i;
 
         if (j >= this.precipitationHeightMap[l] - 1) {
@@ -535,7 +550,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         } else {
             Block block = state.getBlock();
             Block block1 = iblockstate.getBlock();
-            ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
+            ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(j);
             boolean flag = false;
 
             if (extendedblockstorage == null) {
@@ -543,7 +558,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
                     return null;
                 }
 
-                extendedblockstorage = this.storageArrays[j >> 4] = /*new ExtendedBlockStorage(j >> 4 << 4, !this.worldObj.provider.getHasNoSky())*/this.initSection(j >> 4 << 4, !this.worldObj.provider.getHasNoSky());
+                extendedblockstorage = this.createBlockStorage(j);
                 flag = /*j >= i1*/false;
             }
 
@@ -560,7 +575,11 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             if (extendedblockstorage.getBlockByExtId(i, j & 15, k) != block) {
                 return null;
             } else {
-                if (flag) {
+                if (j < 0 || j >= 256) {
+                    if (block.getLightOpacity() > 0 && j >= this.heightMap[l]) {
+                        this.heightMap[l] = j + 1;
+                    }
+                } else if (flag) {
                     this.generateSkylightMap();
                 } else {
                     int j1 = block.getLightOpacity();
@@ -616,7 +635,9 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 //        int k = pos.getZ() & 15;
 //        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
 //        return extendedblockstorage == null ? (this.canSeeSky(pos) ? p_177413_1_.defaultLightValue : 0) : (p_177413_1_ == EnumSkyBlock.SKY ? (this.worldObj.provider.getHasNoSky() ? 0 : extendedblockstorage.getExtSkylightValue(i, j & 15, k)) : (p_177413_1_ == EnumSkyBlock.BLOCK ? extendedblockstorage.getExtBlocklightValue(i, j & 15, k) : p_177413_1_.defaultLightValue));
-        this.getLightingEngine().processLightUpdatesForType(p_177413_1_);
+        if (pos.getY() >= 0 && pos.getY() < 256) {
+            this.getLightingEngine().processLightUpdatesForType(p_177413_1_);
+        }
 
         return this.getCachedLightFor(p_177413_1_, pos);
     }
@@ -625,12 +646,10 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
-        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
+        ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(j);
 
         if (extendedblockstorage == null) {
-            extendedblockstorage = this.storageArrays[j >> 4] = new ExtendedBlockStorage(j >> 4 << 4, !this.worldObj.provider.getHasNoSky());
-//            this.generateSkylightMap();
-            LightingHooks.initSkylightForSection(this.worldObj, this, this.storageArrays[pos.getY() >> 4]);
+            extendedblockstorage = this.createBlockStorage(j);
 
         }
 
@@ -646,17 +665,19 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     }
 
     public int getLightSubtracted(BlockPos pos, int amount) {
-        this.getLightingEngine().processLightUpdates();
+        if (pos.getY() >= 0 && pos.getY() < 256) {
+            this.getLightingEngine().processLightUpdates();
+        }
 
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
-        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
+        ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(j);
 
         if (extendedblockstorage == null) {
             return !this.worldObj.provider.getHasNoSky() && amount < EnumSkyBlock.SKY.defaultLightValue ? EnumSkyBlock.SKY.defaultLightValue - amount : 0;
         } else {
-            int l = this.worldObj.provider.getHasNoSky() ? 0 : extendedblockstorage.getExtSkylightValue(i, j & 15, k);
+            int l = this.getSkylightForRendering(extendedblockstorage, i, j, k);
             l = l - amount;
             int i1 = extendedblockstorage.getExtBlocklightValue(i, j & 15, k);
 
@@ -669,17 +690,19 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     }
 
     public int getLightSubtracted(int x, int y, int z, int amount) {
-        this.getLightingEngine().processLightUpdates();
+        if (y >= 0 && y < 256) {
+            this.getLightingEngine().processLightUpdates();
+        }
 
         int i = x & 15;
         int j = y;
         int k = z & 15;
-        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
+        ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(j);
 
         if (extendedblockstorage == null) {
             return !this.worldObj.provider.getHasNoSky() && amount < EnumSkyBlock.SKY.defaultLightValue ? EnumSkyBlock.SKY.defaultLightValue - amount : 0;
         } else {
-            int l = this.worldObj.provider.getHasNoSky() ? 0 : extendedblockstorage.getExtSkylightValue(i, j & 15, k);
+            int l = this.getSkylightForRendering(extendedblockstorage, i, j, k);
             l = l - amount;
             int i1 = extendedblockstorage.getExtBlocklightValue(i, j & 15, k);
 
@@ -1035,16 +1058,16 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      * (true) or not (false).
      */
     public boolean getAreLevelsEmpty(int startY, int endY) {
-        if (startY < 0) {
-            startY = 0;
+        if (startY < ModernWorldHeight.getBottomY()) {
+            startY = ModernWorldHeight.getBottomY();
         }
 
-        if (endY >= 256) {
-            endY = 255;
+        if (endY > ModernWorldHeight.getTopYInclusive()) {
+            endY = ModernWorldHeight.getTopYInclusive();
         }
 
         for (int i = startY; i <= endY; i += 16) {
-            ExtendedBlockStorage extendedblockstorage = this.storageArrays[i >> 4];
+            ExtendedBlockStorage extendedblockstorage = this.getBlockStorage(i);
 
             if (extendedblockstorage != null && !extendedblockstorage.isEmpty()) {
                 return false;
@@ -1564,7 +1587,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         int j = pos.getY();
         int k = pos.getZ() & 15;
 
-        ExtendedBlockStorage storage = this.storageArrays[j >> 4];
+        ExtendedBlockStorage storage = this.getBlockStorage(j);
 
         if (storage == null) {
             if (this.canSeeSky(pos)) {
@@ -1576,7 +1599,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             if (this.worldObj.provider.getHasNoSky()) {
                 return 0;
             } else {
-                return storage.getExtSkylightValue(i, j & 15, k);
+                return this.getSkylightForRendering(storage, i, j, k);
             }
         } else {
             if (type == EnumSkyBlock.BLOCK) {
@@ -1595,6 +1618,71 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
         LightingHooks.initSkylightForSection(this.worldObj, this, storage);
 
+        return storage;
+    }
+
+    public boolean isValidY(int y) {
+        return ModernWorldHeight.isValidY(y);
+    }
+
+    public ExtendedBlockStorage getBlockStorage(int blockY) {
+        int sectionY = blockY >> 4;
+        return sectionY >= 0 && sectionY < this.storageArrays.length
+                ? this.storageArrays[sectionY]
+                : this.extendedStorageArrays.get(sectionY);
+    }
+
+    public void clearExtendedBlockStorage() {
+        this.extendedStorageArrays.clear();
+    }
+
+    public void setExtendedSection(int sectionY, IBlockState[] states) {
+        int blockY = sectionY << 4;
+        if ((sectionY >= 0 && sectionY < this.storageArrays.length) || !this.isValidY(blockY)
+                || states == null || states.length != 4096) {
+            return;
+        }
+        ExtendedBlockStorage storage = new ExtendedBlockStorage(blockY, !this.worldObj.provider.getHasNoSky());
+        boolean populated = false;
+        for (int index = 0; index < states.length; index++) {
+            IBlockState state = states[index];
+            if (state == null || state.getBlock() == Blocks.air) {
+                continue;
+            }
+            storage.set(index & 15, index >> 8 & 15, index >> 4 & 15, state);
+            populated = true;
+        }
+        if (populated) {
+            this.extendedStorageArrays.put(sectionY, storage);
+        } else {
+            this.extendedStorageArrays.remove(sectionY);
+        }
+    }
+
+    private int getSkylightForRendering(ExtendedBlockStorage storage, int x, int y, int z) {
+        if (this.worldObj.provider.getHasNoSky()) {
+            return 0;
+        }
+
+        int skyLight = storage.getExtSkylightValue(x, y & 15, z);
+        return skyLight == 0 && (y < 0 || y >= 256) && this.canSeeSky(new BlockPos(x, y, z))
+                ? EnumSkyBlock.SKY.defaultLightValue : skyLight;
+    }
+
+    public void refreshHeightMap() {
+        this.generateHeightMap();
+    }
+
+    private ExtendedBlockStorage createBlockStorage(int blockY) {
+        int sectionY = blockY >> 4;
+        ExtendedBlockStorage storage;
+        if (sectionY >= 0 && sectionY < this.storageArrays.length) {
+            storage = this.initSection(sectionY << 4, !this.worldObj.provider.getHasNoSky());
+            this.storageArrays[sectionY] = storage;
+        } else {
+            storage = new ExtendedBlockStorage(sectionY << 4, !this.worldObj.provider.getHasNoSky());
+            this.extendedStorageArrays.put(sectionY, storage);
+        }
         return storage;
     }
 }

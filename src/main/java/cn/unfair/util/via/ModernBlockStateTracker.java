@@ -14,6 +14,8 @@ import com.viaversion.viabackwards.protocol.v1_17to1_16_4.Protocol1_17To1_16_4;
 import com.viaversion.viabackwards.protocol.v1_19to1_18_2.Protocol1_19To1_18_2;
 import com.viaversion.viabackwards.protocol.v1_20to1_19_4.Protocol1_20To1_19_4;
 import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.data.entity.EntityTracker;
 import com.viaversion.viaversion.api.minecraft.BlockChangeRecord;
 import com.viaversion.viaversion.api.minecraft.BlockPosition;
@@ -23,6 +25,7 @@ import com.viaversion.viaversion.api.minecraft.chunks.DataPalette;
 import com.viaversion.viaversion.api.minecraft.chunks.PaletteType;
 import com.viaversion.viaversion.api.protocol.AbstractProtocol;
 import com.viaversion.viaversion.api.protocol.packet.ClientboundPacketType;
+import com.viaversion.viaversion.api.protocol.packet.Direction;
 import com.viaversion.viaversion.api.protocol.Protocol;
 import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMapping;
 import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMappings;
@@ -51,6 +54,7 @@ import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.ModernBlock;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 
@@ -68,6 +72,7 @@ import java.util.logging.Level;
 /** Preserves selected modern block states before ViaBackwards replaces them. */
 public final class ModernBlockStateTracker {
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, ModernState>> CHUNKS = Maps.newConcurrentMap();
+    private static final ConcurrentMap<Long, ConcurrentMap<Integer, IBlockState[]>> EXTENDED_SECTIONS = Maps.newConcurrentMap();
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, NativeState>> NATIVE_STATES = Maps.newConcurrentMap();
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, IBlockState>> PREDICTED_STATES = Maps.newConcurrentMap();
     private static List<ModernBlock> modernBlocks = Collections.emptyList();
@@ -247,6 +252,8 @@ public final class ModernBlockStateTracker {
             EntityTracker tracker = wrapper.user().getEntityTracker(Protocol1_17To1_16_4.class);
             ChunkType1_17 type = new ChunkType1_17(tracker.currentWorldSectionHeight());
             com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk = wrapper.read(type);
+            ModernWorldHeight.configure(tracker.currentMinY(), tracker.currentWorldSectionHeight());
+            captureExtendedChunk(chunk, tracker.currentMinY() >> 4, wrapper.user());
             captureChunk(chunk, tracker.currentMinY() >> 4, ProtocolVersion.v1_17);
             wrapper.write(type, chunk);
             wrapper.resetReader();
@@ -254,6 +261,7 @@ public final class ModernBlockStateTracker {
         prepend(protocol, ClientboundPackets1_17.BLOCK_UPDATE, wrapper -> {
             BlockPosition pos = wrapper.read(Types.BLOCK_POSITION1_14);
             int stateId = wrapper.read(Types.VAR_INT);
+            captureExtended(pos.x(), pos.y(), pos.z(), stateId, wrapper.user());
             capture(pos.x(), pos.y(), pos.z(), stateId, ProtocolVersion.v1_17);
             wrapper.write(Types.BLOCK_POSITION1_14, pos);
             wrapper.write(Types.VAR_INT, stateId);
@@ -267,6 +275,8 @@ public final class ModernBlockStateTracker {
             int sectionY = (int) (section << 44 >> 44);
             int sectionZ = (int) (section << 22 >> 42);
             for (BlockChangeRecord record : records) {
+                captureExtended((sectionX << 4) + record.getSectionX(), (sectionY << 4) + record.getSectionY(),
+                        (sectionZ << 4) + record.getSectionZ(), record.getBlockId(), wrapper.user());
                 capture((sectionX << 4) + record.getSectionX(), (sectionY << 4) + record.getSectionY(),
                         (sectionZ << 4) + record.getSectionZ(), record.getBlockId(), ProtocolVersion.v1_17);
             }
@@ -350,13 +360,16 @@ public final class ModernBlockStateTracker {
 
     public static void clear() {
         CHUNKS.clear();
+        EXTENDED_SECTIONS.clear();
         NATIVE_STATES.clear();
         PREDICTED_STATES.clear();
         CampfireBlockTracker.clear();
+        ModernWorldHeight.reset();
     }
 
     public static void clearChunk(int chunkX, int chunkZ) {
         CHUNKS.remove(chunkKey(chunkX, chunkZ));
+        EXTENDED_SECTIONS.remove(chunkKey(chunkX, chunkZ));
         NATIVE_STATES.remove(chunkKey(chunkX, chunkZ));
         PREDICTED_STATES.remove(chunkKey(chunkX, chunkZ));
         CampfireBlockTracker.clearChunk(chunkX, chunkZ);
@@ -560,6 +573,101 @@ public final class ModernBlockStateTracker {
         }
     }
 
+    private static void captureExtendedChunk(com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk,
+                                             int minSectionY, UserConnection connection) {
+        long key = chunkKey(chunk.getX(), chunk.getZ());
+        if (chunk.isFullChunk()) {
+            EXTENDED_SECTIONS.remove(key);
+        }
+
+        ChunkSection[] sections = chunk.getSections();
+        for (int sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+            int sectionY = minSectionY + sectionIndex;
+            if (sectionY >= 0 && sectionY < 16) {
+                continue;
+            }
+            ChunkSection section = sections[sectionIndex];
+            if (section == null) {
+                continue;
+            }
+
+            DataPalette palette = section.palette(PaletteType.BLOCKS);
+            Map<Integer, IBlockState> mappedStates = new HashMap<>();
+            for (int paletteIndex = 0; paletteIndex < palette.size(); paletteIndex++) {
+                int stateId = palette.idByIndex(paletteIndex);
+                mappedStates.put(stateId, mapToLegacyState(connection, stateId));
+            }
+
+            IBlockState[] states = new IBlockState[4096];
+            palette.forEachMatchingCoordinate(stateId -> true, coordinate -> {
+                IBlockState state = mappedStates.get(palette.idAt(coordinate));
+                if (state != null && state.getBlock() != net.minecraft.init.Blocks.air) {
+                    states[coordinate] = state;
+                }
+            });
+            EXTENDED_SECTIONS.computeIfAbsent(key, ignored -> Maps.newConcurrentMap()).put(sectionY, states);
+        }
+    }
+
+    private static void captureExtended(int x, int y, int z, int stateId, UserConnection connection) {
+        if (y >= 0 && y < 256) {
+            return;
+        }
+        BlockPos pos = new BlockPos(x, y, z);
+        long key = chunkKey(x >> 4, z >> 4);
+        ModernState modernState = decode(stateId, ProtocolVersion.v1_17);
+        IBlockState state = modernState != null ? modernState.toBlockState() : mapToLegacyState(connection, stateId);
+        IBlockState[] states = EXTENDED_SECTIONS.computeIfAbsent(key, ignored -> Maps.newConcurrentMap())
+                .computeIfAbsent(y >> 4, ignored -> new IBlockState[4096]);
+        states[ChunkSection.index(x & 15, y & 15, z & 15)] =
+                state != null && state.getBlock() != net.minecraft.init.Blocks.air ? state : null;
+        scheduleExtendedUpdate(pos, state, modernState);
+    }
+
+    private static void scheduleExtendedUpdate(BlockPos pos, IBlockState state, ModernState modernState) {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        if (minecraft == null) {
+            return;
+        }
+        minecraft.addScheduledTask(() -> {
+            if (minecraft.theWorld == null || !ModernWorldHeight.isValidY(pos.getY())
+                    || !minecraft.theWorld.isBlockLoaded(pos)) {
+                return;
+            }
+            Chunk chunk = minecraft.theWorld.getChunkFromBlockCoords(pos);
+            chunk.setBlockState(pos, state != null ? state : net.minecraft.init.Blocks.air.getDefaultState());
+            if (modernState != null && state != null) {
+                modernState.onApplied(pos, state);
+            }
+            chunk.refreshHeightMap();
+            minecraft.theWorld.markBlockForUpdate(pos);
+        });
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static IBlockState mapToLegacyState(UserConnection connection, int stateId) {
+        int mappedId = stateId;
+        try {
+            List<Protocol> protocols = connection.getProtocolInfo().getPipeline().pipes(
+                    Protocol1_17To1_16_4.class, false, Direction.CLIENTBOUND);
+            for (Protocol protocol : protocols) {
+                MappingData mappingData = protocol.getMappingData();
+                if (mappingData != null && mappingData.getBlockStateMappings() != null) {
+                    mappedId = mappingData.getNewBlockStateId(mappedId);
+                }
+                if (protocol instanceof Protocol1_9To1_8 protocol1_9To1_8) {
+                    mappedId = protocol1_9To1_8.getItemRewriter().handleBlockId(mappedId);
+                }
+            }
+        } catch (RuntimeException exception) {
+            return net.minecraft.init.Blocks.air.getDefaultState();
+        }
+        int blockId = mappedId >> 4;
+        int metadata = mappedId & 15;
+        IBlockState state = Block.getStateById(blockId | metadata << 12);
+        return state != null ? state : net.minecraft.init.Blocks.air.getDefaultState();
+    }
+
     private static void clearSourceStatesInSection(long key, ProtocolVersion sourceVersion, int sectionY) {
         ConcurrentMap<BlockPos, ModernState> states = CHUNKS.get(key);
         if (states == null) {
@@ -621,15 +729,33 @@ public final class ModernBlockStateTracker {
     }
 
     public static void applyChunk(Chunk chunk) {
+        Map<Integer, IBlockState[]> extendedSections = EXTENDED_SECTIONS.get(chunkKey(chunk.xPosition, chunk.zPosition));
+        boolean extendedChanged = extendedSections != null;
+        if (extendedSections != null) {
+            for (Map.Entry<Integer, IBlockState[]> entry : extendedSections.entrySet()) {
+                chunk.setExtendedSection(entry.getKey(), entry.getValue());
+            }
+        }
+
         Map<BlockPos, ModernState> states = CHUNKS.get(chunkKey(chunk.xPosition, chunk.zPosition));
         if (states == null) {
+            if (extendedChanged) {
+                chunk.refreshHeightMap();
+            }
             return;
         }
 
         for (Map.Entry<BlockPos, ModernState> entry : states.entrySet()) {
+            int y = entry.getKey().getY();
+            if (!chunk.isValidY(y)) {
+                continue;
+            }
             IBlockState state = entry.getValue().toBlockState();
             chunk.setBlockState(entry.getKey(), state);
             entry.getValue().onApplied(entry.getKey(), state);
+        }
+        if (extendedChanged) {
+            chunk.refreshHeightMap();
         }
     }
 

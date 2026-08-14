@@ -387,7 +387,7 @@ public class LightingEngine implements ILightingEngine {
             }
 
             if (nChunk != null) {
-                ExtendedBlockStorage nSection = nChunk.getBlockStorageArray()[nPos.getY() >> 4];
+                ExtendedBlockStorage nSection = nChunk.getBlockStorage(nPos.getY());
 
                 info.light = getCachedLightFor(nChunk, nSection, nPos, lightType);
                 info.section = nSection;

@@ -83,7 +83,7 @@ public class ChunkCache implements IBlockAccess
 
     public IBlockState getBlockState(BlockPos pos)
     {
-        if (pos.getY() >= 0 && pos.getY() < 256)
+        if (pos.getY() >= this.worldObj.getBottomY() && pos.getY() <= this.worldObj.getTopYInclusive())
         {
             int i = (pos.getX() >> 4) - this.chunkX;
             int j = (pos.getZ() >> 4) - this.chunkZ;
@@ -113,7 +113,7 @@ public class ChunkCache implements IBlockAccess
         {
             return 0;
         }
-        else if (pos.getY() >= 0 && pos.getY() < 256)
+        else if (pos.getY() >= this.worldObj.getBottomY() && pos.getY() <= this.worldObj.getTopYInclusive())
         {
             if (this.getBlockState(pos).getBlock().getUseNeighborBrightness())
             {
@@ -160,7 +160,7 @@ public class ChunkCache implements IBlockAccess
 
     public int getLightFor(EnumSkyBlock p_175628_1_, BlockPos pos)
     {
-        if (pos.getY() >= 0 && pos.getY() < 256)
+        if (pos.getY() >= this.worldObj.getBottomY() && pos.getY() <= this.worldObj.getTopYInclusive())
         {
             int i = (pos.getX() >> 4) - this.chunkX;
             int j = (pos.getZ() >> 4) - this.chunkZ;

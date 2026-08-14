@@ -45,7 +45,7 @@ public class ViewFrustum
                 for (int i1 = 0; i1 < this.countChunksZ; ++i1)
                 {
                     int j1 = (i1 * this.countChunksY + l) * this.countChunksX + k;
-                    BlockPos blockpos = new BlockPos(k * 16, l * 16, i1 * 16);
+                    BlockPos blockpos = new BlockPos(k * 16, this.world.getBottomY() + l * 16, i1 * 16);
                     this.renderChunks[j1] = renderChunkFactory.makeRenderChunk(this.world, this.renderGlobal, blockpos, j++);
 
                     if (Config.isVbo() && Config.isRenderRegions())
@@ -84,7 +84,7 @@ public class ViewFrustum
     {
         int i = renderDistanceChunks * 2 + 1;
         this.countChunksX = i;
-        this.countChunksY = 16;
+        this.countChunksY = this.world.getHeight() >> 4;
         this.countChunksZ = i;
     }
 
@@ -104,7 +104,7 @@ public class ViewFrustum
 
                 for (int l1 = 0; l1 < this.countChunksY; ++l1)
                 {
-                    int i2 = l1 * 16;
+                    int i2 = this.world.getBottomY() + l1 * 16;
                     RenderChunk renderchunk = this.renderChunks[(j1 * this.countChunksY + l1) * this.countChunksX + l];
                     BlockPos blockpos = renderchunk.getPosition();
 
@@ -143,6 +143,10 @@ public class ViewFrustum
         int l = MathHelper.bucketInt(toX, 16);
         int i1 = MathHelper.bucketInt(toY, 16);
         int j1 = MathHelper.bucketInt(toZ, 16);
+        int bottomSectionY = this.world.getBottomY() >> 4;
+        int topSectionY = this.world.getTopYInclusive() >> 4;
+        j = Math.max(j, bottomSectionY);
+        i1 = Math.min(i1, topSectionY);
 
         for (int k1 = i; k1 <= l; ++k1)
         {
@@ -155,12 +159,7 @@ public class ViewFrustum
 
             for (int i2 = j; i2 <= i1; ++i2)
             {
-                int j2 = i2 % this.countChunksY;
-
-                if (j2 < 0)
-                {
-                    j2 += this.countChunksY;
-                }
+                int j2 = i2 - bottomSectionY;
 
                 for (int k2 = k; k2 <= j1; ++k2)
                 {
@@ -182,7 +181,7 @@ public class ViewFrustum
     public RenderChunk getRenderChunk(BlockPos pos)
     {
         int i = pos.getX() >> 4;
-        int j = pos.getY() >> 4;
+        int j = (pos.getY() >> 4) - (this.world.getBottomY() >> 4);
         int k = pos.getZ() >> 4;
 
         if (j >= 0 && j < this.countChunksY)

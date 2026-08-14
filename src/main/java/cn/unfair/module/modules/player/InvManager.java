@@ -388,6 +388,12 @@ public class InvManager extends Module {
         LinkedHashSet<Integer> protectedSlots = this.buildProtectedSlots(plan);
         int currentBlockCount = this.getStackSize(plan.inventoryBlocksSlot);
 
+        for (int i = 35; i >= 0; i--) {
+            if (!protectedSlots.contains(i) && this.isWaterBucket(mc.thePlayer.inventory.getStackInSlot(i))) {
+                return i;
+            }
+        }
+
         if (this.getTotalThrowsCount() > this.throwsAmount.getValue()) {
             for (int i = 35; i >= 0; i--) {
                 if (!protectedSlots.contains(i) && this.isThrowable(mc.thePlayer.inventory.getStackInSlot(i))) {
