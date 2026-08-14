@@ -21,6 +21,7 @@ public class ViewFrustum
     protected int countChunksY;
     protected int countChunksX;
     protected int countChunksZ;
+    private final int bottomSectionY;
     public RenderChunk[] renderChunks;
     private Map<ChunkCoordIntPair, VboRegion[]> mapVboRegions = new HashMap<>();
 
@@ -28,6 +29,7 @@ public class ViewFrustum
     {
         this.renderGlobal = p_i46246_3_;
         this.world = worldIn;
+        this.bottomSectionY = worldIn.getBottomY() >> 4;
         this.setCountChunksXYZ(renderDistanceChunks);
         this.createRenderChunks(renderChunkFactory);
     }
@@ -45,7 +47,7 @@ public class ViewFrustum
                 for (int i1 = 0; i1 < this.countChunksZ; ++i1)
                 {
                     int j1 = (i1 * this.countChunksY + l) * this.countChunksX + k;
-                    BlockPos blockpos = new BlockPos(k * 16, this.world.getBottomY() + l * 16, i1 * 16);
+                    BlockPos blockpos = new BlockPos(k * 16, (this.bottomSectionY + l) << 4, i1 * 16);
                     this.renderChunks[j1] = renderChunkFactory.makeRenderChunk(this.world, this.renderGlobal, blockpos, j++);
 
                     if (Config.isVbo() && Config.isRenderRegions())
@@ -104,7 +106,7 @@ public class ViewFrustum
 
                 for (int l1 = 0; l1 < this.countChunksY; ++l1)
                 {
-                    int i2 = this.world.getBottomY() + l1 * 16;
+                    int i2 = (this.bottomSectionY + l1) << 4;
                     RenderChunk renderchunk = this.renderChunks[(j1 * this.countChunksY + l1) * this.countChunksX + l];
                     BlockPos blockpos = renderchunk.getPosition();
 
@@ -143,9 +145,8 @@ public class ViewFrustum
         int l = MathHelper.bucketInt(toX, 16);
         int i1 = MathHelper.bucketInt(toY, 16);
         int j1 = MathHelper.bucketInt(toZ, 16);
-        int bottomSectionY = this.world.getBottomY() >> 4;
-        int topSectionY = this.world.getTopYInclusive() >> 4;
-        j = Math.max(j, bottomSectionY);
+        int topSectionY = this.bottomSectionY + this.countChunksY - 1;
+        j = Math.max(j, this.bottomSectionY);
         i1 = Math.min(i1, topSectionY);
 
         for (int k1 = i; k1 <= l; ++k1)
@@ -159,7 +160,7 @@ public class ViewFrustum
 
             for (int i2 = j; i2 <= i1; ++i2)
             {
-                int j2 = i2 - bottomSectionY;
+                int j2 = i2 - this.bottomSectionY;
 
                 for (int k2 = k; k2 <= j1; ++k2)
                 {
@@ -181,7 +182,7 @@ public class ViewFrustum
     public RenderChunk getRenderChunk(BlockPos pos)
     {
         int i = pos.getX() >> 4;
-        int j = (pos.getY() >> 4) - (this.world.getBottomY() >> 4);
+        int j = (pos.getY() >> 4) - this.bottomSectionY;
         int k = pos.getZ() >> 4;
 
         if (j >= 0 && j < this.countChunksY)
@@ -207,6 +208,12 @@ public class ViewFrustum
         {
             return null;
         }
+    }
+
+    public boolean isWorldHeightChanged()
+    {
+        return this.bottomSectionY != (this.world.getBottomY() >> 4)
+                || this.countChunksY != (this.world.getHeight() >> 4);
     }
 
     private void updateVboRegion(RenderChunk p_updateVboRegion_1_)

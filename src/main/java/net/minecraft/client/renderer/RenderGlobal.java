@@ -848,7 +848,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
     }
 
     public void setupTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator) {
-        if (this.mc.gameSettings.renderDistanceChunks != this.renderDistanceChunks) {
+        if (this.mc.gameSettings.renderDistanceChunks != this.renderDistanceChunks || this.viewFrustum.isWorldHeightChanged()) {
             this.loadRenderers();
         }
 

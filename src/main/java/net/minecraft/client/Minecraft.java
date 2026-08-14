@@ -7,7 +7,6 @@ import cn.unfair.events.*;
 import cn.unfair.init.Initializer;
 import cn.unfair.module.modules.combat.NoHitDelay;
 import cn.unfair.util.RenderUtil;
-import cn.unfair.util.SoundUtil;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ViaProtocol;
 import com.google.common.collect.Lists;
@@ -136,7 +135,6 @@ import java.util.concurrent.FutureTask;
 public class Minecraft implements IThreadListener, IPlayerUsage {
     private static final Logger logger = LogManager.getLogger();
     private static final ResourceLocation UNFAIR_SPLASH_TEXTURE = ResourceLocation.of("unfair/image/splash.png");
-    private static final ResourceLocation UNFAIR_WELCOME_SOUND = ResourceLocation.of("minecraft:unfair/sound/welcome.ogg");
     private static final int UNFAIR_SPLASH_BACKGROUND = 0xFFA3A5A2;
     private static final int UNFAIR_SPLASH_SIZE = 250;
     // private static final ResourceLocation locationMojangPng = ResourceLocation.of("textures/gui/title/mojang.png");
@@ -589,7 +587,6 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
 
         this.renderGlobal.makeEntityOutlineShader();
         new Unfair();
-        SoundUtil.playSound(UNFAIR_WELCOME_SOUND);
     }
 
     private void registerMetadataSerializers() {

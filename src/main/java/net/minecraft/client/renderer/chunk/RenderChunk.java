@@ -759,7 +759,8 @@ public class RenderChunk {
 
             if (i1 != i || j1 != j || k1 != k)
             {
-                AabbFrame aabbframe = this.renderGlobal.getRenderChunk(new BlockPos(i1, j1, k1)).getBoundingBoxParent();
+                RenderChunk renderchunk = this.renderGlobal.getRenderChunk(new BlockPos(i1, j1, k1));
+                AabbFrame aabbframe = renderchunk != null ? renderchunk.getBoundingBoxParent() : null;
 
                 if (aabbframe != null && aabbframe.minX == (double)i1 && aabbframe.minY == (double)j1 && aabbframe.minZ == (double)k1)
                 {
