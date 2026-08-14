@@ -1,130 +1,66 @@
 package cn.unfair.module.modules.movement;
 
+import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.MoveInputEvent;
-import cn.unfair.events.TickEvent;
-import cn.unfair.events.TimerManipulationEvent;
-import cn.unfair.events.UpdateEvent;
+import cn.unfair.event.types.Priority;
+import cn.unfair.events.LivingUpdateEvent;
+import cn.unfair.events.StrafeEvent;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.MoveUtil;
 import net.minecraft.client.Minecraft;
 
 public class Speed extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-
-    public final BooleanProperty logging = new BooleanProperty("logging", false);
-    public final FloatProperty startTicks = new FloatProperty("start-ticks", 2.0F, 0.0F, 10.0F);
-    public final FloatProperty skipTicks = new FloatProperty("skip-ticks", 2.0F, 1.0F, 10.0F);
-    public final FloatProperty ticks = new FloatProperty("ticks", 3.0F, 1.0F, 10.0F);
-
-    private int airTicks;
-    private boolean canTimer;
-    private boolean timer;
-    private boolean skipping;
-    private long shifted;
-    private long previousTime;
+    public final FloatProperty multiplier = new FloatProperty("multiplier", 1.0F, 0.0F, 10.0F);
+    public final FloatProperty friction = new FloatProperty("friction", 1.0F, 0.0F, 10.0F);
+    public final PercentProperty strafe = new PercentProperty("strafe", 0);
 
     public Speed() {
         super("Speed", false);
     }
 
-    @Override
-    public void onEnabled() {
-        this.reset();
+    private boolean canBoost() {
+        Scaffold scaffold = (Scaffold) Unfair.moduleManager.modules.get(Scaffold.class);
+        return !scaffold.isEnabled() && MoveUtil.isForwardPressed()
+                && mc.thePlayer.getFoodStats().getFoodLevel() > 6
+                && !mc.thePlayer.isSneaking()
+                && !mc.thePlayer.isInWater()
+                && !mc.thePlayer.isInLava()
+                && !mc.thePlayer.getIsInWeb();
     }
 
-    @Override
-    public void onDisabled() {
-        this.reset();
-    }
-
-    private void reset() {
-        this.airTicks = 0;
-        this.canTimer = false;
-        this.timer = false;
-        this.skipping = false;
-        this.shifted = 0L;
-        this.previousTime = 0L;
-    }
-
-    private void log(String message) {
-        if (this.logging.getValue()) {
-            ChatUtil.sendFormatted(message);
-        }
-    }
-
-    @EventTarget
-    public void onTick(TickEvent event) {
-        if (!this.isEnabled() || event.type() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
-            return;
-        }
-
-        if (this.airTicks >= this.startTicks.getValue().intValue() && !this.canTimer) {
-            this.canTimer = true;
-            this.timer = false;
-            this.skipping = true;
-            this.shifted = 0L;
-            this.log("Skipping " + this.skipTicks.getValue().intValue() + " ticks");
-        }
-    }
-
-    @EventTarget
-    public void onUpdate(UpdateEvent event) {
-        if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
-            return;
-        }
-
-        if (mc.thePlayer.onGround) {
-            this.airTicks = 0;
-            this.canTimer = false;
-        } else {
-            this.airTicks++;
-        }
-
-        if (this.canTimer && !this.timer) {
-            this.timer = true;
-            for (int i = 0; i < this.ticks.getValue().intValue(); i++) {
-                mc.thePlayer.onUpdate();
+    @EventTarget(Priority.LOW)
+    public void onStrafe(StrafeEvent event) {
+        if (this.isEnabled() && this.canBoost()) {
+            if (mc.thePlayer.onGround) {
+                mc.thePlayer.motionY = 0.42F;
+                MoveUtil.setSpeed(
+                        MoveUtil.getJumpMotion() * (double) this.multiplier.getValue(),
+                        MoveUtil.getMoveYaw()
+                );
+            } else {
+                if (this.friction.getValue() != 1.0F) {
+                    event.setFriction(event.getFriction() * this.friction.getValue());
+                }
+                if (this.strafe.getValue() > 0) {
+                    double speed = MoveUtil.getSpeed();
+                    MoveUtil.setSpeed(speed * (double) ((float) (100 - this.strafe.getValue()) / 100.0F), MoveUtil.getDirectionYaw());
+                    MoveUtil.addSpeed(
+                            speed * (double) ((float) this.strafe.getValue() / 100.0F), MoveUtil.getMoveYaw()
+                    );
+                    MoveUtil.setSpeed(speed);
+                }
             }
         }
     }
 
-    @EventTarget
-    public void onMoveInput(MoveInputEvent event) {
-        if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null) {
-            return;
+    @EventTarget(Priority.LOW)
+    public void onLivingUpdate(LivingUpdateEvent event) {
+        if (this.isEnabled() && this.canBoost()) {
+            mc.thePlayer.movementInput.jump = false;
         }
-
-        mc.thePlayer.movementInput.jump = true;
-    }
-
-    @EventTarget
-    public void onTimerManipulation(TimerManipulationEvent event) {
-        if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null) {
-            return;
-        }
-
-        long now = event.getTime();
-        if (this.previousTime == 0L) {
-            this.previousTime = now;
-            return;
-        }
-
-        if (this.skipping) {
-            this.shifted += now - this.previousTime;
-            if (this.shifted >= this.skipTicks.getValue().intValue() * 50L) {
-                this.shifted = 0L;
-                this.skipping = false;
-                this.log("Skip finished");
-            }
-        } else {
-            this.shifted = 0L;
-        }
-
-        this.previousTime = now;
-        event.setTime(now - this.shifted);
     }
 }
