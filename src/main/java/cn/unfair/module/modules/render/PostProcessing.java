@@ -9,7 +9,7 @@ import java.awt.*;
 public class PostProcessing extends Module {
     public final BooleanProperty blur = new BooleanProperty("Blur", true);
     public final IntProperty blurIterations = new IntProperty("Blur Iterations", 2, 1, 10);
-    public final IntProperty blurOffset = new IntProperty("Blur Offset", 5, 1, 10);
+    public final FloatProperty blurOffset = new FloatProperty("Blur Offset", 5.0F, 1.0F, 10.0F);
 
     public final BooleanProperty bloom = new BooleanProperty("Bloom", true);
     public final ModeProperty bloomColorMode = new ModeProperty(
@@ -22,7 +22,7 @@ public class PostProcessing extends Module {
     public final ColorProperty bloomCustom2 = new ColorProperty("Bloom Color 2", Color.BLUE.getRGB(), () -> this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
     public final ColorProperty bloomCustom3 = new ColorProperty("Bloom Color 3", Color.WHITE.getRGB(), () -> this.bloomColorMode.getValue() == 5);
     public final IntProperty bloomIterations = new IntProperty("Bloom Iterations", 2, 1, 10);
-    public final IntProperty bloomOffset = new IntProperty("Bloom Offset", 2, 1, 10);
+    public final FloatProperty bloomOffset = new FloatProperty("Bloom Offset", 2.0F, 1.0F, 10.0F);
 
     public PostProcessing() {
         super("PostProcessing", false, true);

@@ -116,11 +116,11 @@ public class PotionEffects extends Module {
         float right = x + size[0] + 3.0F;
         float bottom = y + size[1];
         if (mask) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, color);
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, color);
             return;
         }
         if (this.background.getValue()) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.0F, new Color(0, 0, 0, 90).getRGB());
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, new Color(0, 0, 0, 90).getRGB());
         }
         float rowY = y;
         for (PotionEffect effect : effects) {

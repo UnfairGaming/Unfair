@@ -18,12 +18,12 @@ public class PostProcessing {
     private static int cachedScaledWidth = 0;
     private static int cachedScaledHeight = 0;
 
-    public static void drawBlurFullScreen(int iterations, int offset) {
+    public static void drawBlurFullScreen(int iterations, float offset) {
         updateScaledResolutionCache();
         drawBlurInternal(0.0F, 0.0F, cachedScaledWidth, cachedScaledHeight, iterations, offset);
     }
 
-    public static void drawBlur(float x, float y, float x2, float y2, int iterations, int offset) {
+    public static void drawBlur(float x, float y, float x2, float y2, int iterations, float offset) {
         if (!OpenGlHelper.isFramebufferEnabled()) return;
 
         float left = x;
@@ -51,13 +51,13 @@ public class PostProcessing {
         return BloomShader.beginFramebuffer();
     }
 
-    public static void endBloom(Framebuffer bloomBuffer, int iterations, int offset, Color color) {
+    public static void endBloom(Framebuffer bloomBuffer, int iterations, float offset, Color color) {
         if (bloomBuffer == null) return;
         mc.getFramebuffer().forceBind(true);
-        BloomShader.renderBloom(bloomBuffer.framebufferTexture, iterations, Math.max(1, offset), color);
+        BloomShader.renderBloom(bloomBuffer.framebufferTexture, iterations, Math.max(1.0F, offset), color);
     }
 
-    private static void drawBlurInternal(float left, float top, float right, float bottom, int iterations, int offset) {
+    private static void drawBlurInternal(float left, float top, float right, float bottom, int iterations, float offset) {
         int width = cachedScaledWidth;
         int height = cachedScaledHeight;
         float radius = Math.max(0.0f, offset);

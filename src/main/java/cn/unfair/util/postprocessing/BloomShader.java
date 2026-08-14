@@ -62,9 +62,9 @@ public class BloomShader {
         }
     }
 
-    public static void renderBloom(int framebufferTexture, int iterations, int offset, Color color) {
+    public static void renderBloom(int framebufferTexture, int iterations, float offset, Color color) {
         iterations = Math.max(1, iterations);
-        offset = Math.max(1, offset);
+        offset = Math.max(1.0F, offset);
 
         if (framebufferList.isEmpty() || currentIterations != iterations || framebufferList.get(0).framebufferWidth != mc.displayWidth || framebufferList.get(0).framebufferHeight != mc.displayHeight) {
             initFramebuffers(iterations);
