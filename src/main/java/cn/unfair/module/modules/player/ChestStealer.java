@@ -54,12 +54,6 @@ public class ChestStealer extends Module {
                 && ItemUtil.isNotSpecialItem(stack);
     }
 
-    private boolean shouldSkipTrashStack(ItemStack stack) {
-        return this.skipTrash.getValue()
-                && !ItemUtil.isRequiredInventoryItem(stack)
-                && ItemUtil.isNotSpecialItem(stack);
-    }
-
     private boolean isValidGameMode() {
         GameType gameType = mc.playerController.getCurrentGameType();
         return gameType == GameType.SURVIVAL || gameType == GameType.ADVENTURE;
