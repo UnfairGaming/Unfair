@@ -11,7 +11,6 @@ public class Velocity extends ModuleWithModuleSettings {
     public Velocity() {
         super("Velocity", false, "Mode",
                 new VanillaVelocity(),
-                new PredictionVelocity(),
                 new HypixelVelocity(),
                 new ReduceVelocity(),
                 new DelayVelocity(),
