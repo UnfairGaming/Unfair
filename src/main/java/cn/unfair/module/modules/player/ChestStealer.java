@@ -50,6 +50,12 @@ public class ChestStealer extends Module {
         return item instanceof ItemSnowball || item instanceof ItemEgg || item instanceof ItemFishingRod;
     }
 
+    private boolean shouldSkipTrashStack(ItemStack stack) {
+        return this.skipTrash.getValue()
+                && !ItemUtil.isRequiredInventoryItem(stack)
+                && ItemUtil.isNotSpecialItem(stack);
+    }
+
     private boolean isValidGameMode() {
         GameType gameType = mc.playerController.getCurrentGameType();
         return gameType == GameType.SURVIVAL || gameType == GameType.ADVENTURE;
@@ -86,7 +92,7 @@ public class ChestStealer extends Module {
                 }
 
                 // Skip trash items if enabled
-                if (this.skipTrash.getValue() && ItemUtil.isNotSpecialItem(stack)) {
+                if (this.shouldSkipTrashStack(stack)) {
                     continue;
                 }
 
@@ -106,7 +112,7 @@ public class ChestStealer extends Module {
                     }
 
                     // Skip trash items if enabled
-                    if (this.skipTrash.getValue() && ItemUtil.isNotSpecialItem(stack)) {
+                    if (this.shouldSkipTrashStack(stack)) {
                         continue;
                     }
 
@@ -315,7 +321,7 @@ public class ChestStealer extends Module {
                                         this.interactSlot(container.windowId, i);
                                         return;
                                     }
-                                    if (!this.skipTrash.getValue() || !ItemUtil.isNotSpecialItem(stack)) {
+                                    if (!this.shouldSkipTrashStack(stack)) {
                                         this.interactSlot(container.windowId, i);
                                         return;
                                     }

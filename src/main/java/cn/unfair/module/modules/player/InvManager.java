@@ -10,7 +10,6 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.via.ModernOffhandInteraction;
-import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.enchantment.Enchantment;
@@ -49,10 +48,10 @@ public class InvManager extends Module {
     public final IntProperty axeSlot = new IntProperty("Axe Slot", 8, 1, 10, this.axe::getValue);
     public final BooleanProperty blocksEnabled = new BooleanProperty("Blocks Enabled", true);
     public final IntProperty blocksSlot = new IntProperty("Blocks Slot", 2, 1, 10, this.blocksEnabled::getValue);
-    public final IntProperty blocks = new IntProperty("Blocks", 128, 64, 2304, this.blocksEnabled::getValue);
+    public final IntProperty blocks = new IntProperty("Blocks Amount", 128, 64, 2304);
     public final BooleanProperty throwsEnabled = new BooleanProperty("Throws", true);
     public final IntProperty throwsSlot = new IntProperty("Throws Slot", 3, 1, 10, this.throwsEnabled::getValue);
-    public final IntProperty throwsAmount = new IntProperty("Throws Amount", 64, 16, 320, this.throwsEnabled::getValue);
+    public final IntProperty throwsAmount = new IntProperty("Throws Amount", 64, 16, 320);
     public final BooleanProperty pearl = new BooleanProperty("Pearl", false);
     public final IntProperty pearlSlot = new IntProperty("Pearl Slot", 6, 1, 10, this.pearl::getValue);
     public final BooleanProperty gapple = new BooleanProperty("Gapple", true);
@@ -128,11 +127,6 @@ public class InvManager extends Module {
         return stack.getItem() == Items.water_bucket;
     }
 
-    private boolean isTotem(ItemStack stack) {
-        if (stack == null) return false;
-        return "totem_of_undying".equals(ViaBackwardsItemModels.getModelName(stack));
-    }
-
     private double getDurabilityScore(ItemStack stack) {
         if (stack == null || !stack.isItemStackDamageable()) {
             return 0.0D;
@@ -171,7 +165,7 @@ public class InvManager extends Module {
                 || item instanceof ItemEnderPearl) {
             return true;
         }
-        if (this.isTotem(stack)) {
+        if (ItemUtil.isRequiredInventoryItem(stack)) {
             return true;
         }
         if (item instanceof ItemBlock) {
@@ -360,37 +354,21 @@ public class InvManager extends Module {
         LinkedHashSet<Integer> protectedSlots = new LinkedHashSet<>();
         for (int slot : plan.equippedArmorSlots) this.addProtectedSlot(protectedSlots, slot);
         for (int slot : plan.inventoryArmorSlots) this.addProtectedSlot(protectedSlots, slot);
-        if (this.sword.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedSwordSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventorySwordSlot);
-        }
-        if (this.pickaxe.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedPickaxeSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryPickaxeSlot);
-        }
-        if (this.shovel.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedShovelSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryShovelSlot);
-        }
-        if (this.axe.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedAxeSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryAxeSlot);
-        }
-        if (this.blocksEnabled.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.inventoryBlocksSlot);
-        }
-        if (this.throwsEnabled.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedThrowsSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryThrowsSlot);
-        }
-        if (this.pearl.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedPearlSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryPearlSlot);
-        }
-        if (this.gapple.getValue()) {
-            this.addProtectedSlot(protectedSlots, plan.equippedGappleSlot);
-            this.addProtectedSlot(protectedSlots, plan.inventoryGappleSlot);
-        }
+        this.addProtectedSlot(protectedSlots, plan.equippedSwordSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventorySwordSlot);
+        this.addProtectedSlot(protectedSlots, plan.equippedPickaxeSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryPickaxeSlot);
+        this.addProtectedSlot(protectedSlots, plan.equippedShovelSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryShovelSlot);
+        this.addProtectedSlot(protectedSlots, plan.equippedAxeSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryAxeSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryBlocksSlot);
+        this.addProtectedSlot(protectedSlots, plan.equippedThrowsSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryThrowsSlot);
+        this.addProtectedSlot(protectedSlots, plan.equippedPearlSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryPearlSlot);
+        this.addProtectedSlot(protectedSlots, plan.equippedGappleSlot);
+        this.addProtectedSlot(protectedSlots, plan.inventoryGappleSlot);
         this.addUniqueProtectedSlot(protectedSlots, this::isFishingRod, plan.equippedFishingRodSlot, plan.inventoryFishingRodSlot);
         this.addUniqueProtectedSlot(protectedSlots, this::isBow, plan.equippedBowSlot, plan.inventoryBowSlot);
         this.addUniqueProtectedSlot(protectedSlots, this::isWaterBucket, plan.equippedWaterBucketSlot, plan.inventoryWaterBucketSlot);
@@ -414,9 +392,9 @@ public class InvManager extends Module {
 
     private Integer findTrashSlot(InventoryPlan plan) {
         LinkedHashSet<Integer> protectedSlots = this.buildProtectedSlots(plan);
-        int currentBlockCount = this.blocksEnabled.getValue() ? this.getStackSize(plan.inventoryBlocksSlot) : 0;
+        int currentBlockCount = this.getStackSize(plan.inventoryBlocksSlot);
 
-        if (this.throwsEnabled.getValue() && this.getTotalThrowsCount() > this.throwsAmount.getValue()) {
+        if (this.getTotalThrowsCount() > this.throwsAmount.getValue()) {
             for (int i = 35; i >= 0; i--) {
                 if (!protectedSlots.contains(i) && this.isThrowable(mc.thePlayer.inventory.getStackInSlot(i))) {
                     return i;
@@ -461,29 +439,29 @@ public class InvManager extends Module {
         }
 
         plan.swordTarget = this.swordSlot.getValue() - 1;
-        plan.equippedSwordSlot = this.sword.getValue() ? ItemUtil.findSwordInInventorySlot(plan.swordTarget, true) : -1;
-        plan.inventorySwordSlot = this.sword.getValue() ? ItemUtil.findSwordInInventorySlot(plan.swordTarget, false) : -1;
+        plan.equippedSwordSlot = ItemUtil.findSwordInInventorySlot(plan.swordTarget, true);
+        plan.inventorySwordSlot = ItemUtil.findSwordInInventorySlot(plan.swordTarget, false);
         plan.pickaxeTarget = this.pickaxeSlot.getValue() - 1;
-        plan.equippedPickaxeSlot = this.pickaxe.getValue() ? ItemUtil.findInventorySlot("pickaxe", plan.pickaxeTarget, true) : -1;
-        plan.inventoryPickaxeSlot = this.pickaxe.getValue() ? ItemUtil.findInventorySlot("pickaxe", plan.pickaxeTarget, false) : -1;
+        plan.equippedPickaxeSlot = ItemUtil.findInventorySlot("pickaxe", plan.pickaxeTarget, true);
+        plan.inventoryPickaxeSlot = ItemUtil.findInventorySlot("pickaxe", plan.pickaxeTarget, false);
         plan.shovelTarget = this.shovelSlot.getValue() - 1;
-        plan.equippedShovelSlot = this.shovel.getValue() ? ItemUtil.findInventorySlot("shovel", plan.shovelTarget, true) : -1;
-        plan.inventoryShovelSlot = this.shovel.getValue() ? ItemUtil.findInventorySlot("shovel", plan.shovelTarget, false) : -1;
+        plan.equippedShovelSlot = ItemUtil.findInventorySlot("shovel", plan.shovelTarget, true);
+        plan.inventoryShovelSlot = ItemUtil.findInventorySlot("shovel", plan.shovelTarget, false);
         plan.axeTarget = this.axeSlot.getValue() - 1;
-        plan.equippedAxeSlot = this.axe.getValue() ? ItemUtil.findInventorySlot("axe", plan.axeTarget, true) : -1;
-        plan.inventoryAxeSlot = this.axe.getValue() ? ItemUtil.findInventorySlot("axe", plan.axeTarget, false) : -1;
+        plan.equippedAxeSlot = ItemUtil.findInventorySlot("axe", plan.axeTarget, true);
+        plan.inventoryAxeSlot = ItemUtil.findInventorySlot("axe", plan.axeTarget, false);
         plan.blocksTarget = this.blocksSlot.getValue() - 1;
-        plan.inventoryBlocksSlot = this.blocksEnabled.getValue() ? ItemUtil.findInventorySlot(plan.blocksTarget) : -1;
+        plan.inventoryBlocksSlot = ItemUtil.findInventorySlot(plan.blocksTarget);
         plan.throwsTarget = this.throwsSlot.getValue() - 1;
-        int bestThrowsSlot = this.throwsEnabled.getValue() ? this.findBestMatchingSlot(plan.throwsTarget, this::isThrowable, stack -> stack.stackSize) : -1;
+        int bestThrowsSlot = this.findBestMatchingSlot(plan.throwsTarget, this::isThrowable, stack -> stack.stackSize);
         plan.equippedThrowsSlot = this.hotbarSlotOrMissing(bestThrowsSlot);
         plan.inventoryThrowsSlot = this.inventorySlotOrMissing(bestThrowsSlot);
         plan.pearlTarget = this.pearlSlot.getValue() - 1;
-        plan.equippedPearlSlot = this.pearl.getValue() ? this.findMatchingSlot(plan.pearlTarget, true, this::isPearl) : -1;
-        plan.inventoryPearlSlot = this.pearl.getValue() ? this.findMatchingSlot(plan.pearlTarget, false, this::isPearl) : -1;
+        plan.equippedPearlSlot = this.findMatchingSlot(plan.pearlTarget, true, this::isPearl);
+        plan.inventoryPearlSlot = this.findMatchingSlot(plan.pearlTarget, false, this::isPearl);
         plan.gappleTarget = this.gappleSlot.getValue() - 1;
-        plan.equippedGappleSlot = this.gapple.getValue() ? this.findMatchingSlot(plan.gappleTarget, true, this::isGapple) : -1;
-        plan.inventoryGappleSlot = this.gapple.getValue() ? this.findMatchingSlot(plan.gappleTarget, false, this::isGapple) : -1;
+        plan.equippedGappleSlot = this.findMatchingSlot(plan.gappleTarget, true, this::isGapple);
+        plan.inventoryGappleSlot = this.findMatchingSlot(plan.gappleTarget, false, this::isGapple);
         plan.fishingRodTarget = this.fishingRodSlot.getValue() - 1;
         int bestFishingRodSlot = this.findBestMatchingSlot(plan.fishingRodTarget, this::isFishingRod, this::getFishingRodScore);
         plan.equippedFishingRodSlot = this.hotbarSlotOrMissing(bestFishingRodSlot);

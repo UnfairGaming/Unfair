@@ -1,5 +1,6 @@
 package cn.unfair.util;
 
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -18,6 +19,20 @@ import java.util.Objects;
 public class ItemUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ArrayList<Integer> specialItems = new SpecialItems();
+
+    public static boolean isRequiredInventoryItem(ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        if (itemStack.getItem() == Items.water_bucket) {
+            return true;
+        }
+
+        String modelName = ViaBackwardsItemModels.getModelName(itemStack);
+        return "mace".equals(modelName)
+                || "totem_of_undying".equals(modelName)
+                || "end_crystal".equals(modelName);
+    }
 
     public static boolean isNotSpecialItem(ItemStack itemStack) {
         if (itemStack == null) {
