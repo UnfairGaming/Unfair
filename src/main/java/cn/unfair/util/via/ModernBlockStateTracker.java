@@ -397,7 +397,9 @@ public final class ModernBlockStateTracker {
     private static void captureNativeChunk(com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk) {
         long key = chunkKey(chunk.getX(), chunk.getZ());
         if (chunk.isFullChunk()) {
-            NATIVE_STATES.remove(key);
+            for (int sectionY = 0; sectionY < 16; sectionY++) {
+                clearNativeStatesInSection(key, sectionY);
+            }
         }
 
         ChunkSection[] sections = chunk.getSections();
@@ -586,6 +588,7 @@ public final class ModernBlockStateTracker {
             if (sectionY >= 0 && sectionY < 16) {
                 continue;
             }
+            clearNativeStatesInSection(key, sectionY);
             ChunkSection section = sections[sectionIndex];
             if (section == null) {
                 continue;
@@ -593,16 +596,30 @@ public final class ModernBlockStateTracker {
 
             DataPalette palette = section.palette(PaletteType.BLOCKS);
             Map<Integer, IBlockState> mappedStates = new HashMap<>();
+            Map<Integer, NativeState> nativeStates = new HashMap<>();
             for (int paletteIndex = 0; paletteIndex < palette.size(); paletteIndex++) {
                 int stateId = palette.idByIndex(paletteIndex);
                 mappedStates.put(stateId, mapToLegacyState(connection, stateId));
+                NativeState nativeState = mapToNativeState(connection, stateId);
+                if (nativeState != null) {
+                    nativeStates.put(stateId, nativeState);
+                }
             }
 
             IBlockState[] states = new IBlockState[4096];
             palette.forEachMatchingCoordinate(stateId -> true, coordinate -> {
-                IBlockState state = mappedStates.get(palette.idAt(coordinate));
+                int stateId = palette.idAt(coordinate);
+                IBlockState state = mappedStates.get(stateId);
                 if (state != null && state.getBlock() != net.minecraft.init.Blocks.air) {
                     states[coordinate] = state;
+                }
+                NativeState nativeState = nativeStates.get(stateId);
+                if (nativeState != null) {
+                    int x = (chunk.getX() << 4) + ChunkSection.xFromIndex(coordinate);
+                    int y = (sectionY << 4) + ChunkSection.yFromIndex(coordinate);
+                    int z = (chunk.getZ() << 4) + ChunkSection.zFromIndex(coordinate);
+                    NATIVE_STATES.computeIfAbsent(key, ignored -> Maps.newConcurrentMap())
+                            .put(new BlockPos(x, y, z), nativeState);
                 }
             });
             EXTENDED_SECTIONS.computeIfAbsent(key, ignored -> Maps.newConcurrentMap()).put(sectionY, states);
@@ -617,6 +634,7 @@ public final class ModernBlockStateTracker {
         long key = chunkKey(x >> 4, z >> 4);
         ModernState modernState = decode(stateId, ProtocolVersion.v1_17);
         IBlockState state = modernState != null ? modernState.toBlockState() : mapToLegacyState(connection, stateId);
+        updateNativeState(pos, mapToNativeState(connection, stateId));
         IBlockState[] states = EXTENDED_SECTIONS.computeIfAbsent(key, ignored -> Maps.newConcurrentMap())
                 .computeIfAbsent(y >> 4, ignored -> new IBlockState[4096]);
         states[ChunkSection.index(x & 15, y & 15, z & 15)] =
@@ -666,6 +684,41 @@ public final class ModernBlockStateTracker {
         int metadata = mappedId & 15;
         IBlockState state = Block.getStateById(blockId | metadata << 12);
         return state != null ? state : net.minecraft.init.Blocks.air.getDefaultState();
+    }
+
+    private static NativeState mapToNativeState(UserConnection connection, int stateId) {
+        int mappedId = stateId;
+        try {
+            List<Protocol> protocols = connection.getProtocolInfo().getPipeline().pipes(
+                    Protocol1_17To1_16_4.class, false, Direction.CLIENTBOUND);
+            for (Protocol protocol : protocols) {
+                if (protocol instanceof Protocol1_13To1_12_2) {
+                    break;
+                }
+                MappingData mappingData = protocol.getMappingData();
+                if (mappingData != null && mappingData.getBlockStateMappings() != null) {
+                    mappedId = mappingData.getNewBlockStateId(mappedId);
+                }
+            }
+            return decodeNative(mappedId);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    private static void updateNativeState(BlockPos pos, NativeState state) {
+        long key = chunkKey(pos.getX() >> 4, pos.getZ() >> 4);
+        if (state != null) {
+            NATIVE_STATES.computeIfAbsent(key, ignored -> Maps.newConcurrentMap()).put(pos, state);
+            return;
+        }
+        ConcurrentMap<BlockPos, NativeState> states = NATIVE_STATES.get(key);
+        if (states != null) {
+            states.remove(pos);
+            if (states.isEmpty()) {
+                NATIVE_STATES.remove(key, states);
+            }
+        }
     }
 
     private static void clearSourceStatesInSection(long key, ProtocolVersion sourceVersion, int sectionY) {
