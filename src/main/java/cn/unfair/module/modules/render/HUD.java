@@ -650,7 +650,7 @@ public class HUD extends Module {
 
     private void drawHudRoundedRect(HudEntry entry, int color, boolean mask) {
         float hudScale = this.scale.getValue();
-        float radius = 2.0F * hudScale;
+        float radius = 2.5F * hudScale;
         float left = entry.left * hudScale;
         float top = entry.top * hudScale;
         float right = entry.right * hudScale;
