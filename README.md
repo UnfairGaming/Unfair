@@ -16,7 +16,7 @@ Linux/macOS:
 ./gradlew clean build
 ```
 
-构建产物位于 `build/libs/`，应用分发包位于 `build/distributions/`。
+构建产物位于 `build/libs/`。
 
 ## 运行
 
