@@ -45,9 +45,13 @@ public class ChestStealer extends Module {
     }
 
     private boolean isProjectileStack(ItemStack stack) {
-        if (stack == null) return false;
-        Item item = stack.getItem();
-        return item instanceof ItemSnowball || item instanceof ItemEgg || item instanceof ItemFishingRod;
+        return ItemUtil.isProjectile(stack) || ItemUtil.isFishingRod(stack);
+    }
+
+    private boolean shouldSkipTrashStack(ItemStack stack) {
+        return this.skipTrash.getValue()
+                && !ItemUtil.isRequiredInventoryItem(stack)
+                && ItemUtil.isNotSpecialItem(stack);
     }
 
     private boolean shouldSkipTrashStack(ItemStack stack) {
@@ -238,33 +242,32 @@ public class ChestStealer extends Module {
                                 for (int i = 0; i < inventory.getSizeInventory(); i++) {
                                     if (container.getSlot(i).getHasStack()) {
                                         ItemStack stack = container.getSlot(i).getStack();
-                                        Item item = stack.getItem();
-                                        if (item instanceof ItemSword) {
+                                        int armorType = ItemUtil.getArmorType(stack);
+                                        if (ItemUtil.isSword(stack)) {
                                             double damage = ItemUtil.getAttackBonus(stack);
                                             if (bestSword == -1 || damage > bestDamage) {
                                                 bestSword = i;
                                                 bestDamage = damage;
                                             }
-                                        } else if (item instanceof ItemArmor) {
-                                            int armorType = ((ItemArmor) item).armorType;
+                                        } else if (armorType != -1) {
                                             double protectionLevel = ItemUtil.getArmorProtection(stack);
                                             if (bestArmorSlots[armorType] == -1 || protectionLevel > bestArmorProtection[armorType]) {
                                                 bestArmorSlots[armorType] = i;
                                                 bestArmorProtection[armorType] = protectionLevel;
                                             }
-                                        } else if (item instanceof ItemPickaxe) {
+                                        } else if (ItemUtil.isTool(stack, "pickaxe")) {
                                             float efficiency = ItemUtil.getToolEfficiency(stack);
                                             if (bestPickaxeSlot == -1 || efficiency > bestPickaxeEfficiency) {
                                                 bestPickaxeSlot = i;
                                                 bestPickaxeEfficiency = efficiency;
                                             }
-                                        } else if (item instanceof ItemSpade) {
+                                        } else if (ItemUtil.isTool(stack, "shovel")) {
                                             float efficiency = ItemUtil.getToolEfficiency(stack);
                                             if (bestShovelSlot == -1 || efficiency > bestShovelEfficiency) {
                                                 bestShovelSlot = i;
                                                 bestShovelEfficiency = efficiency;
                                             }
-                                        } else if (item instanceof ItemAxe) {
+                                        } else if (ItemUtil.isTool(stack, "axe")) {
                                             float efficiency = ItemUtil.getToolEfficiency(stack);
                                             if (bestAxeSlot == -1 || efficiency > bestAxeEfficiency) {
                                                 bestAxeSlot = i;

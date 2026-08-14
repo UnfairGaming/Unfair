@@ -20,23 +20,106 @@ public class ItemUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ArrayList<Integer> specialItems = new SpecialItems();
 
+    private static String getViaModelName(ItemStack itemStack) {
+        return itemStack == null ? null : ViaBackwardsItemModels.getModelName(itemStack);
+    }
+
+    private static boolean isToolModel(String modelName, String toolClass) {
+        return modelName != null && modelName.endsWith("_" + toolClass);
+    }
+
+    public static boolean isSword(ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        String modelName = getViaModelName(itemStack);
+        return modelName != null ? modelName.endsWith("_sword") : itemStack.getItem() instanceof ItemSword;
+    }
+
+    public static boolean isTool(ItemStack itemStack, String toolClass) {
+        if (itemStack == null) {
+            return false;
+        }
+        String modelName = getViaModelName(itemStack);
+        return modelName != null
+                ? isToolModel(modelName, toolClass)
+                : itemStack.getItem() instanceof ItemTool
+                && itemStack.getItem().getToolClasses(itemStack).contains(toolClass);
+    }
+
+    public static boolean isTool(ItemStack itemStack) {
+        if (itemStack == null) {
+            return false;
+        }
+        String modelName = getViaModelName(itemStack);
+        return modelName != null
+                ? isToolModel(modelName, "pickaxe")
+                || isToolModel(modelName, "shovel")
+                || isToolModel(modelName, "axe")
+                : itemStack.getItem() instanceof ItemTool;
+    }
+
+    public static int getArmorType(ItemStack itemStack) {
+        if (itemStack == null) {
+            return -1;
+        }
+        String modelName = getViaModelName(itemStack);
+        if (modelName == null) {
+            return itemStack.getItem() instanceof ItemArmor ? ((ItemArmor) itemStack.getItem()).armorType : -1;
+        }
+        if (modelName.endsWith("_helmet")) return 0;
+        if (modelName.endsWith("_chestplate")) return 1;
+        if (modelName.endsWith("_leggings")) return 2;
+        if (modelName.endsWith("_boots")) return 3;
+        return -1;
+    }
+
+    public static boolean isEnderPearl(ItemStack itemStack) {
+        return itemStack != null && getViaModelName(itemStack) == null
+                && itemStack.getItem() instanceof ItemEnderPearl;
+    }
+
+    public static boolean isGoldenApple(ItemStack itemStack) {
+        return itemStack != null && getViaModelName(itemStack) == null
+                && itemStack.getItem() instanceof ItemAppleGold;
+    }
+
+    public static boolean isFishingRod(ItemStack itemStack) {
+        return itemStack != null && getViaModelName(itemStack) == null
+                && itemStack.getItem() instanceof ItemFishingRod;
+    }
+
+    public static boolean isBow(ItemStack itemStack) {
+        return itemStack != null && getViaModelName(itemStack) == null
+                && itemStack.getItem() instanceof ItemBow;
+    }
+
     public static boolean isRequiredInventoryItem(ItemStack itemStack) {
         if (itemStack == null) {
             return false;
         }
-        if (itemStack.getItem() == Items.water_bucket) {
-            return true;
+        String modelName = getViaModelName(itemStack);
+        if (modelName == null) {
+            return itemStack.getItem() == Items.water_bucket;
         }
-
-        String modelName = ViaBackwardsItemModels.getModelName(itemStack);
         return "mace".equals(modelName)
                 || "totem_of_undying".equals(modelName)
                 || "end_crystal".equals(modelName);
     }
 
+    public static boolean isWaterBucket(ItemStack itemStack) {
+        return itemStack != null && getViaModelName(itemStack) == null
+                && itemStack.getItem() == Items.water_bucket;
+    }
+
     public static boolean isNotSpecialItem(ItemStack itemStack) {
         if (itemStack == null) {
             return false;
+        }
+        String modelName = getViaModelName(itemStack);
+        if (modelName != null) {
+            return !isRequiredInventoryItem(itemStack)
+                    && !ViaBackwardsItemModels.isBlockModel(modelName);
         }
         Item item = itemStack.getItem();
         if (item instanceof ItemBlock) {
@@ -56,6 +139,10 @@ public class ItemUtil {
         if (itemStack == null || itemStack.stackSize < 1) {
             return false;
         }
+        String modelName = getViaModelName(itemStack);
+        if (modelName != null) {
+            return ViaBackwardsItemModels.isBlockModel(modelName);
+        }
         Item item = itemStack.getItem();
         if (item instanceof ItemBlock) {
             return ItemUtil.isContainerBlock((ItemBlock) item);
@@ -71,7 +158,7 @@ public class ItemUtil {
 
     public static double getAttackBonus(ItemStack itemStack) {
         double attackBonus = 0.0;
-        if (itemStack == null) {
+        if (!isSword(itemStack)) {
             return 0.0;
         }
         Multimap<String, AttributeModifier> multimap = itemStack.getAttributeModifiers();
@@ -90,13 +177,11 @@ public class ItemUtil {
 
     public static float getToolEfficiency(ItemStack itemStack) {
         float efficiency = 1.0f;
-        if (itemStack != null) {
-            if (itemStack.getItem() instanceof ItemTool) {
-                int enchantLevel;
-                efficiency = ((ItemTool) itemStack.getItem()).getToolMaterial().getEfficiencyOnProperMaterial();
-                if (efficiency > 1.0f && (enchantLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.efficiency.effectId, itemStack)) > 0) {
-                    efficiency += (float) (enchantLevel * enchantLevel + 1);
-                }
+        if (isTool(itemStack) && itemStack.getItem() instanceof ItemTool) {
+            int enchantLevel;
+            efficiency = ((ItemTool) itemStack.getItem()).getToolMaterial().getEfficiencyOnProperMaterial();
+            if (efficiency > 1.0f && (enchantLevel = EnchantmentHelper.getEnchantmentLevel(Enchantment.efficiency.effectId, itemStack)) > 0) {
+                efficiency += (float) (enchantLevel * enchantLevel + 1);
             }
         }
         return efficiency;
@@ -104,12 +189,10 @@ public class ItemUtil {
 
     public static double getArmorProtection(ItemStack itemStack) {
         double protection = 0.0;
-        if (itemStack != null) {
-            if (itemStack.getItem() instanceof ItemArmor) {
-                protection = 0.0 + (double) ((ItemArmor) itemStack.getItem()).damageReduceAmount;
-                if (itemStack.isItemEnchanted()) {
-                    protection += (double) EnchantmentHelper.getEnchantmentLevel(Enchantment.protection.effectId, itemStack) * 0.25;
-                }
+        if (getArmorType(itemStack) != -1 && itemStack.getItem() instanceof ItemArmor) {
+            protection = (double) ((ItemArmor) itemStack.getItem()).damageReduceAmount;
+            if (itemStack.isItemEnchanted()) {
+                protection += (double) EnchantmentHelper.getEnchantmentLevel(Enchantment.protection.effectId, itemStack) * 0.25;
             }
         }
         return protection;
@@ -122,7 +205,7 @@ public class ItemUtil {
             int currentSlot = ((startSlot + i) % 36 + 36) % 36;
             ItemStack itemStack = ItemUtil.mc.thePlayer.inventory.getStackInSlot(currentSlot);
             if (itemStack == null) continue;
-            if (!(itemStack.getItem() instanceof ItemSword)) continue;
+            if (!isSword(itemStack)) continue;
             if (checkDurability) {
                 if (itemStack.isItemDamaged()) {
                     if (itemStack.getMaxDamage() - itemStack.getItemDamage() < 30) {
@@ -145,8 +228,7 @@ public class ItemUtil {
             int currentSlot = ((startSlot + i) % 36 + 36) % 36;
             ItemStack itemStack = ItemUtil.mc.thePlayer.inventory.getStackInSlot(currentSlot);
             if (itemStack == null) continue;
-            if (!(itemStack.getItem() instanceof ItemTool)) continue;
-            if (!itemStack.getItem().getToolClasses(itemStack).contains(toolClass)) continue;
+            if (!isTool(itemStack, toolClass)) continue;
             if (checkDurability) {
                 if (itemStack.isItemDamaged()) {
                     if (itemStack.getMaxDamage() - itemStack.getItemDamage() < 30) {
@@ -165,10 +247,10 @@ public class ItemUtil {
     public static int findInventorySlot(int currentSlot, Block block) {
         ItemStack currentItem = ItemUtil.mc.thePlayer.inventory.getStackInSlot(currentSlot);
         int bestSlot = currentSlot;
-        float bestStrength = currentItem != null ? currentItem.getStrVsBlock(block) : 1.0f;
+        float bestStrength = canUseForBlockBreaking(currentItem) ? currentItem.getStrVsBlock(block) : 1.0f;
         for (int i = 0; i < 9; ++i) {
             ItemStack itemStack = ItemUtil.mc.thePlayer.inventory.getStackInSlot(i);
-            if (itemStack == null) continue;
+            if (!canUseForBlockBreaking(itemStack)) continue;
             float strength = itemStack.getStrVsBlock(block);
             if (!(strength > bestStrength)) continue;
             bestSlot = i;
@@ -177,14 +259,21 @@ public class ItemUtil {
         return bestSlot;
     }
 
+    private static boolean canUseForBlockBreaking(ItemStack itemStack) {
+        String modelName = getViaModelName(itemStack);
+        return itemStack != null && (modelName == null
+                || isSword(itemStack)
+                || isTool(itemStack)
+                || isToolModel(modelName, "hoe"));
+    }
+
     public static int findArmorInventorySlot(int armorType, boolean checkDurability) {
         int bestSlot = -1;
         double bestProtection = 0.0;
         for (int i = 0; i < 40; ++i) {
             ItemStack itemStack = ItemUtil.mc.thePlayer.inventory.getStackInSlot(i);
             if (itemStack == null) continue;
-            if (!(itemStack.getItem() instanceof ItemArmor)) continue;
-            if (((ItemArmor) itemStack.getItem()).armorType != armorType) {
+            if (getArmorType(itemStack) != armorType) {
                 continue;
             }
             if (checkDurability) {
@@ -222,6 +311,9 @@ public class ItemUtil {
         if (itemStack == null) {
             return false;
         }
+        if (getViaModelName(itemStack) != null && !isSword(itemStack)) {
+            return false;
+        }
         if (itemStack.hasTagCompound()) {
             NBTTagCompound tag = itemStack.getTagCompound();
             if (tag.hasKey("ExtraAttributes")) {
@@ -245,7 +337,7 @@ public class ItemUtil {
         if (EnchantmentHelper.getEnchantments(itemStack).containsKey(19)) {
             return true;
         }
-        return itemStack.getItem() instanceof ItemSword;
+        return isSword(itemStack);
     }
 
     public static boolean isHoldingSword() {
@@ -253,7 +345,7 @@ public class ItemUtil {
         if (itemStack == null) {
             return false;
         }
-        return itemStack.getItem() instanceof ItemSword;
+        return isSword(itemStack);
     }
 
     public static boolean isHoldingTool() {
@@ -261,12 +353,12 @@ public class ItemUtil {
         if (itemStack == null) {
             return false;
         }
-        return itemStack.getItem() instanceof ItemTool;
+        return isTool(itemStack);
     }
 
     public static boolean isEating() {
         ItemStack itemStack = ItemUtil.mc.thePlayer.getHeldItem();
-        if (itemStack == null) {
+        if (itemStack == null || getViaModelName(itemStack) != null) {
             return false;
         }
         if (ItemPotion.isSplash(itemStack.getItem().getMetadata(itemStack))) {
@@ -280,7 +372,7 @@ public class ItemUtil {
         if (itemStack == null) {
             return false;
         }
-        return itemStack.getItem() instanceof ItemBow;
+        return isBow(itemStack);
     }
 
     public static boolean isHoldingNonEmpty() {
@@ -288,7 +380,7 @@ public class ItemUtil {
         if (itemStack == null || itemStack.stackSize < 1) {
             return false;
         }
-        return itemStack.getItem() instanceof ItemBlock;
+        return isBlock(itemStack);
     }
 
     public static boolean isHoldingBlock() {
@@ -300,14 +392,14 @@ public class ItemUtil {
         if (itemStack == null || itemStack.stackSize < 1) {
             return false;
         }
-        return itemStack.getItem() instanceof ItemFireball;
+        return getViaModelName(itemStack) == null && itemStack.getItem() instanceof ItemFireball;
     }
 
     /**
      * Checks if the given item is a projectile
      */
     public static boolean isProjectile(ItemStack itemStack) {
-        if (itemStack == null) {
+        if (itemStack == null || getViaModelName(itemStack) != null) {
             return false;
         }
         Item item = itemStack.getItem();

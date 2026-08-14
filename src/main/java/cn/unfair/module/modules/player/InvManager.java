@@ -98,33 +98,27 @@ public class InvManager extends Module {
     }
 
     private boolean isThrowable(ItemStack stack) {
-        if (stack == null) return false;
-        return stack.getItem() instanceof ItemSnowball || stack.getItem() instanceof ItemEgg;
+        return ItemUtil.isProjectile(stack);
     }
 
     private boolean isGapple(ItemStack stack) {
-        if (stack == null) return false;
-        return stack.getItem() instanceof ItemAppleGold;
+        return ItemUtil.isGoldenApple(stack);
     }
 
     private boolean isPearl(ItemStack stack) {
-        if (stack == null) return false;
-        return stack.getItem() instanceof ItemEnderPearl;
+        return ItemUtil.isEnderPearl(stack);
     }
 
     private boolean isFishingRod(ItemStack stack) {
-        if (stack == null) return false;
-        return stack.getItem() instanceof ItemFishingRod;
+        return ItemUtil.isFishingRod(stack);
     }
 
     private boolean isBow(ItemStack stack) {
-        if (stack == null) return false;
-        return stack.getItem() instanceof ItemBow;
+        return ItemUtil.isBow(stack);
     }
 
     private boolean isWaterBucket(ItemStack stack) {
-        if (stack == null) return false;
-        return stack.getItem() == Items.water_bucket;
+        return ItemUtil.isWaterBucket(stack);
     }
 
     private double getDurabilityScore(ItemStack stack) {
@@ -162,7 +156,7 @@ public class InvManager extends Module {
         Item item = stack.getItem();
         if (item == Items.boat
                 || item == Items.arrow
-                || item instanceof ItemEnderPearl) {
+                || this.isPearl(stack)) {
             return true;
         }
         if (ItemUtil.isRequiredInventoryItem(stack)) {
@@ -291,10 +285,10 @@ public class InvManager extends Module {
 
     private boolean organizeItems(InventoryPlan plan) {
         LinkedHashSet<Integer> usedHotbarSlots = new LinkedHashSet<>();
-        return this.organizeSlot(this.sword.getValue(), plan.swordTarget, plan.equippedSwordSlot, plan.inventorySwordSlot, stack -> stack != null && stack.getItem() instanceof ItemSword, usedHotbarSlots)
-                || this.organizeSlot(this.pickaxe.getValue(), plan.pickaxeTarget, plan.equippedPickaxeSlot, plan.inventoryPickaxeSlot, stack -> stack != null && stack.getItem() instanceof ItemPickaxe, usedHotbarSlots)
-                || this.organizeSlot(this.shovel.getValue(), plan.shovelTarget, plan.equippedShovelSlot, plan.inventoryShovelSlot, stack -> stack != null && stack.getItem() instanceof ItemSpade, usedHotbarSlots)
-                || this.organizeSlot(this.axe.getValue(), plan.axeTarget, plan.equippedAxeSlot, plan.inventoryAxeSlot, stack -> stack != null && stack.getItem() instanceof ItemAxe, usedHotbarSlots)
+        return this.organizeSlot(this.sword.getValue(), plan.swordTarget, plan.equippedSwordSlot, plan.inventorySwordSlot, ItemUtil::isSword, usedHotbarSlots)
+                || this.organizeSlot(this.pickaxe.getValue(), plan.pickaxeTarget, plan.equippedPickaxeSlot, plan.inventoryPickaxeSlot, stack -> ItemUtil.isTool(stack, "pickaxe"), usedHotbarSlots)
+                || this.organizeSlot(this.shovel.getValue(), plan.shovelTarget, plan.equippedShovelSlot, plan.inventoryShovelSlot, stack -> ItemUtil.isTool(stack, "shovel"), usedHotbarSlots)
+                || this.organizeSlot(this.axe.getValue(), plan.axeTarget, plan.equippedAxeSlot, plan.inventoryAxeSlot, stack -> ItemUtil.isTool(stack, "axe"), usedHotbarSlots)
                 || this.organizeSlot(this.blocksEnabled.getValue(), plan.blocksTarget, plan.inventoryBlocksSlot, -1, ItemUtil::isBlock, usedHotbarSlots)
                 || this.organizeSlot(this.throwsEnabled.getValue(), plan.throwsTarget, plan.equippedThrowsSlot, plan.inventoryThrowsSlot, this::isThrowable, usedHotbarSlots)
                 || this.organizeSlot(this.pearl.getValue(), plan.pearlTarget, plan.equippedPearlSlot, plan.inventoryPearlSlot, this::isPearl, usedHotbarSlots)
