@@ -22,15 +22,15 @@ import java.util.Objects;
 
 public class AutoClicker extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty minCPS = new IntProperty("min-cps", 8, 1, 20);
-    public final IntProperty maxCPS = new IntProperty("max-cps", 12, 1, 20);
-    public final BooleanProperty blockHit = new BooleanProperty("block-hit", false);
-    public final FloatProperty blockHitTicks = new FloatProperty("block-hit-ticks", 1.5F, 1.0F, 20.0F, this.blockHit::getValue);
-    public final BooleanProperty weaponsOnly = new BooleanProperty("weapons-only", true);
-    public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
-    public final BooleanProperty breakBlocks = new BooleanProperty("break-blocks", true);
-    public final BooleanProperty invClick = new BooleanProperty("inv-click", false);
-    public final IntProperty invCps = new IntProperty("inv-cps", 1, 1, 20, this.invClick::getValue);
+    public final IntProperty minCPS = new IntProperty("Min Cps", 8, 1, 20);
+    public final IntProperty maxCPS = new IntProperty("Max Cps", 12, 1, 20);
+    public final BooleanProperty blockHit = new BooleanProperty("Block Hit", false);
+    public final FloatProperty blockHitTicks = new FloatProperty("Block Hit Ticks", 1.5F, 1.0F, 20.0F, this.blockHit::getValue);
+    public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", true);
+    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty breakBlocks = new BooleanProperty("Break Blocks", true);
+    public final BooleanProperty invClick = new BooleanProperty("Inv Click", false);
+    public final IntProperty invCps = new IntProperty("Inv Cps", 1, 1, 20, this.invClick::getValue);
     private boolean clickPending = false;
     private long clickDelay = 0L;
     private boolean blockHitPending = false;

@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 
 public class NoJumpDelay extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delay = new IntProperty("delay", 0, 0, 8);
+    public final IntProperty delay = new IntProperty("Delay", 0, 0, 8);
 
     public NoJumpDelay() {
         super("NoJumpDelay", false);

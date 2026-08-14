@@ -23,10 +23,10 @@ import java.util.ArrayList;
 
 public class Trajectories extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final PercentProperty opacity = new PercentProperty("opacity", 100);
-    public final BooleanProperty bow = new BooleanProperty("bow", true);
-    public final BooleanProperty projectiles = new BooleanProperty("projectiles", false);
-    public final BooleanProperty pearls = new BooleanProperty("pearls", true);
+    public final PercentProperty opacity = new PercentProperty("Opacity", 100);
+    public final BooleanProperty bow = new BooleanProperty("Bow", true);
+    public final BooleanProperty projectiles = new BooleanProperty("Projectiles", false);
+    public final BooleanProperty pearls = new BooleanProperty("Pearls", true);
 
     public Trajectories() {
         super("Trajectories", false, true);

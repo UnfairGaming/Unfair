@@ -50,12 +50,12 @@ public class ChestESP extends Module {
 
     public ChestESP() {
         super("ChestESP", false, true);
-        this.mode = new ModeProperty("mode", MODE_DEFAULT, new String[]{"DEFAULT", "GLOW"});
-        this.color = new ColorProperty("color", new Color(255, 170, 0).getRGB());
-        this.opacity = new PercentProperty("opacity", 100, () -> this.mode.getValue() == MODE_DEFAULT);
-        this.tracers = new BooleanProperty("tracers", false);
-        this.glowExposure = new FloatProperty("glow-exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
-        this.glowRadius = new IntProperty("glow-radius", 5, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
+        this.mode = new ModeProperty("Mode", MODE_DEFAULT, new String[]{"Default", "Glow"});
+        this.color = new ColorProperty("Color", new Color(255, 170, 0).getRGB());
+        this.opacity = new PercentProperty("Opacity", 100, () -> this.mode.getValue() == MODE_DEFAULT);
+        this.tracers = new BooleanProperty("Tracers", false);
+        this.glowExposure = new FloatProperty("Glow Exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
+        this.glowRadius = new IntProperty("Glow Radius", 5, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
         try {
             if (AndroidUtil.isAndroid()) {
                 this.glowAvailable = false;

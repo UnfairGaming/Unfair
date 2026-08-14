@@ -36,7 +36,7 @@ public class ModeProperty extends Property<Integer> {
     }
 
     public String getDisplayModeString(int index) {
-        return index >= 0 && index < this.modes.length ? toDisplayName(this.modes[index]) : "";
+        return index >= 0 && index < this.modes.length ? this.modes[index] : "";
     }
 
     public String[] getDisplayModes() {

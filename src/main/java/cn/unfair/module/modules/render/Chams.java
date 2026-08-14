@@ -19,17 +19,17 @@ import org.lwjgl.opengl.GL11;
 
 public class Chams extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final BooleanProperty players = new BooleanProperty("players", true);
-    public final BooleanProperty friends = new BooleanProperty("friends", true);
-    public final BooleanProperty enemiess = new BooleanProperty("enemies", true);
-    public final BooleanProperty bosses = new BooleanProperty("bosses", false);
-    public final BooleanProperty mobs = new BooleanProperty("mobs", false);
-    public final BooleanProperty creepers = new BooleanProperty("creepers", false);
-    public final BooleanProperty enderman = new BooleanProperty("endermen", false);
-    public final BooleanProperty blaze = new BooleanProperty("blazes", false);
-    public final BooleanProperty animals = new BooleanProperty("animals", false);
-    public final BooleanProperty self = new BooleanProperty("self", false);
-    public final BooleanProperty bots = new BooleanProperty("bots", false);
+    public final BooleanProperty players = new BooleanProperty("Players", true);
+    public final BooleanProperty friends = new BooleanProperty("Friends", true);
+    public final BooleanProperty enemiess = new BooleanProperty("Enemies", true);
+    public final BooleanProperty bosses = new BooleanProperty("Bosses", false);
+    public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
+    public final BooleanProperty creepers = new BooleanProperty("Creepers", false);
+    public final BooleanProperty enderman = new BooleanProperty("Endermen", false);
+    public final BooleanProperty blaze = new BooleanProperty("Blazes", false);
+    public final BooleanProperty animals = new BooleanProperty("Animals", false);
+    public final BooleanProperty self = new BooleanProperty("Self", false);
+    public final BooleanProperty bots = new BooleanProperty("Bots", false);
 
     public Chams() {
         super("Chams", false, true);

@@ -16,8 +16,8 @@ import java.util.Random;
 
 public class Reach extends Module {
     private static final DecimalFormat df = new DecimalFormat("0.0#", new DecimalFormatSymbols(Locale.US));
-    public final FloatProperty range = new FloatProperty("range", 3.1F, 3.0F, 6.0F);
-    public final PercentProperty chance = new PercentProperty("chance", 100);
+    public final FloatProperty range = new FloatProperty("Range", 3.1F, 3.0F, 6.0F);
+    public final PercentProperty chance = new PercentProperty("Chance", 100);
     private final Random theRandom = new Random();
     private boolean expanding = true;
 

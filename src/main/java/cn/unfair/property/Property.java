@@ -56,7 +56,18 @@ public abstract class Property<T> {
     }
 
     protected static String normalizeName(String value) {
-        return value == null ? "" : value.replace("-", "").replace("_", "").replace(" ", "");
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder normalized = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c != '-' && c != '_' && !Character.isWhitespace(c)) {
+                normalized.append(c);
+            }
+        }
+        return normalized.toString();
     }
 
     public String getName() {

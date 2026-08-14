@@ -17,7 +17,6 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
-import com.google.common.base.CaseFormat;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
 import net.minecraft.block.BlockBed.EnumPartType;
@@ -57,19 +56,19 @@ import java.util.concurrent.TimeUnit;
 
 public class BedNuker extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"LEGIT", "SWAP"});
-    public final FloatProperty range = new FloatProperty("range", 4.5F, 3.0F, 6.0F);
-    public final PercentProperty speed = new PercentProperty("speed", 0);
-    public final BooleanProperty groundSpeed = new BooleanProperty("ground-spoof", false);
-    public final ModeProperty ignoreVelocity = new ModeProperty("ignore-velocity", 0, new String[]{"NONE", "CANCEL", "DELAY"});
-    public final BooleanProperty surroundings = new BooleanProperty("surroundings", true);
-    public final BooleanProperty toolCheck = new BooleanProperty("tool-check", true);
-    public final BooleanProperty whiteList = new BooleanProperty("whitelist", true);
-    public final BooleanProperty swing = new BooleanProperty("swing", true);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
-    public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
-    public final ModeProperty showTarget = new ModeProperty("show-target", 1, new String[]{"NONE", "DEFAULT", "HUD"});
-    public final ModeProperty showProgress = new ModeProperty("show-progress", 1, new String[]{"NONE", "DEFAULT", "HUD"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Legit", "Swap"});
+    public final FloatProperty range = new FloatProperty("Range", 4.5F, 3.0F, 6.0F);
+    public final PercentProperty speed = new PercentProperty("Speed", 0);
+    public final BooleanProperty groundSpeed = new BooleanProperty("Ground Spoof", false);
+    public final ModeProperty ignoreVelocity = new ModeProperty("Ignore Velocity", 0, new String[]{"None", "Cancel", "Delay"});
+    public final BooleanProperty surroundings = new BooleanProperty("Surroundings", true);
+    public final BooleanProperty toolCheck = new BooleanProperty("Tool Check", true);
+    public final BooleanProperty whiteList = new BooleanProperty("Whitelist", true);
+    public final BooleanProperty swing = new BooleanProperty("Swing", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent", "Strict"});
+    public final ModeProperty showTarget = new ModeProperty("Show Target", 1, new String[]{"None", "Default", "Hud"});
+    public final ModeProperty showProgress = new ModeProperty("Show Progress", 1, new String[]{"None", "Default", "Hud"});
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final TimerUtil timer = new TimerUtil();
     private final ArrayList<BlockPos> bedWhitelist = new ArrayList<BlockPos>();
@@ -647,7 +646,7 @@ public class BedNuker extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 
     private boolean isInventoryBlocked() {

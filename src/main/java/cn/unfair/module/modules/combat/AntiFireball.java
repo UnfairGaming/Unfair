@@ -26,13 +26,13 @@ import java.util.stream.Collectors;
 
 public class AntiFireball extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty range = new FloatProperty("range", 5.0F, 3.0F, 8.0F);
-    public final IntProperty fov = new IntProperty("fov", 360, 1, 360);
-    public final BooleanProperty rotations = new BooleanProperty("rotations", true);
-    public final BooleanProperty swing = new BooleanProperty("swing", true);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
-    public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT", "STRICT"});
-    public final ModeProperty showTarget = new ModeProperty("show-target", 0, new String[]{"NONE", "DEFAULT", "HUD"});
+    public final FloatProperty range = new FloatProperty("Range", 5.0F, 3.0F, 8.0F);
+    public final IntProperty fov = new IntProperty("Fov", 360, 1, 360);
+    public final BooleanProperty rotations = new BooleanProperty("Rotations", true);
+    public final BooleanProperty swing = new BooleanProperty("Swing", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent", "Strict"});
+    public final ModeProperty showTarget = new ModeProperty("Show Target", 0, new String[]{"None", "Default", "Hud"});
     private final ArrayList<EntityFireball> farList = new ArrayList<>();
     private final ArrayList<EntityFireball> nearList = new ArrayList<>();
     private EntityFireball target = null;

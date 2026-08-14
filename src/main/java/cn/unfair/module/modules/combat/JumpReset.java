@@ -13,7 +13,7 @@ import net.minecraft.potion.Potion;
 public class JumpReset extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public BooleanProperty dbg = new BooleanProperty("debug", false);
+    public BooleanProperty dbg = new BooleanProperty("Debug", false);
 
     private boolean jumpFlag = false;
 

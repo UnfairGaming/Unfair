@@ -7,7 +7,6 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.TimerUtil;
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.init.Items;
@@ -17,8 +16,8 @@ import net.minecraft.item.ItemStack;
 
 public class Refill extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delay = new IntProperty("delay", 1, 0, 20);
-    public final ModeProperty mode = new ModeProperty("mode", 1, new String[]{"SOUP","POT"});
+    public final IntProperty delay = new IntProperty("Delay", 1, 0, 20);
+    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Soup","Pot"});
     private final TimerUtil time = new TimerUtil();
 
     public Refill() {
@@ -63,6 +62,6 @@ public class Refill extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 }

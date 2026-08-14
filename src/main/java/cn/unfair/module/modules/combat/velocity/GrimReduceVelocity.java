@@ -29,8 +29,8 @@ import static cn.unfair.util.BadPacketUtil.bad;
 public class GrimReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final IntProperty maxAirTicks = new IntProperty("max-air-ticks", 12, 4, 20);
-    public final IntProperty reach = new IntProperty("reach", 3, 2, 4);
+    public final IntProperty maxAirTicks = new IntProperty("Max Air Ticks", 12, 4, 20);
+    public final IntProperty reach = new IntProperty("Reach", 3, 2, 4);
 
     private boolean suspending;
     private int suspendTicks;

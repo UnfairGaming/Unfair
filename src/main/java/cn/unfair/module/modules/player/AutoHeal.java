@@ -18,9 +18,9 @@ import net.minecraft.potion.Potion;
 
 public class AutoHeal extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final PercentProperty health = new PercentProperty("health", 35);
-    public final IntProperty delay = new IntProperty("delay", 4000, 0, 5000);
-    public final BooleanProperty regenCheck = new BooleanProperty("regen-check", false);
+    public final PercentProperty health = new PercentProperty("Health", 35);
+    public final IntProperty delay = new IntProperty("Delay", 4000, 0, 5000);
+    public final BooleanProperty regenCheck = new BooleanProperty("Regen Check", false);
     private final TimerUtil timer = new TimerUtil();
     private boolean shouldHeal = false;
     private int prevSlot = -1;

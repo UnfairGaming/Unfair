@@ -29,13 +29,13 @@ public class PotionEffects extends Module {
     private static final String MINECRAFT_FONT = "Minecraft";
     private static final float MIN_WIDGET_WIDTH = 32.0F;
 
-    public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
-    public final BooleanProperty showName = new BooleanProperty("show-name", true);
-    public final BooleanProperty blink = new BooleanProperty("blink", true);
-    public final IntProperty blinkSeconds = new IntProperty("blink-seconds", 10, 2, 20, this.blink::getValue);
-    public final BooleanProperty background = new BooleanProperty("background", false);
-    public final ColorProperty nameColor = new ColorProperty("name-color", Color.WHITE.getRGB());
-    public final ColorProperty durationColor = new ColorProperty("duration-color", Color.WHITE.getRGB());
+    public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
+    public final BooleanProperty showName = new BooleanProperty("Show Name", true);
+    public final BooleanProperty blink = new BooleanProperty("Blink", true);
+    public final IntProperty blinkSeconds = new IntProperty("Blink Seconds", 10, 2, 20, this.blink::getValue);
+    public final BooleanProperty background = new BooleanProperty("Background", false);
+    public final ColorProperty nameColor = new ColorProperty("Name Color", Color.WHITE.getRGB());
+    public final ColorProperty durationColor = new ColorProperty("Duration Color", Color.WHITE.getRGB());
     private float widgetWidth = MIN_WIDGET_WIDTH;
     private int ticks;
 
@@ -48,7 +48,8 @@ public class PotionEffects extends Module {
         String[] modes = new String[fonts.length + 1];
         modes[0] = MINECRAFT_FONT;
         for (int i = 0; i < fonts.length; i++) {
-            modes[i + 1] = fonts[i].name();
+            String fontName = fonts[i].name();
+            modes[i + 1] = Character.toUpperCase(fontName.charAt(0)) + fontName.substring(1);
         }
         return modes;
     }

@@ -18,7 +18,7 @@ import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 
 public class DelayVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delayTicks = new IntProperty("delay-ticks", 2, 1, 5);
+    public final IntProperty delayTicks = new IntProperty("Delay Ticks", 2, 1, 5);
     private boolean delayActive = false;
     private boolean delayFlag = false;
 

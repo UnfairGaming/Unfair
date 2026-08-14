@@ -16,12 +16,12 @@ import net.minecraft.network.play.server.S27PacketExplosion;
 public class VanillaVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final PercentProperty chance = new PercentProperty("chance", 100);
-    public final PercentProperty horizontal = new PercentProperty("horizontal", 100);
-    public final PercentProperty vertical = new PercentProperty("vertical", 100);
-    public final PercentProperty explosionHorizontal = new PercentProperty("explosions-horizontal", 100);
-    public final PercentProperty explosionVertical = new PercentProperty("explosions-vertical", 100);
-    public final BooleanProperty fakeCheck = new BooleanProperty("fake-check", true);
+    public final PercentProperty chance = new PercentProperty("Chance", 100);
+    public final PercentProperty horizontal = new PercentProperty("Horizontal", 100);
+    public final PercentProperty vertical = new PercentProperty("Vertical", 100);
+    public final PercentProperty explosionHorizontal = new PercentProperty("Explosions Horizontal", 100);
+    public final PercentProperty explosionVertical = new PercentProperty("Explosions Vertical", 100);
+    public final BooleanProperty fakeCheck = new BooleanProperty("Fake Check", true);
 
     private int chanceCounter = 0;
     private boolean pendingExplosion = false;

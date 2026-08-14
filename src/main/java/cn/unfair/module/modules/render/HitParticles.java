@@ -30,22 +30,22 @@ public class HitParticles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     private static final String[] PARTICLE_NAMES = {
-            "Angry Villager",
+            "AngryVillager",
             "Blood",
             "Cloud",
             "Confetti",
             "Critical",
-            "Crit/Magic Crit",
+            "Crit/MagicCrit",
             "Enchantment",
             "Explosion",
             "Flame",
-            "Happy Villager",
+            "HappyVillager",
             "Heart",
-            "Instant Spell",
+            "InstantSpell",
             "Lava",
-            "Magic Critical",
-            "Mob Spell",
-            "Music Note",
+            "MagicCritical",
+            "MobSpell",
+            "MusicNote",
             "Portal",
             "Slime",
             "Smoke",
@@ -80,12 +80,12 @@ public class HitParticles extends Module {
             ARGS_NONE, ARGS_NONE, ARGS_NONE, ARGS_NONE, ARGS_NONE, ARGS_NONE
     };
 
-    private final BooleanProperty onMelee = new BooleanProperty("melee-hits", true);
-    private final ModeProperty meleeParticle = new ModeProperty("melee-particle", 4, PARTICLE_NAMES);
-    private final IntProperty meleeMultiplier = new IntProperty("melee-multiplier", 1, 1, 8);
-    private final BooleanProperty onRanged = new BooleanProperty("arrow-hits", true);
-    private final ModeProperty rangedParticle = new ModeProperty("ranged-particle", 4, PARTICLE_NAMES);
-    private final IntProperty rangedMultiplier = new IntProperty("ranged-multiplier", 1, 1, 8);
+    private final BooleanProperty onMelee = new BooleanProperty("Melee Hits", true);
+    private final ModeProperty meleeParticle = new ModeProperty("Melee Particle", 4, PARTICLE_NAMES);
+    private final IntProperty meleeMultiplier = new IntProperty("Melee Multiplier", 1, 1, 8);
+    private final BooleanProperty onRanged = new BooleanProperty("Arrow Hits", true);
+    private final ModeProperty rangedParticle = new ModeProperty("Ranged Particle", 4, PARTICLE_NAMES);
+    private final IntProperty rangedMultiplier = new IntProperty("Ranged Multiplier", 1, 1, 8);
 
     private final Map<Integer, Integer> rangedSpawnForArrow = new HashMap<>();
 

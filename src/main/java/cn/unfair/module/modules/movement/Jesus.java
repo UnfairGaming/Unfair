@@ -10,9 +10,9 @@ import java.util.Locale;
 
 public class Jesus extends Module {
     private static final DecimalFormat df = new DecimalFormat("#.##", new DecimalFormatSymbols(Locale.US));
-    public final FloatProperty speed = new FloatProperty("speed", 2.5F, 0.0F, 3.0F);
-    public final BooleanProperty noPush = new BooleanProperty("no-push", true);
-    public final BooleanProperty groundOnly = new BooleanProperty("ground-only", true);
+    public final FloatProperty speed = new FloatProperty("Speed", 2.5F, 0.0F, 3.0F);
+    public final BooleanProperty noPush = new BooleanProperty("No Push", true);
+    public final BooleanProperty groundOnly = new BooleanProperty("Ground Only", true);
 
     public Jesus() {
         super("Jesus", false);

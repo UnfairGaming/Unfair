@@ -40,14 +40,14 @@ public class Displace extends Module {
     private static final double[] VOID_SCAN_Z = new double[VOID_SCAN_DIRECTIONS];
     private static final long ARROW_FADE_MS = 250L;
 
-    public final FloatProperty yawOffset = new FloatProperty("yaw-offset", 90.0F, 0.0F, 180.0F);
-    public final FloatProperty delay = new FloatProperty("delay", 500.0F, 0.0F, 1000.0F);
-    public final ModeProperty direction = new ModeProperty("direction", 0, new String[]{"LEFT", "RIGHT"});
-    public final BooleanProperty findVoid = new BooleanProperty("find-void", false);
-    public final BooleanProperty hasKnockback = new BooleanProperty("has-knockback", false);
-    public final BooleanProperty weaponsOnly = new BooleanProperty("weapons-only", false);
-    public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponsOnly::getValue);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final FloatProperty yawOffset = new FloatProperty("Yaw Offset", 90.0F, 0.0F, 180.0F);
+    public final FloatProperty delay = new FloatProperty("Delay", 500.0F, 0.0F, 1000.0F);
+    public final ModeProperty direction = new ModeProperty("Direction", 0, new String[]{"Left", "Right"});
+    public final BooleanProperty findVoid = new BooleanProperty("Find Void", false);
+    public final BooleanProperty hasKnockback = new BooleanProperty("Has Knockback", false);
+    public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", false);
+    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
 
     private boolean displaceThisTick;
     private boolean active;

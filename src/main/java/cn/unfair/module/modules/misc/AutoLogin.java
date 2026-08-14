@@ -12,8 +12,8 @@ import cn.unfair.util.TimerUtil;
 import net.minecraft.network.play.server.S02PacketChat;
 
 public class AutoLogin extends Module {
-    private final TextProperty password = new TextProperty("password", "Un1336IsCute");
-    private final FloatProperty delay = new FloatProperty("delay", 5.0F, 0.0F, 20.0F);
+    private final TextProperty password = new TextProperty("Password", "Un1336IsCute");
+    private final FloatProperty delay = new FloatProperty("Delay", 5.0F, 0.0F, 20.0F);
 
     private final TimerUtil timer = new TimerUtil();
     private boolean receivedRegister;

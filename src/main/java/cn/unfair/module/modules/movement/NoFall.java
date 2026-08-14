@@ -12,7 +12,6 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C03PacketPlayer;
@@ -21,9 +20,9 @@ import net.minecraft.util.AxisAlignedBB;
 
 public class NoFall extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"PACKET", "BLINK", "NO_GROUND", "SPOOF"});
-    public final FloatProperty distance = new FloatProperty("distance", 3.0F, 0.0F, 20.0F);
-    public final IntProperty delay = new IntProperty("delay", 0, 0, 10000);
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Packet", "Blink", "NoGround", "Spoof"});
+    public final FloatProperty distance = new FloatProperty("Distance", 3.0F, 0.0F, 20.0F);
+    public final IntProperty delay = new IntProperty("Delay", 0, 0, 10000);
     private final TimerUtil packetDelayTimer = new TimerUtil();
     private final TimerUtil scoreboardResetTimer = new TimerUtil();
     private boolean slowFalling = false;
@@ -138,6 +137,6 @@ public class NoFall extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 }

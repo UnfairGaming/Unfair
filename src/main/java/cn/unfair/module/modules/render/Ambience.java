@@ -17,16 +17,16 @@ import java.awt.*;
 public class Ambience extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty timeMode = new ModeProperty("mode", 2, new String[]{"NONE", "NORMAL", "CUSTOM", "DAY", "DUSK", "NIGHT", "DYNAMIC"});
-    public final IntProperty customWorldTime = new IntProperty("time", 6, 0, 24, () -> this.timeMode.getValue() == 2);
-    public final IntProperty changeWorldTimeSpeed = new IntProperty("time-speed", 150, 10, 500, () -> this.timeMode.getValue() == 1);
-    public final IntProperty dynamicSpeed = new IntProperty("dynamic-speed", 20, 1, 50, () -> this.timeMode.getValue() == 6);
+    public final ModeProperty timeMode = new ModeProperty("Mode", 2, new String[]{"None", "Normal", "Custom", "Day", "Dusk", "Night", "Dynamic"});
+    public final IntProperty customWorldTime = new IntProperty("Time", 6, 0, 24, () -> this.timeMode.getValue() == 2);
+    public final IntProperty changeWorldTimeSpeed = new IntProperty("Time Speed", 150, 10, 500, () -> this.timeMode.getValue() == 1);
+    public final IntProperty dynamicSpeed = new IntProperty("Dynamic Speed", 20, 1, 50, () -> this.timeMode.getValue() == 6);
 
-    public final ModeProperty weatherMode = new ModeProperty("weather-mode", 0, new String[]{"NONE", "SUN", "RAIN", "THUNDER"});
-    public final FloatProperty weatherStrength = new FloatProperty("weather-strength", 1.0F, 0.0F, 1.0F, () -> this.weatherMode.getValue() != 0);
+    public final ModeProperty weatherMode = new ModeProperty("Weather Mode", 0, new String[]{"None", "Sun", "Rain", "Thunder"});
+    public final FloatProperty weatherStrength = new FloatProperty("Weather Strength", 1.0F, 0.0F, 1.0F, () -> this.weatherMode.getValue() != 0);
 
-    public final BooleanProperty worldColor = new BooleanProperty("world-color", false);
-    public final ColorProperty color = new ColorProperty("color", new Color(0, 90, 255).getRGB(), this.worldColor::getValue);
+    public final BooleanProperty worldColor = new BooleanProperty("World Color", false);
+    public final ColorProperty color = new ColorProperty("Color", new Color(0, 90, 255).getRGB(), this.worldColor::getValue);
 
     private long time;
 

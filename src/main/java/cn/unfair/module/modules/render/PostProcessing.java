@@ -7,22 +7,22 @@ import cn.unfair.util.ColorUtil;
 import java.awt.*;
 
 public class PostProcessing extends Module {
-    public final BooleanProperty blur = new BooleanProperty("blur", true);
-    public final IntProperty blurIterations = new IntProperty("blur-iterations", 2, 1, 10);
-    public final IntProperty blurOffset = new IntProperty("blur-offset", 5, 1, 10);
+    public final BooleanProperty blur = new BooleanProperty("Blur", true);
+    public final IntProperty blurIterations = new IntProperty("Blur Iterations", 2, 1, 10);
+    public final IntProperty blurOffset = new IntProperty("Blur Offset", 5, 1, 10);
 
-    public final BooleanProperty bloom = new BooleanProperty("bloom", true);
+    public final BooleanProperty bloom = new BooleanProperty("Bloom", true);
     public final ModeProperty bloomColorMode = new ModeProperty(
-            "bloom-color", 3, new String[]{"RAINBOW", "CHROMA", "ASTOLFO", "CUSTOM1", "CUSTOM12", "CUSTOM123"}
+            "Bloom Color", 3, new String[]{"Rainbow", "Chroma", "Astolfo", "Custom1", "Custom12", "Custom123"}
     );
-    public final FloatProperty bloomColorSpeed = new FloatProperty("bloom-color-speed", 1.0F, 0.5F, 1.5F);
-    public final PercentProperty bloomColorSaturation = new PercentProperty("bloom-saturation", 50);
-    public final PercentProperty bloomColorBrightness = new PercentProperty("bloom-brightness", 100);
-    public final ColorProperty bloomCustom1 = new ColorProperty("bloom-color-1", Color.BLACK.getRGB(), () -> this.bloomColorMode.getValue() == 3 || this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
-    public final ColorProperty bloomCustom2 = new ColorProperty("bloom-color-2", Color.BLUE.getRGB(), () -> this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
-    public final ColorProperty bloomCustom3 = new ColorProperty("bloom-color-3", Color.WHITE.getRGB(), () -> this.bloomColorMode.getValue() == 5);
-    public final IntProperty bloomIterations = new IntProperty("bloom-iterations", 2, 1, 10);
-    public final IntProperty bloomOffset = new IntProperty("bloom-offset", 2, 1, 10);
+    public final FloatProperty bloomColorSpeed = new FloatProperty("Bloom Color Speed", 1.0F, 0.5F, 1.5F);
+    public final PercentProperty bloomColorSaturation = new PercentProperty("Bloom Saturation", 50);
+    public final PercentProperty bloomColorBrightness = new PercentProperty("Bloom Brightness", 100);
+    public final ColorProperty bloomCustom1 = new ColorProperty("Bloom Color 1", Color.BLACK.getRGB(), () -> this.bloomColorMode.getValue() == 3 || this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
+    public final ColorProperty bloomCustom2 = new ColorProperty("Bloom Color 2", Color.BLUE.getRGB(), () -> this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
+    public final ColorProperty bloomCustom3 = new ColorProperty("Bloom Color 3", Color.WHITE.getRGB(), () -> this.bloomColorMode.getValue() == 5);
+    public final IntProperty bloomIterations = new IntProperty("Bloom Iterations", 2, 1, 10);
+    public final IntProperty bloomOffset = new IntProperty("Bloom Offset", 2, 1, 10);
 
     public PostProcessing() {
         super("PostProcessing", false, true);

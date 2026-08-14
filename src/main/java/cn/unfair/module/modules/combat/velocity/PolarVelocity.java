@@ -17,7 +17,7 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class PolarVelocity extends SubModule {
 
-    public final static ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Reduce", "Cancel 10%"});
+    public final static ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Reduce", "Cancel10%"});
 
     private static final Minecraft mc = Minecraft.getMinecraft();
 

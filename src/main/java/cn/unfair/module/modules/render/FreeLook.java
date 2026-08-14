@@ -10,7 +10,7 @@ import net.minecraft.client.Minecraft;
 
 public class FreeLook extends Module {
     public static FreeLook INSTANCE;
-    public final BooleanProperty autoF5 = new BooleanProperty("AutoF5", true);
+    public final BooleanProperty autoF5 = new BooleanProperty("Auto F5", true);
     public boolean active = false;
     public float cameraYaw;
     public float cameraPitch;

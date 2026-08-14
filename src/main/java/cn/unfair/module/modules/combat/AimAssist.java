@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
 
 public class AimAssist extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty hSpeed = new FloatProperty("horizontal-speed", 3.0F, 0.0F, 10.0F);
-    public final FloatProperty vSpeed = new FloatProperty("vertical-speed", 0.0F, 0.0F, 10.0F);
-    public final PercentProperty smoothing = new PercentProperty("smoothing", 50);
-    public final FloatProperty range = new FloatProperty("range", 4.5F, 3.0F, 8.0F);
-    public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
-    public final BooleanProperty weaponOnly = new BooleanProperty("weapons-only", true);
-    public final BooleanProperty allowTools = new BooleanProperty("allow-tools", false, this.weaponOnly::getValue);
+    public final FloatProperty hSpeed = new FloatProperty("Horizontal Speed", 3.0F, 0.0F, 10.0F);
+    public final FloatProperty vSpeed = new FloatProperty("Vertical Speed", 0.0F, 0.0F, 10.0F);
+    public final PercentProperty smoothing = new PercentProperty("Smoothing", 50);
+    public final FloatProperty range = new FloatProperty("Range", 4.5F, 3.0F, 8.0F);
+    public final IntProperty fov = new IntProperty("Fov", 90, 30, 360);
+    public final BooleanProperty weaponOnly = new BooleanProperty("Weapons Only", true);
+    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponOnly::getValue);
     private final TimerUtil timer = new TimerUtil();
 
     public AimAssist() {

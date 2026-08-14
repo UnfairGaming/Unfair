@@ -27,11 +27,11 @@ import java.util.ArrayList;
 
 public class TargetStrafe extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty radius = new FloatProperty("radius", 1.0F, 0.0F, 6.0F);
-    public final IntProperty points = new IntProperty("points", 6, 3, 24);
-    public final BooleanProperty requirePress = new BooleanProperty("require-press", true);
-    public final BooleanProperty speedOnly = new BooleanProperty("speed-only", true);
-    public final ModeProperty showTarget = new ModeProperty("show-target", 1, new String[]{"NONE", "DEFAULT", "HUD"});
+    public final FloatProperty radius = new FloatProperty("Radius", 1.0F, 0.0F, 6.0F);
+    public final IntProperty points = new IntProperty("Points", 6, 3, 24);
+    public final BooleanProperty requirePress = new BooleanProperty("Require Press", true);
+    public final BooleanProperty speedOnly = new BooleanProperty("Speed Only", true);
+    public final ModeProperty showTarget = new ModeProperty("Show Target", 1, new String[]{"None", "Default", "Hud"});
     private EntityLivingBase target = null;
     private float targetYaw = Float.NaN;
     private int direction = 1;

@@ -33,14 +33,14 @@ import static cn.unfair.util.BadPacketUtil.bad;
 
 public class AutoProjectiles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty minRange = new FloatProperty("MinRange", 3.0f, 2.0f, 6.0f);
-    public final FloatProperty maxRange = new FloatProperty("MaxRange", 8.0f, 3.0f, 15.0f);
-    public final BooleanProperty smartDelay = new BooleanProperty("smart-delay", true);
-    public final IntProperty throwDelay = new IntProperty("throw-delay", 3, 1, 15, () -> !smartDelay.getValue());
-    public final IntProperty fov = new IntProperty("fov", 90, 30, 360);
-    public final BooleanProperty rotation = new BooleanProperty("rotation", true);
+    public final FloatProperty minRange = new FloatProperty("Min Range", 3.0f, 2.0f, 6.0f);
+    public final FloatProperty maxRange = new FloatProperty("Max Range", 8.0f, 3.0f, 15.0f);
+    public final BooleanProperty smartDelay = new BooleanProperty("Smart Delay", true);
+    public final IntProperty throwDelay = new IntProperty("Throw Delay", 3, 1, 15, () -> !smartDelay.getValue());
+    public final IntProperty fov = new IntProperty("Fov", 90, 30, 360);
+    public final BooleanProperty rotation = new BooleanProperty("Rotation", true);
     public final BooleanProperty prediction = new BooleanProperty("Prediction", true);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
     private EntityLivingBase target = null;
     private int lastSlot = -1;
     private long lastThrowTime = 0L;

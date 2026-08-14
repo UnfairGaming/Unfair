@@ -37,10 +37,10 @@ import java.util.*;
 public class LegitTelly extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final Map<String, Object> BRIDGE_VALUES = new HashMap<>();
-    public final BooleanProperty autoSwap = new BooleanProperty("auto-swap", true);
-    public final BooleanProperty disableSafeWalk = new BooleanProperty("disable-safewalk", true);
-    public final BooleanProperty showActivationHitbox = new BooleanProperty("show-activation-hitbox", true);
-    public final BooleanProperty print = new BooleanProperty("print", false);
+    public final BooleanProperty autoSwap = new BooleanProperty("Auto Swap", true);
+    public final BooleanProperty disableSafeWalk = new BooleanProperty("Disable Safewalk", true);
+    public final BooleanProperty showActivationHitbox = new BooleanProperty("Show Activation Hitbox", true);
+    public final BooleanProperty print = new BooleanProperty("Print", false);
     final int[] YAW_NUDGE_PATTERN = {0, 1, -1, 2, -2};
     final double ACTIVATION_ACROSS_MIN = 0.38;
     final double ACTIVATION_ACROSS_MAX = 0.65;

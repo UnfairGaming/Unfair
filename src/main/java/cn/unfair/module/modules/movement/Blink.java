@@ -12,8 +12,8 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 
 public class Blink extends Module {
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"DEFAULT", "PULSE"});
-    public final IntProperty ticks = new IntProperty("ticks", 20, 0, 1200);
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Default", "Pulse"});
+    public final IntProperty ticks = new IntProperty("Ticks", 20, 0, 1200);
 
     public Blink() {
         super("Blink", false);

@@ -11,7 +11,7 @@ import net.minecraft.potion.PotionEffect;
 
 public class FullBright extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"GAMMA", "EFFECT"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Gamma", "Effect"});
     private float prevGamma = Float.NaN;
     private boolean appliedNightVision = false;
 

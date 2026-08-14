@@ -20,19 +20,19 @@ public class Radar extends Module {
     private static final float FONT_SIZE = 16.0F;
     private static final String MINECRAFT_FONT = "Minecraft";
 
-    public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
-    public final ModeProperty colorMode = new ModeProperty("color", 0, new String[]{"DEFAULT", "TEAMS", "HUD"});
-    public final IntProperty radarRadius = new IntProperty("radar-radius", 55, 10, 200);
-    public final FloatProperty dotRadius = new FloatProperty("dot-radius", 1.5F, 0.1F, 5.0F);
-    public final BooleanProperty background = new BooleanProperty("background", true);
-    public final BooleanProperty showPlayers = new BooleanProperty("players", true);
-    public final BooleanProperty showFriends = new BooleanProperty("friends", true);
-    public final BooleanProperty showEnemies = new BooleanProperty("enemies", true);
-    public final BooleanProperty showBots = new BooleanProperty("bots", false);
-    public final BooleanProperty showPVP = new BooleanProperty("show-pvp", false);
-    public final ColorProperty fillColor = new ColorProperty("fill-color", Color.GRAY.getRGB(), this.background::getValue);
-    public final ColorProperty outlineColor = new ColorProperty("outline-color", Color.DARK_GRAY.getRGB());
-    public final ColorProperty crossColor = new ColorProperty("cross-color", Color.LIGHT_GRAY.getRGB());
+    public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
+    public final ModeProperty colorMode = new ModeProperty("Color", 0, new String[]{"Default", "Teams", "Hud"});
+    public final IntProperty radarRadius = new IntProperty("Radar Radius", 55, 10, 200);
+    public final FloatProperty dotRadius = new FloatProperty("Dot Radius", 1.5F, 0.1F, 5.0F);
+    public final BooleanProperty background = new BooleanProperty("Background", true);
+    public final BooleanProperty showPlayers = new BooleanProperty("Players", true);
+    public final BooleanProperty showFriends = new BooleanProperty("Friends", true);
+    public final BooleanProperty showEnemies = new BooleanProperty("Enemies", true);
+    public final BooleanProperty showBots = new BooleanProperty("Bots", false);
+    public final BooleanProperty showPVP = new BooleanProperty("Show Pvp", false);
+    public final ColorProperty fillColor = new ColorProperty("Fill Color", Color.GRAY.getRGB(), this.background::getValue);
+    public final ColorProperty outlineColor = new ColorProperty("Outline Color", Color.DARK_GRAY.getRGB());
+    public final ColorProperty crossColor = new ColorProperty("Cross Color", Color.LIGHT_GRAY.getRGB());
 
     public Radar() {
         super("Radar", false, true);
@@ -43,7 +43,8 @@ public class Radar extends Module {
         String[] modes = new String[fonts.length + 1];
         modes[0] = MINECRAFT_FONT;
         for (int i = 0; i < fonts.length; i++) {
-            modes[i + 1] = fonts[i].name();
+            String fontName = fonts[i].name();
+            modes[i + 1] = Character.toUpperCase(fontName.charAt(0)) + fontName.substring(1);
         }
         return modes;
     }

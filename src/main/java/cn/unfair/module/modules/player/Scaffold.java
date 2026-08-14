@@ -43,35 +43,35 @@ public class Scaffold extends Module {
     private static final int RAYTRACE_SEARCH_BUFFER_TICKS = 5;
     private static final double[] placeOffsets = new double[]{0.03125, 0.09375, 0.15625, 0.21875, 0.28125, 0.34375, 0.40625, 0.46875, 0.53125, 0.59375, 0.65625, 0.71875, 0.78125, 0.84375, 0.90625, 0.96875
     };
-    public final ModeProperty rotationMode = new ModeProperty("rotations", 5, new String[]{"None", "Vanilla", "BackWards", "Strafe", "Test", "Prediction"});
-    public final ModeProperty moveFix = new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT"});
-    public final ModeProperty sprintMode = new ModeProperty("sprint", 0, new String[]{"NONE", "VANILLA"});
-    public final PercentProperty groundMotion = new PercentProperty("ground-motion", 100);
-    public final PercentProperty airMotion = new PercentProperty("air-motion", 100);
-    public final PercentProperty speedMotion = new PercentProperty("speed-motion", 100);
-    public final ModeProperty tower = new ModeProperty("tower", 0, new String[]{"NONE", "VANILLA", "EXTRA", "TELLY"});
-    public final ModeProperty keepY = new ModeProperty("keep-y", 0, new String[]{"NONE", "VANILLA", "EXTRA", "TELLY"});
+    public final ModeProperty rotationMode = new ModeProperty("Rotations", 5, new String[]{"None", "Vanilla", "BackWards", "Strafe", "Test", "Prediction"});
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent"});
+    public final ModeProperty sprintMode = new ModeProperty("Sprint", 0, new String[]{"None", "Vanilla"});
+    public final PercentProperty groundMotion = new PercentProperty("Ground Motion", 100);
+    public final PercentProperty airMotion = new PercentProperty("Air Motion", 100);
+    public final PercentProperty speedMotion = new PercentProperty("Speed Motion", 100);
+    public final ModeProperty tower = new ModeProperty("Tower", 0, new String[]{"None", "Vanilla", "Extra", "Telly"});
+    public final ModeProperty keepY = new ModeProperty("Keep Y", 0, new String[]{"None", "Vanilla", "Extra", "Telly"});
     public final BooleanProperty predictionTower = new BooleanProperty("Prediction Tower", true);
-    public final BooleanProperty keepYonPress = new BooleanProperty("keep-y-on-press", false, () -> this.keepY.getValue() != 0);
-    public final BooleanProperty multiplace = new BooleanProperty("multi-place", true);
-    public final BooleanProperty alwaysClick = new BooleanProperty("always-click", false);
-    public final BooleanProperty raytraceCheck = new BooleanProperty("raytrace-check", false);
-    public final IntProperty aimSpeedYaw = new IntProperty("aim-speed-yaw", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
-    public final IntProperty aimSpeedPitch = new IntProperty("aim-speed-pitch", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
-    public final BooleanProperty customClutchSpeed = new BooleanProperty("custom-clutch-speed", false, () -> this.rotationMode.getValue() != 0);
-    public final BooleanProperty clutchSmooth = new BooleanProperty("clutch-smooth", true, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
-    public final IntProperty clutchMinAimSpeed = new IntProperty("clutch-min-aim-speed", 180, 1, 180, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
-    public final IntProperty clutchMaxAimSpeed = new IntProperty("clutch-max-aim-speed", 180, 1, 180, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
-    public final IntProperty minCps = new IntProperty("min-cps", 8, 1, 30, this.alwaysClick::getValue);
-    public final IntProperty maxCps = new IntProperty("max-cps", 12, 1, 30, this.alwaysClick::getValue);
-    public final BooleanProperty safeWalk = new BooleanProperty("safe-walk", true);
-    public final BooleanProperty sneak = new BooleanProperty("sneak", false);
-    public final IntProperty sneakMinDelay = new IntProperty("sneak-min-delay", 2, 0, 10, this.sneak::getValue);
-    public final IntProperty sneakMaxDelay = new IntProperty("sneak-max-delay", 3, 0, 10, this.sneak::getValue);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
-    public final BooleanProperty swing = new BooleanProperty("swing", true);
-    public final BooleanProperty itemSpoof = new BooleanProperty("item-spoof", false);
-    public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"NONE", "Myau", "Exhibition"});
+    public final BooleanProperty keepYonPress = new BooleanProperty("Keep Y On Press", false, () -> this.keepY.getValue() != 0);
+    public final BooleanProperty multiplace = new BooleanProperty("Multi Place", true);
+    public final BooleanProperty alwaysClick = new BooleanProperty("Always Click", false);
+    public final BooleanProperty raytraceCheck = new BooleanProperty("Raytrace Check", false);
+    public final IntProperty aimSpeedYaw = new IntProperty("Aim Speed Yaw", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
+    public final IntProperty aimSpeedPitch = new IntProperty("Aim Speed Pitch", 180, 1, 180, () -> this.rotationMode.getValue() != 0);
+    public final BooleanProperty customClutchSpeed = new BooleanProperty("Custom Clutch Speed", false, () -> this.rotationMode.getValue() != 0);
+    public final BooleanProperty clutchSmooth = new BooleanProperty("Clutch Smooth", true, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
+    public final IntProperty clutchMinAimSpeed = new IntProperty("Clutch Min Aim Speed", 180, 1, 180, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
+    public final IntProperty clutchMaxAimSpeed = new IntProperty("Clutch Max Aim Speed", 180, 1, 180, () -> this.rotationMode.getValue() != 0 && this.customClutchSpeed.getValue());
+    public final IntProperty minCps = new IntProperty("Min Cps", 8, 1, 30, this.alwaysClick::getValue);
+    public final IntProperty maxCps = new IntProperty("Max Cps", 12, 1, 30, this.alwaysClick::getValue);
+    public final BooleanProperty safeWalk = new BooleanProperty("Safe Walk", true);
+    public final BooleanProperty sneak = new BooleanProperty("Sneak", false);
+    public final IntProperty sneakMinDelay = new IntProperty("Sneak Min Delay", 2, 0, 10, this.sneak::getValue);
+    public final IntProperty sneakMaxDelay = new IntProperty("Sneak Max Delay", 3, 0, 10, this.sneak::getValue);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
+    public final BooleanProperty swing = new BooleanProperty("Swing", true);
+    public final BooleanProperty itemSpoof = new BooleanProperty("Item Spoof", false);
+    public final ModeProperty blockCounterMode = new ModeProperty("Block Counter Mode", 0, new String[]{"None", "Myau", "Exhibition"});
     private final float[] lastErrors = new float[20];
     private final TimerUtil clickTimer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();
@@ -1471,32 +1471,32 @@ public class Scaffold extends Module {
     @Override
     public void verifyValue(String name) {
         switch (name) {
-            case "sneak-min-delay":
+            case "Sneak Min Delay":
                 if (this.sneakMinDelay.getValue() > this.sneakMaxDelay.getValue()) {
                     this.sneakMaxDelay.setValue(this.sneakMinDelay.getValue());
                 }
                 break;
-            case "sneak-max-delay":
+            case "Sneak Max Delay":
                 if (this.sneakMinDelay.getValue() > this.sneakMaxDelay.getValue()) {
                     this.sneakMinDelay.setValue(this.sneakMaxDelay.getValue());
                 }
                 break;
-            case "min-cps":
+            case "Min Cps":
                 if (this.minCps.getValue() > this.maxCps.getValue()) {
                     this.maxCps.setValue(this.minCps.getValue());
                 }
                 break;
-            case "max-cps":
+            case "Max Cps":
                 if (this.minCps.getValue() > this.maxCps.getValue()) {
                     this.minCps.setValue(this.maxCps.getValue());
                 }
                 break;
-            case "clutch-min-aim-speed":
+            case "Clutch Min Aim Speed":
                 if (this.clutchMinAimSpeed.getValue() > this.clutchMaxAimSpeed.getValue()) {
                     this.clutchMaxAimSpeed.setValue(this.clutchMinAimSpeed.getValue());
                 }
                 break;
-            case "clutch-max-aim-speed":
+            case "Clutch Max Aim Speed":
                 if (this.clutchMinAimSpeed.getValue() > this.clutchMaxAimSpeed.getValue()) {
                     this.clutchMinAimSpeed.setValue(this.clutchMaxAimSpeed.getValue());
                 }

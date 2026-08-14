@@ -12,7 +12,6 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemFireball;
@@ -22,11 +21,11 @@ import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 
 public class LongJump extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"FIREBALL", "FIREBALL_MANUAL", "FIREBALL_HIGH", "FIREBALL_FLAT"});
-    public final FloatProperty motion = new FloatProperty("motion", 1.0F, 1.0F, 20.0F);
-    public final FloatProperty speedMotion = new FloatProperty("speed-motion", 1.0F, 1.0F, 20.0F);
-    public final PercentProperty strafe = new PercentProperty("strafe", 0);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Fireball", "FireballManual", "FireballHigh", "FireballFlat"});
+    public final FloatProperty motion = new FloatProperty("Motion", 1.0F, 1.0F, 20.0F);
+    public final FloatProperty speedMotion = new FloatProperty("Speed Motion", 1.0F, 1.0F, 20.0F);
+    public final PercentProperty strafe = new PercentProperty("Strafe", 0);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
     private final TimerUtil fireballTimer = new TimerUtil();
     private final TimerUtil jumpTimer = new TimerUtil();
     private boolean isJumping = false;
@@ -276,6 +275,6 @@ public class LongJump extends Module {
     @Override
     public String[] getSuffix() {
         String mode = this.mode.getModeString();
-        return mode.contains("FIREBALL") ? new String[]{"Fireball"} : new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, mode)};
+        return mode.contains("Fireball") ? new String[]{"Fireball"} : new String[]{mode};
     }
 }

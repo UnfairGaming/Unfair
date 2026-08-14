@@ -541,12 +541,12 @@ public class InvManager extends Module {
     @Override
     public void verifyValue(String string) {
         switch (string) {
-            case "min-delay":
+            case "Min Delay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.maxDelay.setValue(this.minDelay.getValue());
                 }
                 break;
-            case "max-delay":
+            case "Max Delay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.minDelay.setValue(this.maxDelay.getValue());
                 }

@@ -11,7 +11,7 @@ import net.minecraft.world.World;
 
 public class AntiObbyTrap extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final BooleanProperty setAir = new BooleanProperty("set-air", true);
+    public final BooleanProperty setAir = new BooleanProperty("Set Air", true);
 
     public AntiObbyTrap() {
         super("AntiObbyTrap", false);

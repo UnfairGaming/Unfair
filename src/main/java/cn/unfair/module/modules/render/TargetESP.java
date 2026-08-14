@@ -30,14 +30,14 @@ import static cn.unfair.util.MathUtil.interpolate;
 public class TargetESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final long HURT_DURATION = 500;
-    private final ModeProperty colorMode = new ModeProperty("Color Mode", 0, new String[]{"HUD", "Custom", "Fade"});
+    private final ModeProperty colorMode = new ModeProperty("Color Mode", 0, new String[]{"Hud", "Custom", "Fade"});
     private final ColorProperty customColor = new ColorProperty("Custom Color", Color.WHITE.getRGB(), () -> colorMode.getValue() == 1);
     private final ColorProperty fadeColor1 = new ColorProperty("Fade Color 1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 2);
     private final ColorProperty fadeColor2 = new ColorProperty("Fade Color 2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 2);
     private final ModeProperty mode = new ModeProperty("Mark Mode", 1, new String[]{"Points", "Ghost", "Ghost2", "Image", "Exhi", "Circle"});
     private final ModeProperty imageMode = new ModeProperty("Image Mode", 0, new String[]{"Rectangle", "QuadStapple", "TriangleStapple", "TriangleStipple", "Aim"}, () -> mode.getValue() == 3);
     private final BooleanProperty animation = new BooleanProperty("Animation", true, () -> mode.getValue() == 3 && imageMode.getValue() == 5);
-    private final BooleanProperty showHurt = new BooleanProperty("ShowHurt", false, () -> mode.getValue() == 3);
+    private final BooleanProperty showHurt = new BooleanProperty("Show Hurt", false, () -> mode.getValue() == 3);
     private final TimerUtil displayTimer = new TimerUtil();
     private final ResourceLocation glowCircle = new ResourceLocation("minecraft", "unfair/targetesp/glow_circle.png");
     private final ResourceLocation rectangle = new ResourceLocation("minecraft", "unfair/targetesp/rectangle.png");

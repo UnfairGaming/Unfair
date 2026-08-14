@@ -11,7 +11,6 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.PlayerUtil;
 import cn.unfair.util.RandomUtil;
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemEnderPearl;
 import net.minecraft.item.ItemStack;
@@ -20,8 +19,8 @@ import net.minecraft.util.AxisAlignedBB;
 
 public class AntiVoid extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"BLINK"});
-    public final FloatProperty distance = new FloatProperty("distance", 5.0F, 0.0F, 16.0F);
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Blink"});
+    public final FloatProperty distance = new FloatProperty("Distance", 5.0F, 0.0F, 16.0F);
     private boolean isInVoid = false;
     private boolean wasInVoid = false;
     private double[] lastSafePosition = null;
@@ -118,6 +117,6 @@ public class AntiVoid extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 }

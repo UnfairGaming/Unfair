@@ -10,7 +10,6 @@ import cn.unfair.property.properties.*;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.TimerUtil;
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 
@@ -18,18 +17,18 @@ public class BlockHit extends Module {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
     private final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Helper", "Auto", "Lag"});
-    private final IntProperty stopTime = new IntProperty("StopTicks", 2, 1, 5, () -> this.mode.getValue() == 0);
-    private final ModeProperty autoBlockTime = new ModeProperty("AutoBlockTime", 0, new String[]{"Delay", "HurtTime", "Sag"}, () -> this.mode.getValue() == 1);
-    private final ModeProperty autoMode = new ModeProperty("AutoMode", 0, new String[]{"Spam", "Hold"}, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 0);
-    private final IntProperty holdTick = new IntProperty("HoldTick", 2, 2, 5, () -> this.mode.getValue() == 1 && this.autoMode.getValue() == 1 && this.autoBlockTime.getValue() == 0);
-    private final IntProperty blockDelay = new IntProperty("BlockDelay", 100, 0, 1000, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 0);
-    private final IntProperty minHurtTime = new IntProperty("MinHurtTime", 10, 1, 10, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 1);
-    private final IntProperty maxHurtTime = new IntProperty("MaxHurtTime", 10, 1, 10, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 1);
-    private final IntProperty delayPacketTick = new IntProperty("DelayPacketTick", 2, 1, 10, () -> this.mode.getValue() == 2);
-    private final IntProperty blockTick = new IntProperty("BlockTick", 3, 1, 5, () -> this.mode.getValue() == 2);
-    private final PercentProperty chance = new PercentProperty("BlockHitChance", 50, () -> this.mode.getValue() == 1);
+    private final IntProperty stopTime = new IntProperty("Stop Ticks", 2, 1, 5, () -> this.mode.getValue() == 0);
+    private final ModeProperty autoBlockTime = new ModeProperty("Auto Block Time", 0, new String[]{"Delay", "HurtTime", "Sag"}, () -> this.mode.getValue() == 1);
+    private final ModeProperty autoMode = new ModeProperty("Auto Mode", 0, new String[]{"Spam", "Hold"}, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 0);
+    private final IntProperty holdTick = new IntProperty("Hold Tick", 2, 2, 5, () -> this.mode.getValue() == 1 && this.autoMode.getValue() == 1 && this.autoBlockTime.getValue() == 0);
+    private final IntProperty blockDelay = new IntProperty("Block Delay", 100, 0, 1000, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 0);
+    private final IntProperty minHurtTime = new IntProperty("Min Hurt Time", 10, 1, 10, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 1);
+    private final IntProperty maxHurtTime = new IntProperty("Max Hurt Time", 10, 1, 10, () -> this.mode.getValue() == 1 && this.autoBlockTime.getValue() == 1);
+    private final IntProperty delayPacketTick = new IntProperty("Delay Packet Tick", 2, 1, 10, () -> this.mode.getValue() == 2);
+    private final IntProperty blockTick = new IntProperty("Block Tick", 3, 1, 5, () -> this.mode.getValue() == 2);
+    private final PercentProperty chance = new PercentProperty("Block Hit Chance", 50, () -> this.mode.getValue() == 1);
     private final BooleanProperty smart = new BooleanProperty("Smart", true, () -> this.mode.getValue() == 1);
-    private final BooleanProperty autoBlockRange = new BooleanProperty("AutoBlockRange", true, () -> this.mode.getValue() == 1);
+    private final BooleanProperty autoBlockRange = new BooleanProperty("Auto Block Range", true, () -> this.mode.getValue() == 1);
     private final FloatProperty range = new FloatProperty("Range", 3.0f, 1f, 4f, () -> autoBlockRange.getValue() && mode.getValue() == 1);
     private final TimerUtil timer = new TimerUtil();
     private int holdTicks, stopTick;
@@ -174,6 +173,6 @@ public class BlockHit extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 }

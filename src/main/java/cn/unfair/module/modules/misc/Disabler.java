@@ -21,11 +21,11 @@ import java.util.Random;
 public class Disabler extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "GrimAC"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Hypixel", "GrimAc"});
     public final BooleanProperty inventory = new BooleanProperty("Inventory", true, () -> mode.getValue() == 0);
-    public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("GrimDuplicateRotPlace", false, () -> mode.getValue() == 1);
-    public final BooleanProperty acaAimStep = new BooleanProperty("ACAAimStep", false, () -> mode.getValue() == 1);
-    public final BooleanProperty acaPerfectRotation = new BooleanProperty("ACAPerfectRotation", false, () -> mode.getValue() == 1);
+    public final BooleanProperty grimDuplicateRotPlace = new BooleanProperty("Grim Duplicate Rot Place", false, () -> mode.getValue() == 1);
+    public final BooleanProperty acaAimStep = new BooleanProperty("Aca Aim Step", false, () -> mode.getValue() == 1);
+    public final BooleanProperty acaPerfectRotation = new BooleanProperty("Aca Perfect Rotation", false, () -> mode.getValue() == 1);
 
     private final List<Packet<?>> inventoryPackets = new ArrayList<>();
 

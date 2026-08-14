@@ -31,7 +31,7 @@ public class ChestAura extends Module {
     public final FloatProperty range = new FloatProperty("Range", 3.0F, 1.0F, 7.0F);
     public final FloatProperty openDelay = new FloatProperty("Open Delay", 100.0F, 0.0F, 600.0F);
     public final BooleanProperty interactOnce = new BooleanProperty("Interact Once", true);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
     private final List<BlockPos> openedList = new ArrayList<>();
     private BlockPos targetPos;
     private boolean waitingOpen;

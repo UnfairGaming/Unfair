@@ -39,7 +39,7 @@ public class PredictionVelocity extends SubModule {
     private int jumpResetTicks;
     private boolean rotating;
     private Entity target;
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
 
     public PredictionVelocity() {
         super("Prediction");

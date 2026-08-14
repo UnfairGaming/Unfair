@@ -26,31 +26,31 @@ import java.util.stream.Collectors;
 
 public class HUD extends Module {
     public static final ModeProperty colorMode = new ModeProperty(
-            "color", 3, new String[]{"RAINBOW", "CHROMA", "ASTOLFO", "CUSTOM1", "CUSTOM12", "CUSTOM123"}
+            "Color", 3, new String[]{"Rainbow", "Chroma", "Astolfo", "Custom1", "Custom12", "Custom123"}
     );
-    public static final FloatProperty colorSpeed = new FloatProperty("color-speed", 1.0F, 0.5F, 1.5F);
-    public static final PercentProperty colorSaturation = new PercentProperty("color-saturation", 50);
-    public static final PercentProperty colorBrightness = new PercentProperty("color-brightness", 100);
-    public static final ColorProperty custom1 = new ColorProperty("custom-color-1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 3 || colorMode.getValue() == 4 || colorMode.getValue() == 5);
-    public static final ColorProperty custom2 = new ColorProperty("custom-color-2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 4 || colorMode.getValue() == 5);
-    public static final ColorProperty custom3 = new ColorProperty("custom-color-3", Color.WHITE.getRGB(), () -> colorMode.getValue() == 5);
+    public static final FloatProperty colorSpeed = new FloatProperty("Color Speed", 1.0F, 0.5F, 1.5F);
+    public static final PercentProperty colorSaturation = new PercentProperty("Color Saturation", 50);
+    public static final PercentProperty colorBrightness = new PercentProperty("Color Brightness", 100);
+    public static final ColorProperty custom1 = new ColorProperty("Custom Color 1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 3 || colorMode.getValue() == 4 || colorMode.getValue() == 5);
+    public static final ColorProperty custom2 = new ColorProperty("Custom Color 2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 4 || colorMode.getValue() == 5);
+    public static final ColorProperty custom3 = new ColorProperty("Custom Color 3", Color.WHITE.getRGB(), () -> colorMode.getValue() == 5);
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final float ANIMATION_DURATION = 200.0F;
     private static final float HUD_FONT_SIZE = 16.0F;
     private static final String MINECRAFT_FONT = "Minecraft";
-    public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
-    public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
-    public final PercentProperty background = new PercentProperty("background", 50);
-    public final BooleanProperty round = new BooleanProperty("round", true, () -> this.background.getValue() > 0);
-    public final BooleanProperty showBar = new BooleanProperty("bar", true);
-    public final ModeProperty barPos = new ModeProperty("Bar Mode", 0, new String[]{"LEFT", "RIGHT", "TOP"}, this.showBar::getValue);
-    public final BooleanProperty shadow = new BooleanProperty("shadow", true);
-    public final BooleanProperty suffixes = new BooleanProperty("suffixes", true);
-    public final BooleanProperty lowerCase = new BooleanProperty("lower-case", false);
-    public final BooleanProperty chatOutline = new BooleanProperty("chat-outline", true);
-    public final BooleanProperty blinkTimer = new BooleanProperty("blink-timer", true);
-    public final BooleanProperty toggleSound = new BooleanProperty("toggle-sounds", true);
-    public final BooleanProperty toggleAlerts = new BooleanProperty("toggle-alerts", false);
+    public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
+    public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
+    public final PercentProperty background = new PercentProperty("Background", 50);
+    public final BooleanProperty round = new BooleanProperty("Round", true, () -> this.background.getValue() > 0);
+    public final BooleanProperty showBar = new BooleanProperty("Bar", true);
+    public final ModeProperty barPos = new ModeProperty("Bar Mode", 0, new String[]{"Left", "Right", "Top"}, this.showBar::getValue);
+    public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
+    public final BooleanProperty suffixes = new BooleanProperty("Suffixes", true);
+    public final BooleanProperty lowerCase = new BooleanProperty("Lower Case", false);
+    public final BooleanProperty chatOutline = new BooleanProperty("Chat Outline", true);
+    public final BooleanProperty blinkTimer = new BooleanProperty("Blink Timer", true);
+    public final BooleanProperty toggleSound = new BooleanProperty("Toggle Sounds", true);
+    public final BooleanProperty toggleAlerts = new BooleanProperty("Toggle Alerts", false);
     private final Set<Module> fadingOutModules = new HashSet<>();
     private final Map<Module, HudAnimation> animationMap = new HashMap<>();
     private List<Module> activeModules = new ArrayList<>();
@@ -64,7 +64,8 @@ public class HUD extends Module {
         String[] modes = new String[fonts.length + 1];
         modes[0] = MINECRAFT_FONT;
         for (int i = 0; i < fonts.length; i++) {
-            modes[i + 1] = fonts[i].name();
+            String fontName = fonts[i].name();
+            modes[i + 1] = Character.toUpperCase(fontName.charAt(0)) + fontName.substring(1);
         }
         return modes;
     }

@@ -15,8 +15,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public class TargetHUDUnfairMode extends TargetHUDMode {
-    public final PercentProperty background = new PercentProperty("background", 65);
-    public final BooleanProperty animations = new BooleanProperty("animations", true);
+    public final PercentProperty background = new PercentProperty("Background", 65);
+    public final BooleanProperty animations = new BooleanProperty("Animations", true);
 
     public TargetHUDUnfairMode() {
         super("Unfair");

@@ -15,7 +15,6 @@ import cn.unfair.ui.clickgui.augustus.AugustusClickGui;
 import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.PacketUtil;
-import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
@@ -31,8 +30,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class InvWalk extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("mode", 1, new String[]{"VANILLA", "LEGIT", "HYPIXEL"});
-    public final BooleanProperty guiEnabled = new BooleanProperty("ClickGUI", true);
+    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Vanilla", "Legit", "Hypixel"});
+    public final BooleanProperty guiEnabled = new BooleanProperty("Click Gui", true);
     private final Queue<C0EPacketClickWindow> clickQueue = new ConcurrentLinkedQueue<>();
     private boolean keysPressed = false;
     private C16PacketClientStatus pendingStatus = null;
@@ -191,6 +190,6 @@ public class InvWalk extends Module {
 
     @Override
     public String[] getSuffix() {
-        return new String[]{CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, this.mode.getModeString())};
+        return new String[]{this.mode.getModeString()};
     }
 }

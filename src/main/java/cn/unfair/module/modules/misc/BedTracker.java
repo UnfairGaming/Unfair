@@ -84,23 +84,23 @@ public class BedTracker extends Module {
         this.bedPos = null;
         this.lastMarcoTime = -1L;
         this.waiting = false;
-        this.alerts = new BooleanProperty("alerts", true);
-        this.alertRange = new IntProperty("alerts-range", 48, 8, 128, this.alerts::getValue);
-        this.alertOnPearl = new BooleanProperty("alerts-on-pearl", true);
-        this.alertSound = new ModeProperty("alerts-sound", 1, new String[]{"NONE", "MEOW", "ANVIL"}, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
-        this.alertFrequency = new IntProperty("alerts-frequency", 5, 1, 30, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
-        this.marco = new BooleanProperty("macro", false);
-        this.marcoRange = new IntProperty("macro-range", 24, 8, 128, this.marco::getValue);
-        this.marcoOnPreal = new BooleanProperty("macro-on-pearl", false);
-        this.marcoText = new TextProperty("macro-text", "/lobby", () -> this.marco.getValue() || this.marcoOnPreal.getValue());
-        this.marcoDelay = new IntProperty("macro-delay", 1, 1, 10, () -> this.marco.getValue() || this.marcoOnPreal.getValue());
-        this.hud = new BooleanProperty("hud", true);
-        this.hudPosX = new ModeProperty("hud-position-x", 0, new String[]{"LEFT", "MIDDLE", "RIGHT"}, this.hud::getValue);
-        this.hudPosY = new ModeProperty("hud-position-y", 0, new String[]{"TOP", "MIDDLE", "BOTTOM"}, this.hud::getValue);
-        this.hudOffX = new IntProperty("hud-offset-x", 2, 0, 255, this.hud::getValue);
-        this.hudOffY = new IntProperty("hud-offset-y", 2, 0, 255, this.hud::getValue);
-        this.hudScale = new FloatProperty("hud-scale", 1.0F, 0.5F, 1.5F, this.hud::getValue);
-        this.hudShadow = new BooleanProperty("hud-shadow", true, this.hud::getValue);
+        this.alerts = new BooleanProperty("Alerts", true);
+        this.alertRange = new IntProperty("Alerts Range", 48, 8, 128, this.alerts::getValue);
+        this.alertOnPearl = new BooleanProperty("Alerts On Pearl", true);
+        this.alertSound = new ModeProperty("Alerts Sound", 1, new String[]{"None", "Meow", "Anvil"}, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
+        this.alertFrequency = new IntProperty("Alerts Frequency", 5, 1, 30, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
+        this.marco = new BooleanProperty("Macro", false);
+        this.marcoRange = new IntProperty("Macro Range", 24, 8, 128, this.marco::getValue);
+        this.marcoOnPreal = new BooleanProperty("Macro On Pearl", false);
+        this.marcoText = new TextProperty("Macro Text", "/lobby", () -> this.marco.getValue() || this.marcoOnPreal.getValue());
+        this.marcoDelay = new IntProperty("Macro Delay", 1, 1, 10, () -> this.marco.getValue() || this.marcoOnPreal.getValue());
+        this.hud = new BooleanProperty("Hud", true);
+        this.hudPosX = new ModeProperty("Hud Position X", 0, new String[]{"Left", "Middle", "Right"}, this.hud::getValue);
+        this.hudPosY = new ModeProperty("Hud Position Y", 0, new String[]{"Top", "Middle", "Bottom"}, this.hud::getValue);
+        this.hudOffX = new IntProperty("Hud Offset X", 2, 0, 255, this.hud::getValue);
+        this.hudOffY = new IntProperty("Hud Offset Y", 2, 0, 255, this.hud::getValue);
+        this.hudScale = new FloatProperty("Hud Scale", 1.0F, 0.5F, 1.5F, this.hud::getValue);
+        this.hudShadow = new BooleanProperty("Hud Shadow", true, this.hud::getValue);
     }
 
     private void playAlertSound() {

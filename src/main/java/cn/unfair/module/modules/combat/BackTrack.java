@@ -36,7 +36,7 @@ public class BackTrack extends Module {
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
     public static boolean shouldLag;
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"CLASSIC", "RISE"}) {
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Classic", "Rise"}) {
         @Override
         public boolean read(JsonObject jsonObject) {
             String configuredMode = jsonObject.get(this.getName()).getAsString();
@@ -49,28 +49,28 @@ public class BackTrack extends Module {
             return super.read(jsonObject);
         }
     };
-    public final BooleanProperty onlyWhenNeeded = new BooleanProperty("only-when-needed", false, this::isClassic);
-    public final FloatProperty attackRange = new FloatProperty("attack-range", 3.0F, 0.1F, 8.0F, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
-    public final FloatProperty rangeStart = new FloatProperty("range-start", 3.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
-    public final FloatProperty rangeEnd = new FloatProperty("range-end", 6.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
-    public final ModeProperty rangeBase = new ModeProperty("range-base", 0, new String[]{"MOUSE_OVER", "HURT_TIME", "ATTACK"}, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
-    public final BooleanProperty attackTickFix = new BooleanProperty("attack-tick-fix", false, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
-    public final IntProperty predictionTicks = new IntProperty("prediction-ticks", 1, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
-    public final IntProperty hurtTimeToWork = new IntProperty("hurt-time-to-work", 3, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
-    public final BooleanProperty extraCheck = new BooleanProperty("extra-check", true, this::isClassic);
-    public final IntProperty ms = new IntProperty("delay-ms", 50, 0, 1000, this::isClassic);
-    public final BooleanProperty extraMS = new BooleanProperty("extra-ms", false, this::isClassic);
-    public final IntProperty extraRand = new IntProperty("extra-rand", 50, 0, 500, this::isClassic);
-    public final IntProperty delayForNextLag = new IntProperty("delay-for-next-lag", 0, 0, 1000, this::isClassic);
-    public final IntProperty maxPingSpoof = new IntProperty("max-ping-spoof", 1000, 50, 2000, this::isLegitReach);
-    public final BooleanProperty renderRealLocation = new BooleanProperty("render-real-location", true, this::isLegitReach);
-    public final ModeProperty esp = new ModeProperty("render-mode", 1, new String[]{"FAKE_PLAYER", "BOX", "NONE"}, this::isClassic);
-    public final BooleanProperty players = new BooleanProperty("players", true);
-    public final BooleanProperty mobs = new BooleanProperty("mobs", false);
-    public final BooleanProperty animals = new BooleanProperty("animals", false);
-    public final ModeProperty boxColor = new ModeProperty("box-color", 0, new String[]{"DEFAULT", "HUD", "CUSTOM"}, () -> this.isClassic() && this.esp.getValue() == 1);
-    public final ColorProperty boxCustomColor = new ColorProperty("box-custom-color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
-    public final FloatProperty outlineWidth = new FloatProperty("outline-width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final BooleanProperty onlyWhenNeeded = new BooleanProperty("Only When Needed", false, this::isClassic);
+    public final FloatProperty attackRange = new FloatProperty("Attack Range", 3.0F, 0.1F, 8.0F, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final FloatProperty rangeStart = new FloatProperty("Range Start", 3.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
+    public final FloatProperty rangeEnd = new FloatProperty("Range End", 6.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
+    public final ModeProperty rangeBase = new ModeProperty("Range Base", 0, new String[]{"MouseOver", "HurtTime", "Attack"}, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final BooleanProperty attackTickFix = new BooleanProperty("Attack Tick Fix", false, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final IntProperty predictionTicks = new IntProperty("Prediction Ticks", 1, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final IntProperty hurtTimeToWork = new IntProperty("Hurt Time To Work", 3, 0, 10, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
+    public final BooleanProperty extraCheck = new BooleanProperty("Extra Check", true, this::isClassic);
+    public final IntProperty ms = new IntProperty("Delay Ms", 50, 0, 1000, this::isClassic);
+    public final BooleanProperty extraMS = new BooleanProperty("Extra Ms", false, this::isClassic);
+    public final IntProperty extraRand = new IntProperty("Extra Rand", 50, 0, 500, this::isClassic);
+    public final IntProperty delayForNextLag = new IntProperty("Delay For Next Lag", 0, 0, 1000, this::isClassic);
+    public final IntProperty maxPingSpoof = new IntProperty("Max Ping Spoof", 1000, 50, 2000, this::isLegitReach);
+    public final BooleanProperty renderRealLocation = new BooleanProperty("Render Real Location", true, this::isLegitReach);
+    public final ModeProperty esp = new ModeProperty("Render Mode", 1, new String[]{"FakePlayer", "Box", "None"}, this::isClassic);
+    public final BooleanProperty players = new BooleanProperty("Players", true);
+    public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
+    public final BooleanProperty animals = new BooleanProperty("Animals", false);
+    public final ModeProperty boxColor = new ModeProperty("Box Color", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final ColorProperty boxCustomColor = new ColorProperty("Box Custom Color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
+    public final FloatProperty outlineWidth = new FloatProperty("Outline Width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
     private Vec3 animatedPosition;

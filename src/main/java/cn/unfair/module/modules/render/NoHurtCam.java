@@ -4,7 +4,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.PercentProperty;
 
 public class NoHurtCam extends Module {
-    public final PercentProperty multiplier = new PercentProperty("multiplier", 0);
+    public final PercentProperty multiplier = new PercentProperty("Multiplier", 0);
 
     public NoHurtCam() {
         super("NoHurtCam", false, true);

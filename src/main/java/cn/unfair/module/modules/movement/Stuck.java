@@ -26,7 +26,7 @@ public class Stuck extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Vanilla", "Heypixel"});
 
-    public final IntProperty stuckTicks = new IntProperty("stuck-ticks", 10, 1, 100);
+    public final IntProperty stuckTicks = new IntProperty("Stuck Ticks", 10, 1, 100);
     private double savedMotionX;
     private double savedMotionY;
     private double savedMotionZ;

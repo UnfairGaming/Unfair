@@ -30,8 +30,8 @@ public class Scoreboard extends Module {
     private static final int TITLE_COLOR = 0xFFF4F6FB;
     private static final int TEXT_COLOR = 0xE8E9EDF5;
 
-    public final PercentProperty background = new PercentProperty("background", 55);
-    public final BooleanProperty shadow = new BooleanProperty("shadow", true);
+    public final PercentProperty background = new PercentProperty("Background", 55);
+    public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
 
     private final FontRenderer fontRenderer = Fonts.interMedium.get(FONT_SIZE);
     private float cachedWidth = MIN_WIDTH;

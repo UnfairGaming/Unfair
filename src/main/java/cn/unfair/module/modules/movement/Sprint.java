@@ -12,7 +12,7 @@ import net.minecraft.entity.ai.attributes.IAttributeInstance;
 
 public class Sprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final BooleanProperty foxFix = new BooleanProperty("fov-fix", true);
+    public final BooleanProperty foxFix = new BooleanProperty("Fov Fix", true);
     private boolean wasSprinting = false;
 
     public Sprint() {

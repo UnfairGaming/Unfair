@@ -11,8 +11,8 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class SpeedMine extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final PercentProperty speed = new PercentProperty("speed", 15);
-    public final IntProperty delay = new IntProperty("delay", 0, 0, 4);
+    public final PercentProperty speed = new PercentProperty("Speed", 15);
+    public final IntProperty delay = new IntProperty("Delay", 0, 0, 4);
 
     public SpeedMine() {
         super("SpeedMine", false);

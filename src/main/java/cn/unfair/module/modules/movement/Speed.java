@@ -14,9 +14,9 @@ import net.minecraft.client.Minecraft;
 
 public class Speed extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty multiplier = new FloatProperty("multiplier", 1.0F, 0.0F, 10.0F);
-    public final FloatProperty friction = new FloatProperty("friction", 1.0F, 0.0F, 10.0F);
-    public final PercentProperty strafe = new PercentProperty("strafe", 0);
+    public final FloatProperty multiplier = new FloatProperty("Multiplier", 1.0F, 0.0F, 10.0F);
+    public final FloatProperty friction = new FloatProperty("Friction", 1.0F, 0.0F, 10.0F);
+    public final PercentProperty strafe = new PercentProperty("Strafe", 0);
 
     public Speed() {
         super("Speed", false);

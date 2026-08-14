@@ -10,9 +10,9 @@ import java.util.regex.Matcher;
 
 public class NickHider extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final TextProperty protectName = new TextProperty("name", "You");
-    public final BooleanProperty scoreboard = new BooleanProperty("scoreboard", true);
-    public final BooleanProperty level = new BooleanProperty("level", true);
+    public final TextProperty protectName = new TextProperty("Name", "You");
+    public final BooleanProperty scoreboard = new BooleanProperty("Scoreboard", true);
+    public final BooleanProperty level = new BooleanProperty("Level", true);
 
     public NickHider() {
         super("NickHider", false, true);

@@ -24,14 +24,14 @@ import java.util.stream.Collectors;
 
 public class Tracers extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty colorMode = new ModeProperty("color", 0, new String[]{"DEFAULT", "TEAMS", "HUD"});
-    public final BooleanProperty drawLines = new BooleanProperty("lines", true);
-    public final BooleanProperty drawArrows = new BooleanProperty("arrows", false);
-    public final PercentProperty opacity = new PercentProperty("opacity", 100);
-    public final BooleanProperty showPlayers = new BooleanProperty("players", true);
-    public final BooleanProperty showFriends = new BooleanProperty("friends", true);
-    public final BooleanProperty showEnemies = new BooleanProperty("enemies", true);
-    public final BooleanProperty showBots = new BooleanProperty("bots", false);
+    public final ModeProperty colorMode = new ModeProperty("Color", 0, new String[]{"Default", "Teams", "Hud"});
+    public final BooleanProperty drawLines = new BooleanProperty("Lines", true);
+    public final BooleanProperty drawArrows = new BooleanProperty("Arrows", false);
+    public final PercentProperty opacity = new PercentProperty("Opacity", 100);
+    public final BooleanProperty showPlayers = new BooleanProperty("Players", true);
+    public final BooleanProperty showFriends = new BooleanProperty("Friends", true);
+    public final BooleanProperty showEnemies = new BooleanProperty("Enemies", true);
+    public final BooleanProperty showBots = new BooleanProperty("Bots", false);
 
     public Tracers() {
         super("Tracers", false, true);

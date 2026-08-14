@@ -17,9 +17,9 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class FastPlace extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delay = new IntProperty("delay", 1, 1, 3);
-    public final BooleanProperty blocksOnly = new BooleanProperty("blocks-only", true);
-    public final BooleanProperty placeFix = new BooleanProperty("place-fix", true);
+    public final IntProperty delay = new IntProperty("Delay", 1, 1, 3);
+    public final BooleanProperty blocksOnly = new BooleanProperty("Blocks Only", true);
+    public final BooleanProperty placeFix = new BooleanProperty("Place Fix", true);
     private long delayMS = 0L;
 
     public FastPlace() {

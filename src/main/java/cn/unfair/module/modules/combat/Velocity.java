@@ -9,7 +9,7 @@ public class Velocity extends ModuleWithModuleSettings {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public Velocity() {
-        super("Velocity", false, "mode",
+        super("Velocity", false, "Mode",
                 new VanillaVelocity(),
                 new PredictionVelocity(),
                 new ReduceVelocity(),

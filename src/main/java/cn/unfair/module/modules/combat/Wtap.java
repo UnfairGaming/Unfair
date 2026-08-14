@@ -15,8 +15,8 @@ import net.minecraft.potion.Potion;
 
 public class Wtap extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final FloatProperty delay = new FloatProperty("delay", 5.5F, 0.0F, 10.0F);
-    public final FloatProperty duration = new FloatProperty("duration", 1.5F, 1.0F, 5.0F);
+    public final FloatProperty delay = new FloatProperty("Delay", 5.5F, 0.0F, 10.0F);
+    public final FloatProperty duration = new FloatProperty("Duration", 1.5F, 1.0F, 5.0F);
     private final TimerUtil timer = new TimerUtil();
     private boolean active = false;
     private boolean stopForward = false;

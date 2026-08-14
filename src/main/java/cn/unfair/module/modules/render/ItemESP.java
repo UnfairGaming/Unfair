@@ -27,14 +27,14 @@ import java.util.stream.Collectors;
 
 public class ItemESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final PercentProperty opacity = new PercentProperty("opacity", 25);
-    public final BooleanProperty outline = new BooleanProperty("outline", false);
-    public final BooleanProperty itemCount = new BooleanProperty("item-count", true);
-    public final BooleanProperty autoScale = new BooleanProperty("auto-scale", true);
-    public final BooleanProperty emeralds = new BooleanProperty("emeralds", true);
-    public final BooleanProperty diamonds = new BooleanProperty("diamonds", true);
-    public final BooleanProperty goldd = new BooleanProperty("gold", true);
-    public final BooleanProperty iron = new BooleanProperty("iron", true);
+    public final PercentProperty opacity = new PercentProperty("Opacity", 25);
+    public final BooleanProperty outline = new BooleanProperty("Outline", false);
+    public final BooleanProperty itemCount = new BooleanProperty("Item Count", true);
+    public final BooleanProperty autoScale = new BooleanProperty("Auto Scale", true);
+    public final BooleanProperty emeralds = new BooleanProperty("Emeralds", true);
+    public final BooleanProperty diamonds = new BooleanProperty("Diamonds", true);
+    public final BooleanProperty goldd = new BooleanProperty("Gold", true);
+    public final BooleanProperty iron = new BooleanProperty("Iron", true);
 
     public ItemESP() {
         super("ItemESP", false, true);

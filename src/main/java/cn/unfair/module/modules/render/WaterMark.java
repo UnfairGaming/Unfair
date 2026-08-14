@@ -25,13 +25,13 @@ public class WaterMark extends Module {
     private static final int INFO_COLOR = 0xE6D2D6E1;
     private static final int BACKGROUND_RGB = 9 << 16 | 11 << 8 | 15;
 
-    public final ModeProperty font = new ModeProperty("font", 0, getFontModes());
-    public final FloatProperty scale = new FloatProperty("scale", 1.0F, 0.5F, 1.5F);
-    public final PercentProperty background = new PercentProperty("background", 0);
+    public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
+    public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
+    public final PercentProperty background = new PercentProperty("Background", 0);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
-    public final BooleanProperty showVersion = new BooleanProperty("version", true);
-    public final BooleanProperty showFps = new BooleanProperty("fps", false);
-    public final BooleanProperty showPing = new BooleanProperty("ping", false);
+    public final BooleanProperty showVersion = new BooleanProperty("Version", true);
+    public final BooleanProperty showFps = new BooleanProperty("Fps", false);
+    public final BooleanProperty showPing = new BooleanProperty("Ping", false);
     private int cachedFont = -1;
     private boolean cachedShowVersion;
     private boolean cachedShowFps;
@@ -52,7 +52,8 @@ public class WaterMark extends Module {
         String[] modes = new String[fonts.length + 1];
         modes[0] = MINECRAFT_FONT;
         for (int i = 0; i < fonts.length; i++) {
-            modes[i + 1] = fonts[i].name();
+            String fontName = fonts[i].name();
+            modes[i + 1] = Character.toUpperCase(fontName.charAt(0)) + fontName.substring(1);
         }
         return modes;
     }

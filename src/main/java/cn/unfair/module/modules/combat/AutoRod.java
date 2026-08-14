@@ -27,18 +27,18 @@ import net.minecraft.util.Vec3;
 public class AutoRod extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final FloatProperty minRange = new FloatProperty("min-range", 3.2F, 1.0F, 8.0F);
-    public final FloatProperty maxRange = new FloatProperty("max-range", 4.5F, 1.0F, 8.0F);
-    public final IntProperty useDelayOnSwitch = new IntProperty("use-delay-on-switch", 1, 0, 10);
-    public final IntProperty maxWaitDelay = new IntProperty("max-wait-delay", 2, 0, 20);
-    public final IntProperty maxRecastDelay = new IntProperty("max-recast-delay", 1, 0, 20);
-    public final IntProperty switchBackDelay = new IntProperty("switchback-delay", 3, 0, 10);
-    public final IntProperty fov = new IntProperty("fov", 90, 0, 360);
-    public final BooleanProperty rotate = new BooleanProperty("rotate", true);
-    public final FloatProperty basePrediction = new FloatProperty("base-prediction", 2.0F, 0.0F, 8.0F, this.rotate::getValue);
-    public final BooleanProperty onlyOnKillAura = new BooleanProperty("only-on-kill-aura", false);
-    public final BooleanProperty overrideAuraRots = new BooleanProperty("override-kill-aura-rots", true);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("inventory-check", true);
+    public final FloatProperty minRange = new FloatProperty("Min Range", 3.2F, 1.0F, 8.0F);
+    public final FloatProperty maxRange = new FloatProperty("Max Range", 4.5F, 1.0F, 8.0F);
+    public final IntProperty useDelayOnSwitch = new IntProperty("Use Delay On Switch", 1, 0, 10);
+    public final IntProperty maxWaitDelay = new IntProperty("Max Wait Delay", 2, 0, 20);
+    public final IntProperty maxRecastDelay = new IntProperty("Max Recast Delay", 1, 0, 20);
+    public final IntProperty switchBackDelay = new IntProperty("Switchback Delay", 3, 0, 10);
+    public final IntProperty fov = new IntProperty("Fov", 90, 0, 360);
+    public final BooleanProperty rotate = new BooleanProperty("Rotate", true);
+    public final FloatProperty basePrediction = new FloatProperty("Base Prediction", 2.0F, 0.0F, 8.0F, this.rotate::getValue);
+    public final BooleanProperty onlyOnKillAura = new BooleanProperty("Only On Kill Aura", false);
+    public final BooleanProperty overrideAuraRots = new BooleanProperty("Override Kill Aura Rots", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
 
     private final TimerUtil recastTimer = new TimerUtil();
     private final TimerUtil delayTimer = new TimerUtil();

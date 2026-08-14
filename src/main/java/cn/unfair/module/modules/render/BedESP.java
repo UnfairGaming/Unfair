@@ -32,8 +32,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class BedESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final CopyOnWriteArraySet<BlockPos> beds = new CopyOnWriteArraySet<>();
-    public final ModeProperty mode = new ModeProperty("mode", 0, new String[]{"DEFAULT", "FULL"});
-    public final ModeProperty color = new ModeProperty("color", 0, new String[]{"CUSTOM", "HUD"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Default", "Full"});
+    public final ModeProperty color = new ModeProperty("Color", 0, new String[]{"Custom", "Hud"});
     public final ColorProperty customColor;
     public final PercentProperty opacity;
     public final BooleanProperty outline;
@@ -42,10 +42,10 @@ public class BedESP extends Module {
 
     public BedESP() {
         super("BedESP", false, true);
-        this.customColor = new ColorProperty("custom-color", (int) 8085714755840333141L, () -> this.color.getValue() == 0);
-        this.opacity = new PercentProperty("opacity", 25);
-        this.outline = new BooleanProperty("outline", false);
-        this.obsidian = new BooleanProperty("obsidian", true);
+        this.customColor = new ColorProperty("Custom Color", (int) 8085714755840333141L, () -> this.color.getValue() == 0);
+        this.opacity = new PercentProperty("Opacity", 25);
+        this.outline = new BooleanProperty("Outline", false);
+        this.obsidian = new BooleanProperty("Obsidian", true);
     }
 
     private Color getColor() {

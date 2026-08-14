@@ -29,7 +29,7 @@ public class Animations extends Module {
 
     public final ModeProperty blockAnimation = new ModeProperty("Block Animation", 0, new String[]{
             "None", "1.7", "Sunny", "Lucid", "Astro", "Smooth", "Spin", "Leaked", "Old",
-            "Exhibition", "Exhibition Old", "Exhibition New", "Swong", "Stella", "Flup", "Noov",
+            "Exhibition", "ExhibitionOld", "ExhibitionNew", "Swong", "Stella", "Flup", "Noov",
             "Komorebi", "Rhys", "Swing", "?", "Stab", "Beta", "Dortware", "Avatar", "Tap"
     });
     public final ModeProperty swingAnimation = new ModeProperty("Swing Animation", 0, new String[]{"None", "Punch", "Shove", "Smooth", "1.9+"});
@@ -326,7 +326,7 @@ public class Animations extends Module {
                 GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, convertedProgress / 1.1F, 0.0F);
                 itemRenderer.doBlockTransformations();
                 break;
-            case "Exhibition Old":
+            case "ExhibitionOld":
                 GlStateManager.translate(0.0F, -0.05F, 0.0F);
                 GlStateManager.translate(-0.04F, 0.13F, 0.0F);
                 itemRenderer.transformFirstPersonItem(animationProgression / 2.5F, 0.0F);
@@ -335,7 +335,7 @@ public class Animations extends Module {
                 GlStateManager.rotate(-convertedProgress * 30.0F, 1.0F, convertedProgress / 3.0F, -0.0F);
                 itemRenderer.doBlockTransformations();
                 break;
-            case "Exhibition New":
+            case "ExhibitionNew":
                 GlStateManager.translate(0.0F, -0.04F, -0.01F);
                 itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, 0.0F);
                 GlStateManager.scale(scaleValue, scaleValue, scaleValue);
