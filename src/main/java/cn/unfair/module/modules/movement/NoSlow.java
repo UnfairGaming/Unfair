@@ -14,15 +14,11 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
-import cn.unfair.util.via.ModernOffhandInteraction;
 import com.google.common.base.CaseFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityVillager;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.ItemPotion;
-import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -37,7 +33,7 @@ public class NoSlow extends Module {
     public final ModeProperty swordMode = new ModeProperty("sword-mode", 1, new String[]{"NONE", "VANILLA"});
     public final PercentProperty swordMotion = new PercentProperty("sword-motion", 100, () -> this.swordMode.getValue() != 0);
     public final BooleanProperty swordSprint = new BooleanProperty("sword-sprint", true, () -> this.swordMode.getValue() != 0);
-    public final ModeProperty foodMode = new ModeProperty("food-mode", 0, new String[]{"NONE", "VANILLA", "FLOAT", "C0F"});
+    public final ModeProperty foodMode = new ModeProperty("food-mode", 0, new String[]{"NONE", "VANILLA", "FLOAT", "GrimAC"});
     public final PercentProperty foodMotion = new PercentProperty("food-motion", 100, () -> this.foodMode.getValue() != 0);
     public final BooleanProperty foodSprint = new BooleanProperty("food-sprint", true, () -> this.foodMode.getValue() != 0);
     public final BooleanProperty c0fDelayKnockback = new BooleanProperty("c0f-delay-knockback", true, () -> this.foodMode.getValue() == 3);
@@ -51,6 +47,7 @@ public class NoSlow extends Module {
 
     private C0FStep c0fStep = C0FStep.NONE;
     private int c0fNoUsingItemTicks = 0;
+    private int c0fSwapSlowdownTicks = 0;
     private final LinkedBlockingQueue<Packet<?>> c0fPackets = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedVelocity = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedInteraction = new LinkedBlockingQueue<>();
@@ -74,6 +71,7 @@ public class NoSlow extends Module {
         this.flushDelayedInteraction();
         fakeEating = false;
         this.c0fNoUsingItemTicks = 0;
+        this.c0fSwapSlowdownTicks = 0;
     }
 
     public boolean isSwordActive() {
@@ -81,7 +79,9 @@ public class NoSlow extends Module {
     }
 
     public boolean isFoodActive() {
-        return this.foodMode.getValue() != 0 && ItemUtil.isEating();
+        return this.foodMode.getValue() != 0
+                && !this.isFoodC0F()
+                && ItemUtil.isEating();
     }
 
     public boolean isBowActive() {
@@ -94,7 +94,11 @@ public class NoSlow extends Module {
     }
 
     public boolean isC0FActive() {
-        return this.isFoodC0F() && this.c0fStep != C0FStep.NONE;
+        return this.isFoodC0F() && this.c0fStep == C0FStep.EATING;
+    }
+
+    public boolean shouldApplyC0FSwapSlowdown() {
+        return this.isFoodC0F() && this.c0fSwapSlowdownTicks > 0;
     }
 
     public boolean isAnyActive() {
@@ -110,7 +114,9 @@ public class NoSlow extends Module {
     }
 
     public int getMotionMultiplier() {
-        if (ItemUtil.isHoldingSword()) {
+        if (this.isC0FActive()) {
+            return this.foodMotion.getValue();
+        } else if (ItemUtil.isHoldingSword()) {
             return this.swordMotion.getValue();
         } else if (ItemUtil.isEating()) {
             return this.foodMotion.getValue();
@@ -121,8 +127,15 @@ public class NoSlow extends Module {
 
     @EventTarget
     public void onLivingUpdate(LivingUpdateEvent event) {
+        if (this.isEnabled() && this.shouldApplyC0FSwapSlowdown()) {
+            this.c0fSwapSlowdownTicks--;
+            return;
+        }
+
         if (this.isEnabled() && this.isAnyActive()) {
-            if (this.canSprint() && this.shouldForceSprint()) {
+            if (this.isC0FActive() && mc.thePlayer.isCollidedHorizontally) {
+                mc.thePlayer.setSprinting(false);
+            } else if (this.canSprint() && this.shouldForceSprint()) {
                 mc.thePlayer.setSprinting(true);
             } else if (!this.canSprint()) {
                 mc.thePlayer.setSprinting(false);
@@ -194,13 +207,7 @@ public class NoSlow extends Module {
                 this.releaseC0F();
             }
             this.c0fNoUsingItemTicks = 0;
-            return;
-        }
-
-        // If the food is sitting in the offhand instead of the mainhand, the whole
-        // C0F trick can never start (it relies on eating from the mainhand). Swap it
-        // back to the mainhand first, then let vanilla begin the eat next tick.
-        if (this.c0fStep == C0FStep.NONE && this.trySwapOffhandFoodToMainHand()) {
+            this.c0fSwapSlowdownTicks = 0;
             return;
         }
 
@@ -275,6 +282,7 @@ public class NoSlow extends Module {
 
                 if (this.c0fStep == C0FStep.CANCEL_C0F) {
                     this.c0fStep = C0FStep.SWAP_HANDS;
+                    this.c0fSwapSlowdownTicks = 1;
                     PacketUtil.sendPacket(new CPacketSwapItemWithOffHand());
                 }
             }
@@ -293,7 +301,13 @@ public class NoSlow extends Module {
             }
 
             if (packet instanceof S08PacketPlayerPosLook) {
-                this.releaseC0F();
+                KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
+                if (mc.thePlayer != null) {
+                    mc.thePlayer.stopUsingItem();
+                }
+                if (this.c0fStep != C0FStep.NONE) {
+                    this.releaseC0F();
+                }
             }
         }
     }
@@ -307,6 +321,7 @@ public class NoSlow extends Module {
         }
 
         if (mc.getNetHandler() != null) {
+            this.c0fSwapSlowdownTicks = 1;
             PacketUtil.sendPacket(new CPacketSwapItemWithOffHand());
         }
 
@@ -340,36 +355,6 @@ public class NoSlow extends Module {
             }
         }
         this.c0fDelayedVelocity.clear();
-    }
-
-    private boolean isFood(ItemStack itemStack) {
-        if (itemStack == null || itemStack.stackSize < 1) {
-            return false;
-        }
-        if (ItemPotion.isSplash(itemStack.getItem().getMetadata(itemStack))) {
-            return false;
-        }
-        EnumAction action = itemStack.getItemUseAction();
-        return action == EnumAction.EAT || action == EnumAction.DRINK;
-    }
-
-    private boolean trySwapOffhandFoodToMainHand() {
-        if (mc.thePlayer == null || !ModernOffhandInteraction.isModernTarget()) {
-            return false;
-        }
-        // Only act while the player is actually trying to eat (physical use key held).
-        if (!KeyBindUtil.isKeyDown(mc.gameSettings.keyBindUseItem.getKeyCode())) {
-            return false;
-        }
-        // Mainhand already holds food -> normal C0F flow handles it.
-        if (this.isFood(mc.thePlayer.getHeldItem())) {
-            return false;
-        }
-        ItemStack offhand = ModernOffhandInteraction.getOffhand(mc.thePlayer);
-        if (!this.isFood(offhand)) {
-            return false;
-        }
-        return ModernOffhandInteraction.sendSwapItemWithOffhand(mc.thePlayer);
     }
 
     @Override

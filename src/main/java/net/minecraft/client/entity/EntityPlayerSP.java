@@ -1246,8 +1246,14 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         if (Unfair.moduleManager != null) {
             NoSlow noSlow = (NoSlow) Unfair.moduleManager.modules.get(NoSlow.class);
 
-            if (noSlow.isEnabled() && noSlow.isAnyActive()) {
-                return false;
+            if (noSlow.isEnabled()) {
+                if (noSlow.shouldApplyC0FSwapSlowdown()) {
+                    return true;
+                }
+
+                if (noSlow.isAnyActive()) {
+                    return false;
+                }
             }
         }
 
