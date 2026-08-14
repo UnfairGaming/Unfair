@@ -1784,7 +1784,7 @@ public class RenderUtil {
         circleShader.setUniformf("thickness", Math.clamp(innerRatio, 0.0F, 1.0F));
         setShaderColor(circleShader, "color", color);
 
-        drawQuads(x - 1.0F, y - 1.0F, diameter + 2.0F, diameter + 2.0F);
+        drawQuads(x, y, diameter, diameter);
 
         circleShader.unload();
         GlStateManager.disableBlend();
