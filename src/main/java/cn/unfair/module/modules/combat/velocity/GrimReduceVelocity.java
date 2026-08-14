@@ -114,7 +114,8 @@ public class GrimReduceVelocity extends SubModule {
 
     @EventTarget
     public void onLoadWorld(LoadWorldEvent event) {
-        onDisabled();
+        Unfair.delayManager.discardDelayedPackets(DelayModules.VELOCITY);
+        reset();
     }
 
     @Override

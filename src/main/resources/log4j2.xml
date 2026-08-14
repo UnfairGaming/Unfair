@@ -23,6 +23,9 @@
     </Appenders>
 
     <Loggers>
+        <!-- Authlib logs complete session request/response bodies at DEBUG, including access tokens. -->
+        <Logger name="com.mojang.authlib.HttpAuthenticationService" level="info"/>
+
         <Root level="debug">
             <filters>
                 <MarkerFilter marker="NETWORK_PACKETS" onMatch="DENY" onMismatch="NEUTRAL"/>

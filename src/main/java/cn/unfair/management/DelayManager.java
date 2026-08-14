@@ -87,6 +87,16 @@ public class DelayManager {
         return this.delayModule != DelayModules.NONE;
     }
 
+    public boolean discardDelayedPackets(DelayModules delayModule) {
+        if (this.delayModule != delayModule) {
+            return false;
+        }
+        this.delayModule = DelayModules.NONE;
+        this.delay = 0L;
+        this.delayedPacket.clear();
+        return true;
+    }
+
     public DelayModules getDelayModule() {
         return this.delayModule;
     }
