@@ -18,12 +18,14 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.item.*;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.WorldSettings.GameType;
 import org.apache.commons.lang3.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
@@ -128,6 +130,38 @@ public class InvManager extends Module {
         return (double) (stack.getMaxDamage() - stack.getItemDamage()) / Math.max(1, stack.getMaxDamage());
     }
 
+    private int getRemainingDurability(ItemStack stack) {
+        if (stack == null || !stack.isItemStackDamageable()) {
+            return 0;
+        }
+        return stack.getMaxDamage() - stack.getItemDamage();
+    }
+
+    private boolean hasMinimumDurability(ItemStack stack) {
+        return stack == null || !stack.isItemDamaged() || this.getRemainingDurability(stack) >= 30;
+    }
+
+    private double getArmorScore(ItemStack stack) {
+        if (ItemUtil.getArmorType(stack) == -1) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return ItemUtil.getArmorProtection(stack) * 1000.0D + this.getDurabilityScore(stack);
+    }
+
+    private double getToolScore(ItemStack stack) {
+        if (!ItemUtil.isTool(stack)) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return ItemUtil.getToolEfficiency(stack) * 1000.0D + this.getDurabilityScore(stack);
+    }
+
+    private double getSwordScore(ItemStack stack) {
+        if (!ItemUtil.isSword(stack)) {
+            return Double.NEGATIVE_INFINITY;
+        }
+        return ItemUtil.getAttackBonus(stack) * 1000.0D + this.getDurabilityScore(stack);
+    }
+
     private double getBowScore(ItemStack stack) {
         if (!this.isBow(stack)) {
             return Double.NEGATIVE_INFINITY;
@@ -201,6 +235,71 @@ public class InvManager extends Module {
             }
 
             double score = scorer.applyAsDouble(stack);
+            if (score > bestScore) {
+                bestSlot = currentSlot;
+                bestScore = score;
+            }
+        }
+        return bestSlot;
+    }
+
+    private int findBestArmorSlot(int armorType, boolean checkDurability) {
+        int bestSlot = -1;
+        double bestScore = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < 40; i++) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (stack == null || ItemUtil.getArmorType(stack) != armorType) {
+                continue;
+            }
+            if (checkDurability && !this.hasMinimumDurability(stack)) {
+                continue;
+            }
+
+            double score = this.getArmorScore(stack);
+            if (score > bestScore) {
+                bestSlot = i;
+                bestScore = score;
+            }
+        }
+        return bestSlot;
+    }
+
+    private int findBestToolSlot(String toolClass, int startSlot, boolean checkDurability) {
+        int bestSlot = -1;
+        double bestScore = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < 36; i++) {
+            int currentSlot = ((startSlot + i) % 36 + 36) % 36;
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(currentSlot);
+            if (stack == null || !ItemUtil.isTool(stack, toolClass)) {
+                continue;
+            }
+            if (checkDurability && !this.hasMinimumDurability(stack)) {
+                continue;
+            }
+
+            double score = this.getToolScore(stack);
+            if (score > bestScore) {
+                bestSlot = currentSlot;
+                bestScore = score;
+            }
+        }
+        return bestSlot;
+    }
+
+    private int findBestSwordSlot(int startSlot, boolean checkDurability) {
+        int bestSlot = -1;
+        double bestScore = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < 36; i++) {
+            int currentSlot = ((startSlot + i) % 36 + 36) % 36;
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(currentSlot);
+            if (stack == null || !ItemUtil.isSword(stack)) {
+                continue;
+            }
+            if (checkDurability && !this.hasMinimumDurability(stack)) {
+                continue;
+            }
+
+            double score = this.getSwordScore(stack);
             if (score > bestScore) {
                 bestSlot = currentSlot;
                 bestScore = score;
@@ -331,7 +430,7 @@ public class InvManager extends Module {
     }
 
     private void addProtectedSlot(LinkedHashSet<Integer> protectedSlots, int slot) {
-        if (slot >= 0 && slot < 36) {
+        if (slot >= 0 && slot < 40) {
             protectedSlots.add(slot);
         }
     }
@@ -384,9 +483,89 @@ public class InvManager extends Module {
                 && (ItemUtil.isNotSpecialItem(stack) || (isBlock && currentBlockCount >= this.blocks.getValue()));
     }
 
+    private boolean isArmorToolOrSword(ItemStack stack) {
+        return stack != null && (ItemUtil.getArmorType(stack) != -1 || ItemUtil.isTool(stack) || ItemUtil.isSword(stack));
+    }
+
+    private NBTTagCompound getTagIgnoringDurability(ItemStack stack) {
+        if (stack == null || !stack.hasTagCompound()) {
+            return null;
+        }
+        NBTTagCompound tag = (NBTTagCompound) stack.getTagCompound().copy();
+        tag.removeTag("Damage");
+        return tag;
+    }
+
+    private boolean hasSameGearAttributes(ItemStack first, ItemStack second) {
+        if (!this.isArmorToolOrSword(first) || !this.isArmorToolOrSword(second)) {
+            return false;
+        }
+        if (first.getItem() != second.getItem()) {
+            return false;
+        }
+
+        int firstArmorType = ItemUtil.getArmorType(first);
+        int secondArmorType = ItemUtil.getArmorType(second);
+        if (firstArmorType != secondArmorType) {
+            return false;
+        }
+        if ((firstArmorType == -1) != (secondArmorType == -1)) {
+            return false;
+        }
+
+        return Objects.equals(EnchantmentHelper.getEnchantments(first), EnchantmentHelper.getEnchantments(second))
+                && Objects.equals(this.getTagIgnoringDurability(first), this.getTagIgnoringDurability(second));
+    }
+
+    private boolean shouldDropDuplicate(ItemStack candidate, int candidateSlot, ItemStack other, int otherSlot,
+                                        LinkedHashSet<Integer> protectedSlots) {
+        if (!this.hasSameGearAttributes(candidate, other)) {
+            return false;
+        }
+
+        int candidateDurability = this.getRemainingDurability(candidate);
+        int otherDurability = this.getRemainingDurability(other);
+        if (otherDurability > candidateDurability) {
+            return true;
+        }
+        if (otherDurability < candidateDurability) {
+            return false;
+        }
+        if (protectedSlots.contains(otherSlot) != protectedSlots.contains(candidateSlot)) {
+            return protectedSlots.contains(otherSlot);
+        }
+        return otherSlot < candidateSlot;
+    }
+
+    private Integer findDuplicateGearSlot(LinkedHashSet<Integer> protectedSlots) {
+        for (int candidateSlot = 39; candidateSlot >= 0; candidateSlot--) {
+            ItemStack candidate = mc.thePlayer.inventory.getStackInSlot(candidateSlot);
+            if (!this.isArmorToolOrSword(candidate)) {
+                continue;
+            }
+
+            for (int otherSlot = 0; otherSlot < 40; otherSlot++) {
+                if (otherSlot == candidateSlot) {
+                    continue;
+                }
+
+                ItemStack other = mc.thePlayer.inventory.getStackInSlot(otherSlot);
+                if (this.shouldDropDuplicate(candidate, candidateSlot, other, otherSlot, protectedSlots)) {
+                    return candidateSlot;
+                }
+            }
+        }
+        return null;
+    }
+
     private Integer findTrashSlot(InventoryPlan plan) {
         LinkedHashSet<Integer> protectedSlots = this.buildProtectedSlots(plan);
         int currentBlockCount = this.getStackSize(plan.inventoryBlocksSlot);
+
+        Integer duplicateGearSlot = this.findDuplicateGearSlot(protectedSlots);
+        if (duplicateGearSlot != null) {
+            return duplicateGearSlot;
+        }
 
         for (int i = 35; i >= 0; i--) {
             if (!protectedSlots.contains(i) && this.isWaterBucket(mc.thePlayer.inventory.getStackInSlot(i))) {
@@ -434,22 +613,22 @@ public class InvManager extends Module {
     private InventoryPlan buildPlan() {
         InventoryPlan plan = new InventoryPlan();
         for (int i = 0; i < 4; i++) {
-            plan.equippedArmorSlots.set(i, ItemUtil.findArmorInventorySlot(i, true));
-            plan.inventoryArmorSlots.set(i, ItemUtil.findArmorInventorySlot(i, false));
+            plan.equippedArmorSlots.set(i, this.findBestArmorSlot(i, true));
+            plan.inventoryArmorSlots.set(i, this.findBestArmorSlot(i, false));
         }
 
         plan.swordTarget = this.swordSlot.getValue() - 1;
-        plan.equippedSwordSlot = ItemUtil.findSwordInInventorySlot(plan.swordTarget, true);
-        plan.inventorySwordSlot = ItemUtil.findSwordInInventorySlot(plan.swordTarget, false);
+        plan.equippedSwordSlot = this.findBestSwordSlot(plan.swordTarget, true);
+        plan.inventorySwordSlot = this.findBestSwordSlot(plan.swordTarget, false);
         plan.pickaxeTarget = this.pickaxeSlot.getValue() - 1;
-        plan.equippedPickaxeSlot = ItemUtil.findInventorySlot("pickaxe", plan.pickaxeTarget, true);
-        plan.inventoryPickaxeSlot = ItemUtil.findInventorySlot("pickaxe", plan.pickaxeTarget, false);
+        plan.equippedPickaxeSlot = this.findBestToolSlot("pickaxe", plan.pickaxeTarget, true);
+        plan.inventoryPickaxeSlot = this.findBestToolSlot("pickaxe", plan.pickaxeTarget, false);
         plan.shovelTarget = this.shovelSlot.getValue() - 1;
-        plan.equippedShovelSlot = ItemUtil.findInventorySlot("shovel", plan.shovelTarget, true);
-        plan.inventoryShovelSlot = ItemUtil.findInventorySlot("shovel", plan.shovelTarget, false);
+        plan.equippedShovelSlot = this.findBestToolSlot("shovel", plan.shovelTarget, true);
+        plan.inventoryShovelSlot = this.findBestToolSlot("shovel", plan.shovelTarget, false);
         plan.axeTarget = this.axeSlot.getValue() - 1;
-        plan.equippedAxeSlot = ItemUtil.findInventorySlot("axe", plan.axeTarget, true);
-        plan.inventoryAxeSlot = ItemUtil.findInventorySlot("axe", plan.axeTarget, false);
+        plan.equippedAxeSlot = this.findBestToolSlot("axe", plan.axeTarget, true);
+        plan.inventoryAxeSlot = this.findBestToolSlot("axe", plan.axeTarget, false);
         plan.blocksTarget = this.blocksSlot.getValue() - 1;
         plan.inventoryBlocksSlot = ItemUtil.findInventorySlot(plan.blocksTarget);
         plan.throwsTarget = this.throwsSlot.getValue() - 1;
