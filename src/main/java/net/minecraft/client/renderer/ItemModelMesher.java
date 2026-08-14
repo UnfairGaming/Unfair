@@ -45,11 +45,13 @@ public class ItemModelMesher {
     }
 
     public IBakedModel getItemModel(ItemStack stack) {
-        Item item = stack.getItem();
+        Item item = stack == null ? null : stack.getItem();
         String viaModelName = ViaBackwardsItemModels.getModelName(stack);
         String itemModelName = isElytraModel(viaModelName) ? null : viaModelName;
         ModelResourceLocation viaModelLocation = itemModelName == null ? null : new ModelResourceLocation(itemModelName, "inventory");
-        IBakedModel ibakedmodel = viaModelLocation == null ? this.getItemModel(item, this.getMetadata(stack)) : this.modelManager.getModel(viaModelLocation);
+        IBakedModel ibakedmodel = viaModelLocation != null
+                ? this.modelManager.getModel(viaModelLocation)
+                : item == null ? null : this.getItemModel(item, this.getMetadata(stack));
 
         if (ibakedmodel == null) {
             ItemMeshDefinition itemmeshdefinition = this.shapers.get(item);
@@ -63,7 +65,7 @@ public class ItemModelMesher {
             ibakedmodel = this.modelManager.getMissingModel();
         }
 
-        if (Config.isCustomItems()) {
+        if (item != null && Config.isCustomItems()) {
             ibakedmodel = CustomItems.getCustomItemModel(stack, ibakedmodel, null, true);
         }
 
@@ -75,7 +77,7 @@ public class ItemModelMesher {
             return true;
         }
         Block block = modelName == null ? null : Block.blockRegistry.getObject(ResourceLocation.of(modelName));
-        if (!(block instanceof ModernBlock) && stack.getItem() instanceof ItemBlock) {
+        if (!(block instanceof ModernBlock) && stack != null && stack.getItem() instanceof ItemBlock) {
             block = ((ItemBlock) stack.getItem()).getBlock();
         }
         return block instanceof ModernBlock;

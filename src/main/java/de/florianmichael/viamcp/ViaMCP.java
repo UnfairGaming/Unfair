@@ -42,6 +42,7 @@ import net.minecraft.client.Minecraft;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class ViaMCP {
@@ -131,7 +132,15 @@ public class ViaMCP {
     }
 
     private static void afterMappings(Class<? extends Protocol<?, ?, ?, ?>> protocolClass, Runnable patch) {
-        Via.getManager().getProtocolManager().getMappingLoaderFuture(protocolClass).whenComplete((ignored, throwable) -> {
+        CompletableFuture<Void> future = Via.getManager().getProtocolManager().getMappingLoaderFuture(protocolClass);
+        if (future == null) {
+            applyProtocolPatch(protocolClass, patch, null);
+            return;
+        }
+        future.whenComplete((ignored, throwable) -> applyProtocolPatch(protocolClass, patch, throwable));
+    }
+
+    private static void applyProtocolPatch(Class<? extends Protocol<?, ?, ?, ?>> protocolClass, Runnable patch, Throwable throwable) {
             if (throwable != null) {
                 ViaLoadingBase.LOGGER.log(Level.SEVERE, "Unable to load mappings before patching " + protocolClass.getSimpleName(), throwable);
                 return;
@@ -141,7 +150,6 @@ public class ViaMCP {
             } catch (RuntimeException exception) {
                 ViaLoadingBase.LOGGER.log(Level.SEVERE, "Unable to patch " + protocolClass.getSimpleName(), exception);
             }
-        });
     }
 
     public void initAsyncSlider() {

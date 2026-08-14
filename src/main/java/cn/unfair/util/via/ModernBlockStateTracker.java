@@ -66,6 +66,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
@@ -100,34 +101,41 @@ public final class ModernBlockStateTracker {
         if (protocol13 == null || protocol14 == null) {
             return;
         }
-        if (protocol9 != null) {
-            Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_9To1_8.class).whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_9(protocol9)));
-        }
-        if (protocol11 != null) {
-            Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_11To1_10.class).whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_11(protocol11)));
-        }
-
         installationScheduled = true;
         discoverModernBlocks();
         loadBlockStates1_13();
-        Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_13To1_12_2.class)
-                .whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_13(protocol13)));
-        Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_14To1_13_2.class)
-                .whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_14(protocol14)));
+        if (protocol9 != null) {
+            afterMappings(Protocol1_9To1_8.class, () -> install1_9(protocol9));
+        }
+        if (protocol11 != null) {
+            afterMappings(Protocol1_11To1_10.class, () -> install1_11(protocol11));
+        }
+        afterMappings(Protocol1_13To1_12_2.class, () -> install1_13(protocol13));
+        afterMappings(Protocol1_14To1_13_2.class, () -> install1_14(protocol14));
         if (protocol15 != null) {
-            Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_15To1_14_4.class)
-                    .whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_15(protocol15)));
+            afterMappings(Protocol1_15To1_14_4.class, () -> install1_15(protocol15));
         }
         if (protocol16 != null) {
-            Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_16To1_15_2.class)
-                    .whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_16(protocol16)));
+            afterMappings(Protocol1_16To1_15_2.class, () -> install1_16(protocol16));
         }
         if (protocol17 != null) {
-            Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_17To1_16_4.class)
-                    .whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_17(protocol17)));
+            afterMappings(Protocol1_17To1_16_4.class, () -> install1_17(protocol17));
         }
-        if (protocol19 != null) Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_19To1_18_2.class).whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_19(protocol19)));
-        if (protocol20 != null) Via.getManager().getProtocolManager().getMappingLoaderFuture(Protocol1_20To1_19_4.class).whenComplete((ignored, throwable) -> finishLayer(throwable, () -> install1_20(protocol20)));
+        if (protocol19 != null) {
+            afterMappings(Protocol1_19To1_18_2.class, () -> install1_19(protocol19));
+        }
+        if (protocol20 != null) {
+            afterMappings(Protocol1_20To1_19_4.class, () -> install1_20(protocol20));
+        }
+    }
+
+    private static void afterMappings(Class<? extends Protocol<?, ?, ?, ?>> protocolClass, Runnable installer) {
+        CompletableFuture<Void> future = Via.getManager().getProtocolManager().getMappingLoaderFuture(protocolClass);
+        if (future == null) {
+            finishLayer(null, installer);
+            return;
+        }
+        future.whenComplete((ignored, throwable) -> finishLayer(throwable, installer));
     }
 
     private static void install1_13(Protocol1_13To1_12_2 protocol) {

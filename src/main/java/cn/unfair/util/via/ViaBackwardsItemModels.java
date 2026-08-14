@@ -280,9 +280,11 @@ public final class ViaBackwardsItemModels {
             }
         }
 
-        String stackDisplayModel = getKnownModernModelFromDisplayName(stack.getDisplayName());
-        if (stackDisplayModel != null) {
-            return stackDisplayModel;
+        if (stack.getItem() != null) {
+            String stackDisplayModel = getKnownModernModelFromDisplayName(stack.getDisplayName());
+            if (stackDisplayModel != null) {
+                return stackDisplayModel;
+            }
         }
 
         if (!stack.hasTagCompound()) {

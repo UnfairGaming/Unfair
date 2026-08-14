@@ -70,7 +70,7 @@ application {
 tasks.named('run', JavaExec) {
     workingDir = layout.projectDirectory.dir('run').asFile
     classpath += configurations.localRuntime
-    jvmArgs '-Xmx2G'
+    jvmArgs '-Xmx2G', '--enable-native-access=ALL-UNNAMED'
 }
 
 tasks.named('jar', Jar) {
