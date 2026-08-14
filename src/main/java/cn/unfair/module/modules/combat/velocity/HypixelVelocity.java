@@ -15,6 +15,7 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
+import cn.unfair.util.ChatUtil;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.PacketUtil;
 import net.minecraft.client.Minecraft;
@@ -166,20 +167,12 @@ public class HypixelVelocity extends SubModule {
                 return;
             }
 
-            KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-            if (killAura != null && killAura.isEnabled() && killAura.isPlayerBlocking()) {
-                startVelocityBlink();
-            }
-            return;
+            startVelocityBlink();
         }
 
         if (knockback && mc.thePlayer.hurtTime <= START_BLINK_HURT_TIME) {
-            KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-            if (killAura != null && killAura.isEnabled() && killAura.isPlayerBlocking()) {
-                startVelocityBlink();
-            } else {
-                blinkScheduled = true;
-            }
+            startVelocityBlink();
+            blinkScheduled = true;
         }
     }
 
@@ -218,6 +211,7 @@ public class HypixelVelocity extends SubModule {
             if (packet instanceof C02PacketUseEntity) {
                 mc.thePlayer.motionX *= ATTACK_SLOWDOWN;
                 mc.thePlayer.motionZ *= ATTACK_SLOWDOWN;
+                ChatUtil.dbg("reduce");
             }
             PacketUtil.sendPacketNoEvent(packet);
         }
