@@ -18,6 +18,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityVillager;
+import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
@@ -32,7 +34,7 @@ public class NoSlow extends Module {
     public final ModeProperty swordMode = new ModeProperty("Sword Mode", 1, new String[]{"None", "Vanilla"});
     public final PercentProperty swordMotion = new PercentProperty("Sword Motion", 100, () -> this.swordMode.getValue() != 0);
     public final BooleanProperty swordSprint = new BooleanProperty("Sword Sprint", true, () -> this.swordMode.getValue() != 0);
-    public final ModeProperty foodMode = new ModeProperty("Food Mode", 0, new String[]{"None", "Vanilla", "Float", "GrimAC"});
+    public final ModeProperty foodMode = new ModeProperty("Food Mode", 0, new String[]{"None", "Vanilla", "Float", "GrimAC", "Grim 1/3"});
     public final PercentProperty foodMotion = new PercentProperty("Food Motion", 100, () -> this.foodMode.getValue() != 0);
     public final BooleanProperty foodSprint = new BooleanProperty("Food Sprint", true, () -> this.foodMode.getValue() != 0);
     public final BooleanProperty c0fDelayKnockback = new BooleanProperty("C0f Delay Knockback", true, () -> this.foodMode.getValue() == 3);
@@ -59,6 +61,10 @@ public class NoSlow extends Module {
 
     private boolean isFoodC0F() {
         return this.foodMode.getValue() == 3;
+    }
+
+    private boolean isFoodGrim13() {
+        return this.foodMode.getValue() == 4;
     }
 
     @Override
@@ -128,6 +134,18 @@ public class NoSlow extends Module {
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (this.isEnabled() && this.shouldApplyC0FSwapSlowdown()) {
             this.c0fSwapSlowdownTicks--;
+            return;
+        }
+
+        if (this.isEnabled() && this.isFoodGrim13() && ItemUtil.isEating() && mc.thePlayer.isUsingItem()) {
+            if (mc.thePlayer.getItemInUseCount() % 3 == 0) {
+                if (this.foodSprint.getValue() && this.shouldForceSprint()) {
+                    mc.thePlayer.setSprinting(true);
+                }
+                float multiplier = 5.0F * (float) this.foodMotion.getValue() / 100.0F;
+                mc.thePlayer.movementInput.moveForward *= multiplier;
+                mc.thePlayer.movementInput.moveStrafe *= multiplier;
+            }
             return;
         }
 
@@ -264,10 +282,8 @@ public class NoSlow extends Module {
                 && this.c0fDelayInteract.getValue()
                 && this.c0fStep != C0FStep.NONE
                 && packet instanceof C08PacketPlayerBlockPlacement) {
-            // Direction 255 is the "use item in air" sentinel (the eat itself) — leave it.
-            // A real block/chest right-click carries a valid face, so hold it back and
-            // replay it once the eat is over instead of letting it fire mid-trick.
-            if (((C08PacketPlayerBlockPlacement) packet).getPlacedBlockDirection() != 255) {
+            C08PacketPlayerBlockPlacement placement = (C08PacketPlayerBlockPlacement) packet;
+            if (placement.getPlacedBlockDirection() != 255 && this.isFoodUsePacket(placement)) {
                 event.setCancelled(true);
                 this.c0fDelayedInteraction.offer(packet);
                 return;
@@ -328,10 +344,6 @@ public class NoSlow extends Module {
         this.c0fNoUsingItemTicks = 0;
         fakeEating = false;
 
-        // Eating is over (whether it finished or the player let go early). Replay everything
-        // we held back: the block/chest interactions first, now that the real hand is restored,
-        // then the knockback. We never force the eat to complete — releaseC0F is driven by the
-        // player actually stopping (RELEASE_USE_ITEM / key up), so a half-eaten food just flushes.
         this.flushDelayedInteraction();
         this.flushDelayedVelocity();
     }
@@ -344,6 +356,14 @@ public class NoSlow extends Module {
             }
         }
         this.c0fDelayedInteraction.clear();
+    }
+
+    private boolean isFoodUsePacket(C08PacketPlayerBlockPlacement packet) {
+        ItemStack stack = packet.getStack();
+        if (stack == null && mc.thePlayer != null) {
+            stack = mc.thePlayer.getHeldItem();
+        }
+        return stack != null && (stack.getItemUseAction() == EnumAction.EAT || stack.getItemUseAction() == EnumAction.DRINK);
     }
 
     private void flushDelayedVelocity() {

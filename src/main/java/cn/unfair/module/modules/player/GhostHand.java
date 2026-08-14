@@ -1,13 +1,33 @@
 package cn.unfair.module.modules.player;
 
+import cn.unfair.event.EventTarget;
+import cn.unfair.events.RightClickMouseEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.ItemUtil;
+import cn.unfair.util.PacketUtil;
 import cn.unfair.util.TeamUtil;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockChest;
+import net.minecraft.block.BlockEnderChest;
+import net.minecraft.block.BlockShulkerBox;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
+import net.minecraft.tileentity.TileEntityEnderChest;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 
 public class GhostHand extends Module {
+    private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final double REACH = 4.5D;
+
     public final BooleanProperty teamsOnly = new BooleanProperty("Team Only", true);
     public final BooleanProperty ignoreWeapons = new BooleanProperty("Ignore Weapons", false);
 
@@ -15,10 +35,121 @@ public class GhostHand extends Module {
         super("GhostHand", false);
     }
 
+    @EventTarget
+    public void onRightClick(RightClickMouseEvent event) {
+        if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null) {
+            return;
+        }
+        if (this.interactThroughWall()) {
+            event.setCancelled(true);
+        }
+    }
+
     public boolean shouldSkip(Entity entity) {
-        return entity instanceof EntityPlayer
-                && !TeamUtil.shouldBlockBot((EntityPlayer) entity)
-                && (!this.teamsOnly.getValue() || TeamUtil.shouldBlockTeam((EntityPlayer) entity))
-                && (!this.ignoreWeapons.getValue() || !ItemUtil.hasRawUnbreakingEnchant());
+        return entity instanceof EntityPlayer && this.shouldSkipPlayer((EntityPlayer) entity);
+    }
+
+    private boolean shouldSkipPlayer(EntityPlayer player) {
+        if (player == null || player == mc.thePlayer) {
+            return false;
+        }
+        if (TeamUtil.shouldBlockBot(player)) {
+            return false;
+        }
+        if (this.teamsOnly.getValue() && !TeamUtil.shouldBlockTeam(player)) {
+            return false;
+        }
+        return !this.ignoreWeapons.getValue() || !ItemUtil.hasRawUnbreakingEnchant();
+    }
+
+    private boolean interactThroughWall() {
+        Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
+        Vec3 look = mc.thePlayer.getLook(1.0F);
+        Vec3 reach = eyes.addVector(look.xCoord * REACH, look.yCoord * REACH, look.zCoord * REACH);
+        Target target = null;
+
+        for (Object object : mc.theWorld.loadedTileEntityList) {
+            if (!(object instanceof TileEntity)) {
+                continue;
+            }
+            TileEntity tile = (TileEntity) object;
+            if (!this.isTarget(tile)) {
+                continue;
+            }
+
+            AxisAlignedBB box = this.getBox(tile);
+            if (box == null) {
+                continue;
+            }
+
+            MovingObjectPosition hit = box.calculateIntercept(eyes, reach);
+            if (hit == null) {
+                continue;
+            }
+
+            double distance = eyes.squareDistanceTo(hit.hitVec);
+            if (target == null || distance < target.distance) {
+                target = new Target(tile.getPos(), hit.sideHit == null ? EnumFacing.UP : hit.sideHit, hit.hitVec, distance);
+            }
+        }
+
+        if (target == null) {
+            return false;
+        }
+
+        PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(
+                target.pos,
+                target.face.getIndex(),
+                mc.thePlayer.getCurrentEquippedItem(),
+                (float) (target.hit.xCoord - target.pos.getX()),
+                (float) (target.hit.yCoord - target.pos.getY()),
+                (float) (target.hit.zCoord - target.pos.getZ())
+        ));
+        mc.thePlayer.swingItem();
+        return true;
+    }
+
+    private boolean isTarget(TileEntity tile) {
+        if (tile instanceof TileEntityChest || tile instanceof TileEntityEnderChest) {
+            return true;
+        }
+        Block block = mc.theWorld.getBlockState(tile.getPos()).getBlock();
+        return block instanceof BlockChest || block instanceof BlockEnderChest || block instanceof BlockShulkerBox;
+    }
+
+    private AxisAlignedBB getBox(TileEntity tile) {
+        BlockPos pos = tile.getPos();
+        Block block = mc.theWorld.getBlockState(pos).getBlock();
+        AxisAlignedBB box = block.getSelectedBoundingBox(mc.theWorld, pos);
+
+        if (tile instanceof TileEntityChest) {
+            ((TileEntityChest) tile).checkForAdjacentChests();
+            TileEntityChest chest = (TileEntityChest) tile;
+            if (chest.adjacentChestXNeg != null || chest.adjacentChestZNeg != null) {
+                return null;
+            }
+            if (chest.adjacentChestXPos != null) {
+                box = box.union(block.getSelectedBoundingBox(mc.theWorld, pos.east()));
+            }
+            if (chest.adjacentChestZPos != null) {
+                box = box.union(block.getSelectedBoundingBox(mc.theWorld, pos.south()));
+            }
+        }
+
+        return box;
+    }
+
+    private static class Target {
+        private final BlockPos pos;
+        private final EnumFacing face;
+        private final Vec3 hit;
+        private final double distance;
+
+        private Target(BlockPos pos, EnumFacing face, Vec3 hit, double distance) {
+            this.pos = pos;
+            this.face = face;
+            this.hit = hit;
+            this.distance = distance;
+        }
     }
 }
