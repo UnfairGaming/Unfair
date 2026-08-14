@@ -29,6 +29,7 @@ public class SaveMoveKeys extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
+        if (!this.isEnabled()) return;
         if (mc.currentScreen != null) {
             wasInventoryOpen = true;
         } else {
