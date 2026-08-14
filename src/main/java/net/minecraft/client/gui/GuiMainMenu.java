@@ -542,7 +542,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         if (day == 12 && month == 3) {
             this.splashText = "Happy birthday UnfairGaming!";
         } else if (day == 15 && month == 7) {
-            this.splashText = "Happy birthday Karuizawa!";
+            this.splashText = "Happy birthday ModernSkidder!";
         } else {
             this.splashText = CUSTOM_SPLASHES[RANDOM.nextInt(CUSTOM_SPLASHES.length)];
         }
