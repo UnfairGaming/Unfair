@@ -1677,6 +1677,8 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
 
                 if (entityIn.ridingEntity != null) {
                     entityIn.updateRidden();
+                } else if (entityIn == Minecraft.getMinecraft().thePlayer && Unfair.skippedPlayerTicks > 0) {
+                    --Unfair.skippedPlayerTicks;
                 } else {
                     entityIn.onUpdate();
                 }
