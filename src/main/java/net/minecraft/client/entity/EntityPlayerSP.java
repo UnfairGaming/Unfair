@@ -92,6 +92,18 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      */
     private boolean serverSprintState;
 
+    public boolean getServerSprintState() {
+        return this.serverSprintState;
+    }
+
+    public void setServerSprintState(boolean serverSprintState) {
+        this.serverSprintState = serverSprintState;
+    }
+
+    public float getLastReportedYaw() {
+        return this.lastReportedYaw;
+    }
+
     /**
      * Reset to 0 every time position is sent to the server, used to send periodic updates every 20 ticks even when the
      * player is not moving.
