@@ -36,7 +36,7 @@ public class BackTrack extends Module {
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
     public static boolean shouldLag;
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Classic", "Rise", "LiquidBounce"}) {
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Classic", "Rise"}) {
         @Override
         public boolean read(JsonObject jsonObject) {
             String configuredMode = jsonObject.get(this.getName()).getAsString();
@@ -71,10 +71,6 @@ public class BackTrack extends Module {
     public final ModeProperty boxColor = new ModeProperty("Box Color", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && this.esp.getValue() == 1);
     public final ColorProperty boxCustomColor = new ColorProperty("Box Custom Color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
     public final FloatProperty outlineWidth = new FloatProperty("Outline Width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
-    public final IntProperty liquidbounceMinDelay = new IntProperty("Min Delay", 80, 0, 2000, this::isLiquidBounce);
-    public final IntProperty liquidbounceMaxDelay = new IntProperty("Max Delay", 80, 0, 2000, this::isLiquidBounce);
-    public final FloatProperty liquidbounceDistanceMin = new FloatProperty("Distance Min", 2.0F, 0.0F, 6.0F, this::isLiquidBounce);
-    public final FloatProperty liquidbounceDistanceMax = new FloatProperty("Distance Max", 3.0F, 0.0F, 6.0F, this::isLiquidBounce);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
     private Vec3 animatedPosition;
@@ -100,20 +96,6 @@ public class BackTrack extends Module {
 
     private boolean isLegitReach() {
         return this.mode.getValue() == 1;
-    }
-
-    private boolean isLiquidBounce() {
-        return this.mode.getValue() == 2;
-    }
-
-    private void configureLiquidBounce() {
-        BackTrackLagUtils.liquidbounceConfigure(
-                this.isEnabled() && this.isLiquidBounce(),
-                this.liquidbounceMinDelay.getValue(),
-                this.liquidbounceMaxDelay.getValue(),
-                this.liquidbounceDistanceMin.getValue(),
-                this.liquidbounceDistanceMax.getValue()
-        );
     }
 
     private static double getDistanceToEntityBox(Entity entity) {
@@ -237,7 +219,6 @@ public class BackTrack extends Module {
         this.currentRenderPosition = null;
         this.lastTarget = null;
         this.isBackTracking = false;
-        this.configureLiquidBounce();
     }
 
     @Override
@@ -252,18 +233,11 @@ public class BackTrack extends Module {
         this.target = null;
         this.lastTarget = null;
         this.isBackTracking = false;
-        this.configureLiquidBounce();
     }
 
     @Override
     public String[] getSuffix() {
-        if (this.isClassic()) {
-            return new String[]{this.getDelayMs() + "ms"};
-        } else if (this.isLiquidBounce()) {
-            return new String[]{BackTrackLagUtils.getLiquidbounceDelay() + "ms"};
-        } else {
-            return new String[]{this.maxPingSpoof.getValue() + "ms"};
-        }
+        return new String[]{(this.isClassic() ? this.getDelayMs() : this.maxPingSpoof.getValue()) + "ms"};
     }
 
     @EventTarget
@@ -299,8 +273,6 @@ public class BackTrack extends Module {
         this.checkModeChange();
         if (this.isClassic()) {
             this.runBackTrack();
-        } else if (this.isLiquidBounce()) {
-            BackTrackLagUtils.liquidbounceOnTick();
         } else {
             this.runLegitReach();
         }
@@ -453,18 +425,7 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onAttack(AttackEvent event) {
-        if (!this.isEnabled()) {
-            return;
-        }
-
-        if (this.isLiquidBounce()) {
-            if (event.getTarget() instanceof EntityLivingBase living && this.isValidTarget(living)) {
-                BackTrackLagUtils.liquidbounceSetTarget(living);
-            }
-            return;
-        }
-
-        if (!this.isClassic() || event.getTarget() != this.target || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
+        if (!this.isEnabled() || !this.isClassic() || event.getTarget() != this.target || mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
             return;
         }
 
@@ -487,11 +448,6 @@ public class BackTrack extends Module {
         if (packet instanceof C16PacketClientStatus
                 && ((C16PacketClientStatus) packet).getStatus() == C16PacketClientStatus.EnumState.PERFORM_RESPAWN) {
             this.stopLaggingForRespawn();
-            return;
-        }
-
-        if (this.isLiquidBounce()) {
-            BackTrackLagUtils.liquidbounceOnPacket(event);
             return;
         }
 
@@ -531,16 +487,7 @@ public class BackTrack extends Module {
 
     @EventTarget
     public void onRender3D(Render3DEvent event) {
-        if (!this.isEnabled()) {
-            return;
-        }
-
-        if (this.isLiquidBounce()) {
-            this.renderLiquidBounce();
-            return;
-        }
-
-        if (this.target == null || realPosition == null) {
+        if (!this.isEnabled() || this.target == null || realPosition == null) {
             return;
         }
 
@@ -608,23 +555,6 @@ public class BackTrack extends Module {
         Color color = HUD.getColor(System.currentTimeMillis());
         RenderUtil.enableRenderState();
         RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 50);
-        RenderUtil.disableRenderState();
-    }
-
-    private void renderLiquidBounce() {
-        EntityLivingBase target = BackTrackLagUtils.getLiquidbounceTarget();
-        if (target == null || !BackTrackLagUtils.isLiquidbounceBacktracking()) {
-            return;
-        }
-        AxisAlignedBB bb = getHitbox(target).offset(
-                -mc.getRenderManager().getRenderPosX(),
-                -mc.getRenderManager().getRenderPosY(),
-                -mc.getRenderManager().getRenderPosZ()
-        );
-        Color color = target instanceof EntityPlayer ? TeamUtil.getTeamColor((EntityPlayer) target, 1.0F) : new Color(0, 255, 0);
-        RenderUtil.enableRenderState();
-        RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 50);
-        RenderUtil.drawBoundingBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 255, this.outlineWidth.getValue());
         RenderUtil.disableRenderState();
     }
 
@@ -718,7 +648,6 @@ public class BackTrack extends Module {
         realLastPos = zeroVec();
         this.animatedPosition = null;
         this.animatedFrameTime = 0L;
-        this.configureLiquidBounce();
     }
 
     private void resetTargetState() {
