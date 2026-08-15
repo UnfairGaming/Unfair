@@ -230,7 +230,12 @@ public class NoSlow extends Module {
 
         boolean usingFood = ItemUtil.isEating() && mc.thePlayer.isUsingItem();
 
-        if (this.c0fStep != C0FStep.EATING) {
+        // Only force-release the use key while the C0F eating flow is actually engaged.
+        // Releasing it while idle would cancel bow draws, sword blocks and shield blocks.
+        boolean shouldReleaseUseKey = this.c0fStep == C0FStep.CANCEL_C0F
+                || this.c0fStep == C0FStep.SWAP_HANDS
+                || this.c0fStep == C0FStep.NONE && usingFood;
+        if (shouldReleaseUseKey) {
             KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
         }
 

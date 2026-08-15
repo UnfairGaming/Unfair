@@ -712,9 +712,10 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.motionZ = 0.0D;
         }
 
+        FastWeb fastWeb = null;
         boolean fastWebActive = false;
         if (this instanceof EntityPlayerSP && Unfair.moduleManager != null) {
-            FastWeb fastWeb = (FastWeb) Unfair.moduleManager.modules.get(FastWeb.class);
+            fastWeb = (FastWeb) Unfair.moduleManager.modules.get(FastWeb.class);
             fastWebActive = fastWeb != null && fastWeb.shouldBoostWeb();
         }
 
@@ -740,14 +741,21 @@ public abstract class Entity implements ICommandSender, Cullable {
                     x *= 0.88D;
                     y *= 1.88D;
                     z *= 0.88D;
+                    this.motionX = 0.0D;
+                    this.motionY = 0.0D;
+                    this.motionZ = 0.0D;
+                } else if (fastWeb != null && fastWeb.applyWebMotion()) {
+                    x = this.motionX;
+                    y = this.motionY;
+                    z = this.motionZ;
                 } else {
                     x *= 0.25D;
                     y *= 0.05000000074505806D;
                     z *= 0.25D;
+                    this.motionX = 0.0D;
+                    this.motionY = 0.0D;
+                    this.motionZ = 0.0D;
                 }
-                this.motionX = 0.0D;
-                this.motionY = 0.0D;
-                this.motionZ = 0.0D;
             }
 
             double d3 = x;
