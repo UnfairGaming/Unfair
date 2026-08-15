@@ -18,7 +18,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
-public class TargetHUDMyauMode extends TargetHUDMode {
+public class MyauTargetHUD extends TargetHUDMode {
     public final ModeProperty color = new ModeProperty("Color", 0, new String[]{"Default", "Hud"});
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
     public final PercentProperty background = new PercentProperty("Background", 25);
@@ -28,7 +28,7 @@ public class TargetHUDMyauMode extends TargetHUDMode {
     public final BooleanProperty animations = new BooleanProperty("Animations", true);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
 
-    public TargetHUDMyauMode() {
+    public MyauTargetHUD() {
         super("Myau");
     }
 

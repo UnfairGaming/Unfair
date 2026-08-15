@@ -8,10 +8,10 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
-public class TargetHUDRavenLegacyMode extends TargetHUDMode {
+public class RavenLegacyTargetHUD extends TargetHUDMode {
     public final BooleanProperty indicator = new BooleanProperty("Indicator", true);
 
-    public TargetHUDRavenLegacyMode() {
+    public RavenLegacyTargetHUD() {
         super("RavenLegacy");
     }
 

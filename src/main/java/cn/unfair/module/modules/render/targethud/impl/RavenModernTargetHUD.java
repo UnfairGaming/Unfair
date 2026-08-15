@@ -9,11 +9,11 @@ import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 
-public class TargetHUDRavenModernMode extends TargetHUDMode {
+public class RavenModernTargetHUD extends TargetHUDMode {
     public final PercentProperty background = new PercentProperty("Background", 25);
     public final BooleanProperty indicator = new BooleanProperty("Indicator", true);
 
-    public TargetHUDRavenModernMode() {
+    public RavenModernTargetHUD() {
         super("RavenModern");
     }
 

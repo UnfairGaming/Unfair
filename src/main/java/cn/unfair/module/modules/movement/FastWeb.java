@@ -14,7 +14,7 @@ import net.minecraft.client.Minecraft;
 public class FastWeb extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Naven", "LiquidBounce", "Intave14"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Heypixel", "LiquidBounce", "Intave14"});
     public final FloatProperty strength = new FloatProperty("Strength", 0.23F, 0.01F, 0.8F, () -> this.mode.getValue() == 1);
     public final BooleanProperty motionYEnabled = new BooleanProperty("MotionY", false, () -> this.mode.getValue() == 1);
     public final FloatProperty motionYStrength = new FloatProperty("MotionYStrength", 0.6F, -2.0F, 2.0F, () -> this.mode.getValue() == 1 && this.motionYEnabled.getValue());

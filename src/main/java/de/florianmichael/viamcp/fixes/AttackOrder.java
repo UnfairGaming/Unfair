@@ -60,6 +60,14 @@ public class AttackOrder {
         }
     }
 
+    public static void sendFixedPacketAttackWithoutSwing(Entity target) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_19)) {
+            mc.getNetHandler().getNetworkManager().sendPacket(new ServerBoundInteractAttack(target));
+        } else {
+            mc.getNetHandler().getNetworkManager().sendPacket(new C02PacketUseEntity(target, C02PacketUseEntity.Action.ATTACK));
+        }
+    }
+
     public static void sendFixedPacketAttackAndSwing(Entity target) {
         if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_8)) {
             mc.getNetHandler().getNetworkManager().sendPacket(new C0APacketAnimation());

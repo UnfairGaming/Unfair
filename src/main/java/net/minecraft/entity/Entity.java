@@ -821,7 +821,9 @@ public abstract class Entity implements ICommandSender, Cullable {
             AxisAlignedBB axisalignedbb = this.getEntityBoundingBox();
 
             for (AxisAlignedBB axisalignedbb1 : list1) {
-                y = axisalignedbb1.calculateYOffset(this.getEntityBoundingBox(), y);
+                y = this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()
+                        ? viaforge$calculateYOffsetModern(axisalignedbb1, this.getEntityBoundingBox(), y)
+                        : axisalignedbb1.calculateYOffset(this.getEntityBoundingBox(), y);
             }
 
             this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
@@ -872,7 +874,9 @@ public abstract class Entity implements ICommandSender, Cullable {
                 double d9 = y;
 
                 for (AxisAlignedBB axisalignedbb6 : list) {
-                    d9 = axisalignedbb6.calculateYOffset(axisalignedbb5, d9);
+                    d9 = this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()
+                            ? viaforge$calculateYOffsetModern(axisalignedbb6, axisalignedbb5, d9)
+                            : axisalignedbb6.calculateYOffset(axisalignedbb5, d9);
                 }
 
                 axisalignedbb4 = axisalignedbb4.offset(0.0D, d9, 0.0D);
@@ -900,7 +904,9 @@ public abstract class Entity implements ICommandSender, Cullable {
                 double d17 = y;
 
                 for (AxisAlignedBB axisalignedbb9 : list) {
-                    d17 = axisalignedbb9.calculateYOffset(axisalignedbb14, d17);
+                    d17 = this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()
+                            ? viaforge$calculateYOffsetModern(axisalignedbb9, axisalignedbb14, d17)
+                            : axisalignedbb9.calculateYOffset(axisalignedbb14, d17);
                 }
 
                 axisalignedbb14 = axisalignedbb14.offset(0.0D, d17, 0.0D);
@@ -944,7 +950,9 @@ public abstract class Entity implements ICommandSender, Cullable {
                         this.viaforge$modernStepDownAdjusted = true;
                         y += this.viaforge$modernStepDesiredY;
                     }
-                    y = axisalignedbb12.calculateYOffset(this.getEntityBoundingBox(), y);
+                    y = this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()
+                            ? viaforge$calculateYOffsetModern(axisalignedbb12, this.getEntityBoundingBox(), y)
+                            : axisalignedbb12.calculateYOffset(this.getEntityBoundingBox(), y);
                 }
 
                 this.setEntityBoundingBox(this.getEntityBoundingBox().offset(0.0D, y, 0.0D));
@@ -960,7 +968,10 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.worldObj.theProfiler.endSection();
             this.worldObj.theProfiler.startSection("rest");
             this.resetPositionToBB();
-            this.isCollidedHorizontally = d3 != x || d5 != z;
+            this.isCollidedHorizontally = this instanceof EntityPlayerSP
+                    && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_18_2)
+                    ? !viaforge$movementEqual(d3, x) || !viaforge$movementEqual(d5, z)
+                    : d3 != x || d5 != z;
             this.isCollidedVertically = d4 != y;
             this.onGround = this.isCollidedVertically && d4 < 0.0D;
             this.isCollidingWithWall = this.isCollidedHorizontally && this.isCollidingHorizontally();
@@ -1067,24 +1078,24 @@ public abstract class Entity implements ICommandSender, Cullable {
         double xThenZX = x;
         AxisAlignedBB xThenZBox = startBox;
         for (AxisAlignedBB collision : collisions) {
-            xThenZX = collision.calculateXOffset(xThenZBox, xThenZX);
+            xThenZX = viaforge$calculateXOffsetModern(collision, xThenZBox, xThenZX);
         }
         xThenZBox = xThenZBox.offset(xThenZX, 0.0D, 0.0D);
         double xThenZZ = z;
         for (AxisAlignedBB collision : collisions) {
-            xThenZZ = collision.calculateZOffset(xThenZBox, xThenZZ);
+            xThenZZ = viaforge$calculateZOffsetModern(collision, xThenZBox, xThenZZ);
         }
         xThenZBox = xThenZBox.offset(0.0D, 0.0D, xThenZZ);
 
         double zThenXZ = z;
         AxisAlignedBB zThenXBox = startBox;
         for (AxisAlignedBB collision : collisions) {
-            zThenXZ = collision.calculateZOffset(zThenXBox, zThenXZ);
+            zThenXZ = viaforge$calculateZOffsetModern(collision, zThenXBox, zThenXZ);
         }
         zThenXBox = zThenXBox.offset(0.0D, 0.0D, zThenXZ);
         double zThenXX = x;
         for (AxisAlignedBB collision : collisions) {
-            zThenXX = collision.calculateXOffset(zThenXBox, zThenXX);
+            zThenXX = viaforge$calculateXOffsetModern(collision, zThenXBox, zThenXX);
         }
         zThenXBox = zThenXBox.offset(zThenXX, 0.0D, 0.0D);
 
@@ -1099,6 +1110,76 @@ public abstract class Entity implements ICommandSender, Cullable {
             return new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox);
         }
         return new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
+    }
+
+    // Grim's SimpleCollisionBox uses a small tolerance for modern clients. The
+    // legacy AxisAlignedBB methods otherwise turn touching faces into a hard
+    // collision for a single tick.
+    private static double viaforge$calculateXOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
+        if (offset != 0.0D
+                && entity.maxY - block.minY > 1.0E-7D
+                && block.maxY - entity.minY > 1.0E-7D
+                && entity.maxZ - block.minZ > 1.0E-7D
+                && block.maxZ - entity.minZ > 1.0E-7D) {
+            if (offset > 0.0D) {
+                double distance = block.minX - entity.maxX;
+                if (distance >= -1.0E-7D) {
+                    offset = Math.min(distance, offset);
+                }
+            } else {
+                double distance = block.maxX - entity.minX;
+                if (distance <= 1.0E-7D) {
+                    offset = Math.max(distance, offset);
+                }
+            }
+        }
+        return offset;
+    }
+
+    private static double viaforge$calculateYOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
+        if (offset != 0.0D
+                && entity.maxX - block.minX > 1.0E-7D
+                && block.maxX - entity.minX > 1.0E-7D
+                && entity.maxZ - block.minZ > 1.0E-7D
+                && block.maxZ - entity.minZ > 1.0E-7D) {
+            if (offset > 0.0D) {
+                double distance = block.minY - entity.maxY;
+                if (distance >= -1.0E-7D) {
+                    offset = Math.min(distance, offset);
+                }
+            } else {
+                double distance = block.maxY - entity.minY;
+                if (distance <= 1.0E-7D) {
+                    offset = Math.max(distance, offset);
+                }
+            }
+        }
+        return offset;
+    }
+
+    private static double viaforge$calculateZOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
+        if (offset != 0.0D
+                && entity.maxX - block.minX > 1.0E-7D
+                && block.maxX - entity.minX > 1.0E-7D
+                && entity.maxY - block.minY > 1.0E-7D
+                && block.maxY - entity.minY > 1.0E-7D) {
+            if (offset > 0.0D) {
+                double distance = block.minZ - entity.maxZ;
+                if (distance >= -1.0E-7D) {
+                    offset = Math.min(distance, offset);
+                }
+            } else {
+                double distance = block.maxZ - entity.minZ;
+                if (distance <= 1.0E-7D) {
+                    offset = Math.max(distance, offset);
+                }
+            }
+        }
+        return offset;
+    }
+
+    private static boolean viaforge$movementEqual(double first, double second) {
+        return Math.abs(second - first) < 1.0E-5D;
     }
 
     private static final class ModernCollisionResult {

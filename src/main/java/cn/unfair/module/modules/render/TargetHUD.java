@@ -57,12 +57,12 @@ public class TargetHUD extends ModuleWithModuleSettings {
     public EntityLivingBase fadingEntity = null;
     public TargetHUD() {
         super("TargetHUD", false, true, "Mode",
-                new TargetHUDMyauMode(),
-                new TargetHUDRavenModernMode(),
-                new TargetHUDRavenLegacyMode(),
-                new TargetHUDUnfairMode(),
-                new TargetHUDNovolineMode(),
-                new TargetHUDExhibitionMode()
+                new MyauTargetHUD(),
+                new RavenModernTargetHUD(),
+                new RavenLegacyTargetHUD(),
+                new UnfairTargetHUD(),
+                new NovolineTargetHUD(),
+                new ExhibitionTargetHUD()
         );
     }
 

@@ -1811,10 +1811,6 @@ public abstract class EntityLivingBase extends Entity {
             return fallback;
         }
 
-        Block block = player.worldObj.getBlockState(support).getBlock();
-        if (block instanceof BlockWall || block instanceof BlockFenceGate) {
-            return support;
-        }
         return new BlockPos(support.getX(), MathHelper.floor_double(player.posY - 0.500001D), support.getZ());
     }
 
@@ -1867,10 +1863,7 @@ public abstract class EntityLivingBase extends Entity {
         if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_19_4)) {
             BlockPos trackedSupport = player.viaforge$getMainSupportingBlock();
             if (trackedSupport != null) {
-                Block supportBlock = player.worldObj.getBlockState(trackedSupport).getBlock();
-                support = supportBlock instanceof BlockWall || supportBlock instanceof BlockFenceGate
-                        ? trackedSupport
-                        : new BlockPos(trackedSupport.getX(), MathHelper.floor_double(player.prevPosY - 0.500001D), trackedSupport.getZ());
+                support = new BlockPos(trackedSupport.getX(), MathHelper.floor_double(player.prevPosY - 0.500001D), trackedSupport.getZ());
             }
         }
         return player.worldObj.getBlockState(support).getBlock() instanceof BlockHoney;

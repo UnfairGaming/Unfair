@@ -17,8 +17,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TargetHUDExhibitionMode extends TargetHUDMode {
-    public TargetHUDExhibitionMode() {
+public class ExhibitionTargetHUD extends TargetHUDMode {
+    public ExhibitionTargetHUD() {
         super("Exhibition");
     }
 

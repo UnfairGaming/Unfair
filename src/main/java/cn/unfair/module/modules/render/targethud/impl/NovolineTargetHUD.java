@@ -8,8 +8,8 @@ import net.minecraft.util.MathHelper;
 import java.awt.*;
 import java.text.DecimalFormat;
 
-public class TargetHUDNovolineMode extends TargetHUDMode {
-    public TargetHUDNovolineMode() {
+public class NovolineTargetHUD extends TargetHUDMode {
+    public NovolineTargetHUD() {
         super("Novoline");
     }
 
