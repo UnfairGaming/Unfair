@@ -8,14 +8,12 @@ import cn.unfair.events.AttackEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
+import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.RayCastUtil;
-import cn.unfair.util.RotationUtil;
-import cn.unfair.util.TeamUtil;
-import cn.unfair.util.PlayerUtil;
+import cn.unfair.util.*;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -46,6 +44,10 @@ public class ClickVelocity extends SubModule {
         if (!isEnabled() || event.type() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null) {
             return;
         }
+
+        if (BadPacketUtil.bad()) return;
+        if (Velocity.isInLiquidOrWeb()) return;
+
 
         if (mc.thePlayer.isDead || mc.thePlayer.hurtTime != hurtTime.getValue()) {
             return;

@@ -8,6 +8,8 @@ import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
+import cn.unfair.module.modules.combat.Velocity;
+import cn.unfair.util.BadPacketUtil;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
@@ -16,9 +18,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
-
-import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
-import static cn.unfair.util.BadPacketUtil.bad;
 
 public class ReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -38,10 +37,9 @@ public class ReduceVelocity extends SubModule {
 
         if (!knockback) return;
 
-        if (bad()) return;
+        if (BadPacketUtil.bad()) return;
 
-        boolean isInWeb = mc.thePlayer.getIsInWeb();
-        if (isInWeb || isInLiquidOrWeb()) return;
+        if (Velocity.isInLiquidOrWeb()) return;
 
         if (!MoveUtil.isForwardPressed() || !mc.thePlayer.isSprinting()) return;
 
