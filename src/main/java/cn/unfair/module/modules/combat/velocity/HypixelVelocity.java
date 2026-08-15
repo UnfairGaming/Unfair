@@ -31,7 +31,7 @@ public class HypixelVelocity extends SubModule {
 
     private static final int DELAY_TICKS = 3;
     private static final int START_BLINK_HURT_TIME = 2;
-    private static final int FORCE_UNBLINK_TICK = 12;
+    private static final int FORCE_UNBLINK_TICK = 6;
     private static final double ATTACK_SLOWDOWN = 0.6D;
 
     private boolean allowNext = true;

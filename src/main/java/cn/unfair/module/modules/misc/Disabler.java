@@ -50,9 +50,6 @@ public class Disabler extends Module {
 
     @Override
     public void onEnabled() {
-        if (mode.getValue() == 0 && inventory.getValue()) {
-            ChatUtil.dbg("You can use Vanilla-InvWalk now");
-        }
         resetStates();
     }
 
@@ -196,7 +193,6 @@ public class Disabler extends Module {
                 if (this.deltaYaw > 2.0F) {
                     float xDiff = Math.abs(this.deltaYaw - this.lastPlacedDeltaYaw);
                     if (xDiff < 1.0E-4) {
-                        ChatUtil.dbg("Disabling DuplicateRotPlace!");
                         packet.setYaw(packet.getYaw() + 0.002F);
                     }
                 }
@@ -227,7 +223,6 @@ public class Disabler extends Module {
                     currentYaw = antiPerfectRotation[0];
                     currentPitch = antiPerfectRotation[1];
                     modified = true;
-                    ChatUtil.dbg("PerfectRotation: Modified rotation");
                 }
             }
 
