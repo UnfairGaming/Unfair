@@ -47,6 +47,7 @@ public class Unfair {
         ViaMCP viaMCP = ViaMCP.create();
         viaMCP.getOrCreateAsyncVersionSlider().setVersion(ViaMCP.NATIVE_VERSION);
 
+        badPacketManager = new BadPacketManager();
         rotationManager = new RotationManager();
         floatManager = new FloatManager();
         blinkManager = new BlinkManager();

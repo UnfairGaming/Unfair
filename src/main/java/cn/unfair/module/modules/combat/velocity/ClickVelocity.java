@@ -6,15 +6,17 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.TickEvent;
-import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.*;
+import cn.unfair.util.PlayerUtil;
+import cn.unfair.util.RayCastUtil;
+import cn.unfair.util.RotationUtil;
+import cn.unfair.util.TeamUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -24,7 +26,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import java.util.Comparator;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Repeats attacks during the velocity hurt window to reduce received knockback. */
 public class ClickVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
@@ -52,7 +53,7 @@ public class ClickVelocity extends SubModule {
         }
 
         KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-        if (mc.thePlayer.isBlocking() || killAura != null && killAura.isBlocking()) {
+        if (killAura != null && killAura.isPlayerBlocking()) {
             return;
         }
 
@@ -67,12 +68,10 @@ public class ClickVelocity extends SubModule {
         boolean wasSprinting = mc.thePlayer.isSprinting();
 
         for (int i = 0; i < clicks; i++) {
-            if (!BadPacketManager.bad()) {
-                // Keep the sprint state active while each attack is assembled. This is the
-                // behavior the original Click mode relies on for sprint knockback.
-                mc.thePlayer.setSprinting(true);
-                attack(target);
-            }
+            // Keep the sprint state active while each attack is assembled. This is the
+            // behavior the original Click mode relies on for sprint knockback.
+            mc.thePlayer.setSprinting(true);
+            attack(target);
         }
 
         mc.thePlayer.setSprinting(wasSprinting);
