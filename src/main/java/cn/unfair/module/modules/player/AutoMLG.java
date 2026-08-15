@@ -57,6 +57,8 @@ public class AutoMLG extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void onUpdate(UpdateEvent event) {
+        if (!this.isEnabled()) return;
+
         if (event.getType() != EventType.PRE || mc.thePlayer == null || mc.theWorld == null
                 || !mc.playerController.gameIsSurvivalOrAdventure()) {
             return;
