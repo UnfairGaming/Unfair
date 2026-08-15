@@ -6,7 +6,7 @@ import cn.unfair.events.LoadWorldEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
-import cn.unfair.util.BadPacketUtil;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
@@ -71,7 +71,7 @@ public class CrystalAura extends Module {
             return;
         }
 
-        if (!BadPacketUtil.bad()) {
+        if (!BadPacketManager.bad()) {
             AttackOrder.sendFixedPacketAttack(this.target);
         }
         this.target = null;

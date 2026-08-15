@@ -6,7 +6,7 @@ import cn.unfair.events.AttackEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.BadPacketUtil;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.ItemUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
@@ -40,7 +40,7 @@ public class AutoSwap extends Module {
 
     @EventTarget
     public void onAttack(AttackEvent event) {
-        if (!this.isEnabled() || !this.swords.getValue() || BadPacketUtil.bad()) {
+        if (!this.isEnabled() || !this.swords.getValue() || BadPacketManager.bad()) {
             return;
         }
 
@@ -56,7 +56,7 @@ public class AutoSwap extends Module {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (!this.isEnabled() || event.type() != EventType.PRE || BadPacketUtil.bad()) {
+        if (!this.isEnabled() || event.type() != EventType.PRE || BadPacketManager.bad()) {
             return;
         }
 

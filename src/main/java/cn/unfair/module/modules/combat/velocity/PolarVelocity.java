@@ -8,7 +8,7 @@ import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.BadPacketUtil;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import net.minecraft.client.Minecraft;
@@ -32,7 +32,7 @@ public class PolarVelocity extends SubModule {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!kb || !isEnabled() || BadPacketUtil.bad() || event.getType() != EventType.PRE) return;
+        if (!kb || !isEnabled() || BadPacketManager.bad() || event.getType() != EventType.PRE) return;
         if (Velocity.isInLiquidOrWeb()) return;
         switch (mode.getValue()) {
             case 0: {

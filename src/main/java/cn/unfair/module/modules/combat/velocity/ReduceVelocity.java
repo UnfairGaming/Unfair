@@ -9,7 +9,8 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
-import cn.unfair.util.BadPacketUtil;
+import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
@@ -22,6 +23,8 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 public class ReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public boolean knockback = false;
+
+    public final static BooleanProperty attack = new BooleanProperty("Attack Before Reduce", false);
 
     public ReduceVelocity() {
         super("Reduce");
@@ -37,7 +40,7 @@ public class ReduceVelocity extends SubModule {
 
         if (!knockback) return;
 
-        if (BadPacketUtil.bad()) return;
+        if (BadPacketManager.bad()) return;
 
         if (Velocity.isInLiquidOrWeb()) return;
 
@@ -61,7 +64,9 @@ public class ReduceVelocity extends SubModule {
         }
 
         if (target != null) {
-            AttackOrder.sendFixedPacketAttackAndSwing(target);
+            if (attack.getValue()) {
+                AttackOrder.sendFixedPacketAttackAndSwing(target);
+            }
 
             mc.thePlayer.motionX *= 0.6D;
             mc.thePlayer.motionZ *= 0.6D;

@@ -13,6 +13,7 @@ import cn.unfair.property.Property;
 import cn.unfair.property.PropertyManager;
 import cn.unfair.ui.widget.WidgetManager;
 import cn.unfair.ui.widget.impl.HudWidgets;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.rotation.AdvancedJitterHandler;
 import de.florianmichael.viamcp.ViaMCP;
 
@@ -23,6 +24,7 @@ public class Unfair {
     public static String clientName = "&l[&b&lUnfair&f&l]&r ";
     public static String version = "B23.2";
     public static int skippedPlayerTicks;
+    public static BadPacketManager badPacketManager;
     public static RotationManager rotationManager;
     public static FloatManager floatManager;
     public static BlinkManager blinkManager;
@@ -63,9 +65,10 @@ public class Unfair {
         EventManager.register(blinkManager);
         EventManager.register(delayManager);
         EventManager.register(lagManager);
-        EventManager.register(new AdvancedJitterHandler());
+        EventManager.register(badPacketManager);
         EventManager.register(moduleManager);
         EventManager.register(commandManager);
+        EventManager.register(new AdvancedJitterHandler());
         commandManager.commands.add(new BindCommand());
         commandManager.commands.add(new ConfigCommand());
         commandManager.commands.add(new DenickCommand());

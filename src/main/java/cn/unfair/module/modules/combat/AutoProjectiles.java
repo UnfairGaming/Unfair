@@ -29,7 +29,7 @@ import net.minecraft.util.Vec3;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import static cn.unfair.util.BadPacketUtil.bad;
+import static cn.unfair.management.BadPacketManager.bad;
 
 public class AutoProjectiles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

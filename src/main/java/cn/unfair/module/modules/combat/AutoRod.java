@@ -6,6 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.LeftClickMouseEvent;
 import cn.unfair.events.UpdateEvent;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
@@ -94,7 +95,7 @@ public class AutoRod extends Module {
             return;
         }
 
-        if (BadPacketUtil.bad()) return;
+        if (BadPacketManager.bad()) return;
 
         BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
         if (backTrack.isEnabled() && backTrack.isBackTracking) {

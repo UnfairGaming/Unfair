@@ -24,7 +24,7 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.BlockPos;
 
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
-import static cn.unfair.util.BadPacketUtil.bad;
+import static cn.unfair.management.BadPacketManager.bad;
 
 public class GrimReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
