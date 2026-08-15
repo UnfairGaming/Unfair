@@ -357,7 +357,13 @@ public class ItemUtil {
     }
 
     public static boolean isEating() {
-        ItemStack itemStack = ItemUtil.mc.thePlayer.getHeldItem();
+        if (ItemUtil.mc.thePlayer.isUsingItem() && isEdible(ItemUtil.mc.thePlayer.getItemInUse())) {
+            return true;
+        }
+        return isEdible(ItemUtil.mc.thePlayer.getHeldItem());
+    }
+
+    private static boolean isEdible(ItemStack itemStack) {
         if (itemStack == null || getViaModelName(itemStack) != null) {
             return false;
         }

@@ -58,8 +58,9 @@ public class VLBViaEncodeHandler extends MessageToMessageEncoder<ByteBuf> {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (PipelineUtil.containsCause(cause, CancelCodecException.class)) return;
-        super.exceptionCaught(ctx, cause);
+        ctx.fireExceptionCaught(cause);
     }
 }

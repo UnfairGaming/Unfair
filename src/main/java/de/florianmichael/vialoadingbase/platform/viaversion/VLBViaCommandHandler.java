@@ -22,4 +22,7 @@ import com.viaversion.viaversion.commands.ViaCommandHandler;
 
 public class VLBViaCommandHandler extends ViaCommandHandler {
 
+    public VLBViaCommandHandler() {
+        super(true);
+    }
 }

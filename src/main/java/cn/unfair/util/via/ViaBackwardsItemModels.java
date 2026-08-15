@@ -152,7 +152,7 @@ public final class ViaBackwardsItemModels {
             if (reader == null) {
                 return false;
             }
-            JsonElement element = new JsonParser().parse(reader);
+            JsonElement element = JsonParser.parseReader(reader);
             if (!element.isJsonObject()) {
                 return false;
             }
@@ -573,7 +573,7 @@ public final class ViaBackwardsItemModels {
         }
 
         try {
-            JsonElement element = new JsonParser().parse(trimmed);
+            JsonElement element = JsonParser.parseString(trimmed);
             StringBuilder builder = new StringBuilder();
             appendText(element, builder);
             return builder.length() == 0 ? name : builder.toString();
