@@ -3,7 +3,9 @@ package net.minecraft.entity;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.KnockbackEvent;
+import cn.unfair.events.StuckInBlockEvent;
 import cn.unfair.events.SafeWalkEvent;
+import cn.unfair.module.modules.movement.FastWeb;
 import cn.unfair.module.modules.render.FreeLook;
 import cn.unfair.util.via.ModernFluidPhysics;
 import cn.unfair.util.via.ModernPlayerPhysics;
@@ -709,7 +711,14 @@ public abstract class Entity implements ICommandSender, Cullable {
             this.motionY = 0.0D;
             this.motionZ = 0.0D;
         }
-        this.viaforge$modernStepDesiredY = this.isInWeb ? y * 0.05F : y;
+
+        boolean fastWebActive = false;
+        if (this instanceof EntityPlayerSP && Unfair.moduleManager != null) {
+            FastWeb fastWeb = (FastWeb) Unfair.moduleManager.modules.get(FastWeb.class);
+            fastWebActive = fastWeb != null && fastWeb.shouldBoostWeb();
+        }
+
+        this.viaforge$modernStepDesiredY = this.isInWeb ? y * (fastWebActive ? 1.88F : 0.05F) : y;
         this.viaforge$modernStepDownAdjusted = false;
         if (this instanceof EntityPlayerSP && viaforge$usesModernLandPhysics()) {
             this.viaforge$moveStartX = this.posX;
@@ -727,9 +736,15 @@ public abstract class Entity implements ICommandSender, Cullable {
 
             if (this.isInWeb) {
                 this.isInWeb = false;
-                x *= 0.25D;
-                y *= 0.05000000074505806D;
-                z *= 0.25D;
+                if (fastWebActive) {
+                    x *= 0.88D;
+                    y *= 1.88D;
+                    z *= 0.88D;
+                } else {
+                    x *= 0.25D;
+                    y *= 0.05000000074505806D;
+                    z *= 0.25D;
+                }
                 this.motionX = 0.0D;
                 this.motionY = 0.0D;
                 this.motionZ = 0.0D;
@@ -2588,6 +2603,9 @@ public abstract class Entity implements ICommandSender, Cullable {
     public void setInWeb() {
         this.isInWeb = true;
         this.fallDistance = 0.0F;
+        if (this instanceof EntityPlayerSP) {
+            EventManager.call(new StuckInBlockEvent(this));
+        }
     }
 
     public void viaforge$slowMovement(double x, double y, double z) {
