@@ -150,6 +150,10 @@ public class GrimReduceVelocity extends SubModule {
         knockback = false;
     }
 
+    public boolean isSuspending() {
+        return this.suspending;
+    }
+
     private boolean isPlayerKnockback() {
         double radius = reach.getValue() + 2.0;
         double radiusSq = radius * radius;

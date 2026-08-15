@@ -145,6 +145,10 @@ public class HypixelVelocity extends SubModule {
         reset(true);
     }
 
+    public boolean isDelaying() {
+        return this.delayFlag;
+    }
+
     private void handleBlink() {
         if (knockbackTimer >= 0) {
             knockbackTimer++;

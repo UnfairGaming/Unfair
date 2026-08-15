@@ -33,6 +33,11 @@ public class Criticals extends Module {
             return;
         }
 
+        Velocity velocity = (Velocity) Unfair.moduleManager.modules.get(Velocity.class);
+        if (velocity != null && velocity.isEnabled() && velocity.isDelayingVelocity()) {
+            return;
+        }
+
         EntityLivingBase target = killAura.getTarget();
         if (target == null) {
             return;
