@@ -1,6 +1,7 @@
 package net.minecraft.entity.player;
 
 import cn.unfair.Unfair;
+import cn.unfair.enums.BlinkModules;
 import cn.unfair.module.modules.combat.velocity.PolarVelocity;
 import cn.unfair.module.modules.movement.KeepSprint;
 import cn.unfair.module.modules.render.Animations;
@@ -1334,6 +1335,10 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
     private double getAttackSlowdown()
     {
+        if (this.shouldForceKeepSprintDuringVelocityBlink()) {
+            return 1.0D;
+        }
+
         if (Unfair.moduleManager == null) {
             return 0.6D;
         }
@@ -1346,12 +1351,23 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
     private boolean shouldKeepSprintingAfterAttack()
     {
+        if (this.shouldForceKeepSprintDuringVelocityBlink()) {
+            return true;
+        }
+
         if (Unfair.moduleManager == null) {
             return false;
         }
 
         KeepSprint keepSprint = (KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class);
         return keepSprint.isEnabled() && keepSprint.shouldKeepSprint();
+    }
+
+    private boolean shouldForceKeepSprintDuringVelocityBlink()
+    {
+        return Unfair.blinkManager != null
+                && Unfair.blinkManager.isBlinking()
+                && Unfair.blinkManager.getBlinkingModule() == BlinkModules.VELOCITY;
     }
 
     /**
