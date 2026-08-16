@@ -50,7 +50,6 @@ public class Scaffold extends Module {
     public final BooleanProperty testOnGround = new BooleanProperty("Test On Ground", false, () -> this.mode.getValue() == 0 && this.smoothed.getValue());
     public final BooleanProperty fixRotation = new BooleanProperty("Fix Rotation", true);
     public final BooleanProperty randomSlow = new BooleanProperty("Slow Up Telly", false, () -> this.mode.getValue() == 0);
-    public final BooleanProperty blockFly = new BooleanProperty("Block Fly", false);
     public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true);
     public final ModeProperty blockSlotMode = new ModeProperty("Block Slot Mode", 0, new String[]{"Farthest", "Most Blocks"});
     public final ModeProperty jumpMode = new ModeProperty("Jump Mode", 1, new String[]{"Parkour", "Normal", "None"}, () -> this.mode.getValue() == 0);
@@ -511,21 +510,6 @@ public class Scaffold extends Module {
             mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
         }
         rot = new Rotation(targetYaw, rot.pitch);
-    }
-
-    @EventTarget(Priority.LOWEST)
-    public void onTick(TickEvent event) {
-        if (event.type() != EventType.POST) {
-            return;
-        }
-        if (!this.isEnabled()) {
-            return;
-        }
-        if (mc.thePlayer == null || mc.theWorld == null) {
-            return;
-        }
-        if (blockFly.getValue()) {
-        }
     }
 
     @EventTarget
