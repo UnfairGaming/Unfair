@@ -12,6 +12,7 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.BlockUtil;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.ItemUtil;
+import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
@@ -3316,7 +3317,7 @@ public class LegitTelly extends Module {
 
     private Object[] raycastBlock(double distance, float yaw, float pitch) {
         if (mc.thePlayer == null || mc.theWorld == null) return null;
-        MovingObjectPosition mop = RotationUtil.rayTrace(yaw, pitch, distance, 1.0f);
+        MovingObjectPosition mop = RayCastUtil.rayTrace(yaw, pitch, distance, 1.0f);
         if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK || mop.getBlockPos() == null)
             return null;
         Vec3 pos = new Vec3(mop.getBlockPos());

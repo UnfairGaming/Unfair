@@ -447,7 +447,7 @@ public class Scaffold extends Module {
         if (player == null || expectedFace == null) {
             return false;
         }
-        MovingObjectPosition result = RotationUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
+        MovingObjectPosition result = RayCastUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
         if (result == null || result.typeOfHit != MovingObjectType.BLOCK) {
             return false;
         }

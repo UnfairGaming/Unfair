@@ -258,7 +258,7 @@ public class KillAura extends Module {
             return null;
         }
 
-        MovingObjectPosition hit = RotationUtil.rayTrace(target.getBox(), yaw, pitch, distance);
+        MovingObjectPosition hit = RayCastUtil.rayTrace(target.getBox(), yaw, pitch, distance);
         return hit == null ? null : hit.hitVec;
     }
 
@@ -329,7 +329,7 @@ public class KillAura extends Module {
                 return false;
             } else if (RotationUtil.angleToEntity(entityLivingBase) > this.fov.getValue().floatValue()) {
                 return false;
-            } else if (!this.throughWalls.getValue() && RotationUtil.rayTrace(entityLivingBase) != null) {
+            } else if (!this.throughWalls.getValue() && RayCastUtil.rayTrace(entityLivingBase) != null) {
                 return false;
             } else if (entityLivingBase instanceof EntityOtherPlayerMP) {
                 if (!this.players.getValue()) {

@@ -42,6 +42,34 @@ public final class RayCastUtil {
         return rayCast(rotation, distance, 0.0F);
     }
 
+    public static MovingObjectPosition rayTrace(float yaw, float pitch, double distance, float partialTicks) {
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(partialTicks);
+        Vec3 lookVec = mc.thePlayer.getVectorForRotation(pitch, yaw);
+        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
+        return mc.theWorld.rayTraceBlocks(eyePos, targetPos);
+    }
+
+    public static MovingObjectPosition rayTraceWater(float yaw, float pitch, double distance, float partialTicks) {
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(partialTicks);
+        Vec3 lookVec = mc.thePlayer.getVectorForRotation(pitch, yaw);
+        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
+        return mc.theWorld.rayTraceBlocks(eyePos, targetPos, true, false, false);
+    }
+
+    public static MovingObjectPosition rayTrace(Entity entity) {
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
+        float borderSize = entity.getCollisionBorderSize();
+        Vec3 targetPos = RotationUtil.getClosestPointOnBox(eyePos, entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize));
+        return mc.theWorld.rayTraceBlocks(eyePos, targetPos);
+    }
+
+    public static MovingObjectPosition rayTrace(AxisAlignedBB boundingBox, float yaw, float pitch, double distance) {
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
+        Vec3 lookVec = mc.thePlayer.getVectorForRotation(pitch, yaw);
+        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
+        return boundingBox.calculateIntercept(eyePos, targetPos);
+    }
+
     public static boolean inView(Entity entity) {
         RotationUtil.RotationVec rotation = calculateRotationToEntity(entity);
         int renderDistance = 16 * mc.gameSettings.renderDistanceChunks;

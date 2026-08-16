@@ -45,7 +45,7 @@ public class AimAssist extends Module {
                 return false;
             } else if (RotationUtil.angleToEntity(entityPlayer) > (float) this.fov.getValue()) {
                 return false;
-            } else if (RotationUtil.rayTrace(entityPlayer) != null) {
+            } else if (RayCastUtil.rayTrace(entityPlayer) != null) {
                 return false;
             } else if (TeamUtil.isFriend(entityPlayer)) {
                 return false;

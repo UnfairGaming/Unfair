@@ -112,34 +112,6 @@ public class RotationUtil {
         return MathHelper.wrapAngleTo180_float((float) (Math.atan2(z2 - z1, x2 - x1) * 180.0 / Math.PI) - 90.0f - RotationUtil.mc.thePlayer.rotationYaw);
     }
 
-    public static MovingObjectPosition rayTrace(float yaw, float pitch, double distance, float partialTicks) {
-        Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(partialTicks);
-        Vec3 lookVec = RotationUtil.mc.thePlayer.getVectorForRotation(pitch, yaw);
-        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
-        return RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPos);
-    }
-
-    public static MovingObjectPosition rayTraceWater(float yaw, float pitch, double distance, float partialTicks) {
-        Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(partialTicks);
-        Vec3 lookVec = RotationUtil.mc.thePlayer.getVectorForRotation(pitch, yaw);
-        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
-        return RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPos, true, false, false);
-    }
-
-    public static MovingObjectPosition rayTrace(Entity entity) {
-        Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(1.0f);
-        float borderSize = entity.getCollisionBorderSize();
-        Vec3 targetPos = RotationUtil.getClosestPointOnBox(eyePos, entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize));
-        return RotationUtil.mc.theWorld.rayTraceBlocks(eyePos, targetPos);
-    }
-
-    public static MovingObjectPosition rayTrace(AxisAlignedBB boundingBox, float yaw, float pitch, double distance) {
-        Vec3 eyePos = RotationUtil.mc.thePlayer.getPositionEyes(1.0f);
-        Vec3 lookVec = RotationUtil.mc.thePlayer.getVectorForRotation(pitch, yaw);
-        Vec3 targetPos = eyePos.addVector(lookVec.xCoord * distance, lookVec.yCoord * distance, lookVec.zCoord * distance);
-        return boundingBox.calculateIntercept(eyePos, targetPos);
-    }
-
     public static class RotationVec {
         public float x;
         public float y;

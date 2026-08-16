@@ -71,7 +71,7 @@ public class BlockUtil {
     }
 
     public static Vec3 getHitVec(BlockPos blockPos, EnumFacing enumFacing, float yaw, float pitch) {
-        MovingObjectPosition movingObjectPosition = RotationUtil.rayTrace(yaw, pitch, BlockUtil.mc.playerController.getBlockReachDistance(), 1.0f);
+        MovingObjectPosition movingObjectPosition = RayCastUtil.rayTrace(yaw, pitch, BlockUtil.mc.playerController.getBlockReachDistance(), 1.0f);
         if (movingObjectPosition != null) {
             if (movingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                 if (movingObjectPosition.getBlockPos().equals(blockPos)) {

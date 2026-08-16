@@ -154,7 +154,7 @@ public class BedNuker extends Module {
         double y = (double) blockPos.getY() + 0.25 - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();
         double z = (double) blockPos.getZ() + 0.5 - mc.thePlayer.posZ;
         float[] rotations = RotationUtil.getRotationsTo(x, y, z, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-        MovingObjectPosition mop = RotationUtil.rayTrace(rotations[0], rotations[1], 8.0, 1.0F);
+        MovingObjectPosition mop = RayCastUtil.rayTrace(rotations[0], rotations[1], 8.0, 1.0F);
         return mop == null ? EnumFacing.UP : mop.sideHit;
     }
 

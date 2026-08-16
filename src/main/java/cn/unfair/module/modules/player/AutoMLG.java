@@ -8,6 +8,7 @@ import cn.unfair.events.SwapItemEvent;
 import cn.unfair.module.Module;
 import cn.unfair.util.BlockUtil;
 import cn.unfair.util.PacketUtil;
+import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -163,7 +164,7 @@ public class AutoMLG extends Module {
         }
         float yaw = event.getNewYaw();
         float pitch = event.getNewPitch();
-        MovingObjectPosition mop = RotationUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
+        MovingObjectPosition mop = RayCastUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
         if (mop == null
                 || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK
                 || !mop.getBlockPos().equals(this.targetPos)
@@ -194,7 +195,7 @@ public class AutoMLG extends Module {
 
         this.rotateToPosition(event, this.recoveryPos, 0.5D);
 
-        MovingObjectPosition mop = RotationUtil.rayTraceWater(
+        MovingObjectPosition mop = RayCastUtil.rayTraceWater(
                 event.getNewYaw(),
                 event.getNewPitch(),
                 mc.playerController.getBlockReachDistance(),

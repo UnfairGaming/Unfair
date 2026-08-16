@@ -6,7 +6,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.RotationUtil;
+import cn.unfair.util.RayCastUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -37,7 +37,7 @@ public class FastPlace extends Module {
                 if (!(Boolean) this.placeFix.getValue()) {
                     return true;
                 }
-                MovingObjectPosition mop = RotationUtil.rayTrace(
+                MovingObjectPosition mop = RayCastUtil.rayTrace(
                         mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, mc.playerController.getBlockReachDistance(), 1.0F
                 );
                 return mop != null
