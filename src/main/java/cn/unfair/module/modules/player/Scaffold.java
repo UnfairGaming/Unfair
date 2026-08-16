@@ -132,8 +132,6 @@ public class Scaffold extends Module {
         cancelMove = false;
     }
 
-    // ===== Southside helpers =====
-
     private boolean isValid(Item item) {
         return item instanceof ItemBlock
                 && !invalidBlocks.contains(((ItemBlock) item).getBlock())
@@ -515,8 +513,6 @@ public class Scaffold extends Module {
         rot = new Rotation(targetYaw, rot.pitch);
     }
 
-    // ===== Events =====
-
     @EventTarget(Priority.LOWEST)
     public void onTick(TickEvent event) {
         if (event.type() != EventType.POST) {
@@ -529,7 +525,6 @@ public class Scaffold extends Module {
             return;
         }
         if (blockFly.getValue()) {
-            // BlockFly de-sync release placeholder: nothing to do on the 1.8.9 port.
         }
     }
 
