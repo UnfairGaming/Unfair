@@ -5,9 +5,7 @@ import cn.unfair.enums.BlinkModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
-import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.PacketEvent;
-import cn.unfair.events.StrafeEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
@@ -22,36 +20,16 @@ import net.minecraft.util.AxisAlignedBB;
 
 public class NoFall extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Packet", "Blink", "NoGround", "Spoof", "Heypixel"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Packet", "Blink", "NoGround", "Spoof"});
     public final FloatProperty distance = new FloatProperty("Distance", 3.0F, 0.0F, 20.0F);
     public final IntProperty delay = new IntProperty("Delay", 0, 0, 10000);
     private final TimerUtil packetDelayTimer = new TimerUtil();
     private final TimerUtil scoreboardResetTimer = new TimerUtil();
     private boolean slowFalling = false;
     private boolean lastOnGround = false;
-    private boolean heypixelLagged = false;
-    private boolean heypixelShouldHandleFall = false;
-    private boolean heypixelShouldSendLagPacket = false;
-    private boolean heypixelShouldJump = false;
 
     public NoFall() {
         super("NoFall", false);
-    }
-
-    @Override
-    public void onEnabled() {
-        this.heypixelResetState();
-    }
-
-    private boolean heypixelShouldBlockJump() {
-        return this.heypixelShouldHandleFall || this.heypixelShouldJump;
-    }
-
-    private void heypixelResetState() {
-        this.heypixelLagged = false;
-        this.heypixelShouldHandleFall = false;
-        this.heypixelShouldSendLagPacket = false;
-        this.heypixelShouldJump = false;
     }
 
     private boolean canTrigger() {
@@ -61,13 +39,7 @@ public class NoFall extends Module {
     @EventTarget(Priority.HIGH)
     public void onPacket(PacketEvent event) {
         if (event.getType() == EventType.RECEIVE && event.getPacket() instanceof S08PacketPlayerPosLook) {
-            if (this.mode.getValue() == 4) {
-                if (this.heypixelShouldHandleFall) {
-                    this.heypixelLagged = true;
-                }
-            } else {
-                this.onDisabled();
-            }
+            this.onDisabled();
         } else if (this.isEnabled() && event.getType() == EventType.SEND && !event.isCancelled()) {
             if (event.getPacket() instanceof C03PacketPlayer packet) {
                 switch (this.mode.getValue()) {
@@ -128,32 +100,6 @@ public class NoFall extends Module {
                                 mc.thePlayer.fallDistance = 0.0F;
                             }
                         }
-                        break;
-                    case 4:
-                        if (mc.isSingleplayer()) {
-                            break;
-                        }
-                        if (!this.heypixelShouldHandleFall
-                                && mc.thePlayer.fallDistance > this.distance.getValue()
-                                && !mc.thePlayer.onGround) {
-                            this.heypixelShouldHandleFall = true;
-                            this.heypixelLagged = false;
-                            this.heypixelShouldSendLagPacket = false;
-                        }
-                        if (this.heypixelShouldHandleFall && mc.thePlayer.fallDistance < 3.0F) {
-                            packet.setOnGround(false);
-                            if (!this.heypixelShouldSendLagPacket) {
-                                // Heypixel lag packet. 1.8.9 has no accept-teleportation packet,
-                                // so only the fake position (X offset by -1000) is sent.
-                                PacketUtil.sendPacketNoEvent(new C03PacketPlayer.C04PacketPlayerPosition(
-                                        mc.thePlayer.posX - 1000.0, mc.thePlayer.posY, mc.thePlayer.posZ, false));
-                                this.heypixelShouldSendLagPacket = true;
-                            }
-                        }
-                        if (this.heypixelShouldHandleFall && this.heypixelShouldSendLagPacket && !this.heypixelLagged) {
-                            event.setCancelled(true);
-                        }
-                        break;
                 }
             }
         }
@@ -161,10 +107,7 @@ public class NoFall extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void onTick(TickEvent event) {
-        if (!this.isEnabled()) {
-            return;
-        }
-        if (event.type() == EventType.PRE) {
+        if (this.isEnabled() && event.type() == EventType.PRE) {
             if (ServerUtil.hasPlayerCountInfo()) {
                 this.scoreboardResetTimer.reset();
             }
@@ -172,34 +115,6 @@ public class NoFall extends Module {
                 PacketUtil.sendPacketNoEvent(new C03PacketPlayer(true));
                 mc.thePlayer.fallDistance = 0.0F;
             }
-        } else if (event.type() == EventType.POST && this.mode.getValue() == 4) {
-            if (mc.isSingleplayer()) {
-                return;
-            }
-            if (this.heypixelShouldBlockJump()) {
-                mc.gameSettings.keyBindJump.pressed = false;
-            }
-            if (this.heypixelLagged && this.heypixelShouldHandleFall) {
-                this.heypixelShouldJump = true;
-                this.heypixelShouldHandleFall = false;
-                this.heypixelLagged = false;
-            }
-        }
-    }
-
-    @EventTarget
-    public void onMoveInput(MoveInputEvent event) {
-        if (this.isEnabled() && this.mode.getValue() == 4 && this.heypixelShouldBlockJump() && mc.thePlayer != null) {
-            mc.thePlayer.movementInput.jump = false;
-        }
-    }
-
-    @EventTarget
-    public void onStrafe(StrafeEvent event) {
-        if (this.isEnabled() && this.mode.getValue() == 4 && mc.thePlayer != null
-                && mc.thePlayer.onGround && this.heypixelShouldJump) {
-            mc.thePlayer.jump();
-            this.heypixelShouldJump = false;
         }
     }
 
@@ -207,7 +122,6 @@ public class NoFall extends Module {
     public void onDisabled() {
         this.lastOnGround = false;
         Unfair.blinkManager.setBlinkState(false, BlinkModules.NO_FALL);
-        this.heypixelResetState();
         if (this.slowFalling) {
             this.slowFalling = false;
             mc.timer.timerSpeed = 1.0F;
