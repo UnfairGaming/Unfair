@@ -1553,7 +1553,7 @@ public abstract class EntityLivingBase extends Entity {
                         this.motionY = 0.0D;
                     }
 
-                    this.motionY *= 0.98D;
+                    this.motionY *= 0.9800000190734863D; //Please do not change this!!!
                     this.motionX *= finalFriction;
                     this.motionZ *= finalFriction;
                 } else {

@@ -5,11 +5,15 @@ import cn.unfair.events.KnockbackEvent;
 import cn.unfair.events.LivingUpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.Velocity;
+import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.RandomUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.potion.Potion;
 
 public class LegitVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
+
+    public final PercentProperty chance = new PercentProperty("Chance", 100);
     private boolean jumpFlag = false;
 
     public LegitVelocity() {
@@ -19,7 +23,8 @@ public class LegitVelocity extends SubModule {
     @EventTarget
     public void onKnockback(KnockbackEvent event) {
         if (this.isEnabled() && !event.isCancelled()) {
-            this.jumpFlag = event.getY() > 0.0;
+            this.jumpFlag = event.getY() > 0.0
+                    && RandomUtil.nextFloat(0.0F, 100.0F) < chance.getValue();
         }
     }
 
