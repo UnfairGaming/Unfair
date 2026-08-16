@@ -134,7 +134,6 @@ public class Scaffold extends Module {
     private int startHotbarCount = 1;
     private boolean canPlace;
     private BlockData blockData;
-    private BlockData lastBlockData;
     private double posY;
     private BlockPos lastPlacePosition = null;
     private Rotation lastRotation;
@@ -197,7 +196,6 @@ public class Scaffold extends Module {
         this.blockSlot = null;
         startHotbarCount = Math.max(1, getBlockCountHotbar());
         blockData = null;
-        lastBlockData = null;
         canPlace = true;
         lastPlacePosition = null;
         rot = null;
@@ -430,7 +428,6 @@ public class Scaffold extends Module {
             godBridgePlaceRotation = target;
         }
         blockData = godBridgePlaceRotation != null ? godBridgePlaceRotation.blockData() : null;
-        lastBlockData = blockData;
         canPlace = true;
     }
 
@@ -627,11 +624,11 @@ public class Scaffold extends Module {
                 }
             }
         }
-        if (lastRotation != null && blockData != null && didHitBlockFace(mc.thePlayer, lastRotation.yaw, lastRotation.pitch, blockData.blockPos(), blockData.facing(), true)) {
+        if (lastRotation != null && blockData != null && didHitBlockFace(mc.thePlayer, lastRotation.yaw, lastRotation.pitch, blockData.blockPos(), blockData.facing())) {
             return lastRotation;
         }
         if (blockData != null && !alwaysUpdateRot.getValue() && offGroundTicks >= rotTick.getValue()) {
-            if (!didHitBlockFace(mc.thePlayer, rotation.yaw, rotation.pitch, blockData.blockPos(), blockData.facing(), true) && offGroundTicks >= rotTick.getValue()) {
+            if (!didHitBlockFace(mc.thePlayer, rotation.yaw, rotation.pitch, blockData.blockPos(), blockData.facing()) && offGroundTicks >= rotTick.getValue()) {
                 lastRotation.yaw += (float) Math.random();
                 return lastRotation;
             }
@@ -1022,7 +1019,6 @@ public class Scaffold extends Module {
             mc.entityRenderer.itemRenderer.resetEquippedProgress();
         }
         blockData = null;
-        lastBlockData = null;
         godBridgePlaceRotation = null;
         return true;
     }
@@ -1100,7 +1096,7 @@ public class Scaffold extends Module {
         );
     }
 
-    private static boolean didHitBlockFace(Entity player, float yaw, float pitch, BlockPos targetPos, EnumFacing expectedFace, boolean strict) {
+    private static boolean didHitBlockFace(Entity player, float yaw, float pitch, BlockPos targetPos, EnumFacing expectedFace) {
         if (player == null || expectedFace == null) {
             return false;
         }
@@ -1108,11 +1104,7 @@ public class Scaffold extends Module {
         if (result == null || result.typeOfHit != MovingObjectType.BLOCK) {
             return false;
         }
-        return result.getBlockPos().equals(targetPos) && (!strict || result.sideHit == expectedFace);
-    }
-
-    private static boolean didHitBlockFace(Rotation rotation, BlockPos targetPos, EnumFacing expectedFace, boolean strict) {
-        return didHitBlockFace(mc.thePlayer, rotation.yaw, rotation.pitch, targetPos, expectedFace, strict);
+        return result.getBlockPos().equals(targetPos) && (result.sideHit == expectedFace);
     }
 
     private void place() {
@@ -1239,9 +1231,8 @@ public class Scaffold extends Module {
             if (possible != null) {
                 blockData = possible;
             }
-            lastBlockData = possible;
 
-            canPlace = mode.getValue() == 0 ? offGroundTicks >= placeTick.getValue() : true;
+            canPlace = mode.getValue() != 0 || offGroundTicks >= placeTick.getValue();
 
             FallingPlayer fallingPlayer = new FallingPlayer(mc.thePlayer);
             fallingPlayer.calculate(1);
@@ -1260,7 +1251,7 @@ public class Scaffold extends Module {
                 ));
                 if (distance >= safeDistance.getValue() || placement.blockPos().getY() > fallingPlayer.getY()) {
                     canPlace = true;
-                    blockData = lastBlockData = placement;
+                    blockData = placement;
                 }
             }
             if (blockData != null) {
@@ -1275,7 +1266,7 @@ public class Scaffold extends Module {
                 if (blockData.blockPos().getY() > fallingPlayer.getY() && !box.isVecInside(new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ))) {
                     canPlace = true;
                     posY = mc.thePlayer.getPosition().getY() - 1;
-                    blockData = lastBlockData = getBlockData(new BlockPos(
+                    blockData = getBlockData(new BlockPos(
                             MathHelper.floor_double(mc.thePlayer.posX),
                             MathHelper.floor_double(posY),
                             MathHelper.floor_double(mc.thePlayer.posZ)
