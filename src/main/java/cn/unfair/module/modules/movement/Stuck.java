@@ -7,18 +7,12 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
+import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.PacketUtil;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import cn.unfair.util.player.HeypixelStuckController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemSoup;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.*;
-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class Stuck extends Module {
@@ -26,19 +20,14 @@ public class Stuck extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Vanilla", "Heypixel"});
 
-    public final IntProperty stuckTicks = new IntProperty("Stuck Ticks", 10, 1, 100);
+    public final IntProperty stuckTicks = new IntProperty("Stuck Ticks", 10, 1, 100, ()-> this.mode.getValue() == 0);
     private double savedMotionX;
     private double savedMotionY;
     private double savedMotionZ;
     private int tick;
     private boolean using = false;
 
-    private int stage = 0;
-    private Packet heypixelPacket;
-    private float lastYaw;
-    private float lastPitch;
-    private boolean tryDisable = false;
-    private final Queue<Packet> heypixelPackets = new ConcurrentLinkedQueue<>();
+    private final HeypixelStuckController heypixel = new HeypixelStuckController();
 
     public Stuck() {
         super("Stuck", false, false);
@@ -50,10 +39,10 @@ public class Stuck extends Module {
             if (enabled) {
                 super.setEnabled(true);
             } else if (this.mode.getModeString().equals("Heypixel")) {
-                if (this.stage == 3) {
+                if (this.heypixel.canDisable()) {
                     super.setEnabled(false);
                 } else {
-                    this.tryDisable = true;
+                    this.heypixel.requestDisable();
                 }
             } else {
                 super.setEnabled(false);
@@ -65,11 +54,12 @@ public class Stuck extends Module {
     public void onEnabled() {
         if (mc.thePlayer != null) {
             if (this.mode.getModeString().equals("Heypixel")) {
-                this.stage = 0;
-                this.heypixelPacket = null;
-                this.lastYaw = mc.thePlayer.rotationYaw;
-                this.lastPitch = mc.thePlayer.rotationPitch;
-                this.tryDisable = false;
+                Scaffold scaffold = (Scaffold) Unfair.moduleManager.getModule(Scaffold.class);
+                if (scaffold != null && scaffold.isEnabled()) {
+                    scaffold.releaseClutchForHeypixelStuck();
+                    scaffold.toggle();
+                }
+                this.heypixel.start();
             } else {
                 tick = 0;
                 using = true;
@@ -94,38 +84,16 @@ public class Stuck extends Module {
     }
 
 
-    @EventTarget
+    @EventTarget(1)
     public void onPacket(PacketEvent event) {
         if (!this.isEnabled()) return;
 
         if (this.mode.getModeString().equals("Heypixel")) {
-            handleHeypixelPacket(event);
-        } else {
-            handleVanillaPacket(event);
-        }
-    }
-
-    private void handleHeypixelPacket(PacketEvent event) {
-        if (event.getType() == EventType.SEND) {
-            Packet<?> pkt = event.getPacket();
-            if (pkt instanceof C03PacketPlayer) {
-                event.setCancelled(true);
-            } else if (pkt instanceof C00PacketKeepAlive || pkt instanceof C0FPacketConfirmTransaction) {
-                this.heypixelPackets.offer(pkt);
-                event.setCancelled(true);
-            } else if (pkt instanceof C08PacketPlayerBlockPlacement || pkt instanceof C07PacketPlayerDigging) {
-                this.heypixelPacket = pkt;
-                this.stage = 1;
-                event.setCancelled(true);
-            }
-        } else if (event.getType() == EventType.RECEIVE) {
-            if (event.getPacket() instanceof S08PacketPlayerPosLook) {
-                while (!this.heypixelPackets.isEmpty()) {
-                    PacketUtil.sendPacketNoEvent(this.heypixelPackets.poll());
-                }
-                this.stage = 3;
+            if (this.heypixel.handlePacket(event)) {
                 this.setEnabled(false);
             }
+        } else {
+            handleVanillaPacket(event);
         }
     }
 
@@ -148,7 +116,7 @@ public class Stuck extends Module {
         if (!this.isEnabled()) return;
 
         if (this.mode.getModeString().equals("Heypixel")) {
-            handleHeypixelUpdate(event);
+            this.heypixel.update(event);
         } else {
             Unfair.blinkManager.setBlinkState(true, BlinkModules.BLINK);
             KeyBinding.unPressAllKeys();
@@ -156,51 +124,6 @@ public class Stuck extends Module {
             mc.thePlayer.motionZ = 0.0;
             mc.thePlayer.motionY = 0.0;
         }
-    }
-
-    private void handleHeypixelUpdate(UpdateEvent event) {
-        if (event.getType() == EventType.PRE) {
-            mc.thePlayer.motionX = 0.0;
-            mc.thePlayer.motionZ = 0.0;
-            mc.thePlayer.motionY = 0.0;
-
-            if (this.stage == 1) {
-                this.stage = 2;
-                float rotYaw = mc.thePlayer.rotationYaw;
-                float rotPitch = mc.thePlayer.rotationPitch;
-                if (this.shouldRotate() && (this.lastYaw != rotYaw || this.lastPitch != rotPitch)) {
-                    PacketUtil.sendPacketNoEvent(new C03PacketPlayer.C05PacketPlayerLook(rotYaw, rotPitch, mc.thePlayer.onGround));
-                    while (!this.heypixelPackets.isEmpty()) {
-                        PacketUtil.sendPacketNoEvent(this.heypixelPackets.poll());
-                    }
-                    this.lastYaw = rotYaw;
-                    this.lastPitch = rotPitch;
-                }
-                PacketUtil.sendPacketNoEvent(this.heypixelPacket);
-            }
-
-            if (this.tryDisable) {
-                PacketUtil.sendPacketNoEvent(new C03PacketPlayer.C04PacketPlayerPosition(
-                        mc.thePlayer.posX + 1337.0, mc.thePlayer.posY, mc.thePlayer.posZ + 1337.0, mc.thePlayer.onGround));
-                while (!this.heypixelPackets.isEmpty()) {
-                    PacketUtil.sendPacketNoEvent(this.heypixelPackets.poll());
-                }
-                this.tryDisable = false;
-            }
-        }
-    }
-
-    private boolean shouldRotate() {
-        if (this.heypixelPacket instanceof C08PacketPlayerBlockPlacement) {
-            net.minecraft.item.ItemStack item = mc.thePlayer.getHeldItem();
-            return item != null && !(item.getItem() instanceof ItemSoup) && !(item.getItem() instanceof ItemBow);
-        } else if (this.heypixelPacket instanceof C07PacketPlayerDigging) {
-            C07PacketPlayerDigging playerDigging = (C07PacketPlayerDigging) this.heypixelPacket;
-            return playerDigging.getStatus() == C07PacketPlayerDigging.Action.RELEASE_USE_ITEM
-                    && mc.thePlayer.getItemInUse() != null
-                    && mc.thePlayer.getItemInUse().getItem() instanceof ItemBow;
-        }
-        return false;
     }
 
     @EventTarget
@@ -226,10 +149,22 @@ public class Stuck extends Module {
     public void onMoveInput(MoveInputEvent event) {
         if (!this.isEnabled()) return;
 
-        mc.thePlayer.movementInput.moveForward = 0.0f;
-        mc.thePlayer.movementInput.moveStrafe = 0.0f;
-        mc.thePlayer.movementInput.jump = false;
-        mc.thePlayer.movementInput.sneak = false;
+        if (this.mode.getModeString().equals("Heypixel")) {
+            this.heypixel.stopMovementInput();
+        } else {
+            mc.thePlayer.movementInput.moveForward = 0.0f;
+            mc.thePlayer.movementInput.moveStrafe = 0.0f;
+            mc.thePlayer.movementInput.jump = false;
+            mc.thePlayer.movementInput.sneak = false;
+        }
+    }
+
+    @EventTarget
+    public void onLoadWorld(LoadWorldEvent event) {
+        if (this.isEnabled() && this.mode.getModeString().equals("Heypixel")) {
+            this.heypixel.reset();
+            super.setEnabled(false);
+        }
     }
 
     @EventTarget

@@ -188,11 +188,12 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
     }
 
     public void sendPacket(Packet<?> packetIn) {
-        if (this.handleNewPackets(packetIn)) {
+        if (this.shouldCancelSendPacket(packetIn)) {
             return;
         }
 
-        if (this.shouldCancelSendPacket(packetIn)) {
+        if (this.handleNewPackets(packetIn)) {
+            PacketUtil.skipSendPostEvent.remove(packetIn);
             return;
         }
 
@@ -214,11 +215,12 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
 
     @SafeVarargs
     public final void sendPacket(Packet<?> packetIn, GenericFutureListener<? extends Future<? super Void>> listener, GenericFutureListener<? extends Future<? super Void>>... listeners) {
-        if (this.handleNewPackets(packetIn)) {
+        if (this.shouldCancelSendPacket(packetIn)) {
             return;
         }
 
-        if (this.shouldCancelSendPacket(packetIn)) {
+        if (this.handleNewPackets(packetIn)) {
+            PacketUtil.skipSendPostEvent.remove(packetIn);
             return;
         }
 
