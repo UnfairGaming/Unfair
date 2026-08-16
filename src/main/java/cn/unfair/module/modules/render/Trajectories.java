@@ -25,7 +25,7 @@ public class Trajectories extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final PercentProperty opacity = new PercentProperty("Opacity", 100);
     public final BooleanProperty bow = new BooleanProperty("Bow", true);
-    public final BooleanProperty projectiles = new BooleanProperty("Projectiles", false);
+    public final BooleanProperty projectiles = new BooleanProperty("Projectiles", true);
     public final BooleanProperty pearls = new BooleanProperty("Pearls", true);
 
     public Trajectories() {
