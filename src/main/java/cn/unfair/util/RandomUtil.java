@@ -10,7 +10,9 @@ public class RandomUtil {
     }
 
     public static float nextFloat(float min, float max) {
-        return theRandom.nextFloat() * (max - min) + min;
+        float lower = Math.min(min, max);
+        float upper = Math.max(min, max);
+        return lower == upper ? lower : theRandom.nextFloat() * (upper - lower) + lower;
     }
 
     public static double nextDouble(double min, double max) {

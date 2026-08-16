@@ -5,6 +5,8 @@ import cn.unfair.module.modules.render.targethud.TargetHUDMode;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.AndroidUtil;
+import cn.unfair.util.AnimationUtil;
+import cn.unfair.util.MathUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -31,7 +33,7 @@ public class UnfairTargetHUD extends TargetHUDMode {
             return;
         }
         float progress = fadeAlpha / 255.0F;
-        float scale = this.getPopScale(progress);
+        float scale = AnimationUtil.popScale(progress);
         float centerX = x + width / 2.0F;
         float centerY = y + height / 2.0F;
 
@@ -53,40 +55,40 @@ public class UnfairTargetHUD extends TargetHUDMode {
         if (this.background.getValue() > 0) {
             int backgroundAlpha = (int) (this.background.getValue() / 100.0F * fadeAlpha);
             RenderUtil.drawRoundedRectangle(
-                    this.scaleX(x, centerX, scale),
-                    this.scaleY(y, centerY, scale),
-                    this.scaleX(x + width, centerX, scale),
-                    this.scaleY(y + height, centerY, scale),
-                    this.scaleSize(7.0F, scale),
+                    RenderUtil.scaleAround(x, centerX, scale),
+                    RenderUtil.scaleAround(y, centerY, scale),
+                    RenderUtil.scaleAround(x + width, centerX, scale),
+                    RenderUtil.scaleAround(y + height, centerY, scale),
+                    7.0F * scale,
                     new Color(15, 15, 18, backgroundAlpha).getRGB()
             );
         }
         RenderUtil.drawRoundedRectangle(
-                this.scaleX(x + 38.5F, centerX, scale),
-                this.scaleY(y + 28.0F, centerY, scale),
-                this.scaleX(x + 38.5F + space, centerX, scale),
-                this.scaleY(y + 32.0F, centerY, scale),
-                this.scaleSize(2.0F, scale),
+                RenderUtil.scaleAround(x + 38.5F, centerX, scale),
+                RenderUtil.scaleAround(y + 28.0F, centerY, scale),
+                RenderUtil.scaleAround(x + 38.5F + space, centerX, scale),
+                RenderUtil.scaleAround(y + 32.0F, centerY, scale),
+                2.0F * scale,
                 new Color(0, 0, 0, (int) (150.0F * progress)).getRGB()
         );
         if (ratio > 0.01F) {
             RenderUtil.drawRoundedGradientRect(
-                    this.scaleX(x + 38.5F, centerX, scale),
-                    this.scaleY(y + 28.0F, centerY, scale),
-                    this.scaleX(x + 38.5F + space * ratio, centerX, scale),
-                    this.scaleY(y + 32.0F, centerY, scale),
-                    this.scaleSize(2.0F, scale),
+                    RenderUtil.scaleAround(x + 38.5F, centerX, scale),
+                    RenderUtil.scaleAround(y + 28.0F, centerY, scale),
+                    RenderUtil.scaleAround(x + 38.5F + space * ratio, centerX, scale),
+                    RenderUtil.scaleAround(y + 32.0F, centerY, scale),
+                    2.0F * scale,
                     RenderUtil.mergeAlpha(colors[0], fadeAlpha), RenderUtil.mergeAlpha(colors[0], fadeAlpha),
                     RenderUtil.mergeAlpha(colors[1], fadeAlpha), RenderUtil.mergeAlpha(colors[1], fadeAlpha)
             );
         }
         if (absorptionRatio > 0.01F) {
             RenderUtil.drawRoundedGradientRect(
-                    this.scaleX(x + 38.5F, centerX, scale),
-                    this.scaleY(y + 28.0F, centerY, scale),
-                    this.scaleX(x + 38.5F + space * absorptionRatio, centerX, scale),
-                    this.scaleY(y + 32.0F, centerY, scale),
-                    this.scaleSize(2.0F, scale),
+                    RenderUtil.scaleAround(x + 38.5F, centerX, scale),
+                    RenderUtil.scaleAround(y + 28.0F, centerY, scale),
+                    RenderUtil.scaleAround(x + 38.5F + space * absorptionRatio, centerX, scale),
+                    RenderUtil.scaleAround(y + 32.0F, centerY, scale),
+                    2.0F * scale,
                     new Color(255, 210, 55, fadeAlpha).getRGB(), new Color(255, 210, 55, fadeAlpha).getRGB(),
                     new Color(255, 235, 110, fadeAlpha).getRGB(), new Color(255, 235, 110, fadeAlpha).getRGB()
             );
@@ -107,16 +109,16 @@ public class UnfairTargetHUD extends TargetHUDMode {
         infoFont.drawStringWithShadow(diff, x + 115.0F - infoFont.getStringWidth(diff), y + 17.0F, RenderUtil.mergeAlpha(Color.LIGHT_GRAY.getRGB(), fadeAlpha));
         net.minecraft.client.renderer.GlStateManager.popMatrix();
 
-        float headHurtScale = 1.0F - 0.15F * this.easeOutQuad(hurtProgress);
+        float headHurtScale = 1.0F - 0.15F * AnimationUtil.easeOutQuad(hurtProgress);
         int greenBlue = (int) (255.0F * (1.0F - 0.75F * hurtProgress));
         Color headColor = new Color(255, MathHelper.clamp_int(greenBlue, 0, 255), MathHelper.clamp_int(greenBlue, 0, 255), fadeAlpha);
-        float baseHeadX = this.scaleX(x + 2.5F, centerX, scale);
-        float baseHeadY = this.scaleY(y + 2.5F, centerY, scale);
-        float baseHeadSize = this.scaleSize(32.0F, scale);
+        float baseHeadX = RenderUtil.scaleAround(x + 2.5F, centerX, scale);
+        float baseHeadY = RenderUtil.scaleAround(y + 2.5F, centerY, scale);
+        float baseHeadSize = 32.0F * scale;
         float headSize = baseHeadSize * headHurtScale;
         float headX = baseHeadX + (baseHeadSize - headSize) / 2.0F;
         float headY = baseHeadY + (baseHeadSize - headSize) / 2.0F;
-        float headRadius = this.scaleSize(5.0F, scale) * headHurtScale;
+        float headRadius = 5.0F * scale * headHurtScale;
         RenderUtil.drawRoundedRectangle(
                 headX,
                 headY,
@@ -155,46 +157,19 @@ public class UnfairTargetHUD extends TargetHUDMode {
         if (fadeAlpha <= 0) {
             return;
         }
-        float scale = this.getPopScale(fadeAlpha / 255.0F);
+        float scale = AnimationUtil.popScale(fadeAlpha / 255.0F);
         float centerX = x + size[0] / 2.0F;
         float centerY = y + size[1] / 2.0F;
         RenderUtil.enableRenderState();
         RenderUtil.drawRoundedRectangle(
-                this.scaleX(x, centerX, scale),
-                this.scaleY(y, centerY, scale),
-                this.scaleX(x + size[0], centerX, scale),
-                this.scaleY(y + size[1], centerY, scale),
-                this.scaleSize(7.0F, scale),
+                RenderUtil.scaleAround(x, centerX, scale),
+                RenderUtil.scaleAround(y, centerY, scale),
+                RenderUtil.scaleAround(x + size[0], centerX, scale),
+                RenderUtil.scaleAround(y + size[1], centerY, scale),
+                7.0F * scale,
                 RenderUtil.mergeAlpha(color, (color >> 24 & 255) * fadeAlpha / 255)
         );
         RenderUtil.disableRenderState();
-    }
-
-    private float getPopScale(float progress) {
-        return 0.82F + this.easeOutBack(progress) * 0.18F;
-    }
-
-    private float scaleX(float value, float centerX, float scale) {
-        return centerX + (value - centerX) * scale;
-    }
-
-    private float scaleY(float value, float centerY, float scale) {
-        return centerY + (value - centerY) * scale;
-    }
-
-    private float scaleSize(float value, float scale) {
-        return value * scale;
-    }
-
-    private float easeOutBack(float progress) {
-        float t = Math.clamp(progress, 0.0F, 1.0F) - 1.0F;
-        float c = 1.70158F;
-        return t * t * ((c + 1.0F) * t + c) + 1.0F;
-    }
-
-    private float easeOutQuad(float progress) {
-        float t = Math.clamp(progress, 0.0F, 1.0F);
-        return 1.0F - (1.0F - t) * (1.0F - t);
     }
 
     private float getAnimatedHealth(TargetHUD targetHUD, float fallbackHealth) {
@@ -203,7 +178,7 @@ public class UnfairTargetHUD extends TargetHUDMode {
             return fallbackHealth;
         }
         float elapsedTime = (float) Math.clamp(targetHUD.animTimer.getElapsedTime(), 0L, 150L);
-        return TargetHUD.finiteHealth(RenderUtil.lerpFloat(targetHUD.newHealth, targetHUD.oldHealth, elapsedTime / 150.0F));
+        return TargetHUD.finiteHealth(MathUtil.interpolate(targetHUD.oldHealth, targetHUD.newHealth, elapsedTime / 150.0F));
     }
 
     @Override

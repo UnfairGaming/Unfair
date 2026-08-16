@@ -120,6 +120,10 @@ public class MathUtil {
         return min + (max - min) * delta;
     }
 
+    public static float scaleByPercent(float value, float percent) {
+        return value * Math.clamp(percent / 100.0F, 0.0F, 1.0F);
+    }
+
     public static int nextInt(int min, int max) {
         if (min == max || max - min <= 0D)
             return min;

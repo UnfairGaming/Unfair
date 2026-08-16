@@ -1480,6 +1480,10 @@ public class RenderUtil {
         return previous + (current - previous) * t;
     }
 
+    public static float scaleAround(float value, float center, float scale) {
+        return center + (value - center) * scale;
+    }
+
     public static void scissor(double x, double y, double width, double height) {
         updateScaledResolutionCache();
         int scale = cachedScaleFactor;

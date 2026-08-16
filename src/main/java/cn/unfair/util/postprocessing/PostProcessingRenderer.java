@@ -37,7 +37,11 @@ public class PostProcessingRenderer {
                 PostProcessBlurEvent post = new PostProcessBlurEvent(EventType.POST, partialTicks);
 
                 boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+                boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+                boolean depthMaskWasEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
                 try {
+                    GlStateManager.disableDepth();
+                    GlStateManager.depthMask(false);
                     StencilUtil.write(false);
                     EventManager.call(post);
                     StencilUtil.erase(true);
@@ -51,6 +55,12 @@ public class PostProcessingRenderer {
                     StencilUtil.dispose();
                     if (cullWasEnabled) {
                         GL11.glEnable(GL11.GL_CULL_FACE);
+                    }
+                    GlStateManager.depthMask(depthMaskWasEnabled);
+                    if (depthWasEnabled) {
+                        GlStateManager.enableDepth();
+                    } else {
+                        GlStateManager.disableDepth();
                     }
                     GL11.glColorMask(true, true, true, true);
                     GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
@@ -66,7 +76,11 @@ public class PostProcessingRenderer {
             if (pre.isCancelled()) {
                 PostProcessBloomEvent post = new PostProcessBloomEvent(EventType.POST, partialTicks);
                 boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+                boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+                boolean depthMaskWasEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
                 try {
+                    GlStateManager.disableDepth();
+                    GlStateManager.depthMask(false);
                     if (cullWasEnabled) {
                         GL11.glDisable(GL11.GL_CULL_FACE);
                     }
@@ -80,6 +94,12 @@ public class PostProcessingRenderer {
                 } finally {
                     if (cullWasEnabled) {
                         GL11.glEnable(GL11.GL_CULL_FACE);
+                    }
+                    GlStateManager.depthMask(depthMaskWasEnabled);
+                    if (depthWasEnabled) {
+                        GlStateManager.enableDepth();
+                    } else {
+                        GlStateManager.disableDepth();
                     }
                     GL11.glColorMask(true, true, true, true);
                     GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);

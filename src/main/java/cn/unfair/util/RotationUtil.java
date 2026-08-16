@@ -11,6 +11,14 @@ public class RotationUtil {
         return target + MathHelper.wrapAngleTo180_float(angle - target);
     }
 
+    public static float angleDifference(float angle, float target) {
+        return MathHelper.wrapAngleTo180_float(angle - target);
+    }
+
+    public static float absoluteAngleDifference(float angle, float target) {
+        return Math.abs(angleDifference(angle, target));
+    }
+
     public static float clampAngle(float angle, float maxAngle) {
         maxAngle = Math.clamp(maxAngle, 0.0f, 180.0f);
         if (angle > maxAngle) {

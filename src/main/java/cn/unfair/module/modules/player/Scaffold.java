@@ -10,6 +10,8 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
+import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.Fonts;
 import cn.unfair.util.player.FallingPlayer;
 import cn.unfair.util.player.SimulatedPlayer;
 import net.minecraft.block.Block;
@@ -41,6 +43,13 @@ import java.util.Map;
 
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final float BLOCK_COUNT_ANIMATION_MS = 180.0F;
+    private static final float BLOCK_COUNT_POP_MS = 260.0F;
+    private static final float BLOCK_COUNT_WIDTH_PADDING = 2.0F;
+    private static final float BLOCK_COUNT_HEIGHT = 20.0F;
+    private static final float BLOCK_COUNT_ICON_SIZE = 16.0F;
+    private static final float BLOCK_COUNT_ICON_GAP = 3.0F;
+    private static final float BLOCK_COUNT_TEXT_GAP = 2.0F;
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge"});
     public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
@@ -116,7 +125,6 @@ public class Scaffold extends Module {
     private final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
     private final BooleanProperty interactItem = new BooleanProperty("Interact Item Before Place", false);
     public final BooleanProperty blockCount = new BooleanProperty("Block Count", true);
-    public final ModeProperty blockCountStyle = new ModeProperty("Block Count Style", 0, new String[]{"Retro", "Old"});
     public final IntProperty blockCountOffset = new IntProperty("Block Count Y Offset", 0, 0, 200);
 
     private static final List<Block> invalidBlocks = Arrays.asList(
@@ -131,7 +139,6 @@ public class Scaffold extends Module {
     private SlotData slot;
     private SlotData blockSlot;
     private int oldSlot;
-    private int startHotbarCount = 1;
     private boolean canPlace;
     private BlockData blockData;
     private double posY;
@@ -160,6 +167,33 @@ public class Scaffold extends Module {
     private int ups = 0;
     private int onGroundTicks = 0;
     private int offGroundTicks = 0;
+    private final TimerUtil blockCountTransitionTimer = new TimerUtil();
+    private final TimerUtil blockCountPopTimer = new TimerUtil();
+    private float blockCountDisplay;
+    private float blockCountTransitionStart;
+    private int blockCountTarget;
+    private boolean blockCountAnimationInitialized;
+    private boolean blockCountVisible;
+    private boolean blockCountHiding;
+
+    private record BlockCountLayout(
+            float left,
+            float top,
+            float width,
+            float height,
+            float scale,
+            int alpha,
+            int count,
+            String label,
+            String amount,
+            FontRenderer font,
+            float labelWidth,
+            float iconX,
+            float iconY,
+            float textX,
+            float textY
+    ) {
+    }
 
     public Scaffold() {
         super("Scaffold", false);
@@ -194,7 +228,14 @@ public class Scaffold extends Module {
         this.slot = new SlotData(mc.thePlayer.inventory.currentItem, false);
         this.oldSlot = mc.thePlayer.inventory.currentItem;
         this.blockSlot = null;
-        startHotbarCount = Math.max(1, getBlockCountHotbar());
+        blockCountAnimationInitialized = false;
+        blockCountTransitionTimer.setTime();
+        blockCountPopTimer.setTime();
+        blockCountDisplay = 0.0F;
+        blockCountTransitionStart = 0.0F;
+        blockCountTarget = 0;
+        blockCountVisible = false;
+        blockCountHiding = false;
         blockData = null;
         canPlace = true;
         lastPlacePosition = null;
@@ -290,14 +331,168 @@ public class Scaffold extends Module {
         return count;
     }
 
-    private int getBlockCountColor(int count) {
+    private int getBlockCountColor(int count, int alpha) {
+        Color color;
         if (count < 16) {
-            return new Color(255, 80, 80).getRGB();
+            color = new Color(255, 105, 125);
+        } else if (count < 32) {
+            color = new Color(255, 211, 105);
+        } else {
+            color = new Color(255, 105, 170);
         }
-        if (count < 32) {
-            return new Color(255, 220, 80).getRGB();
+        return RenderUtil.mergeAlpha(color.getRGB(), alpha);
+    }
+
+    private ItemStack getBlockCountStack() {
+        if (mc.thePlayer == null) {
+            return null;
         }
-        return Color.WHITE.getRGB();
+
+        ItemStack stack = null;
+        if (blockSlot != null) {
+            stack = blockSlot.offhand()
+                    ? mc.thePlayer.inventory.viaforge$getOffhand()
+                    : mc.thePlayer.inventory.getStackInSlot(blockSlot.slot());
+        }
+        if (!isFullBlock(stack)) {
+            stack = mc.thePlayer.inventory.getCurrentItem();
+        }
+        if (!isFullBlock(stack)) {
+            for (int i = 0; i <= 8; i++) {
+                ItemStack candidate = mc.thePlayer.inventory.getStackInSlot(i);
+                if (isFullBlock(candidate)) {
+                    stack = candidate;
+                    break;
+                }
+            }
+        }
+        if (!isFullBlock(stack)) {
+            stack = mc.thePlayer.inventory.viaforge$getOffhand();
+        }
+        if (!isFullBlock(stack)) {
+            return null;
+        }
+
+        ItemStack displayStack = stack.copy();
+        displayStack.stackSize = 1;
+        return displayStack;
+    }
+
+    private boolean updateBlockCountAnimation() {
+        boolean shouldRender = this.isEnabled() && mc.thePlayer != null && blockCount.getValue();
+        if (shouldRender && !blockCountVisible) {
+            blockCountVisible = true;
+            blockCountHiding = false;
+            blockCountPopTimer.reset();
+            blockCountAnimationInitialized = false;
+        } else if (shouldRender && blockCountHiding) {
+            blockCountHiding = false;
+            blockCountPopTimer.reset();
+        } else if (!shouldRender && blockCountVisible && !blockCountHiding) {
+            blockCountHiding = true;
+            blockCountPopTimer.reset();
+        }
+        if (mc.thePlayer == null || !blockCountVisible) {
+            return false;
+        }
+
+        if (blockCountHiding && blockCountPopTimer.getElapsedTime() >= BLOCK_COUNT_POP_MS) {
+            blockCountVisible = false;
+            blockCountHiding = false;
+            blockCountAnimationInitialized = false;
+            return false;
+        }
+
+        int newCount = Math.max(0, getBlockCountHotbar());
+        if (!blockCountAnimationInitialized) {
+            blockCountDisplay = newCount;
+            blockCountTransitionStart = newCount;
+            blockCountTarget = newCount;
+            blockCountTransitionTimer.reset();
+            blockCountAnimationInitialized = true;
+        } else if (newCount != blockCountTarget) {
+            blockCountTransitionStart = blockCountDisplay;
+            blockCountTarget = newCount;
+            blockCountTransitionTimer.reset();
+        }
+
+        float countProgress = Math.clamp(
+                blockCountTransitionTimer.getElapsedTime() / BLOCK_COUNT_ANIMATION_MS, 0.0F, 1.0F
+        );
+        blockCountDisplay = MathUtil.interpolate(
+                blockCountTransitionStart, blockCountTarget, AnimationUtil.easeOutQuad(countProgress)
+        );
+        return this.getBlockCountAlpha() > 0;
+    }
+
+    private float getBlockCountEntryProgress() {
+        float progress = Math.clamp(blockCountPopTimer.getElapsedTime() / BLOCK_COUNT_POP_MS, 0.0F, 1.0F);
+        return blockCountHiding ? 1.0F - progress : progress;
+    }
+
+    private int getBlockCountAlpha() {
+        return Math.clamp((int) (AnimationUtil.easeOutQuad(this.getBlockCountEntryProgress()) * 255.0F), 0, 255);
+    }
+
+    private boolean shouldRenderBlockCountFrame() {
+        return mc.thePlayer != null && blockCountVisible && this.getBlockCountAlpha() > 0;
+    }
+
+    private BlockCountLayout getBlockCountLayout() {
+        ScaledResolution sr = new ScaledResolution(mc);
+        int count = Math.max(0, Math.round(blockCountDisplay));
+        String label = "Amount:";
+        String amount = String.valueOf(count);
+        FontRenderer font = Fonts.interMedium.get(16.0F);
+        float labelWidth = font.getStringWidth(label);
+        float amountWidth = font.getStringWidth(amount);
+        float textWidth = labelWidth + BLOCK_COUNT_TEXT_GAP + amountWidth;
+        float contentWidth = BLOCK_COUNT_ICON_SIZE + BLOCK_COUNT_ICON_GAP + textWidth;
+        float width = BLOCK_COUNT_WIDTH_PADDING * 2.0F + contentWidth;
+        float height = BLOCK_COUNT_HEIGHT;
+        float left = sr.getScaledWidth() / 2.0F - width / 2.0F;
+        float top = sr.getScaledHeight() - height - 47.0F + blockCountOffset.getValue();
+        float contentLeft = left + (width - contentWidth) / 2.0F;
+
+        return new BlockCountLayout(
+                left,
+                top,
+                width,
+                height,
+                AnimationUtil.popScale(this.getBlockCountEntryProgress()),
+                this.getBlockCountAlpha(),
+                count,
+                label,
+                amount,
+                font,
+                labelWidth,
+                contentLeft,
+                top + (height - BLOCK_COUNT_ICON_SIZE) / 2.0F,
+                contentLeft + BLOCK_COUNT_ICON_SIZE + BLOCK_COUNT_ICON_GAP,
+                top + font.getMiddleOfBox(height)
+        );
+    }
+
+    private void renderBlockCountBackground(BlockCountLayout layout, int color) {
+        float centerX = layout.left() + layout.width() / 2.0F;
+        float centerY = layout.top() + layout.height() / 2.0F;
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(centerX, centerY, 0.0F);
+        GlStateManager.scale(layout.scale(), layout.scale(), 1.0F);
+        GlStateManager.translate(-centerX, -centerY, 0.0F);
+        RenderUtil.enableRenderState();
+        RenderUtil.drawRoundedRectangle(
+                layout.left(), layout.top(), layout.left() + layout.width(), layout.top() + layout.height(), 7.0F, color
+        );
+        RenderUtil.disableRenderState();
+        GlStateManager.popMatrix();
+    }
+
+    private void renderBlockCountMask(int color) {
+        if (!this.shouldRenderBlockCountFrame()) {
+            return;
+        }
+        this.renderBlockCountBackground(this.getBlockCountLayout(), color);
     }
 
     private BlockData getBlockData(BlockPos pos) {
@@ -537,10 +732,6 @@ public class Scaffold extends Module {
         return true;
     }
 
-    private static float smooth(float angle, float factor) {
-        return angle * MathHelper.clamp_float(factor / 100.0F, 0.0F, 1.0F);
-    }
-
     private Rotation getClosestToBlockFace(BlockData data, float yaw, float pitch) {
         if (data == null) {
             return null;
@@ -565,14 +756,6 @@ public class Scaffold extends Module {
         return new Vec3(x, y, z);
     }
 
-    private static float yawDiffDirectly(float a, float b) {
-        return MathHelper.wrapAngleTo180_float(a - b);
-    }
-
-    private static float normalizeYawDiff(float a, float b) {
-        return Math.abs(MathHelper.wrapAngleTo180_float(a - b));
-    }
-
     private float getServerYaw() {
         return RotationState.isActived() && RotationState.getPriority() == 3.0F
                 ? RotationState.getSmoothedYaw()
@@ -593,13 +776,13 @@ public class Scaffold extends Module {
                 ? getClosestToBlockFace(blockData, getServerYaw(), getServerPitch())
                 : null;
         if (rotation == null) {
-            if (normalizeYawDiff(mc.thePlayer.rotationYaw + 100f, getServerYaw()) < normalizeYawDiff(mc.thePlayer.rotationYaw - 100f, getServerYaw())) {
+            if (RotationUtil.absoluteAngleDifference(mc.thePlayer.rotationYaw + 100f, getServerYaw()) < RotationUtil.absoluteAngleDifference(mc.thePlayer.rotationYaw - 100f, getServerYaw())) {
                 rotation = new Rotation(mc.thePlayer.rotationYaw + 100f, getServerPitch());
             } else {
                 rotation = new Rotation(mc.thePlayer.rotationYaw - 100f, getServerPitch());
             }
         }
-        double diff = yawDiffDirectly(rotation.yaw, getServerYaw());
+        double diff = RotationUtil.angleDifference(rotation.yaw, getServerYaw());
         if (mode.getValue() == 0) {
             if (mc.gameSettings.keyBindJump.isKeyDown() && noUptelly.getValue()) {
                 return rotation;
@@ -616,7 +799,7 @@ public class Scaffold extends Module {
                 } else {
                     float smoothFactor = offGroundTicks == 1 ? 80f : 50.0f;
                     smoothFactor -= (float) RandomUtil.nextDouble(0.001, 0.005);
-                    rotation.yaw = getServerYaw() + smooth((float) diff, smoothFactor);
+                    rotation.yaw = getServerYaw() + MathUtil.scaleByPercent((float) diff, smoothFactor);
                 }
             } else {
                 if (offGroundTicks < rotTick.getValue()) {
@@ -681,10 +864,10 @@ public class Scaffold extends Module {
         float rotationDifference = MathHelper.sqrt_float(
                 yawDifference * yawDifference + pitchDifference * pitchDifference
         );
-        float horizontalSpeed = randomFloat(
+        float horizontalSpeed = RandomUtil.nextFloat(
                 godBridgeHorizontalSpeedMin.getValue(), godBridgeHorizontalSpeedMax.getValue()
         );
-        float verticalSpeed = randomFloat(
+        float verticalSpeed = RandomUtil.nextFloat(
                 godBridgeVerticalSpeedMin.getValue(), godBridgeVerticalSpeedMax.getValue()
         );
         float yawLimit = rotationDifference == 0.0F
@@ -697,14 +880,14 @@ public class Scaffold extends Module {
         float pitchStep = MathHelper.clamp_float(pitchDifference, -pitchLimit, pitchLimit);
 
         if (rotationDifference > 0.0F) {
-            yawStep += randomFloat(-0.03F, 0.03F) * yawStep;
-            pitchStep += randomFloat(-0.02F, 0.02F) * pitchStep;
+            yawStep += RandomUtil.nextFloat(-0.03F, 0.03F) * yawStep;
+            pitchStep += RandomUtil.nextFloat(-0.02F, 0.02F) * pitchStep;
         }
 
         float gcd = getGodBridgeGcd();
         float minDifference = godBridgeMinRotationDifference.getValue();
-        float minYaw = fixedGodBridgeDelta(randomFloat(Math.min(minDifference, gcd), minDifference));
-        float minPitch = fixedGodBridgeDelta(randomFloat(Math.min(minDifference, gcd), minDifference));
+        float minYaw = fixedGodBridgeDelta(RandomUtil.nextFloat(Math.min(minDifference, gcd), minDifference));
+        float minPitch = fixedGodBridgeDelta(RandomUtil.nextFloat(Math.min(minDifference, gcd), minDifference));
         yawStep = applyGodBridgeSlowDown(yawStep, minYaw, godBridgeLastYawStep);
         pitchStep = applyGodBridgeSlowDown(pitchStep, minPitch, godBridgeLastPitchStep);
 
@@ -733,9 +916,9 @@ public class Scaffold extends Module {
         float interpolation;
         if (previousDifference == 0.0F) {
             float increase = 0.2F * MathHelper.clamp_float(differenceAbs / 50.0F, 0.0F, 1.0F);
-            interpolation = randomFloat(0.1F + increase, 0.5F + increase);
+            interpolation = RandomUtil.nextFloat(0.1F + increase, 0.5F + increase);
         } else {
-            interpolation = randomFloat(0.3F, 0.7F);
+            interpolation = RandomUtil.nextFloat(0.3F, 0.7F);
         }
         float result = previousDifference + (difference - previousDifference) * interpolation;
         return Math.abs(fixedGodBridgeDelta(result)) <= minimum && slowingDown ? difference : result;
@@ -930,12 +1113,6 @@ public class Scaffold extends Module {
     private float fixedGodBridgeDelta(float delta) {
         float gcd = getGodBridgeGcd();
         return Math.round(delta / gcd) * gcd;
-    }
-
-    private static float randomFloat(float first, float second) {
-        float minimum = Math.min(first, second);
-        float maximum = Math.max(first, second);
-        return minimum == maximum ? minimum : RandomUtil.nextFloat(minimum, maximum);
     }
 
     private int randomGodBridgeJumpInterval() {
@@ -1149,11 +1326,11 @@ public class Scaffold extends Module {
         if (rot == null) {
             return;
         }
-        double change = yawDiffDirectly(rot.yaw, targetYaw);
+        double change = RotationUtil.angleDifference(rot.yaw, targetYaw);
         int times = (int) (Math.abs(change) / step);
         float currentYaw = rot.yaw;
         for (int i = 0; i < times; i++) {
-            currentYaw += smooth((float) change, step);
+            currentYaw += MathUtil.scaleByPercent((float) change, step);
             rot = new Rotation(currentYaw, rot.pitch);
             mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
         }
@@ -1468,40 +1645,70 @@ public class Scaffold extends Module {
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {
-        if (!this.isEnabled() || mc.thePlayer == null || !blockCount.getValue()) {
+        if (!this.updateBlockCountAnimation()) {
             return;
         }
-        int newCount = Math.max(0, getBlockCountHotbar());
-        if (newCount > startHotbarCount) {
-            startHotbarCount = newCount;
-        }
-        ScaledResolution sr = new ScaledResolution(mc);
-        float centerX = sr.getScaledWidth() / 2f;
-        float centerY = sr.getScaledHeight() / 2f;
-        float y = centerY + 15f + blockCountOffset.getValue();
 
-        if (blockCountStyle.getValue() == 1) {
-            String text = newCount + " Blocks";
-            int x = Math.round(centerX - (mc.fontRendererObj.getStringWidth(text) / 2f));
-            GlStateManager.pushMatrix();
-            GlStateManager.disableDepth();
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            mc.fontRendererObj.drawStringWithShadow(text, x, y, getBlockCountColor(newCount));
-            GlStateManager.disableBlend();
-            GlStateManager.enableDepth();
-            GlStateManager.popMatrix();
-        } else {
-            String text = newCount + " Blocks";
-            int x = Math.round(centerX - (mc.fontRendererObj.getStringWidth(text) / 2f));
-            GlStateManager.pushMatrix();
-            GlStateManager.disableDepth();
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            mc.fontRendererObj.drawStringWithShadow(text, x, y, getBlockCountColor(newCount));
-            GlStateManager.disableBlend();
-            GlStateManager.enableDepth();
-            GlStateManager.popMatrix();
+        BlockCountLayout layout = this.getBlockCountLayout();
+        this.renderBlockCountBackground(
+                layout,
+                new Color(15, 15, 22, (int) (180.0F * layout.alpha() / 255.0F)).getRGB()
+        );
+
+        GlStateManager.pushMatrix();
+        float centerX = layout.left() + layout.width() / 2.0F;
+        float centerY = layout.top() + layout.height() / 2.0F;
+        GlStateManager.translate(centerX, centerY, 0.0F);
+        GlStateManager.scale(layout.scale(), layout.scale(), 1.0F);
+        GlStateManager.translate(-centerX, -centerY, 0.0F);
+
+        GlStateManager.disableDepth();
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        ItemStack displayStack = getBlockCountStack();
+        if (displayStack != null) {
+            RenderUtil.renderItemInGUI(
+                    displayStack,
+                    Math.round(layout.iconX()),
+                    Math.round(layout.iconY())
+            );
+        }
+        layout.font().drawStringWithShadow(
+                layout.label(), layout.textX(), layout.textY(),
+                RenderUtil.mergeAlpha(Color.WHITE.getRGB(), layout.alpha())
+        );
+        layout.font().drawStringWithShadow(
+                layout.amount(), layout.textX() + layout.labelWidth() + BLOCK_COUNT_TEXT_GAP, layout.textY(),
+                getBlockCountColor(layout.count(), layout.alpha())
+        );
+        GlStateManager.disableBlend();
+        GlStateManager.enableDepth();
+        GlStateManager.popMatrix();
+    }
+
+    @EventTarget
+    public void onPostProcessBlur(PostProcessBlurEvent event) {
+        if (event.getType() == EventType.PRE) {
+            if (this.updateBlockCountAnimation()) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+        if (event.getType() == EventType.POST) {
+            this.renderBlockCountMask(0xFF000000);
+        }
+    }
+
+    @EventTarget
+    public void onPostProcessBloom(PostProcessBloomEvent event) {
+        if (event.getType() == EventType.PRE) {
+            if (this.updateBlockCountAnimation()) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+        if (event.getType() == EventType.POST) {
+            this.renderBlockCountMask(0xFFFFFFFF);
         }
     }
 

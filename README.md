@@ -38,5 +38,9 @@ Un1336 / Falling Star / Fall1ng Star / qm123pz 的开发
 
 ModernSkidder / 张金辰 的开发
 
+GPT 的开发（80%以上）
+
+DeepSeek 的开发
+
 Phosphor 的光照系统 https://github.com/momenbasel/Phosphor
 

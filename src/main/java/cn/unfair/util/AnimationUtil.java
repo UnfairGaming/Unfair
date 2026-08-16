@@ -40,6 +40,21 @@ public class AnimationUtil {
         return current + (target - current) * factor;
     }
 
+    public static float easeOutBack(float progress) {
+        float t = Math.clamp(progress, 0.0F, 1.0F) - 1.0F;
+        float overshoot = 1.70158F;
+        return t * t * ((overshoot + 1.0F) * t + overshoot) + 1.0F;
+    }
+
+    public static float easeOutQuad(float progress) {
+        float t = Math.clamp(progress, 0.0F, 1.0F);
+        return 1.0F - (1.0F - t) * (1.0F - t);
+    }
+
+    public static float popScale(float progress) {
+        return 0.82F + easeOutBack(progress) * 0.18F;
+    }
+
     public static float ease(float t, int type) {
         switch (type) {
             case 1:
