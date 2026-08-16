@@ -1,13 +1,11 @@
 package cn.unfair.module.modules.player;
 
-import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
@@ -22,11 +20,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
-import net.minecraft.world.WorldSettings.GameType;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -37,14 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Southside (Naven) Scaffold ported to 1.8.9. Logic and configuration follow
- * {@code dev.southside.module.impl.world.Scaffold}.
- */
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    // ===== Southside configuration =====
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Snap", "Normal"});
     public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
     public final IntProperty placeTick = new IntProperty("Place Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
@@ -54,7 +45,6 @@ public class Scaffold extends Module {
     public final BooleanProperty eagle = new BooleanProperty("Eagle", false, () -> this.mode.getValue() == 0);
     public final BooleanProperty snap = new BooleanProperty("Snap", false, () -> this.mode.getValue() == 0);
     public final BooleanProperty noUptelly = new BooleanProperty("No Up Telly", true, () -> this.mode.getValue() == 0);
-    public final BooleanProperty godBridge = new BooleanProperty("God Bridge", false, () -> this.mode.getValue() == 2);
     public final BooleanProperty smoothed = new BooleanProperty("Smoothed", true, () -> this.mode.getValue() == 0);
     public final BooleanProperty safeMode = new BooleanProperty("Safe Mode", false, () -> this.mode.getValue() == 0 && this.smoothed.getValue());
     public final BooleanProperty testOnGround = new BooleanProperty("Test On Ground", false, () -> this.mode.getValue() == 0 && this.smoothed.getValue());
@@ -68,8 +58,6 @@ public class Scaffold extends Module {
     public final IntProperty tellyEagleTick = new IntProperty("Eagle Tick", 1, 1, 5, () -> this.mode.getValue() == 0 && this.eagle.getValue());
     public final IntProperty keepEagleSneakTick = new IntProperty("Keep Eagle Tick", 1, 1, 5, () -> this.mode.getValue() == 0 && this.eagle.getValue());
     public final BooleanProperty dbgV = new BooleanProperty("Debug", false);
-    public final BooleanProperty keepFoV = new BooleanProperty("Keep FoV", true);
-    public final FloatProperty fovValue = new FloatProperty("Fov", 1.1F, 1.0F, 2.1F);
     public final BooleanProperty mark = new BooleanProperty("Mark", true);
     private final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
     private final BooleanProperty interactItem = new BooleanProperty("Interact Item Before Place", false);
@@ -86,12 +74,9 @@ public class Scaffold extends Module {
             net.minecraft.init.Blocks.redstone_torch, net.minecraft.init.Blocks.daylight_detector
     );
 
-    // ===== Southside state =====
     private SlotData slot;
     private SlotData blockSlot;
     private int oldSlot;
-    private int count;
-    private int lastCount = 0;
     private int startHotbarCount = 1;
     private boolean canPlace;
     private BlockData blockData;
@@ -338,8 +323,6 @@ public class Scaffold extends Module {
         }
         return !BlockUtil.isReplaceable(pos) && BlockUtil.isSolid(block) && !BlockUtil.isInteractable(pos);
     }
-
-    // ===== Rotation =====
 
     private static float smooth(float angle, float factor) {
         return angle * MathHelper.clamp_float(factor / 100.0F, 0.0F, 1.0F);
@@ -664,7 +647,7 @@ public class Scaffold extends Module {
                 posY = mc.thePlayer.getPosition().getY() - 1;
                 blockData = lastBlockData = getBlockData(new BlockPos(
                         MathHelper.floor_double(mc.thePlayer.posX),
-                        (int) MathHelper.floor_double(posY),
+                        MathHelper.floor_double(posY),
                         MathHelper.floor_double(mc.thePlayer.posZ)
                 ));
             }
@@ -839,8 +822,6 @@ public class Scaffold extends Module {
             GlStateManager.enableDepth();
             GlStateManager.popMatrix();
         }
-        lastCount = newCount;
-        count = newCount;
     }
 
     @EventTarget
