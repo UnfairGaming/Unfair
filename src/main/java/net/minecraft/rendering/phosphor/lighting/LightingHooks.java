@@ -24,17 +24,20 @@ public class LightingHooks {
     private static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
 
     public static void relightSkylightColumn(final World world, final Chunk chunk, final int x, final int z, final int height1, final int height2) {
-        final int yMin = Math.min(height1, height2);
-        final int yMax = Math.max(height1, height2) - 1;
-
         final ExtendedBlockStorage[] sections = chunk.getBlockStorageArray();
+        final int yMin = Math.max(0, Math.min(height1, height2));
+        final int yMax = Math.min((sections.length << 4) - 1, Math.max(height1, height2) - 1);
+
+        if (yMin > yMax) {
+            return;
+        }
 
         final int xBase = (chunk.xPosition << 4) + x;
         final int zBase = (chunk.zPosition << 4) + z;
 
         scheduleRelightChecksForColumn(world, EnumSkyBlock.SKY, xBase, zBase, yMin, yMax);
 
-        if (sections[yMin >> 4] == null && yMin > 0) {
+        if (yMin > 0 && sections[yMin >> 4] == null) {
             world.checkLightFor(EnumSkyBlock.SKY, new BlockPos(xBase, yMin - 1, zBase));
         }
 
