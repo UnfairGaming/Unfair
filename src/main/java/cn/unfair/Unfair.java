@@ -66,7 +66,6 @@ public class Unfair {
         EventManager.register(blinkManager);
         EventManager.register(delayManager);
         EventManager.register(lagManager);
-        EventManager.register(badPacketManager);
         EventManager.register(moduleManager);
         EventManager.register(commandManager);
         EventManager.register(new AdvancedJitterHandler());
@@ -116,6 +115,7 @@ public class Unfair {
         HudWidgets.registerAll();
         widgetConfig.load();
         EventManager.register(widgetManager);
+        EventManager.register(badPacketManager);
         Config config = new Config("default", true);
         if (config.file.exists()) {
             config.load();
