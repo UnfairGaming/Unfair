@@ -16,12 +16,14 @@ public class Velocity extends ModuleWithModuleSettings {
                 new ReduceVelocity(),
                 new DelayVelocity(),
                 new PolarVelocity(),
-                new GrimReduceVelocity()
+                new GrimReduceVelocity(),
+                new LegitVelocity()
         );
     }
 
     public static boolean isInLiquidOrWeb() {
-        return mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || mc.thePlayer.getIsInWeb();
+        return mc.thePlayer != null
+                && (mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || mc.thePlayer.getIsInWeb());
     }
 
     public boolean isDelayingVelocity() {

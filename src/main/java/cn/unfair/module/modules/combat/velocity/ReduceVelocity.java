@@ -16,7 +16,6 @@ import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
@@ -24,7 +23,7 @@ public class ReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public boolean knockback = false;
 
-    public final static BooleanProperty attack = new BooleanProperty("Attack Before Reduce", false);
+    public static final BooleanProperty attack = new BooleanProperty("Attack Before Reduce", false);
 
     public ReduceVelocity() {
         super("Reduce");
@@ -32,63 +31,23 @@ public class ReduceVelocity extends SubModule {
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
-        if (!isEnabled()) return;
-        if (mc.theWorld == null || mc.thePlayer == null) return;
+        if (!isReadyToReduce(event)) return;
 
-        // why reduce in the UpdateEvent? IDK.
-        if (event.getType() != EventType.PRE) return;
-
-        if (!knockback) return;
-
-        if (BadPacketManager.bad()) return;
-
-        if (Velocity.isInLiquidOrWeb()) return;
-
-        if (!MoveUtil.isForwardPressed() || !mc.thePlayer.isSprinting()) return;
-
-        boolean noAura = false;
-
-        KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-        if (killAura == null || !killAura.isEnabled() || killAura.getTarget() == null) {
-            noAura = true;
-        }
-        Entity target = null;
-
-        if (!noAura) {
-            target = killAura.getTarget();
-        } else {
-            RayCastUtil.RayCastResult result = RayCastUtil.rayCast(new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0f);
-            if (result != null && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY && result.entityHit instanceof EntityPlayer) {
-                target = result.entityHit;
-            }
-        }
-
+        EntityPlayer target = findTarget();
         if (target != null) {
-            if (attack.getValue()) {
-                AttackOrder.sendFixedPacketAttackAndSwing(target);
-            }
-
-            mc.thePlayer.motionX *= 0.6D;
-            mc.thePlayer.motionZ *= 0.6D;
-
-            mc.thePlayer.setSprinting(false);
-
+            reduce(target);
         }
         knockback = false;
     }
 
     @EventTarget
     public void onPacket(PacketEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (this.isEnabled()) {
-            if (event.getType() == EventType.RECEIVE && !event.isCancelled()) {
-                if (event.getPacket() instanceof S12PacketEntityVelocity velocityPacket) {
-                    if (velocityPacket.getEntityID() == mc.thePlayer.getEntityId()) {
-                        knockback = true;
-                    }
-                }
-            }
-        }
+        if (mc.theWorld == null || mc.thePlayer == null || !isEnabled()) return;
+        if (event.getType() != EventType.RECEIVE || event.isCancelled()) return;
+        if (!(event.getPacket() instanceof S12PacketEntityVelocity packet)) return;
+        if (packet.getEntityID() != mc.thePlayer.getEntityId()) return;
+
+        knockback = true;
     }
 
     @EventTarget
@@ -104,5 +63,44 @@ public class ReduceVelocity extends SubModule {
     @Override
     public void onDisabled() {
         knockback = false;
+    }
+
+    private boolean isReadyToReduce(UpdateEvent event) {
+        return isEnabled()
+                && mc.theWorld != null
+                && mc.thePlayer != null
+                && event.getType() == EventType.PRE
+                && knockback
+                && !BadPacketManager.bad()
+                && !Velocity.isInLiquidOrWeb()
+                && MoveUtil.isForwardPressed()
+                && mc.thePlayer.isSprinting();
+    }
+
+    private EntityPlayer findTarget() {
+        KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
+        if (killAura != null && killAura.isEnabled() && killAura.getTarget() instanceof EntityPlayer player) {
+            return player.isEntityAlive() ? player : null;
+        }
+
+        RayCastUtil.RayCastResult result = RayCastUtil.rayCast(
+                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0F);
+        if (result != null
+                && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY
+                && result.entityHit instanceof EntityPlayer player
+                && player.isEntityAlive()) {
+            return player;
+        }
+        return null;
+    }
+
+    private void reduce(EntityPlayer target) {
+        if (attack.getValue()) {
+            AttackOrder.sendFixedPacketAttackAndSwing(target);
+        }
+
+        mc.thePlayer.motionX *= 0.6D;
+        mc.thePlayer.motionZ *= 0.6D;
+        mc.thePlayer.setSprinting(false);
     }
 }

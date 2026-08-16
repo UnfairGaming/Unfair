@@ -1,132 +1,105 @@
 package cn.unfair.module.modules.combat.velocity;
 
 import cn.unfair.Unfair;
-import cn.unfair.enums.BlinkModules;
 import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.KnockbackEvent;
-import cn.unfair.events.LivingUpdateEvent;
-import cn.unfair.events.LoadWorldEvent;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.UpdateEvent;
+import cn.unfair.events.*;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
+import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
+import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.MoveUtil;
-import cn.unfair.util.PacketUtil;
+import cn.unfair.util.RayCastUtil;
+import cn.unfair.util.RotationUtil;
+import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
-import net.minecraft.network.play.server.S19PacketEntityStatus;
 import net.minecraft.potion.Potion;
 
 public class HypixelVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    private static final int DELAY_TICKS = 3;
-    private static final int START_BLINK_HURT_TIME = 2;
-    private static final int FORCE_UNBLINK_TICK = 12;
-    private static final double ATTACK_SLOWDOWN = 0.6D;
+    private boolean delayFlag;
+    private boolean knockback;
+    private boolean jumpFlag;
 
-    private boolean allowNext = true;
-    private boolean delayFlag = false;
-    private boolean jumpFlag = false;
-    private boolean knockback = false;
-    private boolean blinkingVelocity = false;
-    private boolean blinkScheduled = false;
-    private int knockbackTimer = -1;
-    private int blinkTicks = 0;
+    public final static BooleanProperty debug = new BooleanProperty("Debug", false);
 
     public HypixelVelocity() {
         super("Hypixel");
     }
 
-    private Velocity velocity() {
-        return (Velocity) Unfair.moduleManager.getModule(Velocity.class);
-    }
-
     @EventTarget
     public void onPacket(PacketEvent event) {
-        Velocity velocity = velocity();
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (velocity == null || !isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) return;
+        if (mc.theWorld == null || mc.thePlayer == null || !isEnabled()) return;
+        if (event.getType() != EventType.RECEIVE || event.isCancelled()) return;
+        if (!(event.getPacket() instanceof S12PacketEntityVelocity packet)
+                || packet.getEntityID() != mc.thePlayer.getEntityId()) return;
 
-        if (event.getPacket() instanceof S19PacketEntityStatus packet) {
-            Entity entity = packet.getEntity(mc.theWorld);
-            if (entity == mc.thePlayer && packet.getOpCode() == 2) {
-                allowNext = false;
-            }
-            return;
-        }
+        if (isBlockedState() || canStartLongJump()) return;
 
-        if (!(event.getPacket() instanceof S12PacketEntityVelocity packet)) return;
-        if (packet.getEntityID() != mc.thePlayer.getEntityId()) return;
-
-        LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
-        if (delayFlag
-                || Velocity.isInLiquidOrWeb()
-                || Unfair.moduleManager.getModule(Stuck.class).isEnabled()
-                || (allowNext)
-                || (longJump.isEnabled() && longJump.canStartJump())) {
-            return;
-        }
-
-        if (!mc.thePlayer.onGround) {
+        knockback = true;
+        if (!delayFlag && !canDelay()) {
             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
             Unfair.delayManager.delayedPacket.offer(packet);
             event.setCancelled(true);
             delayFlag = true;
+            if (debug.getValue()) {
+                ChatUtil.dbg("Delay is activated");
+            }
         }
     }
 
     @EventTarget
     public void onKnockback(KnockbackEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!isEnabled() || event.isCancelled()) return;
-        if (allowNext) return;
-
-        allowNext = true;
+        if (mc.theWorld == null || mc.thePlayer == null || !isEnabled()) return;
+        if (!event.isCancelled()) {
+            this.jumpFlag = event.getY() > 0.0;
+        } else {
+            knockback = false;
+            return;
+        }
         knockback = true;
-        knockbackTimer = 0;
-        blinkScheduled = false;
-
-        if (mc.thePlayer.onGround && event.getY() > 0.0D) {
-            jumpFlag = true;
-        }
-    }
-
-    @EventTarget
-    public void onLivingUpdate(LivingUpdateEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!isEnabled() || !jumpFlag) return;
-
-        jumpFlag = false;
-        if (mc.thePlayer.onGround
-                && MoveUtil.isForwardPressed()
-                && mc.thePlayer.isSprinting()
-                && !mc.thePlayer.isPotionActive(Potion.jump)
-                && !Velocity.isInLiquidOrWeb()) {
-            mc.thePlayer.movementInput.jump = true;
-        }
     }
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) {
-            reset(false);
+            reset();
             return;
         }
-        if (!isEnabled()) return;
+        if (!isEnabled() || event.getType() != EventType.PRE) return;
 
-        if (event.getType() == EventType.PRE) {
-            handleBlink();
-        } else if (event.getType() == EventType.POST) {
-            handleDelayRelease();
+        if (delayFlag && shouldReleaseDelay()) {
+            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
+            delayFlag = false;
+            if (debug.getValue()) {
+                ChatUtil.dbg("Delay is not activated");
+            }
+        }
+
+        if (knockback) {
+            reduceVelocity();
+        }
+    }
+
+    @EventTarget
+    public void onLivingUpdate(LivingUpdateEvent event) {
+        if (this.jumpFlag) {
+            this.jumpFlag = false;
+            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !Velocity.isInLiquidOrWeb()) {
+                mc.thePlayer.movementInput.jump = true;
+                if (debug.getValue()) {
+                    ChatUtil.dbg("Jump");
+                }
+            }
         }
     }
 
@@ -137,120 +110,83 @@ public class HypixelVelocity extends SubModule {
 
     @Override
     public void onEnabled() {
-        reset(false);
+        reset();
     }
 
     @Override
     public void onDisabled() {
-        reset(true);
+        if (delayFlag && Unfair.delayManager != null
+                && Unfair.delayManager.getDelayModule() == DelayModules.VELOCITY) {
+            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
+        }
+        reset();
     }
 
     public boolean isDelaying() {
-        return this.delayFlag;
+        return delayFlag;
     }
 
-    private void handleBlink() {
-        if (knockbackTimer >= 0) {
-            knockbackTimer++;
-        }
+    private boolean canDelay() {
+        KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
+        return mc.thePlayer.onGround && (killAura == null || !killAura.isEnabled() || !killAura.shouldAutoBlock());
+    }
 
-        if (blinkingVelocity) {
-            blinkTicks++;
-            if (blinkTicks >= FORCE_UNBLINK_TICK) {
-                releaseVelocityBlink();
-            }
+    private boolean shouldReleaseDelay() {
+        return canDelay()
+                || isBlockedState()
+                || Unfair.delayManager.getDelay() >= 3;
+    }
+
+    private boolean canStartLongJump() {
+        LongJump longJump = (LongJump) Unfair.moduleManager.getModule(LongJump.class);
+        return longJump != null && longJump.isEnabled() && longJump.canStartJump();
+    }
+
+    private boolean isBlockedState() {
+        Stuck stuck = (Stuck) Unfair.moduleManager.getModule(Stuck.class);
+        return Velocity.isInLiquidOrWeb() || (stuck != null && stuck.isEnabled());
+    }
+
+    private void reduceVelocity() {
+        if (BadPacketManager.bad() || isBlockedState()
+                || !MoveUtil.isForwardPressed() || !mc.thePlayer.isSprinting()) {
             return;
         }
 
-        if (blinkScheduled) {
-            if (knockbackTimer >= FORCE_UNBLINK_TICK) {
-                blinkScheduled = false;
-                knockback = false;
-                knockbackTimer = -1;
-                return;
-            }
-
-            startVelocityBlink();
-        }
-
-        if (knockback && mc.thePlayer.hurtTime <= START_BLINK_HURT_TIME) {
-            startVelocityBlink();
-            blinkScheduled = true;
-        }
-    }
-
-    private void handleDelayRelease() {
-        if (!delayFlag) return;
-        if (Velocity.isInLiquidOrWeb()
-                || Unfair.delayManager.getDelay() >= DELAY_TICKS
-                || mc.thePlayer.onGround) {
-            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
-            delayFlag = false;
-            jumpFlag = true;
-        }
-    }
-
-    private void startVelocityBlink() {
-        if (Unfair.blinkManager.setBlinkState(true, BlinkModules.VELOCITY)) {
-            blinkingVelocity = true;
-            blinkScheduled = false;
-            blinkTicks = 0;
-        }
-    }
-
-    private void releaseVelocityBlink() {
-        if (!blinkingVelocity) return;
-        if (Unfair.blinkManager.getBlinkingModule() != BlinkModules.VELOCITY) {
-            blinkingVelocity = false;
-            blinkScheduled = false;
+        Entity target = findTarget();
+        if (!(target instanceof EntityPlayer)) {
             knockback = false;
-            knockbackTimer = -1;
-            blinkTicks = 0;
             return;
         }
 
-        Unfair.blinkManager.blinking = false;
-        for (Packet<?> packet : Unfair.blinkManager.blinkedPackets) {
-            if (packet instanceof C02PacketUseEntity) {
-                mc.thePlayer.motionX *= ATTACK_SLOWDOWN;
-                mc.thePlayer.motionZ *= ATTACK_SLOWDOWN;
-                ChatUtil.dbg("reduce");
-            }
-            PacketUtil.sendPacketNoEvent(packet);
-        }
-        Unfair.blinkManager.blinkedPackets.clear();
-        Unfair.blinkManager.blinkModule = BlinkModules.NONE;
-
-        blinkingVelocity = false;
-        blinkScheduled = false;
+        AttackOrder.sendFixedPacketAttackAndSwing(target);
+        mc.thePlayer.motionX *= 0.6D;
+        mc.thePlayer.motionZ *= 0.6D;
+        mc.thePlayer.setSprinting(false);
         knockback = false;
-        knockbackTimer = -1;
-        blinkTicks = 0;
+        if (debug.getValue()) {
+            ChatUtil.dbg("Reduce 40%");
+        }
     }
 
-    private void reset(boolean flush) {
-        boolean hadDelay = delayFlag && Unfair.delayManager.getDelayModule() == DelayModules.VELOCITY;
-        boolean hadBlink = blinkingVelocity && Unfair.blinkManager.getBlinkingModule() == BlinkModules.VELOCITY;
-
-        if (flush && hadDelay) {
-            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
+    private Entity findTarget() {
+        KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
+        if (killAura != null && killAura.isEnabled() && killAura.getTarget() != null) {
+            return killAura.getTarget();
         }
 
-        if (flush && hadBlink) {
-            releaseVelocityBlink();
-        } else if (hadBlink) {
-            Unfair.blinkManager.blinking = false;
-            Unfair.blinkManager.blinkedPackets.clear();
-            Unfair.blinkManager.blinkModule = BlinkModules.NONE;
+        RayCastUtil.RayCastResult result = RayCastUtil.rayCast(
+                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0F);
+        if (result != null
+                && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY
+                && result.entityHit instanceof EntityPlayer) {
+            return result.entityHit;
         }
+        return null;
+    }
 
-        allowNext = true;
+    private void reset() {
         delayFlag = false;
-        jumpFlag = false;
         knockback = false;
-        blinkScheduled = false;
-        knockbackTimer = -1;
-        blinkTicks = 0;
-        blinkingVelocity = false;
     }
 }

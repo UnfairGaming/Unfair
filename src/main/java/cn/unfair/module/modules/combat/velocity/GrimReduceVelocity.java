@@ -80,7 +80,11 @@ public class GrimReduceVelocity extends SubModule {
             if (mc.thePlayer.onGround || timeout) {
                 boolean grounded = mc.thePlayer.onGround;
                 Entity target = findTarget();
-                boolean canReduce = grounded && mc.thePlayer.isSprinting() && isValidTarget(target) && !bad();
+                boolean canReduce = grounded
+                        && mc.thePlayer.isSprinting()
+                        && isValidTarget(target)
+                        && !isBlockedState()
+                        && !bad();
 
                 release();
 
@@ -130,6 +134,7 @@ public class GrimReduceVelocity extends SubModule {
     }
 
     private void doReduce(Entity target) {
+        if (!(target instanceof EntityPlayer) || isBlockedState()) return;
         AttackOrder.sendFixedPacketAttackAndSwing(target);
         mc.thePlayer.motionX *= 0.6D;
         mc.thePlayer.motionZ *= 0.6D;
@@ -193,6 +198,8 @@ public class GrimReduceVelocity extends SubModule {
     }
 
     private boolean isValidTarget(Entity entity) {
-        return entity != null && entity.isEntityAlive() && entity != mc.thePlayer;
+        return entity instanceof EntityPlayer
+                && entity.isEntityAlive()
+                && entity != mc.thePlayer;
     }
 }
