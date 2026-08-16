@@ -451,7 +451,7 @@ public class Scaffold extends Module {
         float width = BLOCK_COUNT_WIDTH_PADDING * 2.0F + contentWidth;
         float height = BLOCK_COUNT_HEIGHT;
         float left = sr.getScaledWidth() / 2.0F - width / 2.0F;
-        float top = sr.getScaledHeight() - height - 47.0F + blockCountOffset.getValue();
+        float top = sr.getScaledHeight() - height - 70.0F + blockCountOffset.getValue();
         float contentLeft = left + (width - contentWidth) / 2.0F;
 
         return new BlockCountLayout(
