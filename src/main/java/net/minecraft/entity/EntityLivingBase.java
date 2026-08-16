@@ -2,6 +2,7 @@ package net.minecraft.entity;
 
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
+import cn.unfair.events.JumpEvent;
 import cn.unfair.events.StrafeEvent;
 import cn.unfair.events.SwingAnimationEvent;
 import cn.unfair.management.RotationState;
@@ -2125,8 +2126,16 @@ public abstract class EntityLivingBase extends Entity {
             } else if (jumpAsLava) {
                 this.handleJumpLava();
             } else if (this.onGround && this.jumpTicks == 0) {
-                this.jump();
-                this.jumpTicks = 10;
+                boolean shouldJump = true;
+                if (this instanceof EntityPlayerSP) {
+                    JumpEvent jumpEvent = new JumpEvent();
+                    EventManager.call(jumpEvent);
+                    shouldJump = !jumpEvent.isCancelled();
+                }
+                if (shouldJump) {
+                    this.jump();
+                    this.jumpTicks = 10;
+                }
             }
         } else {
             this.jumpTicks = 0;
