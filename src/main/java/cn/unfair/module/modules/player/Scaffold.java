@@ -11,7 +11,6 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.*;
 import cn.unfair.util.player.FallingPlayer;
-import cn.unfair.util.player.HeypixelStuckController;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -36,7 +35,7 @@ import java.util.Map;
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge"});
     public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
     public final IntProperty placeTick = new IntProperty("Place Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
     public final IntProperty rotTick = new IntProperty("Rotation Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
@@ -49,8 +48,10 @@ public class Scaffold extends Module {
     public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true);
     public final ModeProperty blockSlotMode = new ModeProperty("Block Slot Mode", 0, new String[]{"Farthest", "Most Blocks"});
     public final ModeProperty jumpMode = new ModeProperty("Jump Mode", 1, new String[]{"Parkour", "Normal", "None"}, () -> this.mode.getValue() == 0);
+    public final FloatProperty godBridgePitch = new FloatProperty("GodBridge Pitch", 73.5F, 0.0F, 90.0F, () -> this.mode.getValue() == 2);
+    public final BooleanProperty godBridgeJump = new BooleanProperty("GodBridge Auto Jump", true, () -> this.mode.getValue() == 2);
+    public final IntProperty godBridgeJumpEvery = new IntProperty("GodBridge Jump Every", 7, 1, 20, () -> this.mode.getValue() == 2 && godBridgeJump.getValue());
     public final FloatProperty safeDistance = new FloatProperty("Clutch Safe Distance", 4.5F, 1.0F, 5.0F);
-    public final BooleanProperty dbgV = new BooleanProperty("Debug", false);
     public final BooleanProperty mark = new BooleanProperty("Mark", true);
     private final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
     private final BooleanProperty interactItem = new BooleanProperty("Interact Item Before Place", false);
@@ -67,6 +68,12 @@ public class Scaffold extends Module {
             net.minecraft.init.Blocks.redstone_torch, net.minecraft.init.Blocks.daylight_detector
     );
 
+    private static final double[] placeOffsets = new double[]{
+            0.03125, 0.09375, 0.15625, 0.21875, 0.28125, 0.34375,
+            0.40625, 0.46875, 0.53125, 0.59375, 0.65625, 0.71875,
+            0.78125, 0.84375, 0.90625, 0.96875
+    };
+
     private SlotData slot;
     private SlotData blockSlot;
     private int oldSlot;
@@ -74,16 +81,16 @@ public class Scaffold extends Module {
     private boolean canPlace;
     private BlockData blockData;
     private BlockData lastBlockData;
-    private int rotateCount = 0;
     private double posY;
     private BlockPos lastPlacePosition = null;
+    private Vec3 godBridgeHitVec;
     private Rotation lastRotation;
     private Rotation rot;
+    private int bridgePlaceCount = 0;
+    private boolean bridgeJumping = false;
     private int ups = 0;
     private int onGroundTicks = 0;
     private int offGroundTicks = 0;
-    private boolean cancelMove = false;
-    private final HeypixelStuckController clutchStuck = new HeypixelStuckController();
 
     public Scaffold() {
         super("Scaffold", false);
@@ -92,6 +99,8 @@ public class Scaffold extends Module {
     @Override
     public void onEnabled() {
         ups = 0;
+        bridgePlaceCount = 0;
+        bridgeJumping = false;
         if (mc.thePlayer == null) {
             return;
         }
@@ -107,12 +116,12 @@ public class Scaffold extends Module {
         rot = null;
         onGroundTicks = 0;
         offGroundTicks = 0;
-        cancelMove = false;
     }
 
     @Override
     public void onDisabled() {
-        stopClutchStuck();
+        bridgePlaceCount = 0;
+        bridgeJumping = false;
         if (mc.thePlayer == null) {
             return;
         }
@@ -356,6 +365,9 @@ public class Scaffold extends Module {
     }
 
     private Rotation getBRot() {
+        if (mode.getValue() == 2) {
+            return godBridgeRotation();
+        }
         Rotation rotation = blockData != null
                 ? getClosestToBlockFace(blockData, getServerYaw(), getServerPitch())
                 : null;
@@ -365,9 +377,6 @@ public class Scaffold extends Module {
             } else {
                 rotation = new Rotation(mc.thePlayer.rotationYaw - 100f, getServerPitch());
             }
-        }
-        if (cancelMove) {
-            return getClosestToBlockFace(blockData, getServerYaw(), getServerPitch());
         }
         double diff = yawDiffDirectly(rotation.yaw, getServerYaw());
         if (mode.getValue() == 0) {
@@ -407,6 +416,85 @@ public class Scaffold extends Module {
         return rotation;
     }
 
+    private Rotation godBridgeRotation() {
+        float currentYaw = MoveUtil.adjustYaw(mc.thePlayer.rotationYaw, MoveUtil.getForwardValue(), MoveUtil.getLeftValue());
+        float lookYaw = MathHelper.wrapAngleTo180_float(
+                isDiagonalYaw(currentYaw)
+                        ? currentYaw - 180.0F
+                        : currentYaw - 135.0F * ((currentYaw + 180.0F) % 90.0F < 45.0F ? 1.0F : -1.0F));
+        godBridgeHitVec = null;
+        float pitch = godBridgePitch.getValue();
+        if (blockData != null) {
+            MovingObjectPosition check = RayCastUtil.rayTrace(lookYaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
+            if (check != null && check.typeOfHit == MovingObjectType.BLOCK
+                    && check.getBlockPos().equals(blockData.blockPos()) && check.sideHit == blockData.facing()) {
+                godBridgeHitVec = check.hitVec;
+            } else {
+                scanGodBridgeBlock(blockData, lookYaw, pitch);
+            }
+        }
+        return new Rotation(lookYaw, pitch);
+    }
+
+    private static boolean isDiagonalYaw(float yaw) {
+        float absYaw = Math.abs(yaw % 90.0F);
+        return absYaw > 20.0F && absYaw < 70.0F;
+    }
+
+    private float[] scanGodBridgeBlock(BlockData data, float yaw, float pitch) {
+        double[] x = placeOffsets;
+        double[] y = placeOffsets;
+        double[] z = placeOffsets;
+        switch (data.facing()) {
+            case NORTH:
+                z = new double[]{0.0};
+                break;
+            case EAST:
+                x = new double[]{1.0};
+                break;
+            case SOUTH:
+                z = new double[]{1.0};
+                break;
+            case WEST:
+                x = new double[]{0.0};
+                break;
+            case DOWN:
+                y = new double[]{0.0};
+                break;
+            case UP:
+                y = new double[]{1.0};
+                break;
+        }
+        float bestYaw = -180.0F;
+        float bestPitch = 0.0F;
+        float bestDiff = 0.0F;
+        for (double dx : x) {
+            for (double dy : y) {
+                for (double dz : z) {
+                    double relX = data.blockPos().getX() + dx - mc.thePlayer.posX;
+                    double relY = data.blockPos().getY() + dy - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();
+                    double relZ = data.blockPos().getZ() + dz - mc.thePlayer.posZ;
+                    float[] rotations = RotationUtil.getRotationsTo(relX, relY, relZ, yaw, pitch);
+                    MovingObjectPosition mop = RayCastUtil.rayTrace(rotations[0], rotations[1], mc.playerController.getBlockReachDistance(), 1.0F);
+                    if (mop != null && mop.typeOfHit == MovingObjectType.BLOCK
+                            && mop.getBlockPos().equals(data.blockPos()) && mop.sideHit == data.facing()) {
+                        float totalDiff = Math.abs(rotations[0] - yaw) + Math.abs(rotations[1] - pitch);
+                        if (bestYaw == -180.0F || totalDiff < bestDiff) {
+                            bestYaw = rotations[0];
+                            bestPitch = rotations[1];
+                            bestDiff = totalDiff;
+                            godBridgeHitVec = mop.hitVec;
+                        }
+                    }
+                }
+            }
+        }
+        if (bestYaw != -180.0F || bestPitch != 0.0F) {
+            return new float[]{bestYaw, bestPitch};
+        }
+        return null;
+    }
+
     private static boolean didHitBlockFace(Entity player, float yaw, float pitch, BlockPos targetPos, EnumFacing expectedFace, boolean strict) {
         if (player == null || expectedFace == null) {
             return false;
@@ -435,8 +523,22 @@ public class Scaffold extends Module {
         if (!canPlace) {
             return;
         }
-        if (!didHitBlockFace(mc.thePlayer, rot.yaw, rot.pitch, blockData.blockPos(), blockData.facing(), true)) {
-            return;
+        Vec3 hitVec;
+        MovingObjectPosition mop = RayCastUtil.rayTrace(rot.yaw, rot.pitch, mc.playerController.getBlockReachDistance(), 1.0F);
+        if (mode.getValue() == 2) {
+            if (godBridgeHitVec == null) {
+                return;
+            }
+            hitVec = (mop != null && mop.typeOfHit == MovingObjectType.BLOCK
+                    && mop.getBlockPos().equals(blockData.blockPos()) && mop.sideHit == blockData.facing())
+                    ? mop.hitVec
+                    : godBridgeHitVec;
+        } else {
+            if (mop == null || mop.typeOfHit != MovingObjectType.BLOCK
+                    || !mop.getBlockPos().equals(blockData.blockPos()) || mop.sideHit != blockData.facing()) {
+                return;
+            }
+            hitVec = mop.hitVec;
         }
         if (!this.blockSlot.offhand()) {
             mc.thePlayer.inventory.currentItem = this.blockSlot.slot();
@@ -444,13 +546,19 @@ public class Scaffold extends Module {
         if (interactItem.getValue()) {
             mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
         }
-        Vec3 hitVec = BlockUtil.getHitVec(blockData.blockPos(), blockData.facing(), rot.yaw, rot.pitch);
         if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem(), blockData.blockPos(), blockData.facing(), hitVec)) {
             lastPlacePosition = blockData.blockPos().offset(blockData.facing());
             if (noSwing.getValue()) {
                 PacketUtil.sendPacket(new C0APacketAnimation());
             } else {
                 mc.thePlayer.swingItem();
+            }
+            if (mode.getValue() == 2 && godBridgeJump.getValue() && ++bridgePlaceCount >= godBridgeJumpEvery.getValue()) {
+                bridgePlaceCount = 0;
+                if (mc.thePlayer.onGround) {
+                    bridgeJumping = true;
+                    mc.thePlayer.jump();
+                }
             }
         }
     }
@@ -470,43 +578,6 @@ public class Scaffold extends Module {
         rot = new Rotation(targetYaw, rot.pitch);
     }
 
-    private void startClutchStuck() {
-        clutchStuck.start();
-        cancelMove = clutchStuck.isActive();
-    }
-
-    private void stopClutchStuck() {
-        clutchStuck.forceStop();
-        cancelMove = false;
-        rotateCount = 0;
-    }
-
-    private void stopClutchStuck(float yaw, float pitch) {
-        clutchStuck.forceStop(yaw, pitch);
-        cancelMove = false;
-        rotateCount = 0;
-    }
-
-    public void releaseClutchForHeypixelStuck() {
-        if (mc.thePlayer != null) {
-            clutchStuck.releaseWithoutPositionSpoof(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
-        } else {
-            clutchStuck.reset();
-        }
-        cancelMove = false;
-        rotateCount = 0;
-    }
-
-    @EventTarget(1)
-    public void onPacket(PacketEvent event) {
-        if (!this.isEnabled() || !clutchStuck.isActive()) {
-            return;
-        }
-        if (clutchStuck.handlePacket(event)) {
-            stopClutchStuck();
-        }
-    }
-
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE) {
@@ -515,7 +586,6 @@ public class Scaffold extends Module {
         if (mc.thePlayer == null || mc.theWorld == null) {
             return;
         }
-        clutchStuck.update(event);
 
         if (mc.thePlayer.onGround) {
             onGroundTicks++;
@@ -543,14 +613,14 @@ public class Scaffold extends Module {
             }
         }
         if (this.blockSlot == null || blockSlot.check()) {
-            stopClutchStuck();
             return;
         }
 
         if (mc.thePlayer.onGround) {
+            bridgeJumping = false;
             posY = MathHelper.floor_double(mc.thePlayer.posY - 1);
         }
-        if (mc.gameSettings.keyBindJump.isKeyDown()) {
+        if (mc.gameSettings.keyBindJump.isKeyDown() || bridgeJumping) {
             posY = mc.thePlayer.getPosition().getY() - 1;
         }
 
@@ -567,11 +637,7 @@ public class Scaffold extends Module {
         }
         lastBlockData = possible;
 
-        if (mode.getValue() == 1) {
-            canPlace = true;
-        } else {
-            canPlace = offGroundTicks >= placeTick.getValue();
-        }
+        canPlace = mode.getValue() == 0 ? offGroundTicks >= placeTick.getValue() : true;
 
         if (!this.blockSlot.offhand()) {
             mc.thePlayer.inventory.currentItem = this.blockSlot.slot();
@@ -620,16 +686,6 @@ public class Scaffold extends Module {
             }
         }
 
-        if (!reachable && rotateCount < 8) {
-            if (dbgV.getValue() && rotateCount == 1) {
-                ChatUtil.sendFormatted("working");
-            }
-            startClutchStuck();
-            rotateCount++;
-        } else {
-            rotateCount = 0;
-        }
-
         rot = getBRot();
         if (rot == null) {
             return;
@@ -644,9 +700,6 @@ public class Scaffold extends Module {
                 rot.pitch = -90.0F;
             }
         }
-        boolean finishClutch = cancelMove
-                && blockData != null
-                && didHitBlockFace(rot, blockData.blockPos(), blockData.facing(), true);
         if (fixRotation.getValue()) {
             rot = new Rotation(rot.yaw, rot.pitch);
         }
@@ -656,13 +709,7 @@ public class Scaffold extends Module {
         if (abuseRotation.getValue()) {
             rotationAbuse(30f, rot.yaw);
         }
-        if (finishClutch) {
-            clutchStuck.sendRotation(rot.yaw, rot.pitch);
-        }
         place();
-        if (finishClutch) {
-            stopClutchStuck(rot.yaw, rot.pitch);
-        }
     }
 
     @EventTarget
@@ -710,9 +757,7 @@ public class Scaffold extends Module {
         if (!this.isEnabled() || mc.thePlayer == null) {
             return;
         }
-        if (clutchStuck.isActive()) {
-            clutchStuck.stopMovementInput();
-        } else if (RotationState.isActived() && RotationState.getPriority() == 3.0F && MoveUtil.isForwardPressed()) {
+        if (RotationState.isActived() && RotationState.getPriority() == 3.0F && MoveUtil.isForwardPressed()) {
             MoveUtil.fixStrafe(RotationState.getSmoothedYaw());
         }
     }
