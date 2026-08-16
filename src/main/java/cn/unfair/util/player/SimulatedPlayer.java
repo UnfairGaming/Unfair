@@ -26,10 +26,15 @@ public class SimulatedPlayer {
     private double motionZ;
     private boolean isSprinting;
     private int jumpTicks;
+    private final boolean checkGroundSupportAfterMove;
+    private final boolean normalizeSmallMotion;
 
-    private SimulatedPlayer(EntityPlayerSP player, MovementInput movementInput) {
+    private SimulatedPlayer(EntityPlayerSP player, MovementInput movementInput, boolean checkGroundSupportAfterMove,
+                            boolean normalizeSmallMotion) {
         this.player = player;
         this.movementInput = movementInput;
+        this.checkGroundSupportAfterMove = checkGroundSupportAfterMove;
+        this.normalizeSmallMotion = normalizeSmallMotion;
         this.box = player.getEntityBoundingBox();
         this.posX = player.posX;
         this.posY = player.posY;
@@ -46,12 +51,21 @@ public class SimulatedPlayer {
     }
 
     public static SimulatedPlayer fromClientPlayer(MovementInput input) {
+        return fromClientPlayer(input, true, false);
+    }
+
+    public static SimulatedPlayer fromClientPlayer(MovementInput input, boolean checkGroundSupportAfterMove) {
+        return fromClientPlayer(input, checkGroundSupportAfterMove, false);
+    }
+
+    public static SimulatedPlayer fromClientPlayer(MovementInput input, boolean checkGroundSupportAfterMove,
+                                                    boolean normalizeSmallMotion) {
         MovementInput copy = new MovementInput();
         copy.moveForward = input.moveForward;
         copy.moveStrafe = input.moveStrafe;
         copy.jump = input.jump;
         copy.sneak = input.sneak;
-        return new SimulatedPlayer(mc.thePlayer, copy);
+        return new SimulatedPlayer(mc.thePlayer, copy, checkGroundSupportAfterMove, normalizeSmallMotion);
     }
 
     public Vec3 getPos() {
@@ -61,6 +75,17 @@ public class SimulatedPlayer {
     public void tick() {
         if (this.jumpTicks > 0) {
             --this.jumpTicks;
+        }
+        if (this.normalizeSmallMotion) {
+            if (Math.abs(this.motionX) < 0.005D) {
+                this.motionX = 0.0D;
+            }
+            if (Math.abs(this.motionY) < 0.005D) {
+                this.motionY = 0.0D;
+            }
+            if (Math.abs(this.motionZ) < 0.005D) {
+                this.motionZ = 0.0D;
+            }
         }
 
         float forward = this.movementInput.moveForward * 0.98F;
@@ -171,6 +196,7 @@ public class SimulatedPlayer {
         double originalX = x;
         double originalY = y;
         double originalZ = z;
+        boolean wasOnGround = this.onGround;
         List<AxisAlignedBB> collisions = mc.theWorld.getCollidingBoundingBoxes(this.player, this.box.addCoord(x, y, z));
 
         for (AxisAlignedBB collision : collisions) {
@@ -190,6 +216,10 @@ public class SimulatedPlayer {
 
         this.isCollidedHorizontally = originalX != x || originalZ != z;
         this.onGround = originalY != y && originalY < 0.0D;
+        if (this.checkGroundSupportAfterMove && wasOnGround && this.onGround) {
+            this.onGround = !mc.theWorld.getCollidingBoundingBoxes(
+                    this.player, this.box.offset(0.0D, -0.001D, 0.0D)).isEmpty();
+        }
         if (originalX != x) {
             this.motionX = 0.0D;
         }
