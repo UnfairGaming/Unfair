@@ -22,8 +22,8 @@ public class PolarVelocity extends SubModule {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    private boolean kb;
-    private double sb;
+    private boolean knockback;
+    private double cancelBuffer;
 
     public PolarVelocity() {
         super("Polar");
@@ -32,7 +32,7 @@ public class PolarVelocity extends SubModule {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!kb || !isEnabled() || BadPacketManager.bad() || event.getType() != EventType.PRE) return;
+        if (!knockback || !isEnabled() || BadPacketManager.bad() || event.getType() != EventType.PRE) return;
         if (Velocity.isInLiquidOrWeb()) return;
         switch (mode.getValue()) {
             case 0: {
@@ -56,7 +56,7 @@ public class PolarVelocity extends SubModule {
         if (this.isEnabled() && event.getType() == EventType.RECEIVE && !event.isCancelled()) {
             if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
                 if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
-                    kb = true;
+                    knockback = true;
                     switch (mode.getValue()) {
                         case 0: {
                             // set in EntityPlayer
@@ -70,12 +70,12 @@ public class PolarVelocity extends SubModule {
                                 if (target != null
                                         && result != null && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY && result.entityHit instanceof EntityPlayer
                                         && RotationUtil.distanceToEntity(target) > 1
-                                        && sb < 1
+                                        && cancelBuffer < 1
                                 ) {
                                     event.setCancelled(true);
-                                    sb++;
+                                    cancelBuffer++;
                                 } else {
-                                    sb = Math.max(0, sb - 0.1);
+                                    cancelBuffer = Math.max(0, cancelBuffer - 0.1);
                                 }
                             }
                             break;

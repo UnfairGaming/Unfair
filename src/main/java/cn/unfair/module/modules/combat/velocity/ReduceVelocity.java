@@ -23,7 +23,7 @@ public class ReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public boolean knockback = false;
 
-    public static final BooleanProperty attack = new BooleanProperty("Attack Before Reduce", false);
+    public static final BooleanProperty attack = new BooleanProperty("Attack Before Reduce", true);
 
     public ReduceVelocity() {
         super("Reduce");
