@@ -790,7 +790,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         boolean flag2 = this.movementInput.moveForward >= f;
         this.movementInput.updatePlayerMoveState();
         EventManager.call(new MoveInputEvent());
-        this.viaforge$updateModernMovementInput(this.movementInput);
+        this.updateModernMovementInput(this.movementInput);
         boolean currentlySneaking = this.movementInput.sneak;
 
         if (this.isUsingItemForSlowdown() && !this.isRiding()) {
@@ -806,10 +806,10 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             }
         }
 
-        this.viaforge$pushOutOfBlocks(this.posX - (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ + (double) this.width * 0.35D);
-        this.viaforge$pushOutOfBlocks(this.posX - (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ - (double) this.width * 0.35D);
-        this.viaforge$pushOutOfBlocks(this.posX + (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ - (double) this.width * 0.35D);
-        this.viaforge$pushOutOfBlocks(this.posX + (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ + (double) this.width * 0.35D);
+        this.pushOutOfBlocksLegacy(this.posX - (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ + (double) this.width * 0.35D);
+        this.pushOutOfBlocksLegacy(this.posX - (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ - (double) this.width * 0.35D);
+        this.pushOutOfBlocksLegacy(this.posX + (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ - (double) this.width * 0.35D);
+        this.pushOutOfBlocksLegacy(this.posX + (double) this.width * 0.35D, this.getEntityBoundingBox().minY + 0.5D, this.posZ + (double) this.width * 0.35D);
         boolean flag3 = (float) this.getFoodStats().getFoodLevel() > 6.0F || this.capabilities.allowFlying;
 
         if (this.onGround && !currentlySneaking && !flag2 && this.movementInput.moveForward >= f && !this.isSprinting() && flag3 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness)) {
@@ -929,7 +929,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     @Override
-    public void viaforge$swingOffhand() {
+    public void swingOffhand() {
         if (!this.offhandSwinging || this.offhandSwingTicks >= 3) {
             this.offhandSwingTicks = 0;
             this.offhandSwingProgress = 0.0F;
@@ -939,7 +939,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     @Override
-    public float viaforge$getOffhandSwingProgress(float partialTicks) {
+    public float getOffhandSwingProgress(float partialTicks) {
         float delta = this.offhandSwingProgress - this.previousOffhandSwingProgress;
         if (delta < 0.0F) {
             delta += 1.0F;
@@ -1002,7 +1002,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     @Override
-    public void viaforge$updateModernMovementInput(MovementInput input) {
+    public void updateModernMovementInput(MovementInput input) {
         if (this.movementInputAdjustedThisTick || !this.usesModernInputPhysics()) {
             return;
         }
@@ -1130,103 +1130,103 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     }
 
     @Override
-    public boolean viaforge$isModernSwimming() {
+    public boolean isModernSwimming() {
         return this.modernSwimming;
     }
 
     @Override
-    public boolean viaforge$wasModernSwimming() {
+    public boolean wasModernSwimming() {
         return this.wasModernSwimming;
     }
 
     @Override
-    public boolean viaforge$isModernSubmergedInWater() {
+    public boolean isModernSubmergedInWater() {
         return this.modernSubmergedInWater;
     }
 
     @Override
-    public void viaforge$setModernSubmergedInWater(boolean submerged) {
+    public void setModernSubmergedInWater(boolean submerged) {
         this.modernSubmergedInWater = submerged;
     }
 
     @Override
-    public boolean viaforge$wasModernEyeInWater() {
+    public boolean wasModernEyeInWater() {
         return this.wasEyeInWater;
     }
 
     @Override
-    public float viaforge$getModernEyeHeight() {
+    public float getModernEyeHeight() {
         return this.modernEyeHeight;
     }
 
     @Override
-    public double viaforge$getModernWaterHeight() {
+    public double getModernWaterHeight() {
         return this.modernWaterHeight;
     }
 
     @Override
-    public void viaforge$setModernWaterHeight(double height) {
+    public void setModernWaterHeight(double height) {
         this.modernWaterHeight = height;
     }
 
     @Override
-    public double viaforge$getModernLavaHeight() {
+    public double getModernLavaHeight() {
         return this.modernLavaHeight;
     }
 
     @Override
-    public void viaforge$setModernLavaHeight(double height) {
+    public void setModernLavaHeight(double height) {
         this.modernLavaHeight = height;
     }
 
     @Override
-    public boolean viaforge$isTouchingModernLava() {
+    public boolean isTouchingModernLava() {
         return this.touchingModernLava;
     }
 
     @Override
-    public void viaforge$setTouchingModernLava(boolean touching) {
+    public void setTouchingModernLava(boolean touching) {
         this.touchingModernLava = touching;
     }
 
     @Override
-    public BlockPos viaforge$getMainSupportingBlock() {
+    public BlockPos getMainSupportingBlock() {
         return this.mainSupportingBlock;
     }
 
     @Override
-    public boolean viaforge$wasSupportingBlockOnGround() {
+    public boolean wasSupportingBlockOnGround() {
         return this.supportingBlockOnGround;
     }
 
     @Override
-    public void viaforge$setMainSupportingBlock(BlockPos position, boolean onGround) {
+    public void setMainSupportingBlock(BlockPos position, boolean onGround) {
         this.mainSupportingBlock = position;
         this.supportingBlockOnGround = onGround;
     }
 
     @Override
-    public void viaforge$markLocalItemUseFinished() {
+    public void markLocalItemUseFinished() {
         this.localItemUseFinished = true;
     }
 
     @Override
-    public void viaforge$confirmServerItemUseFinished() {
+    public void confirmServerItemUseFinished() {
         this.serverItemUseFinished = true;
     }
 
-    private boolean viaforge$pushOutOfBlocks(double x, double y, double z) {
+    private boolean pushOutOfBlocksLegacy(double x, double y, double z) {
         return !ViaProtocol.newerThanOrEqualTo1_9() && this.pushOutOfBlocks(x, y, z);
     }
 
-    public void viaforge$delayFoodUseRestart() {
+    public void delayFoodUseRestart() {
         this.foodUseRestartDelayTicks = 1;
         this.foodUseRestartSlot = this.inventory.currentItem;
         ItemStack held = this.inventory.getCurrentItem();
         this.foodUseRestartItem = held == null ? null : held.getItem();
     }
 
-    public boolean viaforge$consumeFoodUseRestartDelayTick() {
+    public boolean consumeFoodUseRestartDelayTick() {
         if (this.foodUseRestartDelayTicks <= 0) {
             return false;
         }

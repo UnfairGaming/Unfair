@@ -324,7 +324,7 @@ public class Scaffold extends Module {
                 count += stack.stackSize;
             }
         }
-        ItemStack offhand = mc.thePlayer.inventory.viaforge$getOffhand();
+        ItemStack offhand = mc.thePlayer.inventory.getOffhand();
         if (isFullBlock(offhand)) {
             count += offhand.stackSize;
         }
@@ -351,7 +351,7 @@ public class Scaffold extends Module {
         ItemStack stack = null;
         if (blockSlot != null) {
             stack = blockSlot.offhand()
-                    ? mc.thePlayer.inventory.viaforge$getOffhand()
+                    ? mc.thePlayer.inventory.getOffhand()
                     : mc.thePlayer.inventory.getStackInSlot(blockSlot.slot());
         }
         if (!isFullBlock(stack)) {
@@ -367,7 +367,7 @@ public class Scaffold extends Module {
             }
         }
         if (!isFullBlock(stack)) {
-            stack = mc.thePlayer.inventory.viaforge$getOffhand();
+            stack = mc.thePlayer.inventory.getOffhand();
         }
         if (!isFullBlock(stack)) {
             return null;
@@ -1367,7 +1367,7 @@ public class Scaffold extends Module {
 
         this.blockSlot = null;
 
-        ItemStack offhand = mc.thePlayer.inventory.viaforge$getOffhand();
+        ItemStack offhand = mc.thePlayer.inventory.getOffhand();
         if (isFullBlock(offhand)) {
             this.blockSlot = new SlotData(-1, true);
         }
@@ -1762,7 +1762,7 @@ public class Scaffold extends Module {
                 return true;
             }
             if (offhand) {
-                ItemStack stack = mc.thePlayer.inventory.viaforge$getOffhand();
+                ItemStack stack = mc.thePlayer.inventory.getOffhand();
                 return stack == null || !(stack.getItem() instanceof ItemBlock);
             }
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(slot);

@@ -67,9 +67,9 @@ public class PlayerControllerMP
     private final NetHandlerPlayClient netClientHandler;
     private BlockPos currentBlock = new BlockPos(-1, -1, -1);
     private Vec3 pendingOffhandEntityHit;
-    private double viaforge$motionBeforeAttackX;
-    private double viaforge$motionBeforeAttackZ;
-    private boolean viaforge$knockbackAttackSlow;
+    private double motionBeforeAttackX;
+    private double motionBeforeAttackZ;
+    private boolean knockbackAttackSlow;
 
     /** The Item currently being used to destroy a block */
     private ItemStack currentItemHittingBlock;
@@ -774,11 +774,11 @@ public class PlayerControllerMP
      */
     public void attackEntity(EntityPlayer playerIn, Entity targetEntity) {
         if (ModernOffhandInteraction.isModernTarget()) {
-            this.viaforge$motionBeforeAttackX = playerIn.motionX;
-            this.viaforge$motionBeforeAttackZ = playerIn.motionZ;
-            this.viaforge$knockbackAttackSlow = EnchantmentHelper.getKnockbackModifier(playerIn) > 0;
+            this.motionBeforeAttackX = playerIn.motionX;
+            this.motionBeforeAttackZ = playerIn.motionZ;
+            this.knockbackAttackSlow = EnchantmentHelper.getKnockbackModifier(playerIn) > 0;
         } else {
-            this.viaforge$knockbackAttackSlow = false;
+            this.knockbackAttackSlow = false;
         }
 
         AttackEvent event = new AttackEvent(targetEntity);
@@ -802,9 +802,9 @@ public class PlayerControllerMP
         if (this.currentGameType != WorldSettings.GameType.SPECTATOR) {
             playerIn.attackTargetEntityWithCurrentItem(targetEntity);
         }
-        if (ModernOffhandInteraction.isModernTarget() && this.viaforge$knockbackAttackSlow) {
-            double expectedX = this.viaforge$motionBeforeAttackX * 0.6D;
-            double expectedZ = this.viaforge$motionBeforeAttackZ * 0.6D;
+        if (ModernOffhandInteraction.isModernTarget() && this.knockbackAttackSlow) {
+            double expectedX = this.motionBeforeAttackX * 0.6D;
+            double expectedZ = this.motionBeforeAttackZ * 0.6D;
             if (Math.abs(playerIn.motionX - expectedX) > 1.0E-12D
                     || Math.abs(playerIn.motionZ - expectedZ) > 1.0E-12D) {
                 playerIn.motionX *= 0.6D;
@@ -846,7 +846,7 @@ public class PlayerControllerMP
         this.syncCurrentPlayItem();
         Vec3 vec3 = new Vec3(movingObject.hitVec.xCoord - entityIn.posX, movingObject.hitVec.yCoord - entityIn.posY, movingObject.hitVec.zCoord - entityIn.posZ);
         if (ModernOffhandInteraction.isModernTarget()) {
-            vec3 = viaforge$clampInteractionHit(entityIn, entityIn.getEntityBoundingBox(), vec3);
+            vec3 = clampInteractionHit(entityIn, entityIn.getEntityBoundingBox(), vec3);
         }
         this.netClientHandler.addToSendQueue(new C02PacketUseEntity(entityIn, vec3));
         boolean consumed = this.currentGameType != WorldSettings.GameType.SPECTATOR && entityIn.interactAt(player, vec3);
@@ -858,7 +858,7 @@ public class PlayerControllerMP
         return consumed;
     }
 
-    private static Vec3 viaforge$clampInteractionHit(Entity target, AxisAlignedBB bounds, Vec3 hit) {
+    private static Vec3 clampInteractionHit(Entity target, AxisAlignedBB bounds, Vec3 hit) {
         double epsilon = 1.0E-5D;
         double minX = bounds.minX - target.posX + epsilon;
         double maxX = bounds.maxX - target.posX - epsilon;
@@ -868,13 +868,13 @@ public class PlayerControllerMP
         double maxZ = bounds.maxZ - target.posZ - epsilon;
 
         return new Vec3(
-                viaforge$clamp(hit.xCoord, minX, maxX),
-                viaforge$clamp(hit.yCoord, minY, maxY),
-                viaforge$clamp(hit.zCoord, minZ, maxZ)
+                clamp(hit.xCoord, minX, maxX),
+                clamp(hit.yCoord, minY, maxY),
+                clamp(hit.zCoord, minZ, maxZ)
         );
     }
 
-    private static double viaforge$clamp(double value, double min, double max) {
+    private static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
     }
 

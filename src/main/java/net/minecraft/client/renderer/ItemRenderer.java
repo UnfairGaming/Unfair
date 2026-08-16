@@ -528,7 +528,7 @@ public class ItemRenderer {
             return;
         }
 
-        ItemStack stack = this.mc.thePlayer.inventory.viaforge$getOffhand();
+        ItemStack stack = this.mc.thePlayer.inventory.getOffhand();
         if (stack == null) {
             return;
         }
@@ -541,7 +541,7 @@ public class ItemRenderer {
             this.itemToRender = stack;
             GlStateManager.disableCull();
             if ("shield".equals(ViaBackwardsItemModels.getModelName(stack))) {
-                float swingProgress = this.mc.thePlayer.viaforge$getOffhandSwingProgress(partialTicks);
+                float swingProgress = this.mc.thePlayer.getOffhandSwingProgress(partialTicks);
                 boolean blocking = ModernShieldRenderer.isActivelyBlocking(this.mc.thePlayer, stack);
                 ModernShieldRenderer.renderFirstPerson(
                         this.mc.thePlayer, stack, true, blocking, 0.0F, blocking ? 0.0F : swingProgress);
@@ -560,7 +560,7 @@ public class ItemRenderer {
     }
 
     private void applyOffhandUseTransform(ItemStack stack, float partialTicks) {
-        float swingProgress = this.mc.thePlayer.viaforge$getOffhandSwingProgress(partialTicks);
+        float swingProgress = this.mc.thePlayer.getOffhandSwingProgress(partialTicks);
         if (!this.mc.thePlayer.isUsingItem()
                 || this.mc.thePlayer.getItemInUse() != stack
                 || this.mc.thePlayer.getItemInUseCount() <= 0) {

@@ -1841,7 +1841,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                 this.displayGuiScreen(new GuiChat("/"));
             }
 
-            boolean delayFoodUseRestart = this.thePlayer.viaforge$consumeFoodUseRestartDelayTick();
+            boolean delayFoodUseRestart = this.thePlayer.consumeFoodUseRestartDelayTick();
 
             if (this.thePlayer.isUsingItem()) {
                 if (delayFoodUseRestart || !this.gameSettings.keyBindUseItem.isKeyDown()) {

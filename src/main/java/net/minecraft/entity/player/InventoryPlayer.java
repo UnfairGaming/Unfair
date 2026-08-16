@@ -913,7 +913,7 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory
         }
 
         if (playerInventory instanceof ModernOffhandInventory) {
-            this.offhandItem = playerInventory.viaforge$getOffhand();
+            this.offhandItem = playerInventory.getOffhand();
         }
         this.currentItem = playerInventory.currentItem;
     }
@@ -948,13 +948,13 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory
     }
 
     @Override
-    public ItemStack viaforge$getOffhand()
+    public ItemStack getOffhand()
     {
         return this.offhandItem;
     }
 
     @Override
-    public void viaforge$setOffhand(ItemStack stack)
+    public void setOffhand(ItemStack stack)
     {
         this.offhandItem = stack;
     }

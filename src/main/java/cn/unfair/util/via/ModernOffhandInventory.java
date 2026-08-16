@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 /** Client-side bridge for the modern inventory slot 45. */
 public interface ModernOffhandInventory {
 
-    ItemStack viaforge$getOffhand();
+    ItemStack getOffhand();
 
-    void viaforge$setOffhand(ItemStack stack);
+    void setOffhand(ItemStack stack);
 }

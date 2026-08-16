@@ -267,7 +267,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
         if (this.itemInUse != null)
         {
             ItemStack itemstack = this.inventory.getCurrentItem();
-            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
+            if (this instanceof EntityPlayerSP && isModernTarget()) {
                 ItemStack offhand = ModernOffhandInteraction.getOffhand(this);
                 if (this.itemInUse == offhand) {
                     itemstack = offhand;
@@ -488,17 +488,17 @@ public abstract class EntityPlayer extends EntityLivingBase {
                     && ViaProtocol.newerThanOrEqualTo1_9()
                     && this.itemInUse.getItem() instanceof ItemFood
                     && this.itemInUse.stackSize > 1) {
-                ((EntityPlayerSP) this).viaforge$delayFoodUseRestart();
+                ((EntityPlayerSP) this).delayFoodUseRestart();
             }
 
-            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
-                ((ModernPlayerPhysics) this).viaforge$markLocalItemUseFinished();
+            if (this instanceof EntityPlayerSP && isModernTarget()) {
+                ((ModernPlayerPhysics) this).markLocalItemUseFinished();
                 ItemStack offhand = ModernOffhandInteraction.getOffhand(this);
                 if (this.itemInUse == offhand) {
                     ItemStack original = this.itemInUse;
                     this.updateItemUse(original, 16);
                     ItemStack result = original.onItemUseFinish(this.worldObj, this);
-                    this.inventory.viaforge$setOffhand(result != null && result.stackSize > 0 ? result : null);
+                    this.inventory.setOffhand(result != null && result.stackSize > 0 ? result : null);
                     this.clearItemInUse();
                     return;
                 }
@@ -526,8 +526,8 @@ public abstract class EntityPlayer extends EntityLivingBase {
     {
         if (id == 9)
         {
-            if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
-                ((ModernPlayerPhysics) this).viaforge$confirmServerItemUseFinished();
+            if (this instanceof EntityPlayerSP && isModernTarget()) {
+                ((ModernPlayerPhysics) this).confirmServerItemUseFinished();
             }
             this.onItemUseFinish();
         }
@@ -2403,8 +2403,8 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
     public float getEyeHeight()
     {
-        if (this instanceof EntityPlayerSP && viaforge$isModernTarget()) {
-            return ((ModernPlayerPhysics) this).viaforge$getModernEyeHeight();
+        if (this instanceof EntityPlayerSP && isModernTarget()) {
+            return ((ModernPlayerPhysics) this).getModernEyeHeight();
         }
 
         float f = 1.62F;
@@ -2425,7 +2425,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
         return f;
     }
 
-    private boolean viaforge$isModernTarget() {
+    private boolean isModernTarget() {
         return !(this.ridingEntity instanceof EntityBoat) && ViaProtocol.newerThanOrEqualTo1_9();
     }
 

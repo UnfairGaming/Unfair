@@ -5,39 +5,39 @@ import net.minecraft.util.MovementInput;
 
 public interface ModernPlayerPhysics {
 
-    boolean viaforge$isModernSwimming();
+    boolean isModernSwimming();
 
-    boolean viaforge$wasModernSwimming();
+    boolean wasModernSwimming();
 
-    boolean viaforge$isModernSubmergedInWater();
+    boolean isModernSubmergedInWater();
 
-    void viaforge$setModernSubmergedInWater(boolean submerged);
+    void setModernSubmergedInWater(boolean submerged);
 
-    boolean viaforge$wasModernEyeInWater();
+    boolean wasModernEyeInWater();
 
-    float viaforge$getModernEyeHeight();
+    float getModernEyeHeight();
 
-    double viaforge$getModernWaterHeight();
+    double getModernWaterHeight();
 
-    void viaforge$setModernWaterHeight(double height);
+    void setModernWaterHeight(double height);
 
-    double viaforge$getModernLavaHeight();
+    double getModernLavaHeight();
 
-    void viaforge$setModernLavaHeight(double height);
+    void setModernLavaHeight(double height);
 
-    boolean viaforge$isTouchingModernLava();
+    boolean isTouchingModernLava();
 
-    void viaforge$setTouchingModernLava(boolean touching);
+    void setTouchingModernLava(boolean touching);
 
-    BlockPos viaforge$getMainSupportingBlock();
+    BlockPos getMainSupportingBlock();
 
-    boolean viaforge$wasSupportingBlockOnGround();
+    boolean wasSupportingBlockOnGround();
 
-    void viaforge$setMainSupportingBlock(BlockPos position, boolean onGround);
+    void setMainSupportingBlock(BlockPos position, boolean onGround);
 
-    void viaforge$markLocalItemUseFinished();
+    void markLocalItemUseFinished();
 
-    void viaforge$confirmServerItemUseFinished();
+    void confirmServerItemUseFinished();
 
-    void viaforge$updateModernMovementInput(MovementInput input);
+    void updateModernMovementInput(MovementInput input);
 }

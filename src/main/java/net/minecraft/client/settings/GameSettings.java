@@ -180,7 +180,7 @@ public class GameSettings implements ModernOffhandKeyBinding
     public float saturation;
 
     @Override
-    public KeyBinding viaforge$getSwapOffhandKey() {
+    public KeyBinding getSwapOffhandKey() {
         return this.keyBindSwapOffhand;
     }
 

@@ -42,7 +42,7 @@ public class BlockSweetBerryBush extends ModernBlock
     {
         if (!ViaProtocol.newerThanOrEqualTo1_14() || !(entityIn instanceof EntityLivingBase)) return;
         if (entityIn instanceof EntityPlayer && ((EntityPlayer) entityIn).capabilities.isFlying) return;
-        entityIn.viaforge$slowMovement(0.8F, 0.75D, 0.8F);
+        entityIn.slowMovement(0.8F, 0.75D, 0.8F);
     }
 
     public int getViaStateIdMin() { return 11248; }

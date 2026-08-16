@@ -47,7 +47,7 @@ public final class ModernOffhandInteraction {
         if (player == null || !(player.inventory instanceof ModernOffhandInventory)) {
             return null;
         }
-        return player.inventory.viaforge$getOffhand();
+        return player.inventory.getOffhand();
     }
 
     public static boolean shouldUseItemAfterBlock(EntityPlayer player) {
@@ -103,9 +103,9 @@ public final class ModernOffhandInteraction {
         player.sendQueue.addToSendQueue(new CPacketSwapItemWithOffHand());
         ModernOffhandInventory inventory = player.inventory;
         ItemStack mainHand = player.inventory.getCurrentItem();
-        ItemStack offhand = inventory.viaforge$getOffhand();
+        ItemStack offhand = inventory.getOffhand();
         player.inventory.mainInventory[player.inventory.currentItem] = offhand;
-        inventory.viaforge$setOffhand(mainHand);
+        inventory.setOffhand(mainHand);
         return true;
     }
 
@@ -126,7 +126,7 @@ public final class ModernOffhandInteraction {
         int previousSize = stack.stackSize;
         ItemStack result = stack.useItemRightClick(player.worldObj, player);
         if (result != stack || result == null || result.stackSize != previousSize) {
-            player.inventory.viaforge$setOffhand(result != null && result.stackSize > 0 ? result : null);
+            player.inventory.setOffhand(result != null && result.stackSize > 0 ? result : null);
         }
 
         ItemStack activeStack = getOffhand(player);
@@ -242,7 +242,7 @@ public final class ModernOffhandInteraction {
         swing.write(Types.VAR_INT, 1);
         swing.scheduleSendToServer(Protocol1_9To1_8.class);
         if (player instanceof ModernOffhandPlayer) {
-            ((ModernOffhandPlayer) player).viaforge$swingOffhand();
+            ((ModernOffhandPlayer) player).swingOffhand();
         }
     }
 
