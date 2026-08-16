@@ -3,10 +3,6 @@ package cn.unfair.util.player;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.Vec3;
 
-/**
- * 1.8.9 port of LiquidBounce/Southside's {@code FallingPlayer}: predicts the player's
- * position over a few ticks using the vanilla air-movement math (drag + gravity + strafe).
- */
 public class FallingPlayer {
 
     private double x;
