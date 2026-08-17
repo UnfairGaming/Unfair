@@ -5,8 +5,7 @@ import net.minecraft.util.IProgressUpdate;
 
 import java.util.List;
 
-public interface ISaveFormat
-{
+public interface ISaveFormat {
     /**
      * Returns the name of the save format.
      */
@@ -29,10 +28,9 @@ public interface ISaveFormat
     boolean isNewLevelIdAcceptable(String saveName);
 
     /**
+     * @param saveName The current save's name
      * @args: Takes one argument - the name of the directory of the world to delete. @desc: Delete the world by deleting
      * the associated directory recursively.
-     *  
-     * @param saveName The current save's name
      */
     boolean deleteWorldDirectory(String saveName);
 
@@ -56,7 +54,7 @@ public interface ISaveFormat
 
     /**
      * Return whether the given world can be loaded.
-     *  
+     *
      * @param saveName The current save's name
      */
     boolean canLoadWorld(String saveName);

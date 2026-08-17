@@ -17,6 +17,7 @@ public interface ITextureObject {
     MultiTexID getMultiTexID();
 
     void linearFilter();
+
     void nearestFilter();
 }
 

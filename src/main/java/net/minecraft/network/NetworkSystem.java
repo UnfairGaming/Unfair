@@ -33,41 +33,35 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class NetworkSystem
-{
-    private static final Logger logger = LogManager.getLogger();
-    public static final LazyLoadBase<NioEventLoopGroup> eventLoops = new LazyLoadBase<NioEventLoopGroup>()
-    {
-        protected NioEventLoopGroup load()
-        {
+public class NetworkSystem {
+    public static final LazyLoadBase<NioEventLoopGroup> eventLoops = new LazyLoadBase<NioEventLoopGroup>() {
+        protected NioEventLoopGroup load() {
             return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Server IO #%d").setDaemon(true).build());
         }
     };
-    public static final LazyLoadBase<EpollEventLoopGroup> SERVER_EPOLL_EVENTLOOP = new LazyLoadBase<EpollEventLoopGroup>()
-    {
-        protected EpollEventLoopGroup load()
-        {
+    public static final LazyLoadBase<EpollEventLoopGroup> SERVER_EPOLL_EVENTLOOP = new LazyLoadBase<EpollEventLoopGroup>() {
+        protected EpollEventLoopGroup load() {
             return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).build());
         }
     };
-    public static final LazyLoadBase<DefaultEventLoopGroup> SERVER_LOCAL_EVENTLOOP = new LazyLoadBase<DefaultEventLoopGroup>()
-    {
-        protected DefaultEventLoopGroup load()
-        {
+    public static final LazyLoadBase<DefaultEventLoopGroup> SERVER_LOCAL_EVENTLOOP = new LazyLoadBase<DefaultEventLoopGroup>() {
+        protected DefaultEventLoopGroup load() {
             return new DefaultEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Local Server IO #%d").setDaemon(true).build());
         }
     };
-
-    /** Reference to the MinecraftServer object. */
+    private static final Logger logger = LogManager.getLogger();
+    /**
+     * Reference to the MinecraftServer object.
+     */
     private final MinecraftServer mcServer;
-
-    /** True if this NetworkSystem has never had his endpoints terminated */
-    public volatile boolean isAlive;
     private final List<ChannelFuture> endpoints = Collections.<ChannelFuture>synchronizedList(Lists.<ChannelFuture>newArrayList());
     private final List<NetworkManager> networkManagers = Collections.<NetworkManager>synchronizedList(Lists.<NetworkManager>newArrayList());
+    /**
+     * True if this NetworkSystem has never had his endpoints terminated
+     */
+    public volatile boolean isAlive;
 
-    public NetworkSystem(MinecraftServer server)
-    {
+    public NetworkSystem(MinecraftServer server) {
         this.mcServer = server;
         this.isAlive = true;
     }
@@ -75,36 +69,26 @@ public class NetworkSystem
     /**
      * Adds a channel that listens on publicly accessible network ports
      */
-    public void addLanEndpoint(InetAddress address, int port) throws IOException
-    {
-        synchronized (this.endpoints)
-        {
-            Class <? extends ServerSocketChannel > oclass;
-            LazyLoadBase <? extends EventLoopGroup > lazyloadbase;
+    public void addLanEndpoint(InetAddress address, int port) throws IOException {
+        synchronized (this.endpoints) {
+            Class<? extends ServerSocketChannel> oclass;
+            LazyLoadBase<? extends EventLoopGroup> lazyloadbase;
 
-            if (Epoll.isAvailable() && this.mcServer.shouldUseNativeTransport())
-            {
+            if (Epoll.isAvailable() && this.mcServer.shouldUseNativeTransport()) {
                 oclass = EpollServerSocketChannel.class;
                 lazyloadbase = SERVER_EPOLL_EVENTLOOP;
                 logger.info("Using epoll channel type");
-            }
-            else
-            {
+            } else {
                 oclass = NioServerSocketChannel.class;
                 lazyloadbase = eventLoops;
                 logger.info("Using default channel type");
             }
 
-            this.endpoints.add((new ServerBootstrap()).channel(oclass).childHandler(new ChannelInitializer<Channel>()
-            {
-                protected void initChannel(Channel p_initChannel_1_) throws Exception
-                {
-                    try
-                    {
+            this.endpoints.add((new ServerBootstrap()).channel(oclass).childHandler(new ChannelInitializer<Channel>() {
+                protected void initChannel(Channel p_initChannel_1_) throws Exception {
+                    try {
                         p_initChannel_1_.config().setOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
-                    }
-                    catch (ChannelException var3)
-                    {
+                    } catch (ChannelException var3) {
                         ;
                     }
 
@@ -121,16 +105,12 @@ public class NetworkSystem
     /**
      * Adds a channel that listens locally
      */
-    public SocketAddress addLocalEndpoint()
-    {
+    public SocketAddress addLocalEndpoint() {
         ChannelFuture channelfuture;
 
-        synchronized (this.endpoints)
-        {
-            channelfuture = (new ServerBootstrap()).channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>()
-            {
-                protected void initChannel(Channel p_initChannel_1_) throws Exception
-                {
+        synchronized (this.endpoints) {
+            channelfuture = (new ServerBootstrap()).channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>() {
+                protected void initChannel(Channel p_initChannel_1_) throws Exception {
                     NetworkManager networkmanager = new NetworkManager(EnumPacketDirection.SERVERBOUND);
                     networkmanager.setNetHandler(new NetHandlerHandshakeMemory(NetworkSystem.this.mcServer, networkmanager));
                     NetworkSystem.this.networkManagers.add(networkmanager);
@@ -146,18 +126,13 @@ public class NetworkSystem
     /**
      * Shuts down all open endpoints (with immediate effect?)
      */
-    public void terminateEndpoints()
-    {
+    public void terminateEndpoints() {
         this.isAlive = false;
 
-        for (ChannelFuture channelfuture : this.endpoints)
-        {
-            try
-            {
+        for (ChannelFuture channelfuture : this.endpoints) {
+            try {
                 channelfuture.channel().close().sync();
-            }
-            catch (InterruptedException var4)
-            {
+            } catch (InterruptedException var4) {
                 logger.error("Interrupted whilst closing channel");
             }
         }
@@ -167,39 +142,26 @@ public class NetworkSystem
      * Will try to process the packets received by each NetworkManager, gracefully manage processing failures and cleans
      * up dead connections
      */
-    public void networkTick()
-    {
-        synchronized (this.networkManagers)
-        {
+    public void networkTick() {
+        synchronized (this.networkManagers) {
             Iterator<NetworkManager> iterator = this.networkManagers.iterator();
 
-            while (iterator.hasNext())
-            {
+            while (iterator.hasNext()) {
                 final NetworkManager networkmanager = iterator.next();
 
-                if (!networkmanager.hasNoChannel())
-                {
-                    if (!networkmanager.isChannelOpen())
-                    {
+                if (!networkmanager.hasNoChannel()) {
+                    if (!networkmanager.isChannelOpen()) {
                         iterator.remove();
                         networkmanager.checkDisconnected();
-                    }
-                    else
-                    {
-                        try
-                        {
+                    } else {
+                        try {
                             networkmanager.processReceivedPackets();
-                        }
-                        catch (Exception exception)
-                        {
-                            if (networkmanager.isLocalChannel())
-                            {
+                        } catch (Exception exception) {
+                            if (networkmanager.isLocalChannel()) {
                                 CrashReport crashreport = CrashReport.makeCrashReport(exception, "Ticking memory connection");
                                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Ticking connection");
-                                crashreportcategory.addCrashSectionCallable("Connection", new Callable<String>()
-                                {
-                                    public String call() throws Exception
-                                    {
+                                crashreportcategory.addCrashSectionCallable("Connection", new Callable<String>() {
+                                    public String call() throws Exception {
                                         return networkmanager.toString();
                                     }
                                 });
@@ -208,10 +170,8 @@ public class NetworkSystem
 
                             logger.warn("Failed to handle packet for " + networkmanager.getRemoteAddress(), exception);
                             final ChatComponentText chatcomponenttext = new ChatComponentText("Internal server error");
-                            networkmanager.sendPacket(new S40PacketDisconnect(chatcomponenttext), new GenericFutureListener < Future <? super Void >> ()
-                            {
-                                public void operationComplete(Future <? super Void > p_operationComplete_1_) throws Exception
-                                {
+                            networkmanager.sendPacket(new S40PacketDisconnect(chatcomponenttext), new GenericFutureListener<Future<? super Void>>() {
+                                public void operationComplete(Future<? super Void> p_operationComplete_1_) throws Exception {
                                     networkmanager.closeChannel(chatcomponenttext);
                                 }
                             });
@@ -223,8 +183,7 @@ public class NetworkSystem
         }
     }
 
-    public MinecraftServer getServer()
-    {
+    public MinecraftServer getServer() {
         return this.mcServer;
     }
 }

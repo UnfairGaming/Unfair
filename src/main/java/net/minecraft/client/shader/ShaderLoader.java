@@ -25,24 +25,6 @@ public class ShaderLoader {
         this.shaderFilename = filename;
     }
 
-    public void attachShader(ShaderManager manager) {
-        ++this.shaderAttachCount;
-        OpenGlHelper.glAttachShader(manager.getProgram(), this.shader);
-    }
-
-    public void deleteShader(ShaderManager manager) {
-        --this.shaderAttachCount;
-
-        if (this.shaderAttachCount <= 0) {
-            OpenGlHelper.glDeleteShader(this.shader);
-            this.shaderType.getLoadedShaders().remove(this.shaderFilename);
-        }
-    }
-
-    public String getShaderFilename() {
-        return this.shaderFilename;
-    }
-
     public static ShaderLoader loadShader(IResourceManager resourceManager, ShaderLoader.ShaderType type, String filename) throws IOException {
         ShaderLoader shaderloader = type.getLoadedShaders().get(filename);
 
@@ -78,6 +60,24 @@ public class ShaderLoader {
         }
 
         return abyte;
+    }
+
+    public void attachShader(ShaderManager manager) {
+        ++this.shaderAttachCount;
+        OpenGlHelper.glAttachShader(manager.getProgram(), this.shader);
+    }
+
+    public void deleteShader(ShaderManager manager) {
+        --this.shaderAttachCount;
+
+        if (this.shaderAttachCount <= 0) {
+            OpenGlHelper.glDeleteShader(this.shader);
+            this.shaderType.getLoadedShaders().remove(this.shaderFilename);
+        }
+    }
+
+    public String getShaderFilename() {
+        return this.shaderFilename;
     }
 
     public enum ShaderType {

@@ -29,26 +29,30 @@ public class PlayerManager {
     private final LongHashMap<PlayerManager.PlayerInstance> playerInstances = new LongHashMap<>();
     private final List<PlayerManager.PlayerInstance> playerInstancesToUpdate = Lists.newArrayList();
     private final List<PlayerManager.PlayerInstance> playerInstanceList = Lists.newArrayList();
-
-    /**
-     * Number of chunks the server sends to the client. Valid 3<=x<=15. In server.properties.
-     */
-    private int playerViewRadius;
-
-    /**
-     * time what is using to check if InhabitedTime should be calculated
-     */
-    private long previousTotalWorldTime;
-
     /**
      * x, z direction vectors: east, south, west, north
      */
     private final int[][] xzDirectionsConst = new int[][]{{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
     private final Map<EntityPlayerMP, Set<ChunkCoordIntPair>> mapPlayerPendingEntries = new HashMap<>();
+    /**
+     * Number of chunks the server sends to the client. Valid 3<=x<=15. In server.properties.
+     */
+    private int playerViewRadius;
+    /**
+     * time what is using to check if InhabitedTime should be calculated
+     */
+    private long previousTotalWorldTime;
 
     public PlayerManager(WorldServer serverWorld) {
         this.theWorldServer = serverWorld;
         this.setPlayerViewRadius(serverWorld.getMinecraftServer().getConfigurationManager().getViewDistance());
+    }
+
+    /**
+     * Get the furthest viewable block given player's view distance
+     */
+    public static int getFurthestViewableBlock(int distance) {
+        return distance * 16 - 16;
     }
 
     /**
@@ -352,13 +356,6 @@ public class PlayerManager {
 
             this.playerViewRadius = radius;
         }
-    }
-
-    /**
-     * Get the furthest viewable block given player's view distance
-     */
-    public static int getFurthestViewableBlock(int distance) {
-        return distance * 16 - 16;
     }
 
     private PriorityQueue<ChunkCoordIntPair> getNearest(Set<ChunkCoordIntPair> p_getNearest_1_, EntityPlayerMP p_getNearest_2_, int p_getNearest_3_) {

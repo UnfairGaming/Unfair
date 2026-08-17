@@ -51,59 +51,63 @@ import net.minecraft.world.World;
 public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayerPhysics, ModernOffhandPlayer {
     public final NetHandlerPlayClient sendQueue;
     private final StatFileWriter statWriter;
-
+    public MovementInput movementInput;
+    /**
+     * Ticks left before sprinting is disabled.
+     */
+    public int sprintingTicksLeft;
+    public float renderArmYaw;
+    public float renderArmPitch;
+    public float prevRenderArmYaw;
+    public float prevRenderArmPitch;
+    /**
+     * The amount of time an entity has been in a Portal
+     */
+    public float timeInPortal;
+    /**
+     * The amount of time an entity has been in a Portal the previous tick
+     */
+    public float prevTimeInPortal;
+    protected Minecraft mc;
+    /**
+     * Used to tell if the player pressed forward twice. If this is at 0 and it's pressed (And they are allowed to
+     * sprint, aka enough food on the ground etc) it sets this to 7. If it's pressed and it's greater than 0 enable
+     * sprinting.
+     */
+    protected int sprintToggleTimer;
     /**
      * The last X position which was transmitted to the server, used to determine when the X position changes and needs
      * to be re-trasmitted
      */
     private double lastReportedPosX;
-
     /**
      * The last Y position which was transmitted to the server, used to determine when the Y position changes and needs
      * to be re-transmitted
      */
     private double lastReportedPosY;
-
     /**
      * The last Z position which was transmitted to the server, used to determine when the Z position changes and needs
      * to be re-transmitted
      */
     private double lastReportedPosZ;
-
     /**
      * The last yaw value which was transmitted to the server, used to determine when the yaw changes and needs to be
      * re-transmitted
      */
     private float lastReportedYaw;
-
     /**
      * The last pitch value which was transmitted to the server, used to determine when the pitch changes and needs to
      * be re-transmitted
      */
     private float lastReportedPitch;
-
     /**
      * the last sneaking state sent to the server
      */
     private boolean serverSneakState;
-
     /**
      * the last sprinting state sent to the server
      */
     private boolean serverSprintState;
-
-    public boolean getServerSprintState() {
-        return this.serverSprintState;
-    }
-
-    public void setServerSprintState(boolean serverSprintState) {
-        this.serverSprintState = serverSprintState;
-    }
-
-    public float getLastReportedYaw() {
-        return this.lastReportedYaw;
-    }
-
     /**
      * Reset to 0 every time position is sent to the server, used to send periodic updates every 20 ticks even when the
      * player is not moving.
@@ -113,24 +117,6 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     @Getter
     @Setter
     private String clientBrand;
-    public MovementInput movementInput;
-    protected Minecraft mc;
-
-    /**
-     * Used to tell if the player pressed forward twice. If this is at 0 and it's pressed (And they are allowed to
-     * sprint, aka enough food on the ground etc) it sets this to 7. If it's pressed and it's greater than 0 enable
-     * sprinting.
-     */
-    protected int sprintToggleTimer;
-
-    /**
-     * Ticks left before sprinting is disabled.
-     */
-    public int sprintingTicksLeft;
-    public float renderArmYaw;
-    public float renderArmPitch;
-    public float prevRenderArmYaw;
-    public float prevRenderArmPitch;
     private boolean offhandSwinging;
     private int offhandSwingTicks;
     private float offhandSwingProgress;
@@ -166,16 +152,6 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
     @Getter
     private float horseJumpPower;
 
-    /**
-     * The amount of time an entity has been in a Portal
-     */
-    public float timeInPortal;
-
-    /**
-     * The amount of time an entity has been in a Portal the previous tick
-     */
-    public float prevTimeInPortal;
-
     public EntityPlayerSP(Minecraft mcIn, World worldIn, NetHandlerPlayClient netHandler, StatFileWriter statFile) {
         super(worldIn, netHandler.getGameProfile());
         this.sendQueue = netHandler;
@@ -183,6 +159,18 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         this.mc = mcIn;
         this.dimension = 0;
         this.lastState = new MovementState(false, false, false, false, false, false, false);
+    }
+
+    public boolean getServerSprintState() {
+        return this.serverSprintState;
+    }
+
+    public void setServerSprintState(boolean serverSprintState) {
+        this.serverSprintState = serverSprintState;
+    }
+
+    public float getLastReportedYaw() {
+        return this.lastReportedYaw;
     }
 
     /**
@@ -900,8 +888,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             this.offhandSwingTicks = 0;
             this.offhandSwingProgress = 0.0F;
             this.previousOffhandSwingProgress = 0.0F;
-        } else
-        if (this.offhandSwinging) {
+        } else if (this.offhandSwinging) {
             ++this.offhandSwingTicks;
             if (this.offhandSwingTicks >= 6) {
                 this.offhandSwingTicks = 0;

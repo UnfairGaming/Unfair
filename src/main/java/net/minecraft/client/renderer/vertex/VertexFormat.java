@@ -12,11 +12,12 @@ public class VertexFormat {
     @Getter
     private final List<VertexFormatElement> elements;
     private final List<Integer> offsets;
-
-    /** The total size of this vertex format. */
+    private final List<Integer> uvOffsetsById;
+    /**
+     * The total size of this vertex format.
+     */
     private int vertexSize;
     private int colorElementOffset;
-    private final List<Integer> uvOffsetsById;
     private int normalElementOffset;
 
     public VertexFormat(VertexFormat vertexFormatIn) {

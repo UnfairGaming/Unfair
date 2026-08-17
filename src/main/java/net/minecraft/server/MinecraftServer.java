@@ -54,94 +54,112 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
 public abstract class MinecraftServer implements Runnable, ICommandSender, IThreadListener, IPlayerUsage {
-    private static final Logger logger = LogManager.getLogger();
     public static final File USER_CACHE_FILE = new File("usercache.json");
-
-    /** Instance of Minecraft Server. */
+    private static final Logger logger = LogManager.getLogger();
+    /**
+     * Instance of Minecraft Server.
+     */
     private static MinecraftServer mcServer;
+    public final Profiler theProfiler = new Profiler();
+    public final long[] tickTimeArray = new long[100];
+    protected final ICommandManager commandManager;
+    protected final Proxy serverProxy;
+    protected final Queue<FutureTask<?>> futureTaskQueue = Queues.newArrayDeque();
     private final ISaveFormat anvilConverterForAnvilFile;
-
-    /** The PlayerUsageSnooper instance. */
+    /**
+     * The PlayerUsageSnooper instance.
+     */
     private final PlayerUsageSnooper usageSnooper = new PlayerUsageSnooper("server", this, getCurrentTimeMillis());
     private final File anvilFile;
     private final List<ITickable> playersOnline = Lists.newArrayList();
-    protected final ICommandManager commandManager;
-    public final Profiler theProfiler = new Profiler();
     private final NetworkSystem networkSystem;
     private final ServerStatusResponse statusResponse = new ServerStatusResponse();
     private final Random random = new Random();
-
-    /** The server's port. */
-    private final int serverPort = -1;
-
-    /** The server world instances. */
-    public WorldServer[] worldServers;
-
-    /** The ServerConfigurationManager instance. */
-    private ServerConfigurationManager serverConfigManager;
-
     /**
-     * Indicates whether the server is running or not. Set to false to initiate a shutdown.
+     * The server's port.
      */
-    private boolean serverRunning = true;
-
-    /** Indicates to other classes that the server is safely stopped. */
-    private boolean serverStopped;
-
-    /** Incremented every tick. */
-    private int tickCounter;
-    protected final Proxy serverProxy;
-
+    private final int serverPort = -1;
+    private final YggdrasilAuthenticationService authService;
+    private final MinecraftSessionService sessionService;
+    private final GameProfileRepository profileRepo;
+    private final PlayerProfileCache profileCache;
+    /**
+     * The server world instances.
+     */
+    public WorldServer[] worldServers;
     /**
      * The task the server is currently working on(and will output on outputPercentRemaining).
      */
     public String currentTask;
-
-    /** The percentage of the current task finished so far. */
+    /**
+     * The percentage of the current task finished so far.
+     */
     public int percentDone;
-
-    /** True if the server is in online mode. */
+    /**
+     * Stats are [dimension][tick%100] system.nanoTime is stored.
+     */
+    public long[][] timeOfLastDimensionTick;
+    /**
+     * The ServerConfigurationManager instance.
+     */
+    private ServerConfigurationManager serverConfigManager;
+    /**
+     * Indicates whether the server is running or not. Set to false to initiate a shutdown.
+     */
+    private boolean serverRunning = true;
+    /**
+     * Indicates to other classes that the server is safely stopped.
+     */
+    private boolean serverStopped;
+    /**
+     * Incremented every tick.
+     */
+    private int tickCounter;
+    /**
+     * True if the server is in online mode.
+     */
     private boolean onlineMode;
-
-    /** True if the server has animals turned on. */
+    /**
+     * True if the server has animals turned on.
+     */
     private boolean canSpawnAnimals;
     private boolean canSpawnNPCs;
-
-    /** Indicates whether PvP is active on the server or not. */
+    /**
+     * Indicates whether PvP is active on the server or not.
+     */
     private boolean pvpEnabled;
-
-    /** Determines if flight is allowed or not. */
+    /**
+     * Determines if flight is allowed or not.
+     */
     private boolean allowFlight;
-
-    /** The server MOTD string. */
+    /**
+     * The server MOTD string.
+     */
     private String motd;
-
-    /** Maximum build height. */
+    /**
+     * Maximum build height.
+     */
     private int buildLimit;
     private int maxPlayerIdleMinutes = 0;
-    public final long[] tickTimeArray = new long[100];
-
-    /** Stats are [dimension][tick%100] system.nanoTime is stored. */
-    public long[][] timeOfLastDimensionTick;
     private KeyPair serverKeyPair;
-
-    /** Username of the server owner (for integrated servers) */
+    /**
+     * Username of the server owner (for integrated servers)
+     */
     private String serverOwner;
     private String folderName;
     private String worldName;
     private boolean isDemo;
     private boolean enableBonusChest;
-
     /**
      * If true, there is no need to save chunks or stop the server, because that is already being done.
      */
     private boolean worldIsBeingDeleted;
-
-    /** The texture pack for the server */
+    /**
+     * The texture pack for the server
+     */
     private String resourcePackUrl = "";
     private String resourcePackHash = "";
     private boolean serverIsRunning;
-
     /**
      * Set when warned for "Can't keep up", which triggers again after 15 seconds.
      */
@@ -149,12 +167,7 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
     private String userMessage;
     private boolean startProfiling;
     private boolean isGamemodeForced;
-    private final YggdrasilAuthenticationService authService;
-    private final MinecraftSessionService sessionService;
     private long nanoTimeSinceStatusRefresh = 0L;
-    private final GameProfileRepository profileRepo;
-    private final PlayerProfileCache profileCache;
-    protected final Queue<FutureTask<?>> futureTaskQueue = Queues.newArrayDeque();
     private Thread serverThread;
     private long currentTime = getCurrentTimeMillis();
 
@@ -182,6 +195,17 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
         this.authService = new YggdrasilAuthenticationService(proxy, UUID.randomUUID().toString());
         this.sessionService = this.authService.createMinecraftSessionService();
         this.profileRepo = this.authService.createProfileRepository();
+    }
+
+    /**
+     * Gets mcServer.
+     */
+    public static MinecraftServer getServer() {
+        return mcServer;
+    }
+
+    public static long getCurrentTimeMillis() {
+        return System.currentTimeMillis();
     }
 
     protected ServerCommandManager createNewCommandManager() {
@@ -222,15 +246,15 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
         }
     }
 
+    public synchronized String getUserMessage() {
+        return this.userMessage;
+    }
+
     /**
      * Typically "menu.convertingLevel", "menu.loadingLevel" or others.
      */
     protected synchronized void setUserMessage(String message) {
         this.userMessage = message;
-    }
-
-    public synchronized String getUserMessage() {
-        return this.userMessage;
     }
 
     protected void loadAllWorlds(String saveName, String worldNameIn, long seed, WorldType type, String worldNameIn2) {
@@ -339,6 +363,15 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
     public abstract boolean canStructuresSpawn();
 
     public abstract WorldSettings.GameType getGameType();
+
+    /**
+     * Sets the game type for all worlds.
+     */
+    public void setGameType(WorldSettings.GameType gameMode) {
+        for (int i = 0; i < this.worldServers.length; ++i) {
+            getServer().worldServers[i].getWorldInfo().setGameType(gameMode);
+        }
+    }
 
     /**
      * Get the server's difficulty
@@ -801,13 +834,6 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
         }
     }
 
-    /**
-     * Gets mcServer.
-     */
-    public static MinecraftServer getServer() {
-        return mcServer;
-    }
-
     public boolean isAnvilFileSet() {
         return this.anvilFile != null;
     }
@@ -844,6 +870,10 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
         return this.serverKeyPair;
     }
 
+    public void setKeyPair(KeyPair keyPair) {
+        this.serverKeyPair = keyPair;
+    }
+
     /**
      * Returns the username of the server owner (for integrated servers)
      */
@@ -870,16 +900,12 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
         this.folderName = name;
     }
 
-    public void setWorldName(String p_71246_1_) {
-        this.worldName = p_71246_1_;
-    }
-
     public String getWorldName() {
         return this.worldName;
     }
 
-    public void setKeyPair(KeyPair keyPair) {
-        this.serverKeyPair = keyPair;
+    public void setWorldName(String p_71246_1_) {
+        this.worldName = p_71246_1_;
     }
 
     public void setDifficultyForAllWorlds(EnumDifficulty difficulty) {
@@ -1033,15 +1059,15 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
         return this.canSpawnNPCs;
     }
 
+    public void setCanSpawnNPCs(boolean spawnNpcs) {
+        this.canSpawnNPCs = spawnNpcs;
+    }
+
     /**
      * Get if native transport should be used. Native transport means linux server performance improvements and
      * optimized packet sending/receiving on linux
      */
     public abstract boolean shouldUseNativeTransport();
-
-    public void setCanSpawnNPCs(boolean spawnNpcs) {
-        this.canSpawnNPCs = spawnNpcs;
-    }
 
     public boolean isPVPEnabled() {
         return this.pvpEnabled;
@@ -1090,15 +1116,6 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
 
     public void setConfigManager(ServerConfigurationManager configManager) {
         this.serverConfigManager = configManager;
-    }
-
-    /**
-     * Sets the game type for all worlds.
-     */
-    public void setGameType(WorldSettings.GameType gameMode) {
-        for (int i = 0; i < this.worldServers.length; ++i) {
-            getServer().worldServers[i].getWorldInfo().setGameType(gameMode);
-        }
     }
 
     public NetworkSystem getNetworkSystem() {
@@ -1178,10 +1195,6 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
 
     public Proxy getServerProxy() {
         return this.serverProxy;
-    }
-
-    public static long getCurrentTimeMillis() {
-        return System.currentTimeMillis();
     }
 
     public int getMaxPlayerIdleMinutes() {

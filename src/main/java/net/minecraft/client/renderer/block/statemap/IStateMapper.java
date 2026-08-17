@@ -6,7 +6,6 @@ import net.minecraft.client.resources.model.ModelResourceLocation;
 
 import java.util.Map;
 
-public interface IStateMapper
-{
+public interface IStateMapper {
     Map<IBlockState, ModelResourceLocation> putStateModelLocations(Block blockIn);
 }

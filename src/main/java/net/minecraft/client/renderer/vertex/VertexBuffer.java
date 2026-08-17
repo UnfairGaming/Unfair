@@ -10,8 +10,8 @@ import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
 
 public class VertexBuffer {
-    private int glBufferId;
     private final VertexFormat vertexFormat;
+    private int glBufferId;
     private int count;
     @Getter
     private VboRegion vboRegion;

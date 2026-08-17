@@ -5,8 +5,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.JsonUtils;
 import org.lwjgl.opengl.GL14;
 
-public class JsonBlendingMode
-{
+public class JsonBlendingMode {
     private static JsonBlendingMode mode = null;
     private final int field_148116_b;
     private final int field_148117_c;
@@ -16,8 +15,7 @@ public class JsonBlendingMode
     private final boolean field_148113_g;
     private final boolean field_148119_h;
 
-    private JsonBlendingMode(boolean p_i45084_1_, boolean p_i45084_2_, int p_i45084_3_, int p_i45084_4_, int p_i45084_5_, int p_i45084_6_, int p_i45084_7_)
-    {
+    private JsonBlendingMode(boolean p_i45084_1_, boolean p_i45084_2_, int p_i45084_3_, int p_i45084_4_, int p_i45084_5_, int p_i45084_6_, int p_i45084_7_) {
         this.field_148113_g = p_i45084_1_;
         this.field_148116_b = p_i45084_3_;
         this.field_148114_d = p_i45084_4_;
@@ -27,92 +25,22 @@ public class JsonBlendingMode
         this.field_148112_f = p_i45084_7_;
     }
 
-    public JsonBlendingMode()
-    {
+    public JsonBlendingMode() {
         this(false, true, 1, 0, 1, 0, 32774);
     }
 
-    public JsonBlendingMode(int p_i45085_1_, int p_i45085_2_, int p_i45085_3_)
-    {
+    public JsonBlendingMode(int p_i45085_1_, int p_i45085_2_, int p_i45085_3_) {
         this(false, false, p_i45085_1_, p_i45085_2_, p_i45085_1_, p_i45085_2_, p_i45085_3_);
     }
 
-    public JsonBlendingMode(int p_i45086_1_, int p_i45086_2_, int p_i45086_3_, int p_i45086_4_, int p_i45086_5_)
-    {
+    public JsonBlendingMode(int p_i45086_1_, int p_i45086_2_, int p_i45086_3_, int p_i45086_4_, int p_i45086_5_) {
         this(true, false, p_i45086_1_, p_i45086_2_, p_i45086_3_, p_i45086_4_, p_i45086_5_);
     }
 
-    public void func_148109_a()
-    {
-        if (!this.equals(mode))
-        {
-            if (mode == null || this.field_148119_h != mode.func_148111_b())
-            {
-                mode = this;
-
-                if (this.field_148119_h)
-                {
-                    GlStateManager.disableBlend();
-                    return;
-                }
-
-                GlStateManager.enableBlend();
-            }
-
-            GL14.glBlendEquation(this.field_148112_f);
-
-            if (this.field_148113_g)
-            {
-                GlStateManager.tryBlendFuncSeparate(this.field_148116_b, this.field_148114_d, this.field_148117_c, this.field_148115_e);
-            }
-            else
-            {
-                GlStateManager.blendFunc(this.field_148116_b, this.field_148114_d);
-            }
-        }
-    }
-
-    public boolean equals(Object obj)
-    {
-        if (this == obj)
-        {
-            return true;
-        }
-        else if (!(obj instanceof JsonBlendingMode jsonblendingmode))
-        {
-            return false;
-        }
-        else
-        {
-            return this.field_148112_f == jsonblendingmode.field_148112_f && (this.field_148115_e == jsonblendingmode.field_148115_e && (this.field_148114_d == jsonblendingmode.field_148114_d && (this.field_148119_h == jsonblendingmode.field_148119_h && (this.field_148113_g == jsonblendingmode.field_148113_g && (this.field_148117_c == jsonblendingmode.field_148117_c && this.field_148116_b == jsonblendingmode.field_148116_b)))));
-        }
-    }
-
-    public int hashCode()
-    {
-        int i = this.field_148116_b;
-        i = 31 * i + this.field_148117_c;
-        i = 31 * i + this.field_148114_d;
-        i = 31 * i + this.field_148115_e;
-        i = 31 * i + this.field_148112_f;
-        i = 31 * i + (this.field_148113_g ? 1 : 0);
-        i = 31 * i + (this.field_148119_h ? 1 : 0);
-        return i;
-    }
-
-    public boolean func_148111_b()
-    {
-        return this.field_148119_h;
-    }
-
-    public static JsonBlendingMode func_148110_a(JsonObject object)
-    {
-        if (object == null)
-        {
+    public static JsonBlendingMode func_148110_a(JsonObject object) {
+        if (object == null) {
             return new JsonBlendingMode();
-        }
-        else
-        {
+        } else {
             int i = 32774;
             int j = 1;
             int k = 0;
@@ -121,54 +49,44 @@ public class JsonBlendingMode
             boolean flag = true;
             boolean flag1 = false;
 
-            if (JsonUtils.isString(object, "func"))
-            {
+            if (JsonUtils.isString(object, "func")) {
                 i = func_148108_a(object.get("func").getAsString());
 
-                if (i != 32774)
-                {
+                if (i != 32774) {
                     flag = false;
                 }
             }
 
-            if (JsonUtils.isString(object, "srcrgb"))
-            {
+            if (JsonUtils.isString(object, "srcrgb")) {
                 j = func_148107_b(object.get("srcrgb").getAsString());
 
-                if (j != 1)
-                {
+                if (j != 1) {
                     flag = false;
                 }
             }
 
-            if (JsonUtils.isString(object, "dstrgb"))
-            {
+            if (JsonUtils.isString(object, "dstrgb")) {
                 k = func_148107_b(object.get("dstrgb").getAsString());
 
-                if (k != 0)
-                {
+                if (k != 0) {
                     flag = false;
                 }
             }
 
-            if (JsonUtils.isString(object, "srcalpha"))
-            {
+            if (JsonUtils.isString(object, "srcalpha")) {
                 l = func_148107_b(object.get("srcalpha").getAsString());
 
-                if (l != 1)
-                {
+                if (l != 1) {
                     flag = false;
                 }
 
                 flag1 = true;
             }
 
-            if (JsonUtils.isString(object, "dstalpha"))
-            {
+            if (JsonUtils.isString(object, "dstalpha")) {
                 i1 = func_148107_b(object.get("dstalpha").getAsString());
 
-                if (i1 != 0)
-                {
+                if (i1 != 0) {
                     flag = false;
                 }
 
@@ -179,19 +97,65 @@ public class JsonBlendingMode
         }
     }
 
-    private static int func_148108_a(String str)
-    {
+    private static int func_148108_a(String str) {
         String s = str.trim().toLowerCase();
         return s.equals("add") ? 32774 : (s.equals("subtract") ? 32778 : (s.equals("reversesubtract") ? 32779 : (s.equals("reverse_subtract") ? 32779 : (s.equals("min") ? 32775 : (s.equals("max") ? 32776 : 32774)))));
     }
 
-    private static int func_148107_b(String str)
-    {
+    private static int func_148107_b(String str) {
         String s = str.trim().toLowerCase();
         s = s.replaceAll("_", "");
         s = s.replaceAll("one", "1");
         s = s.replaceAll("zero", "0");
         s = s.replaceAll("minus", "-");
         return s.equals("0") ? 0 : (s.equals("1") ? 1 : (s.equals("srccolor") ? 768 : (s.equals("1-srccolor") ? 769 : (s.equals("dstcolor") ? 774 : (s.equals("1-dstcolor") ? 775 : (s.equals("srcalpha") ? 770 : (s.equals("1-srcalpha") ? 771 : (s.equals("dstalpha") ? 772 : (s.equals("1-dstalpha") ? 773 : -1)))))))));
+    }
+
+    public void func_148109_a() {
+        if (!this.equals(mode)) {
+            if (mode == null || this.field_148119_h != mode.func_148111_b()) {
+                mode = this;
+
+                if (this.field_148119_h) {
+                    GlStateManager.disableBlend();
+                    return;
+                }
+
+                GlStateManager.enableBlend();
+            }
+
+            GL14.glBlendEquation(this.field_148112_f);
+
+            if (this.field_148113_g) {
+                GlStateManager.tryBlendFuncSeparate(this.field_148116_b, this.field_148114_d, this.field_148117_c, this.field_148115_e);
+            } else {
+                GlStateManager.blendFunc(this.field_148116_b, this.field_148114_d);
+            }
+        }
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (!(obj instanceof JsonBlendingMode jsonblendingmode)) {
+            return false;
+        } else {
+            return this.field_148112_f == jsonblendingmode.field_148112_f && (this.field_148115_e == jsonblendingmode.field_148115_e && (this.field_148114_d == jsonblendingmode.field_148114_d && (this.field_148119_h == jsonblendingmode.field_148119_h && (this.field_148113_g == jsonblendingmode.field_148113_g && (this.field_148117_c == jsonblendingmode.field_148117_c && this.field_148116_b == jsonblendingmode.field_148116_b)))));
+        }
+    }
+
+    public int hashCode() {
+        int i = this.field_148116_b;
+        i = 31 * i + this.field_148117_c;
+        i = 31 * i + this.field_148114_d;
+        i = 31 * i + this.field_148115_e;
+        i = 31 * i + this.field_148112_f;
+        i = 31 * i + (this.field_148113_g ? 1 : 0);
+        i = 31 * i + (this.field_148119_h ? 1 : 0);
+        return i;
+    }
+
+    public boolean func_148111_b() {
+        return this.field_148119_h;
     }
 }

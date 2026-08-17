@@ -10,9 +10,9 @@ import java.nio.ByteBuffer;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class HFNoiseTexture implements ICustomTexture {
-    private int texID = TextureUtil.glGenTextures();
     @Getter
     private final int textureUnit = 15;
+    private int texID = TextureUtil.glGenTextures();
 
     public HFNoiseTexture(int width, int height) {
         byte[] abyte = this.genHFNoiseImage(width, height);

@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 
 public class Framebuffer {
     private static final float DIVIDE_BY_255 = 0.003921568627451F;
+    public static Framebuffer currentlyBinding = null;
     public int framebufferTextureWidth;
     public int framebufferTextureHeight;
     public int framebufferWidth;
@@ -24,8 +25,8 @@ public class Framebuffer {
     public int depthBuffer;
     public float[] framebufferColor;
     public int framebufferFilter;
-
-    public static Framebuffer currentlyBinding = null;
+    int renderCallList = -1;
+    float lastWidth = -1, lastHeight = -1;
 
     public Framebuffer(int width, int height, boolean depth) {
         this.useDepth = depth;
@@ -223,9 +224,6 @@ public class Framebuffer {
     public void framebufferRender(int width, int height) {
         this.framebufferRenderExt(width, height, true);
     }
-
-    int renderCallList = -1;
-    float lastWidth = -1,  lastHeight = -1;
 
     private void updateRenderCallList(int width, int height) {
 

@@ -23,60 +23,64 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Random;
 
-public class BlockBrewingStand extends BlockContainer
-{
-    public static final PropertyBool[] HAS_BOTTLE = new PropertyBool[] {PropertyBool.create("has_bottle_0"), PropertyBool.create("has_bottle_1"), PropertyBool.create("has_bottle_2")};
+public class BlockBrewingStand extends BlockContainer {
+    public static final PropertyBool[] HAS_BOTTLE = new PropertyBool[]{PropertyBool.create("has_bottle_0"), PropertyBool.create("has_bottle_1"), PropertyBool.create("has_bottle_2")};
 
-    public BlockBrewingStand()
-    {
+    public BlockBrewingStand() {
         super(Material.iron);
         this.setDefaultState(this.blockState.getBaseState().withProperty(HAS_BOTTLE[0], Boolean.FALSE).withProperty(HAS_BOTTLE[1], Boolean.FALSE).withProperty(HAS_BOTTLE[2], Boolean.FALSE));
+    }
+
+    private static void addCollisionBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        AxisAlignedBB box = new AxisAlignedBB(
+                (double) pos.getX() + minX / 16.0D,
+                (double) pos.getY() + minY / 16.0D,
+                (double) pos.getZ() + minZ / 16.0D,
+                (double) pos.getX() + maxX / 16.0D,
+                (double) pos.getY() + maxY / 16.0D,
+                (double) pos.getZ() + maxZ / 16.0D);
+        if (box.intersectsWith(mask)) {
+            list.add(box);
+        }
     }
 
     /**
      * Gets the localized name of this block. Used for the statistics page.
      */
-    public String getLocalizedName()
-    {
+    public String getLocalizedName() {
         return StatCollector.translateToLocal("item.brewingStand.name");
     }
 
     /**
      * Used to determine ambient occlusion and culling when rebuilding chunks for render
      */
-    public boolean isOpaqueCube()
-    {
+    public boolean isOpaqueCube() {
         return false;
     }
 
     /**
      * The type of render function called. 3 for standard block models, 2 for TESR's, 1 for liquids, -1 is no render
      */
-    public int getRenderType()
-    {
+    public int getRenderType() {
         return 3;
     }
 
     /**
      * Returns a new instance of a block's tile entity class. Called on placing the block.
      */
-    public TileEntity createNewTileEntity(World worldIn, int meta)
-    {
+    public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileEntityBrewingStand();
     }
 
-    public boolean isFullCube()
-    {
+    public boolean isFullCube() {
         return false;
     }
 
     /**
      * Add all collision boxes of this Block to the list that intersect with the given mask.
      */
-    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
-    {
-        if (ViaProtocol.newerThanOrEqualTo1_13())
-        {
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity) {
+        if (ViaProtocol.newerThanOrEqualTo1_13()) {
             addCollisionBox(pos, mask, list, 1.0D, 0.0D, 1.0D, 15.0D, 2.0D, 15.0D);
             addCollisionBox(pos, mask, list, 7.0D, 0.0D, 7.0D, 9.0D, 14.0D, 9.0D);
             return;
@@ -88,42 +92,21 @@ public class BlockBrewingStand extends BlockContainer
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
     }
 
-    private static void addCollisionBox(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list, double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
-    {
-        AxisAlignedBB box = new AxisAlignedBB(
-                (double)pos.getX() + minX / 16.0D,
-                (double)pos.getY() + minY / 16.0D,
-                (double)pos.getZ() + minZ / 16.0D,
-                (double)pos.getX() + maxX / 16.0D,
-                (double)pos.getY() + maxY / 16.0D,
-                (double)pos.getZ() + maxZ / 16.0D);
-        if (box.intersectsWith(mask))
-        {
-            list.add(box);
-        }
-    }
-
     /**
      * Sets the block's bounds for rendering it as an item
      */
-    public void setBlockBoundsForItemRender()
-    {
+    public void setBlockBoundsForItemRender() {
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F);
     }
 
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
-    {
-        if (worldIn.isRemote)
-        {
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ) {
+        if (worldIn.isRemote) {
             return true;
-        }
-        else
-        {
+        } else {
             TileEntity tileentity = worldIn.getTileEntity(pos);
 
-            if (tileentity instanceof TileEntityBrewingStand)
-            {
-                playerIn.displayGUIChest((TileEntityBrewingStand)tileentity);
+            if (tileentity instanceof TileEntityBrewingStand) {
+                playerIn.displayGUIChest((TileEntityBrewingStand) tileentity);
                 playerIn.triggerAchievement(StatList.field_181729_M);
             }
 
@@ -134,34 +117,28 @@ public class BlockBrewingStand extends BlockContainer
     /**
      * Called by ItemBlocks after a block is set in the world, to allow post-place logic
      */
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
-    {
-        if (stack.hasDisplayName())
-        {
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+        if (stack.hasDisplayName()) {
             TileEntity tileentity = worldIn.getTileEntity(pos);
 
-            if (tileentity instanceof TileEntityBrewingStand)
-            {
-                ((TileEntityBrewingStand)tileentity).setName(stack.getDisplayName());
+            if (tileentity instanceof TileEntityBrewingStand) {
+                ((TileEntityBrewingStand) tileentity).setName(stack.getDisplayName());
             }
         }
     }
 
-    public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand)
-    {
-        double d0 = (float)pos.getX() + 0.4F + rand.nextFloat() * 0.2F;
-        double d1 = (float)pos.getY() + 0.7F + rand.nextFloat() * 0.3F;
-        double d2 = (float)pos.getZ() + 0.4F + rand.nextFloat() * 0.2F;
+    public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+        double d0 = (float) pos.getX() + 0.4F + rand.nextFloat() * 0.2F;
+        double d1 = (float) pos.getY() + 0.7F + rand.nextFloat() * 0.3F;
+        double d2 = (float) pos.getZ() + 0.4F + rand.nextFloat() * 0.2F;
         worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0, d1, d2, 0.0D, 0.0D, 0.0D, new int[0]);
     }
 
-    public void breakBlock(World worldIn, BlockPos pos, IBlockState state)
-    {
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         TileEntity tileentity = worldIn.getTileEntity(pos);
 
-        if (tileentity instanceof TileEntityBrewingStand)
-        {
-            InventoryHelper.dropInventoryItems(worldIn, pos, (TileEntityBrewingStand)tileentity);
+        if (tileentity instanceof TileEntityBrewingStand) {
+            InventoryHelper.dropInventoryItems(worldIn, pos, (TileEntityBrewingStand) tileentity);
         }
 
         super.breakBlock(worldIn, pos, state);
@@ -170,40 +147,33 @@ public class BlockBrewingStand extends BlockContainer
     /**
      * Get the Item that this Block should drop when harvested.
      */
-    public Item getItemDropped(IBlockState state, Random rand, int fortune)
-    {
+    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
         return Items.brewing_stand;
     }
 
-    public Item getItem(World worldIn, BlockPos pos)
-    {
+    public Item getItem(World worldIn, BlockPos pos) {
         return Items.brewing_stand;
     }
 
-    public boolean hasComparatorInputOverride()
-    {
+    public boolean hasComparatorInputOverride() {
         return true;
     }
 
-    public int getComparatorInputOverride(World worldIn, BlockPos pos)
-    {
+    public int getComparatorInputOverride(World worldIn, BlockPos pos) {
         return Container.calcRedstone(worldIn.getTileEntity(pos));
     }
 
-    public EnumWorldBlockLayer getBlockLayer()
-    {
+    public EnumWorldBlockLayer getBlockLayer() {
         return EnumWorldBlockLayer.CUTOUT;
     }
 
     /**
      * Convert the given metadata into a BlockState for this Block
      */
-    public IBlockState getStateFromMeta(int meta)
-    {
+    public IBlockState getStateFromMeta(int meta) {
         IBlockState iblockstate = this.getDefaultState();
 
-        for (int i = 0; i < 3; ++i)
-        {
+        for (int i = 0; i < 3; ++i) {
             iblockstate = iblockstate.withProperty(HAS_BOTTLE[i], (meta & 1 << i) > 0);
         }
 
@@ -213,14 +183,11 @@ public class BlockBrewingStand extends BlockContainer
     /**
      * Convert the BlockState into the correct metadata value
      */
-    public int getMetaFromState(IBlockState state)
-    {
+    public int getMetaFromState(IBlockState state) {
         int i = 0;
 
-        for (int j = 0; j < 3; ++j)
-        {
-            if (state.getValue(HAS_BOTTLE[j]))
-            {
+        for (int j = 0; j < 3; ++j) {
+            if (state.getValue(HAS_BOTTLE[j])) {
                 i |= 1 << j;
             }
         }
@@ -228,8 +195,7 @@ public class BlockBrewingStand extends BlockContainer
         return i;
     }
 
-    protected BlockState createBlockState()
-    {
-        return new BlockState(this, new IProperty[] {HAS_BOTTLE[0], HAS_BOTTLE[1], HAS_BOTTLE[2]});
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{HAS_BOTTLE[0], HAS_BOTTLE[1], HAS_BOTTLE[2]});
     }
 }

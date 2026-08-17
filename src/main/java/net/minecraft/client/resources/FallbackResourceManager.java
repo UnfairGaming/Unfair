@@ -22,6 +22,10 @@ public class FallbackResourceManager implements IResourceManager {
         this.frmMetadataSerializer = frmMetadataSerializerIn;
     }
 
+    static ResourceLocation getLocationMcmeta(ResourceLocation location) {
+        return ResourceLocation.of(location.getResourceDomain(), location.getResourcePath() + ".mcmeta");
+    }
+
     public void addResourcePack(IResourcePack resourcePack) {
         this.resourcePacks.add(resourcePack);
     }
@@ -91,23 +95,19 @@ public class FallbackResourceManager implements IResourceManager {
         }
     }
 
-    static ResourceLocation getLocationMcmeta(ResourceLocation location) {
-        return ResourceLocation.of(location.getResourceDomain(), location.getResourcePath() + ".mcmeta");
-    }
-
     static class InputStreamLeakedResourceLogger extends InputStream {
         private final InputStream inputStream;
-      //  private final String message;
-       // private boolean isClosed = false;
+        //  private final String message;
+        // private boolean isClosed = false;
 
         public InputStreamLeakedResourceLogger(InputStream inputStream, ResourceLocation location, String resourcePack) {
             this.inputStream = inputStream;
-          //  this.message = "Leaked resource: '" + location + "' loaded from pack: '" + resourcePack + "'";
+            //  this.message = "Leaked resource: '" + location + "' loaded from pack: '" + resourcePack + "'";
         }
 
         public void close() throws IOException {
             this.inputStream.close();
-          // this.isClosed = true;
+            // this.isClosed = true;
         }
 
         public int read() throws IOException {

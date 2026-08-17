@@ -28,15 +28,18 @@ public enum ModelRotation {
     X270_Y270(270, 270);
 
     private static final Map<Integer, ModelRotation> mapRotations = Maps.newHashMap();
+
+    static {
+        for (ModelRotation modelrotation : values()) {
+            mapRotations.put(modelrotation.combinedXY, modelrotation);
+        }
+    }
+
     private final int combinedXY;
     @Getter
     private final Matrix4f matrix4d;
     private final int quartersX;
     private final int quartersY;
-
-    private static int combineXY(int p_177521_0_, int p_177521_1_) {
-        return p_177521_0_ * 360 + p_177521_1_;
-    }
 
     ModelRotation(int p_i46087_3_, int p_i46087_4_) {
         this.combinedXY = combineXY(p_i46087_3_, p_i46087_4_);
@@ -50,6 +53,14 @@ public enum ModelRotation {
         Matrix4f.rotate((float) (-p_i46087_4_) * 0.017453292F, new Vector3f(0.0F, 1.0F, 0.0F), matrix4f1, matrix4f1);
         this.quartersY = MathHelper.abs_int(p_i46087_4_ / 90);
         Matrix4f.mul(matrix4f1, matrix4f, this.matrix4d);
+    }
+
+    private static int combineXY(int p_177521_0_, int p_177521_1_) {
+        return p_177521_0_ * 360 + p_177521_1_;
+    }
+
+    public static ModelRotation getModelRotation(int p_177524_0_, int p_177524_1_) {
+        return mapRotations.get(combineXY(MathHelper.normalizeAngle(p_177524_0_, 360), MathHelper.normalizeAngle(p_177524_1_, 360)));
     }
 
     public EnumFacing rotateFace(EnumFacing p_177523_1_) {
@@ -88,21 +99,11 @@ public enum ModelRotation {
         return i;
     }
 
-    public static ModelRotation getModelRotation(int p_177524_0_, int p_177524_1_) {
-        return mapRotations.get(combineXY(MathHelper.normalizeAngle(p_177524_0_, 360), MathHelper.normalizeAngle(p_177524_1_, 360)));
-    }
-
     public EnumFacing rotate(EnumFacing p_rotate_1_) {
         return this.rotateFace(p_rotate_1_);
     }
 
     public int rotate(EnumFacing p_rotate_1_, int p_rotate_2_) {
         return this.rotateVertex(p_rotate_1_, p_rotate_2_);
-    }
-
-    static {
-        for (ModelRotation modelrotation : values()) {
-            mapRotations.put(modelrotation.combinedXY, modelrotation);
-        }
     }
 }

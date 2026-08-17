@@ -18,23 +18,13 @@ import java.util.List;
 
 public class ChunkProviderClient implements IChunkProvider {
     private static final Logger logger = LogManager.getLogger("ChunkProviderClient");
-
+    public final LongHashMap<Chunk> chunkMapping = new LongHashMap<>();
     /**
      * The completely empty chunk used by ChunkProviderClient when chunkMapping doesn't contain the requested
      * coordinates.
      */
     private final Chunk blankChunk;
-    public final LongHashMap<Chunk> chunkMapping = new LongHashMap<>();
     private final List<Chunk> chunkListing = Lists.newArrayList();
-
-    public LongHashMap<Chunk> getChunkStorage() {
-        return this.chunkMapping;
-    }
-
-    public List<Chunk> getLoadedChunks() {
-        return this.chunkListing;
-    }
-
     /**
      * Reference to the World object.
      */
@@ -43,6 +33,14 @@ public class ChunkProviderClient implements IChunkProvider {
     public ChunkProviderClient(World worldIn) {
         this.blankChunk = new EmptyChunk(worldIn, 0, 0);
         this.worldObj = worldIn;
+    }
+
+    public LongHashMap<Chunk> getChunkStorage() {
+        return this.chunkMapping;
+    }
+
+    public List<Chunk> getLoadedChunks() {
+        return this.chunkListing;
     }
 
     /**

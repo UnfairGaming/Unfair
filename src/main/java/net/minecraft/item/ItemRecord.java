@@ -15,15 +15,15 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Map;
 
-public class ItemRecord extends Item
-{
+public class ItemRecord extends Item {
     private static final Map<String, ItemRecord> RECORDS = Maps.<String, ItemRecord>newHashMap();
 
-    /** The name of the record. */
+    /**
+     * The name of the record.
+     */
     public final String recordName;
 
-    protected ItemRecord(String name)
-    {
+    protected ItemRecord(String name) {
         this.recordName = name;
         this.maxStackSize = 1;
         this.setCreativeTab(CreativeTabs.tabMisc);
@@ -31,29 +31,29 @@ public class ItemRecord extends Item
     }
 
     /**
+     * Return the record item corresponding to the given name.
+     */
+    public static ItemRecord getRecord(String name) {
+        return RECORDS.get(name);
+    }
+
+    /**
      * Called when a Block is right-clicked with this Item
      */
-    public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ)
-    {
+    public boolean onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ) {
         IBlockState iblockstate = worldIn.getBlockState(pos);
 
-        if (iblockstate.getBlock() == Blocks.jukebox && !iblockstate.getValue(BlockJukebox.HAS_RECORD))
-        {
-            if (worldIn.isRemote)
-            {
+        if (iblockstate.getBlock() == Blocks.jukebox && !iblockstate.getValue(BlockJukebox.HAS_RECORD)) {
+            if (worldIn.isRemote) {
                 return true;
-            }
-            else
-            {
-                ((BlockJukebox)Blocks.jukebox).insertRecord(worldIn, pos, iblockstate, stack);
+            } else {
+                ((BlockJukebox) Blocks.jukebox).insertRecord(worldIn, pos, iblockstate, stack);
                 worldIn.playAuxSFXAtEntity(null, 1005, pos, Item.getIdFromItem(this));
                 --stack.stackSize;
                 playerIn.triggerAchievement(StatList.field_181740_X);
                 return true;
             }
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -61,29 +61,18 @@ public class ItemRecord extends Item
     /**
      * allows items to add custom lines of information to the mouseover description
      */
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
-    {
+    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
         tooltip.add(this.getRecordNameLocal());
     }
 
-    public String getRecordNameLocal()
-    {
+    public String getRecordNameLocal() {
         return StatCollector.translateToLocal("item.record." + this.recordName + ".desc");
     }
 
     /**
      * Return an item rarity from EnumRarity
      */
-    public EnumRarity getRarity(ItemStack stack)
-    {
+    public EnumRarity getRarity(ItemStack stack) {
         return EnumRarity.RARE;
-    }
-
-    /**
-     * Return the record item corresponding to the given name.
-     */
-    public static ItemRecord getRecord(String name)
-    {
-        return RECORDS.get(name);
     }
 }

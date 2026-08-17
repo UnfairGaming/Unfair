@@ -23,15 +23,24 @@ public class KeyBinding implements Comparable<KeyBinding> {
     private final int keyCodeDefault;
     @Getter
     private final String keyCategory;
-    @Getter
-    @Setter
-    private int keyCode;
-
     /**
      * Is the key held down?
      */
     public boolean pressed;
+    @Getter
+    @Setter
+    private int keyCode;
     private int pressTime;
+
+    public KeyBinding(String description, int keyCode, String category) {
+        this.keyDescription = description;
+        this.keyCode = keyCode;
+        this.keyCodeDefault = keyCode;
+        this.keyCategory = category;
+        keybindArray.add(this);
+        hash.addKey(keyCode, this);
+        keybindSet.add(category);
+    }
 
     public static void onTick(int keyCode) {
         if (keyCode != 0) {
@@ -69,16 +78,6 @@ public class KeyBinding implements Comparable<KeyBinding> {
 
     public static Set<String> getKeybinds() {
         return keybindSet;
-    }
-
-    public KeyBinding(String description, int keyCode, String category) {
-        this.keyDescription = description;
-        this.keyCode = keyCode;
-        this.keyCodeDefault = keyCode;
-        this.keyCategory = category;
-        keybindArray.add(this);
-        hash.addKey(keyCode, this);
-        keybindSet.add(category);
     }
 
     /**

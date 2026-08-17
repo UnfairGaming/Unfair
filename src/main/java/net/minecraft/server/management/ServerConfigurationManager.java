@@ -70,21 +70,18 @@ public abstract class ServerConfigurationManager {
      */
     private final UserListWhitelist whiteListedPlayers;
     private final Map<UUID, StatisticsFile> playerStatFiles;
-
-    /**
-     * Reference to the PlayerNBTManager object.
-     */
-    private IPlayerFileData playerNBTManagerObj;
-
-    /**
-     * Server setting to only allow OPs and whitelisted players to join the server.
-     */
-    private boolean whiteListEnforced;
-
     /**
      * The maximum number of players that can be connected at a time.
      */
     protected int maxPlayers;
+    /**
+     * Reference to the PlayerNBTManager object.
+     */
+    private IPlayerFileData playerNBTManagerObj;
+    /**
+     * Server setting to only allow OPs and whitelisted players to join the server.
+     */
+    private boolean whiteListEnforced;
     private int viewDistance;
     private WorldSettings.GameType gameType;
 
@@ -809,6 +806,18 @@ public abstract class ServerConfigurationManager {
         return this.viewDistance;
     }
 
+    public void setViewDistance(int distance) {
+        this.viewDistance = distance;
+
+        if (this.mcServer.worldServers != null) {
+            for (WorldServer worldserver : this.mcServer.worldServers) {
+                if (worldserver != null) {
+                    worldserver.getPlayerManager().setPlayerViewRadius(distance);
+                }
+            }
+        }
+    }
+
     public MinecraftServer getServerInstance() {
         return this.mcServer;
     }
@@ -885,18 +894,6 @@ public abstract class ServerConfigurationManager {
         }
 
         return statisticsfile;
-    }
-
-    public void setViewDistance(int distance) {
-        this.viewDistance = distance;
-
-        if (this.mcServer.worldServers != null) {
-            for (WorldServer worldserver : this.mcServer.worldServers) {
-                if (worldserver != null) {
-                    worldserver.getPlayerManager().setPlayerViewRadius(distance);
-                }
-            }
-        }
     }
 
     public List<EntityPlayerMP> getPlayerList() {

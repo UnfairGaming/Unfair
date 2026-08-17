@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-public interface IResourceManager
-{
+public interface IResourceManager {
     Set<String> getResourceDomains();
 
     IResource getResource(ResourceLocation location) throws IOException;

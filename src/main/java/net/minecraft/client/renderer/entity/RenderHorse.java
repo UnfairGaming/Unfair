@@ -10,8 +10,7 @@ import net.minecraft.util.ResourceLocation;
 
 import java.util.Map;
 
-public class RenderHorse extends RenderLiving<EntityHorse>
-{
+public class RenderHorse extends RenderLiving<EntityHorse> {
     private static final Map<String, ResourceLocation> field_110852_a = Maps.<String, ResourceLocation>newHashMap();
     private static final ResourceLocation whiteHorseTextures = ResourceLocation.of("textures/entity/horse/horse_white.png");
     private static final ResourceLocation muleTextures = ResourceLocation.of("textures/entity/horse/mule.png");
@@ -19,8 +18,7 @@ public class RenderHorse extends RenderLiving<EntityHorse>
     private static final ResourceLocation zombieHorseTextures = ResourceLocation.of("textures/entity/horse/horse_zombie.png");
     private static final ResourceLocation skeletonHorseTextures = ResourceLocation.of("textures/entity/horse/horse_skeleton.png");
 
-    public RenderHorse(RenderManager rendermanagerIn, ModelHorse model, float shadowSizeIn)
-    {
+    public RenderHorse(RenderManager rendermanagerIn, ModelHorse model, float shadowSizeIn) {
         super(rendermanagerIn, model, shadowSizeIn);
     }
 
@@ -28,17 +26,13 @@ public class RenderHorse extends RenderLiving<EntityHorse>
      * Allows the render to do any OpenGL state modifications necessary before the model is rendered. Args:
      * entityLiving, partialTickTime
      */
-    protected void preRenderCallback(EntityHorse entitylivingbaseIn, float partialTickTime)
-    {
+    protected void preRenderCallback(EntityHorse entitylivingbaseIn, float partialTickTime) {
         float f = 1.0F;
         int i = entitylivingbaseIn.getHorseType();
 
-        if (i == 1)
-        {
+        if (i == 1) {
             f *= 0.87F;
-        }
-        else if (i == 2)
-        {
+        } else if (i == 2) {
             f *= 0.92F;
         }
 
@@ -49,12 +43,9 @@ public class RenderHorse extends RenderLiving<EntityHorse>
     /**
      * Returns the location of an entity's texture. Doesn't seem to be called unless you call Render.bindEntityTexture.
      */
-    protected ResourceLocation getEntityTexture(EntityHorse entity)
-    {
-        if (!entity.func_110239_cn())
-        {
-            switch (entity.getHorseType())
-            {
+    protected ResourceLocation getEntityTexture(EntityHorse entity) {
+        if (!entity.func_110239_cn()) {
+            switch (entity.getHorseType()) {
                 case 0:
                 default:
                     return whiteHorseTextures;
@@ -71,27 +62,20 @@ public class RenderHorse extends RenderLiving<EntityHorse>
                 case 4:
                     return skeletonHorseTextures;
             }
-        }
-        else
-        {
+        } else {
             return this.func_110848_b(entity);
         }
     }
 
-    private ResourceLocation func_110848_b(EntityHorse horse)
-    {
+    private ResourceLocation func_110848_b(EntityHorse horse) {
         String s = horse.getHorseTexture();
 
-        if (!horse.func_175507_cI())
-        {
+        if (!horse.func_175507_cI()) {
             return null;
-        }
-        else
-        {
+        } else {
             ResourceLocation resourcelocation = field_110852_a.get(s);
 
-            if (resourcelocation == null)
-            {
+            if (resourcelocation == null) {
                 resourcelocation = ResourceLocation.of(s);
                 Minecraft.getMinecraft().getTextureManager().loadTexture(resourcelocation, new LayeredTexture(horse.getVariantTexturePaths()));
                 field_110852_a.put(s, resourcelocation);

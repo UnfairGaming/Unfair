@@ -18,35 +18,31 @@ import net.optifine.shaders.ShadersRender;
 
 import java.util.Map;
 
-public abstract class LayerArmorBase<T extends ModelBase> implements LayerRenderer<EntityLivingBase>
-{
+public abstract class LayerArmorBase<T extends ModelBase> implements LayerRenderer<EntityLivingBase> {
     protected static final ResourceLocation ENCHANTED_ITEM_GLINT_RES = ResourceLocation.of("textures/misc/enchanted_item_glint.png");
+    private static final Map<String, ResourceLocation> ARMOR_TEXTURE_RES_MAP = Maps.<String, ResourceLocation>newHashMap();
+    private final RendererLivingEntity<?> renderer;
     protected T modelLeggings;
     protected T modelArmor;
-    private final RendererLivingEntity<?> renderer;
     private float alpha = 1.0F;
     private float colorR = 1.0F;
     private float colorG = 1.0F;
     private float colorB = 1.0F;
     private boolean skipRenderGlint;
-    private static final Map<String, ResourceLocation> ARMOR_TEXTURE_RES_MAP = Maps.<String, ResourceLocation>newHashMap();
 
-    public LayerArmorBase(RendererLivingEntity<?> rendererIn)
-    {
+    public LayerArmorBase(RendererLivingEntity<?> rendererIn) {
         this.renderer = rendererIn;
         this.initArmor();
     }
 
-    public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale)
-    {
+    public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float p_177141_2_, float p_177141_3_, float partialTicks, float p_177141_5_, float p_177141_6_, float p_177141_7_, float scale) {
         this.renderLayer(entitylivingbaseIn, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, 4);
         this.renderLayer(entitylivingbaseIn, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, 3);
         this.renderLayer(entitylivingbaseIn, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, 2);
         this.renderLayer(entitylivingbaseIn, p_177141_2_, p_177141_3_, partialTicks, p_177141_5_, p_177141_6_, p_177141_7_, scale, 1);
     }
 
-    public boolean shouldCombineTextures()
-    {
+    public boolean shouldCombineTextures() {
         return Animations.oldDamageEnabled();
     }
 
@@ -96,30 +92,24 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
         }
     }
 
-    public ItemStack getCurrentArmor(EntityLivingBase entitylivingbaseIn, int armorSlot)
-    {
+    public ItemStack getCurrentArmor(EntityLivingBase entitylivingbaseIn, int armorSlot) {
         return entitylivingbaseIn.getCurrentArmor(armorSlot - 1);
     }
 
-    public T getArmorModel(int armorSlot)
-    {
+    public T getArmorModel(int armorSlot) {
         return this.isSlotForLeggings(armorSlot) ? this.modelLeggings : this.modelArmor;
     }
 
-    private boolean isSlotForLeggings(int armorSlot)
-    {
+    private boolean isSlotForLeggings(int armorSlot) {
         return armorSlot == 2;
     }
 
-    private void renderGlint(EntityLivingBase entitylivingbaseIn, T modelbaseIn, float p_177183_3_, float p_177183_4_, float partialTicks, float p_177183_6_, float p_177183_7_, float p_177183_8_, float scale)
-    {
-        if (!Config.isShaders() || !Shaders.isShadowPass)
-        {
-            float f = (float)entitylivingbaseIn.ticksExisted + partialTicks;
+    private void renderGlint(EntityLivingBase entitylivingbaseIn, T modelbaseIn, float p_177183_3_, float p_177183_4_, float partialTicks, float p_177183_6_, float p_177183_7_, float p_177183_8_, float scale) {
+        if (!Config.isShaders() || !Shaders.isShadowPass) {
+            float f = (float) entitylivingbaseIn.ticksExisted + partialTicks;
             this.renderer.bindTexture(ENCHANTED_ITEM_GLINT_RES);
 
-            if (Config.isShaders())
-            {
+            if (Config.isShaders()) {
                 ShadersRender.renderEnchantedGlintBegin();
             }
 
@@ -129,8 +119,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
             float f1 = 0.5F;
             GlStateManager.color(f1, f1, f1, 1.0F);
 
-            for (int i = 0; i < 2; ++i)
-            {
+            for (int i = 0; i < 2; ++i) {
                 GlStateManager.disableLighting();
                 GlStateManager.blendFunc(768, 1);
                 float f2 = 0.76F;
@@ -139,8 +128,8 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
                 GlStateManager.loadIdentity();
                 float f3 = 0.33333334F;
                 GlStateManager.scale(f3, f3, f3);
-                GlStateManager.rotate(30.0F - (float)i * 60.0F, 0.0F, 0.0F, 1.0F);
-                GlStateManager.translate(0.0F, f * (0.001F + (float)i * 0.003F) * 20.0F, 0.0F);
+                GlStateManager.rotate(30.0F - (float) i * 60.0F, 0.0F, 0.0F, 1.0F);
+                GlStateManager.translate(0.0F, f * (0.001F + (float) i * 0.003F) * 20.0F, 0.0F);
                 GlStateManager.matrixMode(5888);
                 modelbaseIn.render(entitylivingbaseIn, p_177183_3_, p_177183_4_, p_177183_6_, p_177183_7_, p_177183_8_, scale);
             }
@@ -153,8 +142,7 @@ public abstract class LayerArmorBase<T extends ModelBase> implements LayerRender
             GlStateManager.depthFunc(515);
             GlStateManager.disableBlend();
 
-            if (Config.isShaders())
-            {
+            if (Config.isShaders()) {
                 ShadersRender.renderEnchantedGlintEnd();
             }
         }

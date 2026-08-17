@@ -5,11 +5,11 @@ public interface Cullable {
 
     boolean isForcedVisible();
 
-    void setCulled(boolean value);
-
     boolean isCulled();
 
-    void setOutOfCamera(boolean value);
+    void setCulled(boolean value);
 
     boolean isOutOfCamera();
+
+    void setOutOfCamera(boolean value);
 }

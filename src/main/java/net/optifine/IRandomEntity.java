@@ -4,8 +4,7 @@ import net.minecraft.util.BlockPos;
 import net.minecraft.world.biome.BiomeGenBase;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public interface IRandomEntity
-{
+public interface IRandomEntity {
     int getId();
 
     BlockPos getSpawnPosition();

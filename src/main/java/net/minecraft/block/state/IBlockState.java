@@ -6,8 +6,7 @@ import net.minecraft.block.properties.IProperty;
 
 import java.util.Collection;
 
-public interface IBlockState
-{
+public interface IBlockState {
     Collection<IProperty> getPropertyNames();
 
     <T extends Comparable<T>> T getValue(IProperty<T> property);

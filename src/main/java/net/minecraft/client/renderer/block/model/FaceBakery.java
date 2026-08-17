@@ -17,6 +17,77 @@ public class FaceBakery {
     private static final float SCALE_ROTATION_22_5 = 1.0F / (float) Math.cos(0.39269909262657166D) - 1.0F;
     private static final float SCALE_ROTATION_GENERAL = 1.0F / (float) Math.cos((Math.PI / 4D)) - 1.0F;
 
+    public static float getFaceBrightness(EnumFacing p_178412_0_) {
+        switch (p_178412_0_) {
+            case DOWN:
+                if (Config.isShaders()) {
+                    return Shaders.blockLightLevel05;
+                }
+
+                return 0.5F;
+
+            case UP:
+                return 1.0F;
+
+            case NORTH:
+            case SOUTH:
+                if (Config.isShaders()) {
+                    return Shaders.blockLightLevel08;
+                }
+
+                return 0.8F;
+
+            case WEST:
+            case EAST:
+                if (Config.isShaders()) {
+                    return Shaders.blockLightLevel06;
+                }
+
+                return 0.6F;
+
+            default:
+                return 1.0F;
+        }
+    }
+
+    public static EnumFacing getFacingFromVertexData(int[] faceData) {
+        int i = faceData.length / 4;
+        int j = i * 2;
+        int k = i * 3;
+        Vector3f vector3f = new Vector3f(Float.intBitsToFloat(faceData[0]), Float.intBitsToFloat(faceData[1]), Float.intBitsToFloat(faceData[2]));
+        Vector3f vector3f1 = new Vector3f(Float.intBitsToFloat(faceData[i]), Float.intBitsToFloat(faceData[i + 1]), Float.intBitsToFloat(faceData[i + 2]));
+        Vector3f vector3f2 = new Vector3f(Float.intBitsToFloat(faceData[j]), Float.intBitsToFloat(faceData[j + 1]), Float.intBitsToFloat(faceData[j + 2]));
+        Vector3f vector3f3 = new Vector3f();
+        Vector3f vector3f4 = new Vector3f();
+        Vector3f vector3f5 = new Vector3f();
+        Vector3f.sub(vector3f, vector3f1, vector3f3);
+        Vector3f.sub(vector3f2, vector3f1, vector3f4);
+        Vector3f.cross(vector3f4, vector3f3, vector3f5);
+        float f = (float) Math.sqrt(vector3f5.x * vector3f5.x + vector3f5.y * vector3f5.y + vector3f5.z * vector3f5.z);
+        vector3f5.x /= f;
+        vector3f5.y /= f;
+        vector3f5.z /= f;
+        EnumFacing enumfacing = null;
+        float f1 = 0.0F;
+
+        for (EnumFacing enumfacing1 : EnumFacing.values()) {
+            Vec3i vec3i = enumfacing1.getDirectionVec();
+            Vector3f vector3f6 = new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
+            float f2 = Vector3f.dot(vector3f5, vector3f6);
+
+            if (f2 >= 0.0F && f2 > f1) {
+                f1 = f2;
+                enumfacing = enumfacing1;
+            }
+        }
+
+        if (enumfacing == null) {
+            return EnumFacing.UP;
+        } else {
+            return enumfacing;
+        }
+    }
+
     public BakedQuad makeBakedQuad(Vector3f posFrom, Vector3f posTo, BlockPartFace face, TextureAtlasSprite sprite, EnumFacing facing, ModelRotation modelRotationIn, BlockPartRotation partRotation, boolean uvLocked, boolean shade) {
         int[] aint = this.makeQuadVertexData(face, sprite, facing, this.getPositionsDiv16(posFrom, posTo), modelRotationIn, partRotation, uvLocked, shade);
         EnumFacing enumfacing = getFacingFromVertexData(aint);
@@ -52,39 +123,6 @@ public class FaceBakery {
         float f = getFaceBrightness(facing);
         int i = MathHelper.clamp_int((int) (f * 255.0F), 0, 255);
         return -16777216 | i << 16 | i << 8 | i;
-    }
-
-    public static float getFaceBrightness(EnumFacing p_178412_0_) {
-        switch (p_178412_0_) {
-            case DOWN:
-                if (Config.isShaders()) {
-                    return Shaders.blockLightLevel05;
-                }
-
-                return 0.5F;
-
-            case UP:
-                return 1.0F;
-
-            case NORTH:
-            case SOUTH:
-                if (Config.isShaders()) {
-                    return Shaders.blockLightLevel08;
-                }
-
-                return 0.8F;
-
-            case WEST:
-            case EAST:
-                if (Config.isShaders()) {
-                    return Shaders.blockLightLevel06;
-                }
-
-                return 0.6F;
-
-            default:
-                return 1.0F;
-        }
     }
 
     private float[] getPositionsDiv16(Vector3f pos1, Vector3f pos2) {
@@ -181,44 +219,6 @@ public class FaceBakery {
         Matrix4f matrix4f = new Matrix4f();
         matrix4f.setIdentity();
         return matrix4f;
-    }
-
-    public static EnumFacing getFacingFromVertexData(int[] faceData) {
-        int i = faceData.length / 4;
-        int j = i * 2;
-        int k = i * 3;
-        Vector3f vector3f = new Vector3f(Float.intBitsToFloat(faceData[0]), Float.intBitsToFloat(faceData[1]), Float.intBitsToFloat(faceData[2]));
-        Vector3f vector3f1 = new Vector3f(Float.intBitsToFloat(faceData[i]), Float.intBitsToFloat(faceData[i + 1]), Float.intBitsToFloat(faceData[i + 2]));
-        Vector3f vector3f2 = new Vector3f(Float.intBitsToFloat(faceData[j]), Float.intBitsToFloat(faceData[j + 1]), Float.intBitsToFloat(faceData[j + 2]));
-        Vector3f vector3f3 = new Vector3f();
-        Vector3f vector3f4 = new Vector3f();
-        Vector3f vector3f5 = new Vector3f();
-        Vector3f.sub(vector3f, vector3f1, vector3f3);
-        Vector3f.sub(vector3f2, vector3f1, vector3f4);
-        Vector3f.cross(vector3f4, vector3f3, vector3f5);
-        float f = (float) Math.sqrt(vector3f5.x * vector3f5.x + vector3f5.y * vector3f5.y + vector3f5.z * vector3f5.z);
-        vector3f5.x /= f;
-        vector3f5.y /= f;
-        vector3f5.z /= f;
-        EnumFacing enumfacing = null;
-        float f1 = 0.0F;
-
-        for (EnumFacing enumfacing1 : EnumFacing.values()) {
-            Vec3i vec3i = enumfacing1.getDirectionVec();
-            Vector3f vector3f6 = new Vector3f((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
-            float f2 = Vector3f.dot(vector3f5, vector3f6);
-
-            if (f2 >= 0.0F && f2 > f1) {
-                f1 = f2;
-                enumfacing = enumfacing1;
-            }
-        }
-
-        if (enumfacing == null) {
-            return EnumFacing.UP;
-        } else {
-            return enumfacing;
-        }
     }
 
     public void lockUv(int[] p_178409_1_, EnumFacing facing, BlockFaceUV p_178409_3_, TextureAtlasSprite p_178409_4_) {

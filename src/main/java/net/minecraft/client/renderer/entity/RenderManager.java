@@ -49,25 +49,11 @@ import java.util.Collections;
 import java.util.Map;
 
 public class RenderManager {
-    @Getter
-    private Map<Class<? extends Entity>, Render<? extends Entity>> entityRenderMap = Maps.newHashMap();
-    private Map<String, RenderPlayer> skinMap = Maps.newHashMap();
-    private RenderPlayer playerRenderer;
-
-    /**
-     * Renders fonts
-     */
-    private FontRenderer textRenderer;
-    private double renderPosX;
-    private double renderPosY;
-    private double renderPosZ;
     public TextureManager renderEngine;
-
     /**
      * Reference to the World object.
      */
     public World worldObj;
-
     /**
      * Rendermanager's variable for the player
      */
@@ -75,7 +61,6 @@ public class RenderManager {
     public Entity pointedEntity;
     public float playerViewY;
     public float playerViewX;
-
     /**
      * Reference to the GameSettings object.
      */
@@ -83,15 +68,25 @@ public class RenderManager {
     public double viewerPosX;
     public double viewerPosY;
     public double viewerPosZ;
+    public Render renderRender = null;
+    @Getter
+    private Map<Class<? extends Entity>, Render<? extends Entity>> entityRenderMap = Maps.newHashMap();
+    private Map<String, RenderPlayer> skinMap = Maps.newHashMap();
+    private RenderPlayer playerRenderer;
+    /**
+     * Renders fonts
+     */
+    private FontRenderer textRenderer;
+    private double renderPosX;
+    private double renderPosY;
+    private double renderPosZ;
     @Setter
     private boolean renderOutlines = false;
     private boolean renderShadow = true;
-
     /**
      * whether bounding box should be rendered or not
      */
     private boolean debugBoundingBox = false;
-    public Render renderRender = null;
 
     public RenderManager(TextureManager renderEngineIn, RenderItem itemRendererIn) {
         this.renderEngine = renderEngineIn;
@@ -161,6 +156,11 @@ public class RenderManager {
         PlayerItemsLayer.register(this.skinMap);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T extends Entity> Render<T> castRender(Render<? extends Entity> render) {
+        return (Render<T>) render;
+    }
+
     public void setRenderPosition(double renderPosXIn, double renderPosYIn, double renderPosZIn) {
         this.renderPosX = renderPosXIn;
         this.renderPosY = renderPosYIn;
@@ -193,16 +193,12 @@ public class RenderManager {
         return castRender(render);
     }
 
-
     public <T extends Entity> Render<T> getEntityRenderObject(Entity entityIn) {
-        if (entityIn instanceof AbstractClientPlayer)
-        {
-            String s = ((AbstractClientPlayer)entityIn).getSkinType();
+        if (entityIn instanceof AbstractClientPlayer) {
+            String s = ((AbstractClientPlayer) entityIn).getSkinType();
             RenderPlayer renderplayer = this.skinMap.get(s);
             return castRender(renderplayer != null ? renderplayer : this.playerRenderer);
-        }
-        else
-        {
+        } else {
             return this.getEntityClassRenderObject(entityIn.getClass());
         }
     }
@@ -249,12 +245,12 @@ public class RenderManager {
         this.renderShadow = renderShadowIn;
     }
 
-    public void setDebugBoundingBox(boolean debugBoundingBoxIn) {
-        this.debugBoundingBox = debugBoundingBoxIn;
-    }
-
     public boolean isDebugBoundingBox() {
         return this.debugBoundingBox;
+    }
+
+    public void setDebugBoundingBox(boolean debugBoundingBoxIn) {
+        this.debugBoundingBox = debugBoundingBoxIn;
     }
 
     public boolean renderEntitySimple(Entity entityIn, float partialTicks) {
@@ -583,10 +579,5 @@ public class RenderManager {
 
     public Map<String, RenderPlayer> getSkinMap() {
         return Collections.unmodifiableMap(this.skinMap);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T extends Entity> Render<T> castRender(Render<? extends Entity> render) {
-        return (Render<T>) render;
     }
 }

@@ -16,18 +16,18 @@ import java.nio.IntBuffer;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class VboRegion {
+    private final LinkedList<VboRange> rangeList = new LinkedList<>();
+    private final int vertexBytes;
     private EnumWorldBlockLayer layer = null;
     private int glBufferId = OpenGlHelper.glGenBuffers();
     private int capacity = 4096;
     @Getter
     private int positionTop = 0;
     private int sizeUsed;
-    private final LinkedList<VboRange> rangeList = new LinkedList<>();
     private VboRange compactRangeLast = null;
     private IntBuffer bufferIndexVertex;
     private IntBuffer bufferCountVertex;
     private int drawMode;
-    private final int vertexBytes;
 
     public VboRegion(EnumWorldBlockLayer layer) {
         this.bufferIndexVertex = GLAllocation.createDirectIntBuffer(this.capacity);

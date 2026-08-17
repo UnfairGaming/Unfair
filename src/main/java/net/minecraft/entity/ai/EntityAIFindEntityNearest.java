@@ -13,33 +13,27 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collections;
 import java.util.List;
 
-public class EntityAIFindEntityNearest extends EntityAIBase
-{
+public class EntityAIFindEntityNearest extends EntityAIBase {
     private static final Logger LOGGER = LogManager.getLogger();
-    private EntityLiving mob;
     private final Predicate<EntityLivingBase> field_179443_c;
     private final EntityAINearestAttackableTarget.Sorter field_179440_d;
+    private EntityLiving mob;
     private EntityLivingBase target;
-    private Class <? extends EntityLivingBase > field_179439_f;
+    private Class<? extends EntityLivingBase> field_179439_f;
 
-    public EntityAIFindEntityNearest(EntityLiving mobIn, Class <? extends EntityLivingBase > p_i45884_2_)
-    {
+    public EntityAIFindEntityNearest(EntityLiving mobIn, Class<? extends EntityLivingBase> p_i45884_2_) {
         this.mob = mobIn;
         this.field_179439_f = p_i45884_2_;
 
-        if (mobIn instanceof EntityCreature)
-        {
+        if (mobIn instanceof EntityCreature) {
             LOGGER.warn("Use NearestAttackableTargetGoal.class for PathfinerMob mobs!");
         }
 
-        this.field_179443_c = new Predicate<EntityLivingBase>()
-        {
-            public boolean apply(EntityLivingBase p_apply_1_)
-            {
+        this.field_179443_c = new Predicate<EntityLivingBase>() {
+            public boolean apply(EntityLivingBase p_apply_1_) {
                 double d0 = EntityAIFindEntityNearest.this.getFollowRange();
 
-                if (p_apply_1_.isSneaking())
-                {
+                if (p_apply_1_.isSneaking()) {
                     d0 *= 0.800000011920929D;
                 }
 
@@ -52,18 +46,14 @@ public class EntityAIFindEntityNearest extends EntityAIBase
     /**
      * Returns whether the EntityAIBase should begin execution.
      */
-    public boolean shouldExecute()
-    {
+    public boolean shouldExecute() {
         double d0 = this.getFollowRange();
         List<EntityLivingBase> list = this.mob.worldObj.<EntityLivingBase>getEntitiesWithinAABB(this.field_179439_f, this.mob.getEntityBoundingBox().expand(d0, 4.0D, d0), this.field_179443_c);
         Collections.sort(list, this.field_179440_d);
 
-        if (list.isEmpty())
-        {
+        if (list.isEmpty()) {
             return false;
-        }
-        else
-        {
+        } else {
             this.target = list.get(0);
             return true;
         }
@@ -72,20 +62,14 @@ public class EntityAIFindEntityNearest extends EntityAIBase
     /**
      * Returns whether an in-progress EntityAIBase should continue executing
      */
-    public boolean continueExecuting()
-    {
+    public boolean continueExecuting() {
         EntityLivingBase entitylivingbase = this.mob.getAttackTarget();
 
-        if (entitylivingbase == null)
-        {
+        if (entitylivingbase == null) {
             return false;
-        }
-        else if (!entitylivingbase.isEntityAlive())
-        {
+        } else if (!entitylivingbase.isEntityAlive()) {
             return false;
-        }
-        else
-        {
+        } else {
             double d0 = this.getFollowRange();
             return !(this.mob.getDistanceSqToEntity(entitylivingbase) > d0 * d0) && (!(entitylivingbase instanceof EntityPlayerMP) || !((EntityPlayerMP) entitylivingbase).theItemInWorldManager.isCreative());
         }
@@ -94,8 +78,7 @@ public class EntityAIFindEntityNearest extends EntityAIBase
     /**
      * Execute a one shot task or start executing a continuous task
      */
-    public void startExecuting()
-    {
+    public void startExecuting() {
         this.mob.setAttackTarget(this.target);
         super.startExecuting();
     }
@@ -103,14 +86,12 @@ public class EntityAIFindEntityNearest extends EntityAIBase
     /**
      * Resets the task
      */
-    public void resetTask()
-    {
+    public void resetTask() {
         this.mob.setAttackTarget(null);
         super.startExecuting();
     }
 
-    protected double getFollowRange()
-    {
+    protected double getFollowRange() {
         IAttributeInstance iattributeinstance = this.mob.getEntityAttribute(SharedMonsterAttributes.followRange);
         return iattributeinstance == null ? 16.0D : iattributeinstance.getAttributeValue();
     }

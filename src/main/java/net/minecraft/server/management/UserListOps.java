@@ -2,35 +2,30 @@ package net.minecraft.server.management;
 
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
+
 import java.io.File;
 
-public class UserListOps extends UserList<GameProfile, UserListOpsEntry>
-{
-    public UserListOps(File saveFile)
-    {
+public class UserListOps extends UserList<GameProfile, UserListOpsEntry> {
+    public UserListOps(File saveFile) {
         super(saveFile);
     }
 
-    protected UserListEntry<GameProfile> createEntry(JsonObject entryData)
-    {
+    protected UserListEntry<GameProfile> createEntry(JsonObject entryData) {
         return new UserListOpsEntry(entryData);
     }
 
-    public String[] getKeys()
-    {
+    public String[] getKeys() {
         String[] astring = new String[this.getValues().size()];
         int i = 0;
 
-        for (UserListOpsEntry userlistopsentry : this.getValues().values())
-        {
+        for (UserListOpsEntry userlistopsentry : this.getValues().values()) {
             astring[i++] = userlistopsentry.getValue().getName();
         }
 
         return astring;
     }
 
-    public boolean bypassesPlayerLimit(GameProfile profile)
-    {
+    public boolean bypassesPlayerLimit(GameProfile profile) {
         UserListOpsEntry userlistopsentry = this.getEntry(profile);
         return userlistopsentry != null && userlistopsentry.bypassesPlayerLimit();
     }
@@ -38,20 +33,16 @@ public class UserListOps extends UserList<GameProfile, UserListOpsEntry>
     /**
      * Gets the key value for the given object
      */
-    protected String getObjectKey(GameProfile obj)
-    {
+    protected String getObjectKey(GameProfile obj) {
         return obj.getId().toString();
     }
 
     /**
      * Gets the GameProfile of based on the provided username.
      */
-    public GameProfile getGameProfileFromName(String username)
-    {
-        for (UserListOpsEntry userlistopsentry : this.getValues().values())
-        {
-            if (username.equalsIgnoreCase(userlistopsentry.getValue().getName()))
-            {
+    public GameProfile getGameProfileFromName(String username) {
+        for (UserListOpsEntry userlistopsentry : this.getValues().values()) {
+            if (username.equalsIgnoreCase(userlistopsentry.getValue().getName())) {
                 return userlistopsentry.getValue();
             }
         }

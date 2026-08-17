@@ -10,13 +10,13 @@ import java.util.BitSet;
 import java.util.List;
 
 public abstract class ChunkRenderContainer {
+    private final BitSet animatedSpritesCached = new BitSet();
+    protected List<RenderChunk> renderChunks = Lists.newArrayListWithCapacity(17424);
+    protected boolean initialized;
     private double viewEntityX;
     private double viewEntityY;
     private double viewEntityZ;
-    protected List<RenderChunk> renderChunks = Lists.newArrayListWithCapacity(17424);
-    protected boolean initialized;
     private BitSet animatedSpritesRendered;
-    private final BitSet animatedSpritesCached = new BitSet();
 
     public void initialize(double viewEntityXIn, double viewEntityYIn, double viewEntityZIn) {
         this.initialized = true;

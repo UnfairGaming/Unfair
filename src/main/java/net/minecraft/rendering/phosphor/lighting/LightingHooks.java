@@ -17,10 +17,9 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @SuppressWarnings("unused")
 public class LightingHooks {
+    public static final String neighborLightChecksKey = "NeighborLightChecks";
     private static final EnumSkyBlock[] ENUM_SKY_BLOCK_VALUES = EnumSkyBlock.values();
-
     private static final EnumFacing.AxisDirection[] ENUM_AXIS_DIRECTION_VALUES = EnumFacing.AxisDirection.values();
-
     private static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
 
     public static void relightSkylightColumn(final World world, final Chunk chunk, final int x, final int z, final int height1, final int height2) {
@@ -84,14 +83,6 @@ public class LightingHooks {
 
         for (int y = yMin; y <= yMax; ++y) {
             world.checkLightFor(lightType, pos.set(x, y, z));
-        }
-    }
-
-    public enum EnumBoundaryFacing {
-        IN, OUT;
-
-        public EnumBoundaryFacing getOpposite() {
-            return this == IN ? OUT : IN;
         }
     }
 
@@ -244,8 +235,6 @@ public class LightingHooks {
         }
     }
 
-    public static final String neighborLightChecksKey = "NeighborLightChecks";
-
     public static void writeNeighborLightChecksToNBT(final Chunk chunk, final NBTTagCompound nbt) {
         short[] neighborLightChecks = chunk.getNeighborLightChecks();
 
@@ -380,6 +369,14 @@ public class LightingHooks {
 
     public static ILightingEngine getLightingEngine(World world) {
         return ((ILightingEngineProvider) world).getLightingEngine();
+    }
+
+    public enum EnumBoundaryFacing {
+        IN, OUT;
+
+        public EnumBoundaryFacing getOpposite() {
+            return this == IN ? OUT : IN;
+        }
     }
 
 }

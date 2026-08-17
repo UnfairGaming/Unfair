@@ -8,24 +8,20 @@ import net.minecraft.network.login.INetHandlerLoginClient;
 import java.io.IOException;
 import java.util.UUID;
 
-public class S02PacketLoginSuccess implements Packet<INetHandlerLoginClient>
-{
+public class S02PacketLoginSuccess implements Packet<INetHandlerLoginClient> {
     private GameProfile profile;
 
-    public S02PacketLoginSuccess()
-    {
+    public S02PacketLoginSuccess() {
     }
 
-    public S02PacketLoginSuccess(GameProfile profileIn)
-    {
+    public S02PacketLoginSuccess(GameProfile profileIn) {
         this.profile = profileIn;
     }
 
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         String s = buf.readStringFromBuffer(36);
         String s1 = buf.readStringFromBuffer(16);
         UUID uuid = UUID.fromString(s);
@@ -35,8 +31,7 @@ public class S02PacketLoginSuccess implements Packet<INetHandlerLoginClient>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         UUID uuid = this.profile.getId();
         buf.writeString(uuid == null ? "" : uuid.toString());
         buf.writeString(this.profile.getName());
@@ -45,13 +40,11 @@ public class S02PacketLoginSuccess implements Packet<INetHandlerLoginClient>
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerLoginClient handler)
-    {
+    public void processPacket(INetHandlerLoginClient handler) {
         handler.handleLoginSuccess(this);
     }
 
-    public GameProfile getProfile()
-    {
+    public GameProfile getProfile() {
         return this.profile;
     }
 }

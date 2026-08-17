@@ -14,8 +14,8 @@ public class GuiPageButtonList extends GuiListExtended {
     private final IntHashMap<Gui> field_178073_v = new IntHashMap<>();
     private final List<GuiTextField> field_178072_w = Lists.newArrayList();
     private final GuiPageButtonList.GuiListEntry[][] field_178078_x;
-    private int field_178077_y;
     private final GuiPageButtonList.GuiResponder field_178076_z;
+    private int field_178077_y;
     private Gui field_178075_A;
 
     public GuiPageButtonList(Minecraft mcIn, int widthIn, int heightIn, int topIn, int bottomIn, int slotHeightIn, GuiPageButtonList.GuiResponder p_i45536_7_, GuiPageButtonList.GuiListEntry[]... p_i45536_8_) {
@@ -280,6 +280,14 @@ public class GuiPageButtonList extends GuiListExtended {
         return super.getScrollBarX() + 32;
     }
 
+    public interface GuiResponder {
+        void func_175321_a(int p_175321_1_, boolean p_175321_2_);
+
+        void onTick(int id, float value);
+
+        void func_175319_a(int p_175319_1_, String p_175319_2_);
+    }
+
     public static class EditBoxEntry extends GuiPageButtonList.GuiListEntry {
         private final Predicate<String> field_178951_a;
 
@@ -455,14 +463,6 @@ public class GuiPageButtonList extends GuiListExtended {
         public boolean func_178934_d() {
             return this.field_178938_c;
         }
-    }
-
-    public interface GuiResponder {
-        void func_175321_a(int p_175321_1_, boolean p_175321_2_);
-
-        void onTick(int id, float value);
-
-        void func_175319_a(int p_175319_1_, String p_175319_2_);
     }
 
     public static class GuiSlideEntry extends GuiPageButtonList.GuiListEntry {

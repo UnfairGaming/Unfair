@@ -95,157 +95,136 @@ public class EntityRenderer implements IResourceManagerReloadListener {
     private static final Logger logger = LogManager.getLogger();
     private static final ResourceLocation locationRainPng = ResourceLocation.of("textures/environment/rain.png");
     private static final ResourceLocation locationSnowPng = ResourceLocation.of("textures/environment/snow.png");
+    private static final ResourceLocation[] shaderResourceLocations = new ResourceLocation[]{ResourceLocation.of("shaders/post/notch.json"), ResourceLocation.of("shaders/post/fxaa.json"), ResourceLocation.of("shaders/post/art.json"), ResourceLocation.of("shaders/post/bumpy.json"), ResourceLocation.of("shaders/post/blobs2.json"), ResourceLocation.of("shaders/post/pencil.json"), ResourceLocation.of("shaders/post/color_convolve.json"), ResourceLocation.of("shaders/post/deconverge.json"), ResourceLocation.of("shaders/post/flip.json"), ResourceLocation.of("shaders/post/invert.json"), ResourceLocation.of("shaders/post/ntsc.json"), ResourceLocation.of("shaders/post/outline.json"), ResourceLocation.of("shaders/post/phosphor.json"), ResourceLocation.of("shaders/post/scan_pincushion.json"), ResourceLocation.of("shaders/post/sobel.json"), ResourceLocation.of("shaders/post/bits.json"), ResourceLocation.of("shaders/post/desaturate.json"), ResourceLocation.of("shaders/post/green.json"), ResourceLocation.of("shaders/post/blur.json"), ResourceLocation.of("shaders/post/wobble.json"), ResourceLocation.of("shaders/post/blobs.json"), ResourceLocation.of("shaders/post/antialias.json"), ResourceLocation.of("shaders/post/creeper.json"), ResourceLocation.of("shaders/post/spider.json")};
+    public static final int shaderCount = shaderResourceLocations.length;
     public static boolean anaglyphEnable;
-
     /**
      * Anaglyph field (0=R, 1=GB)
      */
     public static int anaglyphField;
-
     /**
      * A reference to the Minecraft object.
      */
     private final Minecraft mc;
+    private final IResourceManager resourceManager;
+    private final Random random = new Random();
+    private final MapItemRenderer theMapItemRenderer;
+    private final float thirdPersonDistance = 4.0F;
+    /**
+     * The texture id of the blocklight/skylight texture used for lighting effects
+     */
+    private final DynamicTexture lightmapTexture;
+    /**
+     * Colors computed in updateLightmap() and loaded into the lightmap emptyTexture
+     */
+    private final int[] lightmapColors;
+    private final float[] rainXCoords = new float[1024];
+    private final float[] rainYCoords = new float[1024];
+    /**
+     * Fog color buffer
+     */
+    private final FloatBuffer fogColorBuffer = GLAllocation.createDirectFloatBuffer(16);
+    private final int debugViewDirection = 0;
+    private final boolean debugView = false;
+    private final double cameraZoom = 1.0D;
+    private final boolean showDebugInfo = false;
+    private final ShaderGroup[] fxaaShaders = new ShaderGroup[10];
+    public ItemRenderer itemRenderer;
+    public float fogColorRed;
+    public float fogColorGreen;
+    public float fogColorBlue;
+    public int frameCount;
+    public boolean fogStandard = false;
     private Integer unfairSpoofedSlot;
     private ItemStack unfairSavedItemInUse;
     private Integer unfairSavedItemInUseCount;
     private boolean unfairHasSavedItemInUse;
-    private final IResourceManager resourceManager;
-    private final Random random = new Random();
     private ItemStack itemActivationItem;
     private int itemActivationTicks;
     private float itemActivationOffX;
     private float itemActivationOffY;
     private float farPlaneDistance;
-    public ItemRenderer itemRenderer;
-    private final MapItemRenderer theMapItemRenderer;
-
     /**
      * Entity renderer update count
      */
     private int rendererUpdateCount;
-
     /**
      * Pointed entity
      */
     private Entity pointedEntity;
     private MouseFilter mouseFilterXAxis = new MouseFilter();
     private MouseFilter mouseFilterYAxis = new MouseFilter();
-    private final float thirdPersonDistance = 4.0F;
-
     /**
      * Third person distance temp
      */
     private float thirdPersonDistanceTemp = 4.0F;
-
     /**
      * Smooth cam yaw
      */
     private float smoothCamYaw;
-
     /**
      * Smooth cam pitch
      */
     private float smoothCamPitch;
-
     /**
      * Smooth cam filter X
      */
     private float smoothCamFilterX;
-
     /**
      * Smooth cam filter Y
      */
     private float smoothCamFilterY;
-
     /**
      * Smooth cam partial ticks
      */
     private float smoothCamPartialTicks;
-
     /**
      * FOV modifier hand
      */
     private float fovModifierHand;
-
     /**
      * FOV modifier hand prev
      */
     private float fovModifierHandPrev;
     private float bossColorModifier;
     private float bossColorModifierPrev;
-
     /**
      * Cloud fog mode
      */
     private boolean cloudFog;
-
     /**
      * Previous frame time in milliseconds
      */
     private long prevFrameTime = Minecraft.getSystemTime();
-
-    /**
-     * The texture id of the blocklight/skylight texture used for lighting effects
-     */
-    private final DynamicTexture lightmapTexture;
-
-    /**
-     * Colors computed in updateLightmap() and loaded into the lightmap emptyTexture
-     */
-    private final int[] lightmapColors;
     private ResourceLocation locationLightMap;
-
     /**
      * Is set, updateCameraAndRender() calls updateLightmap(); set by updateTorchFlicker()
      */
     private boolean lightmapUpdateNeeded;
-
     /**
      * Torch flicker X
      */
     private float torchFlickerX;
     private float torchFlickerDX;
-
     /**
      * Rain sound counter
      */
     private int rainSoundCounter;
-    private final float[] rainXCoords = new float[1024];
-    private final float[] rainYCoords = new float[1024];
-
-    /**
-     * Fog color buffer
-     */
-    private final FloatBuffer fogColorBuffer = GLAllocation.createDirectFloatBuffer(16);
-    public float fogColorRed;
-    public float fogColorGreen;
-    public float fogColorBlue;
-
     /**
      * Fog color 2
      */
     private float fogColor2;
-
     /**
      * Fog color 1
      */
     private float fogColor1;
-    private final int debugViewDirection = 0;
-    private final boolean debugView = false;
-    private final double cameraZoom = 1.0D;
     private double cameraYaw;
     private double cameraPitch;
     private ShaderGroup theShaderGroup;
-    private static final ResourceLocation[] shaderResourceLocations = new ResourceLocation[]{ResourceLocation.of("shaders/post/notch.json"), ResourceLocation.of("shaders/post/fxaa.json"), ResourceLocation.of("shaders/post/art.json"), ResourceLocation.of("shaders/post/bumpy.json"), ResourceLocation.of("shaders/post/blobs2.json"), ResourceLocation.of("shaders/post/pencil.json"), ResourceLocation.of("shaders/post/color_convolve.json"), ResourceLocation.of("shaders/post/deconverge.json"), ResourceLocation.of("shaders/post/flip.json"), ResourceLocation.of("shaders/post/invert.json"), ResourceLocation.of("shaders/post/ntsc.json"), ResourceLocation.of("shaders/post/outline.json"), ResourceLocation.of("shaders/post/phosphor.json"), ResourceLocation.of("shaders/post/scan_pincushion.json"), ResourceLocation.of("shaders/post/sobel.json"), ResourceLocation.of("shaders/post/bits.json"), ResourceLocation.of("shaders/post/desaturate.json"), ResourceLocation.of("shaders/post/green.json"), ResourceLocation.of("shaders/post/blur.json"), ResourceLocation.of("shaders/post/wobble.json"), ResourceLocation.of("shaders/post/blobs.json"), ResourceLocation.of("shaders/post/antialias.json"), ResourceLocation.of("shaders/post/creeper.json"), ResourceLocation.of("shaders/post/spider.json")};
-    public static final int shaderCount = shaderResourceLocations.length;
     private int shaderIndex;
     private boolean useShader;
-    public int frameCount;
     private boolean initialized = false;
     private World updatedWorld = null;
-    private final boolean showDebugInfo = false;
-    public boolean fogStandard = false;
     private float clipDistance = 128.0F;
     private long lastServerTime = 0L;
     private int lastServerTicks = 0;
@@ -253,7 +232,6 @@ public class EntityRenderer implements IResourceManagerReloadListener {
     private int serverWaitTimeCurrent = 0;
     private float avgServerTimeDiff = 0.0F;
     private float avgServerTickDiff = 0.0F;
-    private final ShaderGroup[] fxaaShaders = new ShaderGroup[10];
     private boolean loadVisibleChunks = false;
 
     public EntityRenderer(Minecraft mcIn, IResourceManager resourceManagerIn) {

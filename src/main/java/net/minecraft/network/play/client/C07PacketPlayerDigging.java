@@ -8,20 +8,19 @@ import net.minecraft.util.EnumFacing;
 
 import java.io.IOException;
 
-public class C07PacketPlayerDigging implements Packet<INetHandlerPlayServer>
-{
+public class C07PacketPlayerDigging implements Packet<INetHandlerPlayServer> {
     private BlockPos position;
     private EnumFacing facing;
 
-    /** Status of the digging (started, ongoing, broken). */
+    /**
+     * Status of the digging (started, ongoing, broken).
+     */
     private C07PacketPlayerDigging.Action status;
 
-    public C07PacketPlayerDigging()
-    {
+    public C07PacketPlayerDigging() {
     }
 
-    public C07PacketPlayerDigging(C07PacketPlayerDigging.Action statusIn, BlockPos posIn, EnumFacing facingIn)
-    {
+    public C07PacketPlayerDigging(C07PacketPlayerDigging.Action statusIn, BlockPos posIn, EnumFacing facingIn) {
         this.status = statusIn;
         this.position = posIn;
         this.facing = facingIn;
@@ -30,8 +29,7 @@ public class C07PacketPlayerDigging implements Packet<INetHandlerPlayServer>
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.status = buf.readEnumValue(Action.class);
         this.position = buf.readBlockPos();
         this.facing = EnumFacing.getFront(buf.readUnsignedByte());
@@ -40,8 +38,7 @@ public class C07PacketPlayerDigging implements Packet<INetHandlerPlayServer>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeEnumValue(this.status);
         buf.writeBlockPos(this.position);
         buf.writeByte(this.facing.getIndex());
@@ -50,28 +47,23 @@ public class C07PacketPlayerDigging implements Packet<INetHandlerPlayServer>
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerPlayServer handler)
-    {
+    public void processPacket(INetHandlerPlayServer handler) {
         handler.processPlayerDigging(this);
     }
 
-    public BlockPos getPosition()
-    {
+    public BlockPos getPosition() {
         return this.position;
     }
 
-    public EnumFacing getFacing()
-    {
+    public EnumFacing getFacing() {
         return this.facing;
     }
 
-    public C07PacketPlayerDigging.Action getStatus()
-    {
+    public C07PacketPlayerDigging.Action getStatus() {
         return this.status;
     }
 
-    public static enum Action
-    {
+    public static enum Action {
         START_DESTROY_BLOCK,
         ABORT_DESTROY_BLOCK,
         STOP_DESTROY_BLOCK,

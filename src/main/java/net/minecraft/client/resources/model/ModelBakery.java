@@ -35,6 +35,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class ModelBakery {
+    protected static final ModelResourceLocation MODEL_MISSING = new ModelResourceLocation("builtin/missing", "missing");
     private static final Set<ResourceLocation> LOCATIONS_BUILTIN_TEXTURES = Sets.newHashSet(
             ResourceLocation.of("blocks/water_flow"), ResourceLocation.of("blocks/water_still"), ResourceLocation.of("blocks/lava_flow"),
             ResourceLocation.of("blocks/lava_still"), ResourceLocation.of("blocks/destroy_stage_0"), ResourceLocation.of("blocks/destroy_stage_1"),
@@ -42,9 +43,21 @@ public class ModelBakery {
             ResourceLocation.of("blocks/destroy_stage_5"), ResourceLocation.of("blocks/destroy_stage_6"), ResourceLocation.of("blocks/destroy_stage_7"), ResourceLocation.of("blocks/destroy_stage_8"),
             ResourceLocation.of("blocks/destroy_stage_9"), ResourceLocation.of("items/empty_armor_slot_helmet"), ResourceLocation.of("items/empty_armor_slot_chestplate"), ResourceLocation.of("items/empty_armor_slot_leggings"), ResourceLocation.of("items/empty_armor_slot_boots"));
     private static final Logger LOGGER = LogManager.getLogger("ModelBakery");
-    protected static final ModelResourceLocation MODEL_MISSING = new ModelResourceLocation("builtin/missing", "missing");
     private static final Map<String, String> BUILT_IN_MODELS = Maps.newHashMap();
     private static final Joiner JOINER = Joiner.on(" -> ");
+    private static final ModelBlock MODEL_GENERATED = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
+    private static final ModelBlock MODEL_COMPASS = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
+    private static final ModelBlock MODEL_CLOCK = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
+    private static final ModelBlock MODEL_ENTITY = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
+
+    static {
+        BUILT_IN_MODELS.put("missing", "{ \"textures\": {   \"particle\": \"missingno\",   \"missingno\": \"missingno\"}, \"elements\": [ {     \"from\": [ 0, 0, 0 ],     \"to\": [ 16, 16, 16 ],     \"faces\": {         \"down\":  { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"down\", \"texture\": \"#missingno\" },         \"up\":    { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"up\", \"texture\": \"#missingno\" },         \"north\": { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"north\", \"texture\": \"#missingno\" },         \"south\": { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"south\", \"texture\": \"#missingno\" },         \"west\":  { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"west\", \"texture\": \"#missingno\" },         \"east\":  { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"east\", \"texture\": \"#missingno\" }    }}]}");
+        MODEL_GENERATED.name = "generation marker";
+        MODEL_COMPASS.name = "compass generation marker";
+        MODEL_CLOCK.name = "class generation marker";
+        MODEL_ENTITY.name = "block entity marker";
+    }
+
     private final IResourceManager resourceManager;
     private final Map<ResourceLocation, TextureAtlasSprite> sprites = Maps.newHashMap();
     private final Map<ResourceLocation, ModelBlock> models = Maps.newLinkedHashMap();
@@ -54,10 +67,6 @@ public class ModelBakery {
     private final FaceBakery faceBakery = new FaceBakery();
     private final ItemModelGenerator itemModelGenerator = new ItemModelGenerator();
     private final RegistrySimple<ModelResourceLocation, IBakedModel> bakedRegistry = new RegistrySimple<>();
-    private static final ModelBlock MODEL_GENERATED = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
-    private static final ModelBlock MODEL_COMPASS = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
-    private static final ModelBlock MODEL_CLOCK = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
-    private static final ModelBlock MODEL_ENTITY = ModelBlock.deserialize("{\"elements\":[{  \"from\": [0, 0, 0],   \"to\": [16, 16, 16],   \"faces\": {       \"down\": {\"uv\": [0, 0, 16, 16], \"texture\":\"\"}   }}]}");
     private final Map<String, ResourceLocation> itemLocations = Maps.newLinkedHashMap();
     private final Map<ResourceLocation, ModelBlockDefinition> blockDefinitions = Maps.newHashMap();
     private final Map<Item, List<String>> variantNames = Maps.newIdentityHashMap();
@@ -66,6 +75,51 @@ public class ModelBakery {
         this.resourceManager = p_i46085_1_;
         this.textureMap = p_i46085_2_;
         this.blockModelShapes = p_i46085_3_;
+    }
+
+    public static void fixModelLocations(ModelBlock p_fixModelLocations_0_, String p_fixModelLocations_1_) {
+        ResourceLocation resourcelocation = fixModelLocation(p_fixModelLocations_0_.getParentLocation(), p_fixModelLocations_1_);
+
+        if (resourcelocation != p_fixModelLocations_0_.getParentLocation()) {
+            p_fixModelLocations_0_.parentLocation = resourcelocation;
+        }
+
+        Map<String, String> map = p_fixModelLocations_0_.textures;
+
+        if (map != null) {
+            for (Entry<String, String> entry : map.entrySet()) {
+                String s = entry.getValue();
+                String s1 = fixResourcePath(s, p_fixModelLocations_1_);
+
+                if (s1 != s) {
+                    entry.setValue(s1);
+                }
+            }
+        }
+    }
+
+    public static ResourceLocation fixModelLocation(ResourceLocation p_fixModelLocation_0_, String p_fixModelLocation_1_) {
+        if (p_fixModelLocation_0_ != null && p_fixModelLocation_1_ != null) {
+            if (p_fixModelLocation_0_.getResourceDomain().equals("minecraft")) {
+                String s = p_fixModelLocation_0_.getResourcePath();
+                String s1 = fixResourcePath(s, p_fixModelLocation_1_);
+
+                if (s1 != s) {
+                    p_fixModelLocation_0_ = ResourceLocation.of(p_fixModelLocation_0_.getResourceDomain(), s1);
+                }
+
+            }
+            return p_fixModelLocation_0_;
+        } else {
+            return p_fixModelLocation_0_;
+        }
+    }
+
+    private static String fixResourcePath(String p_fixResourcePath_0_, String p_fixResourcePath_1_) {
+        p_fixResourcePath_0_ = TextureUtils.fixResourcePath(p_fixResourcePath_0_, p_fixResourcePath_1_);
+        p_fixResourcePath_0_ = StrUtils.removeSuffix(p_fixResourcePath_0_, ".json");
+        p_fixResourcePath_0_ = StrUtils.removeSuffix(p_fixResourcePath_0_, ".png");
+        return p_fixResourcePath_0_;
     }
 
     public IRegistry<ModelResourceLocation, IBakedModel> setupModelRegistry() {
@@ -337,10 +391,21 @@ public class ModelBakery {
         this.variantNames.put(Item.getItemFromBlock(Blocks.tube_coral), Lists.newArrayList("tube_coral"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.tube_coral_fan), Lists.newArrayList("tube_coral_fan"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.tube_coral_wall_fan), Lists.newArrayList("tube_coral_wall_fan"));
-        String[] modernCorals = {"brain_coral_block","bubble_coral_block","fire_coral_block","horn_coral_block","tube_coral_block","dead_brain_coral_block","dead_bubble_coral_block","dead_fire_coral_block","dead_horn_coral_block","dead_tube_coral_block","brain_coral","bubble_coral","fire_coral","horn_coral","dead_brain_coral","dead_bubble_coral","dead_fire_coral","dead_horn_coral","dead_tube_coral","brain_coral_fan","bubble_coral_fan","fire_coral_fan","horn_coral_fan","dead_brain_coral_fan","dead_bubble_coral_fan","dead_fire_coral_fan","dead_horn_coral_fan","dead_tube_coral_fan","brain_coral_wall_fan","bubble_coral_wall_fan","fire_coral_wall_fan","horn_coral_wall_fan","dead_brain_coral_wall_fan","dead_bubble_coral_wall_fan","dead_fire_coral_wall_fan","dead_horn_coral_wall_fan","dead_tube_coral_wall_fan"};
-        for (String name : modernCorals) { Block coral = Block.blockRegistry.getObject(ResourceLocation.of(name)); if (coral != null) this.variantNames.put(Item.getItemFromBlock(coral), Lists.newArrayList(name)); }
-        String[] modern17 = {"candle","candle_cake","sculk_sensor","big_dripleaf","pointed_dripstone","amethyst_cluster","large_amethyst_bud","medium_amethyst_bud","small_amethyst_bud"}; for(String name:modern17){Block block=Block.blockRegistry.getObject(ResourceLocation.of(name));this.variantNames.put(Item.getItemFromBlock(block),Lists.newArrayList(name));}
-        String[] modern19 = {"mud","sculk_shrieker","decorated_pot","sniffer_egg"}; for(String name:modern19){Block block=Block.blockRegistry.getObject(ResourceLocation.of(name));this.variantNames.put(Item.getItemFromBlock(block),Lists.newArrayList(name));}
+        String[] modernCorals = {"brain_coral_block", "bubble_coral_block", "fire_coral_block", "horn_coral_block", "tube_coral_block", "dead_brain_coral_block", "dead_bubble_coral_block", "dead_fire_coral_block", "dead_horn_coral_block", "dead_tube_coral_block", "brain_coral", "bubble_coral", "fire_coral", "horn_coral", "dead_brain_coral", "dead_bubble_coral", "dead_fire_coral", "dead_horn_coral", "dead_tube_coral", "brain_coral_fan", "bubble_coral_fan", "fire_coral_fan", "horn_coral_fan", "dead_brain_coral_fan", "dead_bubble_coral_fan", "dead_fire_coral_fan", "dead_horn_coral_fan", "dead_tube_coral_fan", "brain_coral_wall_fan", "bubble_coral_wall_fan", "fire_coral_wall_fan", "horn_coral_wall_fan", "dead_brain_coral_wall_fan", "dead_bubble_coral_wall_fan", "dead_fire_coral_wall_fan", "dead_horn_coral_wall_fan", "dead_tube_coral_wall_fan"};
+        for (String name : modernCorals) {
+            Block coral = Block.blockRegistry.getObject(ResourceLocation.of(name));
+            if (coral != null) this.variantNames.put(Item.getItemFromBlock(coral), Lists.newArrayList(name));
+        }
+        String[] modern17 = {"candle", "candle_cake", "sculk_sensor", "big_dripleaf", "pointed_dripstone", "amethyst_cluster", "large_amethyst_bud", "medium_amethyst_bud", "small_amethyst_bud"};
+        for (String name : modern17) {
+            Block block = Block.blockRegistry.getObject(ResourceLocation.of(name));
+            this.variantNames.put(Item.getItemFromBlock(block), Lists.newArrayList(name));
+        }
+        String[] modern19 = {"mud", "sculk_shrieker", "decorated_pot", "sniffer_egg"};
+        for (String name : modern19) {
+            Block block = Block.blockRegistry.getObject(ResourceLocation.of(name));
+            this.variantNames.put(Item.getItemFromBlock(block), Lists.newArrayList(name));
+        }
         this.variantNames.put(Item.getItemFromBlock(Blocks.planks), Lists.newArrayList("oak_planks", "spruce_planks", "birch_planks", "jungle_planks", "acacia_planks", "dark_oak_planks"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.sapling), Lists.newArrayList("oak_sapling", "spruce_sapling", "birch_sapling", "jungle_sapling", "acacia_sapling", "dark_oak_sapling"));
         this.variantNames.put(Item.getItemFromBlock(Blocks.sand), Lists.newArrayList("sand", "red_sand"));
@@ -711,58 +776,5 @@ public class ModelBakery {
 
     public ModelBlock getModelBlock(ResourceLocation p_getModelBlock_1_) {
         return this.models.get(p_getModelBlock_1_);
-    }
-
-    public static void fixModelLocations(ModelBlock p_fixModelLocations_0_, String p_fixModelLocations_1_) {
-        ResourceLocation resourcelocation = fixModelLocation(p_fixModelLocations_0_.getParentLocation(), p_fixModelLocations_1_);
-
-        if (resourcelocation != p_fixModelLocations_0_.getParentLocation()) {
-            p_fixModelLocations_0_.parentLocation = resourcelocation;
-        }
-
-        Map<String, String> map = p_fixModelLocations_0_.textures;
-
-        if (map != null) {
-            for (Entry<String, String> entry : map.entrySet()) {
-                String s = entry.getValue();
-                String s1 = fixResourcePath(s, p_fixModelLocations_1_);
-
-                if (s1 != s) {
-                    entry.setValue(s1);
-                }
-            }
-        }
-    }
-
-    public static ResourceLocation fixModelLocation(ResourceLocation p_fixModelLocation_0_, String p_fixModelLocation_1_) {
-        if (p_fixModelLocation_0_ != null && p_fixModelLocation_1_ != null) {
-            if (p_fixModelLocation_0_.getResourceDomain().equals("minecraft")) {
-                String s = p_fixModelLocation_0_.getResourcePath();
-                String s1 = fixResourcePath(s, p_fixModelLocation_1_);
-
-                if (s1 != s) {
-                    p_fixModelLocation_0_ = ResourceLocation.of(p_fixModelLocation_0_.getResourceDomain(), s1);
-                }
-
-            }
-            return p_fixModelLocation_0_;
-        } else {
-            return p_fixModelLocation_0_;
-        }
-    }
-
-    private static String fixResourcePath(String p_fixResourcePath_0_, String p_fixResourcePath_1_) {
-        p_fixResourcePath_0_ = TextureUtils.fixResourcePath(p_fixResourcePath_0_, p_fixResourcePath_1_);
-        p_fixResourcePath_0_ = StrUtils.removeSuffix(p_fixResourcePath_0_, ".json");
-        p_fixResourcePath_0_ = StrUtils.removeSuffix(p_fixResourcePath_0_, ".png");
-        return p_fixResourcePath_0_;
-    }
-
-    static {
-        BUILT_IN_MODELS.put("missing", "{ \"textures\": {   \"particle\": \"missingno\",   \"missingno\": \"missingno\"}, \"elements\": [ {     \"from\": [ 0, 0, 0 ],     \"to\": [ 16, 16, 16 ],     \"faces\": {         \"down\":  { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"down\", \"texture\": \"#missingno\" },         \"up\":    { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"up\", \"texture\": \"#missingno\" },         \"north\": { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"north\", \"texture\": \"#missingno\" },         \"south\": { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"south\", \"texture\": \"#missingno\" },         \"west\":  { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"west\", \"texture\": \"#missingno\" },         \"east\":  { \"uv\": [ 0, 0, 16, 16 ], \"cullface\": \"east\", \"texture\": \"#missingno\" }    }}]}");
-        MODEL_GENERATED.name = "generation marker";
-        MODEL_COMPASS.name = "compass generation marker";
-        MODEL_CLOCK.name = "class generation marker";
-        MODEL_ENTITY.name = "block entity marker";
     }
 }

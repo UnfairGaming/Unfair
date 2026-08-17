@@ -6,8 +6,7 @@ import net.minecraft.world.World;
 
 import java.util.Random;
 
-public interface IGrowable
-{
+public interface IGrowable {
     /**
      * Whether this IGrowable can grow
      */

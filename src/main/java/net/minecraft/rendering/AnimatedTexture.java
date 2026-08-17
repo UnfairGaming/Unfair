@@ -56,10 +56,6 @@ public class AnimatedTexture {
         this(Objects.requireNonNull(NativeBackedImage.make(res.getInputStream())), Minecraft.getMinecraft().getResourceManager().getResource(ResourceLocation.of(res.getResourceLocation().getResourceDomain(), res.getResourceLocation().getResourcePath() + ".mcmeta")).getInputStream());
     }
 
-    public static JsonObject toJsonObject(Reader reader) {
-        return gson.fromJson(reader, JsonObject.class);
-    }
-
     public AnimatedTexture(BufferedImage img, InputStream isMetadata) {
         this.frameWidth = img.getWidth();
         this.imgHeight = img.getHeight();
@@ -84,6 +80,132 @@ public class AnimatedTexture {
                         }
                     }
                 });
+    }
+
+    public static JsonObject toJsonObject(Reader reader) {
+        return gson.fromJson(reader, JsonObject.class);
+    }
+
+    public static boolean metadataHasAnimationFrames(InputStream is) {
+        try {
+            JsonObject jObj = toJsonObject(new InputStreamReader(is));
+
+            if (!jObj.has("animation")) {
+                return false;
+            }
+
+            JsonElement animationElement = jObj.get("animation");
+
+            if (!animationElement.isJsonObject()) {
+                return false;
+            }
+
+            JsonObject animationObject = animationElement.getAsJsonObject();
+
+            int frameTime = getInt(animationObject, "frametime", 1);
+
+            if (frameTime != 1) {
+                if (frameTime < 1)
+                    frameTime = 1;
+            }
+
+            if (animationObject.has("frames")) {
+                try {
+                    JsonArray framesArray = animationObject.getAsJsonArray("frames");
+
+                    for (int j = 0; j < framesArray.size(); ++j) {
+                        JsonElement frameElement = framesArray.get(j);
+                        Frame animationframe = parseAnimationFrame(j, frameTime, frameElement);
+
+                        if (animationframe != null) {
+                            return true;
+                        }
+                    }
+                } catch (ClassCastException classcastexception) {
+                    throw new JsonParseException("Invalid animation->frames: expected array, was " + animationObject.get("frames"), classcastexception);
+                }
+            }
+
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static int getInt(JsonObject json, String key, int defaultValue) {
+        JsonElement element = json.get(key);
+        if (element != null && element.isJsonPrimitive()) {
+            try {
+                return element.getAsInt();
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    private static boolean getBoolean(JsonObject json) {
+        JsonElement element = json.get("interpolate");
+        if (element != null && element.isJsonPrimitive()) {
+            try {
+                return element.getAsBoolean();
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private static Frame parseAnimationFrame(int frameIndex, int fixedFrameTime, JsonElement frameElement) {
+        if (frameElement.isJsonPrimitive()) {
+            return new Frame(getInt(frameElement, fixedFrameTime), fixedFrameTime);
+        } else if (frameElement.isJsonObject()) {
+            JsonObject frameObject = frameElement.getAsJsonObject();
+            int time = getInt(frameObject, "time", -1);
+
+            if (frameObject.has("time")) {
+                if (time < 1)
+                    time = 1;
+            }
+
+            int idx = getInt(frameObject, "index", 0);
+            if (idx < 0)
+                idx = 0;
+            return new Frame(idx, time);
+        } else {
+            return null;
+        }
+    }
+
+    private static int getInt(JsonElement element, int defaultValue) {
+        if (element != null && element.isJsonPrimitive()) {
+            try {
+                return element.getAsInt();
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    }
+
+    private static ResourceLocation registerDynamicTexture(String name, BufferedImage image) {
+        Minecraft minecraft = Minecraft.getMinecraft();
+        Callable<ResourceLocation> task = () -> minecraft.getTextureManager().getDynamicTextureLocation(name, new DynamicTexture(image));
+
+        try {
+            if (minecraft.isCallingFromMinecraftThread()) {
+                return task.call();
+            }
+
+            return minecraft.addScheduledTask(task).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while registering dynamic texture", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Failed to register dynamic texture", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register dynamic texture", e);
+        }
     }
 
     public void render(double x, double y, double width, double height) {
@@ -138,52 +260,6 @@ public class AnimatedTexture {
             if (curFrame >= frames.size()) {
                 curFrame = 0;
             }
-        }
-    }
-
-    public static boolean metadataHasAnimationFrames(InputStream is) {
-        try {
-            JsonObject jObj = toJsonObject(new InputStreamReader(is));
-
-            if (!jObj.has("animation")) {
-                return false;
-            }
-
-            JsonElement animationElement = jObj.get("animation");
-
-            if (!animationElement.isJsonObject()) {
-                return false;
-            }
-
-            JsonObject animationObject = animationElement.getAsJsonObject();
-
-            int frameTime = getInt(animationObject, "frametime", 1);
-
-            if (frameTime != 1) {
-                if (frameTime < 1)
-                    frameTime = 1;
-            }
-
-            if (animationObject.has("frames")) {
-                try {
-                    JsonArray framesArray = animationObject.getAsJsonArray("frames");
-
-                    for (int j = 0; j < framesArray.size(); ++j) {
-                        JsonElement frameElement = framesArray.get(j);
-                        Frame animationframe = parseAnimationFrame(j, frameTime, frameElement);
-
-                        if (animationframe != null) {
-                            return true;
-                        }
-                    }
-                } catch (ClassCastException classcastexception) {
-                    throw new JsonParseException("Invalid animation->frames: expected array, was " + animationObject.get("frames"), classcastexception);
-                }
-            }
-
-            return false;
-        } catch (Exception e) {
-            return false;
         }
     }
 
@@ -247,30 +323,6 @@ public class AnimatedTexture {
         }
     }
 
-    private static int getInt(JsonObject json, String key, int defaultValue) {
-        JsonElement element = json.get(key);
-        if (element != null && element.isJsonPrimitive()) {
-            try {
-                return element.getAsInt();
-            } catch (NumberFormatException e) {
-                return defaultValue;
-            }
-        }
-        return defaultValue;
-    }
-
-    private static boolean getBoolean(JsonObject json) {
-        JsonElement element = json.get("interpolate");
-        if (element != null && element.isJsonPrimitive()) {
-            try {
-                return element.getAsBoolean();
-            } catch (Exception e) {
-                return false;
-            }
-        }
-        return false;
-    }
-
     private void generateInterpolatedFrames(BufferedImage image) {
         List<Frame> copy = new ArrayList<>(frames);
         this.frames.clear();
@@ -318,42 +370,10 @@ public class AnimatedTexture {
         }
     }
 
-    private static Frame parseAnimationFrame(int frameIndex, int fixedFrameTime, JsonElement frameElement) {
-        if (frameElement.isJsonPrimitive()) {
-            return new Frame(getInt(frameElement, fixedFrameTime), fixedFrameTime);
-        } else if (frameElement.isJsonObject()) {
-            JsonObject frameObject = frameElement.getAsJsonObject();
-            int time = getInt(frameObject, "time", -1);
-
-            if (frameObject.has("time")) {
-                if (time < 1)
-                    time = 1;
-            }
-
-            int idx = getInt(frameObject, "index", 0);
-            if (idx < 0)
-                idx = 0;
-            return new Frame(idx, time);
-        } else {
-            return null;
-        }
-    }
-
-    private static int getInt(JsonElement element, int defaultValue) {
-        if (element != null && element.isJsonPrimitive()) {
-            try {
-                return element.getAsInt();
-            } catch (NumberFormatException e) {
-                return defaultValue;
-            }
-        }
-        return defaultValue;
-    }
-
     private static class Frame {
+        private final int origFrameIndex;
         @Getter
         private int frameIndex;
-        private final int origFrameIndex;
         @Getter
         private double frameTime;
 
@@ -377,26 +397,6 @@ public class AnimatedTexture {
 
         public boolean hasNoTime() {
             return this.frameTime == -1;
-        }
-    }
-
-    private static ResourceLocation registerDynamicTexture(String name, BufferedImage image) {
-        Minecraft minecraft = Minecraft.getMinecraft();
-        Callable<ResourceLocation> task = () -> minecraft.getTextureManager().getDynamicTextureLocation(name, new DynamicTexture(image));
-
-        try {
-            if (minecraft.isCallingFromMinecraftThread()) {
-                return task.call();
-            }
-
-            return minecraft.addScheduledTask(task).get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while registering dynamic texture", e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException("Failed to register dynamic texture", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to register dynamic texture", e);
         }
     }
 }

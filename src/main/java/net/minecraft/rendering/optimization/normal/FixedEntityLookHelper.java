@@ -13,6 +13,10 @@ public class FixedEntityLookHelper extends EntityLookHelper {
         super(entity);
     }
 
+    public static float tan(double a, double b) {
+        return FastTrig.atan2(a, b);
+    }
+
     @Override
     public void onUpdateLook() {
         this.entity.rotationPitch = 0.0F;
@@ -46,9 +50,5 @@ public class FixedEntityLookHelper extends EntityLookHelper {
                 this.entity.rotationYawHead = this.entity.renderYawOffset + 75.0F;
             }
         }
-    }
-
-    public static float tan(double a, double b) {
-        return FastTrig.atan2(a, b);
     }
 }

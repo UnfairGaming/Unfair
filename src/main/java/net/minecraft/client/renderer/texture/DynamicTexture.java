@@ -18,21 +18,24 @@ import java.util.concurrent.ExecutionException;
 
 @Getter
 public class DynamicTexture extends AbstractTexture {
+    static final int BUFFER_SIZE = 2097152;
+    static final IntBuffer DATA_BUFFER = MemoryTracker.memAllocInt(BUFFER_SIZE);
     public int[] dynamicTextureData;
-
     /**
      * width of this icon in pixels
      */
     protected int width;
-
     /**
      * height of this icon in pixels
      */
     protected int height;
-
     @Getter
     @Setter
     protected boolean clearable = true;
+    @Getter
+    @Setter
+    protected boolean linear = false;
+    private boolean alphaTexture = false;
 
     public DynamicTexture(BufferedImage bufferedImage) {
         this(bufferedImage.getWidth(), bufferedImage.getHeight(), bufferedImage.getType());
@@ -64,8 +67,6 @@ public class DynamicTexture extends AbstractTexture {
         this.updateDynamicTexture();
     }
 
-    private boolean alphaTexture = false;
-
     public DynamicTexture(int textureWidth, int textureHeight) {
         this(textureWidth, textureHeight, BufferedImage.TYPE_INT_ARGB);
     }
@@ -79,6 +80,20 @@ public class DynamicTexture extends AbstractTexture {
             alphaTexture = true;
 
         this.allocateTexture(textureWidth, textureHeight);
+    }
+
+    private static void runOnMainThreadBlocking(Runnable task) {
+        try {
+            Minecraft.getMinecraft().addScheduledTask(() -> {
+                task.run();
+                return null;
+            }).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while running texture task", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Failed to run texture task", e);
+        }
     }
 
     private void extractAlphaData(BufferedImage img) {
@@ -128,13 +143,6 @@ public class DynamicTexture extends AbstractTexture {
     public void loadTexture(IResourceManager resourceManager) throws IOException {
     }
 
-    @Getter
-    @Setter
-    protected boolean linear = false;
-
-    static final int BUFFER_SIZE = 2097152;
-    static final IntBuffer DATA_BUFFER = MemoryTracker.memAllocInt(BUFFER_SIZE);
-
     @SneakyThrows
     public void updateDynamicTexture() {
 
@@ -182,20 +190,6 @@ public class DynamicTexture extends AbstractTexture {
         }
 
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
-    }
-
-    private static void runOnMainThreadBlocking(Runnable task) {
-        try {
-            Minecraft.getMinecraft().addScheduledTask(() -> {
-                task.run();
-                return null;
-            }).get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Interrupted while running texture task", e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException("Failed to run texture task", e);
-        }
     }
 
     public void clear() {

@@ -18,6 +18,8 @@ import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class RandomEntityRule {
+    public int[] sumWeights = null;
+    public int sumAllWeights = 1;
     private String pathProps = null;
     private ResourceLocation baseResLoc = null;
     private int index;
@@ -29,8 +31,6 @@ public class RandomEntityRule {
     private RangeListInt healthRange = null;
     private boolean healthPercent = false;
     private NbtTagValue nbtName = null;
-    public int[] sumWeights = null;
-    public int sumAllWeights = 1;
     private VillagerProfession[] professions = null;
     private EnumDyeColor[] collarColors = null;
     private Boolean baby = null;

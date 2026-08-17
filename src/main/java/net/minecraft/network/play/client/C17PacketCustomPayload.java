@@ -7,22 +7,18 @@ import net.minecraft.network.play.INetHandlerPlayServer;
 
 import java.io.IOException;
 
-public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
-{
+public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer> {
     private String channel;
     private PacketBuffer data;
 
-    public C17PacketCustomPayload()
-    {
+    public C17PacketCustomPayload() {
     }
 
-    public C17PacketCustomPayload(String channelIn, PacketBuffer dataIn)
-    {
+    public C17PacketCustomPayload(String channelIn, PacketBuffer dataIn) {
         this.channel = channelIn;
         this.data = dataIn;
 
-        if (dataIn.writerIndex() > 32767)
-        {
+        if (dataIn.writerIndex() > 32767) {
             throw new IllegalArgumentException("Payload may not be larger than 32767 bytes");
         }
     }
@@ -30,17 +26,13 @@ public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.channel = buf.readStringFromBuffer(20);
         int i = buf.readableBytes();
 
-        if (i >= 0 && i <= 32767)
-        {
+        if (i >= 0 && i <= 32767) {
             this.data = new PacketBuffer(buf.readBytes(i));
-        }
-        else
-        {
+        } else {
             throw new IOException("Payload may not be larger than 32767 bytes");
         }
     }
@@ -48,8 +40,7 @@ public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeString(this.channel);
         buf.writeBytes(this.data);
     }
@@ -57,42 +48,31 @@ public class C17PacketCustomPayload implements Packet<INetHandlerPlayServer>
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerPlayServer handler)
-    {
+    public void processPacket(INetHandlerPlayServer handler) {
         boolean shouldRelease = true;
 
-        try
-        {
+        try {
             handler.processVanilla250Packet(this);
-        }
-        catch (ThreadQuickExitException threadquickexitexception)
-        {
+        } catch (ThreadQuickExitException threadquickexitexception) {
             shouldRelease = false;
             throw threadquickexitexception;
-        }
-        finally
-        {
-            if (shouldRelease)
-            {
+        } finally {
+            if (shouldRelease) {
                 this.releaseData();
             }
         }
     }
 
-    public String getChannelName()
-    {
+    public String getChannelName() {
         return this.channel;
     }
 
-    public PacketBuffer getBufferData()
-    {
+    public PacketBuffer getBufferData() {
         return this.data;
     }
 
-    public void releaseData()
-    {
-        if (this.data != null && this.data.refCnt() > 0)
-        {
+    public void releaseData() {
+        if (this.data != null && this.data.refCnt() > 0) {
             this.data.release();
         }
     }

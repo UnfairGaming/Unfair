@@ -50,37 +50,30 @@ import java.util.*;
 public abstract class EntityLivingBase extends Entity {
     private static final UUID sprintingSpeedBoostModifierUUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
     private static final AttributeModifier sprintingSpeedBoostModifier = (new AttributeModifier(sprintingSpeedBoostModifierUUID, "Sprinting speed boost", 0.30000001192092896D, 2)).setSaved(false);
-    private BaseAttributeMap attributeMap;
     private final CombatTracker _combatTracker = new CombatTracker(this);
     private final Map<Integer, PotionEffect> activePotionsMap = Maps.newHashMap();
-
     /**
      * The equipment this mob was previously wearing, used for syncing.
      */
     private final ItemStack[] previousEquipment = new ItemStack[5];
-
     /**
      * Whether an arm swing is currently in progress.
      */
     public boolean isSwingInProgress;
     public int swingProgressInt;
     public int arrowHitTimer;
-
     /**
      * The amount of time remaining this entity should act 'hurt'. (Visual appearance of red tint)
      */
     public int hurtTime;
-
     /**
      * What the hurt time was max set to last.
      */
     public int maxHurtTime;
-
     /**
      * The yaw at which this entity was last attacked from.
      */
     public float attackedAtYaw;
-
     /**
      * The amount of time remaining this entity should act 'dead', i.e. have a corpse in the world.
      */
@@ -89,7 +82,6 @@ public abstract class EntityLivingBase extends Entity {
     public float swingProgress;
     public float prevLimbSwingAmount;
     public float limbSwingAmount;
-
     /**
      * Only relevant when limbYaw is not 0(the entity is moving). Influences where in its swing legs and arms currently
      * are.
@@ -103,50 +95,43 @@ public abstract class EntityLivingBase extends Entity {
     @Setter
     public float renderYawOffset;
     public float prevRenderYawOffset;
-
     /**
      * Entity head rotation yaw
      */
     @Setter
     @Getter
     public float rotationYawHead;
-
     /**
      * Entity head rotation yaw at previous tick
      */
     public float prevRotationYawHead;
-
     /**
      * Entity head rotation pitch
      */
     public float rotationPitchHead;
-
     /**
      * Entity head rotation pitch at previous tick
      */
     public float prevRotationPitchHead;
-
     /**
      * A factor used to determine how far this entity will move each tick if it is jumping or falling.
      */
     public float jumpMovementFactor = 0.02F;
-
+    public float moveStrafing;
+    public float moveForward;
     /**
      * The most recent player that has attacked this entity
      */
     protected EntityPlayer attackingPlayer;
-
     /**
      * Set to 60 when hit by the player or the player's wolf, then decrements. Used to determine whether the entity
      * should drop items on death.
      */
     protected int recentlyHit;
-
     /**
      * This gets set on entity death, but never used. Looks like a duplicate of isDead
      */
     protected boolean dead;
-
     /**
      * The age of this EntityLiving (used to determine when it dies)
      */
@@ -156,51 +141,41 @@ public abstract class EntityLivingBase extends Entity {
     protected float movedDistance;
     protected float prevMovedDistance;
     protected float unused180;
-
     /**
      * The score value of the Mob, the amount of points the mob is worth.
      */
     protected int scoreValue;
-
     /**
      * Damage taken in the last hit. Mobs are resistant to damage less than this for a short time after taking damage.
      */
     protected float lastDamage;
-
     /**
      * used to check whether entity is jumping.
      */
     protected boolean isJumping;
-    public float moveStrafing;
-    public float moveForward;
     protected float randomYawVelocity;
-
     /**
      * The number of updates over which the new position and rotation are to be applied to the entity.
      */
     protected int newPosRotationIncrements;
-
     /**
      * The new X position to be applied to the entity.
      */
     protected double newPosX;
-
     /**
      * The new Y position to be applied to the entity.
      */
     protected double newPosY;
     protected double newPosZ;
-
     /**
      * The new yaw rotation to be applied to the entity.
      */
     protected double newRotationYaw;
-
     /**
      * The new yaw rotation to be applied to the entity.
      */
     protected double newRotationPitch;
-
+    private BaseAttributeMap attributeMap;
     /**
      * Whether the DataWatcher needs to be updated with the active potions
      */
@@ -231,13 +206,6 @@ public abstract class EntityLivingBase extends Entity {
     @Getter
     private float absorptionAmount;
 
-    /**
-     * Called by the /kill command.
-     */
-    public void onKillCommand() {
-        this.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
-    }
-
     public EntityLivingBase(World worldIn) {
         super(worldIn);
         this.applyEntityAttributes();
@@ -249,6 +217,114 @@ public abstract class EntityLivingBase extends Entity {
         this.rotationYaw = (float) (Math.random() * Math.PI * 2.0D);
         this.rotationYawHead = this.rotationYaw;
         this.stepHeight = 0.6F;
+    }
+
+    private static BlockPos findFrictionBlockPos(EntityPlayerSP player, BlockPos fallback) {
+        if (!player.onGround) {
+            return fallback;
+        }
+
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_4)) {
+            return fallback;
+        }
+
+        BlockPos support = player.getMainSupportingBlock();
+        if (support == null) {
+            return fallback;
+        }
+
+        return new BlockPos(support.getX(), MathHelper.floor_double(player.posY - 0.500001D), support.getZ());
+    }
+
+    private static void updateLimbSwing(EntityPlayerSP player) {
+        player.prevLimbSwingAmount = player.limbSwingAmount;
+        double deltaX = player.posX - player.prevPosX;
+        double deltaZ = player.posZ - player.prevPosZ;
+        float amount = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
+        if (amount > 1.0F) {
+            amount = 1.0F;
+        }
+        player.limbSwingAmount += (amount - player.limbSwingAmount) * 0.4F;
+        player.limbSwing += player.limbSwingAmount;
+    }
+
+    private static float getCurrentMovementSpeed(EntityPlayerSP player) {
+        return (float) player.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
+    }
+
+    private static float getModernBlockSpeedFactor(EntityPlayerSP player, BlockPos support) {
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_15)
+                || player.capabilities.isFlying) {
+            return 1.0F;
+        }
+
+        Block inBlock = player.worldObj.getBlockState(new BlockPos(player.posX, player.posY, player.posZ)).getBlock();
+        float inBlockSpeedFactor = getBlockSpeedFactor(inBlock);
+        if (inBlockSpeedFactor != 1.0F || inBlock.getMaterial() == Material.water) {
+            return inBlockSpeedFactor;
+        }
+
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_4)) {
+            return getBlockSpeedFactor(player.worldObj.getBlockState(new BlockPos(player.posX, player.posY - 0.5000001D, player.posZ)).getBlock());
+        }
+
+        if (support == null) {
+            return 1.0F;
+        }
+
+        return getBlockSpeedFactor(player.worldObj.getBlockState(support).getBlock());
+    }
+
+    private static boolean isOnHoneyBlock(EntityPlayerSP player) {
+        Block inBlock = player.worldObj.getBlockState(new BlockPos(player.prevPosX, player.prevPosY, player.prevPosZ)).getBlock();
+        if (inBlock instanceof BlockHoney) {
+            return true;
+        }
+
+        BlockPos support = new BlockPos(player.prevPosX, player.prevPosY - 0.5000001D, player.prevPosZ);
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_19_4)) {
+            BlockPos trackedSupport = player.getMainSupportingBlock();
+            if (trackedSupport != null) {
+                support = new BlockPos(trackedSupport.getX(), MathHelper.floor_double(player.prevPosY - 0.500001D), trackedSupport.getZ());
+            }
+        }
+        return player.worldObj.getBlockState(support).getBlock() instanceof BlockHoney;
+    }
+
+    private static boolean isInScaffolding(EntityPlayerSP player) {
+        return ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_14)
+                && !player.isSpectator()
+                && player.worldObj.getBlockState(new BlockPos(player.posX,
+                player.getEntityBoundingBox().minY, player.posZ)).getBlock() instanceof BlockScaffolding;
+    }
+
+    private static boolean wasInScaffolding(EntityPlayerSP player) {
+        return ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_14)
+                && player.worldObj.getBlockState(new BlockPos(player.prevPosX,
+                player.prevPosY, player.prevPosZ)).getBlock() instanceof BlockScaffolding;
+    }
+
+    private static float getBlockSpeedFactor(Block block) {
+        if (block == Blocks.soul_sand && ViaProtocol.newerThanOrEqualTo1_16()) {
+            return 0.4F;
+        }
+
+        if (block instanceof BlockHoney && ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_15)) {
+            return 0.4F;
+        }
+
+        return 1.0F;
+    }
+
+    private static boolean isModernTarget() {
+        return ViaProtocol.newerThanOrEqualTo1_14();
+    }
+
+    /**
+     * Called by the /kill command.
+     */
+    public void onKillCommand() {
+        this.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
     }
 
     protected void entityInit() {
@@ -478,10 +554,6 @@ public abstract class EntityLivingBase extends Entity {
         return this.lastAttacker;
     }
 
-    public int getLastAttackerTime() {
-        return this.lastAttackerTime;
-    }
-
     public void setLastAttacker(Entity entityIn) {
         if (entityIn instanceof EntityLivingBase) {
             this.lastAttacker = (EntityLivingBase) entityIn;
@@ -490,6 +562,10 @@ public abstract class EntityLivingBase extends Entity {
         }
 
         this.lastAttackerTime = this.ticksExisted;
+    }
+
+    public int getLastAttackerTime() {
+        return this.lastAttackerTime;
     }
 
     public int getAge() {
@@ -1666,6 +1742,13 @@ public abstract class EntityLivingBase extends Entity {
         return this.landMovementFactor;
     }
 
+    /**
+     * set the movespeed used for the new AI system
+     */
+    public void setAIMoveSpeed(float speedIn) {
+        this.landMovementFactor = speedIn;
+    }
+
     private boolean modernFluidTravel(EntityPlayerSP player, float strafe, float forward) {
         if (!player.isInWater()) {
             if (player.isInLava()) {
@@ -1796,114 +1879,6 @@ public abstract class EntityLivingBase extends Entity {
             player.motionY = 0.3F;
         }
         updateLimbSwing(player);
-    }
-
-    private static BlockPos findFrictionBlockPos(EntityPlayerSP player, BlockPos fallback) {
-        if (!player.onGround) {
-            return fallback;
-        }
-
-        if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_4)) {
-            return fallback;
-        }
-
-        BlockPos support = player.getMainSupportingBlock();
-        if (support == null) {
-            return fallback;
-        }
-
-        return new BlockPos(support.getX(), MathHelper.floor_double(player.posY - 0.500001D), support.getZ());
-    }
-
-    private static void updateLimbSwing(EntityPlayerSP player) {
-        player.prevLimbSwingAmount = player.limbSwingAmount;
-        double deltaX = player.posX - player.prevPosX;
-        double deltaZ = player.posZ - player.prevPosZ;
-        float amount = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
-        if (amount > 1.0F) {
-            amount = 1.0F;
-        }
-        player.limbSwingAmount += (amount - player.limbSwingAmount) * 0.4F;
-        player.limbSwing += player.limbSwingAmount;
-    }
-
-    private static float getCurrentMovementSpeed(EntityPlayerSP player) {
-        return (float) player.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
-    }
-
-    private static float getModernBlockSpeedFactor(EntityPlayerSP player, BlockPos support) {
-        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_15)
-                || player.capabilities.isFlying) {
-            return 1.0F;
-        }
-
-        Block inBlock = player.worldObj.getBlockState(new BlockPos(player.posX, player.posY, player.posZ)).getBlock();
-        float inBlockSpeedFactor = getBlockSpeedFactor(inBlock);
-        if (inBlockSpeedFactor != 1.0F || inBlock.getMaterial() == Material.water) {
-            return inBlockSpeedFactor;
-        }
-
-        if (ViaLoadingBase.getInstance().getTargetVersion().olderThanOrEqualTo(ProtocolVersion.v1_19_4)) {
-            return getBlockSpeedFactor(player.worldObj.getBlockState(new BlockPos(player.posX, player.posY - 0.5000001D, player.posZ)).getBlock());
-        }
-
-        if (support == null) {
-            return 1.0F;
-        }
-
-        return getBlockSpeedFactor(player.worldObj.getBlockState(support).getBlock());
-    }
-
-    private static boolean isOnHoneyBlock(EntityPlayerSP player) {
-        Block inBlock = player.worldObj.getBlockState(new BlockPos(player.prevPosX, player.prevPosY, player.prevPosZ)).getBlock();
-        if (inBlock instanceof BlockHoney) {
-            return true;
-        }
-
-        BlockPos support = new BlockPos(player.prevPosX, player.prevPosY - 0.5000001D, player.prevPosZ);
-        if (ViaLoadingBase.getInstance().getTargetVersion().newerThan(ProtocolVersion.v1_19_4)) {
-            BlockPos trackedSupport = player.getMainSupportingBlock();
-            if (trackedSupport != null) {
-                support = new BlockPos(trackedSupport.getX(), MathHelper.floor_double(player.prevPosY - 0.500001D), trackedSupport.getZ());
-            }
-        }
-        return player.worldObj.getBlockState(support).getBlock() instanceof BlockHoney;
-    }
-
-    private static boolean isInScaffolding(EntityPlayerSP player) {
-        return ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_14)
-                && !player.isSpectator()
-                && player.worldObj.getBlockState(new BlockPos(player.posX,
-                player.getEntityBoundingBox().minY, player.posZ)).getBlock() instanceof BlockScaffolding;
-    }
-
-    private static boolean wasInScaffolding(EntityPlayerSP player) {
-        return ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_14)
-                && player.worldObj.getBlockState(new BlockPos(player.prevPosX,
-                player.prevPosY, player.prevPosZ)).getBlock() instanceof BlockScaffolding;
-    }
-
-    private static float getBlockSpeedFactor(Block block) {
-        if (block == Blocks.soul_sand && ViaProtocol.newerThanOrEqualTo1_16()) {
-            return 0.4F;
-        }
-
-        if (block instanceof BlockHoney && ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_15)) {
-            return 0.4F;
-        }
-
-        return 1.0F;
-    }
-
-    private static boolean isModernTarget() {
-        return ViaProtocol.newerThanOrEqualTo1_14();
-    }
-
-    /**
-     * set the movespeed used for the new AI system
-     */
-    public void setAIMoveSpeed(float speedIn) {
-        this.landMovementFactor = speedIn;
     }
 
     public boolean attackEntityAsMob(Entity entityIn) {

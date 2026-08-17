@@ -11,14 +11,14 @@ import java.io.IOException;
 import java.util.List;
 
 public class S27PacketExplosion implements Packet<INetHandlerPlayClient> {
+    public float motionX;
+    public float motionY;
+    public float motionZ;
     private double posX;
     private double posY;
     private double posZ;
     private float strength;
     private List<BlockPos> affectedBlockPositions;
-    public float motionX;
-    public float motionY;
-    public float motionZ;
 
     public S27PacketExplosion() {
     }

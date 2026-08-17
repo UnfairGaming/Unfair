@@ -54,57 +54,80 @@ public class GuiIngame extends Gui {
     private final Minecraft mc;
     private final RenderItem itemRenderer;
 
-    /** ChatGUI instance that retains all previous chat data */
+    /**
+     * ChatGUI instance that retains all previous chat data
+     */
     private final GuiNewChat persistantChatGUI;
-    @Getter
-    private int updateCounter;
-
-    /** The string specifying which record music is playing */
-    private String recordPlaying = "";
-
-    /** How many ticks the record playing message will be displayed */
-    private int recordPlayingUpFor;
-    private boolean recordIsPlaying;
-
-    /** Previous frame vignette brightness (slowly changes by 1% each frame) */
-    public float prevVignetteBrightness = 1.0F;
-
-    /** Remaining ticks the item highlight should be visible */
-    private int remainingHighlightTicks;
-
-    /** The ItemStack that is currently being highlighted */
-    private ItemStack highlightingItemStack;
     private final GuiOverlayDebug overlayDebug;
-
-    /** The spectator GUI for this in-game GUI instance */
+    /**
+     * The spectator GUI for this in-game GUI instance
+     */
     @Getter
     private final GuiSpectator spectatorGui;
     private final GuiPlayerTabOverlay overlayPlayerList;
-
-    /** A timer for the current title and subtitle displayed */
+    /**
+     * Previous frame vignette brightness (slowly changes by 1% each frame)
+     */
+    public float prevVignetteBrightness = 1.0F;
+    @Getter
+    private int updateCounter;
+    /**
+     * The string specifying which record music is playing
+     */
+    private String recordPlaying = "";
+    /**
+     * How many ticks the record playing message will be displayed
+     */
+    private int recordPlayingUpFor;
+    private boolean recordIsPlaying;
+    /**
+     * Remaining ticks the item highlight should be visible
+     */
+    private int remainingHighlightTicks;
+    /**
+     * The ItemStack that is currently being highlighted
+     */
+    private ItemStack highlightingItemStack;
+    /**
+     * A timer for the current title and subtitle displayed
+     */
     private int titlesTimer;
 
-    /** The current title displayed */
+    /**
+     * The current title displayed
+     */
     private String displayedTitle = "";
 
-    /** The current sub-title displayed */
+    /**
+     * The current sub-title displayed
+     */
     private String displayedSubTitle = "";
 
-    /** The time that the title take to fade in */
+    /**
+     * The time that the title take to fade in
+     */
     private int titleFadeIn;
 
-    /** The time that the title is display */
+    /**
+     * The time that the title is display
+     */
     private int titleDisplayTime;
 
-    /** The time that the title take to fade out */
+    /**
+     * The time that the title take to fade out
+     */
     private int titleFadeOut;
     private int playerHealth = 0;
     private int lastPlayerHealth = 0;
 
-    /** The last recorded system time */
+    /**
+     * The last recorded system time
+     */
     private long lastSystemTime = 0L;
 
-    /** Used with updateCounter to make the heart bar flash */
+    /**
+     * Used with updateCounter to make the heart bar flash
+     */
     private long healthUpdateCounter = 0L;
 
     public GuiIngame(Minecraft mcIn) {
@@ -828,7 +851,7 @@ public class GuiIngame extends Gui {
      * Renders a Vignette arount the entire screen that changes with light level.
      *
      * @param lightLevel The current brightness
-     * @param scaledRes The current resolution of the game
+     * @param scaledRes  The current resolution of the game
      */
     private void renderVignette(float lightLevel, ScaledResolution scaledRes) {
         if (!Config.isVignetteEnabled()) {

@@ -22,233 +22,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EntityList
-{
-    private static final Logger logger = LogManager.getLogger();
-    private static final Map < String, Class <? extends Entity >> stringToClassMapping = Maps. < String, Class <? extends Entity >> newHashMap();
-    private static final Map < Class <? extends Entity > , String > classToStringMapping = Maps. < Class <? extends Entity > , String > newHashMap();
-    private static final Map < Integer, Class <? extends Entity >> idToClassMapping = Maps. < Integer, Class <? extends Entity >> newHashMap();
-    private static final Map < Class <? extends Entity > , Integer > classToIDMapping = Maps. < Class <? extends Entity > , Integer > newHashMap();
-    private static final Map<String, Integer> stringToIDMapping = Maps.<String, Integer>newHashMap();
+public class EntityList {
     public static final Map<Integer, EntityList.EntityEggInfo> entityEggs = Maps.<Integer, EntityList.EntityEggInfo>newLinkedHashMap();
+    private static final Logger logger = LogManager.getLogger();
+    private static final Map<String, Class<? extends Entity>> stringToClassMapping = Maps.<String, Class<? extends Entity>>newHashMap();
+    private static final Map<Class<? extends Entity>, String> classToStringMapping = Maps.<Class<? extends Entity>, String>newHashMap();
+    private static final Map<Integer, Class<? extends Entity>> idToClassMapping = Maps.<Integer, Class<? extends Entity>>newHashMap();
+    private static final Map<Class<? extends Entity>, Integer> classToIDMapping = Maps.<Class<? extends Entity>, Integer>newHashMap();
+    private static final Map<String, Integer> stringToIDMapping = Maps.<String, Integer>newHashMap();
 
-    /**
-     * adds a mapping between Entity classes and both a string representation and an ID
-     */
-    private static void addMapping(Class <? extends Entity > entityClass, String entityName, int id)
-    {
-        if (stringToClassMapping.containsKey(entityName))
-        {
-            throw new IllegalArgumentException("ID is already registered: " + entityName);
-        }
-        else if (idToClassMapping.containsKey(id))
-        {
-            throw new IllegalArgumentException("ID is already registered: " + id);
-        }
-        else if (id == 0)
-        {
-            throw new IllegalArgumentException("Cannot register to reserved id: " + id);
-        }
-        else if (entityClass == null)
-        {
-            throw new IllegalArgumentException("Cannot register null clazz for id: " + id);
-        }
-        else
-        {
-            stringToClassMapping.put(entityName, entityClass);
-            classToStringMapping.put(entityClass, entityName);
-            idToClassMapping.put(id, entityClass);
-            classToIDMapping.put(entityClass, id);
-            stringToIDMapping.put(entityName, id);
-        }
-    }
-
-    /**
-     * Adds a entity mapping with egg info.
-     */
-    private static void addMapping(Class <? extends Entity > entityClass, String entityName, int entityID, int baseColor, int spotColor)
-    {
-        addMapping(entityClass, entityName, entityID);
-        entityEggs.put(entityID, new EntityList.EntityEggInfo(entityID, baseColor, spotColor));
-    }
-
-    /**
-     * Create a new instance of an entity in the world by using the entity name.
-     */
-    public static Entity createEntityByName(String entityName, World worldIn)
-    {
-        Entity entity = null;
-
-        try
-        {
-            Class<? extends Entity> oclass = stringToClassMapping.get(entityName);
-
-            if (oclass != null)
-            {
-                entity = oclass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldIn});
-            }
-        }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-        }
-
-        return entity;
-    }
-
-    /**
-     * create a new instance of an entity from NBT store
-     */
-    public static Entity createEntityFromNBT(NBTTagCompound nbt, World worldIn)
-    {
-        Entity entity = null;
-
-        if ("Minecart".equals(nbt.getString("id")))
-        {
-            nbt.setString("id", EntityMinecart.EnumMinecartType.byNetworkID(nbt.getInteger("Type")).getName());
-            nbt.removeTag("Type");
-        }
-
-        try
-        {
-            Class<? extends Entity> oclass = stringToClassMapping.get(nbt.getString("id"));
-
-            if (oclass != null)
-            {
-                entity = oclass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldIn});
-            }
-        }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-        }
-
-        if (entity != null)
-        {
-            entity.readFromNBT(nbt);
-        }
-        else
-        {
-            logger.warn("Skipping Entity with id " + nbt.getString("id"));
-        }
-
-        return entity;
-    }
-
-    /**
-     * Create a new instance of an entity in the world by using an entity ID.
-     */
-    public static Entity createEntityByID(int entityID, World worldIn)
-    {
-        Entity entity = null;
-
-        try
-        {
-            Class <? extends Entity > oclass = getClassFromID(entityID);
-
-            if (oclass != null)
-            {
-                entity = oclass.getConstructor(new Class[] {World.class}).newInstance(new Object[] {worldIn});
-            }
-        }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-        }
-
-        if (entity == null)
-        {
-            logger.warn("Skipping Entity with id " + entityID);
-        }
-
-        return entity;
-    }
-
-    /**
-     * gets the entityID of a specific entity
-     */
-    public static int getEntityID(Entity entityIn)
-    {
-        Integer integer = classToIDMapping.get(entityIn.getClass());
-        return integer == null ? 0 : integer;
-    }
-
-    public static Class <? extends Entity > getClassFromID(int entityID)
-    {
-        return idToClassMapping.get(entityID);
-    }
-
-    /**
-     * Gets the string representation of a specific entity.
-     */
-    public static String getEntityString(Entity entityIn)
-    {
-        return classToStringMapping.get(entityIn.getClass());
-    }
-
-    /**
-     * Returns the ID assigned to it's string representation
-     */
-    public static int getIDFromString(String entityName)
-    {
-        Integer integer = stringToIDMapping.get(entityName);
-        return integer == null ? 90 : integer;
-    }
-
-    /**
-     * Finds the class using IDtoClassMapping and classToStringMapping
-     */
-    public static String getStringFromID(int entityID)
-    {
-        return classToStringMapping.get(getClassFromID(entityID));
-    }
-
-    public static void func_151514_a()
-    {
-    }
-
-    public static List<String> getEntityNameList()
-    {
-        Set<String> set = stringToClassMapping.keySet();
-        List<String> list = Lists.<String>newArrayList();
-
-        for (String s : set)
-        {
-            Class<? extends Entity> oclass = stringToClassMapping.get(s);
-
-            if ((oclass.getModifiers() & 1024) != 1024)
-            {
-                list.add(s);
-            }
-        }
-
-        list.add("LightningBolt");
-        return list;
-    }
-
-    public static boolean isStringEntityName(Entity entityIn, String entityName)
-    {
-        String s = getEntityString(entityIn);
-
-        if (s == null && entityIn instanceof EntityPlayer)
-        {
-            s = "Player";
-        }
-        else if (s == null && entityIn instanceof EntityLightningBolt)
-        {
-            s = "LightningBolt";
-        }
-
-        return entityName.equals(s);
-    }
-
-    public static boolean isStringValidEntityName(String entityName)
-    {
-        return "Player".equals(entityName) || getEntityNameList().contains(entityName);
-    }
-
-    static
-    {
+    static {
         addMapping(EntityItem.class, "Item", 1);
         addMapping(EntityXPOrb.class, "XPOrb", 2);
         addMapping(EntityEgg.class, "ThrownEgg", 7);
@@ -313,16 +96,184 @@ public class EntityList
         addMapping(EntityEnderCrystal.class, "EnderCrystal", 200);
     }
 
-    public static class EntityEggInfo
-    {
+    /**
+     * adds a mapping between Entity classes and both a string representation and an ID
+     */
+    private static void addMapping(Class<? extends Entity> entityClass, String entityName, int id) {
+        if (stringToClassMapping.containsKey(entityName)) {
+            throw new IllegalArgumentException("ID is already registered: " + entityName);
+        } else if (idToClassMapping.containsKey(id)) {
+            throw new IllegalArgumentException("ID is already registered: " + id);
+        } else if (id == 0) {
+            throw new IllegalArgumentException("Cannot register to reserved id: " + id);
+        } else if (entityClass == null) {
+            throw new IllegalArgumentException("Cannot register null clazz for id: " + id);
+        } else {
+            stringToClassMapping.put(entityName, entityClass);
+            classToStringMapping.put(entityClass, entityName);
+            idToClassMapping.put(id, entityClass);
+            classToIDMapping.put(entityClass, id);
+            stringToIDMapping.put(entityName, id);
+        }
+    }
+
+    /**
+     * Adds a entity mapping with egg info.
+     */
+    private static void addMapping(Class<? extends Entity> entityClass, String entityName, int entityID, int baseColor, int spotColor) {
+        addMapping(entityClass, entityName, entityID);
+        entityEggs.put(entityID, new EntityList.EntityEggInfo(entityID, baseColor, spotColor));
+    }
+
+    /**
+     * Create a new instance of an entity in the world by using the entity name.
+     */
+    public static Entity createEntityByName(String entityName, World worldIn) {
+        Entity entity = null;
+
+        try {
+            Class<? extends Entity> oclass = stringToClassMapping.get(entityName);
+
+            if (oclass != null) {
+                entity = oclass.getConstructor(new Class[]{World.class}).newInstance(new Object[]{worldIn});
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        return entity;
+    }
+
+    /**
+     * create a new instance of an entity from NBT store
+     */
+    public static Entity createEntityFromNBT(NBTTagCompound nbt, World worldIn) {
+        Entity entity = null;
+
+        if ("Minecart".equals(nbt.getString("id"))) {
+            nbt.setString("id", EntityMinecart.EnumMinecartType.byNetworkID(nbt.getInteger("Type")).getName());
+            nbt.removeTag("Type");
+        }
+
+        try {
+            Class<? extends Entity> oclass = stringToClassMapping.get(nbt.getString("id"));
+
+            if (oclass != null) {
+                entity = oclass.getConstructor(new Class[]{World.class}).newInstance(new Object[]{worldIn});
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        if (entity != null) {
+            entity.readFromNBT(nbt);
+        } else {
+            logger.warn("Skipping Entity with id " + nbt.getString("id"));
+        }
+
+        return entity;
+    }
+
+    /**
+     * Create a new instance of an entity in the world by using an entity ID.
+     */
+    public static Entity createEntityByID(int entityID, World worldIn) {
+        Entity entity = null;
+
+        try {
+            Class<? extends Entity> oclass = getClassFromID(entityID);
+
+            if (oclass != null) {
+                entity = oclass.getConstructor(new Class[]{World.class}).newInstance(new Object[]{worldIn});
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        if (entity == null) {
+            logger.warn("Skipping Entity with id " + entityID);
+        }
+
+        return entity;
+    }
+
+    /**
+     * gets the entityID of a specific entity
+     */
+    public static int getEntityID(Entity entityIn) {
+        Integer integer = classToIDMapping.get(entityIn.getClass());
+        return integer == null ? 0 : integer;
+    }
+
+    public static Class<? extends Entity> getClassFromID(int entityID) {
+        return idToClassMapping.get(entityID);
+    }
+
+    /**
+     * Gets the string representation of a specific entity.
+     */
+    public static String getEntityString(Entity entityIn) {
+        return classToStringMapping.get(entityIn.getClass());
+    }
+
+    /**
+     * Returns the ID assigned to it's string representation
+     */
+    public static int getIDFromString(String entityName) {
+        Integer integer = stringToIDMapping.get(entityName);
+        return integer == null ? 90 : integer;
+    }
+
+    /**
+     * Finds the class using IDtoClassMapping and classToStringMapping
+     */
+    public static String getStringFromID(int entityID) {
+        return classToStringMapping.get(getClassFromID(entityID));
+    }
+
+    public static void func_151514_a() {
+    }
+
+    public static List<String> getEntityNameList() {
+        Set<String> set = stringToClassMapping.keySet();
+        List<String> list = Lists.<String>newArrayList();
+
+        for (String s : set) {
+            Class<? extends Entity> oclass = stringToClassMapping.get(s);
+
+            if ((oclass.getModifiers() & 1024) != 1024) {
+                list.add(s);
+            }
+        }
+
+        list.add("LightningBolt");
+        return list;
+    }
+
+    public static boolean isStringEntityName(Entity entityIn, String entityName) {
+        String s = getEntityString(entityIn);
+
+        if (s == null && entityIn instanceof EntityPlayer) {
+            s = "Player";
+        } else if (s == null && entityIn instanceof EntityLightningBolt) {
+            s = "LightningBolt";
+        }
+
+        return entityName.equals(s);
+    }
+
+    public static boolean isStringValidEntityName(String entityName) {
+        return "Player".equals(entityName) || getEntityNameList().contains(entityName);
+    }
+
+    public static class EntityEggInfo {
         public final int spawnedID;
         public final int primaryColor;
         public final int secondaryColor;
         public final StatBase field_151512_d;
         public final StatBase field_151513_e;
 
-        public EntityEggInfo(int id, int baseColor, int spotColor)
-        {
+        public EntityEggInfo(int id, int baseColor, int spotColor) {
             this.spawnedID = id;
             this.primaryColor = baseColor;
             this.secondaryColor = spotColor;

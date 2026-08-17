@@ -3,8 +3,7 @@ package net.minecraft.network.play;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.play.client.*;
 
-public interface INetHandlerPlayServer extends INetHandler
-{
+public interface INetHandlerPlayServer extends INetHandler {
     void handleAnimation(C0APacketAnimation packetIn);
 
     /**

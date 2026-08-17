@@ -9,11 +9,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.IStringSerializable;
 
 public class BlockModernSculkSensor extends BlockModernShape {
-    public enum Phase implements IStringSerializable {
-        INACTIVE, ACTIVE, COOLDOWN;
-        public String getName() { return name().toLowerCase(); }
-    }
-
     public static final PropertyEnum<Phase> PHASE = PropertyEnum.create("sculk_sensor_phase", Phase.class);
 
     public BlockModernSculkSensor(int firstState) {
@@ -22,9 +17,22 @@ public class BlockModernSculkSensor extends BlockModernShape {
         setDefaultState(blockState.getBaseState().withProperty(PHASE, Phase.INACTIVE));
     }
 
-    @Override protected BlockState createBlockState() { return new BlockState(this, new IProperty[]{PHASE}); }
-    @Override public IBlockState getStateFromViaStateId(int id) {
+    @Override
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{PHASE});
+    }
+
+    @Override
+    public IBlockState getStateFromViaStateId(int id) {
         // Registry order is power, phase, waterlogged; only phase affects this client model.
         return getDefaultState().withProperty(PHASE, Phase.values()[((id - firstState) / 2) % 3]);
+    }
+
+    public enum Phase implements IStringSerializable {
+        INACTIVE, ACTIVE, COOLDOWN;
+
+        public String getName() {
+            return name().toLowerCase();
+        }
     }
 }

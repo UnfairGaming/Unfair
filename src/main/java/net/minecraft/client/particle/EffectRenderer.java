@@ -25,20 +25,19 @@ import java.util.concurrent.Callable;
 
 public class EffectRenderer {
     private static final ResourceLocation particleTextures = ResourceLocation.of("textures/particle/particles.png");
-
-    /**
-     * Reference to the World object.
-     */
-    protected World worldObj;
     private final List<EntityFX>[][] fxLayers = createFxLayers();
     private final List<EntityParticleEmitter> particleEmitters = Lists.newArrayList();
     private final TextureManager renderer;
-
     /**
      * RNG.
      */
     private final Random rand = new Random();
     private final Map<Integer, IParticleFactory> particleTypes = Maps.newHashMap();
+    /**
+     * Reference to the World object.
+     */
+    protected World worldObj;
+    List<EntityFX> listOfEntityFXToRemove = Lists.newArrayList();
 
     public EffectRenderer(World worldIn, TextureManager rendererIn) {
         this.worldObj = worldIn;
@@ -174,8 +173,6 @@ public class EffectRenderer {
             this.updateEffectAlphaLayer(this.fxLayers[layer][i]);
         }
     }
-
-    List<EntityFX> listOfEntityFXToRemove = Lists.newArrayList();
 
     private void updateEffectAlphaLayer(List<EntityFX> entitiesFX) {
         listOfEntityFXToRemove.clear();

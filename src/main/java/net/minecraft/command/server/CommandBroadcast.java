@@ -11,50 +11,41 @@ import net.minecraft.util.IChatComponent;
 
 import java.util.List;
 
-public class CommandBroadcast extends CommandBase
-{
+public class CommandBroadcast extends CommandBase {
     /**
      * Gets the name of the command
      */
-    public String getCommandName()
-    {
+    public String getCommandName() {
         return "say";
     }
 
     /**
      * Return the required permission level for this command.
      */
-    public int getRequiredPermissionLevel()
-    {
+    public int getRequiredPermissionLevel() {
         return 1;
     }
 
     /**
      * Gets the usage string for the command.
      */
-    public String getCommandUsage(ICommandSender sender)
-    {
+    public String getCommandUsage(ICommandSender sender) {
         return "commands.say.usage";
     }
 
     /**
      * Callback when the command is invoked
      */
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException
-    {
-        if (args.length > 0 && !args[0].isEmpty())
-        {
+    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+        if (args.length > 0 && !args[0].isEmpty()) {
             IChatComponent ichatcomponent = getChatComponentFromNthArg(sender, args, 0, true);
-            MinecraftServer.getServer().getConfigurationManager().sendChatMsg(new ChatComponentTranslation("chat.type.announcement", new Object[] {sender.getDisplayName(), ichatcomponent}));
-        }
-        else
-        {
+            MinecraftServer.getServer().getConfigurationManager().sendChatMsg(new ChatComponentTranslation("chat.type.announcement", new Object[]{sender.getDisplayName(), ichatcomponent}));
+        } else {
             throw new WrongUsageException("commands.say.usage", new Object[0]);
         }
     }
 
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos)
-    {
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
         return args.length >= 1 ? getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames()) : null;
     }
 }

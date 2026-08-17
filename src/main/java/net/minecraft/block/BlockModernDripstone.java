@@ -18,19 +18,9 @@ import java.util.Collections;
 import java.util.List;
 
 public class BlockModernDripstone extends BlockModernShape {
-    public enum Thickness implements IStringSerializable {
-        TIP_MERGE, TIP, FRUSTUM, MIDDLE, BASE;
-
-        @Override
-        public String getName() {
-            return name().toLowerCase();
-        }
-    }
-
     public static final PropertyEnum<Thickness> THICKNESS = PropertyEnum.create("thickness", Thickness.class);
     public static final PropertyDirection VERTICAL_DIRECTION =
             PropertyDirection.create("vertical_direction", EnumFacing.Plane.VERTICAL);
-
     private final int first;
 
     public BlockModernDripstone(int first) {
@@ -117,5 +107,14 @@ public class BlockModernDripstone extends BlockModernShape {
     public List<AxisAlignedBB> getSelectedBoundingBoxes(World world, BlockPos pos) {
         // RenderGlobal applies the visual block offset to selection boxes.
         return Collections.singletonList(getUnoffsetBox(pos, world.getBlockState(pos)));
+    }
+
+    public enum Thickness implements IStringSerializable {
+        TIP_MERGE, TIP, FRUSTUM, MIDDLE, BASE;
+
+        @Override
+        public String getName() {
+            return name().toLowerCase();
+        }
     }
 }

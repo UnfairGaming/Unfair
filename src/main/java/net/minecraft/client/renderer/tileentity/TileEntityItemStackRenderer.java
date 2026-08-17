@@ -19,44 +19,33 @@ import net.minecraft.tileentity.TileEntitySkull;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 
-public class TileEntityItemStackRenderer
-{
+public class TileEntityItemStackRenderer {
     private static final ResourceLocation SHIELD_BASE_TEXTURE = ResourceLocation.of("textures/entity/shield_base_nopattern.png");
     public static TileEntityItemStackRenderer instance = new TileEntityItemStackRenderer();
+    private final ModelShield shield = new ModelShield();
     private TileEntityChest field_147717_b = new TileEntityChest(0);
     private TileEntityChest field_147718_c = new TileEntityChest(1);
     private TileEntityEnderChest enderChest = new TileEntityEnderChest();
     private TileEntityBanner banner = new TileEntityBanner();
     private TileEntitySkull skull = new TileEntitySkull();
-    private final ModelShield shield = new ModelShield();
 
-    public void renderByItem(ItemStack itemStackIn)
-    {
+    public void renderByItem(ItemStack itemStackIn) {
         String viaModelName = ViaBackwardsItemModels.getModelName(itemStackIn);
 
-        if ("shield".equals(viaModelName) || "shield_blocking".equals(viaModelName))
-        {
+        if ("shield".equals(viaModelName) || "shield_blocking".equals(viaModelName)) {
             this.renderShield();
-        }
-        else if (itemStackIn.getItem() == Items.banner)
-        {
+        } else if (itemStackIn.getItem() == Items.banner) {
             this.banner.setItemValues(itemStackIn);
             TileEntityRendererDispatcher.instance.renderTileEntityAt(this.banner, 0.0D, 0.0D, 0.0D, 0.0F);
-        }
-        else if (itemStackIn.getItem() == Items.skull)
-        {
+        } else if (itemStackIn.getItem() == Items.skull) {
             GameProfile gameprofile = null;
 
-            if (itemStackIn.hasTagCompound())
-            {
+            if (itemStackIn.hasTagCompound()) {
                 NBTTagCompound nbttagcompound = itemStackIn.getTagCompound();
 
-                if (nbttagcompound.hasKey("SkullOwner", 10))
-                {
+                if (nbttagcompound.hasKey("SkullOwner", 10)) {
                     gameprofile = NBTUtil.readGameProfileFromNBT(nbttagcompound.getCompoundTag("SkullOwner"));
-                }
-                else if (nbttagcompound.hasKey("SkullOwner", 8) && !nbttagcompound.getString("SkullOwner").isEmpty())
-                {
+                } else if (nbttagcompound.hasKey("SkullOwner", 8) && !nbttagcompound.getString("SkullOwner").isEmpty()) {
                     gameprofile = new GameProfile(null, nbttagcompound.getString("SkullOwner"));
                     gameprofile = TileEntitySkull.updateGameprofile(gameprofile);
                     nbttagcompound.removeTag("SkullOwner");
@@ -64,8 +53,7 @@ public class TileEntityItemStackRenderer
                 }
             }
 
-            if (TileEntitySkullRenderer.instance != null)
-            {
+            if (TileEntitySkullRenderer.instance != null) {
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(-0.5F, 0.0F, -0.5F);
                 GlStateManager.scale(2.0F, 2.0F, 2.0F);
@@ -74,28 +62,20 @@ public class TileEntityItemStackRenderer
                 GlStateManager.enableCull();
                 GlStateManager.popMatrix();
             }
-        }
-        else
-        {
+        } else {
             Block block = Block.getBlockFromItem(itemStackIn.getItem());
 
-            if (block == Blocks.ender_chest)
-            {
+            if (block == Blocks.ender_chest) {
                 TileEntityRendererDispatcher.instance.renderTileEntityAt(this.enderChest, 0.0D, 0.0D, 0.0D, 0.0F);
-            }
-            else if (block == Blocks.trapped_chest)
-            {
+            } else if (block == Blocks.trapped_chest) {
                 TileEntityRendererDispatcher.instance.renderTileEntityAt(this.field_147718_c, 0.0D, 0.0D, 0.0D, 0.0F);
-            }
-            else
-            {
+            } else {
                 TileEntityRendererDispatcher.instance.renderTileEntityAt(this.field_147717_b, 0.0D, 0.0D, 0.0D, 0.0F);
             }
         }
     }
 
-    private void renderShield()
-    {
+    private void renderShield() {
         Minecraft.getMinecraft().getTextureManager().bindTexture(SHIELD_BASE_TEXTURE);
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
@@ -106,13 +86,11 @@ public class TileEntityItemStackRenderer
         GlStateManager.popMatrix();
     }
 
-    private static class ModelShield extends ModelBase
-    {
+    private static class ModelShield extends ModelBase {
         private final ModelRenderer plate;
         private final ModelRenderer handle;
 
-        private ModelShield()
-        {
+        private ModelShield() {
             this.textureWidth = 64;
             this.textureHeight = 64;
             this.plate = new ModelRenderer(this, 0, 0);
@@ -123,8 +101,7 @@ public class TileEntityItemStackRenderer
             this.handle.addBox(-1.0F, -3.0F, -1.0F, 2, 6, 6);
         }
 
-        private void render()
-        {
+        private void render() {
             this.plate.render(0.0625F);
             this.handle.render(0.0625F);
         }

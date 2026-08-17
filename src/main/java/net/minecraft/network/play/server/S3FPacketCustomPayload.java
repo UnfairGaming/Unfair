@@ -7,22 +7,18 @@ import net.minecraft.network.play.INetHandlerPlayClient;
 
 import java.io.IOException;
 
-public class S3FPacketCustomPayload implements Packet<INetHandlerPlayClient>
-{
+public class S3FPacketCustomPayload implements Packet<INetHandlerPlayClient> {
     private String channel;
     private PacketBuffer data;
 
-    public S3FPacketCustomPayload()
-    {
+    public S3FPacketCustomPayload() {
     }
 
-    public S3FPacketCustomPayload(String channelName, PacketBuffer dataIn)
-    {
+    public S3FPacketCustomPayload(String channelName, PacketBuffer dataIn) {
         this.channel = channelName;
         this.data = dataIn;
 
-        if (dataIn.writerIndex() > 1048576)
-        {
+        if (dataIn.writerIndex() > 1048576) {
             throw new IllegalArgumentException("Payload may not be larger than 1048576 bytes");
         }
     }
@@ -30,17 +26,13 @@ public class S3FPacketCustomPayload implements Packet<INetHandlerPlayClient>
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.channel = buf.readStringFromBuffer(20);
         int i = buf.readableBytes();
 
-        if (i >= 0 && i <= 1048576)
-        {
+        if (i >= 0 && i <= 1048576) {
             this.data = new PacketBuffer(buf.readBytes(i));
-        }
-        else
-        {
+        } else {
             throw new IOException("Payload may not be larger than 1048576 bytes");
         }
     }
@@ -48,8 +40,7 @@ public class S3FPacketCustomPayload implements Packet<INetHandlerPlayClient>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeString(this.channel);
         buf.writeBytes(this.data);
     }
@@ -57,42 +48,31 @@ public class S3FPacketCustomPayload implements Packet<INetHandlerPlayClient>
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerPlayClient handler)
-    {
+    public void processPacket(INetHandlerPlayClient handler) {
         boolean shouldRelease = true;
 
-        try
-        {
+        try {
             handler.handleCustomPayload(this);
-        }
-        catch (ThreadQuickExitException threadquickexitexception)
-        {
+        } catch (ThreadQuickExitException threadquickexitexception) {
             shouldRelease = false;
             throw threadquickexitexception;
-        }
-        finally
-        {
-            if (shouldRelease)
-            {
+        } finally {
+            if (shouldRelease) {
                 this.releaseData();
             }
         }
     }
 
-    public String getChannelName()
-    {
+    public String getChannelName() {
         return this.channel;
     }
 
-    public PacketBuffer getBufferData()
-    {
+    public PacketBuffer getBufferData() {
         return this.data;
     }
 
-    public void releaseData()
-    {
-        if (this.data != null && this.data.refCnt() > 0)
-        {
+    public void releaseData() {
+        if (this.data != null && this.data.refCnt() > 0) {
             this.data.release();
         }
     }

@@ -23,22 +23,81 @@ public abstract class TileEntity implements Cullable {
     private static final Map<String, Class<? extends TileEntity>> nameToClassMap = Maps.newHashMap();
     private static final Map<Class<? extends TileEntity>, String> classToNameMap = Maps.newHashMap();
 
+    static {
+        addMapping(TileEntityFurnace.class, "Furnace");
+        addMapping(TileEntityChest.class, "Chest");
+        addMapping(TileEntityEnderChest.class, "EnderChest");
+        addMapping(BlockJukebox.TileEntityJukebox.class, "RecordPlayer");
+        addMapping(TileEntityDispenser.class, "Trap");
+        addMapping(TileEntityDropper.class, "Dropper");
+        addMapping(TileEntitySign.class, "Sign");
+        addMapping(TileEntityMobSpawner.class, "MobSpawner");
+        addMapping(TileEntityNote.class, "Music");
+        addMapping(TileEntityPiston.class, "Piston");
+        addMapping(TileEntityBrewingStand.class, "Cauldron");
+        addMapping(TileEntityEnchantmentTable.class, "EnchantTable");
+        addMapping(TileEntityEndPortal.class, "Airportal");
+        addMapping(TileEntityCommandBlock.class, "Control");
+        addMapping(TileEntityBeacon.class, "Beacon");
+        addMapping(TileEntitySkull.class, "Skull");
+        addMapping(TileEntityDaylightDetector.class, "DLDetector");
+        addMapping(TileEntityHopper.class, "Hopper");
+        addMapping(TileEntityComparator.class, "Comparator");
+        addMapping(TileEntityFlowerPot.class, "FlowerPot");
+        addMapping(TileEntityBanner.class, "Banner");
+    }
+
     /**
      * the instance of the world the tile entity is in.
      */
     protected World worldObj;
     protected BlockPos pos = BlockPos.ORIGIN;
     protected boolean tileEntityInvalid;
-    private int blockMetadata = -1;
-
     /**
      * the Block type that this TileEntity is contained within
      */
     protected Block blockType;
-
+    private int blockMetadata = -1;
     private long lasttime = 0;
     private boolean culled = false;
     private boolean outOfCamera = false;
+
+    /**
+     * Adds a new two-way mapping between the class and its string name in both hashmaps.
+     */
+    private static void addMapping(Class<? extends TileEntity> cl, String id) {
+        if (nameToClassMap.containsKey(id)) {
+            throw new IllegalArgumentException("Duplicate id: " + id);
+        } else {
+            nameToClassMap.put(id, cl);
+            classToNameMap.put(cl, id);
+        }
+    }
+
+    /**
+     * Creates a new entity and loads its data from the specified NBT.
+     */
+    public static TileEntity createAndLoadEntity(NBTTagCompound nbt) {
+        TileEntity tileentity = null;
+
+        try {
+            Class<? extends TileEntity> oclass = nameToClassMap.get(nbt.getString("id"));
+
+            if (oclass != null) {
+                tileentity = oclass.getDeclaredConstructor().newInstance();
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        if (tileentity != null) {
+            tileentity.readFromNBT(nbt);
+        } else {
+            logger.warn("Skipping BlockEntity with id " + nbt.getString("id"));
+        }
+
+        return tileentity;
+    }
 
     @Override
     public void setTimeout() {
@@ -51,40 +110,28 @@ public abstract class TileEntity implements Cullable {
     }
 
     @Override
+    public boolean isCulled() {
+        if (!EntityCullingManager.enabled) return false;
+        return culled;
+    }
+
+    @Override
     public void setCulled(boolean value) {
         this.culled = value;
-        if(!value) {
+        if (!value) {
             setTimeout();
         }
     }
 
     @Override
-    public boolean isCulled() {
-        if(!EntityCullingManager.enabled) return false;
-        return culled;
+    public boolean isOutOfCamera() {
+        if (!EntityCullingManager.enabled) return false;
+        return outOfCamera;
     }
 
     @Override
     public void setOutOfCamera(boolean value) {
         this.outOfCamera = value;
-    }
-
-    @Override
-    public boolean isOutOfCamera() {
-        if(!EntityCullingManager.enabled) return false;
-        return outOfCamera;
-    }
-
-    /**
-     * Adds a new two-way mapping between the class and its string name in both hashmaps.
-     */
-    private static void addMapping(Class<? extends TileEntity> cl, String id) {
-        if (nameToClassMap.containsKey(id)) {
-            throw new IllegalArgumentException("Duplicate id: " + id);
-        } else {
-            nameToClassMap.put(id, cl);
-            classToNameMap.put(cl, id);
-        }
     }
 
     /**
@@ -123,31 +170,6 @@ public abstract class TileEntity implements Cullable {
             compound.setInteger("y", this.pos.getY());
             compound.setInteger("z", this.pos.getZ());
         }
-    }
-
-    /**
-     * Creates a new entity and loads its data from the specified NBT.
-     */
-    public static TileEntity createAndLoadEntity(NBTTagCompound nbt) {
-        TileEntity tileentity = null;
-
-        try {
-            Class<? extends TileEntity> oclass = nameToClassMap.get(nbt.getString("id"));
-
-            if (oclass != null) {
-                tileentity = oclass.getDeclaredConstructor().newInstance();
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
-
-        if (tileentity != null) {
-            tileentity.readFromNBT(nbt);
-        } else {
-            logger.warn("Skipping BlockEntity with id " + nbt.getString("id"));
-        }
-
-        return tileentity;
     }
 
     public int getBlockMetadata() {
@@ -191,6 +213,10 @@ public abstract class TileEntity implements Cullable {
 
     public BlockPos getPos() {
         return this.pos;
+    }
+
+    public void setPos(BlockPos posIn) {
+        this.pos = posIn;
     }
 
     /**
@@ -273,35 +299,7 @@ public abstract class TileEntity implements Cullable {
         }
     }
 
-    public void setPos(BlockPos posIn) {
-        this.pos = posIn;
-    }
-
     public boolean func_183000_F() {
         return false;
-    }
-
-    static {
-        addMapping(TileEntityFurnace.class, "Furnace");
-        addMapping(TileEntityChest.class, "Chest");
-        addMapping(TileEntityEnderChest.class, "EnderChest");
-        addMapping(BlockJukebox.TileEntityJukebox.class, "RecordPlayer");
-        addMapping(TileEntityDispenser.class, "Trap");
-        addMapping(TileEntityDropper.class, "Dropper");
-        addMapping(TileEntitySign.class, "Sign");
-        addMapping(TileEntityMobSpawner.class, "MobSpawner");
-        addMapping(TileEntityNote.class, "Music");
-        addMapping(TileEntityPiston.class, "Piston");
-        addMapping(TileEntityBrewingStand.class, "Cauldron");
-        addMapping(TileEntityEnchantmentTable.class, "EnchantTable");
-        addMapping(TileEntityEndPortal.class, "Airportal");
-        addMapping(TileEntityCommandBlock.class, "Control");
-        addMapping(TileEntityBeacon.class, "Beacon");
-        addMapping(TileEntitySkull.class, "Skull");
-        addMapping(TileEntityDaylightDetector.class, "DLDetector");
-        addMapping(TileEntityHopper.class, "Hopper");
-        addMapping(TileEntityComparator.class, "Comparator");
-        addMapping(TileEntityFlowerPot.class, "FlowerPot");
-        addMapping(TileEntityBanner.class, "Banner");
     }
 }

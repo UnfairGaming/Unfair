@@ -30,38 +30,38 @@ import java.util.concurrent.CompletableFuture;
 
 public class SoundManager {
     private static final Logger logger = LogManager.getLogger("SoundManager");
-
+    public final Map<String, ISound> playingSounds = HashBiMap.create();
     /**
      * A reference to the sound handler.
      */
     private final SoundHandler sndHandler;
-
     /**
      * Reference to the GameSettings object.
      */
     private final GameSettings options;
-
-    /**
-     * A reference to the sound system.
-     */
-    private SoundManager.SoundSystemStarterThread sndSystem;
-
-    /**
-     * Set to true when the SoundManager has been initialised.
-     */
-    private boolean loaded;
-
-    /**
-     * A counter for how long the sound manager has been running
-     */
-    private int playTime = 0;
-    public final Map<String, ISound> playingSounds = HashBiMap.create();
     private final Map<ISound, String> invPlayingSounds;
     private final Map<ISound, SoundPoolEntry> playingSoundPoolEntries;
     private final Multimap<SoundCategory, String> categorySounds;
     private final List<ITickableSound> tickableSounds;
     private final Map<ISound, Integer> delayedSounds;
     private final Map<String, Integer> playingSoundsStopTime;
+    boolean reconnecting = false;
+    boolean asyncReloading = false;
+    /**
+     * A reference to the sound system.
+     */
+    private SoundManager.SoundSystemStarterThread sndSystem;
+    /**
+     * Set to true when the SoundManager has been initialised.
+     */
+    private boolean loaded;
+    /**
+     * A counter for how long the sound manager has been running
+     */
+    private int playTime = 0;
+    private String systemDevice;
+    private boolean supportsDisconnection = ALC10.alcIsExtensionPresent(MemoryUtil.NULL, "ALC_EXT_disconnect");
+    private int tick = 0;
 
     public SoundManager(SoundHandler p_i45119_1_, GameSettings p_i45119_2_) {
         this.invPlayingSounds = ((BiMap<String, ISound>) this.playingSounds).inverse();
@@ -78,6 +78,28 @@ public class SoundManager {
             SoundSystemConfig.setCodec("ogg", CodecJOrbis.class);
         } catch (SoundSystemException soundsystemexception) {
             logger.error("Error linking with the LibraryJavaSound plug-in", soundsystemexception);
+        }
+    }
+
+    private static URL getURLForSoundResource(final ResourceLocation p_148612_0_) {
+        String s = String.format("%s:%s:%s", "mcsounddomain", p_148612_0_.getResourceDomain(), p_148612_0_.getResourcePath());
+        URLStreamHandler urlstreamhandler = new URLStreamHandler() {
+            protected URLConnection openConnection(final URL p_openConnection_1_) {
+                return new URLConnection(p_openConnection_1_) {
+                    public void connect() throws IOException {
+                    }
+
+                    public InputStream getInputStream() throws IOException {
+                        return Minecraft.getMinecraft().getResourceManager().getResource(p_148612_0_).getInputStream();
+                    }
+                };
+            }
+        };
+
+        try {
+            return URL.of(java.net.URI.create(s), urlstreamhandler);
+        } catch (MalformedURLException var4) {
+            throw new Error("TODO: Sanely handle url exception! :D");
         }
     }
 
@@ -195,11 +217,9 @@ public class SoundManager {
                 this.playingSoundPoolEntries.clear();
                 this.playingSoundsStopTime.clear();
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
     }
-
-    private String systemDevice;
-    private boolean supportsDisconnection = ALC10.alcIsExtensionPresent(MemoryUtil.NULL, "ALC_EXT_disconnect");
 
     public boolean deviceDisconnected() {
         if (!this.supportsDisconnection) {
@@ -207,9 +227,6 @@ public class SoundManager {
         }
         return ALC10.alcGetInteger(SoundEngine.INSTANCE.device, 787) == 0;
     }
-
-    boolean reconnecting = false;
-    boolean asyncReloading = false;
 
     private void reconnect(final String msg) {
         this.reconnecting = true;
@@ -241,8 +258,7 @@ public class SoundManager {
                 this.systemDevice = device;
                 onChange.run();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("Could not get system device status.");
             e.printStackTrace();
         }
@@ -270,8 +286,6 @@ public class SoundManager {
         }
         ++this.tick;
     }
-
-    private int tick = 0;
 
     public void updateAllSounds() {
         this.checkSoundSystemStatus();
@@ -368,7 +382,8 @@ public class SoundManager {
                     this.sndSystem.stop(s);
                 }
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
     }
 
     public ResourceLocation playSound(ISound p_sound) {
@@ -489,28 +504,6 @@ public class SoundManager {
         this.delayedSounds.put(sound, this.playTime + delay);
     }
 
-    private static URL getURLForSoundResource(final ResourceLocation p_148612_0_) {
-        String s = String.format("%s:%s:%s", "mcsounddomain", p_148612_0_.getResourceDomain(), p_148612_0_.getResourcePath());
-        URLStreamHandler urlstreamhandler = new URLStreamHandler() {
-            protected URLConnection openConnection(final URL p_openConnection_1_) {
-                return new URLConnection(p_openConnection_1_) {
-                    public void connect() throws IOException {
-                    }
-
-                    public InputStream getInputStream() throws IOException {
-                        return Minecraft.getMinecraft().getResourceManager().getResource(p_148612_0_).getInputStream();
-                    }
-                };
-            }
-        };
-
-        try {
-            return URL.of(java.net.URI.create(s), urlstreamhandler);
-        } catch (MalformedURLException var4) {
-            throw new Error("TODO: Sanely handle url exception! :D");
-        }
-    }
-
     /**
      * Sets the listener of sounds
      */
@@ -535,7 +528,8 @@ public class SoundManager {
                 this.sndSystem.setListenerPosition((float) d0, (float) d1, (float) d2);
                 this.sndSystem.setListenerOrientation(f8, f5, f9, f10, f7, f11);
             }
-        } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {
+        }
     }
 
     class SoundSystemStarterThread extends SoundSystem {

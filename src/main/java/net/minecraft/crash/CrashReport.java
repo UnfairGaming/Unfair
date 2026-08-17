@@ -19,33 +19,69 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-public class CrashReport
-{
+public class CrashReport {
     private static final Logger logger = LogManager.getLogger();
 
-    /** Description of the crash report. */
+    /**
+     * Description of the crash report.
+     */
     private final String description;
 
-    /** The Throwable that is the "cause" for this crash and Crash Report. */
+    /**
+     * The Throwable that is the "cause" for this crash and Crash Report.
+     */
     private final Throwable cause;
 
-    /** Category of crash */
+    /**
+     * Category of crash
+     */
     private final CrashReportCategory theReportCategory = new CrashReportCategory(this, "System Details");
     private final List<CrashReportCategory> crashReportSections = Lists.<CrashReportCategory>newArrayList();
 
-    /** File of crash report. */
+    /**
+     * File of crash report.
+     */
     private File crashReportFile;
 
-    /** Is true when the current category is the first in the crash report */
+    /**
+     * Is true when the current category is the first in the crash report
+     */
     private boolean firstCategoryInCrashReport = true;
     private StackTraceElement[] stacktrace = new StackTraceElement[0];
     private boolean reported = false;
 
-    public CrashReport(String descriptionIn, Throwable causeThrowable)
-    {
+    public CrashReport(String descriptionIn, Throwable causeThrowable) {
         this.description = descriptionIn;
         this.cause = causeThrowable;
         this.populateEnvironment();
+    }
+
+    /**
+     * Gets a random witty comment for inclusion in this CrashReport
+     */
+    private static String getWittyComment() {
+        String[] astring = new String[]{"Who set us up the TNT?", "Everything\'s going to plan. No, really, that was supposed to happen.", "Uh... Did I do that?", "Oops.", "Why did you do that?", "I feel sad now :(", "My bad.", "I\'m sorry, Dave.", "I let you down. Sorry :(", "On the bright side, I bought you a teddy bear!", "Daisy, daisy...", "Oh - I know what I did wrong!", "Hey, that tickles! Hehehe!", "I blame Dinnerbone.", "You should try our sister game, Minceraft!", "Don\'t be sad. I\'ll do better next time, I promise!", "Don\'t be sad, have a hug! <3", "I just don\'t know what went wrong :(", "Shall we play a game?", "Quite honestly, I wouldn\'t worry myself about that.", "I bet Cylons wouldn\'t have this problem.", "Sorry :(", "Surprise! Haha. Well, this is awkward.", "Would you like a cupcake?", "Hi. I\'m Minecraft, and I\'m a crashaholic.", "Ooh. Shiny.", "This doesn\'t make any sense!", "Why is it breaking :(", "Don\'t do that.", "Ouch. That hurt :(", "You\'re mean.", "This is a token for 1 free hug. Redeem at your nearest Mojangsta: [~~HUG~~]", "There are four lights!", "But it works on my machine."};
+
+        try {
+            return astring[(int) (System.nanoTime() % (long) astring.length)];
+        } catch (Throwable var2) {
+            return "Witty comment unavailable :(";
+        }
+    }
+
+    /**
+     * Creates a crash report for the exception
+     */
+    public static CrashReport makeCrashReport(Throwable causeIn, String descriptionIn) {
+        CrashReport crashreport;
+
+        if (causeIn instanceof ReportedException) {
+            crashreport = ((ReportedException) causeIn).getCrashReport();
+        } else {
+            crashreport = new CrashReport(descriptionIn, causeIn);
+        }
+
+        return crashreport;
     }
 
     /**
@@ -73,12 +109,9 @@ public class CrashReport
             int i = 0;
             StringBuilder stringbuilder = new StringBuilder();
 
-            for (String s : list)
-            {
-                if (s.startsWith("-X"))
-                {
-                    if (i++ > 0)
-                    {
+            for (String s : list) {
+                if (s.startsWith("-X")) {
+                    if (i++ > 0) {
                         stringbuilder.append(" ");
                     }
 
@@ -94,36 +127,30 @@ public class CrashReport
     /**
      * Returns the description of the Crash Report.
      */
-    public String getDescription()
-    {
+    public String getDescription() {
         return this.description;
     }
 
     /**
      * Returns the Throwable object that is the cause for the crash and Crash Report.
      */
-    public Throwable getCrashCause()
-    {
+    public Throwable getCrashCause() {
         return this.cause;
     }
 
     /**
      * Gets the various sections of the crash report into the given StringBuilder
      */
-    public void getSectionsInStringBuilder(StringBuilder builder)
-    {
-        if ((this.stacktrace == null || this.stacktrace.length <= 0) && !this.crashReportSections.isEmpty())
-        {
+    public void getSectionsInStringBuilder(StringBuilder builder) {
+        if ((this.stacktrace == null || this.stacktrace.length <= 0) && !this.crashReportSections.isEmpty()) {
             this.stacktrace = ArrayUtils.subarray(this.crashReportSections.get(0).getStackTrace(), 0, 1);
         }
 
-        if (this.stacktrace != null && this.stacktrace.length > 0)
-        {
+        if (this.stacktrace != null && this.stacktrace.length > 0) {
             builder.append("-- Head --\n");
             builder.append("Stacktrace:\n");
 
-            for (StackTraceElement stacktraceelement : this.stacktrace)
-            {
+            for (StackTraceElement stacktraceelement : this.stacktrace) {
                 builder.append("\t").append("at ").append(stacktraceelement.toString());
                 builder.append("\n");
             }
@@ -131,8 +158,7 @@ public class CrashReport
             builder.append("\n");
         }
 
-        for (CrashReportCategory crashreportcategory : this.crashReportSections)
-        {
+        for (CrashReportCategory crashreportcategory : this.crashReportSections) {
             crashreportcategory.appendToStringBuilder(builder);
             builder.append("\n\n");
         }
@@ -143,24 +169,17 @@ public class CrashReport
     /**
      * Gets the stack trace of the Throwable that caused this crash report, or if that fails, the cause .toString().
      */
-    public String getCauseStackTraceOrString()
-    {
+    public String getCauseStackTraceOrString() {
         StringWriter stringwriter = null;
         PrintWriter printwriter = null;
         Throwable throwable = this.cause;
 
-        if (throwable.getMessage() == null)
-        {
-            if (throwable instanceof NullPointerException)
-            {
+        if (throwable.getMessage() == null) {
+            if (throwable instanceof NullPointerException) {
                 throwable = new NullPointerException(this.description);
-            }
-            else if (throwable instanceof StackOverflowError)
-            {
+            } else if (throwable instanceof StackOverflowError) {
                 throwable = new StackOverflowError(this.description);
-            }
-            else if (throwable instanceof OutOfMemoryError)
-            {
+            } else if (throwable instanceof OutOfMemoryError) {
                 throwable = new OutOfMemoryError(this.description);
             }
 
@@ -169,15 +188,12 @@ public class CrashReport
 
         String s = throwable.toString();
 
-        try
-        {
+        try {
             stringwriter = new StringWriter();
             printwriter = new PrintWriter(stringwriter);
             throwable.printStackTrace(printwriter);
             s = stringwriter.toString();
-        }
-        finally
-        {
+        } finally {
             IOUtils.closeQuietly(stringwriter);
             IOUtils.closeQuietly(printwriter);
         }
@@ -188,10 +204,8 @@ public class CrashReport
     /**
      * Gets the complete report with headers, stack trace, and different sections as a string.
      */
-    public String getCompleteReport()
-    {
-        if (!this.reported)
-        {
+    public String getCompleteReport() {
+        if (!this.reported) {
             this.reported = true;
             CrashReporter.onCrashReport(this, this.theReportCategory);
         }
@@ -210,8 +224,7 @@ public class CrashReport
         stringbuilder.append(this.getCauseStackTraceOrString());
         stringbuilder.append("\n\nA detailed walkthrough of the error, its code path and all known details is as follows:\n");
 
-        for (int i = 0; i < 87; ++i)
-        {
+        for (int i = 0; i < 87; ++i) {
             stringbuilder.append("-");
         }
 
@@ -223,141 +236,84 @@ public class CrashReport
     /**
      * Gets the file this crash report is saved into.
      */
-    public File getFile()
-    {
+    public File getFile() {
         return this.crashReportFile;
     }
 
     /**
      * Saves this CrashReport to the given file and returns a value indicating whether we were successful at doing so.
      */
-    public boolean saveToFile(File toFile)
-    {
-        if (this.crashReportFile != null)
-        {
+    public boolean saveToFile(File toFile) {
+        if (this.crashReportFile != null) {
             return false;
-        }
-        else
-        {
-            if (toFile.getParentFile() != null)
-            {
+        } else {
+            if (toFile.getParentFile() != null) {
                 toFile.getParentFile().mkdirs();
             }
 
-            try
-            {
+            try {
                 FileWriter filewriter = new FileWriter(toFile);
                 filewriter.write(this.getCompleteReport());
                 filewriter.close();
                 this.crashReportFile = toFile;
                 return true;
-            }
-            catch (Throwable throwable)
-            {
+            } catch (Throwable throwable) {
                 logger.error("Could not save crash report to " + toFile, throwable);
                 return false;
             }
         }
     }
 
-    public CrashReportCategory getCategory()
-    {
+    public CrashReportCategory getCategory() {
         return this.theReportCategory;
     }
 
     /**
      * Creates a CrashReportCategory
      */
-    public CrashReportCategory makeCategory(String name)
-    {
+    public CrashReportCategory makeCategory(String name) {
         return this.makeCategoryDepth(name, 1);
     }
 
     /**
      * Creates a CrashReportCategory for the given stack trace depth
      */
-    public CrashReportCategory makeCategoryDepth(String categoryName, int stacktraceLength)
-    {
+    public CrashReportCategory makeCategoryDepth(String categoryName, int stacktraceLength) {
         CrashReportCategory crashreportcategory = new CrashReportCategory(this, categoryName);
 
-        if (this.firstCategoryInCrashReport)
-        {
+        if (this.firstCategoryInCrashReport) {
             int i = crashreportcategory.getPrunedStackTrace(stacktraceLength);
             StackTraceElement[] astacktraceelement = this.cause.getStackTrace();
             StackTraceElement stacktraceelement = null;
             StackTraceElement stacktraceelement1 = null;
             int j = astacktraceelement.length - i;
 
-            if (j < 0)
-            {
+            if (j < 0) {
                 System.out.println("Negative index in crash report handler (" + astacktraceelement.length + "/" + i + ")");
             }
 
-            if (astacktraceelement != null && 0 <= j && j < astacktraceelement.length)
-            {
+            if (astacktraceelement != null && 0 <= j && j < astacktraceelement.length) {
                 stacktraceelement = astacktraceelement[j];
 
-                if (astacktraceelement.length + 1 - i < astacktraceelement.length)
-                {
+                if (astacktraceelement.length + 1 - i < astacktraceelement.length) {
                     stacktraceelement1 = astacktraceelement[astacktraceelement.length + 1 - i];
                 }
             }
 
             this.firstCategoryInCrashReport = crashreportcategory.firstTwoElementsOfStackTraceMatch(stacktraceelement, stacktraceelement1);
 
-            if (i > 0 && !this.crashReportSections.isEmpty())
-            {
+            if (i > 0 && !this.crashReportSections.isEmpty()) {
                 CrashReportCategory crashreportcategory1 = this.crashReportSections.get(this.crashReportSections.size() - 1);
                 crashreportcategory1.trimStackTraceEntriesFromBottom(i);
-            }
-            else if (astacktraceelement != null && astacktraceelement.length >= i && 0 <= j && j < astacktraceelement.length)
-            {
+            } else if (astacktraceelement != null && astacktraceelement.length >= i && 0 <= j && j < astacktraceelement.length) {
                 this.stacktrace = new StackTraceElement[j];
                 System.arraycopy(astacktraceelement, 0, this.stacktrace, 0, this.stacktrace.length);
-            }
-            else
-            {
+            } else {
                 this.firstCategoryInCrashReport = false;
             }
         }
 
         this.crashReportSections.add(crashreportcategory);
         return crashreportcategory;
-    }
-
-    /**
-     * Gets a random witty comment for inclusion in this CrashReport
-     */
-    private static String getWittyComment()
-    {
-        String[] astring = new String[] {"Who set us up the TNT?", "Everything\'s going to plan. No, really, that was supposed to happen.", "Uh... Did I do that?", "Oops.", "Why did you do that?", "I feel sad now :(", "My bad.", "I\'m sorry, Dave.", "I let you down. Sorry :(", "On the bright side, I bought you a teddy bear!", "Daisy, daisy...", "Oh - I know what I did wrong!", "Hey, that tickles! Hehehe!", "I blame Dinnerbone.", "You should try our sister game, Minceraft!", "Don\'t be sad. I\'ll do better next time, I promise!", "Don\'t be sad, have a hug! <3", "I just don\'t know what went wrong :(", "Shall we play a game?", "Quite honestly, I wouldn\'t worry myself about that.", "I bet Cylons wouldn\'t have this problem.", "Sorry :(", "Surprise! Haha. Well, this is awkward.", "Would you like a cupcake?", "Hi. I\'m Minecraft, and I\'m a crashaholic.", "Ooh. Shiny.", "This doesn\'t make any sense!", "Why is it breaking :(", "Don\'t do that.", "Ouch. That hurt :(", "You\'re mean.", "This is a token for 1 free hug. Redeem at your nearest Mojangsta: [~~HUG~~]", "There are four lights!", "But it works on my machine."};
-
-        try
-        {
-            return astring[(int)(System.nanoTime() % (long)astring.length)];
-        }
-        catch (Throwable var2)
-        {
-            return "Witty comment unavailable :(";
-        }
-    }
-
-    /**
-     * Creates a crash report for the exception
-     */
-    public static CrashReport makeCrashReport(Throwable causeIn, String descriptionIn)
-    {
-        CrashReport crashreport;
-
-        if (causeIn instanceof ReportedException)
-        {
-            crashreport = ((ReportedException)causeIn).getCrashReport();
-        }
-        else
-        {
-            crashreport = new CrashReport(descriptionIn, causeIn);
-        }
-
-        return crashreport;
     }
 }

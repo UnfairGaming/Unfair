@@ -13,35 +13,29 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-public class BlockPressurePlate extends BlockBasePressurePlate
-{
+public class BlockPressurePlate extends BlockBasePressurePlate {
     public static final PropertyBool POWERED = PropertyBool.create("powered");
     private final BlockPressurePlate.Sensitivity sensitivity;
 
-    protected BlockPressurePlate(Material materialIn, BlockPressurePlate.Sensitivity sensitivityIn)
-    {
+    protected BlockPressurePlate(Material materialIn, BlockPressurePlate.Sensitivity sensitivityIn) {
         super(materialIn);
         this.setDefaultState(this.blockState.getBaseState().withProperty(POWERED, Boolean.FALSE));
         this.sensitivity = sensitivityIn;
     }
 
-    protected int getRedstoneStrength(IBlockState state)
-    {
+    protected int getRedstoneStrength(IBlockState state) {
         return state.getValue(POWERED) ? 15 : 0;
     }
 
-    protected IBlockState setRedstoneStrength(IBlockState state, int strength)
-    {
+    protected IBlockState setRedstoneStrength(IBlockState state, int strength) {
         return state.withProperty(POWERED, strength > 0);
     }
 
-    protected int computeRedstoneStrength(World worldIn, BlockPos pos)
-    {
+    protected int computeRedstoneStrength(World worldIn, BlockPos pos) {
         AxisAlignedBB axisalignedbb = this.getSensitiveAABB(pos);
-        List <? extends Entity > list;
+        List<? extends Entity> list;
 
-        switch (this.sensitivity)
-        {
+        switch (this.sensitivity) {
             case EVERYTHING:
                 list = worldIn.getEntitiesWithinAABBExcludingEntity(null, axisalignedbb);
                 break;
@@ -54,12 +48,9 @@ public class BlockPressurePlate extends BlockBasePressurePlate
                 return 0;
         }
 
-        if (!list.isEmpty())
-        {
-            for (Entity entity : list)
-            {
-                if (!entity.doesEntityNotTriggerPressurePlate())
-                {
+        if (!list.isEmpty()) {
+            for (Entity entity : list) {
+                if (!entity.doesEntityNotTriggerPressurePlate()) {
                     return 15;
                 }
             }
@@ -71,26 +62,22 @@ public class BlockPressurePlate extends BlockBasePressurePlate
     /**
      * Convert the given metadata into a BlockState for this Block
      */
-    public IBlockState getStateFromMeta(int meta)
-    {
+    public IBlockState getStateFromMeta(int meta) {
         return this.getDefaultState().withProperty(POWERED, meta == 1);
     }
 
     /**
      * Convert the BlockState into the correct metadata value
      */
-    public int getMetaFromState(IBlockState state)
-    {
+    public int getMetaFromState(IBlockState state) {
         return state.getValue(POWERED) ? 1 : 0;
     }
 
-    protected BlockState createBlockState()
-    {
-        return new BlockState(this, new IProperty[] {POWERED});
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{POWERED});
     }
 
-    public static enum Sensitivity
-    {
+    public static enum Sensitivity {
         EVERYTHING,
         MOBS;
     }

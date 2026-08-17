@@ -38,16 +38,15 @@ import java.util.concurrent.Callable;
 
 public class RenderItem implements IResourceManagerReloadListener {
     private static final ResourceLocation RES_ITEM_GLINT = ResourceLocation.of("textures/misc/enchanted_item_glint.png");
-
+    private final ItemModelMesher itemModelMesher;
+    private final TextureManager textureManager;
     /**
      * Defines the zLevel of rendering of item on GUI.
      */
     public float zLevel;
-    private final ItemModelMesher itemModelMesher;
-    private final TextureManager textureManager;
+    public ModelManager modelManager;
     private ModelResourceLocation modelLocation = null;
     private boolean renderItemGui = false;
-    public ModelManager modelManager;
     private boolean renderModelHasEmissive = false;
     private boolean renderModelEmissive = false;
     private EntityLivingBase lastEntityToRenderFor;
@@ -59,6 +58,40 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.itemModelMesher = new ItemModelMesher(modelManager);
 
         this.registerItems();
+    }
+
+    private static boolean isCampfireItem(ItemStack stack) {
+        if (stack == null || stack.getItem() == null) {
+            return false;
+        }
+
+        Item item = stack.getItem();
+        return item == Item.getItemFromBlock(Blocks.campfire)
+                || item == Item.getItemFromBlock(Blocks.soul_campfire)
+                || "campfire".equals(ViaBackwardsItemModels.getModelName(stack))
+                || "soul_campfire".equals(ViaBackwardsItemModels.getModelName(stack));
+    }
+
+    public static void forgeHooksClient_putQuadColor(WorldRenderer p_forgeHooksClient_putQuadColor_0_, BakedQuad p_forgeHooksClient_putQuadColor_1_, int p_forgeHooksClient_putQuadColor_2_) {
+        float f = (float) (p_forgeHooksClient_putQuadColor_2_ & 255);
+        float f1 = (float) (p_forgeHooksClient_putQuadColor_2_ >>> 8 & 255);
+        float f2 = (float) (p_forgeHooksClient_putQuadColor_2_ >>> 16 & 255);
+        float f3 = (float) (p_forgeHooksClient_putQuadColor_2_ >>> 24 & 255);
+        int[] aint = p_forgeHooksClient_putQuadColor_1_.getVertexData();
+        int i = aint.length / 4;
+
+        for (int j = 0; j < 4; ++j) {
+            int k = aint[3 + i * j];
+            float f4 = (float) (k & 255);
+            float f5 = (float) (k >>> 8 & 255);
+            float f6 = (float) (k >>> 16 & 255);
+            float f7 = (float) (k >>> 24 & 255);
+            int l = Math.min(255, (int) (f * f4 / 255.0F));
+            int i1 = Math.min(255, (int) (f1 * f5 / 255.0F));
+            int j1 = Math.min(255, (int) (f2 * f6 / 255.0F));
+            int k1 = Math.min(255, (int) (f3 * f7 / 255.0F));
+            p_forgeHooksClient_putQuadColor_0_.putColorRGBA(p_forgeHooksClient_putQuadColor_0_.getColorIndex(4 - j), l, i1, j1, k1);
+        }
     }
 
     /**
@@ -103,57 +136,47 @@ public class RenderItem implements IResourceManagerReloadListener {
         boolean flag = Minecraft.getMinecraft().getTextureMapBlocks().isTextureBound();
         boolean flag1 = Config.isMultiTexture() && flag;
 
-        if (flag1)
-        {
+        if (flag1) {
             worldrenderer.setBlockLayer(EnumWorldBlockLayer.SOLID);
         }
 
         worldrenderer.begin(7, DefaultVertexFormats.ITEM);
 
-        for (EnumFacing enumfacing : EnumFacing.VALUES)
-        {
+        for (EnumFacing enumfacing : EnumFacing.VALUES) {
             this.renderQuads(worldrenderer, model.getFaceQuads(enumfacing), color, stack);
         }
 
         this.renderQuads(worldrenderer, model.getGeneralQuads(), color, stack);
         tessellator.draw();
 
-        if (flag1)
-        {
+        if (flag1) {
             worldrenderer.setBlockLayer(null);
             GlStateManager.bindCurrentTexture();
         }
     }
 
-    public void renderItem(ItemStack stack, IBakedModel model)
-    {
-        if (stack != null)
-        {
+    public void renderItem(ItemStack stack, IBakedModel model) {
+        if (stack != null) {
             GlStateManager.pushMatrix();
             GlStateManager.scale(0.5F, 0.5F, 0.5F);
 
-            if (model.isBuiltInRenderer())
-            {
+            if (model.isBuiltInRenderer()) {
                 GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
                 GlStateManager.translate(-0.5F, -0.5F, -0.5F);
                 GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
                 GlStateManager.enableRescaleNormal();
                 TileEntityItemStackRenderer.instance.renderByItem(stack);
-            }
-            else
-            {
+            } else {
                 GlStateManager.translate(-0.5F, -0.5F, -0.5F);
 
-                if (Config.isCustomItems())
-                {
+                if (Config.isCustomItems()) {
                     model = CustomItems.getCustomItemModel(stack, model, this.modelLocation, false);
                 }
 
                 this.renderModelHasEmissive = false;
                 this.renderModel(model, stack);
 
-                if (this.renderModelHasEmissive)
-                {
+                if (this.renderModelHasEmissive) {
                     float f = OpenGlHelper.lastBrightnessX;
                     float f1 = OpenGlHelper.lastBrightnessY;
                     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, f1);
@@ -163,8 +186,7 @@ public class RenderItem implements IResourceManagerReloadListener {
                     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, f, f1);
                 }
 
-                if (stack.hasEffect() && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model)))
-                {
+                if (stack.hasEffect() && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model))) {
                     this.renderEffect(model);
                 }
             }
@@ -173,34 +195,30 @@ public class RenderItem implements IResourceManagerReloadListener {
         }
     }
 
-    private void renderEffect(IBakedModel model)
-    {
-        if (!Config.isCustomItems() || CustomItems.isUseGlint())
-        {
-            if (!Config.isShaders() || !Shaders.isShadowPass)
-            {
+    private void renderEffect(IBakedModel model) {
+        if (!Config.isCustomItems() || CustomItems.isUseGlint()) {
+            if (!Config.isShaders() || !Shaders.isShadowPass) {
                 GlStateManager.depthMask(false);
                 GlStateManager.depthFunc(514);
                 GlStateManager.disableLighting();
                 GlStateManager.blendFunc(768, 1);
                 this.textureManager.bindTexture(RES_ITEM_GLINT);
 
-                if (Config.isShaders() && !this.renderItemGui)
-                {
+                if (Config.isShaders() && !this.renderItemGui) {
                     ShadersRender.renderEnchantedGlintBegin();
                 }
 
                 GlStateManager.matrixMode(5890);
                 GlStateManager.pushMatrix();
                 GlStateManager.scale(8.0F, 8.0F, 8.0F);
-                float f = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F / 8.0F;
+                float f = (float) (Minecraft.getSystemTime() % 3000L) / 3000.0F / 8.0F;
                 GlStateManager.translate(f, 0.0F, 0.0F);
                 GlStateManager.rotate(-50.0F, 0.0F, 0.0F, 1.0F);
                 this.renderModel(model, -8372020);
                 GlStateManager.popMatrix();
                 GlStateManager.pushMatrix();
                 GlStateManager.scale(8.0F, 8.0F, 8.0F);
-                float f1 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F / 8.0F;
+                float f1 = (float) (Minecraft.getSystemTime() % 4873L) / 4873.0F / 8.0F;
                 GlStateManager.translate(-f1, 0.0F, 0.0F);
                 GlStateManager.rotate(10.0F, 0.0F, 0.0F, 1.0F);
                 this.renderModel(model, -8372020);
@@ -212,18 +230,16 @@ public class RenderItem implements IResourceManagerReloadListener {
                 GlStateManager.depthMask(true);
                 this.textureManager.bindTexture(TextureMap.locationBlocksTexture);
 
-                if (Config.isShaders() && !this.renderItemGui)
-                {
+                if (Config.isShaders() && !this.renderItemGui) {
                     ShadersRender.renderEnchantedGlintEnd();
                 }
             }
         }
     }
 
-    private void putQuadNormal(WorldRenderer renderer, BakedQuad quad)
-    {
+    private void putQuadNormal(WorldRenderer renderer, BakedQuad quad) {
         Vec3i vec3i = quad.getFace().getDirectionVec();
-        renderer.putNormal((float)vec3i.getX(), (float)vec3i.getY(), (float)vec3i.getZ());
+        renderer.putNormal((float) vec3i.getX(), (float) vec3i.getY(), (float) vec3i.getZ());
     }
 
     private void renderQuad(WorldRenderer renderer, BakedQuad quad, int color) {
@@ -481,20 +497,8 @@ public class RenderItem implements IResourceManagerReloadListener {
         this.renderItemGui = false;
     }
 
-    private static boolean isCampfireItem(ItemStack stack) {
-        if (stack == null || stack.getItem() == null) {
-            return false;
-        }
-
-        Item item = stack.getItem();
-        return item == Item.getItemFromBlock(Blocks.campfire)
-                || item == Item.getItemFromBlock(Blocks.soul_campfire)
-                || "campfire".equals(ViaBackwardsItemModels.getModelName(stack))
-                || "soul_campfire".equals(ViaBackwardsItemModels.getModelName(stack));
-    }
-
     private void setupGuiTransform(int xPosition, int yPosition, boolean isGui3d) {
-        GlStateManager.translate((float)xPosition, (float)yPosition, 100.0F + this.zLevel);
+        GlStateManager.translate((float) xPosition, (float) yPosition, 100.0F + this.zLevel);
         GlStateManager.translate(8.0F, 8.0F, 0.0F);
         GlStateManager.scale(1.0F, 1.0F, -1.0F);
         GlStateManager.scale(0.5F, 0.5F, 0.5F);
@@ -512,7 +516,7 @@ public class RenderItem implements IResourceManagerReloadListener {
     }
 
     private void setupModernGuiTransform(int xPosition, int yPosition) {
-        GlStateManager.translate((float)xPosition + 8.0F, (float)yPosition + 8.0F, 100.0F + this.zLevel);
+        GlStateManager.translate((float) xPosition + 8.0F, (float) yPosition + 8.0F, 100.0F + this.zLevel);
         GlStateManager.scale(16.0F, -16.0F, 16.0F);
         GlStateManager.disableLighting();
     }
@@ -534,31 +538,23 @@ public class RenderItem implements IResourceManagerReloadListener {
             } catch (Throwable throwable) {
                 CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Rendering item");
                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Item being rendered");
-                crashreportcategory.addCrashSectionCallable("Item Type", new Callable<String>()
-                {
-                    public String call() throws Exception
-                    {
+                crashreportcategory.addCrashSectionCallable("Item Type", new Callable<String>() {
+                    public String call() throws Exception {
                         return String.valueOf(stack.getItem());
                     }
                 });
-                crashreportcategory.addCrashSectionCallable("Item Aux", new Callable<String>()
-                {
-                    public String call() throws Exception
-                    {
+                crashreportcategory.addCrashSectionCallable("Item Aux", new Callable<String>() {
+                    public String call() throws Exception {
                         return String.valueOf(stack.getMetadata());
                     }
                 });
-                crashreportcategory.addCrashSectionCallable("Item NBT", new Callable<String>()
-                {
-                    public String call() throws Exception
-                    {
+                crashreportcategory.addCrashSectionCallable("Item NBT", new Callable<String>() {
+                    public String call() throws Exception {
                         return String.valueOf(stack.getTagCompound());
                     }
                 });
-                crashreportcategory.addCrashSectionCallable("Item Foil", new Callable<String>()
-                {
-                    public String call() throws Exception
-                    {
+                crashreportcategory.addCrashSectionCallable("Item Foil", new Callable<String>() {
+                    public String call() throws Exception {
                         return String.valueOf(stack.hasEffect());
                     }
                 });
@@ -1189,27 +1185,5 @@ public class RenderItem implements IResourceManagerReloadListener {
 
     public void onResourceManagerReload(IResourceManager resourceManager) {
         this.itemModelMesher.rebuildCache();
-    }
-
-    public static void forgeHooksClient_putQuadColor(WorldRenderer p_forgeHooksClient_putQuadColor_0_, BakedQuad p_forgeHooksClient_putQuadColor_1_, int p_forgeHooksClient_putQuadColor_2_) {
-        float f = (float)(p_forgeHooksClient_putQuadColor_2_ & 255);
-        float f1 = (float)(p_forgeHooksClient_putQuadColor_2_ >>> 8 & 255);
-        float f2 = (float)(p_forgeHooksClient_putQuadColor_2_ >>> 16 & 255);
-        float f3 = (float)(p_forgeHooksClient_putQuadColor_2_ >>> 24 & 255);
-        int[] aint = p_forgeHooksClient_putQuadColor_1_.getVertexData();
-        int i = aint.length / 4;
-
-        for (int j = 0; j < 4; ++j) {
-            int k = aint[3 + i * j];
-            float f4 = (float)(k & 255);
-            float f5 = (float)(k >>> 8 & 255);
-            float f6 = (float)(k >>> 16 & 255);
-            float f7 = (float)(k >>> 24 & 255);
-            int l = Math.min(255, (int)(f * f4 / 255.0F));
-            int i1 = Math.min(255, (int)(f1 * f5 / 255.0F));
-            int j1 = Math.min(255, (int)(f2 * f6 / 255.0F));
-            int k1 = Math.min(255, (int)(f3 * f7 / 255.0F));
-            p_forgeHooksClient_putQuadColor_0_.putColorRGBA(p_forgeHooksClient_putQuadColor_0_.getColorIndex(4 - j), l, i1, j1, k1);
-        }
     }
 }

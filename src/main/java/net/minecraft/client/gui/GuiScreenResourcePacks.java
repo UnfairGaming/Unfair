@@ -20,19 +20,19 @@ import java.util.List;
 public class GuiScreenResourcePacks extends GuiScreen {
     private static final Logger logger = LogManager.getLogger("GuiScreenResourcePacks");
     private final GuiScreen parentScreen;
+    public List<Runnable> renderCalls = new ArrayList<>();
     private List<ResourcePackListEntry> availableResourcePacks;
     private List<ResourcePackListEntry> selectedResourcePacks;
-
     /**
      * List component that contains the available resource packs
      */
     private GuiResourcePackAvailable availableResourcePacksList;
-
     /**
      * List component that contains the selected resource packs
      */
     private GuiResourcePackSelected selectedResourcePacksList;
     private boolean changed = false;
+    private WatchService watchService = null;
 
     public GuiScreenResourcePacks(GuiScreen parentScreenIn) {
         this.parentScreen = parentScreenIn;
@@ -49,8 +49,6 @@ public class GuiScreenResourcePacks extends GuiScreen {
         this.refreshPacks();
         this.createWatchService();
     }
-
-    private WatchService watchService = null;
 
     @SneakyThrows
     private void createWatchService() {
@@ -248,8 +246,6 @@ public class GuiScreenResourcePacks extends GuiScreen {
     protected void mouseReleased(int mouseX, int mouseY, int state) {
         super.mouseReleased(mouseX, mouseY, state);
     }
-
-    public List<Runnable> renderCalls = new ArrayList<>();
 
     /**
      * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks

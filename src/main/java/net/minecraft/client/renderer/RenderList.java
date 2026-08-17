@@ -10,10 +10,10 @@ import org.lwjgl.opengl.GL11;
 import java.nio.IntBuffer;
 
 public class RenderList extends ChunkRenderContainer {
+    IntBuffer bufferLists = GLAllocation.createDirectIntBuffer(16);
     private double viewEntityX;
     private double viewEntityY;
     private double viewEntityZ;
-    IntBuffer bufferLists = GLAllocation.createDirectIntBuffer(16);
 
     public void renderChunkLayer(EnumWorldBlockLayer layer) {
         if (this.initialized) {

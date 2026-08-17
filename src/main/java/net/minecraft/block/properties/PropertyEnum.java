@@ -11,22 +11,18 @@ import net.minecraft.util.IStringSerializable;
 import java.util.Collection;
 import java.util.Map;
 
-public class PropertyEnum<T extends Enum<T> & IStringSerializable> extends PropertyHelper<T>
-{
+public class PropertyEnum<T extends Enum<T> & IStringSerializable> extends PropertyHelper<T> {
     private final ImmutableSet<T> allowedValues;
     private final Map<String, T> nameToValue = Maps.<String, T>newHashMap();
 
-    protected PropertyEnum(String name, Class<T> valueClass, Collection<T> allowedValues)
-    {
+    protected PropertyEnum(String name, Class<T> valueClass, Collection<T> allowedValues) {
         super(name, valueClass);
         this.allowedValues = ImmutableSet.copyOf(allowedValues);
 
-        for (T t : allowedValues)
-        {
+        for (T t : allowedValues) {
             String s = t.getName();
 
-            if (this.nameToValue.containsKey(s))
-            {
+            if (this.nameToValue.containsKey(s)) {
                 throw new IllegalArgumentException("Multiple values have the same name \'" + s + "\'");
             }
 
@@ -34,37 +30,31 @@ public class PropertyEnum<T extends Enum<T> & IStringSerializable> extends Prope
         }
     }
 
-    public Collection<T> getAllowedValues()
-    {
+    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz) {
+        return create(name, clazz, Predicates.<T>alwaysTrue());
+    }
+
+    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz, Predicate<T> filter) {
+        return create(name, clazz, Collections2.<T>filter(Lists.newArrayList(clazz.getEnumConstants()), filter));
+    }
+
+    @SafeVarargs
+    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz, T... values) {
+        return create(name, clazz, Lists.newArrayList(values));
+    }
+
+    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz, Collection<T> values) {
+        return new PropertyEnum<>(name, clazz, values);
+    }
+
+    public Collection<T> getAllowedValues() {
         return this.allowedValues;
     }
 
     /**
      * Get the name for the given value.
      */
-    public String getName(T value)
-    {
+    public String getName(T value) {
         return value.getName();
-    }
-
-    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz)
-    {
-        return create(name, clazz, Predicates.<T>alwaysTrue());
-    }
-
-    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz, Predicate<T> filter)
-    {
-        return create(name, clazz, Collections2.<T>filter(Lists.newArrayList(clazz.getEnumConstants()), filter));
-    }
-
-    @SafeVarargs
-    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz, T... values)
-    {
-        return create(name, clazz, Lists.newArrayList(values));
-    }
-
-    public static <T extends Enum<T> & IStringSerializable> PropertyEnum<T> create(String name, Class<T> clazz, Collection<T> values)
-    {
-        return new PropertyEnum<>(name, clazz, values);
     }
 }

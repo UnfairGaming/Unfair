@@ -52,7 +52,7 @@ public class Deduplicator {
 
     public static void registerReloadListener() {
         // Register the reload listener s.t. its "sync" part runs after the model loader reload
-        ((SimpleReloadableResourceManager)Minecraft.getMinecraft().getResourceManager()).registerReloadListener(resourceManager -> {
+        ((SimpleReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(resourceManager -> {
             VARIANT_IDENTITIES.clear();
             // KNOWN_MULTIPART_MODELS.clear();
             OR_PREDICATE_CACHE.clear();

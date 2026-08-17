@@ -9,24 +9,20 @@ import net.minecraft.world.World;
 
 import java.io.IOException;
 
-public class C02PacketUseEntity implements Packet<INetHandlerPlayServer>
-{
+public class C02PacketUseEntity implements Packet<INetHandlerPlayServer> {
     private int entityId;
     private C02PacketUseEntity.Action action;
     private Vec3 hitVec;
 
-    public C02PacketUseEntity()
-    {
+    public C02PacketUseEntity() {
     }
 
-    public C02PacketUseEntity(Entity entity, C02PacketUseEntity.Action action)
-    {
+    public C02PacketUseEntity(Entity entity, C02PacketUseEntity.Action action) {
         this.entityId = entity.getEntityId();
         this.action = action;
     }
 
-    public C02PacketUseEntity(Entity entity, Vec3 hitVec)
-    {
+    public C02PacketUseEntity(Entity entity, Vec3 hitVec) {
         this(entity, C02PacketUseEntity.Action.INTERACT_AT);
         this.hitVec = hitVec;
     }
@@ -34,13 +30,11 @@ public class C02PacketUseEntity implements Packet<INetHandlerPlayServer>
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.entityId = buf.readVarIntFromBuffer();
         this.action = buf.readEnumValue(Action.class);
 
-        if (this.action == C02PacketUseEntity.Action.INTERACT_AT)
-        {
+        if (this.action == C02PacketUseEntity.Action.INTERACT_AT) {
             this.hitVec = new Vec3(buf.readFloat(), buf.readFloat(), buf.readFloat());
         }
     }
@@ -48,44 +42,37 @@ public class C02PacketUseEntity implements Packet<INetHandlerPlayServer>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeVarIntToBuffer(this.entityId);
         buf.writeEnumValue(this.action);
 
-        if (this.action == C02PacketUseEntity.Action.INTERACT_AT)
-        {
-            buf.writeFloat((float)this.hitVec.xCoord);
-            buf.writeFloat((float)this.hitVec.yCoord);
-            buf.writeFloat((float)this.hitVec.zCoord);
+        if (this.action == C02PacketUseEntity.Action.INTERACT_AT) {
+            buf.writeFloat((float) this.hitVec.xCoord);
+            buf.writeFloat((float) this.hitVec.yCoord);
+            buf.writeFloat((float) this.hitVec.zCoord);
         }
     }
 
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerPlayServer handler)
-    {
+    public void processPacket(INetHandlerPlayServer handler) {
         handler.processUseEntity(this);
     }
 
-    public Entity getEntityFromWorld(World worldIn)
-    {
+    public Entity getEntityFromWorld(World worldIn) {
         return worldIn.getEntityByID(this.entityId);
     }
 
-    public C02PacketUseEntity.Action getAction()
-    {
+    public C02PacketUseEntity.Action getAction() {
         return this.action;
     }
 
-    public Vec3 getHitVec()
-    {
+    public Vec3 getHitVec() {
         return this.hitVec;
     }
 
-    public static enum Action
-    {
+    public static enum Action {
         INTERACT,
         ATTACK,
         INTERACT_AT;

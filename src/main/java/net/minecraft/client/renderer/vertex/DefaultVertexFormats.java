@@ -3,12 +3,7 @@ package net.minecraft.client.renderer.vertex;
 import net.minecraft.src.Config;
 import net.optifine.shaders.SVertexFormat;
 
-public class DefaultVertexFormats
-{
-    public static VertexFormat BLOCK = new VertexFormat();
-    public static VertexFormat ITEM = new VertexFormat();
-    private static final VertexFormat BLOCK_VANILLA = BLOCK;
-    private static final VertexFormat ITEM_VANILLA = ITEM;
+public class DefaultVertexFormats {
     public static final VertexFormat OLDMODEL_POSITION_TEX_NORMAL = new VertexFormat();
     public static final VertexFormat PARTICLE_POSITION_TEX_COLOR_LMAP = new VertexFormat();
     public static final VertexFormat POSITION = new VertexFormat();
@@ -25,25 +20,12 @@ public class DefaultVertexFormats
     public static final VertexFormatElement TEX_2S = new VertexFormatElement(1, VertexFormatElement.EnumType.SHORT, VertexFormatElement.EnumUsage.UV, 2);
     public static final VertexFormatElement NORMAL_3B = new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE, VertexFormatElement.EnumUsage.NORMAL, 3);
     public static final VertexFormatElement PADDING_1B = new VertexFormatElement(0, VertexFormatElement.EnumType.BYTE, VertexFormatElement.EnumUsage.PADDING, 1);
+    public static VertexFormat BLOCK = new VertexFormat();
+    private static final VertexFormat BLOCK_VANILLA = BLOCK;
+    public static VertexFormat ITEM = new VertexFormat();
+    private static final VertexFormat ITEM_VANILLA = ITEM;
 
-    public static void updateVertexFormats()
-    {
-        if (Config.isShaders())
-        {
-            BLOCK = SVertexFormat.makeDefVertexFormatBlock();
-            ITEM = SVertexFormat.makeDefVertexFormatItem();
-
-            SVertexFormat.setDefBakedFormat(ITEM);
-        }
-        else
-        {
-            BLOCK = BLOCK_VANILLA;
-            ITEM = ITEM_VANILLA;
-        }
-    }
-
-    static
-    {
+    static {
         BLOCK.addElement(POSITION_3F);
         BLOCK.addElement(COLOR_4UB);
         BLOCK.addElement(TEX_2F);
@@ -85,5 +67,17 @@ public class DefaultVertexFormats
         POSITION_TEX_COLOR_NORMAL.addElement(COLOR_4UB);
         POSITION_TEX_COLOR_NORMAL.addElement(NORMAL_3B);
         POSITION_TEX_COLOR_NORMAL.addElement(PADDING_1B);
+    }
+
+    public static void updateVertexFormats() {
+        if (Config.isShaders()) {
+            BLOCK = SVertexFormat.makeDefVertexFormatBlock();
+            ITEM = SVertexFormat.makeDefVertexFormatItem();
+
+            SVertexFormat.setDefBakedFormat(ITEM);
+        } else {
+            BLOCK = BLOCK_VANILLA;
+            ITEM = ITEM_VANILLA;
+        }
     }
 }

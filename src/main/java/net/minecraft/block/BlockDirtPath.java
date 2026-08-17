@@ -16,22 +16,17 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Random;
 
-public class BlockDirtPath extends ModernBlock
-{
-    protected BlockDirtPath()
-    {
+public class BlockDirtPath extends ModernBlock {
+    protected BlockDirtPath() {
         super(Material.ground);
         this.setLightOpacity(0);
         this.useNeighborBrightness = true;
     }
 
-    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
-    {
-        if (ViaProtocol.newerThanOrEqualTo1_9())
-        {
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity) {
+        if (ViaProtocol.newerThanOrEqualTo1_9()) {
             AxisAlignedBB box = new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0D, pos.getY() + 0.9375D, pos.getZ() + 1.0D);
-            if (box.intersectsWith(mask))
-            {
+            if (box.intersectsWith(mask)) {
                 list.add(box);
             }
             return;
@@ -40,17 +35,14 @@ public class BlockDirtPath extends ModernBlock
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
     }
 
-    public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
-    {
+    public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state) {
         return ViaProtocol.newerThanOrEqualTo1_9()
                 ? new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0D, pos.getY() + 0.9375D, pos.getZ() + 1.0D)
                 : super.getCollisionBoundingBox(worldIn, pos, state);
     }
 
-    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
-    {
-        if (ViaProtocol.newerThanOrEqualTo1_9())
-        {
+    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos) {
+        if (ViaProtocol.newerThanOrEqualTo1_9()) {
             this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.9375F, 1.0F);
             return;
         }
@@ -58,25 +50,20 @@ public class BlockDirtPath extends ModernBlock
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    public void setBlockBoundsForItemRender()
-    {
+    public void setBlockBoundsForItemRender() {
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    public boolean isOpaqueCube()
-    {
+    public boolean isOpaqueCube() {
         return false;
     }
 
-    public boolean isFullCube()
-    {
+    public boolean isFullCube() {
         return false;
     }
 
-    public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
-    {
-        switch (side)
-        {
+    public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side) {
+        switch (side) {
             case UP:
                 return true;
 
@@ -92,33 +79,27 @@ public class BlockDirtPath extends ModernBlock
         }
     }
 
-    public Item getItemDropped(IBlockState state, Random rand, int fortune)
-    {
+    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
         return Blocks.dirt.getItemDropped(Blocks.dirt.getDefaultState().withProperty(BlockDirt.VARIANT, BlockDirt.DirtType.DIRT), rand, fortune);
     }
 
-    public Item getItem(World worldIn, BlockPos pos)
-    {
+    public Item getItem(World worldIn, BlockPos pos) {
         return Item.getItemFromBlock(Blocks.dirt);
     }
 
-    public int getViaStateIdMin()
-    {
+    public int getViaStateIdMin() {
         return 8687;
     }
 
-    public int getViaStateIdMax()
-    {
+    public int getViaStateIdMax() {
         return 8687;
     }
 
-    public IBlockState getStateFromViaStateId(int stateId)
-    {
+    public IBlockState getStateFromViaStateId(int stateId) {
         return this.getDefaultState();
     }
 
-    public void onModernStateApplied(BlockPos pos, IBlockState state)
-    {
+    public void onModernStateApplied(BlockPos pos, IBlockState state) {
         DirtPathBlockTracker.mark(pos);
     }
 }

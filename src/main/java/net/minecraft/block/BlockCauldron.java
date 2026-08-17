@@ -27,23 +27,34 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Random;
 
-public class BlockCauldron extends Block
-{
+public class BlockCauldron extends Block {
     public static final PropertyInteger LEVEL = PropertyInteger.create("level", 0, 3);
 
-    public BlockCauldron()
-    {
+    public BlockCauldron() {
         super(Material.iron, MapColor.stoneColor);
         this.setDefaultState(this.blockState.getBaseState().withProperty(LEVEL, 0));
+    }
+
+    private static void addModernCollisionBoxes(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list) {
+        double[][] boxes = {
+                {0, 0, 0, 2, 16, 4}, {0, 0, 12, 2, 16, 16}, {2, 0, 0, 4, 16, 2}, {2, 0, 14, 4, 16, 16},
+                {12, 0, 0, 16, 16, 2}, {12, 0, 14, 16, 16, 16}, {14, 0, 2, 16, 16, 4}, {14, 0, 12, 16, 16, 14},
+                {0, 3, 4, 16, 4, 12}, {2, 3, 2, 14, 4, 4}, {2, 3, 12, 14, 4, 14}, {4, 3, 0, 12, 16, 2},
+                {4, 3, 14, 12, 16, 16}, {0, 4, 4, 2, 16, 12}, {14, 4, 4, 16, 16, 12}
+        };
+        for (double[] bounds : boxes) {
+            AxisAlignedBB box = new AxisAlignedBB(pos.getX() + bounds[0] / 16.0D, pos.getY() + bounds[1] / 16.0D,
+                    pos.getZ() + bounds[2] / 16.0D, pos.getX() + bounds[3] / 16.0D,
+                    pos.getY() + bounds[4] / 16.0D, pos.getZ() + bounds[5] / 16.0D);
+            if (box.intersectsWith(mask)) list.add(box);
+        }
     }
 
     /**
      * Add all collision boxes of this Block to the list that intersect with the given mask.
      */
-    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity)
-    {
-        if (ViaProtocol.newerThanOrEqualTo1_14())
-        {
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity collidingEntity) {
+        if (ViaProtocol.newerThanOrEqualTo1_14()) {
             addModernCollisionBoxes(pos, mask, list);
             return;
         }
@@ -63,89 +74,56 @@ public class BlockCauldron extends Block
         this.setBlockBoundsForItemRender();
     }
 
-    public List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos)
-    {
+    public List<AxisAlignedBB> getSelectedBoundingBoxes(World worldIn, BlockPos pos) {
         return this.getCollisionBoxesForSelection(worldIn, pos);
-    }
-
-    private static void addModernCollisionBoxes(BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list)
-    {
-        double[][] boxes = {
-                {0,0,0,2,16,4},{0,0,12,2,16,16},{2,0,0,4,16,2},{2,0,14,4,16,16},
-                {12,0,0,16,16,2},{12,0,14,16,16,16},{14,0,2,16,16,4},{14,0,12,16,16,14},
-                {0,3,4,16,4,12},{2,3,2,14,4,4},{2,3,12,14,4,14},{4,3,0,12,16,2},
-                {4,3,14,12,16,16},{0,4,4,2,16,12},{14,4,4,16,16,12}
-        };
-        for (double[] bounds : boxes)
-        {
-            AxisAlignedBB box = new AxisAlignedBB(pos.getX() + bounds[0] / 16.0D, pos.getY() + bounds[1] / 16.0D,
-                    pos.getZ() + bounds[2] / 16.0D, pos.getX() + bounds[3] / 16.0D,
-                    pos.getY() + bounds[4] / 16.0D, pos.getZ() + bounds[5] / 16.0D);
-            if (box.intersectsWith(mask)) list.add(box);
-        }
     }
 
     /**
      * Sets the block's bounds for rendering it as an item
      */
-    public void setBlockBoundsForItemRender()
-    {
+    public void setBlockBoundsForItemRender() {
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
     }
 
     /**
      * Used to determine ambient occlusion and culling when rebuilding chunks for render
      */
-    public boolean isOpaqueCube()
-    {
+    public boolean isOpaqueCube() {
         return false;
     }
 
-    public boolean isFullCube()
-    {
+    public boolean isFullCube() {
         return false;
     }
 
     /**
      * Called When an Entity Collided with the Block
      */
-    public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
-    {
+    public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
         int i = state.getValue(LEVEL);
-        float f = (float)pos.getY() + (6.0F + (float)(3 * i)) / 16.0F;
+        float f = (float) pos.getY() + (6.0F + (float) (3 * i)) / 16.0F;
 
-        if (!worldIn.isRemote && entityIn.isBurning() && i > 0 && entityIn.getEntityBoundingBox().minY <= (double)f)
-        {
+        if (!worldIn.isRemote && entityIn.isBurning() && i > 0 && entityIn.getEntityBoundingBox().minY <= (double) f) {
             entityIn.extinguish();
             this.setWaterLevel(worldIn, pos, state, i - 1);
         }
     }
 
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ)
-    {
-        if (worldIn.isRemote)
-        {
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY, float hitZ) {
+        if (worldIn.isRemote) {
             return true;
-        }
-        else
-        {
+        } else {
             ItemStack itemstack = playerIn.inventory.getCurrentItem();
 
-            if (itemstack == null)
-            {
+            if (itemstack == null) {
                 return true;
-            }
-            else
-            {
+            } else {
                 int i = state.getValue(LEVEL);
                 Item item = itemstack.getItem();
 
-                if (item == Items.water_bucket)
-                {
-                    if (i < 3)
-                    {
-                        if (!playerIn.capabilities.isCreativeMode)
-                        {
+                if (item == Items.water_bucket) {
+                    if (i < 3) {
+                        if (!playerIn.capabilities.isCreativeMode) {
                             playerIn.inventory.setInventorySlotContents(playerIn.inventory.currentItem, new ItemStack(Items.bucket));
                         }
 
@@ -154,29 +132,21 @@ public class BlockCauldron extends Block
                     }
 
                     return true;
-                }
-                else if (item == Items.glass_bottle)
-                {
-                    if (i > 0)
-                    {
-                        if (!playerIn.capabilities.isCreativeMode)
-                        {
+                } else if (item == Items.glass_bottle) {
+                    if (i > 0) {
+                        if (!playerIn.capabilities.isCreativeMode) {
                             ItemStack itemstack2 = new ItemStack(Items.potionitem, 1, 0);
 
-                            if (!playerIn.inventory.addItemStackToInventory(itemstack2))
-                            {
-                                worldIn.spawnEntityInWorld(new EntityItem(worldIn, (double)pos.getX() + 0.5D, (double)pos.getY() + 1.5D, (double)pos.getZ() + 0.5D, itemstack2));
-                            }
-                            else if (playerIn instanceof EntityPlayerMP)
-                            {
-                                ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
+                            if (!playerIn.inventory.addItemStackToInventory(itemstack2)) {
+                                worldIn.spawnEntityInWorld(new EntityItem(worldIn, (double) pos.getX() + 0.5D, (double) pos.getY() + 1.5D, (double) pos.getZ() + 0.5D, itemstack2));
+                            } else if (playerIn instanceof EntityPlayerMP) {
+                                ((EntityPlayerMP) playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
                             }
 
                             playerIn.triggerAchievement(StatList.field_181726_J);
                             --itemstack.stackSize;
 
-                            if (itemstack.stackSize <= 0)
-                            {
+                            if (itemstack.stackSize <= 0) {
                                 playerIn.inventory.setInventorySlotContents(playerIn.inventory.currentItem, null);
                             }
                         }
@@ -185,15 +155,11 @@ public class BlockCauldron extends Block
                     }
 
                     return true;
-                }
-                else
-                {
-                    if (i > 0 && item instanceof ItemArmor)
-                    {
-                        ItemArmor itemarmor = (ItemArmor)item;
+                } else {
+                    if (i > 0 && item instanceof ItemArmor) {
+                        ItemArmor itemarmor = (ItemArmor) item;
 
-                        if (itemarmor.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && itemarmor.hasColor(itemstack))
-                        {
+                        if (itemarmor.getArmorMaterial() == ItemArmor.ArmorMaterial.LEATHER && itemarmor.hasColor(itemstack)) {
                             itemarmor.removeColor(itemstack);
                             this.setWaterLevel(worldIn, pos, state, i - 1);
                             playerIn.triggerAchievement(StatList.field_181727_K);
@@ -201,44 +167,33 @@ public class BlockCauldron extends Block
                         }
                     }
 
-                    if (i > 0 && item instanceof ItemBanner && TileEntityBanner.getPatterns(itemstack) > 0)
-                    {
+                    if (i > 0 && item instanceof ItemBanner && TileEntityBanner.getPatterns(itemstack) > 0) {
                         ItemStack itemstack1 = itemstack.copy();
                         itemstack1.stackSize = 1;
                         TileEntityBanner.removeBannerData(itemstack1);
 
-                        if (itemstack.stackSize <= 1 && !playerIn.capabilities.isCreativeMode)
-                        {
+                        if (itemstack.stackSize <= 1 && !playerIn.capabilities.isCreativeMode) {
                             playerIn.inventory.setInventorySlotContents(playerIn.inventory.currentItem, itemstack1);
-                        }
-                        else
-                        {
-                            if (!playerIn.inventory.addItemStackToInventory(itemstack1))
-                            {
-                                worldIn.spawnEntityInWorld(new EntityItem(worldIn, (double)pos.getX() + 0.5D, (double)pos.getY() + 1.5D, (double)pos.getZ() + 0.5D, itemstack1));
-                            }
-                            else if (playerIn instanceof EntityPlayerMP)
-                            {
-                                ((EntityPlayerMP)playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
+                        } else {
+                            if (!playerIn.inventory.addItemStackToInventory(itemstack1)) {
+                                worldIn.spawnEntityInWorld(new EntityItem(worldIn, (double) pos.getX() + 0.5D, (double) pos.getY() + 1.5D, (double) pos.getZ() + 0.5D, itemstack1));
+                            } else if (playerIn instanceof EntityPlayerMP) {
+                                ((EntityPlayerMP) playerIn).sendContainerToPlayer(playerIn.inventoryContainer);
                             }
 
                             playerIn.triggerAchievement(StatList.field_181728_L);
 
-                            if (!playerIn.capabilities.isCreativeMode)
-                            {
+                            if (!playerIn.capabilities.isCreativeMode) {
                                 --itemstack.stackSize;
                             }
                         }
 
-                        if (!playerIn.capabilities.isCreativeMode)
-                        {
+                        if (!playerIn.capabilities.isCreativeMode) {
                             this.setWaterLevel(worldIn, pos, state, i - 1);
                         }
 
                         return true;
-                    }
-                    else
-                    {
+                    } else {
                         return false;
                     }
                 }
@@ -246,8 +201,7 @@ public class BlockCauldron extends Block
         }
     }
 
-    public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level)
-    {
+    public void setWaterLevel(World worldIn, BlockPos pos, IBlockState state, int level) {
         worldIn.setBlockState(pos, state.withProperty(LEVEL, MathHelper.clamp_int(level, 0, 3)), 2);
         worldIn.updateComparatorOutputLevel(pos, this);
     }
@@ -255,14 +209,11 @@ public class BlockCauldron extends Block
     /**
      * Called similar to random ticks, but only when it is raining.
      */
-    public void fillWithRain(World worldIn, BlockPos pos)
-    {
-        if (worldIn.rand.nextInt(20) == 1)
-        {
+    public void fillWithRain(World worldIn, BlockPos pos) {
+        if (worldIn.rand.nextInt(20) == 1) {
             IBlockState iblockstate = worldIn.getBlockState(pos);
 
-            if (iblockstate.getValue(LEVEL) < 3)
-            {
+            if (iblockstate.getValue(LEVEL) < 3) {
                 worldIn.setBlockState(pos, iblockstate.cycleProperty(LEVEL), 2);
             }
         }
@@ -271,44 +222,37 @@ public class BlockCauldron extends Block
     /**
      * Get the Item that this Block should drop when harvested.
      */
-    public Item getItemDropped(IBlockState state, Random rand, int fortune)
-    {
+    public Item getItemDropped(IBlockState state, Random rand, int fortune) {
         return Items.cauldron;
     }
 
-    public Item getItem(World worldIn, BlockPos pos)
-    {
+    public Item getItem(World worldIn, BlockPos pos) {
         return Items.cauldron;
     }
 
-    public boolean hasComparatorInputOverride()
-    {
+    public boolean hasComparatorInputOverride() {
         return true;
     }
 
-    public int getComparatorInputOverride(World worldIn, BlockPos pos)
-    {
+    public int getComparatorInputOverride(World worldIn, BlockPos pos) {
         return worldIn.getBlockState(pos).getValue(LEVEL);
     }
 
     /**
      * Convert the given metadata into a BlockState for this Block
      */
-    public IBlockState getStateFromMeta(int meta)
-    {
+    public IBlockState getStateFromMeta(int meta) {
         return this.getDefaultState().withProperty(LEVEL, meta);
     }
 
     /**
      * Convert the BlockState into the correct metadata value
      */
-    public int getMetaFromState(IBlockState state)
-    {
+    public int getMetaFromState(IBlockState state) {
         return state.getValue(LEVEL);
     }
 
-    protected BlockState createBlockState()
-    {
-        return new BlockState(this, new IProperty[] {LEVEL});
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{LEVEL});
     }
 }

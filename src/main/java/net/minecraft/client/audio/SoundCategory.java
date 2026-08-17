@@ -1,10 +1,10 @@
 package net.minecraft.client.audio;
 
 import com.google.common.collect.Maps;
+
 import java.util.Map;
 
-public enum SoundCategory
-{
+public enum SoundCategory {
     MASTER("master", 0),
     MUSIC("music", 1),
     RECORDS("record", 2),
@@ -17,40 +17,35 @@ public enum SoundCategory
 
     private static final Map<String, SoundCategory> NAME_CATEGORY_MAP = Maps.<String, SoundCategory>newHashMap();
     private static final Map<Integer, SoundCategory> ID_CATEGORY_MAP = Maps.<Integer, SoundCategory>newHashMap();
-    private final String categoryName;
-    private final int categoryId;
-
-    private SoundCategory(String name, int id)
-    {
-        this.categoryName = name;
-        this.categoryId = id;
-    }
-
-    public String getCategoryName()
-    {
-        return this.categoryName;
-    }
-
-    public int getCategoryId()
-    {
-        return this.categoryId;
-    }
-
-    public static SoundCategory getCategory(String name)
-    {
-        return NAME_CATEGORY_MAP.get(name);
-    }
 
     static {
-        for (SoundCategory soundcategory : values())
-        {
-            if (NAME_CATEGORY_MAP.containsKey(soundcategory.getCategoryName()) || ID_CATEGORY_MAP.containsKey(soundcategory.getCategoryId()))
-            {
+        for (SoundCategory soundcategory : values()) {
+            if (NAME_CATEGORY_MAP.containsKey(soundcategory.getCategoryName()) || ID_CATEGORY_MAP.containsKey(soundcategory.getCategoryId())) {
                 throw new Error("Clash in Sound Category ID & Name pools! Cannot insert " + soundcategory);
             }
 
             NAME_CATEGORY_MAP.put(soundcategory.getCategoryName(), soundcategory);
             ID_CATEGORY_MAP.put(soundcategory.getCategoryId(), soundcategory);
         }
+    }
+
+    private final String categoryName;
+    private final int categoryId;
+
+    private SoundCategory(String name, int id) {
+        this.categoryName = name;
+        this.categoryId = id;
+    }
+
+    public static SoundCategory getCategory(String name) {
+        return NAME_CATEGORY_MAP.get(name);
+    }
+
+    public String getCategoryName() {
+        return this.categoryName;
+    }
+
+    public int getCategoryId() {
+        return this.categoryId;
     }
 }

@@ -6,8 +6,7 @@ import net.minecraft.world.chunk.Chunk;
 
 import java.io.IOException;
 
-public interface IChunkLoader
-{
+public interface IChunkLoader {
     /**
      * Loads the specified(XZ) chunk into the specified world.
      */

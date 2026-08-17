@@ -1,6 +1,7 @@
 package net.minecraft.client.entity;
 
-public record MovementState(boolean forward, boolean backward, boolean left, boolean right, boolean jump, boolean sneak, boolean sprint) {
+public record MovementState(boolean forward, boolean backward, boolean left, boolean right, boolean jump, boolean sneak,
+                            boolean sprint) {
     public byte toByte() {
         byte value = 0;
         if (forward) value |= 1;

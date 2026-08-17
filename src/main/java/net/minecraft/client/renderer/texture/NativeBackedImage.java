@@ -18,6 +18,7 @@ import java.nio.channels.FileChannel;
 
 public class NativeBackedImage extends BufferedImage implements AutoCloseable {
 
+    private static final int TRANSFER_SIZE = 16384;
     @Getter
     private final int width;
     @Getter
@@ -30,79 +31,6 @@ public class NativeBackedImage extends BufferedImage implements AutoCloseable {
         this.height = height;
         this.pointer = pointer;
     }
-
-    @Override
-    public int getWidth(ImageObserver observer) {
-        return width;
-    }
-
-    @Override
-    public int getHeight(ImageObserver observer) {
-        return height;
-    }
-
-    @Override
-    public int[] getRGB(int startX, int startY, int w, int h, int[] rgbArray, int offset, int scansize) {
-
-        if (rgbArray == null) {
-            rgbArray = new int[offset+h*scansize];
-        }
-
-        // Inverse itr for cache coherency
-        for (int z = startY; z < h; z++) {
-            for (int x = startX; x < w; x++) {
-                int color = MemoryUtil.memGetInt(this.pointer + ((x + (long) z * width) * 4));
-                // ABGR -> ARGB
-                int a = (color >> 24) & 0xFF;
-                int b = (color >> 16) & 0xFF;
-                int g = (color >> 8) & 0xFF;
-                int r = (color) & 0xFF;
-
-                int finalColor = (a << 24) | (r << 16) | (g << 8) | b;
-
-                rgbArray[x + (z * width)] = finalColor;
-            }
-        }
-
-        return rgbArray;
-    }
-
-    @Override
-    public int getRGB(int x, int z) {
-        checkBounds(x, z);
-
-        return MemoryUtil.memGetInt(this.pointer + ((x + (long) z * width) * 4));
-    }
-
-    @Override
-    public void setRGB(int x, int z, int rgb) {
-        checkBounds(x, z);
-
-        MemoryUtil.memPutInt(this.pointer + ((x + (long) z * width) * 4), rgb);
-    }
-
-    @Override
-    public BufferedImage getSubimage(int x, int y, int w, int h) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void close() {
-        if (this.pointer != 0) {
-            STBImage.nstbi_image_free(this.pointer);
-
-            this.pointer = 0;
-        }
-    }
-
-    private void checkBounds(int x, int z) {
-        if (x < 0 || x >= this.width || z < 0 || z >= this.height) {
-            throw new IllegalStateException(
-                    "Out of bounds: " + x + ", " + z + " (width: " + this.width + ", height: " + this.height + ")");
-        }
-    }
-
-    // Parsing
 
     public static NativeBackedImage make(InputStream stream) {
         ByteBuffer imgBuf = null;
@@ -167,7 +95,6 @@ public class NativeBackedImage extends BufferedImage implements AutoCloseable {
         return null;
     }
 
-    private static final int TRANSFER_SIZE = 16384;
     private static ByteBuffer readResource(InputStream inputStream) throws IOException {
 
         ByteBuffer byteBuffer;
@@ -204,5 +131,78 @@ public class NativeBackedImage extends BufferedImage implements AutoCloseable {
 
         byteBuffer.flip();
         return byteBuffer;
+    }
+
+    @Override
+    public int getWidth(ImageObserver observer) {
+        return width;
+    }
+
+    @Override
+    public int getHeight(ImageObserver observer) {
+        return height;
+    }
+
+    @Override
+    public int[] getRGB(int startX, int startY, int w, int h, int[] rgbArray, int offset, int scansize) {
+
+        if (rgbArray == null) {
+            rgbArray = new int[offset + h * scansize];
+        }
+
+        // Inverse itr for cache coherency
+        for (int z = startY; z < h; z++) {
+            for (int x = startX; x < w; x++) {
+                int color = MemoryUtil.memGetInt(this.pointer + ((x + (long) z * width) * 4));
+                // ABGR -> ARGB
+                int a = (color >> 24) & 0xFF;
+                int b = (color >> 16) & 0xFF;
+                int g = (color >> 8) & 0xFF;
+                int r = (color) & 0xFF;
+
+                int finalColor = (a << 24) | (r << 16) | (g << 8) | b;
+
+                rgbArray[x + (z * width)] = finalColor;
+            }
+        }
+
+        return rgbArray;
+    }
+
+    @Override
+    public int getRGB(int x, int z) {
+        checkBounds(x, z);
+
+        return MemoryUtil.memGetInt(this.pointer + ((x + (long) z * width) * 4));
+    }
+
+    // Parsing
+
+    @Override
+    public void setRGB(int x, int z, int rgb) {
+        checkBounds(x, z);
+
+        MemoryUtil.memPutInt(this.pointer + ((x + (long) z * width) * 4), rgb);
+    }
+
+    @Override
+    public BufferedImage getSubimage(int x, int y, int w, int h) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void close() {
+        if (this.pointer != 0) {
+            STBImage.nstbi_image_free(this.pointer);
+
+            this.pointer = 0;
+        }
+    }
+
+    private void checkBounds(int x, int z) {
+        if (x < 0 || x >= this.width || z < 0 || z >= this.height) {
+            throw new IllegalStateException(
+                    "Out of bounds: " + x + ", " + z + " (width: " + this.width + ", height: " + this.height + ")");
+        }
     }
 }

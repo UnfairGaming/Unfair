@@ -7,11 +7,11 @@ import net.minecraft.util.EnumChatFormatting;
 import java.io.IOException;
 
 public class GuiGameOver extends GuiScreen implements GuiYesNoCallback {
+    private final boolean field_146346_f = false;
     /**
      * The integer value containing the number of ticks that have passed since the player's death
      */
     private int enableButtonsTimer;
-    private final boolean field_146346_f = false;
 
     /**
      * Adds the buttons (and other controls) to the screen in question. Called when the GUI is displayed and when the

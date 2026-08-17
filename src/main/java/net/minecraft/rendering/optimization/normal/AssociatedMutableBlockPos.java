@@ -14,9 +14,8 @@ import java.util.List;
  */
 public class AssociatedMutableBlockPos extends ExtendedMutableBlockPos implements AutoCloseable {
     private static final List<AssociatedMutableBlockPos> POOL = new ArrayList<>(100);
-
-    private boolean released;
     private final Companion associatedBlockPos;
+    private boolean released;
 
     private AssociatedMutableBlockPos(Companion associatedBlockPos, int x, int y, int z) {
         super(x, y, z);

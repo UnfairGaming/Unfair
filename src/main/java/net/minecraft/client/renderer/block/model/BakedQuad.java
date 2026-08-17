@@ -9,13 +9,13 @@ import net.optifine.model.QuadBounds;
 
 
 public class BakedQuad {
+    @Getter
+    protected final int tintIndex;
     /**
      * Joined 4 vertex records, each has 7 fields (x, y, z, shadeColor, u, v, <unused>), see
      * FaceBakery.storeVertexData()
      */
     public int[] vertexData;
-    @Getter
-    protected final int tintIndex;
     protected EnumFacing face;
     protected TextureAtlasSprite sprite;
     private int[] vertexDataSingle = null;
@@ -36,39 +36,6 @@ public class BakedQuad {
         this.tintIndex = tintIndexIn;
         this.face = faceIn;
         this.fixVertexData();
-    }
-
-    public TextureAtlasSprite getSprite() {
-        if (this.sprite == null) {
-            this.sprite = getSpriteByUv(this.getVertexData());
-        }
-
-        return this.sprite;
-    }
-
-    public int[] getVertexData() {
-        this.fixVertexData();
-        return this.vertexData;
-    }
-
-    public boolean hasTintIndex() {
-        return this.tintIndex != -1;
-    }
-
-    public EnumFacing getFace() {
-        if (this.face == null) {
-            this.face = FaceBakery.getFacingFromVertexData(this.getVertexData());
-        }
-
-        return this.face;
-    }
-
-    public int[] getVertexDataSingle() {
-        if (this.vertexDataSingle == null) {
-            this.vertexDataSingle = makeVertexDataSingle(this.getVertexData(), this.getSprite());
-        }
-
-        return this.vertexDataSingle;
     }
 
     private static int[] makeVertexDataSingle(int[] p_makeVertexDataSingle_0_, TextureAtlasSprite p_makeVertexDataSingle_1_) {
@@ -110,16 +77,6 @@ public class BakedQuad {
         return Minecraft.getMinecraft().getTextureMapBlocks().getIconByUV(f6, f7);
     }
 
-    protected void fixVertexData() {
-        if (Config.isShaders()) {
-            if (this.vertexData.length == 28) {
-                this.vertexData = expandVertexData(this.vertexData);
-            }
-        } else if (this.vertexData.length == 56) {
-            this.vertexData = compactVertexData(this.vertexData);
-        }
-    }
-
     private static int[] expandVertexData(int[] p_expandVertexData_0_) {
         int i = p_expandVertexData_0_.length / 4;
         int j = i * 2;
@@ -142,6 +99,49 @@ public class BakedQuad {
         }
 
         return aint;
+    }
+
+    public TextureAtlasSprite getSprite() {
+        if (this.sprite == null) {
+            this.sprite = getSpriteByUv(this.getVertexData());
+        }
+
+        return this.sprite;
+    }
+
+    public int[] getVertexData() {
+        this.fixVertexData();
+        return this.vertexData;
+    }
+
+    public boolean hasTintIndex() {
+        return this.tintIndex != -1;
+    }
+
+    public EnumFacing getFace() {
+        if (this.face == null) {
+            this.face = FaceBakery.getFacingFromVertexData(this.getVertexData());
+        }
+
+        return this.face;
+    }
+
+    public int[] getVertexDataSingle() {
+        if (this.vertexDataSingle == null) {
+            this.vertexDataSingle = makeVertexDataSingle(this.getVertexData(), this.getSprite());
+        }
+
+        return this.vertexDataSingle;
+    }
+
+    protected void fixVertexData() {
+        if (Config.isShaders()) {
+            if (this.vertexData.length == 28) {
+                this.vertexData = expandVertexData(this.vertexData);
+            }
+        } else if (this.vertexData.length == 56) {
+            this.vertexData = compactVertexData(this.vertexData);
+        }
     }
 
     public QuadBounds getQuadBounds() {

@@ -21,7 +21,9 @@ public class GuiCreateFlatWorld extends GuiScreen {
     private final GuiCreateWorld createWorldGui;
     private FlatGeneratorInfo theFlatGeneratorInfo = FlatGeneratorInfo.getDefaultFlatGenerator();
 
-    /** The title given to the flat world currently in creation */
+    /**
+     * The title given to the flat world currently in creation
+     */
     private String flatWorldTitle;
     private String field_146394_i;
     private String field_146391_r;

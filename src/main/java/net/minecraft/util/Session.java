@@ -3,6 +3,7 @@ package net.minecraft.util;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,6 +57,13 @@ public class Session {
         MOJANG("mojang");
 
         private static final Map<String, Session.Type> SESSION_TYPES = Maps.<String, Session.Type>newHashMap();
+
+        static {
+            for (Session.Type session$type : values()) {
+                SESSION_TYPES.put(session$type.sessionType, session$type);
+            }
+        }
+
         private final String sessionType;
 
         private Type(String sessionTypeIn) {
@@ -64,12 +72,6 @@ public class Session {
 
         public static Session.Type setSessionType(String sessionTypeIn) {
             return SESSION_TYPES.get(sessionTypeIn.toLowerCase());
-        }
-
-        static {
-            for (Session.Type session$type : values()) {
-                SESSION_TYPES.put(session$type.sessionType, session$type);
-            }
         }
     }
 }

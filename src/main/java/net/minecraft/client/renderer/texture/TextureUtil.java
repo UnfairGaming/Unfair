@@ -23,11 +23,30 @@ import java.nio.IntBuffer;
 
 public class TextureUtil {
 
-    private static final Logger logger = LogManager.getLogger();
-    private static final IntBuffer dataBuffer = MemoryTracker.memAllocInt(4194304);
     public static final DynamicTexture missingTexture = new DynamicTexture(16, 16);
     public static final int[] missingTextureData = missingTexture.getTextureData();
+    static final int[] textureData = new int[4194304];
+    private static final Logger logger = LogManager.getLogger();
+    private static final IntBuffer dataBuffer = MemoryTracker.memAllocInt(4194304);
     private static final int[] mipmapBuffer;
+
+    static {
+        int[] aint = new int[]{-524040, -524040, -524040, -524040, -524040, -524040, -524040, -524040};
+        int[] aint1 = new int[]{-16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216};
+        int k = aint.length;
+
+        missingTexture.setClearable(false);
+
+        for (int l = 0; l < 16; ++l) {
+            System.arraycopy(l < k ? aint : aint1, 0, missingTextureData, 16 * l, k);
+            System.arraycopy(l < k ? aint1 : aint, 0, missingTextureData, 16 * l + k, k);
+        }
+
+        missingTexture.updateDynamicTexture();
+        missingTexture.clear();
+        mipmapBuffer = new int[4];
+    }
+
     public static int glGenTextures() {
         return GlStateManager.generateTexture();
     }
@@ -157,8 +176,6 @@ public class TextureUtil {
         return textureId;
     }
 
-    static final int[] textureData = new int[4194304];
-
     private static void uploadTextureImageSubImpl(BufferedImage img, int xOffset, int yOffset, boolean blur, boolean clamp) {
         int width = img.getWidth();
         int height = img.getHeight();
@@ -251,7 +268,7 @@ public class TextureUtil {
         }
     }
 
-    public static NativeBackedImage readBufferedImage(InputStream imageStream)  {
+    public static NativeBackedImage readBufferedImage(InputStream imageStream) {
         if (imageStream == null) {
             return null;
         } else {
@@ -267,7 +284,7 @@ public class TextureUtil {
         }
     }
 
-    public static NativeBackedImage readBufferedImageNoClosing(InputStream imageStream)  {
+    public static NativeBackedImage readBufferedImageNoClosing(InputStream imageStream) {
         if (imageStream == null) {
             return null;
         } else {
@@ -313,22 +330,5 @@ public class TextureUtil {
             System.arraycopy(p_147953_0_, (p_147953_2_ - 1 - j) * p_147953_1_, p_147953_0_, j * p_147953_1_, p_147953_1_);
             System.arraycopy(aint, 0, p_147953_0_, (p_147953_2_ - 1 - j) * p_147953_1_, p_147953_1_);
         }
-    }
-
-    static {
-        int[] aint = new int[]{-524040, -524040, -524040, -524040, -524040, -524040, -524040, -524040};
-        int[] aint1 = new int[]{-16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216, -16777216};
-        int k = aint.length;
-
-        missingTexture.setClearable(false);
-
-        for (int l = 0; l < 16; ++l) {
-            System.arraycopy(l < k ? aint : aint1, 0, missingTextureData, 16 * l, k);
-            System.arraycopy(l < k ? aint1 : aint, 0, missingTextureData, 16 * l + k, k);
-        }
-
-        missingTexture.updateDynamicTexture();
-        missingTexture.clear();
-        mipmapBuffer = new int[4];
     }
 }

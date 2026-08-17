@@ -9,6 +9,9 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 public class EntityFX extends Entity {
+    public static double interpPosX;
+    public static double interpPosY;
+    public static double interpPosZ;
     protected int particleTextureIndexX;
     protected int particleTextureIndexY;
     protected float particleTextureJitterX;
@@ -17,34 +20,27 @@ public class EntityFX extends Entity {
     protected int particleMaxAge;
     protected float particleScale;
     protected float particleGravity;
-
     /**
      * The red amount of color. Used as a percentage, 1.0 = 255 and 0.0 = 0.
      */
     protected float particleRed;
-
     /**
      * The green amount of color. Used as a percentage, 1.0 = 255 and 0.0 = 0.
      */
     protected float particleGreen;
-
     /**
      * The blue amount of color. Used as a percentage, 1.0 = 255 and 0.0 = 0.
      */
     protected float particleBlue;
-
     /**
      * Particle alpha
      */
     protected float particleAlpha;
-
     /**
      * The icon field from which the given particle pulls its texture.
      */
     protected TextureAtlasSprite particleIcon;
-    public static double interpPosX;
-    public static double interpPosY;
-    public static double interpPosZ;
+    private float patcher$cullState;
 
     protected EntityFX(World worldIn, double posXIn, double posYIn, double posZIn) {
         super(worldIn);
@@ -241,8 +237,6 @@ public class EntityFX extends Entity {
     public String toString() {
         return this.getClass().getSimpleName() + ", Pos (" + this.posX + "," + this.posY + "," + this.posZ + "), RGBA (" + this.particleRed + "," + this.particleGreen + "," + this.particleBlue + "," + this.particleAlpha + "), Age " + this.particleAge;
     }
-
-    private float patcher$cullState;
 
     public void patcher$setCullState(float cullState) {
         this.patcher$cullState = cullState;

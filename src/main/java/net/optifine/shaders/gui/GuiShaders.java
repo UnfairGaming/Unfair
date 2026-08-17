@@ -21,26 +21,66 @@ import java.net.URI;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class GuiShaders extends GuiScreenOF {
-    protected GuiScreen parentGui;
-    protected String screenTitle = "Shaders";
-    private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderEnumShaderOptions());
-    private int updateTimer = -1;
-    private GuiSlotShaders shaderList;
-    private boolean saved = false;
+    public static final int EnumOS_UNKNOWN = 0;
+    public static final int EnumOS_WINDOWS = 1;
+    public static final int EnumOS_OSX = 2;
+    public static final int EnumOS_SOLARIS = 3;
+    public static final int EnumOS_LINUX = 4;
     private static float[] QUALITY_MULTIPLIERS = new float[]{0.5F, 0.6F, 0.6666667F, 0.75F, 0.8333333F, 0.9F, 1.0F, 1.1666666F, 1.3333334F, 1.5F, 1.6666666F, 1.8F, 2.0F};
     private static String[] QUALITY_MULTIPLIER_NAMES = new String[]{"0.5x", "0.6x", "0.66x", "0.75x", "0.83x", "0.9x", "1x", "1.16x", "1.33x", "1.5x", "1.66x", "1.8x", "2x"};
     private static float QUALITY_MULTIPLIER_DEFAULT = 1.0F;
     private static float[] HAND_DEPTH_VALUES = new float[]{0.0625F, 0.125F, 0.25F};
     private static String[] HAND_DEPTH_NAMES = new String[]{"0.5x", "1x", "2x"};
     private static float HAND_DEPTH_DEFAULT = 0.125F;
-    public static final int EnumOS_UNKNOWN = 0;
-    public static final int EnumOS_WINDOWS = 1;
-    public static final int EnumOS_OSX = 2;
-    public static final int EnumOS_SOLARIS = 3;
-    public static final int EnumOS_LINUX = 4;
+    protected GuiScreen parentGui;
+    protected String screenTitle = "Shaders";
+    private TooltipManager tooltipManager = new TooltipManager(this, new TooltipProviderEnumShaderOptions());
+    private int updateTimer = -1;
+    private GuiSlotShaders shaderList;
+    private boolean saved = false;
 
     public GuiShaders(GuiScreen par1GuiScreen, GameSettings par2GameSettings) {
         this.parentGui = par1GuiScreen;
+    }
+
+    public static String toStringOnOff(boolean value) {
+        String s = Lang.getOn();
+        String s1 = Lang.getOff();
+        return value ? s : s1;
+    }
+
+    public static String toStringAa(int value) {
+        return value == 2 ? "FXAA 2x" : (value == 4 ? "FXAA 4x" : Lang.getOff());
+    }
+
+    public static String toStringValue(float val, float[] values, String[] names) {
+        int i = getValueIndex(val, values);
+        return names[i];
+    }
+
+    public static int getValueIndex(float val, float[] values) {
+        for (int i = 0; i < values.length; ++i) {
+            float f = values[i];
+
+            if (f >= val) {
+                return i;
+            }
+        }
+
+        return values.length - 1;
+    }
+
+    public static String toStringQuality(float val) {
+        return toStringValue(val, QUALITY_MULTIPLIERS, QUALITY_MULTIPLIER_NAMES);
+    }
+
+    public static String toStringHandDepth(float val) {
+        return toStringValue(val, HAND_DEPTH_VALUES, HAND_DEPTH_NAMES);
+    }
+
+    public static int getOSType() {
+        String s = System.getProperty("os.name").toLowerCase();
+        return s.contains("win") ? 1 : (s.contains("mac") ? 2 : (s.contains("solaris") ? 3 : (s.contains("sunos") ? 3 : (s.contains("linux") ? 4 : (s.contains("unix") ? 4 : 0)))));
     }
 
     /**
@@ -97,7 +137,6 @@ public class GuiShaders extends GuiScreenOF {
         super.handleMouseInput();
         this.shaderList.handleMouseInput();
     }
-
 
     /**
      * Called by the controls from the buttonList when activated. (Mouse pressed for buttons)
@@ -351,21 +390,6 @@ public class GuiShaders extends GuiScreenOF {
         this.drawCenteredString(this.fontRendererObj, text, x, y, color);
     }
 
-    public static String toStringOnOff(boolean value) {
-        String s = Lang.getOn();
-        String s1 = Lang.getOff();
-        return value ? s : s1;
-    }
-
-    public static String toStringAa(int value) {
-        return value == 2 ? "FXAA 2x" : (value == 4 ? "FXAA 4x" : Lang.getOff());
-    }
-
-    public static String toStringValue(float val, float[] values, String[] names) {
-        int i = getValueIndex(val, values);
-        return names[i];
-    }
-
     private float getNextValue(float val, float[] values, float valDef, boolean forward, boolean reset) {
         if (reset) {
             return valDef;
@@ -388,31 +412,6 @@ public class GuiShaders extends GuiScreenOF {
 
             return values[i];
         }
-    }
-
-    public static int getValueIndex(float val, float[] values) {
-        for (int i = 0; i < values.length; ++i) {
-            float f = values[i];
-
-            if (f >= val) {
-                return i;
-            }
-        }
-
-        return values.length - 1;
-    }
-
-    public static String toStringQuality(float val) {
-        return toStringValue(val, QUALITY_MULTIPLIERS, QUALITY_MULTIPLIER_NAMES);
-    }
-
-    public static String toStringHandDepth(float val) {
-        return toStringValue(val, HAND_DEPTH_VALUES, HAND_DEPTH_NAMES);
-    }
-
-    public static int getOSType() {
-        String s = System.getProperty("os.name").toLowerCase();
-        return s.contains("win") ? 1 : (s.contains("mac") ? 2 : (s.contains("solaris") ? 3 : (s.contains("sunos") ? 3 : (s.contains("linux") ? 4 : (s.contains("unix") ? 4 : 0)))));
     }
 
     public boolean hasShiftDown() {

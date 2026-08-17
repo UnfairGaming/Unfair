@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutionException;
 
 public class GlStateManager {
     public static final Object RENDER_THREAD_LOCK = new Object();
+    public static final GlStateManager.TextureState[] textureState = new GlStateManager.TextureState[32];
     private static final GlStateManager.AlphaState alphaState = new GlStateManager.AlphaState();
     private static final GlStateManager.BooleanState lightingState = new GlStateManager.BooleanState(2896);
     private static final GlStateManager.BooleanState[] lightState = new GlStateManager.BooleanState[8];
@@ -33,18 +34,27 @@ public class GlStateManager {
     private static final GlStateManager.TexGenState texGenState = new GlStateManager.TexGenState();
     private static final GlStateManager.ClearState clearState = new GlStateManager.ClearState();
     private static final GlStateManager.BooleanState normalizeState = new GlStateManager.BooleanState(2977);
-    private static int activeTextureUnit = 0;
-    public static final GlStateManager.TextureState[] textureState = new GlStateManager.TextureState[32];
-    private static int activeShadeModel = 7425;
     private static final GlStateManager.BooleanState rescaleNormalState = new GlStateManager.BooleanState(32826);
     private static final GlStateManager.ColorMask colorMaskState = new GlStateManager.ColorMask();
     private static final GlStateManager.Color colorState = new GlStateManager.Color();
-    public static boolean clearEnabled = true;
     private static final LockCounter alphaLock = new LockCounter();
     private static final GlAlphaState alphaLockState = new GlAlphaState();
     private static final LockCounter blendLock = new LockCounter();
     private static final GlBlendState blendLockState = new GlBlendState();
+    public static boolean clearEnabled = true;
+    private static int activeTextureUnit = 0;
+    private static int activeShadeModel = 7425;
     private static boolean creatingDisplayList = false;
+
+    static {
+        for (int i = 0; i < 8; ++i) {
+            lightState[i] = new GlStateManager.BooleanState(16384 + i);
+        }
+
+        for (int j = 0; j < textureState.length; ++j) {
+            textureState[j] = new GlStateManager.TextureState();
+        }
+    }
 
     public static void pushAttrib() {
         GL11.glPushAttrib(8256);
@@ -391,6 +401,7 @@ public class GlStateManager {
 //            throw new RuntimeException(e);
 //        }
     }
+
     public static void deleteTexture(int texture) {
         if (texture != 0) {
             GL11.glDeleteTextures(texture);
@@ -811,14 +822,11 @@ public class GlStateManager {
         }
     }
 
-    static {
-        for (int i = 0; i < 8; ++i) {
-            lightState[i] = new GlStateManager.BooleanState(16384 + i);
-        }
-
-        for (int j = 0; j < textureState.length; ++j) {
-            textureState[j] = new GlStateManager.TextureState();
-        }
+    public enum TexGen {
+        S,
+        T,
+        R,
+        Q
     }
 
     static class AlphaState {
@@ -1021,13 +1029,6 @@ public class GlStateManager {
             this.field_179074_d = 7680;
             this.field_179075_e = 7680;
         }
-    }
-
-    public enum TexGen {
-        S,
-        T,
-        R,
-        Q
     }
 
     static class TexGenCoord {

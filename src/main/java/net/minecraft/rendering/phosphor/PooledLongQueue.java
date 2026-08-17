@@ -81,6 +81,42 @@ public class PooledLongQueue {
         this.empty = true;
     }
 
+    public static class Pool {
+        private final Deque<Segment> segmentPool = new ArrayDeque<>();
+
+        private Segment acquire() {
+            if (this.segmentPool.isEmpty()) {
+                return new Segment(this);
+            }
+
+            return this.segmentPool.pop();
+        }
+
+        private void release(Segment segment) {
+            if (this.segmentPool.size() < CACHED_QUEUE_SEGMENTS_COUNT) {
+                this.segmentPool.push(segment);
+            }
+        }
+    }
+
+    private static class Segment {
+        private final long[] longArray = new long[QUEUE_SEGMENT_SIZE];
+        private final Pool pool;
+        private int index = 0;
+        private Segment next;
+
+        private Segment(Pool pool) {
+            this.pool = pool;
+        }
+
+        private void release() {
+            this.index = 0;
+            this.next = null;
+
+            this.pool.release(this);
+        }
+    }
+
     public class LongQueueIterator {
         private Segment cur;
         private long[] curArray;
@@ -119,42 +155,6 @@ public class PooledLongQueue {
 
         public void finish() {
             PooledLongQueue.this.clear();
-        }
-    }
-
-    public static class Pool {
-        private final Deque<Segment> segmentPool = new ArrayDeque<>();
-
-        private Segment acquire() {
-            if (this.segmentPool.isEmpty()) {
-                return new Segment(this);
-            }
-
-            return this.segmentPool.pop();
-        }
-
-        private void release(Segment segment) {
-            if (this.segmentPool.size() < CACHED_QUEUE_SEGMENTS_COUNT) {
-                this.segmentPool.push(segment);
-            }
-        }
-    }
-
-    private static class Segment {
-        private final long[] longArray = new long[QUEUE_SEGMENT_SIZE];
-        private int index = 0;
-        private Segment next;
-        private final Pool pool;
-
-        private Segment(Pool pool) {
-            this.pool = pool;
-        }
-
-        private void release() {
-            this.index = 0;
-            this.next = null;
-
-            this.pool.release(this);
         }
     }
 }

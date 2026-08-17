@@ -53,6 +53,39 @@ public class SkinManager {
         });
     }
 
+    private static boolean hasValidSecureTextures(GameProfile profile) {
+        if (YGGDRASIL_PUBLIC_KEY == null) {
+            return true;
+        }
+
+        for (Property property : profile.getProperties().get("textures")) {
+            if (!property.hasSignature()) {
+                return false;
+            }
+
+            try {
+                byte[] signature = Base64.getDecoder().decode(property.getSignature());
+                int expectedLength = (((RSAPublicKey) YGGDRASIL_PUBLIC_KEY).getModulus().bitLength() + 7) >> 3;
+                return signature.length == expectedLength && property.isSignatureValid(YGGDRASIL_PUBLIC_KEY);
+            } catch (IllegalArgumentException exception) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    private static PublicKey loadYggdrasilPublicKey() {
+        try (InputStream stream = SkinManager.class.getResourceAsStream("/yggdrasil_session_pubkey.der")) {
+            if (stream == null) {
+                return null;
+            }
+            return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(stream.readAllBytes()));
+        } catch (IOException | GeneralSecurityException exception) {
+            return null;
+        }
+    }
+
     /**
      * Used in the Skull renderer to fetch a skin. May download the skin if it's not in the cache
      */
@@ -138,39 +171,6 @@ public class SkinManager {
                 }
             });
         });
-    }
-
-    private static boolean hasValidSecureTextures(GameProfile profile) {
-        if (YGGDRASIL_PUBLIC_KEY == null) {
-            return true;
-        }
-
-        for (Property property : profile.getProperties().get("textures")) {
-            if (!property.hasSignature()) {
-                return false;
-            }
-
-            try {
-                byte[] signature = Base64.getDecoder().decode(property.getSignature());
-                int expectedLength = (((RSAPublicKey) YGGDRASIL_PUBLIC_KEY).getModulus().bitLength() + 7) >> 3;
-                return signature.length == expectedLength && property.isSignatureValid(YGGDRASIL_PUBLIC_KEY);
-            } catch (IllegalArgumentException exception) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    private static PublicKey loadYggdrasilPublicKey() {
-        try (InputStream stream = SkinManager.class.getResourceAsStream("/yggdrasil_session_pubkey.der")) {
-            if (stream == null) {
-                return null;
-            }
-            return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(stream.readAllBytes()));
-        } catch (IOException | GeneralSecurityException exception) {
-            return null;
-        }
     }
 
     public Map<Type, MinecraftProfileTexture> loadSkinFromCache(GameProfile profile) {

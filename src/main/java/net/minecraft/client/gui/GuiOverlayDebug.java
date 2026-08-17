@@ -43,6 +43,10 @@ public class GuiOverlayDebug extends Gui {
         this.fontRenderer = mc.fontRendererObj;
     }
 
+    private static long bytesToMb(long bytes) {
+        return bytes / 1024L / 1024L;
+    }
+
     public void renderDebugInfo(ScaledResolution scaledResolutionIn) {
         this.mc.mcProfiler.startSection("debug");
         GlStateManager.pushMatrix();
@@ -297,9 +301,5 @@ public class GuiOverlayDebug extends Gui {
         int k2 = MathHelper.clamp_int((int) ((float) k + (float) (k1 - k) * p_181553_3_), 0, 255);
         int l2 = MathHelper.clamp_int((int) ((float) l + (float) (l1 - l) * p_181553_3_), 0, 255);
         return i2 << 24 | j2 << 16 | k2 << 8 | l2;
-    }
-
-    private static long bytesToMb(long bytes) {
-        return bytes / 1024L / 1024L;
     }
 }

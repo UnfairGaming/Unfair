@@ -7,23 +7,19 @@ import net.minecraft.network.play.INetHandlerPlayServer;
 
 import java.io.IOException;
 
-public class C0BPacketEntityAction implements Packet<INetHandlerPlayServer>
-{
+public class C0BPacketEntityAction implements Packet<INetHandlerPlayServer> {
     private int entityID;
     private C0BPacketEntityAction.Action action;
     private int auxData;
 
-    public C0BPacketEntityAction()
-    {
+    public C0BPacketEntityAction() {
     }
 
-    public C0BPacketEntityAction(Entity entity, C0BPacketEntityAction.Action action)
-    {
+    public C0BPacketEntityAction(Entity entity, C0BPacketEntityAction.Action action) {
         this(entity, action, 0);
     }
 
-    public C0BPacketEntityAction(Entity entity, C0BPacketEntityAction.Action action, int auxData)
-    {
+    public C0BPacketEntityAction(Entity entity, C0BPacketEntityAction.Action action, int auxData) {
         this.entityID = entity.getEntityId();
         this.action = action;
         this.auxData = auxData;
@@ -32,8 +28,7 @@ public class C0BPacketEntityAction implements Packet<INetHandlerPlayServer>
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.entityID = buf.readVarIntFromBuffer();
         this.action = buf.readEnumValue(Action.class);
         this.auxData = buf.readVarIntFromBuffer();
@@ -42,8 +37,7 @@ public class C0BPacketEntityAction implements Packet<INetHandlerPlayServer>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeVarIntToBuffer(this.entityID);
         buf.writeEnumValue(this.action);
         buf.writeVarIntToBuffer(this.auxData);
@@ -52,23 +46,19 @@ public class C0BPacketEntityAction implements Packet<INetHandlerPlayServer>
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerPlayServer handler)
-    {
+    public void processPacket(INetHandlerPlayServer handler) {
         handler.processEntityAction(this);
     }
 
-    public C0BPacketEntityAction.Action getAction()
-    {
+    public C0BPacketEntityAction.Action getAction() {
         return this.action;
     }
 
-    public int getAuxData()
-    {
+    public int getAuxData() {
         return this.auxData;
     }
 
-    public static enum Action
-    {
+    public static enum Action {
         START_SNEAKING,
         STOP_SNEAKING,
         STOP_SLEEPING,

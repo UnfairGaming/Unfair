@@ -17,10 +17,8 @@ import net.minecraft.world.World;
 
 import java.util.Random;
 
-public class EntitySpider extends EntityMob
-{
-    public EntitySpider(World worldIn)
-    {
+public class EntitySpider extends EntityMob {
+    public EntitySpider(World worldIn) {
         super(worldIn);
         this.setSize(1.4F, 0.9F);
         this.tasks.addTask(1, new EntityAISwimming(this));
@@ -38,21 +36,18 @@ public class EntitySpider extends EntityMob
     /**
      * Returns the Y offset from the entity's position for any entity riding this one.
      */
-    public double getMountedYOffset()
-    {
+    public double getMountedYOffset() {
         return this.height * 0.5F;
     }
 
     /**
      * Returns new PathNavigateGround instance
      */
-    protected PathNavigate getNewNavigator(World worldIn)
-    {
+    protected PathNavigate getNewNavigator(World worldIn) {
         return new PathNavigateClimber(this, worldIn);
     }
 
-    protected void entityInit()
-    {
+    protected void entityInit() {
         super.entityInit();
         this.dataWatcher.addObject(16, (byte) 0);
     }
@@ -60,18 +55,15 @@ public class EntitySpider extends EntityMob
     /**
      * Called to update the entity's position/logic.
      */
-    public void onUpdate()
-    {
+    public void onUpdate() {
         super.onUpdate();
 
-        if (!this.worldObj.isRemote)
-        {
+        if (!this.worldObj.isRemote) {
             this.setBesideClimbableBlock(this.isCollidedHorizontally);
         }
     }
 
-    protected void applyEntityAttributes()
-    {
+    protected void applyEntityAttributes() {
         super.applyEntityAttributes();
         this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(16.0D);
         this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.30000001192092896D);
@@ -80,50 +72,43 @@ public class EntitySpider extends EntityMob
     /**
      * Returns the sound this mob makes while it's alive.
      */
-    protected String getLivingSound()
-    {
+    protected String getLivingSound() {
         return "mob.spider.say";
     }
 
     /**
      * Returns the sound this mob makes when it is hurt.
      */
-    protected String getHurtSound()
-    {
+    protected String getHurtSound() {
         return "mob.spider.say";
     }
 
     /**
      * Returns the sound this mob makes on death.
      */
-    protected String getDeathSound()
-    {
+    protected String getDeathSound() {
         return "mob.spider.death";
     }
 
-    protected void playStepSound(BlockPos pos, Block blockIn)
-    {
+    protected void playStepSound(BlockPos pos, Block blockIn) {
         this.playSound("mob.spider.step", 0.15F, 1.0F);
     }
 
-    protected Item getDropItem()
-    {
+    protected Item getDropItem() {
         return Items.string;
     }
 
     /**
      * Drop 0-2 items of this living's type
-     *  
-     * @param wasRecentlyHit true if this this entity was recently hit by appropriate entity (generally only if player
-     * or tameable)
+     *
+     * @param wasRecentlyHit  true if this this entity was recently hit by appropriate entity (generally only if player
+     *                        or tameable)
      * @param lootingModifier level of enchanment to be applied to this drop
      */
-    protected void dropFewItems(boolean wasRecentlyHit, int lootingModifier)
-    {
+    protected void dropFewItems(boolean wasRecentlyHit, int lootingModifier) {
         super.dropFewItems(wasRecentlyHit, lootingModifier);
 
-        if (wasRecentlyHit && (this.rand.nextInt(3) == 0 || this.rand.nextInt(1 + lootingModifier) > 0))
-        {
+        if (wasRecentlyHit && (this.rand.nextInt(3) == 0 || this.rand.nextInt(1 + lootingModifier) > 0)) {
             this.dropItem(Items.spider_eye, 1);
         }
     }
@@ -131,28 +116,24 @@ public class EntitySpider extends EntityMob
     /**
      * returns true if this entity is by a ladder, false otherwise
      */
-    public boolean isOnLadder()
-    {
+    public boolean isOnLadder() {
         return this.isBesideClimbableBlock();
     }
 
     /**
      * Sets the Entity inside a web block.
      */
-    public void setInWeb()
-    {
+    public void setInWeb() {
     }
 
     /**
      * Get this Entity's EnumCreatureAttribute
      */
-    public EnumCreatureAttribute getCreatureAttribute()
-    {
+    public EnumCreatureAttribute getCreatureAttribute() {
         return EnumCreatureAttribute.ARTHROPOD;
     }
 
-    public boolean isPotionApplicable(PotionEffect potioneffectIn)
-    {
+    public boolean isPotionApplicable(PotionEffect potioneffectIn) {
         return potioneffectIn.getPotionID() != Potion.poison.id && super.isPotionApplicable(potioneffectIn);
     }
 
@@ -160,8 +141,7 @@ public class EntitySpider extends EntityMob
      * Returns true if the WatchableObject (Byte) is 0x01 otherwise returns false. The WatchableObject is updated using
      * setBesideClimableBlock.
      */
-    public boolean isBesideClimbableBlock()
-    {
+    public boolean isBesideClimbableBlock() {
         return (this.dataWatcher.getWatchableObjectByte(16) & 1) != 0;
     }
 
@@ -169,17 +149,13 @@ public class EntitySpider extends EntityMob
      * Updates the WatchableObject (Byte) created in entityInit(), setting it to 0x01 if par1 is true or 0x00 if it is
      * false.
      */
-    public void setBesideClimbableBlock(boolean p_70839_1_)
-    {
+    public void setBesideClimbableBlock(boolean p_70839_1_) {
         byte b0 = this.dataWatcher.getWatchableObjectByte(16);
 
-        if (p_70839_1_)
-        {
-            b0 = (byte)(b0 | 1);
-        }
-        else
-        {
-            b0 = (byte)(b0 & -2);
+        if (p_70839_1_) {
+            b0 = (byte) (b0 | 1);
+        } else {
+            b0 = (byte) (b0 & -2);
         }
 
         this.dataWatcher.updateObject(16, b0);
@@ -189,12 +165,10 @@ public class EntitySpider extends EntityMob
      * Called only once on an entity when first time spawned, via egg, mob spawner, natural spawning etc, but not called
      * when entity is reloaded from nbt. Mainly used for initializing attributes and inventory
      */
-    public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata)
-    {
+    public IEntityLivingData onInitialSpawn(DifficultyInstance difficulty, IEntityLivingData livingdata) {
         livingdata = super.onInitialSpawn(difficulty, livingdata);
 
-        if (this.worldObj.rand.nextInt(100) == 0)
-        {
+        if (this.worldObj.rand.nextInt(100) == 0) {
             EntitySkeleton entityskeleton = new EntitySkeleton(this.worldObj);
             entityskeleton.setLocationAndAngles(this.posX, this.posY, this.posZ, this.rotationYaw, 0.0F);
             entityskeleton.onInitialSpawn(difficulty, null);
@@ -202,22 +176,18 @@ public class EntitySpider extends EntityMob
             entityskeleton.mountEntity(this);
         }
 
-        if (livingdata == null)
-        {
+        if (livingdata == null) {
             livingdata = new EntitySpider.GroupData();
 
-            if (this.worldObj.getDifficulty() == EnumDifficulty.HARD && this.worldObj.rand.nextFloat() < 0.1F * difficulty.getClampedAdditionalDifficulty())
-            {
-                ((EntitySpider.GroupData)livingdata).func_111104_a(this.worldObj.rand);
+            if (this.worldObj.getDifficulty() == EnumDifficulty.HARD && this.worldObj.rand.nextFloat() < 0.1F * difficulty.getClampedAdditionalDifficulty()) {
+                ((EntitySpider.GroupData) livingdata).func_111104_a(this.worldObj.rand);
             }
         }
 
-        if (livingdata instanceof EntitySpider.GroupData)
-        {
-            int i = ((EntitySpider.GroupData)livingdata).potionEffectId;
+        if (livingdata instanceof EntitySpider.GroupData) {
+            int i = ((EntitySpider.GroupData) livingdata).potionEffectId;
 
-            if (i > 0 && Potion.potionTypes[i] != null)
-            {
+            if (i > 0 && Potion.potionTypes[i] != null) {
                 this.addPotionEffect(new PotionEffect(i, Integer.MAX_VALUE));
             }
         }
@@ -225,75 +195,55 @@ public class EntitySpider extends EntityMob
         return livingdata;
     }
 
-    public float getEyeHeight()
-    {
+    public float getEyeHeight() {
         return 0.65F;
     }
 
-    static class AISpiderAttack extends EntityAIAttackOnCollide
-    {
-        public AISpiderAttack(EntitySpider spider, Class <? extends Entity > targetClass)
-        {
+    static class AISpiderAttack extends EntityAIAttackOnCollide {
+        public AISpiderAttack(EntitySpider spider, Class<? extends Entity> targetClass) {
             super(spider, targetClass, 1.0D, true);
         }
 
-        public boolean continueExecuting()
-        {
+        public boolean continueExecuting() {
             float f = this.attacker.getBrightness(1.0F);
 
-            if (f >= 0.5F && this.attacker.getRNG().nextInt(100) == 0)
-            {
+            if (f >= 0.5F && this.attacker.getRNG().nextInt(100) == 0) {
                 this.attacker.setAttackTarget(null);
                 return false;
-            }
-            else
-            {
+            } else {
                 return super.continueExecuting();
             }
         }
 
-        protected double func_179512_a(EntityLivingBase attackTarget)
-        {
+        protected double func_179512_a(EntityLivingBase attackTarget) {
             return 4.0F + attackTarget.width;
         }
     }
 
-    static class AISpiderTarget<T extends EntityLivingBase> extends EntityAINearestAttackableTarget<T>
-    {
-        public AISpiderTarget(EntitySpider spider, Class<T> classTarget)
-        {
+    static class AISpiderTarget<T extends EntityLivingBase> extends EntityAINearestAttackableTarget<T> {
+        public AISpiderTarget(EntitySpider spider, Class<T> classTarget) {
             super(spider, classTarget, true);
         }
 
-        public boolean shouldExecute()
-        {
+        public boolean shouldExecute() {
             float f = this.taskOwner.getBrightness(1.0F);
             return !(f >= 0.5F) && super.shouldExecute();
         }
     }
 
-    public static class GroupData implements IEntityLivingData
-    {
+    public static class GroupData implements IEntityLivingData {
         public int potionEffectId;
 
-        public void func_111104_a(Random rand)
-        {
+        public void func_111104_a(Random rand) {
             int i = rand.nextInt(5);
 
-            if (i <= 1)
-            {
+            if (i <= 1) {
                 this.potionEffectId = Potion.moveSpeed.id;
-            }
-            else if (i <= 2)
-            {
+            } else if (i <= 2) {
                 this.potionEffectId = Potion.damageBoost.id;
-            }
-            else if (i <= 3)
-            {
+            } else if (i <= 3) {
                 this.potionEffectId = Potion.regeneration.id;
-            }
-            else if (i <= 4)
-            {
+            } else if (i <= 4) {
                 this.potionEffectId = Potion.invisibility.id;
             }
         }

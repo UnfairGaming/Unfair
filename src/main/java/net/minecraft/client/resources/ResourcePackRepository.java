@@ -41,17 +41,17 @@ public class ResourcePackRepository {
         boolean flag1 = p_accept_1_.isDirectory() && (new File(p_accept_1_, "pack.mcmeta")).isFile();
         return flag || flag1;
     };
-    @Getter
-    private final File dirResourcepacks;
     public final IResourcePack rprDefaultResourcePack;
-    private final File dirServerResourcepacks;
     public final IMetadataSerializer rprMetadataSerializer;
     @Getter
-    private IResourcePack resourcePackInstance;
+    private final File dirResourcepacks;
+    private final File dirServerResourcepacks;
     private final ReentrantLock lock = new ReentrantLock();
+    public List<ResourcePackRepository.Entry> repositoryEntries = Lists.newArrayList();
+    @Getter
+    private IResourcePack resourcePackInstance;
     private ListenableFuture<Object> downloadingPacks;
     private List<ResourcePackRepository.Entry> repositoryEntriesAll = Lists.newArrayList();
-    public List<ResourcePackRepository.Entry> repositoryEntries = Lists.newArrayList();
 
     public ResourcePackRepository(File dirResourcepacksIn, File dirServerResourcepacksIn, IResourcePack rprDefaultResourcePackIn, IMetadataSerializer rprMetadataSerializerIn, GameSettings settings) {
         this.dirResourcepacks = dirResourcepacksIn;
@@ -268,21 +268,17 @@ public class ResourcePackRepository {
 
     public class Entry {
         private final File resourcePackFile;
+        @Getter
+        private final List<ResPackPreview> previewImages = new ArrayList<>();
+        @Getter
+        private final List<String> resPackInfo = new CopyOnWriteArrayList<>();
+        @Getter
+        private final AtomicBoolean previewsLoaded = new AtomicBoolean(false);
+        public boolean triggeredLoading = false;
         private IResourcePack reResourcePack;
         private PackMetadataSection rePackMetadataSection;
         private BufferedImage texturePackIcon;
         private ResourceLocation locationTexturePackIcon;
-
-        @Getter
-        private final List<ResPackPreview> previewImages = new ArrayList<>();
-
-        @Getter
-        private final List<String> resPackInfo = new CopyOnWriteArrayList<>();
-
-        @Getter
-        private final AtomicBoolean previewsLoaded = new AtomicBoolean(false);
-
-        public boolean triggeredLoading = false;
 
         private Entry(File resourcePackFileIn) {
             this.resourcePackFile = resourcePackFileIn;
@@ -338,6 +334,7 @@ public class ResourcePackRepository {
 
         /**
          * 获取资源包中的图片
+         *
          * @param loc 位置
          * @return 图片, 是否从vanilla资源包中加载
          */

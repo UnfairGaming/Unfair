@@ -6,18 +6,13 @@ import net.minecraft.world.ColorizerFoliage;
 
 import java.io.IOException;
 
-public class FoliageColorReloadListener implements IResourceManagerReloadListener
-{
+public class FoliageColorReloadListener implements IResourceManagerReloadListener {
     private static final ResourceLocation LOC_FOLIAGE_PNG = ResourceLocation.of("textures/colormap/foliage.png");
 
-    public void onResourceManagerReload(IResourceManager resourceManager)
-    {
-        try
-        {
+    public void onResourceManagerReload(IResourceManager resourceManager) {
+        try {
             ColorizerFoliage.setFoliageBiomeColorizer(TextureUtil.readImageData(resourceManager, LOC_FOLIAGE_PNG));
-        }
-        catch (IOException var3)
-        {
+        } catch (IOException var3) {
             ;
         }
     }

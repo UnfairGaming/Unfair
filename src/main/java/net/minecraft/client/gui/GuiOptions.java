@@ -21,9 +21,9 @@ public class GuiOptions extends GuiScreen implements GuiYesNoCallback {
      * Reference to the GameSettings object.
      */
     private final GameSettings game_settings_1;
+    protected String field_146442_a = "Options";
     private GuiButton field_175357_i;
     private GuiLockIconButton field_175356_r;
-    protected String field_146442_a = "Options";
 
     public GuiOptions(GuiScreen p_i1046_1_, GameSettings p_i1046_2_) {
         this.field_146441_g = p_i1046_1_;
@@ -90,7 +90,7 @@ public class GuiOptions extends GuiScreen implements GuiYesNoCallback {
         this.buttonList.add(new GuiButton(103, this.width / 2 + 5, this.height / 6 + 120 - 6, 150, 20, I18n.format("options.chat.title")));
         this.buttonList.add(new GuiButton(105, this.width / 2 - 155, this.height / 6 + 144 - 6, 150, 20, I18n.format("options.resourcepack")));
 
-        GuiButton snooperButton = new GuiButton(107, this.width / 2 + 5, this.height / 6 + 144 - 6,150, 20, "Where's Snooper?");
+        GuiButton snooperButton = new GuiButton(107, this.width / 2 + 5, this.height / 6 + 144 - 6, 150, 20, "Where's Snooper?");
         snooperButton.enabled = false;
 
         this.buttonList.add(snooperButton);

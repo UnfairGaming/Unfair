@@ -10,47 +10,38 @@ import net.minecraft.util.BlockPos;
 
 import java.util.List;
 
-public class CommandSetDefaultSpawnpoint extends CommandBase
-{
+public class CommandSetDefaultSpawnpoint extends CommandBase {
     /**
      * Gets the name of the command
      */
-    public String getCommandName()
-    {
+    public String getCommandName() {
         return "setworldspawn";
     }
 
     /**
      * Return the required permission level for this command.
      */
-    public int getRequiredPermissionLevel()
-    {
+    public int getRequiredPermissionLevel() {
         return 2;
     }
 
     /**
      * Gets the usage string for the command.
      */
-    public String getCommandUsage(ICommandSender sender)
-    {
+    public String getCommandUsage(ICommandSender sender) {
         return "commands.setworldspawn.usage";
     }
 
     /**
      * Callback when the command is invoked
      */
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException
-    {
+    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         BlockPos blockpos;
 
-        if (args.length == 0)
-        {
+        if (args.length == 0) {
             blockpos = getCommandSenderAsPlayer(sender).getPosition();
-        }
-        else
-        {
-            if (args.length != 3 || sender.getEntityWorld() == null)
-            {
+        } else {
+            if (args.length != 3 || sender.getEntityWorld() == null) {
                 throw new WrongUsageException("commands.setworldspawn.usage", new Object[0]);
             }
 
@@ -59,11 +50,10 @@ public class CommandSetDefaultSpawnpoint extends CommandBase
 
         sender.getEntityWorld().setSpawnPoint(blockpos);
         MinecraftServer.getServer().getConfigurationManager().sendPacketToAllPlayers(new S05PacketSpawnPosition(blockpos));
-        notifyOperators(sender, this, "commands.setworldspawn.success", new Object[] {blockpos.getX(), blockpos.getY(), blockpos.getZ()});
+        notifyOperators(sender, this, "commands.setworldspawn.success", new Object[]{blockpos.getX(), blockpos.getY(), blockpos.getZ()});
     }
 
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos)
-    {
+    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
         return args.length > 0 && args.length <= 3 ? func_175771_a(args, 0, pos) : null;
     }
 }

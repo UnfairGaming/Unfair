@@ -38,17 +38,18 @@ public class ItemRenderer {
     private static final ResourceLocation RES_MAP_BACKGROUND = ResourceLocation.of("textures/map/map_background.png");
     private static final ResourceLocation RES_UNDERWATER_OVERLAY = ResourceLocation.of("textures/misc/underwater.png");
 
-    /** A reference to the Minecraft object. */
+    /**
+     * A reference to the Minecraft object.
+     */
     private final Minecraft mc;
+    private final RenderManager renderManager;
+    private final RenderItem itemRenderer;
     private ItemStack itemToRender;
-
     /**
      * How far the current item has been equipped (0 disequipped and 1 fully up)
      */
     private float equippedProgress;
     private float prevEquippedProgress;
-    private final RenderManager renderManager;
-    private final RenderItem itemRenderer;
     private ItemStack totemAnimationStack;
     private int totemAnimationTicks;
 
@@ -58,28 +59,23 @@ public class ItemRenderer {
         this.itemRenderer = mcIn.getRenderItem();
     }
 
-    public void renderItem(EntityLivingBase entityIn, ItemStack heldStack, ItemCameraTransforms.TransformType transform)
-    {
-        if (heldStack != null)
-        {
+    public void renderItem(EntityLivingBase entityIn, ItemStack heldStack, ItemCameraTransforms.TransformType transform) {
+        if (heldStack != null) {
             Item item = heldStack.getItem();
             Block block = Block.getBlockFromItem(item);
             GlStateManager.pushMatrix();
 
-            if (this.itemRenderer.shouldRenderItemIn3D(heldStack))
-            {
+            if (this.itemRenderer.shouldRenderItemIn3D(heldStack)) {
                 GlStateManager.scale(2.0F, 2.0F, 2.0F);
 
-                if (this.isBlockTranslucent(block) && (!Config.isShaders() || !Shaders.renderItemKeepDepthMask))
-                {
+                if (this.isBlockTranslucent(block) && (!Config.isShaders() || !Shaders.renderItemKeepDepthMask)) {
                     GlStateManager.depthMask(false);
                 }
             }
 
             this.itemRenderer.renderItemModelForEntity(heldStack, entityIn, transform);
 
-            if (this.isBlockTranslucent(block))
-            {
+            if (this.isBlockTranslucent(block)) {
                 GlStateManager.depthMask(true);
             }
 
@@ -90,18 +86,16 @@ public class ItemRenderer {
     /**
      * Returns true if given block is translucent
      */
-    private boolean isBlockTranslucent(Block blockIn)
-    {
+    private boolean isBlockTranslucent(Block blockIn) {
         return blockIn != null && blockIn.getBlockLayer() == EnumWorldBlockLayer.TRANSLUCENT;
     }
 
     /**
      * Rotate the render around X and Y
-     *  
+     *
      * @param angleY The angle for the rotation arround Y
      */
-    private void rotateArroundXAndY(float angle, float angleY)
-    {
+    private void rotateArroundXAndY(float angle, float angleY) {
         GlStateManager.pushMatrix();
         GlStateManager.rotate(angle, 1.0F, 0.0F, 0.0F);
         GlStateManager.rotate(angleY, 0.0F, 1.0F, 0.0F);
@@ -112,25 +106,22 @@ public class ItemRenderer {
     /**
      * Set the OpenGL LightMapTextureCoords based on the AbstractClientPlayer
      */
-    private void setLightMapFromPlayer(AbstractClientPlayer clientPlayer)
-    {
-        int i = this.mc.theWorld.getCombinedLight(new BlockPos(clientPlayer.posX, clientPlayer.posY + (double)clientPlayer.getEyeHeight(), clientPlayer.posZ), 0);
+    private void setLightMapFromPlayer(AbstractClientPlayer clientPlayer) {
+        int i = this.mc.theWorld.getCombinedLight(new BlockPos(clientPlayer.posX, clientPlayer.posY + (double) clientPlayer.getEyeHeight(), clientPlayer.posZ), 0);
 
-        if (Config.isDynamicLights())
-        {
+        if (Config.isDynamicLights()) {
             i = DynamicLights.getCombinedLight(this.mc.getRenderViewEntity(), i);
         }
 
-        float f = (float)(i & 65535);
-        float f1 = (float)(i >> 16);
+        float f = (float) (i & 65535);
+        float f1 = (float) (i >> 16);
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, f, f1);
     }
 
     /**
      * Rotate the render according to the player's yaw and pitch
      */
-    private void rotateWithPlayerRotations(EntityPlayerSP entityplayerspIn, float partialTicks)
-    {
+    private void rotateWithPlayerRotations(EntityPlayerSP entityplayerspIn, float partialTicks) {
         float f = entityplayerspIn.prevRenderArmPitch + (entityplayerspIn.renderArmPitch - entityplayerspIn.prevRenderArmPitch) * partialTicks;
         float f1 = entityplayerspIn.prevRenderArmYaw + (entityplayerspIn.renderArmYaw - entityplayerspIn.prevRenderArmYaw) * partialTicks;
         GlStateManager.rotate((entityplayerspIn.rotationPitch - f) * 0.1F, 1.0F, 0.0F, 0.0F);
@@ -139,19 +130,17 @@ public class ItemRenderer {
 
     /**
      * Return the angle to render the Map
-     *  
+     *
      * @param pitch The player's pitch
      */
-    private float getMapAngleFromPitch(float pitch)
-    {
+    private float getMapAngleFromPitch(float pitch) {
         float f = 1.0F - pitch / 45.0F + 0.1F;
         f = MathHelper.clamp_float(f, 0.0F, 1.0F);
-        f = -MathHelper.cos(f * (float)Math.PI) * 0.5F + 0.5F;
+        f = -MathHelper.cos(f * (float) Math.PI) * 0.5F + 0.5F;
         return f;
     }
 
-    private void renderRightArm(RenderPlayer renderPlayerIn)
-    {
+    private void renderRightArm(RenderPlayer renderPlayerIn) {
         GlStateManager.pushMatrix();
         GlStateManager.rotate(54.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(64.0F, 1.0F, 0.0F, 0.0F);
@@ -161,8 +150,7 @@ public class ItemRenderer {
         GlStateManager.popMatrix();
     }
 
-    private void renderLeftArm(RenderPlayer renderPlayerIn)
-    {
+    private void renderLeftArm(RenderPlayer renderPlayerIn) {
         GlStateManager.pushMatrix();
         GlStateManager.rotate(92.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(45.0F, 1.0F, 0.0F, 0.0F);
@@ -172,14 +160,12 @@ public class ItemRenderer {
         GlStateManager.popMatrix();
     }
 
-    private void renderPlayerArms(AbstractClientPlayer clientPlayer)
-    {
+    private void renderPlayerArms(AbstractClientPlayer clientPlayer) {
         this.mc.getTextureManager().bindTexture(clientPlayer.getLocationSkin());
         Render<AbstractClientPlayer> render = this.renderManager.getEntityRenderObject(this.mc.thePlayer);
-        RenderPlayer renderplayer = (RenderPlayer)render;
+        RenderPlayer renderplayer = (RenderPlayer) render;
 
-        if (!clientPlayer.isInvisible())
-        {
+        if (!clientPlayer.isInvisible()) {
             GlStateManager.disableCull();
             this.renderRightArm(renderplayer);
             this.renderLeftArm(renderplayer);
@@ -187,11 +173,10 @@ public class ItemRenderer {
         }
     }
 
-    private void renderItemMap(AbstractClientPlayer clientPlayer, float pitch, float equipmentProgress, float swingProgress)
-    {
-        float f = -0.4F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI);
-        float f1 = 0.2F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI * 2.0F);
-        float f2 = -0.2F * MathHelper.sin(swingProgress * (float)Math.PI);
+    private void renderItemMap(AbstractClientPlayer clientPlayer, float pitch, float equipmentProgress, float swingProgress) {
+        float f = -0.4F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+        float f1 = 0.2F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI * 2.0F);
+        float f2 = -0.2F * MathHelper.sin(swingProgress * (float) Math.PI);
         GlStateManager.translate(f, f1, f2);
         float f3 = this.getMapAngleFromPitch(pitch);
         GlStateManager.translate(0.0F, 0.04F, -0.72F);
@@ -201,8 +186,8 @@ public class ItemRenderer {
         GlStateManager.rotate(f3 * -85.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(0.0F, 1.0F, 0.0F, 0.0F);
         this.renderPlayerArms(clientPlayer);
-        float f4 = MathHelper.sin(swingProgress * swingProgress * (float)Math.PI);
-        float f5 = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI);
+        float f4 = MathHelper.sin(swingProgress * swingProgress * (float) Math.PI);
+        float f5 = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
         GlStateManager.rotate(f4 * -20.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(f5 * -20.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(f5 * -80.0F, 1.0F, 0.0F, 0.0F);
@@ -224,29 +209,27 @@ public class ItemRenderer {
         tessellator.draw();
         MapData mapdata = Items.filled_map.getMapData(this.itemToRender, this.mc.theWorld);
 
-        if (mapdata != null)
-        {
+        if (mapdata != null) {
             this.mc.entityRenderer.getMapItemRenderer().renderMap(mapdata, false);
         }
     }
 
     /**
      * Render the player's arm
-     *  
+     *
      * @param equipProgress The progress of equiping the item
      * @param swingProgress The swing movement progression
      */
-    private void renderPlayerArm(AbstractClientPlayer clientPlayer, float equipProgress, float swingProgress)
-    {
-        float f = -0.3F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI);
-        float f1 = 0.4F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI * 2.0F);
-        float f2 = -0.4F * MathHelper.sin(swingProgress * (float)Math.PI);
+    private void renderPlayerArm(AbstractClientPlayer clientPlayer, float equipProgress, float swingProgress) {
+        float f = -0.3F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+        float f1 = 0.4F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI * 2.0F);
+        float f2 = -0.4F * MathHelper.sin(swingProgress * (float) Math.PI);
         GlStateManager.translate(f, f1, f2);
         GlStateManager.translate(0.64000005F, -0.6F, -0.71999997F);
         GlStateManager.translate(0.0F, equipProgress * -0.6F, 0.0F);
         GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
-        float f3 = MathHelper.sin(swingProgress * swingProgress * (float)Math.PI);
-        float f4 = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI);
+        float f3 = MathHelper.sin(swingProgress * swingProgress * (float) Math.PI);
+        float f4 = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
         GlStateManager.rotate(f4 * 70.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(f3 * -20.0F, 0.0F, 0.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(clientPlayer.getLocationSkin());
@@ -258,42 +241,39 @@ public class ItemRenderer {
         GlStateManager.translate(5.6F, 0.0F, 0.0F);
         Render<AbstractClientPlayer> render = this.renderManager.getEntityRenderObject(this.mc.thePlayer);
         GlStateManager.disableCull();
-        RenderPlayer renderplayer = (RenderPlayer)render;
+        RenderPlayer renderplayer = (RenderPlayer) render;
         renderplayer.renderRightArm(this.mc.thePlayer);
         GlStateManager.enableCull();
     }
 
     /**
      * Rotate and translate render to show item consumption
-     *  
+     *
      * @param swingProgress The swing movement progress
      */
-    public void doItemUsedTransformations(float swingProgress)
-    {
-        float f = -0.4F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI);
-        float f1 = 0.2F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI * 2.0F);
-        float f2 = -0.2F * MathHelper.sin(swingProgress * (float)Math.PI);
+    public void doItemUsedTransformations(float swingProgress) {
+        float f = -0.4F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+        float f1 = 0.2F * MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI * 2.0F);
+        float f2 = -0.2F * MathHelper.sin(swingProgress * (float) Math.PI);
         GlStateManager.translate(f, f1, f2);
     }
 
     /**
      * Perform the drinking animation movement
-     *  
+     *
      * @param partialTicks Partials ticks
      */
-    public void performDrinking(AbstractClientPlayer clientPlayer, float partialTicks)
-    {
-        float f = (float)clientPlayer.getItemInUseCount() - partialTicks + 1.0F;
-        float f1 = f / (float)this.itemToRender.getMaxItemUseDuration();
-        float f2 = MathHelper.abs(MathHelper.cos(f / 4.0F * (float)Math.PI) * 0.1F);
+    public void performDrinking(AbstractClientPlayer clientPlayer, float partialTicks) {
+        float f = (float) clientPlayer.getItemInUseCount() - partialTicks + 1.0F;
+        float f1 = f / (float) this.itemToRender.getMaxItemUseDuration();
+        float f2 = MathHelper.abs(MathHelper.cos(f / 4.0F * (float) Math.PI) * 0.1F);
 
-        if (f1 >= 0.8F)
-        {
+        if (f1 >= 0.8F) {
             f2 = 0.0F;
         }
 
         GlStateManager.translate(0.0F, f2, 0.0F);
-        float f3 = 1.0F - (float)Math.pow(f1, 27.0D);
+        float f3 = 1.0F - (float) Math.pow(f1, 27.0D);
         GlStateManager.translate(f3 * 0.6F, f3 * -0.5F, f3 * 0.0F);
         GlStateManager.rotate(f3 * 90.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(f3 * 10.0F, 1.0F, 0.0F, 0.0F);
@@ -303,8 +283,7 @@ public class ItemRenderer {
     /**
      * Performs transformations prior to the rendering of a held item in first person.
      */
-    public void transformFirstPersonItem(float equipProgress, float swingProgress)
-    {
+    public void transformFirstPersonItem(float equipProgress, float swingProgress) {
         GlStateManager.translate(0.56F, -0.52F, -0.71999997F);
         ItemStack stack = this.itemToRender;
         if (stack != null) {
@@ -321,42 +300,38 @@ public class ItemRenderer {
         }
         GlStateManager.translate(0.0F, equipProgress * -0.6F, 0.0F);
         GlStateManager.rotate(45.0F, 0.0F, 1.0F, 0.0F);
-        float f = MathHelper.sin(swingProgress * swingProgress * (float)Math.PI);
-        float f1 = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float)Math.PI);
+        float f = MathHelper.sin(swingProgress * swingProgress * (float) Math.PI);
+        float f1 = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
         GlStateManager.rotate(f * -20.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(f1 * -20.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(f1 * -80.0F, 1.0F, 0.0F, 0.0F);
         GlStateManager.scale(0.4F, 0.4F, 0.4F);
     }
 
-    public void transformFirstPersonItemEat(float equipProgress, float swingProgress)
-    {
+    public void transformFirstPersonItemEat(float equipProgress, float swingProgress) {
         GlStateManager.scale(0.8F, 0.8F, 0.8F);
         GlStateManager.translate(-0.2F, -0.1F, 0.0F);
     }
 
     /**
      * Translate and rotate the render to look like holding a bow
-     *  
+     *
      * @param partialTicks Partial ticks
      */
-    public void doBowTransformations(float partialTicks, AbstractClientPlayer clientPlayer)
-    {
+    public void doBowTransformations(float partialTicks, AbstractClientPlayer clientPlayer) {
         GlStateManager.rotate(-18.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.rotate(-12.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(-8.0F, 1.0F, 0.0F, 0.0F);
         GlStateManager.translate(-0.9F, 0.2F, 0.0F);
-        float f = (float)this.itemToRender.getMaxItemUseDuration() - ((float)clientPlayer.getItemInUseCount() - partialTicks + 1.0F);
+        float f = (float) this.itemToRender.getMaxItemUseDuration() - ((float) clientPlayer.getItemInUseCount() - partialTicks + 1.0F);
         float f1 = f / 20.0F;
         f1 = (f1 * f1 + f1 * 2.0F) / 3.0F;
 
-        if (f1 > 1.0F)
-        {
+        if (f1 > 1.0F) {
             f1 = 1.0F;
         }
 
-        if (f1 > 0.1F)
-        {
+        if (f1 > 0.1F) {
             float f2 = MathHelper.sin((f - 0.1F) * 1.3F);
             float f3 = f1 - 0.1F;
             float f4 = f2 * f3;
@@ -370,8 +345,7 @@ public class ItemRenderer {
     /**
      * Translate and rotate the render for holding a block
      */
-    public void doBlockTransformations()
-    {
+    public void doBlockTransformations() {
         GlStateManager.translate(-0.5F, 0.2F, 0.0F);
         GlStateManager.rotate(30.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(-80.0F, 1.0F, 0.0F, 0.0F);
@@ -381,10 +355,8 @@ public class ItemRenderer {
     /**
      * Renders the active item in the player's hand when in first person mode. Args: partialTickTime
      */
-    public void renderItemInFirstPerson(float partialTicks)
-    {
-        if (!Config.isShaders() || !Shaders.isSkipRenderHand())
-        {
+    public void renderItemInFirstPerson(float partialTicks) {
+        if (!Config.isShaders() || !Shaders.isSkipRenderHand()) {
             float f = 1.0F - (this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * partialTicks);
             AbstractClientPlayer abstractclientplayer = this.mc.thePlayer;
 
@@ -397,7 +369,7 @@ public class ItemRenderer {
             float f3 = abstractclientplayer.prevRotationYaw + (abstractclientplayer.rotationYaw - abstractclientplayer.prevRotationYaw) * partialTicks;
             this.rotateArroundXAndY(f2, f3);
             this.setLightMapFromPlayer(abstractclientplayer);
-            this.rotateWithPlayerRotations((EntityPlayerSP)abstractclientplayer, partialTicks);
+            this.rotateWithPlayerRotations((EntityPlayerSP) abstractclientplayer, partialTicks);
             GlStateManager.enableRescaleNormal();
             GlStateManager.pushMatrix();
 
@@ -406,8 +378,7 @@ public class ItemRenderer {
                 --this.totemAnimationTicks;
             }
 
-            if (this.itemToRender != null)
-            {
+            if (this.itemToRender != null) {
                 ItemStack renderedStack = this.itemToRender;
                 EnumAction enumaction = renderedStack.getItemUseAction();
                 String modernModel = ViaBackwardsItemModels.getModelName(renderedStack);
@@ -437,19 +408,13 @@ public class ItemRenderer {
                     f1 = event.getSwingProgress();
                 }
 
-                if (renderedStack.getItem() instanceof ItemMap)
-                {
+                if (renderedStack.getItem() instanceof ItemMap) {
                     this.renderItemMap(abstractclientplayer, f2, f, f1);
-                }
-                else if ("shield".equals(modernModel))
-                {
+                } else if ("shield".equals(modernModel)) {
                     // Shield swing, equip and hand transforms are all applied
                     // by ModernShieldRenderer below.
-                }
-                else if (useItem)
-                {
-                    if (!event.isCancelled()) switch (enumaction)
-                    {
+                } else if (useItem) {
+                    if (!event.isCancelled()) switch (enumaction) {
                         case NONE:
                             this.transformFirstPersonItem(f, 0.0F);
                             break;
@@ -471,9 +436,7 @@ public class ItemRenderer {
                             this.transformFirstPersonItem(f, 0.0F);
                             this.doBowTransformations(partialTicks, abstractclientplayer);
                     }
-                }
-                else
-                {
+                } else {
                     if (!event.isCancelled()) {
                         if (!usingDifferentItem) {
                             this.doItemUsedTransformations(f1);
@@ -488,9 +451,7 @@ public class ItemRenderer {
                 } else {
                     this.renderItem(abstractclientplayer, renderedStack, ItemCameraTransforms.TransformType.FIRST_PERSON);
                 }
-            }
-            else if (!abstractclientplayer.isInvisible())
-            {
+            } else if (!abstractclientplayer.isInvisible()) {
                 this.renderPlayerArm(abstractclientplayer, f, f1);
             }
 
@@ -582,13 +543,11 @@ public class ItemRenderer {
         }
     }
 
-    public float getEquippedProgress()
-    {
+    public float getEquippedProgress() {
         return this.equippedProgress;
     }
 
-    public ItemStack getItemToRender()
-    {
+    public ItemStack getItemToRender() {
         return this.itemToRender;
     }
 
@@ -633,7 +592,7 @@ public class ItemRenderer {
     /**
      * Renders a texture that warps around based on the direction the player is looking. Texture needs to be bound
      * before being called. Used for the water overlay. Args: parialTickTime
-     *  
+     *
      * @param partialTicks Partial ticks
      */
     private void renderWaterOverlayTexture(float partialTicks) {
@@ -663,7 +622,7 @@ public class ItemRenderer {
 
     /**
      * Renders the fire on the screen for first person mode. Arg: partialTickTime
-     *  
+     *
      * @param partialTicks Partial ticks
      */
     private void renderFireInFirstPerson(float partialTicks) {
@@ -689,8 +648,8 @@ public class ItemRenderer {
             float f7 = 0.0F - f / 2.0F;
             float f8 = f7 + f;
             float f9 = -0.5F;
-            GlStateManager.translate((float)(-(i * 2 - 1)) * 0.24F, -0.3F, 0.0F);
-            GlStateManager.rotate((float)(i * 2 - 1) * 10.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.translate((float) (-(i * 2 - 1)) * 0.24F, -0.3F, 0.0F);
+            GlStateManager.rotate((float) (i * 2 - 1) * 10.0F, 0.0F, 1.0F, 0.0F);
             worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
             worldrenderer.setSprite(textureatlassprite);
             worldrenderer.pos(f5, f7, f9).tex(f2, f4).endVertex();
@@ -736,16 +695,14 @@ public class ItemRenderer {
     /**
      * Resets equippedProgress
      */
-    public void resetEquippedProgress()
-    {
+    public void resetEquippedProgress() {
         this.equippedProgress = 0.0F;
     }
 
     /**
      * Resets equippedProgress
      */
-    public void resetEquippedProgress2()
-    {
+    public void resetEquippedProgress2() {
         this.equippedProgress = 0.0F;
     }
 }

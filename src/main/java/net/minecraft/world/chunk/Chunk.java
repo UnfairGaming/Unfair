@@ -39,92 +39,79 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngineProvider {
     private static final Logger logger = LogManager.getLogger("Chunk");
-
+    private static final EnumFacing[] HORIZONTAL = EnumFacing.Plane.HORIZONTAL.facings();
+    /**
+     * A map, similar to heightMap, that tracks how far down precipitation can fall.
+     */
+    public final int[] precipitationHeightMap;
+    /**
+     * The x coordinate of the chunk.
+     */
+    public final int xPosition;
+    /**
+     * The z coordinate of the chunk.
+     */
+    public final int zPosition;
     /**
      * Used to store block IDs, block MSBs, Sky-light maps, Block-light maps, and metadata. Each entry corresponds to a
      * logical segment of 16x16x16 blocks, stacked vertically.
      */
     private final ExtendedBlockStorage[] storageArrays;
     private final Map<Integer, ExtendedBlockStorage> extendedStorageArrays = Maps.newConcurrentMap();
-
     /**
      * Contains a 16x16 mapping on the X/Z plane of the biome ID to which each colum belongs.
      */
     private final byte[] blockBiomeArray;
-
-    /**
-     * A map, similar to heightMap, that tracks how far down precipitation can fall.
-     */
-    public final int[] precipitationHeightMap;
-
     /**
      * Which columns need their skylightMaps updated.
      */
     private final boolean[] updateSkylightColumns;
-
-    /**
-     * Whether or not this Chunk is currently loaded into the World
-     */
-    private boolean isChunkLoaded;
-
     /**
      * Reference to the World object.
      */
     private final World worldObj;
     private final int[] heightMap;
-
-    /**
-     * The x coordinate of the chunk.
-     */
-    public final int xPosition;
-
-    /**
-     * The z coordinate of the chunk.
-     */
-    public final int zPosition;
-    private boolean isGapLightingUpdated;
     private final Map<BlockPos, TileEntity> chunkTileEntityMap;
     private final ClassInheritanceMultiMap<Entity>[] entityLists;
-
+    private final ConcurrentLinkedQueue<BlockPos> tileEntityPosQueue;
+    /**
+     * Whether this Chunk has any Entities and thus requires saving on every tick
+     */
+    public boolean hasEntities;
+    /**
+     * Whether or not this Chunk is currently loaded into the World
+     */
+    private boolean isChunkLoaded;
+    private boolean isGapLightingUpdated;
     /**
      * Boolean value indicating if the terrain is populated.
      */
     private boolean isTerrainPopulated;
     private boolean isLightPopulated;
     private boolean field_150815_m;
-
     /**
      * Set to true if the chunk has been modified and needs to be updated internally.
      */
     private boolean isModified;
-
-    /**
-     * Whether this Chunk has any Entities and thus requires saving on every tick
-     */
-    public boolean hasEntities;
-
     /**
      * The time according to World.worldTime when this chunk was last saved
      */
     private long lastSaveTime;
-
     /**
      * Lowest value in the heightmap.
      */
     private int heightMapMinimum;
-
     /**
      * the cumulative number of ticks players have been in this chunk
      */
     private long inhabitedTime;
-
     /**
      * Contains the current round-robin relight check index, and is implied as the relight check location as well.
      */
     private int queuedLightChecks;
-    private final ConcurrentLinkedQueue<BlockPos> tileEntityPosQueue;
-
-    private static final EnumFacing[] HORIZONTAL = EnumFacing.Plane.HORIZONTAL.facings();
+    private short[] neighborLightChecks;
+    private boolean isLightInitialized;
+    private ILightingEngine lightingEngine;
 
     public Chunk(World worldIn, int x, int z) {
         this.storageArrays = new ExtendedBlockStorage[16];
@@ -151,11 +138,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
     }
 
-    @SuppressWarnings("unchecked")
-    private static ClassInheritanceMultiMap<Entity>[] createEntityListArray() {
-        return (ClassInheritanceMultiMap<Entity>[]) new ClassInheritanceMultiMap[16];
-    }
-
     public Chunk(World worldIn, ChunkPrimer primer, int x, int z) {
         this(worldIn, x, z);
         int i = 256;
@@ -179,6 +161,11 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
                 }
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ClassInheritanceMultiMap<Entity>[] createEntityListArray() {
+        return (ClassInheritanceMultiMap<Entity>[]) new ClassInheritanceMultiMap[16];
     }
 
     /**
@@ -496,7 +483,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
         if (this.isValidY(y)) {
             final ExtendedBlockStorage storage = this.getBlockStorage(y);
-            if (storage != null) return cn.unfair.util.via.ModernBlockStateTracker.remap(pos, storage.get(pos.getX() & 15, y & 15, pos.getZ() & 15));
+            if (storage != null)
+                return cn.unfair.util.via.ModernBlockStateTracker.remap(pos, storage.get(pos.getX() & 15, y & 15, pos.getZ() & 15));
         }
 
         return Blocks.air.getDefaultState();
@@ -505,7 +493,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     public IBlockState getBlockState(int x, int y, int z) {
         if (this.isValidY(y)) {
             final ExtendedBlockStorage storage = this.getBlockStorage(y);
-            if (storage != null) return cn.unfair.util.via.ModernBlockStateTracker.remap(new BlockPos(x, y, z), storage.get(x & 15, y & 15, z & 15));
+            if (storage != null)
+                return cn.unfair.util.via.ModernBlockStateTracker.remap(new BlockPos(x, y, z), storage.get(x & 15, y & 15, z & 15));
         }
 
         return Blocks.air.getDefaultState();
@@ -1451,12 +1440,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         this.inhabitedTime = newInhabitedTime;
     }
 
-    public enum EnumCreateEntityType {
-        IMMEDIATE,
-        QUEUED,
-        CHECK
-    }
-
     private boolean recheckGapsForColumn(WorldChunkSlice slice, int x, int z) {
         int i = x + z * 16;
 
@@ -1505,6 +1488,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         }
     }
 
+    // === INTERFACE IMPL ===
+
     private void checkSkylightNeighborHeight(WorldChunkSlice slice, int x, int z, int maxValue) {
 
         Chunk chunk = slice.getChunkFromWorldCoords(x, z);
@@ -1536,14 +1521,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             this.isModified = true;
         }
     }
-
-    // === INTERFACE IMPL ===
-
-    private short[] neighborLightChecks;
-
-    private boolean isLightInitialized;
-
-    private ILightingEngine lightingEngine;
 
     @Override
     public short[] getNeighborLightChecks() {
@@ -1610,8 +1587,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         }
     }
 
-    // === END OF INTERFACE IMPL ===
-
     private ExtendedBlockStorage initSection(int y, boolean storeSkylight) {
 
         ExtendedBlockStorage storage = new ExtendedBlockStorage(y, storeSkylight);
@@ -1620,6 +1595,8 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
         return storage;
     }
+
+    // === END OF INTERFACE IMPL ===
 
     public boolean isValidY(int y) {
         return ModernWorldHeight.isValidY(y);
@@ -1684,5 +1661,11 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             this.extendedStorageArrays.put(sectionY, storage);
         }
         return storage;
+    }
+
+    public enum EnumCreateEntityType {
+        IMMEDIATE,
+        QUEUED,
+        CHECK
     }
 }

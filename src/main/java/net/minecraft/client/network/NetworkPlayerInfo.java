@@ -18,17 +18,16 @@ public class NetworkPlayerInfo {
      */
     @Getter
     public final GameProfile gameProfile;
+    public boolean playerTexturesLoaded = false;
+    public ResourceLocation locationSkin;
+    public ResourceLocation locationCape;
     @Getter
     private WorldSettings.GameType gameType;
-
     /**
      * Player response time to server in milliseconds
      */
     @Getter
     private int responseTime;
-    public boolean playerTexturesLoaded = false;
-    public ResourceLocation locationSkin;
-    public ResourceLocation locationCape;
     private String skinType;
 
     /**

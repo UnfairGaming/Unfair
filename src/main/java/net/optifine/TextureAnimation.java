@@ -15,11 +15,12 @@ import java.util.Properties;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class TextureAnimation {
     @Getter
+    ResourceLocation dstTexLoc = null;
+    byte[] srcData = null;
+    @Getter
     private String srcTex = null;
     @Getter
     private String dstTex = null;
-    @Getter
-    ResourceLocation dstTexLoc = null;
     private int dstTextId = -1;
     private int dstX = 0;
     private int dstY = 0;
@@ -30,7 +31,6 @@ public class TextureAnimation {
     private boolean interpolate = false;
     private int interpolateSkip = 0;
     private ByteBuffer interpolateData = null;
-    byte[] srcData = null;
     private ByteBuffer imageData = null;
     @Getter
     private boolean active = true;

@@ -4,28 +4,23 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import java.util.Arrays;
 
-public class BreakingFour extends BakedQuad
-{
+public class BreakingFour extends BakedQuad {
     private final TextureAtlasSprite texture;
 
-    public BreakingFour(BakedQuad quad, TextureAtlasSprite textureIn)
-    {
+    public BreakingFour(BakedQuad quad, TextureAtlasSprite textureIn) {
         super(Arrays.copyOf(quad.getVertexData(), quad.getVertexData().length), quad.tintIndex, FaceBakery.getFacingFromVertexData(quad.getVertexData()));
         this.texture = textureIn;
         this.remapQuad();
         this.fixVertexData();
     }
 
-    private void remapQuad()
-    {
-        for (int i = 0; i < 4; ++i)
-        {
+    private void remapQuad() {
+        for (int i = 0; i < 4; ++i) {
             this.remapVert(i);
         }
     }
 
-    private void remapVert(int vertex)
-    {
+    private void remapVert(int vertex) {
         int i = this.vertexData.length / 4;
         int j = i * vertex;
         float f = Float.intBitsToFloat(this.vertexData[j]);
@@ -34,8 +29,7 @@ public class BreakingFour extends BakedQuad
         float f3 = 0.0F;
         float f4 = 0.0F;
 
-        switch (this.face)
-        {
+        switch (this.face) {
             case DOWN:
                 f3 = f * 16.0F;
                 f4 = (1.0F - f2) * 16.0F;

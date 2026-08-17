@@ -10,54 +10,61 @@ import org.lwjgl.input.Mouse;
 
 public abstract class GuiSlot {
     protected final Minecraft mc;
+    /**
+     * The height of a slot.
+     */
+    protected final int slotHeight;
     protected int width;
     protected int height;
-
-    /** The top of the slot container. Affects the overlays and scrolling. */
+    /**
+     * The top of the slot container. Affects the overlays and scrolling.
+     */
     protected int top;
-
-    /** The bottom of the slot container. Affects the overlays and scrolling. */
+    /**
+     * The bottom of the slot container. Affects the overlays and scrolling.
+     */
     protected int bottom;
     protected int right;
     protected int left;
-
-    /** The height of a slot. */
-    protected final int slotHeight;
-
-    /** The buttonID of the button used to scroll up */
-    private int scrollUpButtonID;
-
-    /** The buttonID of the button used to scroll down */
-    private int scrollDownButtonID;
     protected int mouseX;
     protected int mouseY;
     protected boolean field_148163_i = true;
-
-    /** Where the mouse was in the window when you first clicked to scroll */
+    /**
+     * Where the mouse was in the window when you first clicked to scroll
+     */
     protected int initialClickY = -2;
-
     /**
      * What to multiply the amount you moved your mouse by (used for slowing down scrolling when over the items and not
      * on the scroll bar)
      */
     protected float scrollMultiplier;
-
-    /** How far down this slot has been scrolled */
+    /**
+     * How far down this slot has been scrolled
+     */
     protected float amountScrolled;
-
-    /** The element in the list that was selected */
+    /**
+     * The element in the list that was selected
+     */
     protected int selectedElement = -1;
-
-    /** The time when this button was last clicked. */
+    /**
+     * The time when this button was last clicked.
+     */
     protected long lastClicked;
     protected boolean field_178041_q = true;
-
     /**
      * Set to true if a selected element in this gui will show an outline box
      */
     protected boolean showSelectionBox = true;
     protected boolean hasListHeader;
     protected int headerPadding;
+    /**
+     * The buttonID of the button used to scroll up
+     */
+    private int scrollUpButtonID;
+    /**
+     * The buttonID of the button used to scroll down
+     */
+    private int scrollDownButtonID;
     private boolean enabled = true;
 
     public GuiSlot(Minecraft mcIn, int width, int height, int topIn, int bottomIn, int slotHeightIn) {
@@ -419,12 +426,12 @@ public abstract class GuiSlot {
         }
     }
 
-    public void setEnabled(boolean enabledIn) {
-        this.enabled = enabledIn;
-    }
-
     public boolean getEnabled() {
         return this.enabled;
+    }
+
+    public void setEnabled(boolean enabledIn) {
+        this.enabled = enabledIn;
     }
 
     /**

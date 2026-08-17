@@ -83,48 +83,42 @@ import java.util.Map.Entry;
 
 public class NetHandlerPlayClient implements INetHandlerPlayClient {
     private static final Logger logger = LogManager.getLogger();
-    private String lastChatMessage;
-    private int lastChatMessageCount;
-    private int lastChatLineId;
-    private int nextChatLineId = 1;
-
     /**
      * The NetworkManager instance used to communicate with the server (used only by handlePlayerPosLook to update
      * positioning and handleJoinGame to inform the server of the client distribution/mods)
      */
     private final NetworkManager netManager;
     private final GameProfile profile;
-
     /**
      * Seems to be either null (integrated server) or an instance of either GuiMultiplayer (when connecting to a server)
      * or GuiScreenReamlsTOS (when connecting to MCO server)
      */
     private final GuiScreen guiScreenServer;
-
-    /**
-     * Reference to the Minecraft instance, which many handler methods operate on
-     */
-    private Minecraft gameController;
-
-    /**
-     * Reference to the current ClientWorld instance, which many handler methods operate on
-     */
-    private WorldClient clientWorldController;
-
-    /**
-     * True if the client has finished downloading terrain and may spawn. Set upon receipt of S08PacketPlayerPosLook,
-     * reset upon respawning
-     */
-    public boolean doneLoadingTerrain;
     private final Map<UUID, NetworkPlayerInfo> playerInfoMap = Maps.newHashMap();
-    public int currentServerMaxPlayers = 20;
-    private boolean field_147308_k = false;
-
     /**
      * Just an ordinary random number generator, used to randomize audio pitch of item/orb pickup and randomize both
      * particlespawn offset and velocity
      */
     private final Random avRandomizer = new Random();
+    /**
+     * True if the client has finished downloading terrain and may spawn. Set upon receipt of S08PacketPlayerPosLook,
+     * reset upon respawning
+     */
+    public boolean doneLoadingTerrain;
+    public int currentServerMaxPlayers = 20;
+    private String lastChatMessage;
+    private int lastChatMessageCount;
+    private int lastChatLineId;
+    private int nextChatLineId = 1;
+    /**
+     * Reference to the Minecraft instance, which many handler methods operate on
+     */
+    private Minecraft gameController;
+    /**
+     * Reference to the current ClientWorld instance, which many handler methods operate on
+     */
+    private WorldClient clientWorldController;
+    private boolean field_147308_k = false;
 
     public NetHandlerPlayClient(Minecraft mcIn, GuiScreen p_i46300_2_, NetworkManager p_i46300_3_, GameProfile p_i46300_4_) {
         this.gameController = mcIn;
@@ -344,7 +338,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         Entity entity = this.clientWorldController.getEntityByID(packetIn.getEntityID());
 
         if (entity != null) {
-            entity.setVelocity((double)packetIn.getMotionX() / 8000.0D, (double)packetIn.getMotionY() / 8000.0D, (double)packetIn.getMotionZ() / 8000.0D);
+            entity.setVelocity((double) packetIn.getMotionX() / 8000.0D, (double) packetIn.getMotionY() / 8000.0D, (double) packetIn.getMotionZ() / 8000.0D);
         }
     }
 
@@ -761,12 +755,12 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
         if (entity != null) {
             if (packetIn.getAnimationType() == 0) {
-                EntityLivingBase entitylivingbase = (EntityLivingBase)entity;
+                EntityLivingBase entitylivingbase = (EntityLivingBase) entity;
                 entitylivingbase.swingItem();
             } else if (packetIn.getAnimationType() == 1) {
                 entity.performHurtAnimation();
             } else if (packetIn.getAnimationType() == 2) {
-                EntityPlayer entityplayer = (EntityPlayer)entity;
+                EntityPlayer entityplayer = (EntityPlayer) entity;
                 entityplayer.wakeUpPlayer(false, false, false);
             } else if (packetIn.getAnimationType() == 4) {
                 this.gameController.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.CRIT);
@@ -922,7 +916,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
                 }
             }
             if (packetIn.getOpCode() == 21) {
-                this.gameController.getSoundHandler().playSound(new GuardianSound((EntityGuardian)entity));
+                this.gameController.getSoundHandler().playSound(new GuardianSound((EntityGuardian) entity));
             } else {
                 entity.handleStatusUpdate(packetIn.getOpCode());
             }

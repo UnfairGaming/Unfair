@@ -17,21 +17,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BlockModernBell extends BlockModernShape {
-    public enum Attachment implements IStringSerializable {
-        FLOOR, CEILING, SINGLE_WALL, DOUBLE_WALL;
-        public String getName() { return name().toLowerCase(); }
-    }
-
     public static final PropertyEnum<Attachment> ATTACHMENT = PropertyEnum.create("attachment", Attachment.class);
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class,
             EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST);
-
     private static final EnumFacing[] FACINGS = {EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
 
     public BlockModernBell(int firstState, int lastState) {
         super(Material.iron, ProtocolVersion.v1_14, firstState, lastState);
         setDefaultState(blockState.getBaseState().withProperty(ATTACHMENT, Attachment.FLOOR)
                 .withProperty(FACING, EnumFacing.NORTH));
+    }
+
+    private static void add(List<AxisAlignedBB> boxes, AxisAlignedBB mask, BlockPos pos,
+                            double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        AxisAlignedBB box = new AxisAlignedBB(pos.getX() + minX / 16.0D, pos.getY() + minY / 16.0D,
+                pos.getZ() + minZ / 16.0D, pos.getX() + maxX / 16.0D, pos.getY() + maxY / 16.0D,
+                pos.getZ() + maxZ / 16.0D);
+        if (box.intersectsWith(mask)) boxes.add(box);
     }
 
     @Override
@@ -44,14 +46,6 @@ public class BlockModernBell extends BlockModernShape {
         int value = id - firstState;
         return getDefaultState().withProperty(ATTACHMENT, Attachment.values()[(value / 4) % 4])
                 .withProperty(FACING, FACINGS[value % 4]);
-    }
-
-    private static void add(List<AxisAlignedBB> boxes, AxisAlignedBB mask, BlockPos pos,
-                            double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        AxisAlignedBB box = new AxisAlignedBB(pos.getX() + minX / 16.0D, pos.getY() + minY / 16.0D,
-                pos.getZ() + minZ / 16.0D, pos.getX() + maxX / 16.0D, pos.getY() + maxY / 16.0D,
-                pos.getZ() + maxZ / 16.0D);
-        if (box.intersectsWith(mask)) boxes.add(box);
     }
 
     @Override
@@ -83,11 +77,22 @@ public class BlockModernBell extends BlockModernShape {
                 pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1), boxes, null);
         double minX = 1, minY = 1, minZ = 1, maxX = 0, maxY = 0, maxZ = 0;
         for (AxisAlignedBB box : boxes) {
-            minX = Math.min(minX, box.minX - pos.getX()); minY = Math.min(minY, box.minY - pos.getY());
-            minZ = Math.min(minZ, box.minZ - pos.getZ()); maxX = Math.max(maxX, box.maxX - pos.getX());
-            maxY = Math.max(maxY, box.maxY - pos.getY()); maxZ = Math.max(maxZ, box.maxZ - pos.getZ());
+            minX = Math.min(minX, box.minX - pos.getX());
+            minY = Math.min(minY, box.minY - pos.getY());
+            minZ = Math.min(minZ, box.minZ - pos.getZ());
+            maxX = Math.max(maxX, box.maxX - pos.getX());
+            maxY = Math.max(maxY, box.maxY - pos.getY());
+            maxZ = Math.max(maxZ, box.maxZ - pos.getZ());
         }
         return new AxisAlignedBB(pos.getX() + minX, pos.getY() + minY, pos.getZ() + minZ,
                 pos.getX() + maxX, pos.getY() + maxY, pos.getZ() + maxZ);
+    }
+
+    public enum Attachment implements IStringSerializable {
+        FLOOR, CEILING, SINGLE_WALL, DOUBLE_WALL;
+
+        public String getName() {
+            return name().toLowerCase();
+        }
     }
 }

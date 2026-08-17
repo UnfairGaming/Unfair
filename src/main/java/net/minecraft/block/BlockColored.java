@@ -13,12 +13,10 @@ import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
-public class BlockColored extends Block
-{
+public class BlockColored extends Block {
     public static final PropertyEnum<EnumDyeColor> COLOR = PropertyEnum.<EnumDyeColor>create("color", EnumDyeColor.class);
 
-    public BlockColored(Material materialIn)
-    {
+    public BlockColored(Material materialIn) {
         super(materialIn);
         this.setDefaultState(this.blockState.getBaseState().withProperty(COLOR, EnumDyeColor.WHITE));
         this.setCreativeTab(CreativeTabs.tabBlock);
@@ -28,18 +26,15 @@ public class BlockColored extends Block
      * Gets the metadata of the item this Block can drop. This method is called when the block gets destroyed. It
      * returns the metadata of the dropped item based on the old metadata of the block.
      */
-    public int damageDropped(IBlockState state)
-    {
+    public int damageDropped(IBlockState state) {
         return state.getValue(COLOR).getMetadata();
     }
 
     /**
      * returns a list of blocks with the same ID, but different meta (eg: wood returns 4 blocks)
      */
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list)
-    {
-        for (EnumDyeColor enumdyecolor : EnumDyeColor.values())
-        {
+    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
+        for (EnumDyeColor enumdyecolor : EnumDyeColor.values()) {
             list.add(new ItemStack(itemIn, 1, enumdyecolor.getMetadata()));
         }
     }
@@ -47,29 +42,25 @@ public class BlockColored extends Block
     /**
      * Get the MapColor for this Block and the given BlockState
      */
-    public MapColor getMapColor(IBlockState state)
-    {
+    public MapColor getMapColor(IBlockState state) {
         return state.getValue(COLOR).getMapColor();
     }
 
     /**
      * Convert the given metadata into a BlockState for this Block
      */
-    public IBlockState getStateFromMeta(int meta)
-    {
+    public IBlockState getStateFromMeta(int meta) {
         return this.getDefaultState().withProperty(COLOR, EnumDyeColor.byMetadata(meta));
     }
 
     /**
      * Convert the BlockState into the correct metadata value
      */
-    public int getMetaFromState(IBlockState state)
-    {
+    public int getMetaFromState(IBlockState state) {
         return state.getValue(COLOR).getMetadata();
     }
 
-    protected BlockState createBlockState()
-    {
-        return new BlockState(this, new IProperty[] {COLOR});
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{COLOR});
     }
 }

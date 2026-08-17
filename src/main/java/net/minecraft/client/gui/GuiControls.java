@@ -9,19 +9,20 @@ import java.io.IOException;
 
 public class GuiControls extends GuiScreen {
     private static final GameSettings.Options[] optionsArr = new GameSettings.Options[]{GameSettings.Options.INVERT_MOUSE, GameSettings.Options.SENSITIVITY, GameSettings.Options.TOUCHSCREEN};
-
+    /**
+     * The ID of the button that has been pressed.
+     */
+    public KeyBinding buttonId = null;
+    public long time;
+    protected String screenTitle = "Controls";
     /**
      * A reference to the screen object that created this. Used for navigating between screens.
      */
     private GuiScreen parentScreen;
-    protected String screenTitle = "Controls";
-
-    /** Reference to the GameSettings object. */
+    /**
+     * Reference to the GameSettings object.
+     */
     private GameSettings options;
-
-    /** The ID of the button that has been pressed. */
-    public KeyBinding buttonId = null;
-    public long time;
     private GuiKeyBindingList keyBindingList;
     private GuiButton buttonReset;
 

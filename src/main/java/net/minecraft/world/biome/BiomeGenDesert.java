@@ -7,10 +7,8 @@ import net.minecraft.world.gen.feature.WorldGenDesertWells;
 
 import java.util.Random;
 
-public class BiomeGenDesert extends BiomeGenBase
-{
-    public BiomeGenDesert(int id)
-    {
+public class BiomeGenDesert extends BiomeGenBase {
+    public BiomeGenDesert(int id) {
         super(id);
         this.spawnableCreatureList.clear();
         this.topBlock = Blocks.sand.getDefaultState();
@@ -22,12 +20,10 @@ public class BiomeGenDesert extends BiomeGenBase
         this.spawnableCreatureList.clear();
     }
 
-    public void decorate(World worldIn, Random rand, BlockPos pos)
-    {
+    public void decorate(World worldIn, Random rand, BlockPos pos) {
         super.decorate(worldIn, rand, pos);
 
-        if (rand.nextInt(1000) == 0)
-        {
+        if (rand.nextInt(1000) == 0) {
             int i = rand.nextInt(16) + 8;
             int j = rand.nextInt(16) + 8;
             BlockPos blockpos = worldIn.getHeight(pos.add(i, 0, j)).up();

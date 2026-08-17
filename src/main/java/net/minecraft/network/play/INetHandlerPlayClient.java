@@ -3,8 +3,7 @@ package net.minecraft.network.play;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.play.server.*;
 
-public interface INetHandlerPlayClient extends INetHandler
-{
+public interface INetHandlerPlayClient extends INetHandler {
     /**
      * Spawns an instance of the objecttype indicated by the packet and sets its position and momentum
      */

@@ -7,17 +7,14 @@ import net.minecraft.potion.PotionEffect;
 
 import java.io.IOException;
 
-public class S1EPacketRemoveEntityEffect implements Packet<INetHandlerPlayClient>
-{
+public class S1EPacketRemoveEntityEffect implements Packet<INetHandlerPlayClient> {
     private int entityId;
     private int effectId;
 
-    public S1EPacketRemoveEntityEffect()
-    {
+    public S1EPacketRemoveEntityEffect() {
     }
 
-    public S1EPacketRemoveEntityEffect(int entityIdIn, PotionEffect effect)
-    {
+    public S1EPacketRemoveEntityEffect(int entityIdIn, PotionEffect effect) {
         this.entityId = entityIdIn;
         this.effectId = effect.getPotionID();
     }
@@ -25,8 +22,7 @@ public class S1EPacketRemoveEntityEffect implements Packet<INetHandlerPlayClient
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.entityId = buf.readVarIntFromBuffer();
         this.effectId = buf.readUnsignedByte();
     }
@@ -34,8 +30,7 @@ public class S1EPacketRemoveEntityEffect implements Packet<INetHandlerPlayClient
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeVarIntToBuffer(this.entityId);
         buf.writeByte(this.effectId);
     }
@@ -43,18 +38,15 @@ public class S1EPacketRemoveEntityEffect implements Packet<INetHandlerPlayClient
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerPlayClient handler)
-    {
+    public void processPacket(INetHandlerPlayClient handler) {
         handler.handleRemoveEntityEffect(this);
     }
 
-    public int getEntityId()
-    {
+    public int getEntityId() {
         return this.entityId;
     }
 
-    public int getEffectId()
-    {
+    public int getEffectId() {
         return this.effectId;
     }
 }

@@ -8,17 +8,10 @@ import net.minecraft.entity.passive.*;
 
 import java.util.HashMap;
 
-public class EntitySpawnPlacementRegistry
-{
+public class EntitySpawnPlacementRegistry {
     private static final HashMap<Class, EntityLiving.SpawnPlacementType> ENTITY_PLACEMENTS = Maps.<Class, EntityLiving.SpawnPlacementType>newHashMap();
 
-    public static EntityLiving.SpawnPlacementType getPlacementForEntity(Class entityClass)
-    {
-        return ENTITY_PLACEMENTS.get(entityClass);
-    }
-
-    static
-    {
+    static {
         ENTITY_PLACEMENTS.put(EntityBat.class, EntityLiving.SpawnPlacementType.ON_GROUND);
         ENTITY_PLACEMENTS.put(EntityChicken.class, EntityLiving.SpawnPlacementType.ON_GROUND);
         ENTITY_PLACEMENTS.put(EntityCow.class, EntityLiving.SpawnPlacementType.ON_GROUND);
@@ -51,5 +44,9 @@ public class EntitySpawnPlacementRegistry
         ENTITY_PLACEMENTS.put(EntitySpider.class, EntityLiving.SpawnPlacementType.ON_GROUND);
         ENTITY_PLACEMENTS.put(EntityWitch.class, EntityLiving.SpawnPlacementType.ON_GROUND);
         ENTITY_PLACEMENTS.put(EntityZombie.class, EntityLiving.SpawnPlacementType.ON_GROUND);
+    }
+
+    public static EntityLiving.SpawnPlacementType getPlacementForEntity(Class entityClass) {
+        return ENTITY_PLACEMENTS.get(entityClass);
     }
 }

@@ -7,16 +7,14 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumSkyBlock;
 
 public class EntityLighter {
+    static final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
     private static final double MIN_BOX_SIZE = 0.001D;
-
     private static final double MAX_LIGHT_VAL = 15.0;
     private static final double MAX_LIGHTMAP_COORD = 240.0D;
 
     public static double lerp(double delta, double start, double end) {
         return start + delta * (end - start);
     }
-
-    static final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
     public static int getBlendedLight(Entity entity, float tickDelta) {
         boolean calcBlockLight = !entity.isBurning();

@@ -35,16 +35,6 @@ public class SVertexBuilder {
         wrr.sVertexBuilder = new SVertexBuilder();
     }
 
-    public void pushEntity(long data) {
-        ++this.entityDataIndex;
-        this.entityData[this.entityDataIndex] = data;
-    }
-
-    public void popEntity() {
-        this.entityData[this.entityDataIndex] = 0L;
-        --this.entityDataIndex;
-    }
-
     public static void pushEntity(IBlockState blockState, BlockPos blockPos, IBlockAccess blockAccess, WorldRenderer wrr) {
         Block block = blockState.getBlock();
         int i;
@@ -158,6 +148,55 @@ public class SVertexBuilder {
         }
     }
 
+    public static void calcNormalChunkLayer(WorldRenderer wrr) {
+        if (wrr.getVertexFormat().hasNormal() && wrr.drawMode == 7 && wrr.vertexCount % 4 == 0) {
+            SVertexBuilder svertexbuilder = wrr.sVertexBuilder;
+            endSetVertexFormat(wrr);
+            int i = wrr.vertexCount * svertexbuilder.vertexSize;
+
+            for (int j = 0; j < i; j += svertexbuilder.vertexSize * 4) {
+                svertexbuilder.calcNormal(wrr, j);
+            }
+        }
+    }
+
+    public static void drawArrays(int drawMode, int first, int count, WorldRenderer wrr) {
+        if (count != 0) {
+            VertexFormat vertexformat = wrr.getVertexFormat();
+            int i = vertexformat.getSize();
+
+            if (i == 56) {
+                ByteBuffer bytebuffer = wrr.getByteBuffer();
+                bytebuffer.position(32);
+                GL20.glVertexAttribPointer(Shaders.midTexCoordAttrib, 2, GL11.GL_FLOAT, false, i, bytebuffer);
+                bytebuffer.position(40);
+                GL20.glVertexAttribPointer(Shaders.tangentAttrib, 4, GL11.GL_SHORT, false, i, bytebuffer);
+                bytebuffer.position(48);
+                GL20.glVertexAttribPointer(Shaders.entityAttrib, 3, GL11.GL_SHORT, false, i, bytebuffer);
+                bytebuffer.position(0);
+                GL20.glEnableVertexAttribArray(Shaders.midTexCoordAttrib);
+                GL20.glEnableVertexAttribArray(Shaders.tangentAttrib);
+                GL20.glEnableVertexAttribArray(Shaders.entityAttrib);
+                GlStateManager.glDrawArrays(drawMode, first, count);
+                GL20.glDisableVertexAttribArray(Shaders.midTexCoordAttrib);
+                GL20.glDisableVertexAttribArray(Shaders.tangentAttrib);
+                GL20.glDisableVertexAttribArray(Shaders.entityAttrib);
+            } else {
+                GlStateManager.glDrawArrays(drawMode, first, count);
+            }
+        }
+    }
+
+    public void pushEntity(long data) {
+        ++this.entityDataIndex;
+        this.entityData[this.entityDataIndex] = data;
+    }
+
+    public void popEntity() {
+        this.entityData[this.entityDataIndex] = 0L;
+        --this.entityDataIndex;
+    }
+
     public void calcNormal(WorldRenderer wrr, int baseIndex) {
         FloatBuffer floatbuffer = wrr.rawFloatBuffer;
         IntBuffer intbuffer = wrr.rawIntBuffer;
@@ -258,44 +297,5 @@ public class SVertexBuilder {
         floatbuffer.put(baseIndex + 2 * this.vertexSize + 8 + 1, f48);
         floatbuffer.put(baseIndex + 3 * this.vertexSize + 8, f47);
         floatbuffer.put(baseIndex + 3 * this.vertexSize + 8 + 1, f48);
-    }
-
-    public static void calcNormalChunkLayer(WorldRenderer wrr) {
-        if (wrr.getVertexFormat().hasNormal() && wrr.drawMode == 7 && wrr.vertexCount % 4 == 0) {
-            SVertexBuilder svertexbuilder = wrr.sVertexBuilder;
-            endSetVertexFormat(wrr);
-            int i = wrr.vertexCount * svertexbuilder.vertexSize;
-
-            for (int j = 0; j < i; j += svertexbuilder.vertexSize * 4) {
-                svertexbuilder.calcNormal(wrr, j);
-            }
-        }
-    }
-
-    public static void drawArrays(int drawMode, int first, int count, WorldRenderer wrr) {
-        if (count != 0) {
-            VertexFormat vertexformat = wrr.getVertexFormat();
-            int i = vertexformat.getSize();
-
-            if (i == 56) {
-                ByteBuffer bytebuffer = wrr.getByteBuffer();
-                bytebuffer.position(32);
-                GL20.glVertexAttribPointer(Shaders.midTexCoordAttrib, 2, GL11.GL_FLOAT, false, i, bytebuffer);
-                bytebuffer.position(40);
-                GL20.glVertexAttribPointer(Shaders.tangentAttrib, 4, GL11.GL_SHORT, false, i, bytebuffer);
-                bytebuffer.position(48);
-                GL20.glVertexAttribPointer(Shaders.entityAttrib, 3, GL11.GL_SHORT, false, i, bytebuffer);
-                bytebuffer.position(0);
-                GL20.glEnableVertexAttribArray(Shaders.midTexCoordAttrib);
-                GL20.glEnableVertexAttribArray(Shaders.tangentAttrib);
-                GL20.glEnableVertexAttribArray(Shaders.entityAttrib);
-                GlStateManager.glDrawArrays(drawMode, first, count);
-                GL20.glDisableVertexAttribArray(Shaders.midTexCoordAttrib);
-                GL20.glDisableVertexAttribArray(Shaders.tangentAttrib);
-                GL20.glDisableVertexAttribArray(Shaders.entityAttrib);
-            } else {
-                GlStateManager.glDrawArrays(drawMode, first, count);
-            }
-        }
     }
 }

@@ -46,28 +46,33 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Set<String> PROTOCOLS = Sets.newHashSet("http", "https");
     private static final Splitter NEWLINE_SPLITTER = Splitter.on('\n');
-
-    /** Reference to the Minecraft object. */
+    /**
+     * The width of the screen object.
+     */
+    public int width;
+    /**
+     * The height of the screen object.
+     */
+    public int height;
+    public boolean allowUserInput;
+    /**
+     * Reference to the Minecraft object.
+     */
     protected Minecraft mc;
-
     /**
      * Holds a instance of RenderItem, used to draw the achievement icons on screen (is based on ItemStack)
      */
     protected RenderItem itemRender;
-
-    /** The width of the screen object. */
-    public int width;
-
-    /** The height of the screen object. */
-    public int height;
     protected List<GuiButton> buttonList = Lists.newArrayList();
     protected List<GuiLabel> labelList = Lists.newArrayList();
-    public boolean allowUserInput;
-
-    /** The FontRenderer used by GuiScreen */
+    /**
+     * The FontRenderer used by GuiScreen
+     */
     protected FontRenderer fontRendererObj;
 
-    /** The button that was just pressed. */
+    /**
+     * The button that was just pressed.
+     */
     private GuiButton selectedButton;
     private int eventButton;
     private long lastMouseEvent;
@@ -78,39 +83,8 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
     private int touchValue;
     private URI clickedLinkURI;
 
-    public void onDrag(int mouseX, int mouseY) {
-    }
-
     public GuiScreen() {
 
-    }
-
-    /**
-     * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
-     */
-
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        for (GuiButton guiButton : this.buttonList) {
-            guiButton.drawButton(this.mc, mouseX, mouseY);
-        }
-
-        for (GuiLabel guiLabel : this.labelList) {
-            guiLabel.drawLabel(this.mc, mouseX, mouseY);
-        }
-    }
-
-    /**
-     * Fired when a key is typed (except F11 which toggles full screen). This is the equivalent of
-     * KeyListener.keyTyped(KeyEvent e). Args : character (character on the key), keyCode (lwjgl Keyboard key code)
-     */
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (keyCode == 1) {
-            this.mc.displayGuiScreen(null);
-
-            if (this.mc.currentScreen == null) {
-                this.mc.setIngameFocus();
-            }
-        }
     }
 
     /**
@@ -138,6 +112,74 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
                 StringSelection stringselection = new StringSelection(copyText);
                 Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringselection, null);
             } catch (Exception var2) {
+            }
+        }
+    }
+
+    /**
+     * Returns true if either windows ctrl key is down or if either mac meta key is down
+     */
+    public static boolean isCtrlKeyDown() {
+        return Minecraft.isRunningOnMac ? Keyboard.isKeyDown(219) || Keyboard.isKeyDown(220) : Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
+    }
+
+    /**
+     * Returns true if either shift key is down
+     */
+    public static boolean isShiftKeyDown() {
+        return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
+    }
+
+    /**
+     * Returns true if either alt key is down
+     */
+    public static boolean isAltKeyDown() {
+        return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
+    }
+
+    public static boolean isKeyComboCtrlX(int keyID) {
+        return keyID == 45 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
+    }
+
+    public static boolean isKeyComboCtrlV(int keyID) {
+        return keyID == 47 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
+    }
+
+    public static boolean isKeyComboCtrlC(int keyID) {
+        return keyID == 46 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
+    }
+
+    public static boolean isKeyComboCtrlA(int keyID) {
+        return keyID == 30 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
+    }
+
+    public void onDrag(int mouseX, int mouseY) {
+    }
+
+    /**
+     * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
+     */
+
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        for (GuiButton guiButton : this.buttonList) {
+            guiButton.drawButton(this.mc, mouseX, mouseY);
+        }
+
+        for (GuiLabel guiLabel : this.labelList) {
+            guiLabel.drawLabel(this.mc, mouseX, mouseY);
+        }
+    }
+
+    /**
+     * Fired when a key is typed (except F11 which toggles full screen). This is the equivalent of
+     * KeyListener.keyTyped(KeyEvent e). Args : character (character on the key), keyCode (lwjgl Keyboard key code)
+     */
+    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        if (keyCode == 1) {
+            this.mc.displayGuiScreen(null);
+
+            if (this.mc.currentScreen == null) {
+                this.mc.setIngameFocus();
             }
         }
     }
@@ -238,8 +280,8 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
      * Draws the hover event specified by the given chat component
      *
      * @param component The IChatComponent to render
-     * @param x The x position where to render
-     * @param y The y position where to render
+     * @param x         The x position where to render
+     * @param y         The y position where to render
      */
     protected void handleComponentHover(IChatComponent component, int x, int y) {
         if (component != null && component.getChatStyle().getChatHoverEvent() != null) {
@@ -376,7 +418,6 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
         }
         return false;
     }
-
 
     /**
      * Used to add chat messages to the client's GuiChat.
@@ -606,43 +647,6 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback {
         } catch (Throwable throwable) {
             LOGGER.error("Couldn't open link", throwable);
         }
-    }
-
-    /**
-     * Returns true if either windows ctrl key is down or if either mac meta key is down
-     */
-    public static boolean isCtrlKeyDown() {
-        return Minecraft.isRunningOnMac ? Keyboard.isKeyDown(219) || Keyboard.isKeyDown(220) : Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
-    }
-
-    /**
-     * Returns true if either shift key is down
-     */
-    public static boolean isShiftKeyDown() {
-        return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
-    }
-
-    /**
-     * Returns true if either alt key is down
-     */
-    public static boolean isAltKeyDown() {
-        return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
-    }
-
-    public static boolean isKeyComboCtrlX(int keyID) {
-        return keyID == 45 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
-    }
-
-    public static boolean isKeyComboCtrlV(int keyID) {
-        return keyID == 47 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
-    }
-
-    public static boolean isKeyComboCtrlC(int keyID) {
-        return keyID == 46 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
-    }
-
-    public static boolean isKeyComboCtrlA(int keyID) {
-        return keyID == 30 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
     }
 
     /**

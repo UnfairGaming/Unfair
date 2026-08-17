@@ -5,40 +5,30 @@ import org.apache.logging.log4j.Logger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-public class Util
-{
-    public static Util.EnumOS getOSType()
-    {
+public class Util {
+    public static Util.EnumOS getOSType() {
         String s = System.getProperty("os.name").toLowerCase();
         return s.contains("win") ? Util.EnumOS.WINDOWS : (s.contains("mac") ? Util.EnumOS.OSX : (s.contains("solaris") ? Util.EnumOS.SOLARIS : (s.contains("sunos") ? Util.EnumOS.SOLARIS : (s.contains("linux") ? Util.EnumOS.LINUX : (s.contains("unix") ? Util.EnumOS.LINUX : Util.EnumOS.UNKNOWN)))));
     }
 
-    public static void runTask(FutureTask<?> task, Logger logger)
-    {
-        try
-        {
+    public static void runTask(FutureTask<?> task, Logger logger) {
+        try {
             task.run();
             task.get();
-        }
-        catch (ExecutionException executionexception)
-        {
+        } catch (ExecutionException executionexception) {
             logger.fatal("Error executing task", executionexception);
 
-            if (executionexception.getCause() instanceof OutOfMemoryError)
-            {
-                OutOfMemoryError outofmemoryerror = (OutOfMemoryError)executionexception.getCause();
+            if (executionexception.getCause() instanceof OutOfMemoryError) {
+                OutOfMemoryError outofmemoryerror = (OutOfMemoryError) executionexception.getCause();
                 throw outofmemoryerror;
             }
-        }
-        catch (InterruptedException interruptedexception)
-        {
+        } catch (InterruptedException interruptedexception) {
             logger.fatal("Error executing task", interruptedexception);
         }
 
     }
 
-    public static enum EnumOS
-    {
+    public static enum EnumOS {
         LINUX,
         SOLARIS,
         WINDOWS,

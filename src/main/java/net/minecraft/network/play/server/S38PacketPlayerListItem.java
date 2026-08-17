@@ -16,9 +16,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class S38PacketPlayerListItem implements Packet<INetHandlerPlayClient> {
+    private final List<S38PacketPlayerListItem.AddPlayerData> players = Lists.newArrayList();
     @Getter
     private S38PacketPlayerListItem.Action action;
-    private final List<S38PacketPlayerListItem.AddPlayerData> players = Lists.newArrayList();
 
     public S38PacketPlayerListItem() {
     }

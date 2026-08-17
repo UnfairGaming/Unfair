@@ -10,30 +10,24 @@ import net.minecraft.world.World;
 
 import java.util.Random;
 
-public class WorldGenTallGrass extends WorldGenerator
-{
+public class WorldGenTallGrass extends WorldGenerator {
     private final IBlockState tallGrassState;
 
-    public WorldGenTallGrass(BlockTallGrass.EnumType p_i45629_1_)
-    {
+    public WorldGenTallGrass(BlockTallGrass.EnumType p_i45629_1_) {
         this.tallGrassState = Blocks.tallgrass.getDefaultState().withProperty(BlockTallGrass.TYPE, p_i45629_1_);
     }
 
-    public boolean generate(World worldIn, Random rand, BlockPos position)
-    {
+    public boolean generate(World worldIn, Random rand, BlockPos position) {
         Block block;
 
-        while (((block = worldIn.getBlockState(position).getBlock()).getMaterial() == Material.air || block.getMaterial() == Material.leaves) && position.getY() > 0)
-        {
+        while (((block = worldIn.getBlockState(position).getBlock()).getMaterial() == Material.air || block.getMaterial() == Material.leaves) && position.getY() > 0) {
             position = position.down();
         }
 
-        for (int i = 0; i < 128; ++i)
-        {
+        for (int i = 0; i < 128; ++i) {
             BlockPos blockpos = position.add(rand.nextInt(8) - rand.nextInt(8), rand.nextInt(4) - rand.nextInt(4), rand.nextInt(8) - rand.nextInt(8));
 
-            if (worldIn.isAirBlock(blockpos) && Blocks.tallgrass.canBlockStay(worldIn, blockpos, this.tallGrassState))
-            {
+            if (worldIn.isAirBlock(blockpos) && Blocks.tallgrass.canBlockStay(worldIn, blockpos, this.tallGrassState)) {
                 worldIn.setBlockState(blockpos, this.tallGrassState, 2);
             }
         }

@@ -22,17 +22,18 @@ import java.util.Date;
 public class GuiSelectWorld extends GuiScreen implements GuiYesNoCallback {
     private static final Logger logger = LogManager.getLogger();
     private final DateFormat field_146633_h = new SimpleDateFormat();
+    private final String[] field_146635_w = new String[4];
     protected GuiScreen parentScreen;
     protected String screenTitle = "Select world";
     private boolean field_146634_i;
-
-    /** The list index of the currently-selected world */
+    /**
+     * The list index of the currently-selected world
+     */
     private int selectedIndex;
     private java.util.List<SaveFormatComparator> field_146639_s;
     private GuiSelectWorld.List availableWorlds;
     private String field_146637_u;
     private String field_146636_v;
-    private final String[] field_146635_w = new String[4];
     private boolean confirmingDelete;
     private GuiButton deleteButton;
     private GuiButton selectButton;
@@ -41,6 +42,24 @@ public class GuiSelectWorld extends GuiScreen implements GuiYesNoCallback {
 
     public GuiSelectWorld(GuiScreen parentScreenIn) {
         this.parentScreen = parentScreenIn;
+    }
+
+    /**
+     * Generate a GuiYesNo asking for confirmation to delete a world
+     * <p>
+     * Called when user selects the "Delete" button.
+     *
+     * @param selectWorld A reference back to the GuiSelectWorld spawning the GuiYesNo
+     * @param name        The name of the world selected for deletion
+     * @param id          An arbitrary integer passed back to selectWorld's confirmClicked method
+     */
+    public static GuiYesNo makeDeleteWorldYesNo(GuiYesNoCallback selectWorld, String name, int id) {
+        String s = I18n.format("selectWorld.deleteQuestion");
+        String s1 = "'" + name + "' " + I18n.format("selectWorld.deleteWarning");
+        String s2 = I18n.format("selectWorld.deleteButton");
+        String s3 = I18n.format("gui.cancel");
+        GuiYesNo guiyesno = new GuiYesNo(selectWorld, s, s1, s2, s3, id);
+        return guiyesno;
     }
 
     /**
@@ -203,24 +222,6 @@ public class GuiSelectWorld extends GuiScreen implements GuiYesNoCallback {
         this.availableWorlds.drawScreen(mouseX, mouseY, partialTicks);
         this.drawCenteredString(this.fontRendererObj, this.screenTitle, this.width / 2, 20, 16777215);
         super.drawScreen(mouseX, mouseY, partialTicks);
-    }
-
-    /**
-     * Generate a GuiYesNo asking for confirmation to delete a world
-     *
-     * Called when user selects the "Delete" button.
-     *
-     * @param selectWorld A reference back to the GuiSelectWorld spawning the GuiYesNo
-     * @param name The name of the world selected for deletion
-     * @param id An arbitrary integer passed back to selectWorld's confirmClicked method
-     */
-    public static GuiYesNo makeDeleteWorldYesNo(GuiYesNoCallback selectWorld, String name, int id) {
-        String s = I18n.format("selectWorld.deleteQuestion");
-        String s1 = "'" + name + "' " + I18n.format("selectWorld.deleteWarning");
-        String s2 = I18n.format("selectWorld.deleteButton");
-        String s3 = I18n.format("gui.cancel");
-        GuiYesNo guiyesno = new GuiYesNo(selectWorld, s, s1, s2, s3, id);
-        return guiyesno;
     }
 
     class List extends GuiSlot {

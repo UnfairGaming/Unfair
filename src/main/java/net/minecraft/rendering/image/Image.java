@@ -11,10 +11,6 @@ import net.optifine.util.TextureUtils;
 import org.lwjgl.opengl.GL11;
 
 public class Image {
-    public enum Type {
-        NoColor, Normal
-    }
-
     public static void drawNearest(ResourceLocation img, double x, double y, double width, double height, Type type) {
         if (type == Type.Normal) {
             GlStateManager.color(1, 1, 1, 1);
@@ -36,5 +32,9 @@ public class Image {
         }
 
         GlStateManager.enableAlpha();
+    }
+
+    public enum Type {
+        NoColor, Normal
     }
 }

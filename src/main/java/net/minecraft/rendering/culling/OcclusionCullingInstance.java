@@ -16,33 +16,33 @@ public class OcclusionCullingInstance {
     private static final int ON_MAX_Y = 0x08;
     private static final int ON_MIN_Z = 0x10;
     private static final int ON_MAX_Z = 0x20;
-    
+
     private final int reach;
     private final double aabbExpansion;
     private final DataProvider provider;
     private final OcclusionCache cache;
-    
+
     // Reused allocated data structures
     private final BitSet skipList = new BitSet(); // Grows bigger in case some mod introduces giant hitboxes
     private final Vec3d[] targetPoints = new Vec3d[15];
     private final Vec3d targetPos = new Vec3d(0, 0, 0);
     private final int[] cameraPos = new int[3];
     private final boolean[] dotselectors = new boolean[14];
-    private boolean allowRayChecks = false;
     private final int[] lastHitBlock = new int[3];
+    private boolean allowRayChecks = false;
     private boolean allowWallClipping = false;
 
 
     public OcclusionCullingInstance(int maxDistance, DataProvider provider) {
         this(maxDistance, provider, new ArrayOcclusionCache(maxDistance), 0.5);
     }
-    
+
     public OcclusionCullingInstance(int maxDistance, DataProvider provider, OcclusionCache cache, double aabbExpansion) {
         this.reach = maxDistance;
         this.provider = provider;
         this.cache = cache;
         this.aabbExpansion = aabbExpansion;
-        for(int i = 0; i < targetPoints.length; i++) {
+        for (int i = 0; i < targetPoints.length; i++) {
             targetPoints[i] = new Vec3d(0, 0, 0);
         }
     }
@@ -50,30 +50,30 @@ public class OcclusionCullingInstance {
     public boolean isAABBVisible(Vec3d aabbMin, Vec3d aabbMax, Vec3d viewerPosition) {
         try {
             int maxX = MathUtil.floor(aabbMax.x
-                 + aabbExpansion);
+                    + aabbExpansion);
             int maxY = MathUtil.floor(aabbMax.y
-                 + aabbExpansion);
+                    + aabbExpansion);
             int maxZ = MathUtil.floor(aabbMax.z
-                 + aabbExpansion);
+                    + aabbExpansion);
             int minX = MathUtil.floor(aabbMin.x
-                 - aabbExpansion);
+                    - aabbExpansion);
             int minY = MathUtil.floor(aabbMin.y
-                - aabbExpansion);
+                    - aabbExpansion);
             int minZ = MathUtil.floor(aabbMin.z
-                 - aabbExpansion);
+                    - aabbExpansion);
 
             cameraPos[0] = MathUtil.floor(viewerPosition.x);
             cameraPos[1] = MathUtil.floor(viewerPosition.y);
             cameraPos[2] = MathUtil.floor(viewerPosition.z);
-            
+
             Relative relX = Relative.from(minX, maxX, cameraPos[0]);
             Relative relY = Relative.from(minY, maxY, cameraPos[1]);
             Relative relZ = Relative.from(minZ, maxZ, cameraPos[2]);
-            
-            if(relX == Relative.INSIDE && relY == Relative.INSIDE && relZ == Relative.INSIDE) {
+
+            if (relX == Relative.INSIDE && relY == Relative.INSIDE && relZ == Relative.INSIDE) {
                 return true; // We are inside of the AABB, don't cull
             }
-            
+
             skipList.clear();
 
             // Just check the cache first
@@ -96,10 +96,10 @@ public class OcclusionCullingInstance {
                     }
                 }
             }
-            
+
             // only after the first hit wall the cache becomes valid.
             allowRayChecks = false;
-            
+
             // since the cache wasn't helpful
             id = 0;
             for (int x = minX; x <= maxX; x++) {
@@ -123,11 +123,11 @@ public class OcclusionCullingInstance {
                         faceEdgeData |= (byte) ((z == maxZ) ? ON_MAX_Z : 0);
                         visibleOnFace |= (byte) ((z == minZ && relZ == Relative.POSITIVE) ? ON_MIN_Z : 0);
                         visibleOnFace |= (byte) ((z == maxZ && relZ == Relative.NEGATIVE) ? ON_MAX_Z : 0);
-                        if(skipList.get(id)) { // was checked and it wasn't visible
+                        if (skipList.get(id)) { // was checked and it wasn't visible
                             id++;
                             continue;
                         }
-                        
+
                         if (visibleOnFace != 0) {
                             targetPos.set(x, y, z);
                             if (isVoxelVisible(viewerPosition, targetPos, faceEdgeData, visibleOnFace)) {
@@ -148,61 +148,61 @@ public class OcclusionCullingInstance {
     /**
      * @param viewerPosition
      * @param position
-     * @param faceData contains rather this Block is on the outside for a given face
-     * @param visibleOnFace contains rather a face should be concidered
+     * @param faceData       contains rather this Block is on the outside for a given face
+     * @param visibleOnFace  contains rather a face should be concidered
      * @return
      */
     private boolean isVoxelVisible(Vec3d viewerPosition, Vec3d position, byte faceData, byte visibleOnFace) {
         int targetSize = 0;
         Arrays.fill(dotselectors, false);
-        if((visibleOnFace & ON_MIN_X) == ON_MIN_X){
+        if ((visibleOnFace & ON_MIN_X) == ON_MIN_X) {
             dotselectors[0] = true;
-            if((faceData & ~ON_MIN_X) != 0) {
+            if ((faceData & ~ON_MIN_X) != 0) {
                 dotselectors[1] = true;
                 dotselectors[4] = true;
                 dotselectors[5] = true;
             }
             dotselectors[8] = true;
         }
-        if((visibleOnFace & ON_MIN_Y) == ON_MIN_Y){
+        if ((visibleOnFace & ON_MIN_Y) == ON_MIN_Y) {
             dotselectors[0] = true;
-            if((faceData & ~ON_MIN_Y) != 0) {
+            if ((faceData & ~ON_MIN_Y) != 0) {
                 dotselectors[3] = true;
                 dotselectors[4] = true;
                 dotselectors[7] = true;
             }
             dotselectors[9] = true;
         }
-        if((visibleOnFace & ON_MIN_Z) == ON_MIN_Z){
+        if ((visibleOnFace & ON_MIN_Z) == ON_MIN_Z) {
             dotselectors[0] = true;
-            if((faceData & ~ON_MIN_Z) != 0) {
+            if ((faceData & ~ON_MIN_Z) != 0) {
                 dotselectors[1] = true;
                 dotselectors[4] = true;
                 dotselectors[5] = true;
             }
             dotselectors[10] = true;
         }
-        if((visibleOnFace & ON_MAX_X) == ON_MAX_X){
+        if ((visibleOnFace & ON_MAX_X) == ON_MAX_X) {
             dotselectors[4] = true;
-            if((faceData & ~ON_MAX_X) != 0) {
+            if ((faceData & ~ON_MAX_X) != 0) {
                 dotselectors[5] = true;
                 dotselectors[6] = true;
                 dotselectors[7] = true;
             }
             dotselectors[11] = true;
         }
-        if((visibleOnFace & ON_MAX_Y) == ON_MAX_Y){
+        if ((visibleOnFace & ON_MAX_Y) == ON_MAX_Y) {
             dotselectors[1] = true;
-            if((faceData & ~ON_MAX_Y) != 0) {
+            if ((faceData & ~ON_MAX_Y) != 0) {
                 dotselectors[2] = true;
                 dotselectors[5] = true;
                 dotselectors[6] = true;
             }
             dotselectors[12] = true;
         }
-        if((visibleOnFace & ON_MAX_Z) == ON_MAX_Z){
+        if ((visibleOnFace & ON_MAX_Z) == ON_MAX_Z) {
             dotselectors[2] = true;
-            if((faceData & ~ON_MAX_Z) != 0) {
+            if ((faceData & ~ON_MAX_Z) != 0) {
                 dotselectors[3] = true;
                 dotselectors[6] = true;
                 dotselectors[7] = true;
@@ -210,21 +210,21 @@ public class OcclusionCullingInstance {
             dotselectors[13] = true;
         }
 
-        if (dotselectors[0])targetPoints[targetSize++].setAdd(position, 0.05, 0.05, 0.05);
-        if (dotselectors[1])targetPoints[targetSize++].setAdd(position, 0.05, 0.95, 0.05);
-        if (dotselectors[2])targetPoints[targetSize++].setAdd(position, 0.05, 0.95, 0.95);
-        if (dotselectors[3])targetPoints[targetSize++].setAdd(position, 0.05, 0.05, 0.95);
-        if (dotselectors[4])targetPoints[targetSize++].setAdd(position, 0.95, 0.05, 0.05);
-        if (dotselectors[5])targetPoints[targetSize++].setAdd(position, 0.95, 0.95, 0.05);
-        if (dotselectors[6])targetPoints[targetSize++].setAdd(position, 0.95, 0.95, 0.95);
-        if (dotselectors[7])targetPoints[targetSize++].setAdd(position, 0.95, 0.05, 0.95);
+        if (dotselectors[0]) targetPoints[targetSize++].setAdd(position, 0.05, 0.05, 0.05);
+        if (dotselectors[1]) targetPoints[targetSize++].setAdd(position, 0.05, 0.95, 0.05);
+        if (dotselectors[2]) targetPoints[targetSize++].setAdd(position, 0.05, 0.95, 0.95);
+        if (dotselectors[3]) targetPoints[targetSize++].setAdd(position, 0.05, 0.05, 0.95);
+        if (dotselectors[4]) targetPoints[targetSize++].setAdd(position, 0.95, 0.05, 0.05);
+        if (dotselectors[5]) targetPoints[targetSize++].setAdd(position, 0.95, 0.95, 0.05);
+        if (dotselectors[6]) targetPoints[targetSize++].setAdd(position, 0.95, 0.95, 0.95);
+        if (dotselectors[7]) targetPoints[targetSize++].setAdd(position, 0.95, 0.05, 0.95);
         // middle points
-        if (dotselectors[8])targetPoints[targetSize++].setAdd(position, 0.05, 0.5, 0.5);
-        if (dotselectors[9])targetPoints[targetSize++].setAdd(position, 0.5, 0.05, 0.5);
-        if (dotselectors[10])targetPoints[targetSize++].setAdd(position, 0.5, 0.5, 0.05);
-        if (dotselectors[11])targetPoints[targetSize++].setAdd(position, 0.95, 0.5, 0.5);
-        if (dotselectors[12])targetPoints[targetSize++].setAdd(position, 0.5, 0.95, 0.5);
-        if (dotselectors[13])targetPoints[targetSize++].setAdd(position, 0.5, 0.5, 0.95);
+        if (dotselectors[8]) targetPoints[targetSize++].setAdd(position, 0.05, 0.5, 0.5);
+        if (dotselectors[9]) targetPoints[targetSize++].setAdd(position, 0.5, 0.05, 0.5);
+        if (dotselectors[10]) targetPoints[targetSize++].setAdd(position, 0.5, 0.5, 0.05);
+        if (dotselectors[11]) targetPoints[targetSize++].setAdd(position, 0.95, 0.5, 0.5);
+        if (dotselectors[12]) targetPoints[targetSize++].setAdd(position, 0.5, 0.95, 0.5);
+        if (dotselectors[13]) targetPoints[targetSize++].setAdd(position, 0.5, 0.5, 0.95);
 
         return isVisible(viewerPosition, targetPoints, targetSize);
     }
@@ -276,10 +276,10 @@ public class OcclusionCullingInstance {
             double relativeY = start.y - target.getY();
             double relativeZ = start.z - target.getZ();
 
-            if(allowRayChecks && rayIntersection(lastHitBlock, start, new Vec3d(relativeX, relativeY, relativeZ).normalize())) {
+            if (allowRayChecks && rayIntersection(lastHitBlock, start, new Vec3d(relativeX, relativeY, relativeZ).normalize())) {
                 continue;
             }
-            
+
             // horizontal and vertical cell amount spanned
             double dimensionX = Math.abs(relativeX);
             double dimensionY = Math.abs(relativeY);
@@ -320,7 +320,7 @@ public class OcclusionCullingInstance {
                 // by 1
                 intersectCount += x - MathUtil.floor(target.x); // increment total amount of intersecting cells
                 t_next_x = (float) ((start.x - x)
-                    * dimFracX); // calculate the next horizontal
+                        * dimFracX); // calculate the next horizontal
                 // intersection point
                 // based on the position inside
                 // the first cell
@@ -334,7 +334,7 @@ public class OcclusionCullingInstance {
                 // step by 1
                 intersectCount += MathUtil.floor(target.y) - y; // increment total amount of intersecting cells
                 t_next_y = (float) ((y + 1 - start.y)
-                    * dimFracY); // calculate the next vertical
+                        * dimFracY); // calculate the next vertical
                 // intersection
                 // point based on the position inside
                 // the first cell
@@ -343,7 +343,7 @@ public class OcclusionCullingInstance {
                 // by 1
                 intersectCount += y - MathUtil.floor(target.y); // increment total amount of intersecting cells
                 t_next_y = (float) ((start.y - y)
-                    * dimFracY); // calculate the next vertical intersection
+                        * dimFracY); // calculate the next vertical intersection
                 // point
                 // based on the position inside
                 // the first cell
@@ -357,7 +357,7 @@ public class OcclusionCullingInstance {
                 // step by 1
                 intersectCount += MathUtil.floor(target.z) - z; // increment total amount of intersecting cells
                 t_next_z = (float) ((z + 1 - start.z)
-                    * dimFracZ); // calculate the next vertical
+                        * dimFracZ); // calculate the next vertical
                 // intersection
                 // point based on the position inside
                 // the first cell
@@ -366,15 +366,15 @@ public class OcclusionCullingInstance {
                 // by 1
                 intersectCount += z - MathUtil.floor(target.z); // increment total amount of intersecting cells
                 t_next_z = (float) ((start.z - z)
-                    * dimFracZ); // calculate the next vertical intersection
+                        * dimFracZ); // calculate the next vertical intersection
                 // point
                 // based on the position inside
                 // the first cell
             }
 
             boolean finished = stepRay(start, x, y, z,
-                dimFracX, dimFracY, dimFracZ, intersectCount, x_inc, y_inc,
-                z_inc, t_next_y, t_next_x, t_next_z);
+                    dimFracX, dimFracY, dimFracZ, intersectCount, x_inc, y_inc,
+                    z_inc, t_next_y, t_next_x, t_next_z);
             provider.cleanup();
             if (finished) {
                 cacheResult(targets[0], true);
@@ -431,8 +431,8 @@ public class OcclusionCullingInstance {
                     cache.setLastVisible();
                 }
             }
-            
-            if(cVal == 1) {
+
+            if (cVal == 1) {
                 // outside of wall, now clipping is not allowed
                 allowWallClipping = false;
             }
@@ -461,7 +461,7 @@ public class OcclusionCullingInstance {
         y -= cameraPos[1];
         z -= cameraPos[2];
         if (Math.abs(x) > reach - 2 || Math.abs(y) > reach - 2
-            || Math.abs(z) > reach - 2) {
+                || Math.abs(z) > reach - 2) {
             return -1;
         }
 
@@ -469,7 +469,7 @@ public class OcclusionCullingInstance {
         return cache.getState(x + reach, y + reach, z + reach);
     }
 
-    
+
     private void cacheResult(int x, int y, int z, boolean result) {
         int cx = x - cameraPos[0] + reach;
         int cy = y - cameraPos[1] + reach;
@@ -480,7 +480,7 @@ public class OcclusionCullingInstance {
             cache.setHidden(cx, cy, cz);
         }
     }
-    
+
     private void cacheResult(Vec3d vector, boolean result) {
         int cx = MathUtil.floor(vector.x) - cameraPos[0] + reach;
         int cy = MathUtil.floor(vector.y) - cameraPos[1] + reach;

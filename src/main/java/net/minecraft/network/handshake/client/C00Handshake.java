@@ -7,19 +7,16 @@ import net.minecraft.network.handshake.INetHandlerHandshakeServer;
 
 import java.io.IOException;
 
-public class C00Handshake implements Packet<INetHandlerHandshakeServer>
-{
+public class C00Handshake implements Packet<INetHandlerHandshakeServer> {
     private int protocolVersion;
     private String ip;
     private int port;
     private EnumConnectionState requestedState;
 
-    public C00Handshake()
-    {
+    public C00Handshake() {
     }
 
-    public C00Handshake(int version, String ip, int port, EnumConnectionState requestedState)
-    {
+    public C00Handshake(int version, String ip, int port, EnumConnectionState requestedState) {
         this.protocolVersion = version;
         this.ip = ip;
         this.port = port;
@@ -29,8 +26,7 @@ public class C00Handshake implements Packet<INetHandlerHandshakeServer>
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.protocolVersion = buf.readVarIntFromBuffer();
         this.ip = buf.readStringFromBuffer(255);
         this.port = buf.readUnsignedShort();
@@ -40,8 +36,7 @@ public class C00Handshake implements Packet<INetHandlerHandshakeServer>
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeVarIntToBuffer(this.protocolVersion);
         buf.writeString(this.ip);
         buf.writeShort(this.port);
@@ -51,18 +46,15 @@ public class C00Handshake implements Packet<INetHandlerHandshakeServer>
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerHandshakeServer handler)
-    {
+    public void processPacket(INetHandlerHandshakeServer handler) {
         handler.processHandshake(this);
     }
 
-    public EnumConnectionState getRequestedState()
-    {
+    public EnumConnectionState getRequestedState() {
         return this.requestedState;
     }
 
-    public int getProtocolVersion()
-    {
+    public int getProtocolVersion() {
         return this.protocolVersion;
     }
 }

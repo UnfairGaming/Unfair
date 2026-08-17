@@ -6,22 +6,19 @@ import net.minecraft.entity.EntityLiving;
 
 import java.util.List;
 
-public class EntitySenses
-{
+public class EntitySenses {
     EntityLiving entityObj;
     List<Entity> seenEntities = Lists.<Entity>newArrayList();
     List<Entity> unseenEntities = Lists.<Entity>newArrayList();
 
-    public EntitySenses(EntityLiving entityObjIn)
-    {
+    public EntitySenses(EntityLiving entityObjIn) {
         this.entityObj = entityObjIn;
     }
 
     /**
      * Clears canSeeCachePositive and canSeeCacheNegative.
      */
-    public void clearSensingCache()
-    {
+    public void clearSensingCache() {
         this.seenEntities.clear();
         this.unseenEntities.clear();
     }
@@ -29,28 +26,19 @@ public class EntitySenses
     /**
      * Checks, whether 'our' entity can see the entity given as argument (true) or not (false), caching the result.
      */
-    public boolean canSee(Entity entityIn)
-    {
-        if (this.seenEntities.contains(entityIn))
-        {
+    public boolean canSee(Entity entityIn) {
+        if (this.seenEntities.contains(entityIn)) {
             return true;
-        }
-        else if (this.unseenEntities.contains(entityIn))
-        {
+        } else if (this.unseenEntities.contains(entityIn)) {
             return false;
-        }
-        else
-        {
+        } else {
             this.entityObj.worldObj.theProfiler.startSection("canSee");
             boolean flag = this.entityObj.canEntityBeSeen(entityIn);
             this.entityObj.worldObj.theProfiler.endSection();
 
-            if (flag)
-            {
+            if (flag) {
                 this.seenEntities.add(entityIn);
-            }
-            else
-            {
+            } else {
                 this.unseenEntities.add(entityIn);
             }
 

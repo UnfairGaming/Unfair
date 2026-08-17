@@ -19,8 +19,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class FileResourcePack extends AbstractResourcePack implements Closeable {
-    private static final Cleaner CLEANER = Cleaner.create();
     public static final Splitter entryNameSplitter = Splitter.on('/').omitEmptyStrings().limit(3);
+    private static final Cleaner CLEANER = Cleaner.create();
     private final ZipFileState zipFileState = new ZipFileState();
     private final Cleaner.Cleanable cleanable = CLEANER.register(this, this.zipFileState);
 
@@ -90,35 +90,6 @@ public class FileResourcePack extends AbstractResourcePack implements Closeable 
         this.cleanable.clean();
     }
 
-    private static final class ZipFileState implements Runnable {
-        private ZipFile zipFile;
-
-        synchronized ZipFile get(File file) throws IOException {
-            if (this.zipFile == null) {
-                this.zipFile = new ZipFile(file);
-            }
-
-            return this.zipFile;
-        }
-
-        synchronized void close() throws IOException {
-            ZipFile zipFileToClose = this.zipFile;
-            this.zipFile = null;
-
-            if (zipFileToClose != null) {
-                zipFileToClose.close();
-            }
-        }
-
-        @Override
-        public void run() {
-            try {
-                this.close();
-            } catch (IOException ignored) {
-            }
-        }
-    }
-
     @Override
     @SneakyThrows
     public boolean hasAnimations() {
@@ -168,5 +139,34 @@ public class FileResourcePack extends AbstractResourcePack implements Closeable 
         }
 
         return false;
+    }
+
+    private static final class ZipFileState implements Runnable {
+        private ZipFile zipFile;
+
+        synchronized ZipFile get(File file) throws IOException {
+            if (this.zipFile == null) {
+                this.zipFile = new ZipFile(file);
+            }
+
+            return this.zipFile;
+        }
+
+        synchronized void close() throws IOException {
+            ZipFile zipFileToClose = this.zipFile;
+            this.zipFile = null;
+
+            if (zipFileToClose != null) {
+                zipFileToClose.close();
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                this.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 }

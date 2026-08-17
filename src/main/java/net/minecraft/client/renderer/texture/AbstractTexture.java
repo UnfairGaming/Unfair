@@ -10,12 +10,14 @@ import org.lwjgl.opengl.GL11;
 import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractTexture implements ITextureObject {
+    public MultiTexID multiTex;
     protected int glTextureId = -1;
     protected boolean blur;
     protected boolean mipmap;
     protected boolean blurLast;
     protected boolean mipmapLast;
-    public MultiTexID multiTex;
+    @Getter
+    private FilterState filterState = FilterState.NEAREST;
 
     public void setBlurMipmapDirect(boolean blur, boolean mipmap) {
         this.blur = blur;
@@ -57,9 +59,6 @@ public abstract class AbstractTexture implements ITextureObject {
 
         return this.glTextureId;
     }
-
-    @Getter
-    private FilterState filterState = FilterState.NEAREST;
 
     @Override
     public void linearFilter() {

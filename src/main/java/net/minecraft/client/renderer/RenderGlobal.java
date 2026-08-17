@@ -87,51 +87,65 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
     private static final ResourceLocation locationCloudsPng = ResourceLocation.of("textures/environment/clouds.png");
     private static final ResourceLocation locationEndSkyPng = ResourceLocation.of("textures/environment/end_sky.png");
     private static final ResourceLocation locationForcefieldPng = ResourceLocation.of("textures/misc/forcefield.png");
-
+    private static final Set<EnumFacing> SET_ALL_FACINGS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(EnumFacing.VALUES)));
+    private static int renderEntitiesCounter = 0;
     /**
      * A reference to the Minecraft object.
      */
     public final Minecraft mc;
-
+    public final Map<Integer, DestroyBlockProgress> damagedBlocks = Maps.newHashMap();
     /**
      * The RenderEngine instance used by RenderGlobal
      */
     private final TextureManager renderEngine;
     private final RenderManager renderManager;
+    private final Set<TileEntity> setTileEntities = Sets.newHashSet();
+    private final VertexFormat vertexBufferFormat;
+    private final Map<BlockPos, ISound> mapSoundPositions = Maps.newHashMap();
+    private final TextureAtlasSprite[] destroyBlockIcons = new TextureAtlasSprite[10];
+    private final ChunkRenderDispatcher renderDispatcher = new ChunkRenderDispatcher();
+    private final Vector4f[] debugTerrainMatrix = new Vector4f[8];
+    private final Vector3d debugTerrainFrustumPosition = new Vector3d();
+    private final CloudRenderer cloudRenderer;
+    private final Deque<ContainerLocalRenderInformation> visibilityDeque = new ArrayDeque<>();
+    private final List<ContainerLocalRenderInformation> renderInfosNormal = new ArrayList<>(1024);
+    private final List<ContainerLocalRenderInformation> renderInfosEntitiesNormal = new ArrayList<>(1024);
+    private final List<ContainerLocalRenderInformation> renderInfosTileEntitiesNormal = new ArrayList<>(1024);
+    private final List<ContainerLocalRenderInformation> renderInfosShadow = new ArrayList<>(1024);
+    private final List<ContainerLocalRenderInformation> renderInfosEntitiesShadow = new ArrayList<>(1024);
+    private final List<ContainerLocalRenderInformation> renderInfosTileEntitiesShadow = new ArrayList<>(1024);
+    private final RenderEnv renderEnv = new RenderEnv(Blocks.air.getDefaultState(), new BlockPos(0, 0, 0));
+    public boolean displayListEntitiesDirty = true;
+    public Entity renderedEntity;
+    public Set<RenderChunk> chunksToResortTransparency = new LinkedHashSet<>();
+    public Set<RenderChunk> chunksToUpdateForced = new LinkedHashSet<>();
+    public boolean renderOverlayDamaged = false;
+    public boolean renderOverlayEyes = false;
+    IRenderChunkFactory renderChunkFactory;
     private WorldClient theWorld;
     private Set<RenderChunk> chunksToUpdate = Sets.newLinkedHashSet();
     private List<RenderGlobal.ContainerLocalRenderInformation> renderInfos = Lists.newArrayListWithCapacity(69696);
-    private final Set<TileEntity> setTileEntities = Sets.newHashSet();
     private ViewFrustum viewFrustum;
-
     /**
      * The star GL Call list
      */
     private int starGLCallList = -1;
-
     /**
      * OpenGL sky list
      */
     private int glSkyList = -1;
-
     /**
      * OpenGL sky list 2
      */
     private int glSkyList2 = -1;
-    private final VertexFormat vertexBufferFormat;
     private VertexBuffer starVBO;
     private VertexBuffer skyVBO;
     private VertexBuffer sky2VBO;
-
     /**
      * counts the cloud render updates. Used with mod to stagger some updates
      */
     private int cloudTickCounter;
-    public final Map<Integer, DestroyBlockProgress> damagedBlocks = Maps.newHashMap();
-    private final Map<BlockPos, ISound> mapSoundPositions = Maps.newHashMap();
-    private final TextureAtlasSprite[] destroyBlockIcons = new TextureAtlasSprite[10];
     private Framebuffer entityOutlineFramebuffer;
-
     /**
      * Stores the shader group for the entity_outline shader
      */
@@ -147,64 +161,39 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
     private double lastViewEntityZ = Double.MIN_VALUE;
     private double lastViewEntityPitch = Double.MIN_VALUE;
     private double lastViewEntityYaw = Double.MIN_VALUE;
-    private final ChunkRenderDispatcher renderDispatcher = new ChunkRenderDispatcher();
     private ChunkRenderContainer renderContainer;
     private int renderDistanceChunks = -1;
-
     /**
      * Render entities startup counter (init value=2)
      */
     private int renderEntitiesStartupCounter = 2;
-
     /**
      * Count entities total
      */
     private int countEntitiesTotal;
-
     /**
      * Count entities rendered
      */
     private int countEntitiesRendered;
-
     /**
      * Count entities hidden
      */
     private int countEntitiesHidden;
     private boolean debugFixTerrainFrustum = false;
     private ClippingHelper debugFixedClippingHelper;
-    private final Vector4f[] debugTerrainMatrix = new Vector4f[8];
-    private final Vector3d debugTerrainFrustumPosition = new Vector3d();
     private boolean vboEnabled = false;
-    IRenderChunkFactory renderChunkFactory;
     private double prevRenderSortX;
     private double prevRenderSortY;
     private double prevRenderSortZ;
-    public boolean displayListEntitiesDirty = true;
-    private final CloudRenderer cloudRenderer;
-    public Entity renderedEntity;
-    public Set<RenderChunk> chunksToResortTransparency = new LinkedHashSet<>();
-    public Set<RenderChunk> chunksToUpdateForced = new LinkedHashSet<>();
-    private final Deque<ContainerLocalRenderInformation> visibilityDeque = new ArrayDeque<>();
     private List<ContainerLocalRenderInformation> renderInfosEntities = new ArrayList<>(1024);
     private List<ContainerLocalRenderInformation> renderInfosTileEntities = new ArrayList<>(1024);
-    private final List<ContainerLocalRenderInformation> renderInfosNormal = new ArrayList<>(1024);
-    private final List<ContainerLocalRenderInformation> renderInfosEntitiesNormal = new ArrayList<>(1024);
-    private final List<ContainerLocalRenderInformation> renderInfosTileEntitiesNormal = new ArrayList<>(1024);
-    private final List<ContainerLocalRenderInformation> renderInfosShadow = new ArrayList<>(1024);
-    private final List<ContainerLocalRenderInformation> renderInfosEntitiesShadow = new ArrayList<>(1024);
-    private final List<ContainerLocalRenderInformation> renderInfosTileEntitiesShadow = new ArrayList<>(1024);
     private int renderDistance = 0;
     private int renderDistanceSq = 0;
-    private static final Set<EnumFacing> SET_ALL_FACINGS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(EnumFacing.VALUES)));
     private int countTileEntitiesRendered;
     private IChunkProvider worldChunkProvider = null;
     private LongHashMap worldChunkProviderMap = null;
     private int countLoadedChunksPrev = 0;
-    private final RenderEnv renderEnv = new RenderEnv(Blocks.air.getDefaultState(), new BlockPos(0, 0, 0));
-    public boolean renderOverlayDamaged = false;
-    public boolean renderOverlayEyes = false;
     private boolean firstWorldLoad = false;
-    private static int renderEntitiesCounter = 0;
 
     public RenderGlobal(Minecraft mcIn) {
         this.cloudRenderer = new CloudRenderer(mcIn);
@@ -234,6 +223,64 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             this.generateSky();
             this.generateSky2();
         }
+    }
+
+    public static void drawSelectionBoundingBox(AxisAlignedBB boundingBox) {
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(3, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).endVertex();
+        tessellator.draw();
+        worldrenderer.begin(3, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).endVertex();
+        tessellator.draw();
+        worldrenderer.begin(1, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).endVertex();
+        tessellator.draw();
+    }
+
+    public static void drawOutlinedBoundingBox(AxisAlignedBB boundingBox, int red, int green, int blue, int alpha) {
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(3, DefaultVertexFormats.POSITION_COLOR);
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        tessellator.draw();
+        worldrenderer.begin(3, DefaultVertexFormats.POSITION_COLOR);
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        tessellator.draw();
+        worldrenderer.begin(1, DefaultVertexFormats.POSITION_COLOR);
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
+        tessellator.draw();
     }
 
     public void onResourceManagerReload(IResourceManager resourceManager) {
@@ -2229,64 +2276,6 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
         }
     }
 
-    public static void drawSelectionBoundingBox(AxisAlignedBB boundingBox) {
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        worldrenderer.begin(3, DefaultVertexFormats.POSITION);
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).endVertex();
-        tessellator.draw();
-        worldrenderer.begin(3, DefaultVertexFormats.POSITION);
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).endVertex();
-        tessellator.draw();
-        worldrenderer.begin(1, DefaultVertexFormats.POSITION);
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).endVertex();
-        tessellator.draw();
-    }
-
-    public static void drawOutlinedBoundingBox(AxisAlignedBB boundingBox, int red, int green, int blue, int alpha) {
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        worldrenderer.begin(3, DefaultVertexFormats.POSITION_COLOR);
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        tessellator.draw();
-        worldrenderer.begin(3, DefaultVertexFormats.POSITION_COLOR);
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        tessellator.draw();
-        worldrenderer.begin(1, DefaultVertexFormats.POSITION_COLOR);
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.minY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        worldrenderer.pos(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ).color(red, green, blue, alpha).endVertex();
-        tessellator.draw();
-    }
-
     /**
      * Marks the blocks in the given range for update
      */
@@ -2777,7 +2766,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
             } else {
                 if (ichunkprovider != this.worldChunkProvider) {
                     this.worldChunkProvider = ichunkprovider;
-                    this.worldChunkProviderMap = ichunkprovider instanceof ChunkProviderClient ? ((ChunkProviderClient)ichunkprovider).getChunkStorage() : null;
+                    this.worldChunkProviderMap = ichunkprovider instanceof ChunkProviderClient ? ((ChunkProviderClient) ichunkprovider).getChunkStorage() : null;
                 }
 
                 return this.worldChunkProviderMap == null ? 0 : this.worldChunkProviderMap.getNumHashElements();

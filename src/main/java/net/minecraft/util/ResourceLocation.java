@@ -9,6 +9,8 @@ import java.util.Map;
 
 @Getter
 public class ResourceLocation {
+    public static final Map<String, Map<String, ResourceLocation>> twoDimensionsCache = new HashMap<>();
+    private static final Map<String, ResourceLocation> locationCache = new HashMap<>();
     protected final String resourceDomain;
     protected final String resourcePath;
 
@@ -47,28 +49,6 @@ public class ResourceLocation {
         return astring;
     }
 
-    public String toString() {
-        return this.resourceDomain + ':' + this.resourcePath;
-    }
-
-    public boolean equals(Object p_equals_1_) {
-        if (this == p_equals_1_) {
-            return true;
-        } else if (!(p_equals_1_ instanceof ResourceLocation resourcelocation)) {
-            return false;
-        } else {
-            return this.resourceDomain.equals(resourcelocation.resourceDomain) &&
-                    this.resourcePath.equals(resourcelocation.resourcePath);
-        }
-    }
-
-    public int hashCode() {
-        return 31 * this.resourceDomain.hashCode() + this.resourcePath.hashCode();
-    }
-
-    private static final Map<String, ResourceLocation> locationCache = new HashMap<>();
-    public static final Map<String, Map<String, ResourceLocation>> twoDimensionsCache = new HashMap<>();
-
     public static ResourceLocation of(String path) {
         if (!locationCache.containsKey(path)) {
             String[] strings = splitObjectName(path);
@@ -102,5 +82,24 @@ public class ResourceLocation {
         map.put(resourcePathIn, location);
         twoDimensionsCache.put(domain, map);
         return location;
+    }
+
+    public String toString() {
+        return this.resourceDomain + ':' + this.resourcePath;
+    }
+
+    public boolean equals(Object p_equals_1_) {
+        if (this == p_equals_1_) {
+            return true;
+        } else if (!(p_equals_1_ instanceof ResourceLocation resourcelocation)) {
+            return false;
+        } else {
+            return this.resourceDomain.equals(resourcelocation.resourceDomain) &&
+                    this.resourcePath.equals(resourcelocation.resourcePath);
+        }
+    }
+
+    public int hashCode() {
+        return 31 * this.resourceDomain.hashCode() + this.resourcePath.hashCode();
     }
 }

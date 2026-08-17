@@ -12,46 +12,39 @@ import net.minecraft.util.IChatComponent;
 
 import java.io.IOException;
 
-public class S00PacketServerInfo implements Packet<INetHandlerStatusClient>
-{
+public class S00PacketServerInfo implements Packet<INetHandlerStatusClient> {
     private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(ServerStatusResponse.MinecraftProtocolVersionIdentifier.class, new ServerStatusResponse.MinecraftProtocolVersionIdentifier.Serializer()).registerTypeAdapter(ServerStatusResponse.PlayerCountData.class, new ServerStatusResponse.PlayerCountData.Serializer()).registerTypeAdapter(ServerStatusResponse.class, new ServerStatusResponse.Serializer()).registerTypeHierarchyAdapter(IChatComponent.class, new IChatComponent.Serializer()).registerTypeHierarchyAdapter(ChatStyle.class, new ChatStyle.Serializer()).registerTypeAdapterFactory(new EnumTypeAdapterFactory()).create();
     private ServerStatusResponse response;
 
-    public S00PacketServerInfo()
-    {
+    public S00PacketServerInfo() {
     }
 
-    public S00PacketServerInfo(ServerStatusResponse responseIn)
-    {
+    public S00PacketServerInfo(ServerStatusResponse responseIn) {
         this.response = responseIn;
     }
 
     /**
      * Reads the raw packet data from the data stream.
      */
-    public void readPacketData(PacketBuffer buf) throws IOException
-    {
+    public void readPacketData(PacketBuffer buf) throws IOException {
         this.response = GSON.fromJson(buf.readStringFromBuffer(32767), ServerStatusResponse.class);
     }
 
     /**
      * Writes the raw packet data to the data stream.
      */
-    public void writePacketData(PacketBuffer buf) throws IOException
-    {
+    public void writePacketData(PacketBuffer buf) throws IOException {
         buf.writeString(GSON.toJson(this.response));
     }
 
     /**
      * Passes this Packet on to the NetHandler for processing.
      */
-    public void processPacket(INetHandlerStatusClient handler)
-    {
+    public void processPacket(INetHandlerStatusClient handler) {
         handler.handleServerInfo(this);
     }
 
-    public ServerStatusResponse getResponse()
-    {
+    public ServerStatusResponse getResponse() {
         return this.response;
     }
 }

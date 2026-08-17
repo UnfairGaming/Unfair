@@ -11,7 +11,17 @@ import net.minecraft.util.EnumFacing;
 public class BlockModernFacingShape extends BlockModernShape {
     public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
     private static final EnumFacing[] STATE_ORDER = {EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
-    public BlockModernFacingShape(Material material, ProtocolVersion protocol, int firstState, int lastState, double[]... boxes) { super(material, protocol, firstState, lastState, boxes); setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH)); }
-    public IBlockState getStateFromViaStateId(int id) { return getDefaultState().withProperty(FACING, STATE_ORDER[(id - firstState) % 4]); }
-    protected BlockState createBlockState() { return new BlockState(this, new IProperty[]{FACING}); }
+
+    public BlockModernFacingShape(Material material, ProtocolVersion protocol, int firstState, int lastState, double[]... boxes) {
+        super(material, protocol, firstState, lastState, boxes);
+        setDefaultState(blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
+    }
+
+    public IBlockState getStateFromViaStateId(int id) {
+        return getDefaultState().withProperty(FACING, STATE_ORDER[(id - firstState) % 4]);
+    }
+
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{FACING});
+    }
 }

@@ -22,13 +22,6 @@ import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class RandomEntities {
-    private static final Map<String, RandomEntityProperties> mapProperties = new HashMap();
-    private static boolean active = false;
-    private static RenderGlobal renderGlobal;
-    private static final RandomEntity randomEntity = new RandomEntity();
-    private static TileEntityRendererDispatcher tileEntityRendererDispatcher;
-    private static final RandomTileEntity randomTileEntity = new RandomTileEntity();
-    private static boolean working = false;
     public static final String SUFFIX_PNG = ".png";
     public static final String SUFFIX_PROPERTIES = ".properties";
     public static final String PREFIX_TEXTURES_ENTITY = "textures/entity/";
@@ -36,10 +29,17 @@ public class RandomEntities {
     public static final String PREFIX_TEXTURES = "textures/";
     public static final String PREFIX_OPTIFINE_RANDOM = "optifine/random/";
     public static final String PREFIX_MCPATCHER_MOB = "mcpatcher/mob/";
+    private static final Map<String, RandomEntityProperties> mapProperties = new HashMap();
+    private static final RandomEntity randomEntity = new RandomEntity();
+    private static final RandomTileEntity randomTileEntity = new RandomTileEntity();
     private static final String[] DEPENDANT_SUFFIXES = new String[]{"_armor", "_eyes", "_exploding", "_shooting", "_fur", "_eyes", "_invulnerable", "_angry", "_tame", "_collar"};
     private static final String PREFIX_DYNAMIC_TEXTURE_HORSE = "horse/";
     private static final String[] HORSE_TEXTURES = EntityHorse.getHorseTextures();
     private static final String[] HORSE_TEXTURES_ABBR = EntityHorse.getHorseTextureAbbreviations();
+    private static boolean active = false;
+    private static RenderGlobal renderGlobal;
+    private static TileEntityRendererDispatcher tileEntityRendererDispatcher;
+    private static boolean working = false;
 
     public static void entityLoaded(Entity entity, World world) {
         if (world != null) {

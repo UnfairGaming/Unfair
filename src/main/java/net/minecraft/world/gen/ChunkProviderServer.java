@@ -29,38 +29,34 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkProviderServer implements IChunkProvider {
     private static final Logger logger = LogManager.getLogger("ChunkProviderServer");
+    public final LongHashMap<Chunk> id2ChunkMap = new LongHashMap<>();
     private final Set<Long> droppedChunksSet = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
-
     /**
      * a dummy chunk, returned in place of an actual chunk.
      */
     private final Chunk dummyChunk;
-
     /**
      * chunk generator object. Calls to load nonexistent chunks are forwarded to this object.
      */
     private final IChunkProvider serverChunkGenerator;
     private final IChunkLoader chunkLoader;
-
+    private final List<Chunk> loadedChunks = Lists.newArrayList();
+    private final WorldServer worldObj;
     /**
      * if set, this flag forces a request to load a chunk to load the chunk rather than defaulting to the dummy if
      * possible
      */
     public boolean chunkLoadOverride = true;
-    public final LongHashMap<Chunk> id2ChunkMap = new LongHashMap<>();
-
-    public LongHashMap<Chunk> getChunkStorage() {
-        return id2ChunkMap;
-    }
-
-    private final List<Chunk> loadedChunks = Lists.newArrayList();
-    private final WorldServer worldObj;
 
     public ChunkProviderServer(WorldServer p_i1520_1_, IChunkLoader p_i1520_2_, IChunkProvider p_i1520_3_) {
         this.dummyChunk = new EmptyChunk(p_i1520_1_, 0, 0);
         this.worldObj = p_i1520_1_;
         this.chunkLoader = p_i1520_2_;
         this.serverChunkGenerator = p_i1520_3_;
+    }
+
+    public LongHashMap<Chunk> getChunkStorage() {
+        return id2ChunkMap;
     }
 
     /**

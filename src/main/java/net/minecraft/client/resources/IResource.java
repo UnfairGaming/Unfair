@@ -5,8 +5,7 @@ import net.minecraft.util.ResourceLocation;
 
 import java.io.InputStream;
 
-public interface IResource
-{
+public interface IResource {
     ResourceLocation getResourceLocation();
 
     InputStream getInputStream();

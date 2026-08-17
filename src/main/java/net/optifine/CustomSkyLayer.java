@@ -26,7 +26,14 @@ import java.util.Properties;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class CustomSkyLayer {
+    public static final float[] DEFAULT_AXIS = new float[]{1.0F, 0.0F, 0.0F};
+    private static final String WEATHER_CLEAR = "clear";
+    private static final String WEATHER_RAIN = "rain";
+    private static final String WEATHER_THUNDER = "thunder";
     public String source = null;
+    public BiomeGenBase[] biomes;
+    public RangeListInt heights;
+    public int textureId;
     private int startFadeIn = -1;
     private int endFadeIn = -1;
     private int startFadeOut = -1;
@@ -40,16 +47,9 @@ public class CustomSkyLayer {
     private boolean weatherClear;
     private boolean weatherRain;
     private boolean weatherThunder;
-    public BiomeGenBase[] biomes;
-    public RangeListInt heights;
     private float transition;
     private SmoothFloat smoothPositionBrightness;
-    public int textureId;
     private World lastWorld;
-    public static final float[] DEFAULT_AXIS = new float[]{1.0F, 0.0F, 0.0F};
-    private static final String WEATHER_CLEAR = "clear";
-    private static final String WEATHER_RAIN = "rain";
-    private static final String WEATHER_THUNDER = "thunder";
 
     public CustomSkyLayer(Properties props, String defSource) {
         this.axis = DEFAULT_AXIS;

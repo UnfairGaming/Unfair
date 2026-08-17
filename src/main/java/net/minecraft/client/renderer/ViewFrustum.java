@@ -14,19 +14,17 @@ import net.optifine.render.VboRegion;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ViewFrustum
-{
+public class ViewFrustum {
     protected final RenderGlobal renderGlobal;
     protected final World world;
+    private final int bottomSectionY;
+    public RenderChunk[] renderChunks;
     protected int countChunksY;
     protected int countChunksX;
     protected int countChunksZ;
-    private final int bottomSectionY;
-    public RenderChunk[] renderChunks;
     private Map<ChunkCoordIntPair, VboRegion[]> mapVboRegions = new HashMap<>();
 
-    public ViewFrustum(World worldIn, int renderDistanceChunks, RenderGlobal p_i46246_3_, IRenderChunkFactory renderChunkFactory)
-    {
+    public ViewFrustum(World worldIn, int renderDistanceChunks, RenderGlobal p_i46246_3_, IRenderChunkFactory renderChunkFactory) {
         this.renderGlobal = p_i46246_3_;
         this.world = worldIn;
         this.bottomSectionY = worldIn.getBottomY() >> 4;
@@ -34,36 +32,29 @@ public class ViewFrustum
         this.createRenderChunks(renderChunkFactory);
     }
 
-    protected void createRenderChunks(IRenderChunkFactory renderChunkFactory)
-    {
+    protected void createRenderChunks(IRenderChunkFactory renderChunkFactory) {
         int i = this.countChunksX * this.countChunksY * this.countChunksZ;
         this.renderChunks = new RenderChunk[i];
         int j = 0;
 
-        for (int k = 0; k < this.countChunksX; ++k)
-        {
-            for (int l = 0; l < this.countChunksY; ++l)
-            {
-                for (int i1 = 0; i1 < this.countChunksZ; ++i1)
-                {
+        for (int k = 0; k < this.countChunksX; ++k) {
+            for (int l = 0; l < this.countChunksY; ++l) {
+                for (int i1 = 0; i1 < this.countChunksZ; ++i1) {
                     int j1 = (i1 * this.countChunksY + l) * this.countChunksX + k;
                     BlockPos blockpos = new BlockPos(k * 16, (this.bottomSectionY + l) << 4, i1 * 16);
                     this.renderChunks[j1] = renderChunkFactory.makeRenderChunk(this.world, this.renderGlobal, blockpos, j++);
 
-                    if (Config.isVbo() && Config.isRenderRegions())
-                    {
+                    if (Config.isVbo() && Config.isRenderRegions()) {
                         this.updateVboRegion(this.renderChunks[j1]);
                     }
                 }
             }
         }
 
-        for (int k1 = 0; k1 < this.renderChunks.length; ++k1)
-        {
+        for (int k1 = 0; k1 < this.renderChunks.length; ++k1) {
             RenderChunk renderchunk1 = this.renderChunks[k1];
 
-            for (int l1 = 0; l1 < EnumFacing.VALUES.length; ++l1)
-            {
+            for (int l1 = 0; l1 < EnumFacing.VALUES.length; ++l1) {
                 EnumFacing enumfacing = EnumFacing.VALUES[l1];
                 BlockPos blockpos1 = renderchunk1.getBlockPosOffset16(enumfacing);
                 RenderChunk renderchunk = this.getRenderChunk(blockpos1);
@@ -72,50 +63,41 @@ public class ViewFrustum
         }
     }
 
-    public void deleteGlResources()
-    {
-        for (RenderChunk renderchunk : this.renderChunks)
-        {
+    public void deleteGlResources() {
+        for (RenderChunk renderchunk : this.renderChunks) {
             renderchunk.deleteGlResources();
         }
 
         this.deleteVboRegions();
     }
 
-    protected void setCountChunksXYZ(int renderDistanceChunks)
-    {
+    protected void setCountChunksXYZ(int renderDistanceChunks) {
         int i = renderDistanceChunks * 2 + 1;
         this.countChunksX = i;
         this.countChunksY = this.world.getHeight() >> 4;
         this.countChunksZ = i;
     }
 
-    public void updateChunkPositions(double viewEntityX, double viewEntityZ)
-    {
+    public void updateChunkPositions(double viewEntityX, double viewEntityZ) {
         int i = MathHelper.floor_double(viewEntityX) - 8;
         int j = MathHelper.floor_double(viewEntityZ) - 8;
         int k = this.countChunksX * 16;
 
-        for (int l = 0; l < this.countChunksX; ++l)
-        {
+        for (int l = 0; l < this.countChunksX; ++l) {
             int i1 = this.func_178157_a(i, k, l);
 
-            for (int j1 = 0; j1 < this.countChunksZ; ++j1)
-            {
+            for (int j1 = 0; j1 < this.countChunksZ; ++j1) {
                 int k1 = this.func_178157_a(j, k, j1);
 
-                for (int l1 = 0; l1 < this.countChunksY; ++l1)
-                {
+                for (int l1 = 0; l1 < this.countChunksY; ++l1) {
                     int i2 = (this.bottomSectionY + l1) << 4;
                     RenderChunk renderchunk = this.renderChunks[(j1 * this.countChunksY + l1) * this.countChunksX + l];
                     BlockPos blockpos = renderchunk.getPosition();
 
-                    if (blockpos.getX() != i1 || blockpos.getY() != i2 || blockpos.getZ() != k1)
-                    {
+                    if (blockpos.getX() != i1 || blockpos.getY() != i2 || blockpos.getZ() != k1) {
                         BlockPos blockpos1 = new BlockPos(i1, i2, k1);
 
-                        if (!blockpos1.equals(renderchunk.getPosition()))
-                        {
+                        if (!blockpos1.equals(renderchunk.getPosition())) {
                             renderchunk.setPosition(blockpos1);
                         }
                     }
@@ -124,21 +106,18 @@ public class ViewFrustum
         }
     }
 
-    private int func_178157_a(int p_178157_1_, int p_178157_2_, int p_178157_3_)
-    {
+    private int func_178157_a(int p_178157_1_, int p_178157_2_, int p_178157_3_) {
         int i = p_178157_3_ * 16;
         int j = i - p_178157_1_ + p_178157_2_ / 2;
 
-        if (j < 0)
-        {
+        if (j < 0) {
             j -= p_178157_2_ - 1;
         }
 
         return i - j / p_178157_2_ * p_178157_2_;
     }
 
-    public void markBlocksForUpdate(int fromX, int fromY, int fromZ, int toX, int toY, int toZ)
-    {
+    public void markBlocksForUpdate(int fromX, int fromY, int fromZ, int toX, int toY, int toZ) {
         int i = MathHelper.bucketInt(fromX, 16);
         int j = MathHelper.bucketInt(fromY, 16);
         int k = MathHelper.bucketInt(fromZ, 16);
@@ -149,25 +128,20 @@ public class ViewFrustum
         j = Math.max(j, this.bottomSectionY);
         i1 = Math.min(i1, topSectionY);
 
-        for (int k1 = i; k1 <= l; ++k1)
-        {
+        for (int k1 = i; k1 <= l; ++k1) {
             int l1 = k1 % this.countChunksX;
 
-            if (l1 < 0)
-            {
+            if (l1 < 0) {
                 l1 += this.countChunksX;
             }
 
-            for (int i2 = j; i2 <= i1; ++i2)
-            {
+            for (int i2 = j; i2 <= i1; ++i2) {
                 int j2 = i2 - this.bottomSectionY;
 
-                for (int k2 = k; k2 <= j1; ++k2)
-                {
+                for (int k2 = k; k2 <= j1; ++k2) {
                     int l2 = k2 % this.countChunksZ;
 
-                    if (l2 < 0)
-                    {
+                    if (l2 < 0) {
                         l2 += this.countChunksZ;
                     }
 
@@ -179,45 +153,37 @@ public class ViewFrustum
         }
     }
 
-    public RenderChunk getRenderChunk(BlockPos pos)
-    {
+    public RenderChunk getRenderChunk(BlockPos pos) {
         int i = pos.getX() >> 4;
         int j = (pos.getY() >> 4) - this.bottomSectionY;
         int k = pos.getZ() >> 4;
 
-        if (j >= 0 && j < this.countChunksY)
-        {
+        if (j >= 0 && j < this.countChunksY) {
             i = i % this.countChunksX;
 
-            if (i < 0)
-            {
+            if (i < 0) {
                 i += this.countChunksX;
             }
 
             k = k % this.countChunksZ;
 
-            if (k < 0)
-            {
+            if (k < 0) {
                 k += this.countChunksZ;
             }
 
             int l = (k * this.countChunksY + j) * this.countChunksX + i;
             return this.renderChunks[l];
-        }
-        else
-        {
+        } else {
             return null;
         }
     }
 
-    public boolean isWorldHeightChanged()
-    {
+    public boolean isWorldHeightChanged() {
         return this.bottomSectionY != (this.world.getBottomY() >> 4)
                 || this.countChunksY != (this.world.getHeight() >> 4);
     }
 
-    private void updateVboRegion(RenderChunk p_updateVboRegion_1_)
-    {
+    private void updateVboRegion(RenderChunk p_updateVboRegion_1_) {
         BlockPos blockpos = p_updateVboRegion_1_.getPosition();
         int i = blockpos.getX() >> 8 << 8;
         int j = blockpos.getZ() >> 8 << 8;
@@ -225,41 +191,33 @@ public class ViewFrustum
         EnumWorldBlockLayer[] aenumworldblocklayer = RenderChunk.ENUM_WORLD_BLOCK_LAYERS;
         VboRegion[] avboregion = this.mapVboRegions.get(chunkcoordintpair);
 
-        if (avboregion == null)
-        {
+        if (avboregion == null) {
             avboregion = new VboRegion[aenumworldblocklayer.length];
 
-            for (int k = 0; k < aenumworldblocklayer.length; ++k)
-            {
+            for (int k = 0; k < aenumworldblocklayer.length; ++k) {
                 avboregion[k] = new VboRegion(aenumworldblocklayer[k]);
             }
 
             this.mapVboRegions.put(chunkcoordintpair, avboregion);
         }
 
-        for (int l = 0; l < aenumworldblocklayer.length; ++l)
-        {
+        for (int l = 0; l < aenumworldblocklayer.length; ++l) {
             VboRegion vboregion = avboregion[l];
 
-            if (vboregion != null)
-            {
+            if (vboregion != null) {
                 p_updateVboRegion_1_.getVertexBufferByLayer(l).setVboRegion(vboregion);
             }
         }
     }
 
-    public void deleteVboRegions()
-    {
-        for (ChunkCoordIntPair chunkcoordintpair : this.mapVboRegions.keySet())
-        {
+    public void deleteVboRegions() {
+        for (ChunkCoordIntPair chunkcoordintpair : this.mapVboRegions.keySet()) {
             VboRegion[] avboregion = this.mapVboRegions.get(chunkcoordintpair);
 
-            for (int i = 0; i < avboregion.length; ++i)
-            {
+            for (int i = 0; i < avboregion.length; ++i) {
                 VboRegion vboregion = avboregion[i];
 
-                if (vboregion != null)
-                {
+                if (vboregion != null) {
                     vboregion.deleteGlBuffers();
                 }
 

@@ -11,10 +11,8 @@ import net.minecraft.world.gen.feature.WorldGenAbstractTree;
 
 import java.util.Random;
 
-public class BiomeGenSwamp extends BiomeGenBase
-{
-    protected BiomeGenSwamp(int id)
-    {
+public class BiomeGenSwamp extends BiomeGenBase {
+    protected BiomeGenSwamp(int id) {
         super(id);
         this.theBiomeDecorator.treesPerChunk = 2;
         this.theBiomeDecorator.flowersPerChunk = 1;
@@ -30,46 +28,36 @@ public class BiomeGenSwamp extends BiomeGenBase
         this.spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySlime.class, 1, 1, 1));
     }
 
-    public WorldGenAbstractTree genBigTreeChance(Random rand)
-    {
+    public WorldGenAbstractTree genBigTreeChance(Random rand) {
         return this.worldGeneratorSwamp;
     }
 
-    public int getGrassColorAtPos(BlockPos pos)
-    {
-        double d0 = GRASS_COLOR_NOISE.func_151601_a((double)pos.getX() * 0.0225D, (double)pos.getZ() * 0.0225D);
+    public int getGrassColorAtPos(BlockPos pos) {
+        double d0 = GRASS_COLOR_NOISE.func_151601_a((double) pos.getX() * 0.0225D, (double) pos.getZ() * 0.0225D);
         return d0 < -0.1D ? 5011004 : 6975545;
     }
 
-    public int getFoliageColorAtPos(BlockPos pos)
-    {
+    public int getFoliageColorAtPos(BlockPos pos) {
         return 6975545;
     }
 
-    public BlockFlower.EnumFlowerType pickRandomFlower(Random rand, BlockPos pos)
-    {
+    public BlockFlower.EnumFlowerType pickRandomFlower(Random rand, BlockPos pos) {
         return BlockFlower.EnumFlowerType.BLUE_ORCHID;
     }
 
-    public void genTerrainBlocks(World worldIn, Random rand, ChunkPrimer chunkPrimerIn, int x, int z, double noiseVal)
-    {
-        double d0 = GRASS_COLOR_NOISE.func_151601_a((double)x * 0.25D, (double)z * 0.25D);
+    public void genTerrainBlocks(World worldIn, Random rand, ChunkPrimer chunkPrimerIn, int x, int z, double noiseVal) {
+        double d0 = GRASS_COLOR_NOISE.func_151601_a((double) x * 0.25D, (double) z * 0.25D);
 
-        if (d0 > 0.0D)
-        {
+        if (d0 > 0.0D) {
             int i = x & 15;
             int j = z & 15;
 
-            for (int k = 255; k >= 0; --k)
-            {
-                if (chunkPrimerIn.getBlockState(j, k, i).getBlock().getMaterial() != Material.air)
-                {
-                    if (k == 62 && chunkPrimerIn.getBlockState(j, k, i).getBlock() != Blocks.water)
-                    {
+            for (int k = 255; k >= 0; --k) {
+                if (chunkPrimerIn.getBlockState(j, k, i).getBlock().getMaterial() != Material.air) {
+                    if (k == 62 && chunkPrimerIn.getBlockState(j, k, i).getBlock() != Blocks.water) {
                         chunkPrimerIn.setBlockState(j, k, i, Blocks.water.getDefaultState());
 
-                        if (d0 < 0.12D)
-                        {
+                        if (d0 < 0.12D) {
                             chunkPrimerIn.setBlockState(j, k + 1, i, Blocks.waterlily.getDefaultState());
                         }
                     }

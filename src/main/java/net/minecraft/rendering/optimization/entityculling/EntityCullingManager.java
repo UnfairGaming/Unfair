@@ -11,8 +11,8 @@ public class EntityCullingManager {
 
     private static final Logger LOGGER = LogManager.getLogger();
     public static EntityCullingManager instance = new EntityCullingManager();
-    public OcclusionCullingInstance culling;
     public static boolean enabled = true;
+    public OcclusionCullingInstance culling;
     public CullTask cullTask;
 
     public int renderedBlockEntities = 0;

@@ -9,18 +9,18 @@ import net.minecraft.util.ResourceLocation;
 
 import java.util.Random;
 
-public class RenderEnderman extends RenderLiving<EntityEnderman>
-{
+public class RenderEnderman extends RenderLiving<EntityEnderman> {
     private static final ResourceLocation endermanTextures = ResourceLocation.of("textures/entity/enderman/enderman.png");
 
-    /** The model of the enderman */
+    /**
+     * The model of the enderman
+     */
     private ModelEnderman endermanModel;
     private Random rnd = new Random();
 
-    public RenderEnderman(RenderManager renderManagerIn)
-    {
+    public RenderEnderman(RenderManager renderManagerIn) {
         super(renderManagerIn, new ModelEnderman(0.0F), 0.5F);
-        this.endermanModel = (ModelEnderman)super.mainModel;
+        this.endermanModel = (ModelEnderman) super.mainModel;
         this.addLayer(new LayerEndermanEyes(this));
         this.addLayer(new LayerHeldBlock(this));
     }
@@ -28,13 +28,11 @@ public class RenderEnderman extends RenderLiving<EntityEnderman>
     /**
      * Renders the desired {@code T} type Entity.
      */
-    public void doRender(EntityEnderman entity, double x, double y, double z, float entityYaw, float partialTicks)
-    {
+    public void doRender(EntityEnderman entity, double x, double y, double z, float entityYaw, float partialTicks) {
         this.endermanModel.isCarrying = entity.getHeldBlockState().getBlock().getMaterial() != Material.air;
         this.endermanModel.isAttacking = entity.isScreaming();
 
-        if (entity.isScreaming())
-        {
+        if (entity.isScreaming()) {
             double d0 = 0.02D;
             x += this.rnd.nextGaussian() * d0;
             z += this.rnd.nextGaussian() * d0;
@@ -46,8 +44,7 @@ public class RenderEnderman extends RenderLiving<EntityEnderman>
     /**
      * Returns the location of an entity's texture. Doesn't seem to be called unless you call Render.bindEntityTexture.
      */
-    protected ResourceLocation getEntityTexture(EntityEnderman entity)
-    {
+    protected ResourceLocation getEntityTexture(EntityEnderman entity) {
         return endermanTextures;
     }
 }

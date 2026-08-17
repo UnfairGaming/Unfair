@@ -26,25 +26,22 @@ import net.optifine.EmissiveTextures;
 import java.util.Map;
 
 public class TileEntityRendererDispatcher {
-    public Map<Class<? extends TileEntity>, TileEntitySpecialRenderer<? extends TileEntity>> mapSpecialRenderers = Maps.newHashMap();
     public static TileEntityRendererDispatcher instance = new TileEntityRendererDispatcher();
-    @Getter
-    public FontRenderer fontRenderer;
-
     /**
      * The player's current X position (same as playerX)
      */
     public static double staticPlayerX;
-
     /**
      * The player's current Y position (same as playerY)
      */
     public static double staticPlayerY;
-
     /**
      * The player's current Z position (same as playerZ)
      */
     public static double staticPlayerZ;
+    public Map<Class<? extends TileEntity>, TileEntitySpecialRenderer<? extends TileEntity>> mapSpecialRenderers = Maps.newHashMap();
+    @Getter
+    public FontRenderer fontRenderer;
     public TextureManager renderEngine;
     public World worldObj;
     public Entity entity;
@@ -74,6 +71,11 @@ public class TileEntityRendererDispatcher {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T extends TileEntity> TileEntitySpecialRenderer<T> castSpecialRenderer(TileEntitySpecialRenderer<? extends TileEntity> renderer) {
+        return (TileEntitySpecialRenderer<T>) renderer;
+    }
+
     public <T extends TileEntity> TileEntitySpecialRenderer<T> getSpecialRendererByClass(Class<? extends TileEntity> teClass) {
         TileEntitySpecialRenderer<? extends TileEntity> tileentityspecialrenderer = this.mapSpecialRenderers.get(teClass);
 
@@ -90,11 +92,6 @@ public class TileEntityRendererDispatcher {
 
     public <T extends TileEntity> TileEntitySpecialRenderer<T> getSpecialRenderer(TileEntity tileEntityIn) {
         return tileEntityIn != null && !tileEntityIn.isInvalid() ? this.getSpecialRendererByClass(tileEntityIn.getClass()) : null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T extends TileEntity> TileEntitySpecialRenderer<T> castSpecialRenderer(TileEntitySpecialRenderer<? extends TileEntity> renderer) {
-        return (TileEntitySpecialRenderer<T>) renderer;
     }
 
     public void cacheActiveRenderInfo(World worldIn, TextureManager textureManagerIn, FontRenderer fontrendererIn, Entity entityIn, float partialTicks) {

@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 public class SoundHandler implements IResourceManagerReloadListener, ITickable {
+    public static final SoundPoolEntry missing_sound = new SoundPoolEntry(ResourceLocation.of("meta:missing_sound"), 0.0D, 0.0D, false);
     private static final Logger logger = LogManager.getLogger("SoundHandler");
     private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(SoundList.class, new SoundListSerializer()).create();
     private static final ParameterizedType TYPE = new ParameterizedType() {
@@ -42,9 +43,8 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
             return null;
         }
     };
-    public static final SoundPoolEntry missing_sound = new SoundPoolEntry(ResourceLocation.of("meta:missing_sound"), 0.0D, 0.0D, false);
-    private final SoundRegistry sndRegistry = new SoundRegistry();
     public final SoundManager sndManager;
+    private final SoundRegistry sndRegistry = new SoundRegistry();
     private final IResourceManager mcResourceManager;
 
     public SoundHandler(IResourceManager manager, GameSettings gameSettingsIn) {
@@ -113,8 +113,8 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
                 case FILE:
                     ResourceLocation resourcelocation1 = s.contains(":")
                             ? (resourcelocation.getResourcePath().endsWith(".ogg")
-                            ? resourcelocation
-                            : ResourceLocation.of(resourcelocation.getResourceDomain(), resourcelocation.getResourcePath() + ".ogg"))
+                               ? resourcelocation
+                               : ResourceLocation.of(resourcelocation.getResourceDomain(), resourcelocation.getResourcePath() + ".ogg"))
                             : ResourceLocation.of(s1, "sounds/" + resourcelocation.getResourcePath() + ".ogg");
                     InputStream inputstream = null;
 

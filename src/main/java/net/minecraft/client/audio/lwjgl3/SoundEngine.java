@@ -20,23 +20,46 @@ import static org.lwjgl.openal.ALC10.*;
 
 public class SoundEngine extends Library {
 
-    public static SoundEngine INSTANCE;
-
     private static final boolean GET = false;
     private static final boolean SET = true;
     private static final boolean XXX = false;
+    public static SoundEngine INSTANCE;
+    private static boolean alPitchSupported = true;
+    public long device;
     private FloatBuffer listenerPositionAL = null;
     private FloatBuffer listenerOrientation = null;
     private FloatBuffer listenerVelocity = null;
     private HashMap<String, IntBuffer> ALBufferMap = null;
-    private static boolean alPitchSupported = true;
-
-    public long device;
 
     public SoundEngine() throws SoundSystemException {
         INSTANCE = this;
         this.ALBufferMap = new HashMap<>();
         this.reverseByteOrder = true;
+    }
+
+    // TODO somethinghere
+    public static boolean libraryCompatible() {
+        return true;
+    }
+
+    public static boolean alPitchSupported() {
+        return alPitchSupported(false, false);
+    }
+
+    private static synchronized boolean alPitchSupported(boolean action, boolean value) {
+        if (action) {
+            alPitchSupported = value;
+        }
+
+        return alPitchSupported;
+    }
+
+    public static String getTitle() {
+        return "LWJGL OpenAL";
+    }
+
+    public static String getDescription() {
+        return "The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org";
     }
 
     public void init() throws SoundSystemException {
@@ -92,11 +115,6 @@ public class SoundEngine extends Library {
                 throw new Exception("OpenAL: AL_PITCH not supported.", 108);
             }
         }
-    }
-
-    // TODO somethinghere
-    public static boolean libraryCompatible() {
-        return true;
     }
 
     protected Channel createChannel(int type) {
@@ -508,26 +526,6 @@ public class SoundEngine extends Library {
                 this.errorMessage("An unrecognized error occurred.");
                 return true;
         }
-    }
-
-    public static boolean alPitchSupported() {
-        return alPitchSupported(false, false);
-    }
-
-    private static synchronized boolean alPitchSupported(boolean action, boolean value) {
-        if (action) {
-            alPitchSupported = value;
-        }
-
-        return alPitchSupported;
-    }
-
-    public static String getTitle() {
-        return "LWJGL OpenAL";
-    }
-
-    public static String getDescription() {
-        return "The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org";
     }
 
     public String getClassName() {

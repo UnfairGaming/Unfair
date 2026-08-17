@@ -10,7 +10,9 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-/** Modern block with one or more fixed collision cuboids. */
+/**
+ * Modern block with one or more fixed collision cuboids.
+ */
 public class BlockModernShape extends ModernBlock {
     protected final int firstState;
     protected final int lastState;
@@ -25,12 +27,29 @@ public class BlockModernShape extends ModernBlock {
         this.boxes = boxes;
     }
 
-    public int getViaStateIdMin() { return firstState; }
-    public int getViaStateIdMax() { return lastState; }
-    public ProtocolVersion getViaStateProtocol() { return protocol; }
-    public IBlockState getStateFromViaStateId(int stateId) { return getDefaultState(); }
-    public boolean isOpaqueCube() { return false; }
-    public boolean isFullCube() { return false; }
+    public int getViaStateIdMin() {
+        return firstState;
+    }
+
+    public int getViaStateIdMax() {
+        return lastState;
+    }
+
+    public ProtocolVersion getViaStateProtocol() {
+        return protocol;
+    }
+
+    public IBlockState getStateFromViaStateId(int stateId) {
+        return getDefaultState();
+    }
+
+    public boolean isOpaqueCube() {
+        return false;
+    }
+
+    public boolean isFullCube() {
+        return false;
+    }
 
     public void addCollisionBoxesToList(World world, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, Entity entity) {
         for (double[] b : boxes) {
@@ -41,8 +60,15 @@ public class BlockModernShape extends ModernBlock {
 
     public AxisAlignedBB getCollisionBoundingBox(World world, BlockPos pos, IBlockState state) {
         if (boxes.length == 0) return null;
-        double minX=16,minY=16,minZ=16,maxX=0,maxY=0,maxZ=0;
-        for(double[] b:boxes){minX=Math.min(minX,b[0]);minY=Math.min(minY,b[1]);minZ=Math.min(minZ,b[2]);maxX=Math.max(maxX,b[3]);maxY=Math.max(maxY,b[4]);maxZ=Math.max(maxZ,b[5]);}
-        return new AxisAlignedBB(pos.getX()+minX/16,pos.getY()+minY/16,pos.getZ()+minZ/16,pos.getX()+maxX/16,pos.getY()+maxY/16,pos.getZ()+maxZ/16);
+        double minX = 16, minY = 16, minZ = 16, maxX = 0, maxY = 0, maxZ = 0;
+        for (double[] b : boxes) {
+            minX = Math.min(minX, b[0]);
+            minY = Math.min(minY, b[1]);
+            minZ = Math.min(minZ, b[2]);
+            maxX = Math.max(maxX, b[3]);
+            maxY = Math.max(maxY, b[4]);
+            maxZ = Math.max(maxZ, b[5]);
+        }
+        return new AxisAlignedBB(pos.getX() + minX / 16, pos.getY() + minY / 16, pos.getZ() + minZ / 16, pos.getX() + maxX / 16, pos.getY() + maxY / 16, pos.getZ() + maxZ / 16);
     }
 }

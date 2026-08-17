@@ -1,8 +1,7 @@
 package net.optifine.expr;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public enum ExpressionType
-{
+public enum ExpressionType {
     FLOAT,
     FLOAT_ARRAY,
     BOOL;

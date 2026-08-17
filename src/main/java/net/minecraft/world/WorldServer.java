@@ -51,35 +51,32 @@ import java.util.*;
 
 public class WorldServer extends World implements IThreadListener {
     private static final Logger logger = LogManager.getLogger();
+    private static final List<WeightedRandomChestContent> bonusChestContent = Lists.newArrayList(new WeightedRandomChestContent(Items.stick, 0, 1, 3, 10), new WeightedRandomChestContent(Item.getItemFromBlock(Blocks.planks), 0, 1, 3, 10), new WeightedRandomChestContent(Item.getItemFromBlock(Blocks.log), 0, 1, 3, 10), new WeightedRandomChestContent(Items.stone_axe, 0, 1, 1, 3), new WeightedRandomChestContent(Items.wooden_axe, 0, 1, 1, 5), new WeightedRandomChestContent(Items.stone_pickaxe, 0, 1, 1, 3), new WeightedRandomChestContent(Items.wooden_pickaxe, 0, 1, 1, 5), new WeightedRandomChestContent(Items.apple, 0, 2, 3, 5), new WeightedRandomChestContent(Items.bread, 0, 2, 3, 3), new WeightedRandomChestContent(Item.getItemFromBlock(Blocks.log2), 0, 1, 3, 10));
+    protected final VillageSiege villageSiege = new VillageSiege(this);
     private final MinecraftServer mcServer;
     private final EntityTracker theEntityTracker;
     private final PlayerManager thePlayerManager;
     private final Set<NextTickListEntry> pendingTickListEntriesHashSet = Sets.newHashSet();
     private final TreeSet<NextTickListEntry> pendingTickListEntriesTreeSet = new TreeSet<>();
     private final Map<UUID, Entity> entitiesByUuid = Maps.newHashMap();
-    public ChunkProviderServer theChunkProviderServer;
-
-    /**
-     * Whether level saving is disabled or not
-     */
-    public boolean disableLevelSaving;
-
-    /**
-     * is false if there are no players
-     */
-    private boolean allPlayersSleeping;
-    private int updateEntityTick;
-
     /**
      * the teleporter to use when the entity is being transferred into the dimension
      */
     private final Teleporter worldTeleporter;
     private final SpawnerAnimals mobSpawner = new SpawnerAnimals();
-    protected final VillageSiege villageSiege = new VillageSiege(this);
     private final WorldServer.ServerBlockEventList[] blockEventQueue = new WorldServer.ServerBlockEventList[]{new WorldServer.ServerBlockEventList(), new WorldServer.ServerBlockEventList()};
-    private int blockEventCacheIndex;
-    private static final List<WeightedRandomChestContent> bonusChestContent = Lists.newArrayList(new WeightedRandomChestContent(Items.stick, 0, 1, 3, 10), new WeightedRandomChestContent(Item.getItemFromBlock(Blocks.planks), 0, 1, 3, 10), new WeightedRandomChestContent(Item.getItemFromBlock(Blocks.log), 0, 1, 3, 10), new WeightedRandomChestContent(Items.stone_axe, 0, 1, 1, 3), new WeightedRandomChestContent(Items.wooden_axe, 0, 1, 1, 5), new WeightedRandomChestContent(Items.stone_pickaxe, 0, 1, 1, 3), new WeightedRandomChestContent(Items.wooden_pickaxe, 0, 1, 1, 5), new WeightedRandomChestContent(Items.apple, 0, 2, 3, 5), new WeightedRandomChestContent(Items.bread, 0, 2, 3, 3), new WeightedRandomChestContent(Item.getItemFromBlock(Blocks.log2), 0, 1, 3, 10));
     private final List<NextTickListEntry> pendingTickListEntriesThisTick = Lists.newArrayList();
+    public ChunkProviderServer theChunkProviderServer;
+    /**
+     * Whether level saving is disabled or not
+     */
+    public boolean disableLevelSaving;
+    /**
+     * is false if there are no players
+     */
+    private boolean allPlayersSleeping;
+    private int updateEntityTick;
+    private int blockEventCacheIndex;
 
     public WorldServer(MinecraftServer server, ISaveHandler saveHandlerIn, WorldInfo info, int dimensionId, Profiler profilerIn) {
         super(saveHandlerIn, info, WorldProvider.getProviderForDimension(dimensionId), profilerIn, false);

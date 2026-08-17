@@ -4,8 +4,7 @@ import net.minecraft.util.BlockPos;
 
 import java.util.List;
 
-public interface ICommand extends Comparable<ICommand>
-{
+public interface ICommand extends Comparable<ICommand> {
     /**
      * Gets the name of the command
      */

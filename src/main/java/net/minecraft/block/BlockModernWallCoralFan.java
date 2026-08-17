@@ -16,6 +16,13 @@ public class BlockModernWallCoralFan extends BlockModernFacingShape {
         super(Material.coral, ProtocolVersion.v1_14, firstState, firstState + 7);
     }
 
+    private static AxisAlignedBB box(BlockPos pos, double minX, double minY, double minZ,
+                                     double maxX, double maxY, double maxZ) {
+        return new AxisAlignedBB(pos.getX() + minX / 16.0D, pos.getY() + minY / 16.0D,
+                pos.getZ() + minZ / 16.0D, pos.getX() + maxX / 16.0D,
+                pos.getY() + maxY / 16.0D, pos.getZ() + maxZ / 16.0D);
+    }
+
     @Override
     public AxisAlignedBB getCollisionBoundingBox(World world, BlockPos pos, IBlockState state) {
         switch (state.getValue(FACING)) {
@@ -28,12 +35,5 @@ public class BlockModernWallCoralFan extends BlockModernFacingShape {
             default:
                 return box(pos, 0, 0, 0, 5, 16, 16);
         }
-    }
-
-    private static AxisAlignedBB box(BlockPos pos, double minX, double minY, double minZ,
-                                     double maxX, double maxY, double maxZ) {
-        return new AxisAlignedBB(pos.getX() + minX / 16.0D, pos.getY() + minY / 16.0D,
-                pos.getZ() + minZ / 16.0D, pos.getX() + maxX / 16.0D,
-                pos.getY() + maxY / 16.0D, pos.getZ() + maxZ / 16.0D);
     }
 }

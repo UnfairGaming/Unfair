@@ -36,6 +36,21 @@ public class ItemModelMesher {
         this.modelManager = modelManager;
     }
 
+    private static boolean isModernBlockItem(ItemStack stack, String modelName) {
+        if (ViaBackwardsItemModels.isBlockModel(modelName)) {
+            return true;
+        }
+        Block block = modelName == null ? null : Block.blockRegistry.getObject(ResourceLocation.of(modelName));
+        if (!(block instanceof ModernBlock) && stack != null && stack.getItem() instanceof ItemBlock) {
+            block = ((ItemBlock) stack.getItem()).getBlock();
+        }
+        return block instanceof ModernBlock;
+    }
+
+    private static boolean isElytraModel(String modelName) {
+        return modelName != null && (modelName.equals("elytra") || modelName.equals("elytra_broken"));
+    }
+
     public TextureAtlasSprite getParticleIcon(Item item) {
         return this.getParticleIcon(item, 0);
     }
@@ -70,21 +85,6 @@ public class ItemModelMesher {
         }
 
         return LegacyHandBakedModel.wrap(ibakedmodel, itemModelName, isModernBlockItem(stack, itemModelName));
-    }
-
-    private static boolean isModernBlockItem(ItemStack stack, String modelName) {
-        if (ViaBackwardsItemModels.isBlockModel(modelName)) {
-            return true;
-        }
-        Block block = modelName == null ? null : Block.blockRegistry.getObject(ResourceLocation.of(modelName));
-        if (!(block instanceof ModernBlock) && stack != null && stack.getItem() instanceof ItemBlock) {
-            block = ((ItemBlock) stack.getItem()).getBlock();
-        }
-        return block instanceof ModernBlock;
-    }
-
-    private static boolean isElytraModel(String modelName) {
-        return modelName != null && (modelName.equals("elytra") || modelName.equals("elytra_broken"));
     }
 
     protected int getMetadata(ItemStack stack) {

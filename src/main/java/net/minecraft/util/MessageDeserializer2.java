@@ -9,41 +9,32 @@ import net.minecraft.network.PacketBuffer;
 
 import java.util.List;
 
-public class MessageDeserializer2 extends ByteToMessageDecoder
-{
-    protected void decode(ChannelHandlerContext p_decode_1_, ByteBuf p_decode_2_, List<Object> p_decode_3_) throws Exception
-    {
+public class MessageDeserializer2 extends ByteToMessageDecoder {
+    protected void decode(ChannelHandlerContext p_decode_1_, ByteBuf p_decode_2_, List<Object> p_decode_3_) throws Exception {
         p_decode_2_.markReaderIndex();
         byte[] abyte = new byte[3];
 
-        for (int i = 0; i < abyte.length; ++i)
-        {
-            if (!p_decode_2_.isReadable())
-            {
+        for (int i = 0; i < abyte.length; ++i) {
+            if (!p_decode_2_.isReadable()) {
                 p_decode_2_.resetReaderIndex();
                 return;
             }
 
             abyte[i] = p_decode_2_.readByte();
 
-            if (abyte[i] >= 0)
-            {
+            if (abyte[i] >= 0) {
                 PacketBuffer packetbuffer = new PacketBuffer(Unpooled.wrappedBuffer(abyte));
 
-                try
-                {
+                try {
                     int j = packetbuffer.readVarIntFromBuffer();
 
-                    if (p_decode_2_.readableBytes() >= j)
-                    {
+                    if (p_decode_2_.readableBytes() >= j) {
                         p_decode_3_.add(p_decode_2_.readBytes(j));
                         return;
                     }
 
                     p_decode_2_.resetReaderIndex();
-                }
-                finally
-                {
+                } finally {
                     packetbuffer.release();
                 }
 

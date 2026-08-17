@@ -17,32 +17,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class PreYggdrasilConverter
-{
-    private static final Logger LOGGER = LogManager.getLogger();
+public class PreYggdrasilConverter {
     public static final File OLD_IPBAN_FILE = new File("banned-ips.txt");
     public static final File OLD_PLAYERBAN_FILE = new File("banned-players.txt");
     public static final File OLD_OPS_FILE = new File("ops.txt");
     public static final File OLD_WHITELIST_FILE = new File("white-list.txt");
+    private static final Logger LOGGER = LogManager.getLogger();
 
-    private static void lookupNames(MinecraftServer server, Collection<String> names, ProfileLookupCallback callback)
-    {
-        String[] astring = Iterators.toArray(Iterators.filter(names.iterator(), new Predicate<String>()
-        {
-            public boolean apply(String p_apply_1_)
-            {
+    private static void lookupNames(MinecraftServer server, Collection<String> names, ProfileLookupCallback callback) {
+        String[] astring = Iterators.toArray(Iterators.filter(names.iterator(), new Predicate<String>() {
+            public boolean apply(String p_apply_1_) {
                 return !StringUtils.isNullOrEmpty(p_apply_1_);
             }
         }), String.class);
 
-        if (server.isServerInOnlineMode())
-        {
+        if (server.isServerInOnlineMode()) {
             server.getGameProfileRepository().findProfilesByNames(astring, Agent.MINECRAFT, callback);
-        }
-        else
-        {
-            for (String s : astring)
-            {
+        } else {
+            for (String s : astring) {
                 UUID uuid = EntityPlayer.getUUID(new GameProfile(null, s));
                 GameProfile gameprofile = new GameProfile(uuid, s);
                 callback.onProfileLookupSucceeded(gameprofile);
@@ -50,42 +42,31 @@ public class PreYggdrasilConverter
         }
     }
 
-    public static String getStringUUIDFromName(String p_152719_0_)
-    {
-        if (!StringUtils.isNullOrEmpty(p_152719_0_) && p_152719_0_.length() <= 16)
-        {
+    public static String getStringUUIDFromName(String p_152719_0_) {
+        if (!StringUtils.isNullOrEmpty(p_152719_0_) && p_152719_0_.length() <= 16) {
             final MinecraftServer minecraftserver = MinecraftServer.getServer();
             GameProfile gameprofile = minecraftserver.getPlayerProfileCache().getGameProfileForUsername(p_152719_0_);
 
-            if (gameprofile != null && gameprofile.getId() != null)
-            {
+            if (gameprofile != null && gameprofile.getId() != null) {
                 return gameprofile.getId().toString();
-            }
-            else if (!minecraftserver.isSinglePlayer() && minecraftserver.isServerInOnlineMode())
-            {
+            } else if (!minecraftserver.isSinglePlayer() && minecraftserver.isServerInOnlineMode()) {
                 final List<GameProfile> list = Lists.<GameProfile>newArrayList();
-                ProfileLookupCallback profilelookupcallback = new ProfileLookupCallback()
-                {
-                    public void onProfileLookupSucceeded(GameProfile p_onProfileLookupSucceeded_1_)
-                    {
+                ProfileLookupCallback profilelookupcallback = new ProfileLookupCallback() {
+                    public void onProfileLookupSucceeded(GameProfile p_onProfileLookupSucceeded_1_) {
                         minecraftserver.getPlayerProfileCache().addEntry(p_onProfileLookupSucceeded_1_);
                         list.add(p_onProfileLookupSucceeded_1_);
                     }
-                    public void onProfileLookupFailed(GameProfile p_onProfileLookupFailed_1_, Exception p_onProfileLookupFailed_2_)
-                    {
+
+                    public void onProfileLookupFailed(GameProfile p_onProfileLookupFailed_1_, Exception p_onProfileLookupFailed_2_) {
                         PreYggdrasilConverter.LOGGER.warn("Could not lookup user whitelist entry for " + p_onProfileLookupFailed_1_.getName(), p_onProfileLookupFailed_2_);
                     }
                 };
-                lookupNames(minecraftserver, Lists.newArrayList(new String[] {p_152719_0_}), profilelookupcallback);
+                lookupNames(minecraftserver, Lists.newArrayList(new String[]{p_152719_0_}), profilelookupcallback);
                 return !list.isEmpty() && list.get(0).getId() != null ? list.get(0).getId().toString() : "";
-            }
-            else
-            {
+            } else {
                 return EntityPlayer.getUUID(new GameProfile(null, p_152719_0_)).toString();
             }
-        }
-        else
-        {
+        } else {
             return p_152719_0_;
         }
     }

@@ -16,8 +16,13 @@ public class BlockModernCandleCake extends BlockModernShape {
         setDefaultState(blockState.getBaseState().withProperty(LIT, false));
     }
 
-    @Override protected BlockState createBlockState() { return new BlockState(this, new IProperty[]{LIT}); }
-    @Override public IBlockState getStateFromViaStateId(int id) {
+    @Override
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{LIT});
+    }
+
+    @Override
+    public IBlockState getStateFromViaStateId(int id) {
         // Boolean state IDs are ordered true, false in the 1.17 registry.
         return getDefaultState().withProperty(LIT, id == firstState);
     }

@@ -60,38 +60,27 @@ import java.util.concurrent.Callable;
 public abstract class Entity implements ICommandSender, Cullable {
     private static final AxisAlignedBB ZERO_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
     private static int nextEntityID;
-    @Setter
-    @Getter
-    private int entityId;
+    /**
+     * The command result statistics for this Entity.
+     */
+    private final CommandResultStats cmdResultStats;
+    private final Optional<BlockPos> cachedPos = Optional.empty();
     public double renderDistanceWeight;
     public float movementYaw, velocityYaw, lastMovementYaw;
-    private double modernStepDesiredY;
-    private boolean modernStepDownAdjusted;
-    private double moveStartX;
-    private double moveStartZ;
-    private int lastModernFluidTick = Integer.MIN_VALUE;
-    private boolean hasStuckSpeedMultiplier;
-    private double stuckSpeedX;
-    private double stuckSpeedY;
-    private double stuckSpeedZ;
-
     /**
      * Blocks entities from spawning when they do their AABB check to make sure the spot is clear of entities that can
      * prevent spawning.
      */
     public boolean preventEntitySpawning;
-
     /**
      * The entity that is riding this entity
      */
     public Entity riddenByEntity;
-
     /**
      * The entity we are currently riding
      */
     public Entity ridingEntity;
     public boolean forceSpawn;
-
     /**
      * Reference to the World object.
      */
@@ -99,168 +88,117 @@ public abstract class Entity implements ICommandSender, Cullable {
     public double prevPosX;
     public double prevPosY;
     public double prevPosZ;
-
     /**
      * Entity position X
      */
     public double posX;
-
     /**
      * Entity position Y
      */
     public double posY;
-
     /**
      * Entity position Z
      */
     public double posZ;
-
     /**
      * Entity motion X
      */
     public double motionX;
-
     /**
      * Entity motion Y
      */
     public double motionY;
-
     /**
      * Entity motion Z
      */
     public double motionZ;
-
     /**
      * Entity rotation Yaw
      */
     public float rotationYaw;
-
     /**
      * Entity rotation Pitch
      */
     public float rotationPitch;
     public float prevRotationYaw;
     public float prevRotationPitch;
-
-    /**
-     * Axis aligned bounding box.
-     */
-    private AxisAlignedBB boundingBox;
     public boolean onGround;
-
     /**
      * True if after a move this entity has collided with something on X- or Z-axis
      */
     public boolean isCollidedHorizontally;
     public boolean isCollidingWithWall;
-
     public boolean inView;
     public int outOfViewTicks;
-
     /**
      * True if after a move this entity has collided with something on Y-axis
      */
     public boolean isCollidedVertically;
-
     /**
      * True if after a move this entity has collided with something either vertically or horizontally
      */
     public boolean isCollided;
     public boolean velocityChanged;
-    protected boolean isInWeb;
-    private boolean isOutsideBorder;
-
     /**
      * gets set by setEntityDead, so this must be the flag whether an Entity is dead (inactive may be better term)
      */
     public boolean isDead;
-
     /**
      * How wide this entity is considered to be
      */
     public float width;
-
     /**
      * How high this entity is considered to be
      */
     public float height;
-
     /**
      * The previous ticks distance walked multiplied by 0.6
      */
     public float prevDistanceWalkedModified;
-
     /**
      * The distance walked multiplied by 0.6
      */
     public float distanceWalkedModified;
     public float distanceWalkedOnStepModified;
     public float fallDistance;
-
-    /**
-     * The distance that has to be exceeded in order to triger a new step sound and an onEntityWalking event on a block
-     */
-    private int nextStepDistance;
-
     /**
      * The entity's X coordinate at the previous tick, used to calculate position during rendering routines
      */
     public double lastTickPosX;
-
     /**
      * The entity's Y coordinate at the previous tick, used to calculate position during rendering routines
      */
     public double lastTickPosY;
-
     /**
      * The entity's Z coordinate at the previous tick, used to calculate position during rendering routines
      */
     public double lastTickPosZ;
     public double threadDistance;
-
     /**
      * How high this entity can step up when running into a block to try to get over it (currently make note the entity
      * will always step up this amount and not just the amount needed)
      */
     public float stepHeight;
-
     /**
      * Whether this entity won't clip with collision or not (make note it won't disable gravity)
      */
     public boolean noClip;
-
     /**
      * Reduces the velocity applied by entity collisions by the specified percent.
      */
     public float entityCollisionReduction;
-    protected Random rand;
-
     /**
      * How many ticks has this entity had ran since being alive
      */
     public int ticksExisted;
-
     /**
      * The amount of ticks you have to stand inside of fire before be set on fire
      */
     public int fireResistance;
-    private int fire;
-
-    /**
-     * Whether this entity is currently inside of water (if it handles water movement that is)
-     */
-    protected boolean inWater;
-
     /**
      * Remaining time an entity will be "immune" to further damage after being hurt.
      */
     public int hurtResistantTime;
-    protected boolean firstUpdate;
-    protected boolean isImmuneToFire;
-    protected DataWatcher dataWatcher;
-    private double entityRiderPitchDelta;
-    private double entityRiderYawDelta;
-
     /**
      * Has this entity been added to the chunk its within
      */
@@ -271,7 +209,6 @@ public abstract class Entity implements ICommandSender, Cullable {
     public int serverPosX;
     public int serverPosY;
     public int serverPosZ;
-
     /**
      * Render entity even if it is outside the camera frustum. Only true in EntityFish for now. Used in RenderGlobal:
      * render if ignoreFrustumCheck or in frustum.
@@ -279,53 +216,275 @@ public abstract class Entity implements ICommandSender, Cullable {
     public boolean ignoreFrustumCheck;
     public boolean isAirBorne;
     public int timeUntilPortal;
-
+    /**
+     * Which dimension the player is in (-1 = the Nether, 0 = normal world)
+     */
+    public int dimension;
+    public Double jumpVelocityInLava;
+    public Double liquidDetectionFlag;
+    protected boolean isInWeb;
+    protected Random rand;
+    /**
+     * Whether this entity is currently inside of water (if it handles water movement that is)
+     */
+    protected boolean inWater;
+    protected boolean firstUpdate;
+    protected boolean isImmuneToFire;
+    protected DataWatcher dataWatcher;
     /**
      * Whether the entity is inside a Portal
      */
     protected boolean inPortal;
     protected int portalCounter;
-
-    /**
-     * Which dimension the player is in (-1 = the Nether, 0 = normal world)
-     */
-    public int dimension;
-
     /**
      * The position of the last portal the entity was in
      */
     protected BlockPos lastPortalPos;
-
     /**
      * A horizontal vector related to the position of the last portal the entity was in
      */
     protected Vec3 lastPortalVec;
-
     /**
      * A direction related to the position of the last portal the entity was in
      */
     protected EnumFacing teleportDirection;
-    private boolean invulnerable;
     protected UUID entityUniqueID;
-
+    @Setter
+    @Getter
+    private int entityId;
+    private double modernStepDesiredY;
+    private boolean modernStepDownAdjusted;
+    private double moveStartX;
+    private double moveStartZ;
+    private int lastModernFluidTick = Integer.MIN_VALUE;
+    private boolean hasStuckSpeedMultiplier;
+    private double stuckSpeedX;
+    private double stuckSpeedY;
+    private double stuckSpeedZ;
     /**
-     * The command result statistics for this Entity.
+     * Axis aligned bounding box.
      */
-    private final CommandResultStats cmdResultStats;
-
+    private AxisAlignedBB boundingBox;
+    private boolean isOutsideBorder;
+    /**
+     * The distance that has to be exceeded in order to triger a new step sound and an onEntityWalking event on a block
+     */
+    private int nextStepDistance;
+    private int fire;
+    private double entityRiderPitchDelta;
+    private double entityRiderYawDelta;
+    private boolean invulnerable;
     private long patcher$displayNameCachedAt;
     private IChatComponent patcher$cachedDisplayName;
     private PooledMutableBlockPos microoptimizations$opaqueCheck$blockPos;
     private PooledMutableBlockPos microoptimizations$blockPosTemp;
     private PooledMutableBlockPos microoptimizations$blockPos1;
     private PooledMutableBlockPos microoptimizations$blockPos2;
-
     private long lasttime = 0;
     private boolean culled = false;
     private boolean outOfCamera = false;
-    public Double jumpVelocityInLava;
-    public Double liquidDetectionFlag;
-    private final Optional<BlockPos> cachedPos = Optional.empty();
+
+    public Entity(World worldIn) {
+        this.entityId = nextEntityID++;
+        this.renderDistanceWeight = 1.0D;
+        this.boundingBox = ZERO_AABB;
+        this.width = 0.6F;
+        this.height = 1.8F;
+        this.nextStepDistance = 1;
+        this.rand = new Random();
+        this.fireResistance = 1;
+        this.firstUpdate = true;
+        this.entityUniqueID = MathHelper.getRandomUuid(this.rand);
+        this.cmdResultStats = new CommandResultStats();
+        this.worldObj = worldIn;
+        this.setPosition(0.0D, 0.0D, 0.0D);
+
+        if (worldIn != null) {
+            this.dimension = worldIn.provider.getDimensionId();
+        }
+
+        this.dataWatcher = new DataWatcher(this);
+        this.dataWatcher.addObject(0, (byte) 0);
+        this.dataWatcher.addObject(1, (short) 300);
+        this.dataWatcher.addObject(3, (byte) 0);
+        this.dataWatcher.addObject(2, "");
+        this.dataWatcher.addObject(4, (byte) 0);
+        this.entityInit();
+    }
+
+    private static ModernCollisionResult collideHorizontalModern(AxisAlignedBB startBox, List<AxisAlignedBB> collisions, double x, double z) {
+        double xThenZX = x;
+        AxisAlignedBB xThenZBox = startBox;
+        for (AxisAlignedBB collision : collisions) {
+            xThenZX = calculateXOffsetModern(collision, xThenZBox, xThenZX);
+        }
+        xThenZBox = xThenZBox.offset(xThenZX, 0.0D, 0.0D);
+        double xThenZZ = z;
+        for (AxisAlignedBB collision : collisions) {
+            xThenZZ = calculateZOffsetModern(collision, xThenZBox, xThenZZ);
+        }
+        xThenZBox = xThenZBox.offset(0.0D, 0.0D, xThenZZ);
+
+        double zThenXZ = z;
+        AxisAlignedBB zThenXBox = startBox;
+        for (AxisAlignedBB collision : collisions) {
+            zThenXZ = calculateZOffsetModern(collision, zThenXBox, zThenXZ);
+        }
+        zThenXBox = zThenXBox.offset(0.0D, 0.0D, zThenXZ);
+        double zThenXX = x;
+        for (AxisAlignedBB collision : collisions) {
+            zThenXX = calculateXOffsetModern(collision, zThenXBox, zThenXX);
+        }
+        zThenXBox = zThenXBox.offset(zThenXX, 0.0D, 0.0D);
+
+        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_18_2)) {
+            // 1.14-1.18.1 keeps the protocol's deterministic YXZ/YZX order.
+            return Math.abs(x) < Math.abs(z)
+                    ? new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox)
+                    : new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
+        }
+
+        if (zThenXX * zThenXX + zThenXZ * zThenXZ > xThenZX * xThenZX + xThenZZ * xThenZZ) {
+            return new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox);
+        }
+        return new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
+    }
+
+    // Grim's SimpleCollisionBox uses a small tolerance for modern clients. The
+    // legacy AxisAlignedBB methods otherwise turn touching faces into a hard
+    // collision for a single tick.
+    private static double calculateXOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
+        if (offset != 0.0D
+                && entity.maxY - block.minY > 1.0E-7D
+                && block.maxY - entity.minY > 1.0E-7D
+                && entity.maxZ - block.minZ > 1.0E-7D
+                && block.maxZ - entity.minZ > 1.0E-7D) {
+            if (offset > 0.0D) {
+                double distance = block.minX - entity.maxX;
+                if (distance >= -1.0E-7D) {
+                    offset = Math.min(distance, offset);
+                }
+            } else {
+                double distance = block.maxX - entity.minX;
+                if (distance <= 1.0E-7D) {
+                    offset = Math.max(distance, offset);
+                }
+            }
+        }
+        return offset;
+    }
+
+    private static double calculateYOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
+        if (offset != 0.0D
+                && entity.maxX - block.minX > 1.0E-7D
+                && block.maxX - entity.minX > 1.0E-7D
+                && entity.maxZ - block.minZ > 1.0E-7D
+                && block.maxZ - entity.minZ > 1.0E-7D) {
+            if (offset > 0.0D) {
+                double distance = block.minY - entity.maxY;
+                if (distance >= -1.0E-7D) {
+                    offset = Math.min(distance, offset);
+                }
+            } else {
+                double distance = block.maxY - entity.minY;
+                if (distance <= 1.0E-7D) {
+                    offset = Math.max(distance, offset);
+                }
+            }
+        }
+        return offset;
+    }
+
+    private static double calculateZOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
+        if (offset != 0.0D
+                && entity.maxX - block.minX > 1.0E-7D
+                && block.maxX - entity.minX > 1.0E-7D
+                && entity.maxY - block.minY > 1.0E-7D
+                && block.maxY - entity.minY > 1.0E-7D) {
+            if (offset > 0.0D) {
+                double distance = block.minZ - entity.maxZ;
+                if (distance >= -1.0E-7D) {
+                    offset = Math.min(distance, offset);
+                }
+            } else {
+                double distance = block.maxZ - entity.minZ;
+                if (distance <= 1.0E-7D) {
+                    offset = Math.max(distance, offset);
+                }
+            }
+        }
+        return offset;
+    }
+
+    private static boolean movementEqual(double first, double second) {
+        return Math.abs(second - first) < 1.0E-5D;
+    }
+
+    private static void applyModernFluidPush(EntityPlayerSP player, Vec3 accumulatedFlow, int flowCount, double multiplier) {
+        if (flowCount == 0 || accumulatedFlow.lengthVector() * accumulatedFlow.lengthVector() < 1.0E-5D) {
+            return;
+        }
+
+        Vec3 flow = new Vec3(accumulatedFlow.xCoord / flowCount, accumulatedFlow.yCoord / flowCount, accumulatedFlow.zCoord / flowCount);
+        flow = new Vec3(flow.xCoord * multiplier, flow.yCoord * multiplier, flow.zCoord * multiplier);
+        if (Math.abs(player.motionX) < 0.003D
+                && Math.abs(player.motionZ) < 0.003D
+                && flow.lengthVector() < 0.0045000000000000005D) {
+            Vec3 normalized = flow.normalize();
+            flow = new Vec3(normalized.xCoord * 0.0045000000000000005D, normalized.yCoord * 0.0045000000000000005D, normalized.zCoord * 0.0045000000000000005D);
+        }
+        player.motionX += flow.xCoord;
+        player.motionY += flow.yCoord;
+        player.motionZ += flow.zCoord;
+    }
+
+    private static BlockPos findSupportingBlock(EntityPlayerSP player, AxisAlignedBB search) {
+        int minX = MathHelper.floor_double(search.minX);
+        int maxX = MathHelper.floor_double(search.maxX);
+        int minY = MathHelper.floor_double(search.minY);
+        int maxY = MathHelper.floor_double(search.maxY);
+        int minZ = MathHelper.floor_double(search.minZ);
+        int maxZ = MathHelper.floor_double(search.maxZ);
+        List<AxisAlignedBB> collisions = new ArrayList<>();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+
+        for (int blockX = minX; blockX <= maxX; blockX++) {
+            for (int blockY = minY; blockY <= maxY; blockY++) {
+                for (int blockZ = minZ; blockZ <= maxZ; blockZ++) {
+                    BlockPos candidate = new BlockPos(blockX, blockY, blockZ);
+                    IBlockState state = player.worldObj.getBlockState(candidate);
+                    collisions.clear();
+                    state.getBlock().addCollisionBoxesToList(player.worldObj, candidate, state, search, collisions, player);
+                    if (collisions.isEmpty()) {
+                        continue;
+                    }
+
+                    double dx = player.posX - ((double) blockX + 0.5D);
+                    double dy = player.posY - ((double) blockY + 0.5D);
+                    double dz = player.posZ - ((double) blockZ + 0.5D);
+                    double distance = dx * dx + dy * dy + dz * dz;
+                    if (distance < bestDistance
+                            || distance == bestDistance
+                            && (best == null || hasSupportingPriority(candidate, best))) {
+                        best = candidate;
+                        bestDistance = distance;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    private static boolean hasSupportingPriority(BlockPos first, BlockPos second) {
+        if (first.getY() < second.getY()) {
+            return true;
+        }
+        int deltaX = second.getX() - first.getX();
+        int deltaZ = second.getZ() - first.getZ();
+        int horizontalSum = deltaX + deltaZ;
+        return horizontalSum == 0 ? deltaX < 0 : horizontalSum < 0;
+    }
 
     @Override
     public void setTimeout() {
@@ -338,16 +497,17 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     @Override
+    public boolean isCulled() {
+        if (!EntityCullingManager.enabled) return false;
+        return culled;
+    }
+
+    @Override
     public void setCulled(boolean value) {
         this.culled = value;
-        if(!value) {
+        if (!value) {
             setTimeout();
         }
-    }
-    @Override
-    public boolean isCulled() {
-        if(!EntityCullingManager.enabled)return false;
-        return culled;
     }
 
     protected boolean isCollidingHorizontally() {
@@ -376,14 +536,14 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     @Override
-    public void setOutOfCamera(boolean value) {
-        this.outOfCamera = value;
+    public boolean isOutOfCamera() {
+        if (!EntityCullingManager.enabled) return false;
+        return outOfCamera;
     }
 
     @Override
-    public boolean isOutOfCamera() {
-        if(!EntityCullingManager.enabled)return false;
-        return outOfCamera;
+    public void setOutOfCamera(boolean value) {
+        this.outOfCamera = value;
     }
 
     /**
@@ -391,34 +551,6 @@ public abstract class Entity implements ICommandSender, Cullable {
      */
     public void onKillCommand() {
         this.setDead();
-    }
-
-    public Entity(World worldIn) {
-        this.entityId = nextEntityID++;
-        this.renderDistanceWeight = 1.0D;
-        this.boundingBox = ZERO_AABB;
-        this.width = 0.6F;
-        this.height = 1.8F;
-        this.nextStepDistance = 1;
-        this.rand = new Random();
-        this.fireResistance = 1;
-        this.firstUpdate = true;
-        this.entityUniqueID = MathHelper.getRandomUuid(this.rand);
-        this.cmdResultStats = new CommandResultStats();
-        this.worldObj = worldIn;
-        this.setPosition(0.0D, 0.0D, 0.0D);
-
-        if (worldIn != null) {
-            this.dimension = worldIn.provider.getDimensionId();
-        }
-
-        this.dataWatcher = new DataWatcher(this);
-        this.dataWatcher.addObject(0, (byte) 0);
-        this.dataWatcher.addObject(1, (short) 300);
-        this.dataWatcher.addObject(3, (byte) 0);
-        this.dataWatcher.addObject(2, "");
-        this.dataWatcher.addObject(4, (byte) 0);
-        this.entityInit();
     }
 
     protected abstract void entityInit();
@@ -1074,126 +1206,6 @@ public abstract class Entity implements ICommandSender, Cullable {
         }
     }
 
-    private static ModernCollisionResult collideHorizontalModern(AxisAlignedBB startBox, List<AxisAlignedBB> collisions, double x, double z) {
-        double xThenZX = x;
-        AxisAlignedBB xThenZBox = startBox;
-        for (AxisAlignedBB collision : collisions) {
-            xThenZX = calculateXOffsetModern(collision, xThenZBox, xThenZX);
-        }
-        xThenZBox = xThenZBox.offset(xThenZX, 0.0D, 0.0D);
-        double xThenZZ = z;
-        for (AxisAlignedBB collision : collisions) {
-            xThenZZ = calculateZOffsetModern(collision, xThenZBox, xThenZZ);
-        }
-        xThenZBox = xThenZBox.offset(0.0D, 0.0D, xThenZZ);
-
-        double zThenXZ = z;
-        AxisAlignedBB zThenXBox = startBox;
-        for (AxisAlignedBB collision : collisions) {
-            zThenXZ = calculateZOffsetModern(collision, zThenXBox, zThenXZ);
-        }
-        zThenXBox = zThenXBox.offset(0.0D, 0.0D, zThenXZ);
-        double zThenXX = x;
-        for (AxisAlignedBB collision : collisions) {
-            zThenXX = calculateXOffsetModern(collision, zThenXBox, zThenXX);
-        }
-        zThenXBox = zThenXBox.offset(zThenXX, 0.0D, 0.0D);
-
-        if (ViaLoadingBase.getInstance().getTargetVersion().olderThan(ProtocolVersion.v1_18_2)) {
-            // 1.14-1.18.1 keeps the protocol's deterministic YXZ/YZX order.
-            return Math.abs(x) < Math.abs(z)
-                    ? new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox)
-                    : new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
-        }
-
-        if (zThenXX * zThenXX + zThenXZ * zThenXZ > xThenZX * xThenZX + xThenZZ * xThenZZ) {
-            return new ModernCollisionResult(zThenXX, zThenXZ, zThenXBox);
-        }
-        return new ModernCollisionResult(xThenZX, xThenZZ, xThenZBox);
-    }
-
-    // Grim's SimpleCollisionBox uses a small tolerance for modern clients. The
-    // legacy AxisAlignedBB methods otherwise turn touching faces into a hard
-    // collision for a single tick.
-    private static double calculateXOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
-        if (offset != 0.0D
-                && entity.maxY - block.minY > 1.0E-7D
-                && block.maxY - entity.minY > 1.0E-7D
-                && entity.maxZ - block.minZ > 1.0E-7D
-                && block.maxZ - entity.minZ > 1.0E-7D) {
-            if (offset > 0.0D) {
-                double distance = block.minX - entity.maxX;
-                if (distance >= -1.0E-7D) {
-                    offset = Math.min(distance, offset);
-                }
-            } else {
-                double distance = block.maxX - entity.minX;
-                if (distance <= 1.0E-7D) {
-                    offset = Math.max(distance, offset);
-                }
-            }
-        }
-        return offset;
-    }
-
-    private static double calculateYOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
-        if (offset != 0.0D
-                && entity.maxX - block.minX > 1.0E-7D
-                && block.maxX - entity.minX > 1.0E-7D
-                && entity.maxZ - block.minZ > 1.0E-7D
-                && block.maxZ - entity.minZ > 1.0E-7D) {
-            if (offset > 0.0D) {
-                double distance = block.minY - entity.maxY;
-                if (distance >= -1.0E-7D) {
-                    offset = Math.min(distance, offset);
-                }
-            } else {
-                double distance = block.maxY - entity.minY;
-                if (distance <= 1.0E-7D) {
-                    offset = Math.max(distance, offset);
-                }
-            }
-        }
-        return offset;
-    }
-
-    private static double calculateZOffsetModern(AxisAlignedBB block, AxisAlignedBB entity, double offset) {
-        if (offset != 0.0D
-                && entity.maxX - block.minX > 1.0E-7D
-                && block.maxX - entity.minX > 1.0E-7D
-                && entity.maxY - block.minY > 1.0E-7D
-                && block.maxY - entity.minY > 1.0E-7D) {
-            if (offset > 0.0D) {
-                double distance = block.minZ - entity.maxZ;
-                if (distance >= -1.0E-7D) {
-                    offset = Math.min(distance, offset);
-                }
-            } else {
-                double distance = block.maxZ - entity.minZ;
-                if (distance <= 1.0E-7D) {
-                    offset = Math.max(distance, offset);
-                }
-            }
-        }
-        return offset;
-    }
-
-    private static boolean movementEqual(double first, double second) {
-        return Math.abs(second - first) < 1.0E-5D;
-    }
-
-    private static final class ModernCollisionResult {
-        private final double x;
-        private final double z;
-        private final AxisAlignedBB box;
-
-        private ModernCollisionResult(double x, double z, AxisAlignedBB box) {
-            this.x = x;
-            this.z = z;
-            this.box = box;
-        }
-    }
-
     /**
      * Resets the entity's position to the center (planar) and bottom (vertical) points of its bounding box.
      */
@@ -1590,24 +1602,6 @@ public abstract class Entity implements ICommandSender, Cullable {
         return this.inWater;
     }
 
-    private static void applyModernFluidPush(EntityPlayerSP player, Vec3 accumulatedFlow, int flowCount, double multiplier) {
-        if (flowCount == 0 || accumulatedFlow.lengthVector() * accumulatedFlow.lengthVector() < 1.0E-5D) {
-            return;
-        }
-
-        Vec3 flow = new Vec3(accumulatedFlow.xCoord / flowCount, accumulatedFlow.yCoord / flowCount, accumulatedFlow.zCoord / flowCount);
-        flow = new Vec3(flow.xCoord * multiplier, flow.yCoord * multiplier, flow.zCoord * multiplier);
-        if (Math.abs(player.motionX) < 0.003D
-                && Math.abs(player.motionZ) < 0.003D
-                && flow.lengthVector() < 0.0045000000000000005D) {
-            Vec3 normalized = flow.normalize();
-            flow = new Vec3(normalized.xCoord * 0.0045000000000000005D, normalized.yCoord * 0.0045000000000000005D, normalized.zCoord * 0.0045000000000000005D);
-        }
-        player.motionX += flow.xCoord;
-        player.motionY += flow.yCoord;
-        player.motionZ += flow.zCoord;
-    }
-
     private void updateMainSupportingBlock() {
         if (!(this instanceof EntityPlayerSP) || !usesModernLandPhysics()) {
             return;
@@ -1629,54 +1623,6 @@ public abstract class Entity implements ICommandSender, Cullable {
             support = findSupportingBlock(player, below.offset(this.moveStartX - player.posX, 0.0D, this.moveStartZ - player.posZ));
         }
         physics.setMainSupportingBlock(support, true);
-    }
-
-    private static BlockPos findSupportingBlock(EntityPlayerSP player, AxisAlignedBB search) {
-        int minX = MathHelper.floor_double(search.minX);
-        int maxX = MathHelper.floor_double(search.maxX);
-        int minY = MathHelper.floor_double(search.minY);
-        int maxY = MathHelper.floor_double(search.maxY);
-        int minZ = MathHelper.floor_double(search.minZ);
-        int maxZ = MathHelper.floor_double(search.maxZ);
-        List<AxisAlignedBB> collisions = new ArrayList<>();
-        BlockPos best = null;
-        double bestDistance = Double.MAX_VALUE;
-
-        for (int blockX = minX; blockX <= maxX; blockX++) {
-            for (int blockY = minY; blockY <= maxY; blockY++) {
-                for (int blockZ = minZ; blockZ <= maxZ; blockZ++) {
-                    BlockPos candidate = new BlockPos(blockX, blockY, blockZ);
-                    IBlockState state = player.worldObj.getBlockState(candidate);
-                    collisions.clear();
-                    state.getBlock().addCollisionBoxesToList(player.worldObj, candidate, state, search, collisions, player);
-                    if (collisions.isEmpty()) {
-                        continue;
-                    }
-
-                    double dx = player.posX - ((double) blockX + 0.5D);
-                    double dy = player.posY - ((double) blockY + 0.5D);
-                    double dz = player.posZ - ((double) blockZ + 0.5D);
-                    double distance = dx * dx + dy * dy + dz * dz;
-                    if (distance < bestDistance
-                            || distance == bestDistance
-                            && (best == null || hasSupportingPriority(candidate, best))) {
-                        best = candidate;
-                        bestDistance = distance;
-                    }
-                }
-            }
-        }
-        return best;
-    }
-
-    private static boolean hasSupportingPriority(BlockPos first, BlockPos second) {
-        if (first.getY() < second.getY()) {
-            return true;
-        }
-        int deltaX = second.getX() - first.getX();
-        int deltaZ = second.getZ() - first.getZ();
-        int horizontalSum = deltaX + deltaZ;
-        return horizontalSum == 0 ? deltaX < 0 : horizontalSum < 0;
     }
 
     private float modernEntityWidth(float width) {
@@ -1948,6 +1894,7 @@ public abstract class Entity implements ICommandSender, Cullable {
     public Vector3d getCustomPositionVector() {
         return new Vector3d(posX, posY, posZ);
     }
+
     public Vec3 getPositionEyes(float partialTicks) {
         if (partialTicks == 1.0F) {
             return new Vec3(this.posX, this.posY + (double) this.getEyeHeight(), this.posZ);
@@ -2538,11 +2485,6 @@ public abstract class Entity implements ICommandSender, Cullable {
         return this.getFlag(3);
     }
 
-    /** Entity flag introduced in 1.9 for active elytra flight. */
-    public boolean isElytraFlying() {
-        return ViaProtocol.newerThanOrEqualTo1_9() && this.getFlag(7);
-    }
-
     /**
      * Set sprinting switch for Entity.
      */
@@ -2550,8 +2492,19 @@ public abstract class Entity implements ICommandSender, Cullable {
         this.setFlag(3, sprinting);
     }
 
+    /**
+     * Entity flag introduced in 1.9 for active elytra flight.
+     */
+    public boolean isElytraFlying() {
+        return ViaProtocol.newerThanOrEqualTo1_9() && this.getFlag(7);
+    }
+
     public boolean isInvisible() {
         return this.getFlag(5);
+    }
+
+    public void setInvisible(boolean invisible) {
+        this.setFlag(5, invisible);
     }
 
     /**
@@ -2561,10 +2514,6 @@ public abstract class Entity implements ICommandSender, Cullable {
      */
     public boolean isInvisibleToPlayer(EntityPlayer player) {
         return !player.isSpectator() && this.isInvisible();
-    }
-
-    public void setInvisible(boolean invisible) {
-        this.setFlag(5, invisible);
     }
 
     public boolean isEating() {
@@ -2932,15 +2881,15 @@ public abstract class Entity implements ICommandSender, Cullable {
         return chatcomponenttext;
     }
 
+    public String getCustomNameTag() {
+        return this.dataWatcher.getWatchableObjectString(2);
+    }
+
     /**
      * Sets the custom name tag for this entity
      */
     public void setCustomNameTag(String name) {
         this.dataWatcher.updateObject(2, name);
-    }
-
-    public String getCustomNameTag() {
-        return this.dataWatcher.getWatchableObjectString(2);
     }
 
     /**
@@ -2950,12 +2899,12 @@ public abstract class Entity implements ICommandSender, Cullable {
         return !this.dataWatcher.getWatchableObjectString(2).isEmpty();
     }
 
-    public void setAlwaysRenderNameTag(boolean alwaysRenderNameTag) {
-        this.dataWatcher.updateObject(3, (byte) (alwaysRenderNameTag ? 1 : 0));
-    }
-
     public boolean getAlwaysRenderNameTag() {
         return this.dataWatcher.getWatchableObjectByte(3) == 1;
+    }
+
+    public void setAlwaysRenderNameTag(boolean alwaysRenderNameTag) {
+        this.dataWatcher.updateObject(3, (byte) (alwaysRenderNameTag ? 1 : 0));
     }
 
     /**
@@ -3110,5 +3059,17 @@ public abstract class Entity implements ICommandSender, Cullable {
         }
 
         EnchantmentHelper.applyArthropodEnchantments(entityLivingBaseIn, entityIn);
+    }
+
+    private static final class ModernCollisionResult {
+        private final double x;
+        private final double z;
+        private final AxisAlignedBB box;
+
+        private ModernCollisionResult(double x, double z, AxisAlignedBB box) {
+            this.x = x;
+            this.z = z;
+            this.box = box;
+        }
     }
 }

@@ -12,10 +12,6 @@ import net.minecraft.util.IChatComponent;
 import java.util.List;
 
 public class SpectatorMenu {
-    private static final ISpectatorMenuObject field_178655_b = new SpectatorMenu.EndSpectatorObject();
-    private static final ISpectatorMenuObject field_178656_c = new SpectatorMenu.MoveMenuObject(-1, true);
-    private static final ISpectatorMenuObject field_178653_d = new SpectatorMenu.MoveMenuObject(1, true);
-    private static final ISpectatorMenuObject field_178654_e = new SpectatorMenu.MoveMenuObject(1, false);
     public static final ISpectatorMenuObject field_178657_a = new ISpectatorMenuObject() {
         public void func_178661_a(SpectatorMenu menu) {
         }
@@ -31,6 +27,10 @@ public class SpectatorMenu {
             return false;
         }
     };
+    private static final ISpectatorMenuObject field_178655_b = new SpectatorMenu.EndSpectatorObject();
+    private static final ISpectatorMenuObject field_178656_c = new SpectatorMenu.MoveMenuObject(-1, true);
+    private static final ISpectatorMenuObject field_178653_d = new SpectatorMenu.MoveMenuObject(1, true);
+    private static final ISpectatorMenuObject field_178654_e = new SpectatorMenu.MoveMenuObject(1, false);
     private final ISpectatorMenuRecipient field_178651_f;
     private final List<SpectatorDetails> field_178652_g = Lists.newArrayList();
     private ISpectatorMenuView field_178659_h = new BaseSpectatorGroup();

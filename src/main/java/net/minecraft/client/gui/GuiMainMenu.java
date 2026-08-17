@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Random;
 
 public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
+    public static final String field_96138_a = "Please click " + EnumChatFormatting.UNDERLINE + "here" + EnumChatFormatting.RESET + " for more information.";
     private static final Logger logger = LogManager.getLogger();
     private static final Random RANDOM = new Random();
     private static final int ALT_MANAGER_BUTTON_ID = 9999;
@@ -54,66 +55,22 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
             "Minecraft 1.8.9",
             "Fan Dong Pai"
     };
-
+    private static final ResourceLocation splashTexts = ResourceLocation.of("texts/splashes.txt");
+    private static final ResourceLocation minecraftTitleTextures = ResourceLocation.of("textures/gui/title/minecraft.png");
+    /**
+     * An array of all the paths to the panorama pictures.
+     */
+    private static final ResourceLocation[] titlePanoramaPaths = new ResourceLocation[]{ResourceLocation.of("textures/gui/title/background/panorama_0.png"), ResourceLocation.of("textures/gui/title/background/panorama_1.png"), ResourceLocation.of("textures/gui/title/background/panorama_2.png"), ResourceLocation.of("textures/gui/title/background/panorama_3.png"), ResourceLocation.of("textures/gui/title/background/panorama_4.png"), ResourceLocation.of("textures/gui/title/background/panorama_5.png")};
     /**
      * Counts the number of screen updates.
      */
     private final float updateCounter;
-
-    /**
-     * The splash message.
-     */
-    private String splashText;
-
-    public void setSplashText(String splashText) {
-        this.splashText = splashText;
-    }
-
-    /**
-     * Timer used to rotate the panorama, increases every tick.
-     */
-    private int panoramaTimer;
-
-    /**
-     * Texture allocated for the current viewport of the main menu's panorama background.
-     */
-    private DynamicTexture viewportTexture;
     private final boolean field_175375_v = true;
 
     /**
      * The Object object utilized as a thread lock when performing non thread-safe operations
      */
     private final Object threadLock = new Object();
-
-    /**
-     * OpenGL graphics card warning.
-     */
-    private String openGLWarning1;
-
-    /**
-     * OpenGL graphics card warning.
-     */
-    private String openGLWarning2;
-
-    /**
-     * Link to the Mojang Support about minimum requirements
-     */
-    private String openGLWarningLink;
-    private static final ResourceLocation splashTexts = ResourceLocation.of("texts/splashes.txt");
-    private static final ResourceLocation minecraftTitleTextures = ResourceLocation.of("textures/gui/title/minecraft.png");
-
-    /**
-     * An array of all the paths to the panorama pictures.
-     */
-    private static final ResourceLocation[] titlePanoramaPaths = new ResourceLocation[]{ResourceLocation.of("textures/gui/title/background/panorama_0.png"), ResourceLocation.of("textures/gui/title/background/panorama_1.png"), ResourceLocation.of("textures/gui/title/background/panorama_2.png"), ResourceLocation.of("textures/gui/title/background/panorama_3.png"), ResourceLocation.of("textures/gui/title/background/panorama_4.png"), ResourceLocation.of("textures/gui/title/background/panorama_5.png")};
-    public static final String field_96138_a = "Please click " + EnumChatFormatting.UNDERLINE + "here" + EnumChatFormatting.RESET + " for more information.";
-    private int field_92024_r;
-    private int field_92023_s;
-    private int field_92022_t;
-    private int field_92021_u;
-    private int field_92020_v;
-    private int field_92019_w;
-    private ResourceLocation backgroundTexture;
     private final FontRenderer titleFont = Fonts.urbanist.get(38.0F);
     private final FontRenderer splashFont = Fonts.interRegular.get(19.0F);
     private final FontRenderer buttonFont = Fonts.interRegular.get(16.0F);
@@ -121,6 +78,37 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
     private final float[] animatedY = new float[6];
     private final float[] animatedW = new float[6];
     private final float[] animatedH = new float[6];
+    /**
+     * The splash message.
+     */
+    private String splashText;
+    /**
+     * Timer used to rotate the panorama, increases every tick.
+     */
+    private int panoramaTimer;
+    /**
+     * Texture allocated for the current viewport of the main menu's panorama background.
+     */
+    private DynamicTexture viewportTexture;
+    /**
+     * OpenGL graphics card warning.
+     */
+    private String openGLWarning1;
+    /**
+     * OpenGL graphics card warning.
+     */
+    private String openGLWarning2;
+    /**
+     * Link to the Mojang Support about minimum requirements
+     */
+    private String openGLWarningLink;
+    private int field_92024_r;
+    private int field_92023_s;
+    private int field_92022_t;
+    private int field_92021_u;
+    private int field_92020_v;
+    private int field_92019_w;
+    private ResourceLocation backgroundTexture;
 
     public GuiMainMenu() {
         this.openGLWarning2 = field_96138_a;
@@ -167,6 +155,10 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
             this.openGLWarning2 = I18n.format("title.oldgl2");
             this.openGLWarningLink = "https://help.mojang.com/customer/portal/articles/325948?ref=game";
         }
+    }
+
+    public void setSplashText(String splashText) {
+        this.splashText = splashText;
     }
 
     /**

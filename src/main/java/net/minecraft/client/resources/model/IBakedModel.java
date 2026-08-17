@@ -7,8 +7,7 @@ import net.minecraft.util.EnumFacing;
 
 import java.util.List;
 
-public interface IBakedModel
-{
+public interface IBakedModel {
     List<BakedQuad> getFaceQuads(EnumFacing facing);
 
     List<BakedQuad> getGeneralQuads();

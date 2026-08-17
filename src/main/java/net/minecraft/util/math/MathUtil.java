@@ -7,6 +7,7 @@ import net.minecraft.util.MathHelper;
 public class MathUtil {
     public final float PI = (float) Math.PI;
     public final float TO_DEGREES = 180.0F / PI;
+
     public int floor(double d) {
         return MathHelper.floor_double(d);
     }

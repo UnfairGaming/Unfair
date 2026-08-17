@@ -35,91 +35,24 @@ import java.util.List;
 public class FontRenderer implements IResourceManagerReloadListener {
     private static final ResourceLocation[] unicodePageLocations = new ResourceLocation[256];
 
-    /** Array of width of all the characters in default.png */
+    /**
+     * Array of width of all the characters in default.png
+     */
     private final int[] charWidth = new int[256];
-
-    /** the height in pixels of default text */
-    public int FONT_HEIGHT = 9;
-    public Random fontRandom = new Random();
-
     /**
      * Array of the start/end column (in upper/lower nibble) for every glyph in the /font directory.
      */
     private final byte[] glyphWidth = new byte[65536];
-
     /**
      * Array of RGB triplets defining the 16 standard chat colors followed by 16 darker version of the same colors for
      * drop shadows.
      */
     private final int[] colorCode = new int[32];
-    private ResourceLocation locationFontTexture;
-
-    /** The RenderEngine used to load and setup glyph textures. */
+    /**
+     * The RenderEngine used to load and setup glyph textures.
+     */
     private final TextureManager renderEngine;
-
-    /** Current X coordinate at which to draw the next character. */
-    private float posX;
-
-    /** Current Y coordinate at which to draw the next character. */
-    private float posY;
-
-    /**
-     * If true, strings should be rendered with Unicode fonts instead of the default.png font
-     * -- SETTER --
-     *  Set unicodeFlag controlling whether strings should be rendered with Unicode fonts instead of the default.png
-     *  font.
-
-     */
-    @Setter
-    private boolean unicodeFlag;
-
-    /**
-     * If true, the Unicode Bidirectional Algorithm should be run before rendering any string.
-     * -- SETTER --
-     *  Set bidiFlag to control if the Unicode Bidirectional Algorithm should be run before rendering any string.
-
-     */
-    @Setter
-    private boolean bidiFlag;
-
-    /** Used to specify new red value for the current color. */
-    private float red;
-
-    /** Used to specify new blue value for the current color. */
-    private float blue;
-
-    /** Used to specify new green value for the current color. */
-    private float green;
-
-    /** Used to speify new alpha value for the current color. */
-    private float alpha;
-
-    /** Text color of the currently rendering string. */
-    private int textColor;
-
-    /** Set if the "k" style (random) is active in currently rendering string */
-    private boolean randomStyle;
-
-    /** Set if the "l" style (bold) is active in currently rendering string */
-    private boolean boldStyle;
-
-    /** Set if the "o" style (italic) is active in currently rendering string */
-    private boolean italicStyle;
-
-    /**
-     * Set if the "n" style (underlined) is active in currently rendering string
-     */
-    private boolean underlineStyle;
-
-    /**
-     * Set if the "m" style (strikethrough) is active in currently rendering string
-     */
-    private boolean strikethroughStyle;
-    public GameSettings gameSettings;
-    public ResourceLocation locationFontTextureBase;
-    public float offsetBold = 1.0F;
     private final float[] charWidthFloat = new float[256];
-    private boolean blend = false;
     private final GlBlendState oldBlendState = new GlBlendState();
     private final Map<String, Integer> stringWidthCache = new LinkedHashMap<String, Integer>(256, 0.75F, true) {
         @Override
@@ -127,6 +60,91 @@ public class FontRenderer implements IResourceManagerReloadListener {
             return this.size() > 512;
         }
     };
+    private final String listOfAsciiChars = "\u00c0\u00c1\u00c2\u00c8\u00ca\u00cb\u00cd\u00d3\u00d4\u00d5\u00da\u00df\u00e3\u00f5\u011f\u0130\u0131\u0152\u0153\u015e\u015f\u0174\u0175\u017e\u0207\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00f8\u00a3\u00d8\u00d7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1\u00aa\u00ba\u00bf\u00ae\u00ac\u00bd\u00bc\u00a1\u00ab\u00bb\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u03b2\u0393\u03c0\u03a3\u03c3\u03bc\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u2205\u2208\u2229\u2261\u00b1\u2265\u2264\u2320\u2321\u00f7\u2248\u00b0\u2219\u00b7\u221a\u207f\u00b2\u25a0\u0000";
+    private final char[] asciiCharsArray = listOfAsciiChars.toCharArray();
+    private final int[] charMap;
+    /**
+     * the height in pixels of default text
+     */
+    public int FONT_HEIGHT = 9;
+    public Random fontRandom = new Random();
+    public GameSettings gameSettings;
+    public ResourceLocation locationFontTextureBase;
+    public float offsetBold = 1.0F;
+    private ResourceLocation locationFontTexture;
+    /**
+     * Current X coordinate at which to draw the next character.
+     */
+    private float posX;
+    /**
+     * Current Y coordinate at which to draw the next character.
+     */
+    private float posY;
+    /**
+     * If true, strings should be rendered with Unicode fonts instead of the default.png font
+     * -- SETTER --
+     * Set unicodeFlag controlling whether strings should be rendered with Unicode fonts instead of the default.png
+     * font.
+     */
+    @Setter
+    private boolean unicodeFlag;
+    /**
+     * If true, the Unicode Bidirectional Algorithm should be run before rendering any string.
+     * -- SETTER --
+     * Set bidiFlag to control if the Unicode Bidirectional Algorithm should be run before rendering any string.
+     */
+    @Setter
+    private boolean bidiFlag;
+    /**
+     * Used to specify new red value for the current color.
+     */
+    private float red;
+    /**
+     * Used to specify new blue value for the current color.
+     */
+    private float blue;
+    /**
+     * Used to specify new green value for the current color.
+     */
+    private float green;
+    /**
+     * Used to speify new alpha value for the current color.
+     */
+    private float alpha;
+    /**
+     * Text color of the currently rendering string.
+     */
+    private int textColor;
+    /**
+     * Set if the "k" style (random) is active in currently rendering string
+     */
+    private boolean randomStyle;
+    /**
+     * Set if the "l" style (bold) is active in currently rendering string
+     */
+    private boolean boldStyle;
+    /**
+     * Set if the "o" style (italic) is active in currently rendering string
+     */
+    private boolean italicStyle;
+    /**
+     * Set if the "n" style (underlined) is active in currently rendering string
+     */
+    private boolean underlineStyle;
+    /**
+     * Set if the "m" style (strikethrough) is active in currently rendering string
+     */
+    private boolean strikethroughStyle;
+    private boolean blend = false;
+
+    {
+        charMap = new int['\uFFFF' + 1];
+        Arrays.fill(charMap, -1);
+        for (int i = 0; i < asciiCharsArray.length; i++) {
+            char c = asciiCharsArray[i];
+            charMap[c] = i;
+        }
+    }
 
     public FontRenderer(GameSettings gameSettingsIn, ResourceLocation location, TextureManager textureManagerIn, boolean unicode) {
         this.gameSettings = gameSettingsIn;
@@ -166,6 +184,48 @@ public class FontRenderer implements IResourceManagerReloadListener {
         }
 
         this.readGlyphSizes();
+    }
+
+    private static boolean isCjkCharacter(char ch) {
+        return ch >= '\u3400' && ch <= '\u9FFF'
+                || ch >= '\uF900' && ch <= '\uFAFF';
+    }
+
+    /**
+     * Checks if the char code is a hexadecimal character, used to set colour.
+     */
+    private static boolean isFormatColor(char colorChar) {
+        return colorChar >= 48 && colorChar <= 57 || colorChar >= 97 && colorChar <= 102 || colorChar >= 65 && colorChar <= 70;
+    }
+
+    /**
+     * Checks if the char code is O-K...lLrRk-o... used to set special formatting.
+     */
+    private static boolean isFormatSpecial(char formatChar) {
+        return formatChar >= 107 && formatChar <= 111 || formatChar >= 75 && formatChar <= 79 || formatChar == 114 || formatChar == 82;
+    }
+
+    /**
+     * Digests a string for nonprinting formatting characters then returns a string containing only that formatting.
+     */
+    public static String getFormatFromString(String text) {
+        String s = "";
+        int i = -1;
+        int j = text.length();
+
+        while ((i = text.indexOf(167, i + 1)) != -1) {
+            if (i < j - 1) {
+                char c0 = text.charAt(i + 1);
+
+                if (isFormatColor(c0)) {
+                    s = "§" + c0;
+                } else if (isFormatSpecial(c0)) {
+                    s = s + "§" + c0;
+                }
+            }
+        }
+
+        return s;
     }
 
     public void onResourceManagerReload(IResourceManager resourceManager) {
@@ -280,11 +340,6 @@ public class FontRenderer implements IResourceManagerReloadListener {
                 && charMapIndex < this.charWidthFloat.length
                 && !this.unicodeFlag
                 && !isCjkCharacter(ch);
-    }
-
-    private static boolean isCjkCharacter(char ch) {
-        return ch >= '\u3400' && ch <= '\u9FFF'
-                || ch >= '\uF900' && ch <= '\uFAFF';
     }
 
     /**
@@ -435,19 +490,6 @@ public class FontRenderer implements IResourceManagerReloadListener {
         this.italicStyle = false;
         this.underlineStyle = false;
         this.strikethroughStyle = false;
-    }
-
-    private final String listOfAsciiChars = "\u00c0\u00c1\u00c2\u00c8\u00ca\u00cb\u00cd\u00d3\u00d4\u00d5\u00da\u00df\u00e3\u00f5\u011f\u0130\u0131\u0152\u0153\u015e\u015f\u0174\u0175\u017e\u0207\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00f8\u00a3\u00d8\u00d7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1\u00aa\u00ba\u00bf\u00ae\u00ac\u00bd\u00bc\u00a1\u00ab\u00bb\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u03b2\u0393\u03c0\u03a3\u03c3\u03bc\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u2205\u2208\u2229\u2261\u00b1\u2265\u2264\u2320\u2321\u00f7\u2248\u00b0\u2219\u00b7\u221a\u207f\u00b2\u25a0\u0000";
-    private final char[] asciiCharsArray = listOfAsciiChars.toCharArray();
-    private final int[] charMap;
-
-    {
-        charMap = new int['\uFFFF' + 1];
-        Arrays.fill(charMap, -1);
-        for (int i = 0; i < asciiCharsArray.length; i++) {
-            char c = asciiCharsArray[i];
-            charMap[c] = i;
-        }
     }
 
     /**
@@ -849,7 +891,7 @@ public class FontRenderer implements IResourceManagerReloadListener {
     /**
      * Returns the width of the wordwrapped String (maximum length is parameter k)
      *
-     * @param str The string to split
+     * @param str       The string to split
      * @param maxLength The maximum length of a word
      */
     public int splitStringWidth(String str, int maxLength) {
@@ -947,43 +989,6 @@ public class FontRenderer implements IResourceManagerReloadListener {
         }
 
         return j != i && k != -1 && k < j ? k : j;
-    }
-
-    /**
-     * Checks if the char code is a hexadecimal character, used to set colour.
-     */
-    private static boolean isFormatColor(char colorChar) {
-        return colorChar >= 48 && colorChar <= 57 || colorChar >= 97 && colorChar <= 102 || colorChar >= 65 && colorChar <= 70;
-    }
-
-    /**
-     * Checks if the char code is O-K...lLrRk-o... used to set special formatting.
-     */
-    private static boolean isFormatSpecial(char formatChar) {
-        return formatChar >= 107 && formatChar <= 111 || formatChar >= 75 && formatChar <= 79 || formatChar == 114 || formatChar == 82;
-    }
-
-    /**
-     * Digests a string for nonprinting formatting characters then returns a string containing only that formatting.
-     */
-    public static String getFormatFromString(String text) {
-        String s = "";
-        int i = -1;
-        int j = text.length();
-
-        while ((i = text.indexOf(167, i + 1)) != -1) {
-            if (i < j - 1) {
-                char c0 = text.charAt(i + 1);
-
-                if (isFormatColor(c0)) {
-                    s = "§" + c0;
-                } else if (isFormatSpecial(c0)) {
-                    s = s + "§" + c0;
-                }
-            }
-        }
-
-        return s;
     }
 
     /**

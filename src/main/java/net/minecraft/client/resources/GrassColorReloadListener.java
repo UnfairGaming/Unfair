@@ -6,18 +6,13 @@ import net.minecraft.world.ColorizerGrass;
 
 import java.io.IOException;
 
-public class GrassColorReloadListener implements IResourceManagerReloadListener
-{
+public class GrassColorReloadListener implements IResourceManagerReloadListener {
     private static final ResourceLocation LOC_GRASS_PNG = ResourceLocation.of("textures/colormap/grass.png");
 
-    public void onResourceManagerReload(IResourceManager resourceManager)
-    {
-        try
-        {
+    public void onResourceManagerReload(IResourceManager resourceManager) {
+        try {
             ColorizerGrass.setGrassBiomeColorizer(TextureUtil.readImageData(resourceManager, LOC_GRASS_PNG));
-        }
-        catch (IOException var3)
-        {
+        } catch (IOException var3) {
             ;
         }
     }

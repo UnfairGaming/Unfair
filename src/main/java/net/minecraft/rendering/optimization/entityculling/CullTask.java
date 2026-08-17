@@ -25,16 +25,14 @@ import java.util.Set;
 public class CullTask implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    public boolean requestCull = false;
-
     private final OcclusionCullingInstance culling;
     private final Set<String> unCullable;
-    public long lastTime = 0;
-
     // reused preallocated vars
     private final Vec3d lastPos = new Vec3d(0, 0, 0);
     private final Vec3d aabbMin = new Vec3d(0, 0, 0);
     private final Vec3d aabbMax = new Vec3d(0, 0, 0);
+    public boolean requestCull = false;
+    public long lastTime = 0;
 
     public CullTask(OcclusionCullingInstance culling, Set<String> unCullable) {
         this.culling = culling;
@@ -69,17 +67,17 @@ public class CullTask implements Runnable {
                         boolean chestESPEnabled = isChestESPEnabled();
                         Iterator<TileEntity> iterator = world.loadedTileEntityList.iterator();
                         TileEntity entry;
-                        while(iterator.hasNext()) {
+                        while (iterator.hasNext()) {
                             try {
                                 entry = iterator.next();
-                            }catch(NullPointerException | ConcurrentModificationException ex) {
+                            } catch (NullPointerException | ConcurrentModificationException ex) {
                                 break; // We are not synced to the main thread, so NPE's/CME are allowed here and way less
                                 // overhead probably than trying to sync stuff up for no really good reason
                             }
-                            if(entry == null || entry.getBlockType() == null) {
+                            if (entry == null || entry.getBlockType() == null) {
                                 continue;
                             }
-                            if(unCullable.contains(entry.getBlockType().getUnlocalizedName())) {
+                            if (unCullable.contains(entry.getBlockType().getUnlocalizedName())) {
                                 continue;
                             }
                             if (chestESPEnabled && (entry instanceof TileEntityChest || entry instanceof TileEntityEnderChest)) {
@@ -93,9 +91,9 @@ public class CullTask implements Runnable {
                                     continue;
                                 }
                                 BlockPos pos = entry.getPos();
-                                if(pos.distanceSq(cameraMC.xCoord, cameraMC.yCoord, cameraMC.zCoord) < 64*64) { // 64 is the fixed max tile view distance
+                                if (pos.distanceSq(cameraMC.xCoord, cameraMC.yCoord, cameraMC.zCoord) < 64 * 64) { // 64 is the fixed max tile view distance
                                     aabbMin.set(pos.getX(), pos.getY(), pos.getZ());
-                                    aabbMax.set(pos.getX()+1d, pos.getY()+1d, pos.getZ()+1d);
+                                    aabbMax.set(pos.getX() + 1d, pos.getY() + 1d, pos.getZ() + 1d);
                                     boolean visible = culling.isAABBVisible(aabbMin, aabbMax, camera);
                                     cullable.setCulled(!visible);
                                 }
@@ -111,7 +109,7 @@ public class CullTask implements Runnable {
                                 break; // We are not synced to the main thread, so NPE's/CME are allowed here and way less
                                 // overhead probably than trying to sync stuff up for no really good reason
                             }
-                            if(entity == null) {
+                            if (entity == null) {
                                 continue; // Defensive guard for unsynchronized entity list snapshots.
                             }
                             if (!entity.isForcedVisible()) {
@@ -119,7 +117,7 @@ public class CullTask implements Runnable {
                                     entity.setCulled(false);
                                     continue;
                                 }
-                                if(entity.getPositionVector().squareDistanceTo(cameraMC) > 128 * 128) {
+                                if (entity.getPositionVector().squareDistanceTo(cameraMC) > 128 * 128) {
                                     entity.setCulled(false); // If your entity view distance is larger than tracingDistance just render it
                                     continue;
                                 }
@@ -129,7 +127,7 @@ public class CullTask implements Runnable {
                                     continue;
                                 }
                                 int hitboxLimit = 50;
-                                if(boundingBox.maxX - boundingBox.minX > hitboxLimit || boundingBox.maxY - boundingBox.minY > hitboxLimit || boundingBox.maxZ - boundingBox.minZ > hitboxLimit) {
+                                if (boundingBox.maxX - boundingBox.minX > hitboxLimit || boundingBox.maxY - boundingBox.minY > hitboxLimit || boundingBox.maxZ - boundingBox.minZ > hitboxLimit) {
                                     entity.setCulled(false); // To big to bother to cull
                                     continue;
                                 }
@@ -139,7 +137,7 @@ public class CullTask implements Runnable {
                                 entity.setCulled(!visible);
                             }
                         }
-                        lastTime = (System.currentTimeMillis()-start);
+                        lastTime = (System.currentTimeMillis() - start);
                     }
                 }
             } catch (Exception e) {

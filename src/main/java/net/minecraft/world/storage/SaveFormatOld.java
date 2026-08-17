@@ -30,6 +30,29 @@ public class SaveFormatOld implements ISaveFormat {
     }
 
     /**
+     * @args: Takes one argument - the list of files and directories to delete. @desc: Deletes the files and directory
+     * listed in the list recursively.
+     */
+    protected static boolean deleteFiles(File[] files) {
+        for (int i = 0; i < files.length; ++i) {
+            File file1 = files[i];
+            // logger.debug("Deleting " + file1);
+
+            if (file1.isDirectory() && !deleteFiles(file1.listFiles())) {
+                logger.warn("Couldn't delete directory " + file1);
+                return false;
+            }
+
+            if (!file1.delete()) {
+                logger.warn("Couldn't delete file " + file1);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Returns the name of the save format.
      */
     public String getName() {
@@ -163,29 +186,6 @@ public class SaveFormatOld implements ISaveFormat {
 
             return file1.delete();
         }
-    }
-
-    /**
-     * @args: Takes one argument - the list of files and directories to delete. @desc: Deletes the files and directory
-     * listed in the list recursively.
-     */
-    protected static boolean deleteFiles(File[] files) {
-        for (int i = 0; i < files.length; ++i) {
-            File file1 = files[i];
-            // logger.debug("Deleting " + file1);
-
-            if (file1.isDirectory() && !deleteFiles(file1.listFiles())) {
-                logger.warn("Couldn't delete directory " + file1);
-                return false;
-            }
-
-            if (!file1.delete()) {
-                logger.warn("Couldn't delete file " + file1);
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**

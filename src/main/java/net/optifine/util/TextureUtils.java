@@ -100,6 +100,9 @@ public class TextureUtils {
     public static final String texGlassPaneTop = "glass_pane_top";
     public static final String texCompass = "compass";
     public static final String texClock = "clock";
+    public static final String SPRITE_PREFIX_BLOCKS = "minecraft:blocks/";
+    public static final String SPRITE_PREFIX_ITEMS = "minecraft:items/";
+    private static final IntBuffer staticBuffer = GLAllocation.createDirectIntBuffer(256);
     public static TextureAtlasSprite iconGrassTop;
     public static TextureAtlasSprite iconGrassSide;
     public static TextureAtlasSprite iconGrassSideOverlay;
@@ -118,9 +121,6 @@ public class TextureUtils {
     public static TextureAtlasSprite iconGlassPaneTop;
     public static TextureAtlasSprite iconCompass;
     public static TextureAtlasSprite iconClock;
-    public static final String SPRITE_PREFIX_BLOCKS = "minecraft:blocks/";
-    public static final String SPRITE_PREFIX_ITEMS = "minecraft:items/";
-    private static final IntBuffer staticBuffer = GLAllocation.createDirectIntBuffer(256);
 
     public static void update() {
         TextureMap texturemap = getTextureMapBlocks();

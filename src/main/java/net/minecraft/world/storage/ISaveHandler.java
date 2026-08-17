@@ -7,8 +7,7 @@ import net.minecraft.world.chunk.storage.IChunkLoader;
 
 import java.io.File;
 
-public interface ISaveHandler
-{
+public interface ISaveHandler {
     /**
      * Loads and returns the world info
      */

@@ -14,35 +14,40 @@ import net.optifine.CustomLoadingScreen;
 import net.optifine.CustomLoadingScreens;
 
 public class LoadingScreenRenderer implements IProgressUpdate {
-    private String message = "";
-
+    private static int progress = -1;
     /**
      * A reference to the Minecraft object.
      */
     private final Minecraft mc;
-
+    private final ScaledResolution scaledResolution;
+    private final Framebuffer framebuffer;
+    private String message = "";
     /**
      * The text currently displayed (i.e. the argument to the last call to printText or displayString)
      */
     private String currentlyDisplayedText = "";
-
     /**
      * The system's time represented in milliseconds.
      */
     private long systemTime = Minecraft.getSystemTime();
-
     /**
      * True if the loading ended with a success
      */
     private boolean loadingSuccess;
-    private final ScaledResolution scaledResolution;
-    private final Framebuffer framebuffer;
 
     public LoadingScreenRenderer(Minecraft mcIn) {
         this.mc = mcIn;
         this.scaledResolution = new ScaledResolution(mcIn);
         this.framebuffer = new Framebuffer(mcIn.displayWidth, mcIn.displayHeight, false);
         this.framebuffer.setFramebufferFilter(9728);
+    }
+
+    public static synchronized int get() {
+        return progress;
+    }
+
+    public static synchronized void set(int progressIn) {
+        progress = progressIn;
     }
 
     /**
@@ -86,16 +91,6 @@ public class LoadingScreenRenderer implements IProgressUpdate {
             GlStateManager.loadIdentity();
             GlStateManager.translate(0.0F, 0.0F, -200.0F);
         }
-    }
-
-    private static int progress = -1;
-
-    public static synchronized int get() {
-        return progress;
-    }
-
-    public static synchronized void set(int progressIn) {
-        progress = progressIn;
     }
 
     /**

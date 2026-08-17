@@ -52,9 +52,9 @@ public class SimpleBakedModel implements IBakedModel {
         private final List<BakedQuad> builderGeneralQuads;
         private final List<List<BakedQuad>> builderFaceQuads;
         private final boolean builderAmbientOcclusion;
-        private TextureAtlasSprite builderTexture;
         private final boolean builderGui3d;
         private final ItemCameraTransforms builderCameraTransforms;
+        private TextureAtlasSprite builderTexture;
 
         public Builder(ModelBlock model) {
             this(model.isAmbientOcclusion(), model.isGui3d(), model.getAllTransforms());
@@ -71,18 +71,6 @@ public class SimpleBakedModel implements IBakedModel {
             this.addGeneralBreakingFours(bakedModel, texture);
         }
 
-        private void addFaceBreakingFours(IBakedModel bakedModel, TextureAtlasSprite texture, EnumFacing facing) {
-            for (BakedQuad bakedquad : bakedModel.getFaceQuads(facing)) {
-                this.addFaceQuad(facing, new BreakingFour(bakedquad, texture));
-            }
-        }
-
-        private void addGeneralBreakingFours(IBakedModel p_177647_1_, TextureAtlasSprite texture) {
-            for (BakedQuad bakedquad : p_177647_1_.getGeneralQuads()) {
-                this.addGeneralQuad(new BreakingFour(bakedquad, texture));
-            }
-        }
-
         private Builder(boolean ambientOcclusion, boolean gui3d, ItemCameraTransforms cameraTransforms) {
             this.builderGeneralQuads = Lists.newArrayList();
             this.builderFaceQuads = Lists.newArrayListWithCapacity(6);
@@ -94,6 +82,18 @@ public class SimpleBakedModel implements IBakedModel {
             this.builderAmbientOcclusion = ambientOcclusion;
             this.builderGui3d = gui3d;
             this.builderCameraTransforms = cameraTransforms;
+        }
+
+        private void addFaceBreakingFours(IBakedModel bakedModel, TextureAtlasSprite texture, EnumFacing facing) {
+            for (BakedQuad bakedquad : bakedModel.getFaceQuads(facing)) {
+                this.addFaceQuad(facing, new BreakingFour(bakedquad, texture));
+            }
+        }
+
+        private void addGeneralBreakingFours(IBakedModel p_177647_1_, TextureAtlasSprite texture) {
+            for (BakedQuad bakedquad : p_177647_1_.getGeneralQuads()) {
+                this.addGeneralQuad(new BreakingFour(bakedquad, texture));
+            }
         }
 
         public SimpleBakedModel.Builder addFaceQuad(EnumFacing facing, BakedQuad quad) {

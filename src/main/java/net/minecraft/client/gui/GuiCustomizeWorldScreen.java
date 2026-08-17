@@ -16,6 +16,15 @@ import java.util.Random;
 
 public class GuiCustomizeWorldScreen extends GuiScreen implements GuiSlider.FormatHelper, GuiPageButtonList.GuiResponder {
     private final GuiCreateWorld field_175343_i;
+    private final Predicate<String> field_175332_D = p_apply_1_ -> {
+        Float f = Floats.tryParse(p_apply_1_);
+        return p_apply_1_.isEmpty() || f != null && Floats.isFinite(f) && f >= 0.0F;
+    };
+    private final ChunkProviderSettings.Factory field_175334_E = new ChunkProviderSettings.Factory();
+    /**
+     * A Random instance for this world customization
+     */
+    private final Random random = new Random();
     protected String field_175341_a = "Customize World Settings";
     protected String field_175333_f = "Page 1 of 3";
     protected String field_175335_g = "Basic Settings";
@@ -32,15 +41,7 @@ public class GuiCustomizeWorldScreen extends GuiScreen implements GuiSlider.Form
     private boolean field_175338_A = false;
     private int field_175339_B = 0;
     private boolean field_175340_C = false;
-    private final Predicate<String> field_175332_D = p_apply_1_ -> {
-        Float f = Floats.tryParse(p_apply_1_);
-        return p_apply_1_.isEmpty() || f != null && Floats.isFinite(f) && f >= 0.0F;
-    };
-    private final ChunkProviderSettings.Factory field_175334_E = new ChunkProviderSettings.Factory();
     private ChunkProviderSettings.Factory field_175336_F;
-
-    /** A Random instance for this world customization */
-    private final Random random = new Random();
 
     public GuiCustomizeWorldScreen(GuiScreen p_i45521_1_, String p_i45521_2_) {
         this.field_175343_i = (GuiCreateWorld) p_i45521_1_;

@@ -10,25 +10,21 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.World;
 
-public class BlockSoulSand extends Block
-{
-    public BlockSoulSand()
-    {
+public class BlockSoulSand extends Block {
+    public BlockSoulSand() {
         super(Material.sand, MapColor.brownColor);
         this.setCreativeTab(CreativeTabs.tabBlock);
     }
 
-    public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
-    {
+    public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state) {
         float f = 0.125F;
-        return new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, (float)(pos.getY() + 1) - f, pos.getZ() + 1);
+        return new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, (float) (pos.getY() + 1) - f, pos.getZ() + 1);
     }
 
     /**
      * Called When an Entity Collided with the Block
      */
-    public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn)
-    {
+    public void onEntityCollidedWithBlock(World worldIn, BlockPos pos, IBlockState state, Entity entityIn) {
         // Grim's client-version split: 1.14-1.15 removed the slowdown, while
         // 1.16 restored it only when the entity intersects the 0.875-high box.
         if (ViaProtocol.newerThanOrEqualTo1_14() && !ViaProtocol.newerThanOrEqualTo1_16()) {

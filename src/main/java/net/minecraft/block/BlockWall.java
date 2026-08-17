@@ -19,8 +19,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-public class BlockWall extends Block
-{
+public class BlockWall extends Block {
     public static final PropertyBool UP = PropertyBool.create("up");
     public static final PropertyBool NORTH = PropertyBool.create("north");
     public static final PropertyBool EAST = PropertyBool.create("east");
@@ -28,8 +27,7 @@ public class BlockWall extends Block
     public static final PropertyBool WEST = PropertyBool.create("west");
     public static final PropertyEnum<BlockWall.EnumType> VARIANT = PropertyEnum.<BlockWall.EnumType>create("variant", BlockWall.EnumType.class);
 
-    public BlockWall(Block modelBlock)
-    {
+    public BlockWall(Block modelBlock) {
         super(modelBlock.blockMaterial);
         this.setDefaultState(this.blockState.getBaseState().withProperty(UP, Boolean.FALSE).withProperty(NORTH, Boolean.FALSE).withProperty(EAST, Boolean.FALSE).withProperty(SOUTH, Boolean.FALSE).withProperty(WEST, Boolean.FALSE).withProperty(VARIANT, BlockWall.EnumType.NORMAL));
         this.setHardness(modelBlock.blockHardness);
@@ -41,31 +39,26 @@ public class BlockWall extends Block
     /**
      * Gets the localized name of this block. Used for the statistics page.
      */
-    public String getLocalizedName()
-    {
+    public String getLocalizedName() {
         return StatCollector.translateToLocal(this.getUnlocalizedName() + "." + BlockWall.EnumType.NORMAL.getUnlocalizedName() + ".name");
     }
 
-    public boolean isFullCube()
-    {
+    public boolean isFullCube() {
         return false;
     }
 
-    public boolean isPassable(IBlockAccess worldIn, BlockPos pos)
-    {
+    public boolean isPassable(IBlockAccess worldIn, BlockPos pos) {
         return false;
     }
 
     /**
      * Used to determine ambient occlusion and culling when rebuilding chunks for render
      */
-    public boolean isOpaqueCube()
-    {
+    public boolean isOpaqueCube() {
         return false;
     }
 
-    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos)
-    {
+    public void setBlockBoundsBasedOnState(IBlockAccess worldIn, BlockPos pos) {
         boolean modernTarget = ViaProtocol.newerThanOrEqualTo1_9();
         boolean flag = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.NORTH) : this.canConnectTo(worldIn, pos.north());
         boolean flag1 = modernTarget ? this.canConnectToModern(worldIn, pos, EnumFacing.SOUTH) : this.canConnectTo(worldIn, pos.south());
@@ -77,34 +70,27 @@ public class BlockWall extends Block
         float f3 = 0.75F;
         float f4 = 1.0F;
 
-        if (flag)
-        {
+        if (flag) {
             f2 = 0.0F;
         }
 
-        if (flag1)
-        {
+        if (flag1) {
             f3 = 1.0F;
         }
 
-        if (flag2)
-        {
+        if (flag2) {
             f = 0.0F;
         }
 
-        if (flag3)
-        {
+        if (flag3) {
             f1 = 1.0F;
         }
 
-        if (flag && flag1 && !flag2 && !flag3)
-        {
+        if (flag && flag1 && !flag2 && !flag3) {
             f4 = 0.8125F;
             f = 0.3125F;
             f1 = 0.6875F;
-        }
-        else if (!flag && !flag1 && flag2 && flag3)
-        {
+        } else if (!flag && !flag1 && flag2 && flag3) {
             f4 = 0.8125F;
             f2 = 0.3125F;
             f3 = 0.6875F;
@@ -113,17 +99,14 @@ public class BlockWall extends Block
         this.setBlockBounds(f, 0.0F, f2, f1, f4, f3);
     }
 
-    public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state)
-    {
+    public AxisAlignedBB getCollisionBoundingBox(World worldIn, BlockPos pos, IBlockState state) {
         this.setBlockBoundsBasedOnState(worldIn, pos);
         this.maxY = 1.5D;
         return super.getCollisionBoundingBox(worldIn, pos, state);
     }
 
-    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, net.minecraft.entity.Entity collidingEntity)
-    {
-        if (!ViaProtocol.newerThanOrEqualTo1_13())
-        {
+    public void addCollisionBoxesToList(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, net.minecraft.entity.Entity collidingEntity) {
+        if (!ViaProtocol.newerThanOrEqualTo1_13()) {
             super.addCollisionBoxesToList(worldIn, pos, state, mask, list, collidingEntity);
             return;
         }
@@ -133,59 +116,48 @@ public class BlockWall extends Block
         boolean west = this.hasModernConnection(worldIn, pos, EnumFacing.WEST);
         boolean east = this.hasModernConnection(worldIn, pos, EnumFacing.EAST);
 
-        if (this.hasModernPost(worldIn, pos, north, south, west, east))
-        {
+        if (this.hasModernPost(worldIn, pos, north, south, west, east)) {
             this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.25F, 0.0F, 0.25F, 0.75F, 1.5F, 0.75F);
         }
 
-        if (north)
-        {
+        if (north) {
             this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.3125F, 0.0F, 0.0F, 0.6875F, 1.5F, 0.6875F);
         }
 
-        if (south)
-        {
+        if (south) {
             this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.3125F, 0.0F, 0.3125F, 0.6875F, 1.5F, 1.0F);
         }
 
-        if (west)
-        {
+        if (west) {
             this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.0F, 0.0F, 0.3125F, 0.6875F, 1.5F, 0.6875F);
         }
 
-        if (east)
-        {
+        if (east) {
             this.addWallCollisionBox(worldIn, pos, state, mask, list, 0.3125F, 0.0F, 0.3125F, 1.0F, 1.5F, 0.6875F);
         }
     }
 
-    public boolean canConnectTo(IBlockAccess worldIn, BlockPos pos)
-    {
+    public boolean canConnectTo(IBlockAccess worldIn, BlockPos pos) {
         Block block = worldIn.getBlockState(pos).getBlock();
         return block != Blocks.barrier && (block == this || block instanceof BlockFenceGate || (block.blockMaterial.isOpaque() && block.isFullCube() && block.blockMaterial != Material.gourd));
     }
 
-    private boolean canConnectToModern(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
-    {
+    private boolean canConnectToModern(IBlockAccess worldIn, BlockPos pos, EnumFacing direction) {
         BlockPos neighbor = pos.offset(direction);
         IBlockState state = worldIn.getBlockState(neighbor);
         Block block = state.getBlock();
         int protocol = ViaProtocol.targetProtocolVersion();
 
-        if (block == Blocks.barrier)
-        {
+        if (block == Blocks.barrier) {
             return protocol >= ProtocolVersion.v1_9.getVersion() && protocol <= ProtocolVersion.v1_11_1.getVersion();
         }
 
-        if (block instanceof BlockWall)
-        {
+        if (block instanceof BlockWall) {
             return true;
         }
 
-        if (block instanceof BlockFenceGate)
-        {
-            if (protocol <= ProtocolVersion.v1_11_1.getVersion())
-            {
+        if (block instanceof BlockFenceGate) {
+            if (protocol <= ProtocolVersion.v1_11_1.getVersion()) {
                 return true;
             }
 
@@ -204,42 +176,35 @@ public class BlockWall extends Block
                 || block == Blocks.glowstone
                 || block == Blocks.sea_lantern
                 || block == Blocks.ice
-                || block == Blocks.packed_ice)
-        {
+                || block == Blocks.packed_ice) {
             return false;
         }
 
         return block.isFullCube() && block.isBlockSolid(worldIn, neighbor, direction.getOpposite());
     }
 
-    private boolean hasModernConnection(IBlockAccess worldIn, BlockPos pos, EnumFacing direction)
-    {
+    private boolean hasModernConnection(IBlockAccess worldIn, BlockPos pos, EnumFacing direction) {
         String value = ModernBlockStateTracker.getNativeProperty(pos, direction.getName());
-        if (value != null)
-        {
+        if (value != null) {
             return !"false".equals(value) && !"none".equals(value);
         }
         return this.canConnectToModern(worldIn, pos, direction);
     }
 
-    private boolean hasModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east)
-    {
+    private boolean hasModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east) {
         String up = ModernBlockStateTracker.getNativeProperty(pos, "up");
         return up != null ? Boolean.parseBoolean(up) : this.shouldHaveModernPost(worldIn, pos, north, south, west, east);
     }
 
-    private boolean shouldHaveModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east)
-    {
-        if (!worldIn.isAirBlock(pos.up()))
-        {
+    private boolean shouldHaveModernPost(IBlockAccess worldIn, BlockPos pos, boolean north, boolean south, boolean west, boolean east) {
+        if (!worldIn.isAirBlock(pos.up())) {
             return true;
         }
 
         return (!north || !south || west || east) && (!west || !east || north || south);
     }
 
-    private void addWallCollisionBox(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
-    {
+    private void addWallCollisionBox(World worldIn, BlockPos pos, IBlockState state, AxisAlignedBB mask, List<AxisAlignedBB> list, float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
         this.setBlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
         super.addCollisionBoxesToList(worldIn, pos, state, mask, list, null);
     }
@@ -247,10 +212,8 @@ public class BlockWall extends Block
     /**
      * returns a list of blocks with the same ID, but different meta (eg: wood returns 4 blocks)
      */
-    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list)
-    {
-        for (BlockWall.EnumType blockwall$enumtype : BlockWall.EnumType.values())
-        {
+    public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
+        for (BlockWall.EnumType blockwall$enumtype : BlockWall.EnumType.values()) {
             list.add(new ItemStack(itemIn, 1, blockwall$enumtype.getMetadata()));
         }
     }
@@ -259,29 +222,25 @@ public class BlockWall extends Block
      * Gets the metadata of the item this Block can drop. This method is called when the block gets destroyed. It
      * returns the metadata of the dropped item based on the old metadata of the block.
      */
-    public int damageDropped(IBlockState state)
-    {
+    public int damageDropped(IBlockState state) {
         return state.getValue(VARIANT).getMetadata();
     }
 
-    public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side)
-    {
+    public boolean shouldSideBeRendered(IBlockAccess worldIn, BlockPos pos, EnumFacing side) {
         return side != EnumFacing.DOWN || super.shouldSideBeRendered(worldIn, pos, side);
     }
 
     /**
      * Convert the given metadata into a BlockState for this Block
      */
-    public IBlockState getStateFromMeta(int meta)
-    {
+    public IBlockState getStateFromMeta(int meta) {
         return this.getDefaultState().withProperty(VARIANT, BlockWall.EnumType.byMetadata(meta));
     }
 
     /**
      * Convert the BlockState into the correct metadata value
      */
-    public int getMetaFromState(IBlockState state)
-    {
+    public int getMetaFromState(IBlockState state) {
         return state.getValue(VARIANT).getMetadata();
     }
 
@@ -289,10 +248,8 @@ public class BlockWall extends Block
      * Get the actual Block state of this Block at the given position. This applies properties not visible in the
      * metadata, such as fence connections.
      */
-    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos)
-    {
-        if (ViaProtocol.newerThanOrEqualTo1_9())
-        {
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        if (ViaProtocol.newerThanOrEqualTo1_9()) {
             boolean north = this.hasModernConnection(worldIn, pos, EnumFacing.NORTH);
             boolean south = this.hasModernConnection(worldIn, pos, EnumFacing.SOUTH);
             boolean west = this.hasModernConnection(worldIn, pos, EnumFacing.WEST);
@@ -303,63 +260,54 @@ public class BlockWall extends Block
         return state.withProperty(UP, !worldIn.isAirBlock(pos.up())).withProperty(NORTH, this.canConnectTo(worldIn, pos.north())).withProperty(EAST, this.canConnectTo(worldIn, pos.east())).withProperty(SOUTH, this.canConnectTo(worldIn, pos.south())).withProperty(WEST, this.canConnectTo(worldIn, pos.west()));
     }
 
-    protected BlockState createBlockState()
-    {
-        return new BlockState(this, new IProperty[] {UP, NORTH, EAST, WEST, SOUTH, VARIANT});
+    protected BlockState createBlockState() {
+        return new BlockState(this, new IProperty[]{UP, NORTH, EAST, WEST, SOUTH, VARIANT});
     }
 
-    public static enum EnumType implements IStringSerializable
-    {
+    public static enum EnumType implements IStringSerializable {
         NORMAL(0, "cobblestone", "normal"),
         MOSSY(1, "mossy_cobblestone", "mossy");
 
         private static final BlockWall.EnumType[] META_LOOKUP = new BlockWall.EnumType[values().length];
+
+        static {
+            for (BlockWall.EnumType blockwall$enumtype : values()) {
+                META_LOOKUP[blockwall$enumtype.getMetadata()] = blockwall$enumtype;
+            }
+        }
+
         private final int meta;
         private final String name;
         private String unlocalizedName;
 
-        private EnumType(int meta, String name, String unlocalizedName)
-        {
+        private EnumType(int meta, String name, String unlocalizedName) {
             this.meta = meta;
             this.name = name;
             this.unlocalizedName = unlocalizedName;
         }
 
-        public int getMetadata()
-        {
-            return this.meta;
-        }
-
-        public String toString()
-        {
-            return this.name;
-        }
-
-        public static BlockWall.EnumType byMetadata(int meta)
-        {
-            if (meta < 0 || meta >= META_LOOKUP.length)
-            {
+        public static BlockWall.EnumType byMetadata(int meta) {
+            if (meta < 0 || meta >= META_LOOKUP.length) {
                 meta = 0;
             }
 
             return META_LOOKUP[meta];
         }
 
-        public String getName()
-        {
+        public int getMetadata() {
+            return this.meta;
+        }
+
+        public String toString() {
             return this.name;
         }
 
-        public String getUnlocalizedName()
-        {
-            return this.unlocalizedName;
+        public String getName() {
+            return this.name;
         }
 
-        static {
-            for (BlockWall.EnumType blockwall$enumtype : values())
-            {
-                META_LOOKUP[blockwall$enumtype.getMetadata()] = blockwall$enumtype;
-            }
+        public String getUnlocalizedName() {
+            return this.unlocalizedName;
         }
     }
 }

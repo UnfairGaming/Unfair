@@ -41,8 +41,8 @@ public class LanServerDetector {
     }
 
     public static class LanServerList {
-        private List<LanServerDetector.LanServer> listOfLanServers = Lists.<LanServerDetector.LanServer>newArrayList();
         boolean wasUpdated;
+        private List<LanServerDetector.LanServer> listOfLanServers = Lists.<LanServerDetector.LanServer>newArrayList();
 
         public synchronized boolean getWasUpdated() {
             return this.wasUpdated;

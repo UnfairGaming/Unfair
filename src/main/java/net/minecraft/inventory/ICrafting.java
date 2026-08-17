@@ -4,8 +4,7 @@ import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
-public interface ICrafting
-{
+public interface ICrafting {
     /**
      * update the crafting window inventory with the items in the list
      */

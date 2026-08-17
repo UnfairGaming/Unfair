@@ -11,13 +11,8 @@ import java.util.List;
  */
 public class FramebufferCaching {
 
-    public static Framebuffer render2DNormalBuffer;
-
     private static final List<Framebuffer> LIST = new ArrayList<>();
-
-    public static void setOverridingFramebuffer(Framebuffer buffer) {
-        LIST.add(0, buffer);
-    }
+    public static Framebuffer render2DNormalBuffer;
 
     public static Framebuffer getOverridingFramebuffer() {
 
@@ -25,6 +20,10 @@ public class FramebufferCaching {
             return null;
 
         return LIST.get(0);
+    }
+
+    public static void setOverridingFramebuffer(Framebuffer buffer) {
+        LIST.add(0, buffer);
     }
 
     public static void removeCurrentlyBinding() {
