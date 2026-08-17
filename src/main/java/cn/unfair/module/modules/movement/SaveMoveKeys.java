@@ -12,7 +12,7 @@ public class SaveMoveKeys extends Module {
     private boolean wasInventoryOpen = false;
 
     public SaveMoveKeys() {
-        super("SaveMoveKeys", false);
+        super("SaveMoveKeys", false, true);
     }
 
     @Override
@@ -34,7 +34,6 @@ public class SaveMoveKeys extends Module {
             wasInventoryOpen = true;
         } else {
             if (wasInventoryOpen) {
-                // 恢复所有移动按键状态
                 mc.addScheduledTask(() -> {
                     KeyBinding.setKeyBindState(mc.gameSettings.keyBindForward.getKeyCode(), 
                             Keyboard.isKeyDown(mc.gameSettings.keyBindForward.getKeyCode()));
