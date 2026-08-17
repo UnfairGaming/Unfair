@@ -18,6 +18,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.LinkedHashMap;
@@ -154,22 +155,35 @@ public class ItemESP extends Module {
                 RenderUtil.disableRenderState();
                 if (this.itemCount.getValue()) {
                     GlStateManager.pushMatrix();
-                    GlStateManager.translate(x, y + scale * 0.5, z);
-                    GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
-                    float flip = mc.gameSettings.thirdPersonView == 2 ? -1.0F : 1.0F;
-                    GlStateManager.rotate(mc.getRenderManager().playerViewX, flip, 0.0F, 0.0F);
-                    double fontScale = -0.04375 - 0.0328125 * ((Math.max(6.0, this.autoScale.getValue() ? distance : 6.0) - 6.0) / 28.0);
-                    GlStateManager.scale(fontScale, fontScale, 1.0);
-                    GlStateManager.disableDepth();
-                    String countText = String.format("%d", itemEntry.getValue());
-                    RenderUtil.drawOutlinedString(
-                            countText,
-                            ((float) mc.fontRendererObj.getStringWidth(countText) / 2.0F - 0.5F) * -1.0F,
-                            ((float) (mc.fontRendererObj.FONT_HEIGHT / 2) - 0.5F) * -1.0F
-                    );
-                    GlStateManager.enableDepth();
-                    GlStateManager.resetColor();
-                    GlStateManager.popMatrix();
+                    try {
+                        GlStateManager.translate(x, y + scale * 0.5, z);
+                        GlStateManager.rotate(mc.getRenderManager().playerViewY * -1.0F, 0.0F, 1.0F, 0.0F);
+                        float flip = mc.gameSettings.thirdPersonView == 2 ? -1.0F : 1.0F;
+                        GlStateManager.rotate(mc.getRenderManager().playerViewX, flip, 0.0F, 0.0F);
+                        double fontScale = -0.04375 - 0.0328125 * ((Math.max(6.0, this.autoScale.getValue() ? distance : 6.0) - 6.0) / 28.0);
+                        GlStateManager.scale(fontScale, fontScale, 1.0);
+                        GlStateManager.disableDepth();
+                        GlStateManager.depthMask(false);
+                        GlStateManager.enableTexture2D();
+                        GlStateManager.enableAlpha();
+                        GlStateManager.enableBlend();
+                        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                        GlStateManager.resetColor();
+                        String countText = String.format("%d", itemEntry.getValue());
+                        RenderUtil.drawOutlinedString(
+                                countText,
+                                ((float) mc.fontRendererObj.getStringWidth(countText) / 2.0F - 0.5F) * -1.0F,
+                                ((float) (mc.fontRendererObj.FONT_HEIGHT / 2) - 0.5F) * -1.0F
+                        );
+                    } finally {
+                        GlStateManager.resetColor();
+                        GlStateManager.depthMask(true);
+                        GlStateManager.enableDepth();
+                        GlStateManager.enableAlpha();
+                        GlStateManager.enableTexture2D();
+                        GlStateManager.disableBlend();
+                        GlStateManager.popMatrix();
+                    }
                 }
             }
         }

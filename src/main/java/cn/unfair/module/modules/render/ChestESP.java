@@ -2,6 +2,9 @@ package cn.unfair.module.modules.render;
 
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
+import cn.unfair.event.types.EventType;
+import cn.unfair.events.LoadWorldEvent;
+import cn.unfair.events.PacketEvent;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.events.Render3DEvent;
 import cn.unfair.events.ResizeEvent;
@@ -16,10 +19,14 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.shader.Framebuffer;
+import net.minecraft.block.BlockChest;
+import net.minecraft.init.Blocks;
+import net.minecraft.network.play.server.S24PacketBlockAction;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityEnderChest;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -29,12 +36,15 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class ChestESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int MODE_DEFAULT = 0;
     private static final int MODE_GLOW = 1;
+    private static final int MODE_NAVEN = 2;
+    private static final int NAVEN_CHEST_ALPHA = 64;
     public final ModeProperty mode;
     public final ColorProperty color;
     public final PercentProperty opacity;
@@ -47,10 +57,11 @@ public class ChestESP extends Module {
     private Framebuffer framebuffer = null;
     private Framebuffer glowFrameBuffer = null;
     private List<TileEntity> glowChests = new ArrayList<>();
+    private final List<BlockPos> openedChests = new CopyOnWriteArrayList<>();
 
     public ChestESP() {
         super("ChestESP", false, true);
-        this.mode = new ModeProperty("Mode", MODE_DEFAULT, new String[]{"Default", "Glow"});
+        this.mode = new ModeProperty("Mode", MODE_DEFAULT, new String[]{"Default", "Glow", "Naven"});
         this.color = new ColorProperty("Color", new Color(255, 170, 0).getRGB());
         this.opacity = new PercentProperty("Opacity", 100, () -> this.mode.getValue() == MODE_DEFAULT);
         this.tracers = new BooleanProperty("Tracers", false);
@@ -97,6 +108,26 @@ public class ChestESP extends Module {
     public void onDisabled() {
         this.deleteGlowFramebuffers();
         this.glowChests.clear();
+        this.openedChests.clear();
+    }
+
+    @EventTarget
+    public void onLoadWorld(LoadWorldEvent event) {
+        this.openedChests.clear();
+    }
+
+    @EventTarget
+    public void onPacket(PacketEvent event) {
+        if (!this.isEnabled() || this.mode.getValue() != MODE_NAVEN
+                || event.getType() != EventType.RECEIVE || !(event.getPacket() instanceof S24PacketBlockAction packet)) {
+            return;
+        }
+
+        if ((packet.getBlockType() == Blocks.chest || packet.getBlockType() == Blocks.trapped_chest)
+                && packet.getData1() == 1 && packet.getData2() == 1
+                && !this.openedChests.contains(packet.getBlockPosition())) {
+            this.openedChests.add(packet.getBlockPosition());
+        }
     }
 
     public boolean isRenderingGlowChests() {
@@ -238,6 +269,41 @@ public class ChestESP extends Module {
         );
     }
 
+    private AxisAlignedBB getNavenChestBox(TileEntityChest chest) {
+        chest.checkForAdjacentChests();
+        if (chest.adjacentChestXNeg != null || chest.adjacentChestZNeg != null) {
+            return null;
+        }
+
+        BlockPos position = chest.getPos();
+        AxisAlignedBB box = new AxisAlignedBB(position, position.add(1, 1, 1));
+        if (chest.adjacentChestXPos != null) {
+            box = box.union(new AxisAlignedBB(chest.adjacentChestXPos.getPos(), chest.adjacentChestXPos.getPos().add(1, 1, 1)));
+        }
+        if (chest.adjacentChestZPos != null) {
+            box = box.union(new AxisAlignedBB(chest.adjacentChestZPos.getPos(), chest.adjacentChestZPos.getPos().add(1, 1, 1)));
+        }
+        return box.offset(
+                -mc.getRenderManager().getRenderPosX(),
+                -mc.getRenderManager().getRenderPosY(),
+                -mc.getRenderManager().getRenderPosZ()
+        );
+    }
+
+    private void drawNavenBox(TileEntityChest chest) {
+        if (!(chest.getBlockType() instanceof BlockChest)) {
+            return;
+        }
+
+        AxisAlignedBB box = this.getNavenChestBox(chest);
+        if (box == null) {
+            return;
+        }
+
+        boolean opened = this.openedChests.contains(chest.getPos());
+        RenderUtil.drawFilledBox(box, opened ? 255 : 0, opened ? 0 : 255, 0, NAVEN_CHEST_ALPHA);
+    }
+
     private void drawTracer(TileEntity chest, Color color) {
         Vec3 vec;
         if (mc.gameSettings.thirdPersonView == 0) {
@@ -310,15 +376,27 @@ public class ChestESP extends Module {
             GlStateManager.disableLighting();
         }
 
-        if (this.mode.getValue() == MODE_DEFAULT || !this.glowAvailable || this.tracers.getValue()) {
+        if (this.mode.getValue() == MODE_DEFAULT
+                || this.mode.getValue() == MODE_GLOW && !this.glowAvailable
+                || this.tracers.getValue()) {
             RenderUtil.enableRenderState();
             Color color = this.getColor();
             for (TileEntity chest : renderedChests) {
-                if (this.mode.getValue() == MODE_DEFAULT) {
+                if (this.mode.getValue() == MODE_DEFAULT || this.mode.getValue() == MODE_GLOW && !this.glowAvailable) {
                     this.drawDefaultBox(chest, color);
                 }
                 if (this.tracers.getValue()) {
                     this.drawTracer(chest, color);
+                }
+            }
+            RenderUtil.disableRenderState();
+        }
+
+        if (this.mode.getValue() == MODE_NAVEN) {
+            RenderUtil.enableRenderState();
+            for (TileEntity chest : renderedChests) {
+                if (chest instanceof TileEntityChest tileEntityChest) {
+                    this.drawNavenBox(tileEntityChest);
                 }
             }
             RenderUtil.disableRenderState();

@@ -284,7 +284,7 @@ public class ChunkProviderServer implements IChunkProvider {
             }
         }
 
-        return this.serverChunkGenerator.unloadQueuedChunks();
+        return this.serverChunkGenerator == null || this.serverChunkGenerator.unloadQueuedChunks();
     }
 
     /**

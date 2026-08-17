@@ -39,6 +39,9 @@ public class S26PacketMapChunkBulk implements Packet<INetHandlerPlayClient> {
     public void readPacketData(PacketBuffer buf) throws IOException {
         this.isOverworld = buf.readBoolean();
         int i = buf.readVarIntFromBuffer();
+        if (i < 0 || i > 1024) {
+            throw new IOException("Invalid chunk batch size: " + i);
+        }
         this.xPositions = new int[i];
         this.zPositions = new int[i];
         this.chunksData = new S21PacketChunkData.Extracted[i];

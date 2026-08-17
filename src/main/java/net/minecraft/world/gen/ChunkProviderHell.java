@@ -330,9 +330,10 @@ public class ChunkProviderHell implements IChunkProvider {
      */
     public void populate(IChunkProvider chunkProvider, int x, int z) {
         BlockFalling.fallInstantly = true;
-        BlockPos blockpos = new BlockPos(x * 16, 0, z * 16);
-        ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(x, z);
-        this.genNetherBridge.generateStructure(this.worldObj, this.hellRNG, chunkcoordintpair);
+        try {
+            BlockPos blockpos = new BlockPos(x * 16, 0, z * 16);
+            ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(x, z);
+            this.genNetherBridge.generateStructure(this.worldObj, this.hellRNG, chunkcoordintpair);
 
         for (int i = 0; i < 8; ++i) {
             this.field_177472_y.generate(this.worldObj, this.hellRNG, blockpos.add(this.hellRNG.nextInt(16) + 8, this.hellRNG.nextInt(120) + 4, this.hellRNG.nextInt(16) + 8));
@@ -366,7 +367,9 @@ public class ChunkProviderHell implements IChunkProvider {
             this.field_177473_x.generate(this.worldObj, this.hellRNG, blockpos.add(this.hellRNG.nextInt(16), this.hellRNG.nextInt(108) + 10, this.hellRNG.nextInt(16)));
         }
 
-        BlockFalling.fallInstantly = false;
+        } finally {
+            BlockFalling.fallInstantly = false;
+        }
     }
 
     public boolean populateChunk(IChunkProvider chunkProvider, Chunk chunkIn, int x, int z) {

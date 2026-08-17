@@ -38,11 +38,15 @@ public class DelayManager {
             this.delayModule = DelayModules.NONE;
             return false;
         }
+        if (packet instanceof S01PacketJoinGame || packet instanceof S07PacketRespawn) {
+            this.discardDelayedPackets(this.delayModule);
+            return false;
+        }
         if (this.delayModule == DelayModules.NONE) {
             return false;
         } else if (packet instanceof S00PacketKeepAlive) {
             return false;
-        } else if (!(packet instanceof S01PacketJoinGame) && !(packet instanceof S07PacketRespawn)) {
+        } else {
             if (packet instanceof S19PacketEntityStatus s19) {
                 Entity entity = s19.getEntity(mc.theWorld);
                 if (entity != null && (!entity.equals(mc.thePlayer) || s19.getOpCode() != 2)) {
@@ -51,9 +55,6 @@ public class DelayManager {
             }
             this.queueDelayedPacket(packet);
             return true;
-        } else {
-            this.setDelayState(false, this.delayModule);
-            return false;
         }
     }
 
@@ -116,7 +117,7 @@ public class DelayManager {
                 || event.getPacket() instanceof C00PacketServerQuery
                 || event.getPacket() instanceof C01PacketPing
                 || event.getPacket() instanceof C01PacketEncryptionResponse) {
-            this.setDelayState(false, this.delayModule);
+            this.discardDelayedPackets(this.delayModule);
         }
     }
 

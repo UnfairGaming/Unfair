@@ -242,12 +242,16 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (PipelineUtil.containsCause(cause, CancelCodecException.class)) return;
+        if (PipelineUtil.containsCause(cause, CancelCodecException.class)) {
+            return;
+        }
 
         if ((PipelineUtil.containsCause(cause, InformativeException.class)
                 && user.getProtocolInfo().getServerState() != State.HANDSHAKE)
                 || Via.getManager().debugHandler().enabled()) {
             cause.printStackTrace();
         }
+
+        ctx.fireExceptionCaught(cause);
     }
 }

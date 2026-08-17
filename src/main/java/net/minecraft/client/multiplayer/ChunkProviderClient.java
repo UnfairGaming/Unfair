@@ -47,7 +47,7 @@ public class ChunkProviderClient implements IChunkProvider {
      * Checks to see if a chunk exists at x, z
      */
     public boolean chunkExists(int x, int z) {
-        return this.chunkMapping.containsItem(ChunkCoordIntPair.chunkXZ2Int(x, z));
+        return true;
     }
 
     /**
