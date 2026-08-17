@@ -1746,6 +1746,35 @@ public class Scaffold extends Module {
     }
 
     @Override
+    public void verifyValue(String name) {
+        if (this.godBridgeJumpMin.getName().equals(name)
+                && this.godBridgeJumpMin.getValue() > this.godBridgeJumpMax.getValue()) {
+            this.godBridgeJumpMax.setValue(this.godBridgeJumpMin.getValue());
+        } else if (this.godBridgeJumpMax.getName().equals(name)
+                && this.godBridgeJumpMin.getValue() > this.godBridgeJumpMax.getValue()) {
+            this.godBridgeJumpMin.setValue(this.godBridgeJumpMax.getValue());
+        } else if (this.godBridgeHorizontalSpeedMin.getName().equals(name)
+                && this.godBridgeHorizontalSpeedMin.getValue() > this.godBridgeHorizontalSpeedMax.getValue()) {
+            this.godBridgeHorizontalSpeedMax.setValue(this.godBridgeHorizontalSpeedMin.getValue());
+        } else if (this.godBridgeHorizontalSpeedMax.getName().equals(name)
+                && this.godBridgeHorizontalSpeedMin.getValue() > this.godBridgeHorizontalSpeedMax.getValue()) {
+            this.godBridgeHorizontalSpeedMin.setValue(this.godBridgeHorizontalSpeedMax.getValue());
+        } else if (this.godBridgeVerticalSpeedMin.getName().equals(name)
+                && this.godBridgeVerticalSpeedMin.getValue() > this.godBridgeVerticalSpeedMax.getValue()) {
+            this.godBridgeVerticalSpeedMax.setValue(this.godBridgeVerticalSpeedMin.getValue());
+        } else if (this.godBridgeVerticalSpeedMax.getName().equals(name)
+                && this.godBridgeVerticalSpeedMin.getValue() > this.godBridgeVerticalSpeedMax.getValue()) {
+            this.godBridgeVerticalSpeedMin.setValue(this.godBridgeVerticalSpeedMax.getValue());
+        } else if (this.godBridgeExtraClickMinCps.getName().equals(name)
+                && this.godBridgeExtraClickMinCps.getValue() > this.godBridgeExtraClickMaxCps.getValue()) {
+            this.godBridgeExtraClickMaxCps.setValue(this.godBridgeExtraClickMinCps.getValue());
+        } else if (this.godBridgeExtraClickMaxCps.getName().equals(name)
+                && this.godBridgeExtraClickMinCps.getValue() > this.godBridgeExtraClickMaxCps.getValue()) {
+            this.godBridgeExtraClickMinCps.setValue(this.godBridgeExtraClickMaxCps.getValue());
+        }
+    }
+
+    @Override
     public String[] getSuffix() {
         return new String[]{mode.getModeString()};
     }

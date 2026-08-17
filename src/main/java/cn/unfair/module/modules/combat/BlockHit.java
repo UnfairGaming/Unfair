@@ -172,6 +172,17 @@ public class BlockHit extends Module {
     }
 
     @Override
+    public void verifyValue(String name) {
+        if (this.minHurtTime.getName().equals(name)
+                && this.minHurtTime.getValue() > this.maxHurtTime.getValue()) {
+            this.maxHurtTime.setValue(this.minHurtTime.getValue());
+        } else if (this.maxHurtTime.getName().equals(name)
+                && this.minHurtTime.getValue() > this.maxHurtTime.getValue()) {
+            this.minHurtTime.setValue(this.maxHurtTime.getValue());
+        }
+    }
+
+    @Override
     public String[] getSuffix() {
         return new String[]{this.mode.getModeString()};
     }

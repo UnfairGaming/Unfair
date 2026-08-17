@@ -60,6 +60,17 @@ public class Criticals extends Module {
     }
 
     @Override
+    public void verifyValue(String name) {
+        if (this.hurtTimeMin.getName().equals(name)
+                && this.hurtTimeMin.getValue() > this.hurtTimeMax.getValue()) {
+            this.hurtTimeMax.setValue(this.hurtTimeMin.getValue());
+        } else if (this.hurtTimeMax.getName().equals(name)
+                && this.hurtTimeMin.getValue() > this.hurtTimeMax.getValue()) {
+            this.hurtTimeMin.setValue(this.hurtTimeMax.getValue());
+        }
+    }
+
+    @Override
     public String[] getSuffix() {
         return new String[]{this.mode.getModeString()};
     }

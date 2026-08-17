@@ -419,6 +419,15 @@ public class AutoProjectiles extends Module {
         return this.inventoryCheck.getValue() && mc.currentScreen instanceof GuiContainer;
     }
 
+    @Override
+    public void verifyValue(String name) {
+        if (this.minRange.getName().equals(name) && this.minRange.getValue() > this.maxRange.getValue()) {
+            this.maxRange.setValue(this.minRange.getValue());
+        } else if (this.maxRange.getName().equals(name) && this.minRange.getValue() > this.maxRange.getValue()) {
+            this.minRange.setValue(this.maxRange.getValue());
+        }
+    }
+
     private static class SmartPredictor {
         private final Vec3[] positions = new Vec3[20];
         private final long[] timestamps = new long[20];

@@ -378,6 +378,15 @@ public class AutoRod extends Module {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
+    @Override
+    public void verifyValue(String name) {
+        if (this.minRange.getName().equals(name) && this.minRange.getValue() > this.maxRange.getValue()) {
+            this.maxRange.setValue(this.minRange.getValue());
+        } else if (this.maxRange.getName().equals(name) && this.minRange.getValue() > this.maxRange.getValue()) {
+            this.minRange.setValue(this.maxRange.getValue());
+        }
+    }
+
     private float getRotationDifference(Entity entity) {
         float[] target = RotationUtil.getRotations(
                 entity.posX,

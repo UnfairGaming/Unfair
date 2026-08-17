@@ -1,10 +1,7 @@
 package cn.unfair.module.modules.render;
 
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.ColorProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -33,7 +30,7 @@ public class PotionEffects extends Module {
     public final BooleanProperty showName = new BooleanProperty("Show Name", true);
     public final BooleanProperty blink = new BooleanProperty("Blink", true);
     public final IntProperty blinkSeconds = new IntProperty("Blink Seconds", 10, 2, 20, this.blink::getValue);
-    public final BooleanProperty background = new BooleanProperty("Background", false);
+    public final PercentProperty background = new PercentProperty("Background", 50);
     public final ColorProperty nameColor = new ColorProperty("Name Color", Color.WHITE.getRGB());
     public final ColorProperty durationColor = new ColorProperty("Duration Color", Color.WHITE.getRGB());
     private float widgetWidth = MIN_WIDGET_WIDTH;
@@ -59,7 +56,7 @@ public class PotionEffects extends Module {
     }
 
     public boolean shouldRenderWidgetEffects() {
-        return this.shouldRenderWidget() && this.background.getValue() && !getEffects().isEmpty();
+        return this.shouldRenderWidget() && this.background.getValue() > 0 && !getEffects().isEmpty();
     }
 
     public void tickBlink() {
@@ -119,8 +116,8 @@ public class PotionEffects extends Module {
             RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, color);
             return;
         }
-        if (this.background.getValue()) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, new Color(0, 0, 0, 90).getRGB());
+        if (this.background.getValue() > 0) {
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, new Color(0, 0, 0, this.background.getValue()).getRGB());
         }
         float rowY = y;
         for (PotionEffect effect : effects) {
@@ -135,7 +132,7 @@ public class PotionEffects extends Module {
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
             int icon = potion.getStatusIconIndex();
-            Gui.drawModalRectWithCustomSizedTexture((int) x, (int)(y + (this.getRowHeight() - 18.0F) / 2.0F), icon % 8 * 18, 198 + icon / 8 * 18, 18, 18, 256.0F, 256.0F);
+            Gui.drawModalRectWithCustomSizedTexture((int) x, (int)(y + (this.getRowHeight() - 18.0F) / 2.0F), icon % 8 * 18, 198 + (double) icon / 8 * 18, 18, 18, 256.0F, 256.0F);
         }
         float textX = x + 20.0F;
         if (this.showName.getValue()) {
