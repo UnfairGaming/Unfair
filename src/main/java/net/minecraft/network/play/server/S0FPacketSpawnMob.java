@@ -117,7 +117,7 @@ public class S0FPacketSpawnMob implements Packet<INetHandlerPlayClient> {
     }
 
     public List<DataWatcher.WatchableObject> func_149027_c() {
-        if (this.watcher == null) {
+        if (this.watcher == null && this.field_149043_l != null) {
             this.watcher = this.field_149043_l.getAllWatched();
         }
 
