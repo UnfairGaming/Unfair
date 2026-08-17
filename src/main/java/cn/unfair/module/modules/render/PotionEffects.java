@@ -6,12 +6,9 @@ import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.ResourceLocation;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -21,7 +18,6 @@ import java.util.List;
 
 public class PotionEffects extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private static final ResourceLocation INVENTORY_TEXTURE = new ResourceLocation("textures/gui/container/inventory.png");
     private static final float FONT_SIZE = 16.0F;
     private static final String MINECRAFT_FONT = "Minecraft";
     private static final float MIN_WIDGET_WIDTH = 32.0F;
@@ -127,13 +123,11 @@ public class PotionEffects extends Module {
     }
 
     private void renderEffect(PotionEffect effect, float x, float y) {
-        Potion potion = Potion.potionTypes[effect.getPotionID()];
-        if (potion != null && potion.hasStatusIcon()) {
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
-            int icon = potion.getStatusIconIndex();
-            Gui.drawModalRectWithCustomSizedTexture((int) x, (int)(y + (this.getRowHeight() - 18.0F) / 2.0F), icon % 8 * 18, 198 + (double) icon / 8 * 18, 18, 18, 256.0F, 256.0F);
-        }
+        RenderUtil.renderPotionEffect(
+                effect,
+                (int) x,
+                (int) (y + (this.getRowHeight() - 18.0F) / 2.0F)
+        );
         float textX = x + 20.0F;
         if (this.showName.getValue()) {
             float textY = y + this.getTextBlockOffset();

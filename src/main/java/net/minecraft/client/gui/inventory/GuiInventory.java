@@ -124,7 +124,7 @@ public class GuiInventory extends InventoryEffectRenderer {
         int i = this.guiLeft;
         int j = this.guiTop;
         this.drawTexturedModalRect(i, j, 0, 0, this.xSize, this.ySize);
-        drawEntityOnScreen(i + 49, j + 75, 30, (float) (i + 51) - this.oldMouseX, (float) (j + 75 - 50) - this.oldMouseY, this.mc.thePlayer);
+        drawEntityOnScreen(i + 49, j + 72, 30, (float) (i + 51) - this.oldMouseX, (float) (j + 75 - 50) - this.oldMouseY, this.mc.thePlayer);
         if (ModernOffhandInteraction.isModernTarget()) {
             GlStateManager.enableTexture2D();
             this.mc.getTextureManager().bindTexture(inventoryBackground);

@@ -1485,19 +1485,9 @@ public class Scaffold extends Module {
                 rotationAbuse(30f, rot.yaw);
             }
             place();
+        } else {
+            runGodBridgeClick();
         }
-    }
-
-    @EventTarget
-    public void onTick(TickEvent event) {
-        if (!this.isEnabled()
-                || mode.getValue() != 2
-                || event.type() != EventType.POST
-                || mc.thePlayer == null
-                || mc.theWorld == null) {
-            return;
-        }
-        runGodBridgeClick();
     }
 
     @EventTarget
