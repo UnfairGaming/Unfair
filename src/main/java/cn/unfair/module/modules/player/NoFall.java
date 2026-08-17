@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.movement;
+package cn.unfair.module.modules.player;
 
 import cn.unfair.Unfair;
 import cn.unfair.enums.BlinkModules;

@@ -2,7 +2,7 @@ package net.minecraft.entity.player;
 
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.combat.velocity.PolarVelocity;
-import cn.unfair.module.modules.movement.KeepSprint;
+import cn.unfair.module.modules.combat.KeepSprint;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ModernPlayerPhysics;

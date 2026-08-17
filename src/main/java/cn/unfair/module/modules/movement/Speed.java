@@ -8,7 +8,7 @@ import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.module.modules.player.Scaffold;
+import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;

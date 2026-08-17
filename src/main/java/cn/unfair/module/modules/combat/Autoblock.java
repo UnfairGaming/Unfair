@@ -11,7 +11,7 @@ import cn.unfair.events.RightClickMouseEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.events.UseItemEvent;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.misc.BedNuker;
+import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;

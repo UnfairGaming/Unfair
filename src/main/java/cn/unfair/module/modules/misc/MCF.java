@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.player;
+package cn.unfair.module.modules.misc;
 
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;

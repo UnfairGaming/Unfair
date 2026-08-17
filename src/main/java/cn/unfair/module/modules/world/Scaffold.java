@@ -1,14 +1,11 @@
-package cn.unfair.module.modules.player;
+package cn.unfair.module.modules.world;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -122,10 +119,11 @@ public class Scaffold extends Module {
             new String[]{"Fail", "Independent"}, () -> this.mode.getValue() == 2 && godBridgeExtraClicks.getValue());
     public final FloatProperty safeDistance = new FloatProperty("Clutch Safe Distance", 4.5F, 1.0F, 5.0F);
     public final BooleanProperty mark = new BooleanProperty("Mark", true);
-    private final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
-    private final BooleanProperty interactItem = new BooleanProperty("Interact Item Before Place", false);
+    public final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
+    public final BooleanProperty interactItem = new BooleanProperty("Interact Item Before Place", false);
     public final BooleanProperty blockCount = new BooleanProperty("Block Count", true);
     public final IntProperty blockCountOffset = new IntProperty("Block Count Y Offset", 0, 0, 200);
+    public final PercentProperty blockCountOpacity = new PercentProperty("Block Count Opacity", 70, this.blockCount::getValue);
 
     private static final List<Block> invalidBlocks = Arrays.asList(
             net.minecraft.init.Blocks.enchanting_table, net.minecraft.init.Blocks.chest, net.minecraft.init.Blocks.ender_chest,
@@ -1642,7 +1640,7 @@ public class Scaffold extends Module {
         BlockCountLayout layout = this.getBlockCountLayout();
         this.renderBlockCountBackground(
                 layout,
-                new Color(15, 15, 22, (int) (180.0F * layout.alpha() / 255.0F)).getRGB()
+                new Color(15, 15, 22, (int) (this.blockCountOpacity.getValue() / 100.0F * layout.alpha())).getRGB()
         );
 
         GlStateManager.pushMatrix();
