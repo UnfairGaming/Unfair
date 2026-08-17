@@ -42,12 +42,12 @@ import java.util.stream.Collectors;
 
 public class ChestESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode;
-    public final ColorProperty color;
-    public final PercentProperty opacity;
-    public final BooleanProperty tracers;
-    public final FloatProperty glowExposure;
-    public final IntProperty glowRadius;
+    public final ModeProperty mode = new ModeProperty("Mode", 2, new String[]{"Default", "Glow", "Naven"});
+    public final ColorProperty color = new ColorProperty("Color", new Color(255, 170, 0).getRGB());
+    public final PercentProperty opacity = new PercentProperty("Opacity", 100, () -> this.mode.getValue() == 0);
+    public final BooleanProperty tracers = new BooleanProperty("Tracers", false);
+    public final FloatProperty glowExposure = new FloatProperty("Glow Exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == 1);
+    public final IntProperty glowRadius = new IntProperty("Glow Radius", 5, 2, 30, () -> this.mode.getValue() == 1);
     private GlowESPBlurShader blurShader;
     private boolean glowAvailable;
     @Getter
@@ -59,12 +59,6 @@ public class ChestESP extends Module {
 
     public ChestESP() {
         super("ChestESP", false, true);
-        this.mode = new ModeProperty("Mode", 2, new String[]{"Default", "Glow", "Naven"});
-        this.color = new ColorProperty("Color", new Color(255, 170, 0).getRGB());
-        this.opacity = new PercentProperty("Opacity", 100, () -> this.mode.getValue() == 0);
-        this.tracers = new BooleanProperty("Tracers", false);
-        this.glowExposure = new FloatProperty("Glow Exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == 2);
-        this.glowRadius = new IntProperty("Glow Radius", 5, 2, 30, () -> this.mode.getValue() == 2);
         try {
             if (AndroidUtil.isAndroid()) {
                 this.glowAvailable = false;
@@ -343,7 +337,7 @@ public class ChestESP extends Module {
 
     @EventTarget
     public void onRender2D(Render2DEvent event) {
-        if (this.isEnabled() && this.mode.getValue() == 2 && this.glowAvailable) {
+        if (this.isEnabled() && this.mode.getValue() == 1 && this.glowAvailable) {
             this.renderGlowPass();
         }
     }
@@ -359,7 +353,7 @@ public class ChestESP extends Module {
             this.glowChests = renderedChests;
             return;
         }
-        if (this.mode.getValue() == 2 && this.glowAvailable) {
+        if (this.mode.getValue() == 1 && this.glowAvailable) {
             this.createGlowFramebuffers();
             this.glowChests = renderedChests;
             this.framebuffer.framebufferClear();
@@ -371,12 +365,12 @@ public class ChestESP extends Module {
         }
 
         if (this.mode.getValue() == 0
-                || this.mode.getValue() == 2 && !this.glowAvailable
+                || this.mode.getValue() == 1 && !this.glowAvailable
                 || this.tracers.getValue()) {
             RenderUtil.enableRenderState();
             Color color = this.getColor();
             for (TileEntity chest : renderedChests) {
-                if (this.mode.getValue() == 0 || this.mode.getValue() == 2 && !this.glowAvailable) {
+                if (this.mode.getValue() == 0 || this.mode.getValue() == 1 && !this.glowAvailable) {
                     this.drawDefaultBox(chest, color);
                 }
                 if (this.tracers.getValue()) {
