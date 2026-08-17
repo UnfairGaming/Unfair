@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.combat;
+package cn.unfair.module.modules.player;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;

@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.player;
+package cn.unfair.module.modules.render;
 
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;

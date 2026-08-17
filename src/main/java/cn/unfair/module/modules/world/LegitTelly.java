@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.player;
+package cn.unfair.module.modules.world;
 
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;
@@ -7,13 +7,12 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.movement.Eagle;
+import cn.unfair.module.modules.player.Eagle;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.BlockUtil;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.RayCastUtil;
-import cn.unfair.util.RotationUtil;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;

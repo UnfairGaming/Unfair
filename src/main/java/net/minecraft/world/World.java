@@ -1,7 +1,7 @@
 package net.minecraft.world;
 
 import cn.unfair.Unfair;
-import cn.unfair.module.modules.misc.AntiObbyTrap;
+import cn.unfair.module.modules.player.AntiObbyTrap;
 import cn.unfair.module.modules.movement.Jesus;
 import cn.unfair.module.modules.render.Ambience;
 import cn.unfair.util.via.ModernWorldHeight;

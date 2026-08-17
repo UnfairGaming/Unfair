@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.misc;
+package cn.unfair.module.modules.world;
 
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;

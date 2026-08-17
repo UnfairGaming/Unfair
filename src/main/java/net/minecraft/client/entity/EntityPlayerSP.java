@@ -9,7 +9,7 @@ import cn.unfair.events.PlayerUpdateEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.NoSlow;
-import cn.unfair.module.modules.player.AntiDebuff;
+import cn.unfair.module.modules.render.AntiDebuff;
 import cn.unfair.util.via.*;
 import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
 import com.viaversion.viaversion.api.Via;

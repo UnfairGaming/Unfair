@@ -5,7 +5,7 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.modules.misc.NickHider;
 import cn.unfair.module.modules.player.AutoBlockIn;
-import cn.unfair.module.modules.player.Scaffold;
+import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.util.postprocessing.PostProcessingRenderer;
 import com.google.common.collect.Iterables;

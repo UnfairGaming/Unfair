@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.movement;
+package cn.unfair.module.modules.combat;
 
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;

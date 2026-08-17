@@ -1,12 +1,13 @@
 package cn.unfair.module.modules.movement;
 
+import cn.unfair.module.modules.world.Scaffold;
+
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.SafeWalkEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.player.Scaffold;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.util.ItemUtil;

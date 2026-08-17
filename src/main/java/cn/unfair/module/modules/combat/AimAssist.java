@@ -11,6 +11,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
+import cn.unfair.module.modules.player.Reach;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;

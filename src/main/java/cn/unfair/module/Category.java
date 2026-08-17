@@ -5,10 +5,12 @@ import lombok.Getter;
 @Getter
 public enum Category {
     COMBAT("Combat", "cn.unfair.module.modules.combat"),
+    PLAYER("Player", "cn.unfair.module.modules.player"),
     MOVEMENT("Movement", "cn.unfair.module.modules.movement"),
     RENDER("Render", "cn.unfair.module.modules.render"),
-    PLAYER("Player", "cn.unfair.module.modules.player"),
-    MISC("Misc", "cn.unfair.module.modules.misc");
+    WORLD("World", "cn.unfair.module.modules.world"),
+    MISC("Misc", "cn.unfair.module.modules.misc"),
+    EXPLOIT("Exploit", "cn.unfair.module.modules.exploit");
 
     private final String displayName;
     private final String packageName;
