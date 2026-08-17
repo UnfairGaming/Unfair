@@ -195,7 +195,7 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
             return accessor;
         }
 
-        if (!location.getResourcePath().endsWith(".ogg")) {
+        if (!location.getResourcePath().endsWith(".ogg") && !location.getResourcePath().endsWith(".mp3")) {
             return null;
         }
 
