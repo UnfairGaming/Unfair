@@ -249,9 +249,12 @@ public class ChunkProviderEnd implements IChunkProvider {
      */
     public void populate(IChunkProvider chunkProvider, int x, int z) {
         BlockFalling.fallInstantly = true;
-        BlockPos blockpos = new BlockPos(x * 16, 0, z * 16);
-        this.endWorld.getBiomeGenForCoords(blockpos.add(16, 0, 16)).decorate(this.endWorld, this.endWorld.rand, blockpos);
-        BlockFalling.fallInstantly = false;
+        try {
+            BlockPos blockpos = new BlockPos(x * 16, 0, z * 16);
+            this.endWorld.getBiomeGenForCoords(blockpos.add(16, 0, 16)).decorate(this.endWorld, this.endWorld.rand, blockpos);
+        } finally {
+            BlockFalling.fallInstantly = false;
+        }
     }
 
     public boolean populateChunk(IChunkProvider chunkProvider, Chunk chunkIn, int x, int z) {

@@ -1080,9 +1080,20 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     public void fillChunk(byte[] p_177439_1_, int p_177439_2_, boolean p_177439_3_) {
         int i = 0;
         boolean flag = !this.worldObj.provider.getHasNoSky();
-        int sectionMask = p_177439_2_ & ((1 << this.storageArrays.length) - 1);
+        int sectionMask = p_177439_2_ & 65535 & ((1 << this.storageArrays.length) - 1);
         int sectionCount = Integer.bitCount(sectionMask);
         int requiredLength = sectionCount * (4096 * 2 + 2048 + (flag ? 2048 : 0)) + (p_177439_3_ ? this.blockBiomeArray.length : 0);
+
+        // Some protocol bridges omit skylight data even for a surface world.
+        // Accept that layout when the payload length matches it exactly.
+        if (flag && p_177439_3_) {
+            int withoutSkylight = sectionCount * (4096 * 2 + 2048) + this.blockBiomeArray.length;
+            if (p_177439_1_ != null && p_177439_1_.length >= withoutSkylight
+                    && p_177439_1_.length < requiredLength) {
+                flag = false;
+                requiredLength = withoutSkylight;
+            }
+        }
 
         if (p_177439_1_ == null || p_177439_1_.length < requiredLength) {
             logger.warn(
@@ -1098,7 +1109,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         }
 
         for (int j = 0; j < this.storageArrays.length; ++j) {
-            if ((p_177439_2_ & 1 << j) != 0) {
+            if ((sectionMask & 1 << j) != 0) {
                 if (this.storageArrays[j] == null) {
                     this.storageArrays[j] = new ExtendedBlockStorage(j << 4, flag);
                 }
@@ -1115,7 +1126,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         }
 
         for (int l = 0; l < this.storageArrays.length; ++l) {
-            if ((p_177439_2_ & 1 << l) != 0 && this.storageArrays[l] != null) {
+            if ((sectionMask & 1 << l) != 0 && this.storageArrays[l] != null) {
                 NibbleArray nibblearray = this.storageArrays[l].getBlocklightArray();
                 System.arraycopy(p_177439_1_, i, nibblearray.getData(), 0, nibblearray.getData().length);
                 i += nibblearray.getData().length;
@@ -1124,7 +1135,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
 
         if (flag) {
             for (int i1 = 0; i1 < this.storageArrays.length; ++i1) {
-                if ((p_177439_2_ & 1 << i1) != 0 && this.storageArrays[i1] != null) {
+                if ((sectionMask & 1 << i1) != 0 && this.storageArrays[i1] != null) {
                     NibbleArray nibblearray1 = this.storageArrays[i1].getSkylightArray();
                     System.arraycopy(p_177439_1_, i, nibblearray1.getData(), 0, nibblearray1.getData().length);
                     i += nibblearray1.getData().length;
@@ -1138,7 +1149,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
         }
 
         for (int j1 = 0; j1 < this.storageArrays.length; ++j1) {
-            if (this.storageArrays[j1] != null && (p_177439_2_ & 1 << j1) != 0) {
+            if (this.storageArrays[j1] != null && (sectionMask & 1 << j1) != 0) {
                 this.storageArrays[j1].removeInvalidBlocks();
             }
         }

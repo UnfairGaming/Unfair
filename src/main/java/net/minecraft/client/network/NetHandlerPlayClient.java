@@ -145,6 +145,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     @Override
     public void handleJoinGame(S01PacketJoinGame packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        ModernBlockStateTracker.clear();
         ModernWorldHeight.sync(ViaVersionFix.connection());
         this.gameController.playerController = new PlayerControllerMP(this.gameController, this);
         this.clientWorldController = new WorldClient(this, new WorldSettings(0L, packetIn.getGameType(), false, packetIn.isHardcoreMode(), packetIn.getWorldType()), packetIn.getDimension(), packetIn.getDifficulty(), this.gameController.mcProfiler);
@@ -618,7 +619,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         }
 
         if (packetIn.func_149274_i()) {
-            if (packetIn.getExtractedSize() == 0) {
+            byte[] chunkData = packetIn.getExtractedDataBytes();
+            if (packetIn.getExtractedSize() == 0 && (chunkData == null || chunkData.length == 0)) {
                 ModernBlockStateTracker.clearChunk(packetIn.getChunkX(), packetIn.getChunkZ());
                 this.clientWorldController.doPreChunk(packetIn.getChunkX(), packetIn.getChunkZ(), false);
                 return;
@@ -974,6 +976,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             return;
         }
 
+        ModernBlockStateTracker.clear();
         ModernWorldHeight.sync(ViaVersionFix.connection());
         if (packetIn.getDimensionID() != this.gameController.thePlayer.dimension) {
             this.doneLoadingTerrain = false;
@@ -1315,6 +1318,7 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             this.clientWorldController.doPreChunk(j, k, true);
             this.clientWorldController.invalidateBlockReceiveRegion(j << 4, this.clientWorldController.getBottomY(), k << 4, (j << 4) + 15, this.clientWorldController.getTopYInclusive(), (k << 4) + 15);
             Chunk chunk = this.clientWorldController.getChunkFromChunkCoords(j, k);
+            chunk.clearExtendedBlockStorage();
             chunk.fillChunk(packetIn.getChunkBytes(i), packetIn.getChunkSize(i), true);
             ModernBlockStateTracker.applyChunk(chunk);
             this.clientWorldController.markBlockRangeForRenderUpdate(j << 4, this.clientWorldController.getBottomY(), k << 4, (j << 4) + 15, this.clientWorldController.getTopYInclusive(), (k << 4) + 15);
@@ -1601,6 +1605,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
     public void handlePlayerAbilities(S39PacketPlayerAbilities packetIn) {
         PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
         EntityPlayer entityplayer = this.gameController.thePlayer;
+        if (entityplayer == null) {
+            return;
+        }
         entityplayer.capabilities.isFlying = packetIn.isFlying();
         entityplayer.capabilities.isCreativeMode = packetIn.isCreativeMode();
         entityplayer.capabilities.disableDamage = packetIn.isInvulnerable();

@@ -104,11 +104,12 @@ public class ChunkProviderGenerate implements IChunkProvider {
             }
         }
 
-        if (structuresJson != null) {
-            this.settings = ChunkProviderSettings.Factory.jsonToFactory(structuresJson).func_177864_b();
-            this.oceanBlockTmpl = this.settings.useLavaOceans ? Blocks.lava : Blocks.water;
-            worldIn.setSeaLevel(this.settings.seaLevel);
-        }
+        ChunkProviderSettings.Factory settingsFactory = structuresJson == null
+                ? new ChunkProviderSettings.Factory()
+                : ChunkProviderSettings.Factory.jsonToFactory(structuresJson);
+        this.settings = settingsFactory.func_177864_b();
+        this.oceanBlockTmpl = this.settings.useLavaOceans ? Blocks.lava : Blocks.water;
+        worldIn.setSeaLevel(this.settings.seaLevel);
     }
 
     /**
@@ -354,6 +355,7 @@ public class ChunkProviderGenerate implements IChunkProvider {
      */
     public void populate(IChunkProvider chunkProvider, int x, int z) {
         BlockFalling.fallInstantly = true;
+        try {
         int i = x * 16;
         int j = z * 16;
         BlockPos blockpos = new BlockPos(i, 0, j);
@@ -385,19 +387,23 @@ public class ChunkProviderGenerate implements IChunkProvider {
             this.oceanMonumentGenerator.generateStructure(this.worldObj, this.rand, chunkcoordintpair);
         }
 
-        if (biomegenbase != BiomeGenBase.desert && biomegenbase != BiomeGenBase.desertHills && this.settings.useWaterLakes && !flag && this.rand.nextInt(this.settings.waterLakeChance) == 0) {
+        if (biomegenbase != BiomeGenBase.desert && biomegenbase != BiomeGenBase.desertHills
+                && this.settings.useWaterLakes && this.settings.waterLakeChance > 0 && !flag
+                && this.rand.nextInt(this.settings.waterLakeChance) == 0) {
             int i1 = this.rand.nextInt(16) + 8;
             int j1 = this.rand.nextInt(256);
             int k1 = this.rand.nextInt(16) + 8;
             (new WorldGenLakes(Blocks.water)).generate(this.worldObj, this.rand, blockpos.add(i1, j1, k1));
         }
 
-        if (!flag && this.rand.nextInt(this.settings.lavaLakeChance / 10) == 0 && this.settings.useLavaLakes) {
+        if (!flag && this.settings.useLavaLakes && this.settings.lavaLakeChance > 0
+                && this.rand.nextInt(Math.max(1, this.settings.lavaLakeChance / 10)) == 0) {
             int i2 = this.rand.nextInt(16) + 8;
             int l2 = this.rand.nextInt(this.rand.nextInt(248) + 8);
             int k3 = this.rand.nextInt(16) + 8;
 
-            if (l2 < this.worldObj.getSeaLevel() || this.rand.nextInt(this.settings.lavaLakeChance / 8) == 0) {
+            if (l2 < this.worldObj.getSeaLevel()
+                    || this.rand.nextInt(Math.max(1, this.settings.lavaLakeChance / 8)) == 0) {
                 (new WorldGenLakes(Blocks.lava)).generate(this.worldObj, this.rand, blockpos.add(i2, l2, k3));
             }
         }
@@ -430,7 +436,9 @@ public class ChunkProviderGenerate implements IChunkProvider {
             }
         }
 
-        BlockFalling.fallInstantly = false;
+        } finally {
+            BlockFalling.fallInstantly = false;
+        }
     }
 
     public boolean populateChunk(IChunkProvider chunkProvider, Chunk chunkIn, int x, int z) {

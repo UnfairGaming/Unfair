@@ -96,7 +96,8 @@ public class S21PacketChunkData implements Packet<INetHandlerPlayClient> {
         this.chunkZ = buf.readInt();
         this.field_149279_g = buf.readBoolean();
         this.extractedData = new S21PacketChunkData.Extracted();
-        this.extractedData.dataSize = buf.readShort();
+        // The section mask is an unsigned 16-bit field on the wire.
+        this.extractedData.dataSize = buf.readShort() & 65535;
         this.extractedData.data = buf.readByteArray();
     }
 
