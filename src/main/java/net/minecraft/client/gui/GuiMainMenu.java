@@ -12,10 +12,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.optifine.CustomPanorama;
@@ -37,7 +35,6 @@ import java.util.List;
 import java.util.Random;
 
 public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
-    public static final String field_96138_a = "Please click " + EnumChatFormatting.UNDERLINE + "here" + EnumChatFormatting.RESET + " for more information.";
     private static final Logger logger = LogManager.getLogger();
     private static final Random RANDOM = new Random();
     private static final int ALT_MANAGER_BUTTON_ID = 9999;
@@ -56,16 +53,15 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
             "Fan Dong Pai"
     };
     private static final ResourceLocation splashTexts = ResourceLocation.of("texts/splashes.txt");
-    private static final ResourceLocation minecraftTitleTextures = ResourceLocation.of("textures/gui/title/minecraft.png");
+
+    static {
+        ResourceLocation.of("textures/gui/title/minecraft.png");
+    }
+
     /**
      * An array of all the paths to the panorama pictures.
      */
     private static final ResourceLocation[] titlePanoramaPaths = new ResourceLocation[]{ResourceLocation.of("textures/gui/title/background/panorama_0.png"), ResourceLocation.of("textures/gui/title/background/panorama_1.png"), ResourceLocation.of("textures/gui/title/background/panorama_2.png"), ResourceLocation.of("textures/gui/title/background/panorama_3.png"), ResourceLocation.of("textures/gui/title/background/panorama_4.png"), ResourceLocation.of("textures/gui/title/background/panorama_5.png")};
-    /**
-     * Counts the number of screen updates.
-     */
-    private final float updateCounter;
-    private final boolean field_175375_v = true;
 
     /**
      * The Object object utilized as a thread lock when performing non thread-safe operations
@@ -87,10 +83,6 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
      */
     private int panoramaTimer;
     /**
-     * Texture allocated for the current viewport of the main menu's panorama background.
-     */
-    private DynamicTexture viewportTexture;
-    /**
      * OpenGL graphics card warning.
      */
     private String openGLWarning1;
@@ -111,7 +103,6 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
     private ResourceLocation backgroundTexture;
 
     public GuiMainMenu() {
-        this.openGLWarning2 = field_96138_a;
         this.splashText = "missingno";
         BufferedReader bufferedreader = null;
 
@@ -147,7 +138,6 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
             }
         }
 
-        this.updateCounter = RANDOM.nextFloat();
         this.openGLWarning1 = "";
 
         if (!GLContext.getCapabilities().OpenGL20 && !OpenGlHelper.areShadersSupported()) {

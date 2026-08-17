@@ -228,8 +228,8 @@ public class AltManagerGui extends GuiScreen {
                 String second = (alt.isCracked() ? "Cracked" : "Microsoft") + (alt.isBanned() ? " / Banned" : alt.hasRefreshToken() ? " / Token saved" : "");
                 String email = alt.getEmail() == null ? "" : alt.getEmail();
 
-                font20.drawString(name, listX + u(16.0F), rowY + u(8.0F), LIGHT);
-                font14.drawString(second + (email.isEmpty() || email.equals(name) ? "" : " / " + email), listX + u(16.0F), rowY + u(31.0F), MUTED);
+                font20.drawString(name, listX + u(16.0F), rowY + u(8.0F) - 2F, LIGHT);
+                font14.drawString(second + (email.isEmpty() || email.equals(name) ? "" : " / " + email), listX + u(16.0F), rowY + u(31.0F) - 2F, MUTED);
             }
         } finally {
             GL11.glDisable(GL11.GL_SCISSOR_TEST);
