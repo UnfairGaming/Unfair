@@ -27,7 +27,6 @@ import com.viaversion.viaversion.api.protocol.packet.State;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Type;
 import com.viaversion.viaversion.api.type.Types;
-import com.viaversion.viaversion.api.type.types.VarIntType;
 import com.viaversion.viaversion.exception.CancelCodecException;
 import com.viaversion.viaversion.exception.CancelDecoderException;
 import com.viaversion.viaversion.exception.InformativeException;
@@ -44,10 +43,11 @@ import java.util.List;
 @ChannelHandler.Sharable
 public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
     private final UserConnection user;
-    public static int stateId;
+    public static volatile int stateId;
 
     public VLBViaDecodeHandler(UserConnection user) {
         this.user = user;
+        stateId = 0;
         ModernBlockStateTracker.clear();
     }
 
@@ -59,7 +59,6 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
         }
 
         ByteBuf transformedBuf = ctx.alloc().buffer().writeBytes(bytebuf);
-        ByteBuf byteBuf3 = transformedBuf.copy();
         ByteBuf syntheticOffhandSlot = null;
         try {
             syntheticOffhandSlot = captureModernOffhandSlot(ctx, transformedBuf);
@@ -68,15 +67,9 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
                 user.transformIncoming(syntheticOffhandSlot, CancelDecoderException::generate);
                 out.add(syntheticOffhandSlot.retain());
             }
-            int n = new VarIntType().readPrimitive(byteBuf3);
-            if (n == 20 || n == 22) {
-                short s = byteBuf3.readUnsignedByte();
-                stateId = new VarIntType().readPrimitive(byteBuf3);
-            }
             out.add(transformedBuf.retain());
         } finally {
             transformedBuf.release();
-            byteBuf3.release();
             if (syntheticOffhandSlot != null) {
                 syntheticOffhandSlot.release();
             }
@@ -102,6 +95,7 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
                 int stateId = 0;
                 if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
                     stateId = Types.VAR_INT.readPrimitive(duplicate);
+                    VLBViaDecodeHandler.stateId = stateId;
                 }
                 short slot = duplicate.readShort();
                 if (window == 0 && slot == 45) {
@@ -126,6 +120,7 @@ public class VLBViaDecodeHandler extends MessageToMessageDecoder<ByteBuf> {
                 int stateId = 0;
                 if (version.newerThanOrEqualTo(ProtocolVersion.v1_17)) {
                     stateId = Types.VAR_INT.readPrimitive(duplicate);
+                    VLBViaDecodeHandler.stateId = stateId;
                 }
                 Type<Item[]> itemArrayType = getItemArrayType(version);
                 Item[] items = itemArrayType.read(duplicate);

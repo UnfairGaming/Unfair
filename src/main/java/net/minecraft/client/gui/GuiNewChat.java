@@ -19,6 +19,7 @@ public class GuiNewChat extends Gui {
     private final List<String> sentMessages = Lists.<String>newArrayList();
     private final List<ChatLine> chatLines = Lists.<ChatLine>newArrayList();
     private final List<ChatLine> drawnChatLines = Lists.<ChatLine>newArrayList();
+    private final Object chatLock = new Object();
     private int scrollPos;
     private boolean isScrolled;
 
@@ -39,6 +40,7 @@ public class GuiNewChat extends Gui {
     }
 
     public void drawChat(int updateCounter) {
+        synchronized (this.chatLock) {
         if (this.mc.gameSettings.chatVisibility != EntityPlayer.EnumChatVisibility.HIDDEN) {
             int i = this.getLineCount();
             boolean flag = false;
@@ -111,15 +113,18 @@ public class GuiNewChat extends Gui {
                 GlStateManager.popMatrix();
             }
         }
+        }
     }
 
     /**
      * Clears the chat.
      */
     public void clearChatMessages() {
-        this.drawnChatLines.clear();
-        this.chatLines.clear();
-        this.sentMessages.clear();
+        synchronized (this.chatLock) {
+            this.drawnChatLines.clear();
+            this.chatLines.clear();
+            this.sentMessages.clear();
+        }
     }
 
     public void printChatMessage(IChatComponent chatComponent) {
@@ -130,9 +135,12 @@ public class GuiNewChat extends Gui {
      * prints the ChatComponent to Chat. If the ID is not 0, deletes an existing Chat Line of that ID from the GUI
      */
     public void printChatMessageWithOptionalDeletion(IChatComponent chatComponent, int chatLineId) {
-        String unformattedText = StringUtils.stripControlCodes(chatComponent.getUnformattedText());
-        this.appendCopyButton(chatComponent, unformattedText);
-        this.setChatLine(chatComponent, chatLineId, this.mc.ingameGUI.getUpdateCounter(), false);
+        String unformattedText;
+        synchronized (this.chatLock) {
+            unformattedText = StringUtils.stripControlCodes(chatComponent.getUnformattedText());
+            this.appendCopyButton(chatComponent, unformattedText);
+            this.setChatLine(chatComponent, chatLineId, this.mc.ingameGUI.getUpdateCounter(), false);
+        }
         logger.info("[CHAT] " + unformattedText);
     }
 
@@ -188,12 +196,14 @@ public class GuiNewChat extends Gui {
     }
 
     public void refreshChat() {
-        this.drawnChatLines.clear();
-        this.resetScroll();
+        synchronized (this.chatLock) {
+            this.drawnChatLines.clear();
+            this.resetScroll();
 
-        for (int i = this.chatLines.size() - 1; i >= 0; --i) {
-            ChatLine chatline = this.chatLines.get(i);
-            this.setChatLine(chatline.getChatComponent(), chatline.getChatLineID(), chatline.getUpdatedCounter(), true);
+            for (int i = this.chatLines.size() - 1; i >= 0; --i) {
+                ChatLine chatline = this.chatLines.get(i);
+                this.setChatLine(chatline.getChatComponent(), chatline.getChatLineID(), chatline.getUpdatedCounter(), true);
+            }
         }
     }
 
@@ -207,8 +217,10 @@ public class GuiNewChat extends Gui {
      * @param message The message to add in the sendMessage List
      */
     public void addToSentMessages(String message) {
-        if (this.sentMessages.isEmpty() || !this.sentMessages.get(this.sentMessages.size() - 1).equals(message)) {
-            this.sentMessages.add(message);
+        synchronized (this.chatLock) {
+            if (this.sentMessages.isEmpty() || !this.sentMessages.get(this.sentMessages.size() - 1).equals(message)) {
+                this.sentMessages.add(message);
+            }
         }
     }
 
@@ -216,8 +228,10 @@ public class GuiNewChat extends Gui {
      * Resets the chat scroll (executed when the GUI is closed, among others)
      */
     public void resetScroll() {
-        this.scrollPos = 0;
-        this.isScrolled = false;
+        synchronized (this.chatLock) {
+            this.scrollPos = 0;
+            this.isScrolled = false;
+        }
     }
 
     /**
@@ -226,16 +240,18 @@ public class GuiNewChat extends Gui {
      * @param amount The amount to scroll
      */
     public void scroll(int amount) {
-        this.scrollPos += amount;
-        int i = this.drawnChatLines.size();
+        synchronized (this.chatLock) {
+            this.scrollPos += amount;
+            int i = this.drawnChatLines.size();
 
-        if (this.scrollPos > i - this.getLineCount()) {
-            this.scrollPos = i - this.getLineCount();
-        }
+            if (this.scrollPos > i - this.getLineCount()) {
+                this.scrollPos = i - this.getLineCount();
+            }
 
-        if (this.scrollPos <= 0) {
-            this.scrollPos = 0;
-            this.isScrolled = false;
+            if (this.scrollPos <= 0) {
+                this.scrollPos = 0;
+                this.isScrolled = false;
+            }
         }
     }
 
@@ -246,9 +262,10 @@ public class GuiNewChat extends Gui {
      * @param mouseY The y position of the mouse
      */
     public IChatComponent getChatComponent(int mouseX, int mouseY) {
-        if (!this.getChatOpen()) {
-            return null;
-        } else {
+        synchronized (this.chatLock) {
+            if (!this.getChatOpen()) {
+                return null;
+            } else {
             ScaledResolution scaledresolution = new ScaledResolution(this.mc);
             int i = scaledresolution.getScaleFactor();
             float f = this.getChatScale();
@@ -285,6 +302,7 @@ public class GuiNewChat extends Gui {
             } else {
                 return null;
             }
+            }
         }
     }
 
@@ -301,24 +319,26 @@ public class GuiNewChat extends Gui {
      * @param id The ChatLine's id to delete
      */
     public void deleteChatLine(int id) {
-        Iterator<ChatLine> iterator = this.drawnChatLines.iterator();
+        synchronized (this.chatLock) {
+            Iterator<ChatLine> iterator = this.drawnChatLines.iterator();
 
-        while (iterator.hasNext()) {
-            ChatLine chatline = iterator.next();
+            while (iterator.hasNext()) {
+                ChatLine chatline = iterator.next();
 
-            if (chatline.getChatLineID() == id) {
-                iterator.remove();
+                if (chatline.getChatLineID() == id) {
+                    iterator.remove();
+                }
             }
-        }
 
-        iterator = this.chatLines.iterator();
+            iterator = this.chatLines.iterator();
 
-        while (iterator.hasNext()) {
-            ChatLine chatline1 = iterator.next();
+            while (iterator.hasNext()) {
+                ChatLine chatline1 = iterator.next();
 
-            if (chatline1.getChatLineID() == id) {
-                iterator.remove();
-                break;
+                if (chatline1.getChatLineID() == id) {
+                    iterator.remove();
+                    break;
+                }
             }
         }
     }
