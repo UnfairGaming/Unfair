@@ -7,6 +7,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
+import cn.unfair.module.modules.combat.Autoblock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
@@ -127,8 +128,11 @@ public class HypixelVelocity extends SubModule {
     }
 
     private boolean canDelay() {
+        Autoblock autoblock = (Autoblock) Unfair.moduleManager.getModule(Autoblock.class);
         KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-        return mc.thePlayer.onGround && (killAura == null || !killAura.isEnabled() || !killAura.shouldAutoBlock());
+        return autoblock != null && autoblock.isActive()
+                || mc.thePlayer.onGround
+                && (killAura == null || !killAura.isEnabled() || !killAura.shouldAutoBlock());
     }
 
     private boolean shouldReleaseDelay() {

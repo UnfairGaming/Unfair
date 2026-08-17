@@ -3,6 +3,7 @@ package net.minecraft.client.multiplayer;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
 import cn.unfair.events.CancelUseEvent;
+import cn.unfair.events.UseItemEvent;
 import cn.unfair.events.WindowClickEvent;
 import cn.unfair.util.via.*;
 import com.viaversion.viabackwards.protocol.v1_19_1to1_19.Protocol1_19_1To1_19;
@@ -666,6 +667,11 @@ public class PlayerControllerMP {
      * Notifies the server of things like consuming food, etc...
      */
     public boolean sendUseItem(EntityPlayer playerIn, World worldIn, ItemStack itemStackIn) {
+        UseItemEvent event = new UseItemEvent(itemStackIn);
+        EventManager.call(event);
+        if (event.isCancelled()) {
+            return false;
+        }
         if (this.currentGameType == WorldSettings.GameType.SPECTATOR) {
             return false;
         } else {

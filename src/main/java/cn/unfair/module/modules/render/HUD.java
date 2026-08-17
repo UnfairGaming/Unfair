@@ -363,7 +363,9 @@ public class HUD extends Module {
         }
         if (this.blinkTimer.getValue()) {
             BlinkModules blinkingModule = Unfair.blinkManager.getBlinkingModule();
-            if (blinkingModule != BlinkModules.NONE && blinkingModule != BlinkModules.AUTO_BLOCK) {
+            if (blinkingModule != BlinkModules.NONE
+                    && blinkingModule != BlinkModules.AUTO_BLOCK
+                    && blinkingModule != BlinkModules.AUTOBLOCK) {
                 long movementPacketSize = Unfair.blinkManager.countMovement();
                 if (movementPacketSize > 0L) {
                     long colorOffset = this.getRenderList().size();
