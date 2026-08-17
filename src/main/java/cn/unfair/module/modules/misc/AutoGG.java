@@ -13,8 +13,6 @@ import net.minecraft.network.play.server.S45PacketTitle;
 public class AutoGG extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final ModeProperty mode = new ModeProperty("Mode",0,new String[]{"Hypixel"});
-
     private final TimerUtil timer = new TimerUtil();
 
     public AutoGG() {
@@ -51,10 +49,5 @@ public class AutoGG extends Module {
                 ChatUtil.sendMessage("GG");
             }
         });
-    }
-
-    @Override
-    public String[] getSuffix() {
-        return new String[]{this.mode.getModeString()};
     }
 }
