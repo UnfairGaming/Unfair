@@ -31,7 +31,10 @@ public class HypixelVelocity extends SubModule {
     private boolean knockback;
     private boolean jumpFlag;
 
-    public final static BooleanProperty debug = new BooleanProperty("Debug", false);
+    public final BooleanProperty debug = new BooleanProperty("Debug", false);
+    public final BooleanProperty jump = new BooleanProperty("Jump", true);
+    public final BooleanProperty reduce = new BooleanProperty("Reduce", true);
+    public final BooleanProperty delay = new BooleanProperty("Delay", true);
 
     public HypixelVelocity() {
         super("Hypixel");
@@ -47,7 +50,7 @@ public class HypixelVelocity extends SubModule {
         if (isBlockedState() || canStartLongJump()) return;
 
         knockback = true;
-        if (!delayFlag && !canDelay()) {
+        if (this.delay.getValue() && !delayFlag && !canDelay()) {
             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
             Unfair.delayManager.delayedPacket.offer(packet);
             event.setCancelled(true);
@@ -62,7 +65,7 @@ public class HypixelVelocity extends SubModule {
     public void onKnockback(KnockbackEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null || !isEnabled()) return;
         if (!event.isCancelled()) {
-            this.jumpFlag = event.getY() > 0.0;
+            this.jumpFlag = this.jump.getValue() && event.getY() > 0.0;
         } else {
             knockback = false;
             return;
@@ -78,6 +81,11 @@ public class HypixelVelocity extends SubModule {
         }
         if (!isEnabled() || event.getType() != EventType.PRE) return;
 
+        if (!this.delay.getValue() && this.delayFlag) {
+            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
+            this.delayFlag = false;
+        }
+
         if (delayFlag && shouldReleaseDelay()) {
             Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
             delayFlag = false;
@@ -86,14 +94,16 @@ public class HypixelVelocity extends SubModule {
             }
         }
 
-        if (knockback) {
+        if (this.reduce.getValue() && knockback) {
             reduceVelocity();
+        } else if (!this.reduce.getValue()) {
+            knockback = false;
         }
     }
 
     @EventTarget
     public void onLivingUpdate(LivingUpdateEvent event) {
-        if (this.jumpFlag) {
+        if (this.jump.getValue() && this.jumpFlag) {
             this.jumpFlag = false;
             if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !Velocity.isInLiquidOrWeb()) {
                 mc.thePlayer.movementInput.jump = true;
@@ -101,6 +111,8 @@ public class HypixelVelocity extends SubModule {
                     ChatUtil.dbg("Jump");
                 }
             }
+        } else if (!this.jump.getValue()) {
+            this.jumpFlag = false;
         }
     }
 
@@ -192,5 +204,6 @@ public class HypixelVelocity extends SubModule {
     private void reset() {
         delayFlag = false;
         knockback = false;
+        jumpFlag = false;
     }
 }

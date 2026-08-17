@@ -23,7 +23,7 @@ public class FlagDetector extends Module {
             ChatUtil.sendFormatted("&7[&cFlagDetector&7] &fServer flag detected (Lagback)!");
         } else if (event.getPacket() instanceof S06PacketUpdateHealth packet) {
             int hunger = packet.getFoodLevel();
-            if (hunger < 0) {
+            if (hunger <= 0) {
                 ChatUtil.sendFormatted(String.format(
                         "&7[&cFlagDetector&7] &fServer flag detected (Invalid Hunger: &c%d&f)!",
                         hunger
