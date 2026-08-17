@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 public class Unfair {
     public static String clientName = "&l[&b&lUnfair&f&l]&r ";
-    public static String version = "B23.2";
+    public static String version = "B24";
     public static int skippedPlayerTicks;
     public static BadPacketManager badPacketManager;
     public static RotationManager rotationManager;
