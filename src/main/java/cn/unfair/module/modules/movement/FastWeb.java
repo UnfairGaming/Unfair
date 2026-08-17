@@ -68,16 +68,11 @@ public class FastWeb extends Module {
             return false;
         }
 
-        switch (this.mode.getValue()) {
-            case 1:
-                this.applyLiquidBounce();
-                return true;
-            case 2:
-                this.applyIntave14();
-                return true;
-            default:
-                return false;
+        if (this.mode.getValue() == 1) {
+            this.applyLiquidBounce();
+            return true;
         }
+        return false;
     }
 
     private void applyLiquidBounce() {
@@ -91,19 +86,6 @@ public class FastWeb extends Module {
 
         if (this.motionYEnabled.getValue()) {
             mc.thePlayer.motionY = this.motionYStrength.getValue().doubleValue();
-        }
-    }
-
-    private void applyIntave14() {
-        if (!this.isPlayerMoving() || !mc.thePlayer.onGround) {
-            return;
-        }
-
-        if (mc.thePlayer.ticksExisted % 3 == 0) {
-            this.setStrafe(0.734);
-        } else {
-            mc.thePlayer.jump();
-            this.setStrafe(0.346);
         }
     }
 
