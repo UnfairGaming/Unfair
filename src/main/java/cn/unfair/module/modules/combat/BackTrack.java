@@ -5,6 +5,8 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
+import cn.unfair.module.SubModule;
+import cn.unfair.module.modules.combat.velocity.GrimReduceVelocity;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.player.BackTrackLagUtils;
@@ -83,6 +85,7 @@ public class BackTrack extends Module {
     private boolean dispatched;
     private boolean outOfRange;
     private boolean attacked;
+    private boolean velocityDelayWasActive;
     private int nextRand;
     private int activeMode;
 
@@ -219,6 +222,7 @@ public class BackTrack extends Module {
         this.currentRenderPosition = null;
         this.lastTarget = null;
         this.isBackTracking = false;
+        this.velocityDelayWasActive = false;
     }
 
     @Override
@@ -233,6 +237,7 @@ public class BackTrack extends Module {
         this.target = null;
         this.lastTarget = null;
         this.isBackTracking = false;
+        this.velocityDelayWasActive = false;
     }
 
     @Override
@@ -291,6 +296,22 @@ public class BackTrack extends Module {
             return;
         }
 
+        // The velocity module (GrimReduce) is delaying the incoming stream: pause our lag
+        // queue so we don't double-delay transactions/entity updates and desync Grim's
+        // knockback measurement. Re-sync once it is over.
+        if (this.velocityDelayWasActive) {
+            this.velocityDelayWasActive = false;
+            if (this.target != null) {
+                realPosition = getPositionVector(this.target);
+                realLastPos = realPosition;
+            }
+        }
+        if (this.isVelocityDelaying()) {
+            this.pauseForVelocityDelay();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
         EntityLivingBase newTarget = this.getTarget(9.0D);
         if (newTarget == null) {
             this.resetTargetState();
@@ -320,7 +341,8 @@ public class BackTrack extends Module {
         this.isBackTracking = shouldLag;
 
         if (shouldLag) {
-            BackTrackLagUtils.spoof(this.maxPingSpoof.getValue(), true, true, true, true, false, false);
+            // When GrimReduce owns the knockback, leave S12/explosion packets alone.
+            BackTrackLagUtils.spoof(this.maxPingSpoof.getValue(), true, !isGrimReduceActive(), true, true, false, false);
             this.dispatched = false;
         } else if (!this.dispatched) {
             BackTrackLagUtils.disable();
@@ -339,6 +361,20 @@ public class BackTrack extends Module {
 
         if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
             this.stopLaggingForRespawn();
+            BackTrackLagUtils.onPostTick();
+            return;
+        }
+
+        // Same pause/resume as above: never stack our incoming delay on GrimReduce's.
+        if (this.velocityDelayWasActive) {
+            this.velocityDelayWasActive = false;
+            if (this.target != null) {
+                realPosition = getServerPositionVector(this.target);
+                realLastPos = realPosition;
+            }
+        }
+        if (this.isVelocityDelaying()) {
+            this.pauseForVelocityDelay();
             BackTrackLagUtils.onPostTick();
             return;
         }
@@ -408,7 +444,8 @@ public class BackTrack extends Module {
 
         if (shouldLag) {
             if (this.relagTimer.hasTimeElapsed(this.delayForNextLag.getValue())) {
-                BackTrackLagUtils.spoof(this.getDelayMs(), true, true, true, true, false, false);
+                // When GrimReduce owns the knockback, leave S12/explosion packets alone.
+                BackTrackLagUtils.spoof(this.getDelayMs(), true, !isGrimReduceActive(), true, true, false, false);
                 this.dispatched = false;
             }
         } else if (!this.dispatched) {
@@ -650,6 +687,34 @@ public class BackTrack extends Module {
         this.animatedFrameTime = 0L;
     }
 
+    /** True while the Velocity module is delaying the incoming stream (GrimReduce/Hypixel). */
+    private boolean isVelocityDelaying() {
+        Module velocity = Unfair.moduleManager.getModule(Velocity.class);
+        return velocity instanceof Velocity velocityModule && velocityModule.isDelayingVelocity();
+    }
+
+    /** True when the GrimReduce velocity mode is the active one and enabled. */
+    private static boolean isGrimReduceActive() {
+        Module velocity = Unfair.moduleManager.getModule(Velocity.class);
+        if (!(velocity instanceof Velocity velocityModule) || !velocityModule.isEnabled()) {
+            return false;
+        }
+        SubModule current = velocityModule.getCurrentSubModule();
+        return current instanceof GrimReduceVelocity && current.isEnabled();
+    }
+
+    /** Flush our lag queue and stand down while another module delays the incoming stream. */
+    private void pauseForVelocityDelay() {
+        if (this.isBackTracking || shouldLag || !this.dispatched) {
+            BackTrackLagUtils.disable();
+            BackTrackLagUtils.dispatch();
+            this.dispatched = true;
+        }
+        shouldLag = false;
+        this.isBackTracking = false;
+        this.velocityDelayWasActive = true;
+    }
+
     private void resetTargetState() {
         shouldLag = false;
         this.isBackTracking = false;
@@ -659,6 +724,7 @@ public class BackTrack extends Module {
         this.currentRenderPosition = null;
         this.outOfRange = false;
         this.attacked = false;
+        this.velocityDelayWasActive = false;
     }
 
     private void resetAnimation(Vec3 position) {

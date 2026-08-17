@@ -6,25 +6,22 @@ import cn.unfair.events.AttackEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.SoundUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.effect.EntityLightningBolt;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.EnumParticleTypes;
 
 public class KillEffect extends Module {
-    public static final Minecraft mc = Minecraft.getMinecraft();
+    private static final Minecraft mc = Minecraft.getMinecraft();
 
-    private final BooleanProperty lightning = new BooleanProperty("Lightning", true);
-    private final BooleanProperty blood = new BooleanProperty("Blood Explosion", true);
+    public final BooleanProperty lightning = new BooleanProperty("Lightning", true);
+    public final BooleanProperty blood = new BooleanProperty("Blood Explosion", true);
+    public final BooleanProperty explosion = new BooleanProperty("Explosion", true);
 
-    private final BooleanProperty explosion = new BooleanProperty("Explosion", true);
-
-    public EntityLivingBase target;
+    private EntityLivingBase target;
 
     public KillEffect() {
         super("KillEffect", false);
@@ -32,7 +29,7 @@ public class KillEffect extends Module {
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
-        if (!this.isEnabled()) {
+        if (!this.isEnabled() || event.getType() != EventType.PRE) {
             return;
         }
 
@@ -44,36 +41,34 @@ public class KillEffect extends Module {
             if (this.lightning.getValue()) {
                 EntityLightningBolt entityLightningBolt = new EntityLightningBolt(mc.theWorld, this.target.posX, this.target.posY, this.target.posZ);
                 mc.theWorld.addEntityToWorld((int) (-Math.random() * 100000), entityLightningBolt);
-                SoundUtil.playSound("ambient.weather.thunder");
+                this.playSound("ambient.weather.thunder");
             }
 
             if (this.explosion.getValue()) {
                 for (int i = 0; i <= 8; i++) {
                     mc.effectRenderer.emitParticleAtEntity(this.target, EnumParticleTypes.FLAME);
                 }
-                SoundUtil.playSound("item.fireCharge.use");
+                this.playSound("item.fireCharge.use");
             }
-        }
 
-        if (this.blood.getValue()) {
-            double startY = this.target.posY;
-            double endY = this.target.posY + this.target.height + 0.4;
-            double step = 0.4;
+            if (this.blood.getValue()) {
+                double startY = this.target.posY;
+                double endY = this.target.posY + this.target.height + 0.4;
+                double step = 0.4;
 
-            for (int i = 0; i < 100;i++) {
+                for (int i = 0; i < 100; i++) {
+                    for (double y = startY; y <= endY; y += step) {
+                        mc.theWorld.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.target.posX, y, this.target.posZ, 0, 0, 0, Block.getStateId(Blocks.redstone_block.getDefaultState()));
+                    }
+                }
+
                 for (double y = startY; y <= endY; y += step) {
-                    mc.theWorld.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.target.posX, y ,this.target.posZ, 0, 0, 0, Block.getStateId(Blocks.redstone_block.getDefaultState()));
+                    this.playSound("dig.stone");
                 }
             }
 
-            for (double y = startY; y <= endY; y += step) {
-                SoundUtil.playSound("dig.stone");
-            }
-
+            this.target = null;
         }
-
-        this.target = null;
-
     }
 
     @EventTarget
@@ -88,9 +83,14 @@ public class KillEffect extends Module {
         }
     }
 
+    private void playSound(String soundName) {
+        if (mc.thePlayer != null && mc.theWorld != null) {
+            mc.theWorld.playSound(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, soundName, 1.0F, 1.0F, false);
+        }
+    }
+
     @Override
     public void onDisabled() {
         this.target = null;
     }
-
 }

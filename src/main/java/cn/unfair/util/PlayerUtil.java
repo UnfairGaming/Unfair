@@ -1,6 +1,8 @@
 package cn.unfair.util;
 
 import cn.unfair.Unfair;
+import cn.unfair.event.EventManager;
+import cn.unfair.events.AttackEvent;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.client.Minecraft;
@@ -138,6 +140,16 @@ public class PlayerUtil {
     }
 
     public static void attackEntity(Entity target) {
+        if (target == null) {
+            return;
+        }
+
+        AttackEvent event = new AttackEvent(target);
+        EventManager.call(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
         if (target.canAttackWithItem() && !target.hitByEntity(mc.thePlayer)) {
             float baseDamage = (float) mc.thePlayer.getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
             float enchantmentBonus = EnchantmentHelper.getModifierForCreature(
