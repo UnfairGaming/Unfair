@@ -4,7 +4,7 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.property.properties.TextProperty;
 import cn.unfair.util.ChatUtil;
 import cn.unfair.util.TimerUtil;
 import net.minecraft.client.Minecraft;
@@ -13,6 +13,7 @@ import net.minecraft.network.play.server.S45PacketTitle;
 public class AutoGG extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
+    public final TextProperty text = new TextProperty("Text", "GG");
     private final TimerUtil timer = new TimerUtil();
 
     public AutoGG() {
@@ -46,7 +47,7 @@ public class AutoGG extends Module {
 
         mc.addScheduledTask(() -> {
             if (this.isEnabled()) {
-                ChatUtil.sendMessage("GG");
+                ChatUtil.sendMessage(this.text.getValue());
             }
         });
     }
