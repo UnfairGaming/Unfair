@@ -335,7 +335,7 @@ public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListene
     }
 
     protected boolean isRenderEntityOutlines() {
-        return !Config.isFastRender() && !Config.isShaders() && !Config.isAntialiasing() && this.entityOutlineFramebuffer != null && this.entityOutlineShader != null && this.mc.thePlayer != null && this.mc.thePlayer.isSpectator() && this.mc.gameSettings.keyBindSpectatorOutlines.isKeyDown();
+        return !Config.isShaders() && !Config.isAntialiasing() && this.entityOutlineFramebuffer != null && this.entityOutlineShader != null && this.mc.thePlayer != null && this.mc.thePlayer.isSpectator() && this.mc.gameSettings.keyBindSpectatorOutlines.isKeyDown();
     }
 
     private void generateSky2() {

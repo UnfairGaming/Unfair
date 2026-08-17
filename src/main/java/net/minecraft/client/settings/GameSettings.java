@@ -1672,17 +1672,7 @@ public class GameSettings implements ModernOffhandKeyBinding {
         }
 
         if (p_setOptionValueOF_1_ == GameSettings.Options.FAST_RENDER) {
-            if (!this.ofFastRender && Config.isShaders()) {
-                Config.showGuiMessage(Lang.get("of.message.fr.shaders1"), Lang.get("of.message.fr.shaders2"));
-                return;
-            }
-
             this.ofFastRender = !this.ofFastRender;
-
-            if (this.ofFastRender) {
-                this.mc.entityRenderer.stopUseShader();
-            }
-
             Config.updateFramebufferSize();
         }
 

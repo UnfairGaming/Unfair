@@ -738,11 +738,6 @@ public class Shaders {
             flag2 = true;
         }
 
-        if (Config.isFastRender()) {
-            SMCLog.info("Shaders can not be loaded, Fast Render is enabled.");
-            flag2 = true;
-        }
-
         String s = shadersConfig.getProperty(EnumShaderOption.SHADER_PACK.getPropertyKey(), "(internal)");
 
         if (!flag2) {

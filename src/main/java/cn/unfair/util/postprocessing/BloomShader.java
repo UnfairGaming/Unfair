@@ -6,6 +6,7 @@ import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL20;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -21,6 +22,18 @@ public class BloomShader {
     private static final List<Framebuffer> framebufferList = new ArrayList<>();
     private static Framebuffer inputFramebuffer;
     private static int currentIterations;
+    private static boolean uniformLocationsInitialized;
+    private static int downOffsetLocation;
+    private static int downHalfpixelLocation;
+    private static int downResolutionLocation;
+    private static int downTextureLocation;
+    private static int upOffsetLocation;
+    private static int upHalfpixelLocation;
+    private static int upResolutionLocation;
+    private static int upTextureLocation;
+    private static int upCheckLocation;
+    private static int upTextureToCheckLocation;
+    private static int upColorLocation;
 
     private static Framebuffer ensureInputFramebuffer() {
         if (inputFramebuffer == null || inputFramebuffer.framebufferWidth != mc.displayWidth || inputFramebuffer.framebufferHeight != mc.displayHeight) {
@@ -65,6 +78,7 @@ public class BloomShader {
     public static void renderBloom(int framebufferTexture, int iterations, float offset, Color color) {
         iterations = Math.max(1, iterations);
         offset = Math.max(1.0F, offset);
+        ensureUniformLocations();
 
         if (framebufferList.isEmpty() || currentIterations != iterations || framebufferList.get(0).framebufferWidth != mc.displayWidth || framebufferList.get(0).framebufferHeight != mc.displayHeight) {
             initFramebuffers(iterations);
@@ -75,12 +89,15 @@ public class BloomShader {
         GlStateManager.blendFunc(GL_ONE, GL_ONE);
 
         GL11.glClearColor(0, 0, 0, 0);
+        KAWASE_DOWN.init();
         renderDownFBO(framebufferList.get(1), framebufferTexture, offset);
 
         for (int i = 1; i < iterations; i++) {
             renderDownFBO(framebufferList.get(i + 1), framebufferList.get(i).framebufferTexture, offset);
         }
+        KAWASE_DOWN.unload();
 
+        KAWASE_UP.init();
         for (int i = iterations; i > 1; i--) {
             renderUpFBO(framebufferList.get(i - 1), framebufferList.get(i).framebufferTexture, offset, color);
         }
@@ -88,14 +105,7 @@ public class BloomShader {
         Framebuffer lastBuffer = framebufferList.get(0);
         lastBuffer.forceBind(true);
         lastBuffer.framebufferClearNoBinding();
-        KAWASE_UP.init();
-        KAWASE_UP.setUniformf("offset", offset, offset);
-        KAWASE_UP.setUniformf("halfpixel", 1.0f / lastBuffer.framebufferWidth, 1.0f / lastBuffer.framebufferHeight);
-        KAWASE_UP.setUniformf("iResolution", lastBuffer.framebufferWidth, lastBuffer.framebufferHeight);
-        KAWASE_UP.setUniformi("inTexture", 0);
-        KAWASE_UP.setUniformi("check", 1);
-        KAWASE_UP.setUniformi("textureToCheck", 1);
-        KAWASE_UP.setUniformf("color", color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f);
+        setUpUniforms(lastBuffer, offset, color, 1);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE1);
         GlStateManager.bindTexture(framebufferTexture);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
@@ -117,30 +127,52 @@ public class BloomShader {
         fb.forceBind(true);
         fb.framebufferClearNoBinding();
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
-        KAWASE_DOWN.init();
-        KAWASE_DOWN.setUniformf("offset", offset, offset);
-        KAWASE_DOWN.setUniformf("halfpixel", 1.0f / fb.framebufferWidth, 1.0f / fb.framebufferHeight);
-        KAWASE_DOWN.setUniformf("iResolution", fb.framebufferWidth, fb.framebufferHeight);
-        KAWASE_DOWN.setUniformi("inTexture", 0);
+        setDownUniforms(fb, offset);
         GlStateManager.bindTexture(texture);
         ShaderUtil.drawQuads();
-        KAWASE_DOWN.unload();
     }
 
     private static void renderUpFBO(Framebuffer fb, int texture, float offset, Color color) {
         fb.forceBind(true);
         fb.framebufferClearNoBinding();
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
-        KAWASE_UP.init();
-        KAWASE_UP.setUniformf("offset", offset, offset);
-        KAWASE_UP.setUniformf("halfpixel", 1.0f / fb.framebufferWidth, 1.0f / fb.framebufferHeight);
-        KAWASE_UP.setUniformf("iResolution", fb.framebufferWidth, fb.framebufferHeight);
-        KAWASE_UP.setUniformi("inTexture", 0);
-        KAWASE_UP.setUniformi("check", 0);
-        KAWASE_UP.setUniformi("textureToCheck", 1);
-        KAWASE_UP.setUniformf("color", color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f);
+        setUpUniforms(fb, offset, color, 0);
         GlStateManager.bindTexture(texture);
         ShaderUtil.drawQuads();
-        KAWASE_UP.unload();
+    }
+
+    private static void ensureUniformLocations() {
+        if (uniformLocationsInitialized) {
+            return;
+        }
+        downOffsetLocation = KAWASE_DOWN.getUniformLocation("offset");
+        downHalfpixelLocation = KAWASE_DOWN.getUniformLocation("halfpixel");
+        downResolutionLocation = KAWASE_DOWN.getUniformLocation("iResolution");
+        downTextureLocation = KAWASE_DOWN.getUniformLocation("inTexture");
+        upOffsetLocation = KAWASE_UP.getUniformLocation("offset");
+        upHalfpixelLocation = KAWASE_UP.getUniformLocation("halfpixel");
+        upResolutionLocation = KAWASE_UP.getUniformLocation("iResolution");
+        upTextureLocation = KAWASE_UP.getUniformLocation("inTexture");
+        upCheckLocation = KAWASE_UP.getUniformLocation("check");
+        upTextureToCheckLocation = KAWASE_UP.getUniformLocation("textureToCheck");
+        upColorLocation = KAWASE_UP.getUniformLocation("color");
+        uniformLocationsInitialized = true;
+    }
+
+    private static void setDownUniforms(Framebuffer framebuffer, float offset) {
+        if (downOffsetLocation >= 0) GL20.glUniform2f(downOffsetLocation, offset, offset);
+        if (downHalfpixelLocation >= 0) GL20.glUniform2f(downHalfpixelLocation, 1.0F / framebuffer.framebufferWidth, 1.0F / framebuffer.framebufferHeight);
+        if (downResolutionLocation >= 0) GL20.glUniform2f(downResolutionLocation, framebuffer.framebufferWidth, framebuffer.framebufferHeight);
+        if (downTextureLocation >= 0) GL20.glUniform1i(downTextureLocation, 0);
+    }
+
+    private static void setUpUniforms(Framebuffer framebuffer, float offset, Color color, int check) {
+        if (upOffsetLocation >= 0) GL20.glUniform2f(upOffsetLocation, offset, offset);
+        if (upHalfpixelLocation >= 0) GL20.glUniform2f(upHalfpixelLocation, 1.0F / framebuffer.framebufferWidth, 1.0F / framebuffer.framebufferHeight);
+        if (upResolutionLocation >= 0) GL20.glUniform2f(upResolutionLocation, framebuffer.framebufferWidth, framebuffer.framebufferHeight);
+        if (upTextureLocation >= 0) GL20.glUniform1i(upTextureLocation, 0);
+        if (upCheckLocation >= 0) GL20.glUniform1i(upCheckLocation, check);
+        if (upTextureToCheckLocation >= 0) GL20.glUniform1i(upTextureToCheckLocation, 1);
+        if (upColorLocation >= 0) GL20.glUniform3f(upColorLocation, color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F);
     }
 }

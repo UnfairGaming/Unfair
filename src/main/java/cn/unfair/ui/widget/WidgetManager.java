@@ -16,6 +16,8 @@ import java.util.List;
 public class WidgetManager {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final List<Widget> widgets = new ArrayList<>();
+    private final List<Widget> blurMaskWidgets = new ArrayList<>();
+    private final List<Widget> bloomMaskWidgets = new ArrayList<>();
 
     public void register(Widget widget) {
         this.widgets.add(widget);
@@ -77,15 +79,20 @@ public class WidgetManager {
 
     @EventTarget
     public void onPostProcessBlur(PostProcessBlurEvent event) {
+        if (event.getType() == EventType.PRE) {
+            this.blurMaskWidgets.clear();
+        }
         if (mc.gameSettings.showDebugInfo) {
             return;
         }
         if (event.getType() == EventType.PRE) {
             for (Widget widget : this.widgets) {
                 if (widget.shouldRenderBlurMask()) {
-                    event.setCancelled(true);
-                    return;
+                    this.blurMaskWidgets.add(widget);
                 }
+            }
+            if (!this.blurMaskWidgets.isEmpty()) {
+                event.setCancelled(true);
             }
             return;
         }
@@ -93,10 +100,7 @@ public class WidgetManager {
             return;
         }
         ScaledResolution sr = new ScaledResolution(mc);
-        for (Widget widget : this.widgets) {
-            if (!widget.shouldRenderBlurMask()) {
-                continue;
-            }
+        for (Widget widget : this.blurMaskWidgets) {
             widget.updatePos(sr);
             widget.renderBlurMask(event.getPartialTicks());
         }
@@ -104,15 +108,20 @@ public class WidgetManager {
 
     @EventTarget
     public void onPostProcessBloom(PostProcessBloomEvent event) {
+        if (event.getType() == EventType.PRE) {
+            this.bloomMaskWidgets.clear();
+        }
         if (mc.gameSettings.showDebugInfo) {
             return;
         }
         if (event.getType() == EventType.PRE) {
             for (Widget widget : this.widgets) {
                 if (widget.shouldRenderBloomMask()) {
-                    event.setCancelled(true);
-                    return;
+                    this.bloomMaskWidgets.add(widget);
                 }
+            }
+            if (!this.bloomMaskWidgets.isEmpty()) {
+                event.setCancelled(true);
             }
             return;
         }
@@ -120,10 +129,7 @@ public class WidgetManager {
             return;
         }
         ScaledResolution sr = new ScaledResolution(mc);
-        for (Widget widget : this.widgets) {
-            if (!widget.shouldRenderBloomMask()) {
-                continue;
-            }
+        for (Widget widget : this.bloomMaskWidgets) {
             widget.updatePos(sr);
             widget.renderBloomMask(event.getPartialTicks());
         }

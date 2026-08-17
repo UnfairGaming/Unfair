@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL20;
 
 public class BlurShader {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -63,6 +64,13 @@ public class BlurShader {
     private static ShaderUtil shader;
     private static Framebuffer pass1;
     private static Framebuffer pass2;
+    private static boolean uniformLocationsInitialized;
+    private static int diffuseSamplerLocation;
+    private static int inSizeLocation;
+    private static int blurDirLocation;
+    private static int blurXYLocation;
+    private static int blurCoordLocation;
+    private static int radiusLocation;
 
     private static void ensureFramebuffers() {
         if (pass1 == null || pass1.framebufferWidth != mc.displayWidth || pass1.framebufferHeight != mc.displayHeight) {
@@ -85,6 +93,15 @@ public class BlurShader {
         if (shader == null) {
             shader = new ShaderUtil(FRAGMENT, VERTEX, true);
         }
+        if (!uniformLocationsInitialized) {
+            diffuseSamplerLocation = shader.getUniformLocation("DiffuseSampler");
+            inSizeLocation = shader.getUniformLocation("InSize");
+            blurDirLocation = shader.getUniformLocation("BlurDir");
+            blurXYLocation = shader.getUniformLocation("BlurXY");
+            blurCoordLocation = shader.getUniformLocation("BlurCoord");
+            radiusLocation = shader.getUniformLocation("Radius");
+            uniformLocationsInitialized = true;
+        }
         return shader;
     }
 
@@ -102,27 +119,15 @@ public class BlurShader {
         pass1.forceBind(true);
         pass1.framebufferClearNoBinding();
         s.init();
-        s.setUniformi("DiffuseSampler", 0);
-        s.setUniformf("InSize", screenW, screenH);
-        s.setUniformf("BlurDir", 1.0f, 0.0f);
-        s.setUniformf("BlurXY", x, screenH - y - h);
-        s.setUniformf("BlurCoord", w, h);
-        s.setUniformf("Radius", radius);
+        setUniforms(screenW, screenH, 1.0f, 0.0f, x, screenH - y - h, w, h, radius);
         GlStateManager.bindTexture(inputTexture);
         ShaderUtil.drawQuads();
-        s.unload();
 
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         GL11.glClearColor(0, 0, 0, 0);
         pass2.forceBind(true);
         pass2.framebufferClearNoBinding();
-        s.init();
-        s.setUniformi("DiffuseSampler", 0);
-        s.setUniformf("InSize", screenW, screenH);
-        s.setUniformf("BlurDir", 0.0f, 1.0f);
-        s.setUniformf("BlurXY", x, screenH - y - h);
-        s.setUniformf("BlurCoord", w, h);
-        s.setUniformf("Radius", radius);
+        setUniforms(screenW, screenH, 0.0f, 1.0f, x, screenH - y - h, w, h, radius);
         GlStateManager.bindTexture(pass1.framebufferTexture);
         ShaderUtil.drawQuads();
         s.unload();
@@ -130,5 +135,14 @@ public class BlurShader {
         mc.getFramebuffer().forceBind(true);
         GlStateManager.bindTexture(0);
         return pass2.framebufferTexture;
+    }
+
+    private static void setUniforms(float screenW, float screenH, float directionX, float directionY, float x, float y, float width, float height, float radius) {
+        if (diffuseSamplerLocation >= 0) GL20.glUniform1i(diffuseSamplerLocation, 0);
+        if (inSizeLocation >= 0) GL20.glUniform2f(inSizeLocation, screenW, screenH);
+        if (blurDirLocation >= 0) GL20.glUniform2f(blurDirLocation, directionX, directionY);
+        if (blurXYLocation >= 0) GL20.glUniform2f(blurXYLocation, x, y);
+        if (blurCoordLocation >= 0) GL20.glUniform2f(blurCoordLocation, width, height);
+        if (radiusLocation >= 0) GL20.glUniform1f(radiusLocation, radius);
     }
 }

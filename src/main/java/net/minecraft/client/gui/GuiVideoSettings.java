@@ -158,11 +158,6 @@ public class GuiVideoSettings extends GuiScreenOF {
                     return;
                 }
 
-                if (Config.isFastRender()) {
-                    Config.showGuiMessage(Lang.get("of.message.shaders.fr1"), Lang.get("of.message.shaders.fr2"));
-                    return;
-                }
-
                 if (Config.getGameSettings().anaglyph) {
                     Config.showGuiMessage(Lang.get("of.message.shaders.an1"), Lang.get("of.message.shaders.an2"));
                     return;

@@ -251,7 +251,7 @@ public class ShaderUtil {
         GL20.glUseProgram(0);
     }
 
-    private int getUniformLocation(String name) {
+    public int getUniformLocation(String name) {
         Integer location = this.uniformLocations.get(name);
         if (location == null) {
             location = GL20.glGetUniformLocation(programID, name);
