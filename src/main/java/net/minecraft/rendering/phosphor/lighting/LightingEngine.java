@@ -22,6 +22,27 @@ public class LightingEngine implements ILightingEngine {
     private static final int MAX_SCHEDULED_COUNT = 1 << 22;
 
     private static final int MAX_LIGHT = 15;
+
+    private final Thread ownedThread = Thread.currentThread();
+
+    private final World world;
+
+    private final Profiler profiler;
+
+    //Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+    private final PooledLongQueue[] queuedLightUpdates = new PooledLongQueue[EnumSkyBlock.values().length];
+
+    //Layout of longs: see above
+    private final PooledLongQueue[] queuedDarkenings = new PooledLongQueue[MAX_LIGHT + 1];
+    private final PooledLongQueue[] queuedBrightenings = new PooledLongQueue[MAX_LIGHT + 1];
+
+    //Layout of longs: [newLight(4)] [pos(60)]
+    private final PooledLongQueue initialBrightenings;
+    //Layout of longs: [padding(4)] [pos(60)]
+    private final PooledLongQueue initialDarkenings;
+
+    private boolean updating = false;
+
     //Layout parameters
     //Length of bit segments
     private static final int
@@ -29,12 +50,26 @@ public class LightingEngine implements ILightingEngine {
             lY = 8,
             lZ = 26,
             lL = 4;
+
+    //Bit segment shifts/positions
+    private static final int
+            sZ = 0,
+            sX = sZ + lZ,
+            sY = sX + lX,
+            sL = sY + lY;
+
+    //Bit segment masks
+    private static final long
+            mX = (1L << lX) - 1,
+            mY = (1L << lY) - 1,
+            mZ = (1L << lZ) - 1,
+            mL = (1L << lL) - 1,
+            mPos = (mY << sY) | (mX << sX) | (mZ << sZ);
+
     //Bit to check whether y had overflow
     private static final long yCheck = 1L << (sY + lY);
+
     private static final long[] neighborShifts = new long[6];
-    public static boolean isDynamicLightsLoaded;
-    @SuppressWarnings("unused")
-    private static int ITEMS_PROCESSED = 0, CHUNKS_FETCHED = 0;
 
     static {
         for (int i = 0; i < 6; ++i) {
@@ -43,39 +78,25 @@ public class LightingEngine implements ILightingEngine {
         }
     }
 
-    private final Thread ownedThread = Thread.currentThread();
-    private final World world;
-    private final Profiler profiler;
-    //Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
-    private final PooledLongQueue[] queuedLightUpdates = new PooledLongQueue[EnumSkyBlock.values().length];
-    //Layout of longs: see above
-    private final PooledLongQueue[] queuedDarkenings = new PooledLongQueue[MAX_LIGHT + 1];    //Bit segment shifts/positions
-    private final PooledLongQueue[] queuedBrightenings = new PooledLongQueue[MAX_LIGHT + 1];    //Bit segment masks    private static final int
-            sZ = 0,
-            sX = sZ + lZ,
-            sY = sX + lX,
-            sL = sY + lY;
-    //Layout of longs: [newLight(4)] [pos(60)]
-    private final PooledLongQueue initialBrightenings;
-    //Layout of longs: [padding(4)] [pos(60)]
-    private final PooledLongQueue initialDarkenings;    private static final long
-            mX = (1L << lX) - 1,
-            mY = (1L << lY) - 1,
-            mZ = (1L << lZ) - 1,
-            mL = (1L << lL) - 1,
-            mPos = (mY << sY) | (mX << sX) | (mZ << sZ);
+    //Mask to extract chunk identifier
+    private static final long mChunk = ((mX >> 4) << (4 + sX)) | ((mZ >> 4) << (4 + sZ));
+
     //Iteration state data
     //Cache position to avoid allocation of new object each time
     private final MutableBlockPos curPos = new MutableBlockPos();
-    private final NeighborInfo[] neighborInfos = new NeighborInfo[6];    //Mask to extract chunk identifier
-    private final ReentrantLock lock = new ReentrantLock();
-    private boolean updating = false;
-    private Chunk curChunk;    private static final long mChunk = ((mX >> 4) << (4 + sX)) | ((mZ >> 4) << (4 + sZ));
+    private Chunk curChunk;
     private long curChunkIdentifier;
     private long curData;
+    public static boolean isDynamicLightsLoaded;
+
     //Cached data about neighboring blocks (of tempPos)
     private boolean isNeighborDataValid = false;
+
+    private final NeighborInfo[] neighborInfos = new NeighborInfo[6];
     private PooledLongQueue.LongQueueIterator queueIt;
+
+    private final ReentrantLock lock = new ReentrantLock();
+
     public LightingEngine(final World world) {
         this.world = world;
         this.profiler = world.theProfiler;
@@ -101,48 +122,6 @@ public class LightingEngine implements ILightingEngine {
         for (int i = 0; i < this.neighborInfos.length; ++i) {
             this.neighborInfos[i] = new NeighborInfo();
         }
-    }
-
-    private static int getCachedLightFor(Chunk chunk, ExtendedBlockStorage storage, BlockPos pos, EnumSkyBlock type) {
-        int i = pos.getX() & 15;
-        int j = pos.getY();
-        int k = pos.getZ() & 15;
-
-        if (storage == null) {
-            if (type == EnumSkyBlock.SKY && chunk.canSeeSky(pos)) {
-                return type.defaultLightValue;
-            } else {
-                return 0;
-            }
-        } else if (type == EnumSkyBlock.SKY) {
-            if (chunk.getWorld().provider.getHasNoSky()) {
-                return 0;
-            } else {
-                return storage.getExtSkylightValue(i, j & 15, k);
-            }
-        } else {
-            if (type == EnumSkyBlock.BLOCK) {
-                return storage.getExtBlocklightValue(i, j & 15, k);
-            } else {
-                return type.defaultLightValue;
-            }
-        }
-    }
-
-    private static MutableBlockPos decodeWorldCoord(final MutableBlockPos pos, final long longPos) {
-        final int posX = (int) (longPos >> sX & mX) - (1 << lX - 1);
-        final int posY = (int) (longPos >> sY & mY);
-        final int posZ = (int) (longPos >> sZ & mZ) - (1 << lZ - 1);
-
-        return pos.set(posX, posY, posZ);
-    }
-
-    private static long encodeWorldCoord(final BlockPos pos) {
-        return encodeWorldCoord(pos.getX(), pos.getY(), pos.getZ());
-    }
-
-    private static long encodeWorldCoord(final long x, final long y, final long z) {
-        return (y << sY) | (x + (1 << lX - 1) << sX) | (z + (1 << lZ - 1) << sZ);
     }
 
     /**
@@ -416,6 +395,34 @@ public class LightingEngine implements ILightingEngine {
         }
     }
 
+
+    private static int getCachedLightFor(Chunk chunk, ExtendedBlockStorage storage, BlockPos pos, EnumSkyBlock type) {
+        int i = pos.getX() & 15;
+        int j = pos.getY();
+        int k = pos.getZ() & 15;
+
+        if (storage == null) {
+            if (type == EnumSkyBlock.SKY && chunk.canSeeSky(pos)) {
+                return type.defaultLightValue;
+            } else {
+                return 0;
+            }
+        } else if (type == EnumSkyBlock.SKY) {
+            if (chunk.getWorld().provider.getHasNoSky()) {
+                return 0;
+            } else {
+                return storage.getExtSkylightValue(i, j & 15, k);
+            }
+        } else {
+            if (type == EnumSkyBlock.BLOCK) {
+                return storage.getExtBlocklightValue(i, j & 15, k);
+            } else {
+                return type.defaultLightValue;
+            }
+        }
+    }
+
+
     private int calculateNewLightFromCursor(final EnumSkyBlock lightType) {
         final IBlockState state = LightingEngineHelpers.posToState(this.curPos, this.curChunk);
 
@@ -493,6 +500,25 @@ public class LightingEngine implements ILightingEngine {
         chunk.setLightFor(lightType, pos, 0);
     }
 
+    private static MutableBlockPos decodeWorldCoord(final MutableBlockPos pos, final long longPos) {
+        final int posX = (int) (longPos >> sX & mX) - (1 << lX - 1);
+        final int posY = (int) (longPos >> sY & mY);
+        final int posZ = (int) (longPos >> sZ & mZ) - (1 << lZ - 1);
+
+        return pos.set(posX, posY, posZ);
+    }
+
+    private static long encodeWorldCoord(final BlockPos pos) {
+        return encodeWorldCoord(pos.getX(), pos.getY(), pos.getZ());
+    }
+
+    private static long encodeWorldCoord(final long x, final long y, final long z) {
+        return (y << sY) | (x + (1 << lX - 1) << sX) | (z + (1 << lZ - 1) << sZ);
+    }
+
+    @SuppressWarnings("unused")
+    private static int ITEMS_PROCESSED = 0, CHUNKS_FETCHED = 0;
+
     /**
      * Polls a new item from <code>curQueue</code> and fills in state data members
      *
@@ -551,19 +577,14 @@ public class LightingEngine implements ILightingEngine {
     }
 
     private static class NeighborInfo {
-        final MutableBlockPos pos = new MutableBlockPos();
         Chunk chunk;
         ExtendedBlockStorage section;
+
         int light;
+
         long key;
+
+        final MutableBlockPos pos = new MutableBlockPos();
     }
-
-
-
-
-
-
-
-
 }
 
