@@ -21,13 +21,16 @@ import net.minecraft.item.*;
 import net.minecraft.world.WorldSettings.GameType;
 import org.apache.commons.lang3.RandomUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ChestStealer extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Instant", "Drop"});
 
-    public final IntProperty minDelay = new IntProperty("Min Delay", 1, 0, 20);
-    public final IntProperty maxDelay = new IntProperty("Max Delay", 2, 0, 20);
+    public final IntProperty minDelay = new IntProperty("Min Delay", 1, 0, 20, ()-> this.mode.getValue() != 1);
+    public final IntProperty maxDelay = new IntProperty("Max Delay", 2, 0, 20, ()-> this.mode.getValue() != 1);
     public final IntProperty openDelay = new IntProperty("Open Delay", 1, 0, 20);
     public final BooleanProperty autoClose = new BooleanProperty("Auto Close", true);
     public final BooleanProperty nameCheck = new BooleanProperty("Name Check", true);
@@ -78,53 +81,35 @@ public class ChestStealer extends Module {
         }
     }
 
-    private void takeAllInstant(Container container, IInventory inventory) {
-        // First pass: Take all non-projectile items (or all items if keepProjectiles is false)
+    private List<Integer> collectInstantSlots(Container container, IInventory inventory) {
+        List<Integer> slots = new ArrayList<>();
         for (int i = 0; i < inventory.getSizeInventory(); i++) {
-            if (container.getSlot(i).getHasStack()) {
-                ItemStack stack = container.getSlot(i).getStack();
-
-                // Skip projectile items if we want to keep them
-                if (this.keepProjectiles.getValue() && this.isProjectileStack(stack)) {
-                    continue;
-                }
-
-                // Skip trash items if enabled
-                if (this.shouldSkipTrashStack(stack)) {
-                    continue;
-                }
-
-                this.shiftClick(container.windowId, i);
+            if (!container.getSlot(i).getHasStack()) {
+                continue;
+            }
+            ItemStack stack = container.getSlot(i).getStack();
+            if (!this.shouldSkipTrashStack(stack)) {
+                slots.add(i);
             }
         }
+        return slots;
+    }
 
-        // Second pass: If keepProjectiles is false, take projectile items as well
-        if (!this.keepProjectiles.getValue()) {
-            for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                if (container.getSlot(i).getHasStack()) {
-                    ItemStack stack = container.getSlot(i).getStack();
-
-                    // Only take projectile items in this pass
-                    if (!this.isProjectileStack(stack)) {
-                        continue;
-                    }
-
-                    // Skip trash items if enabled
-                    if (this.shouldSkipTrashStack(stack)) {
-                        continue;
-                    }
-
-                    this.shiftClick(container.windowId, i);
-                }
+    private boolean takeAllInstant(Container container, IInventory inventory) {
+        List<Integer> slots = this.collectInstantSlots(container, inventory);
+        for (int slot : slots) {
+            if (container.getSlot(slot).getHasStack()) {
+                this.shiftClick(container.windowId, slot);
             }
         }
+        return !slots.isEmpty();
     }
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (event.getType() == EventType.PRE) {
 
-            if (this.mode.getValue() == 0 || this.mode.getValue() == 2) {
+            if (this.mode.getValue() == 0 || this.mode.getValue() == 1 || this.mode.getValue() == 2) {
                 if (this.clickDelay > 0) {
                     this.clickDelay--;
                 }
@@ -145,9 +130,7 @@ public class ChestStealer extends Module {
                     if (!this.inChest) {
                         this.inChest = true;
                         this.warnedFull = false;
-                        if (this.mode.getValue() == 0 || this.mode.getValue() == 2) {
-                            this.oDelay = this.openDelay.getValue() + 1;
-                        }
+                        this.oDelay = this.openDelay.getValue() + 1;
                         this.instantExecuted = false;
                     }
 
@@ -165,9 +148,11 @@ public class ChestStealer extends Module {
                         }
                     }
 
-                    // Instant Mode
-                    if (this.mode.getValue() == 1 && !this.instantExecuted) {
-                        if (mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
+                    if (this.mode.getValue() == 1 && !this.instantExecuted && this.oDelay <= 0) {
+                        this.takeAllInstant(container, inventory);
+                        this.instantExecuted = true;
+
+                        if (!this.collectInstantSlots(container, inventory).isEmpty()) {
                             if (!this.warnedFull) {
                                 ChatUtil.sendFormatted(String.format("%s%s: &cYour inventory is full!&r", Unfair.clientName, this.getName()));
                                 this.warnedFull = true;
@@ -176,29 +161,12 @@ public class ChestStealer extends Module {
                                 mc.thePlayer.closeScreen();
                             }
                         } else {
-                            this.takeAllInstant(container, inventory);
-                            this.instantExecuted = true;
-
-                            boolean allEmpty = true;
-                            for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                                ItemStack stack = container.getSlot(i).getStack();
-                                if (container.getSlot(i).getHasStack()) {
-                                    // If keepProjectiles is enabled, ignore projectile items when checking if chest is empty
-                                    if (this.keepProjectiles.getValue() && this.isProjectileStack(stack)) {
-                                        continue;
-                                    }
-                                    allEmpty = false;
-                                    break;
-                                }
-                            }
-
-                            if (this.autoClose.getValue() && allEmpty) {
+                            if (this.autoClose.getValue()) {
                                 mc.thePlayer.closeScreen();
                             }
                         }
                     }
 
-                    // Normal Mode / Drop Mode (Drop shares Normal's logic but drops stacks out of the chest instead of taking them)
                     else if ((this.mode.getValue() == 0 || this.mode.getValue() == 2) && this.oDelay <= 0 && this.clickDelay <= 0) {
                         if (this.mode.getValue() == 0 && mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
                             if (!this.warnedFull) {

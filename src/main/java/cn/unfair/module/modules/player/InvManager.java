@@ -24,19 +24,20 @@ import org.apache.commons.lang3.RandomUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
 public class InvManager extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int OFFHAND_TARGET_SLOT = 9;
-
-    public final IntProperty minDelay = new IntProperty("Min Delay", 0, 0, 20);
-    public final IntProperty maxDelay = new IntProperty("Max Delay", 0, 0, 20);
     public final IntProperty openDelay = new IntProperty("Open Delay", 0, 0, 20);
     public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Normal", "Instant"});
+    public final IntProperty minDelay = new IntProperty("Min Delay", 0, 0, 20, () -> this.mode.getValue() == 0);
+    public final IntProperty maxDelay = new IntProperty("Max Delay", 0, 0, 20, () -> this.mode.getValue() == 0);
     public final BooleanProperty autoArmor = new BooleanProperty("Auto Armor", true);
     public final BooleanProperty dropTrash = new BooleanProperty("Drop Trash", true);
     public final IntProperty dropDelay = new IntProperty("Drop Delay", 0, 0, 20);
@@ -256,7 +257,7 @@ public class InvManager extends Module {
             }
 
             double score = this.getArmorScore(stack);
-            if (score > bestScore) {
+            if (score > bestScore || score == bestScore && i == 39 - armorType) {
                 bestSlot = i;
                 bestScore = score;
             }
@@ -414,14 +415,22 @@ public class InvManager extends Module {
                 continue;
             }
 
-            if (mc.thePlayer.inventory.getStackInSlot(playerArmorSlot) != null) {
+            int armorToEquipSlot = equippedSlot != -1 ? equippedSlot : inventorySlot;
+            ItemStack currentArmor = mc.thePlayer.inventory.getStackInSlot(playerArmorSlot);
+            ItemStack replacementArmor = mc.thePlayer.inventory.getStackInSlot(armorToEquipSlot);
+            if (currentArmor != null
+                    && this.hasMinimumDurability(currentArmor)
+                    && this.getArmorScore(currentArmor) >= this.getArmorScore(replacementArmor)) {
+                continue;
+            }
+
+            if (currentArmor != null) {
                 if (mc.thePlayer.inventory.getFirstEmptyStack() != -1) {
                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(playerArmorSlot), 0, 1);
                 } else {
                     this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(playerArmorSlot), 1, 4);
                 }
             } else {
-                int armorToEquipSlot = equippedSlot != -1 ? equippedSlot : inventorySlot;
                 this.clickSlot(mc.thePlayer.inventoryContainer.windowId, this.convertSlotIndex(armorToEquipSlot), 0, 1);
             }
             return true;
@@ -657,17 +666,53 @@ public class InvManager extends Module {
     }
 
     private boolean handleInventoryActions() {
-        InventoryPlan plan = this.buildPlan();
         if (this.mode.getValue() == 1) {
-            return this.dropTrash.getValue() && this.dropTrash(plan, false)
-                    || this.equipArmor(plan)
-                    || this.organizeItems(plan);
+            return this.handleInstantInventoryActions();
         }
 
+        InventoryPlan plan = this.buildPlan();
         if (this.actionDelay <= 0 && (this.equipArmor(plan) || this.organizeItems(plan))) {
             return true;
         }
         return this.dropTrash.getValue() && this.dropDelayCounter <= 0 && this.dropTrash(plan, true);
+    }
+
+    private boolean handleInstantInventoryActions() {
+        boolean changed = false;
+        Set<Long> seenStates = new HashSet<>();
+        for (int i = 0; i < 64; i++) {
+            long stateBefore = this.getInventoryStateFingerprint();
+            if (!seenStates.add(stateBefore)) {
+                break;
+            }
+            InventoryPlan plan = this.buildPlan();
+            if (this.equipArmor(plan)
+                    || this.organizeItems(plan)
+                    || this.dropTrash.getValue() && this.dropTrash(plan, false)) {
+                changed = true;
+                if (this.getInventoryStateFingerprint() == stateBefore) {
+                    break;
+                }
+                continue;
+            }
+            break;
+        }
+        return changed;
+    }
+
+    private long getInventoryStateFingerprint() {
+        long fingerprint = 1L;
+        for (int i = 0; i < 40; i++) {
+            ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (stack == null) {
+                fingerprint = fingerprint * 31L;
+                continue;
+            }
+            fingerprint = fingerprint * 31L + Item.getIdFromItem(stack.getItem());
+            fingerprint = fingerprint * 31L + stack.stackSize;
+            fingerprint = fingerprint * 31L + stack.getItemDamage();
+        }
+        return fingerprint;
     }
 
     @EventTarget
