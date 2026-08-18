@@ -26,7 +26,10 @@ import java.util.stream.Collectors;
 
 public class HUD extends Module {
     public static final ModeProperty colorMode = new ModeProperty(
-            "Color", 3, new String[]{"Rainbow", "Chroma", "Astolfo", "Custom1", "Custom12", "Custom123"}
+            "Color", 3, new String[]{"Rainbow", "Chroma", "Astolfo", "Custom", "Fade", "Breath"}
+    );
+    public static final ModeProperty colorApplicationMode = new ModeProperty(
+            "Color Apply", 0, new String[]{"Normal", "Horizontal", "Vertical", "Diagonal", "Reverse Diagonal", "Radial"}
     );
     public static final FloatProperty colorSpeed = new FloatProperty("Color Speed", 1.0F, 0.5F, 1.5F);
     public static final PercentProperty colorSaturation = new PercentProperty("Color Saturation", 50);
@@ -71,8 +74,12 @@ public class HUD extends Module {
     }
 
     public static float getColorCycle(long long3, long long4) {
+        return getColorCycle(long3, (double) long4);
+    }
+
+    private static float getColorCycle(long long3, double long4) {
         long speed = (long) (3000.0 / Math.pow(Math.clamp(colorSpeed.getValue(), 0.5F, 1.5F), 3.0));
-        return 1.0F - (float) (Math.abs(long3 - long4 * 300L) % speed) / (float) speed;
+        return 1.0F - (float) (Math.abs(long3 - long4 * 300.0) % speed) / (float) speed;
     }
 
     public static Color getColor(long time) {
@@ -80,6 +87,10 @@ public class HUD extends Module {
     }
 
     public static Color getColor(long time, long offset) {
+        return getColorAtOffset(time, offset);
+    }
+
+    private static Color getColorAtOffset(long time, double offset) {
         Color color = Color.white;
         switch (colorMode.getValue()) {
             case 0:
@@ -121,6 +132,43 @@ public class HUD extends Module {
                 hsb[1] * (colorSaturation.getValue().floatValue() / 100.0F),
                 hsb[2] * (colorBrightness.getValue().floatValue() / 100.0F)
         );
+    }
+
+    private double getColorApplicationOffset(double normalOffset, float x, float y) {
+        final float phaseSize = 18.0F;
+        return switch (colorApplicationMode.getValue()) {
+            case 1 -> x / phaseSize;
+            case 2 -> y / phaseSize;
+            case 3 -> (x + y) / phaseSize;
+            case 4 -> (x - y) / phaseSize;
+            case 5 -> (float) Math.hypot(x, y) / phaseSize;
+            default -> normalOffset;
+        };
+    }
+
+    private void drawAppliedHudString(String text, float x, float y, int color, boolean shadow,
+                                      boolean alignTop, long time, double normalOffset) {
+        if (colorApplicationMode.getValue() == 0 || text.length() <= 1) {
+            this.drawHudString(text, x, y, color, shadow, alignTop);
+            return;
+        }
+
+        int alpha = color >>> 24;
+        float characterX = x;
+        for (int i = 0; i < text.length(); i++) {
+            String character = String.valueOf(text.charAt(i));
+            double phaseOffset = this.getColorApplicationOffset(
+                    normalOffset,
+                    characterX * this.scale.getValue(),
+                    y * this.scale.getValue()
+            );
+            int characterColor = getColorAtOffset(time, phaseOffset).getRGB();
+            characterColor = (characterColor & 0x00FFFFFF) | (alpha << 24);
+            this.drawHudString(character, characterX, y, characterColor, shadow, alignTop);
+            // Track the pen with the exact (fractional) advance so per-character
+            // drawing doesn't accumulate rounding drift and stretch the text.
+            characterX += this.getExactTextWidth(character);
+        }
     }
 
     private String getModuleName(Module module) {
@@ -176,6 +224,16 @@ public class HUD extends Module {
         }
         FontRenderer fontRenderer = this.getCustomFont();
         return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
+    }
+
+    private float getExactTextWidth(String text) {
+        if (this.useMinecraftFont()) {
+            return (float) mc.fontRendererObj.getStringWidth(text);
+        }
+        FontRenderer fontRenderer = this.getCustomFont();
+        return fontRenderer == null
+                ? (float) mc.fontRendererObj.getStringWidth(text)
+                : fontRenderer.getExactStringWidth(text);
     }
 
     private float getTextHeight() {
@@ -408,8 +466,6 @@ public class HUD extends Module {
             String moduleName = this.getModuleName(module);
             String[] moduleSuffix = this.getModuleSuffix(module);
             float totalWidth = (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1));
-            int color = getColor(time, offset).getRGB();
-
             boolean isFadingOut = !module.isEnabled();
             float animProgress = this.getAnimationProgress(module, partialTicks);
 
@@ -424,6 +480,11 @@ public class HUD extends Module {
             float rowOffset = this.getRenderRow(module, offset, partialTicks) * this.getEntryHeight();
             float currentX = currentBaseX + xSlideAmount;
             float currentY = y + rowOffset * (alignTop ? 1.0F : -1.0F);
+            float textX = currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth);
+            int color = getColorAtOffset(
+                    time,
+                    this.getColorApplicationOffset(offset, textX * this.scale.getValue(), currentY)
+            ).getRGB();
 
             if (mask) {
                 if (animProgress > 0.02F) {
@@ -455,13 +516,15 @@ public class HUD extends Module {
                 if (animProgress > 0.05F) {
                     GlStateManager.enableBlend();
                     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                    this.drawHudString(
+                    this.drawAppliedHudString(
                             moduleName,
-                            currentX / this.scale.getValue() - (alignLeft ? 0.0F : totalWidth),
+                            textX,
                             currentY / this.scale.getValue(),
                             animatedColor,
                             this.shadow.getValue(),
-                            alignTop
+                            alignTop,
+                            time,
+                            offset
                     );
                     if (this.suffixes.getValue() && moduleSuffix.length > 0 && animProgress > 0.5F) {
                         float width = (float) this.getTextWidth(moduleName) + 3.0F;

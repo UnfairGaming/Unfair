@@ -499,8 +499,23 @@ public class FontRenderer {
     }
 
     private int getStringWidth(String text, int scaleFactor) {
+        return Math.round(this.getExactAdvance(text, scaleFactor) / (float) scaleFactor);
+    }
+
+    // Exact (fractional) advance of the text in scaled GUI units, without the
+    // per-call device-pixel rounding applied by getStringWidth. Use this to track a
+    // pen position across individually-drawn characters so they don't accumulate
+    // rounding drift and end up wider than the same string drawn in one call.
+    public float getExactStringWidth(String text) {
         if (text == null) {
-            return 0;
+            return 0.0F;
+        }
+        return this.getExactAdvance(text, getScaleFactor()) / (float) getScaleFactor();
+    }
+
+    private float getExactAdvance(String text, int scaleFactor) {
+        if (text == null) {
+            return 0.0F;
         }
         int width = 0;
         int size = text.length();
@@ -521,7 +536,7 @@ public class FontRenderer {
             }
             ++i;
         }
-        return Math.round(width / (float) scaleFactor);
+        return width;
     }
 
     public final float getSize() {
