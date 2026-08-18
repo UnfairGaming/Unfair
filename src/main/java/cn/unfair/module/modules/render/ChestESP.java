@@ -321,7 +321,7 @@ public class ChestESP extends Module {
         }
 
         vec = new Vec3(vec.xCoord, vec.yCoord + (double) mc.getRenderViewEntity().getEyeHeight(), vec.zCoord);
-        float opacity = (float) ((Tracers) Unfair.moduleManager.modules.get(Tracers.class)).opacity.getValue() / 100.0F;
+        float opacity = ((Tracers) Unfair.moduleManager.modules.get(Tracers.class)).opacity.getValue().floatValue();
         RenderUtil.drawLine3D(
                 vec,
                 (double) chest.getPos().getX() + 0.5,

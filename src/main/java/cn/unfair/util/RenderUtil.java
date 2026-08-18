@@ -759,9 +759,9 @@ public class RenderUtil {
         GlStateManager.resetColor();
     }
 
-    public static void drawLine3D(Vec3 start, double endX, double endY, double endZ, float red, float green, float blue, float alpha, float lineWidth) {
+    public static void drawLine3D(Vec3 start, double endX, double endY, double endZ, float red, float green, float blue, float opacity, float lineWidth) {
         GlStateManager.pushMatrix();
-        GlStateManager.color(red, green, blue, alpha);
+        GlStateManager.color(red, green, blue, opacityToUnit(opacity));
         boolean bl = RenderUtil.mc.gameSettings.viewBobbing;
         RenderUtil.mc.gameSettings.viewBobbing = false;
         RenderUtil.mc.entityRenderer.setupCameraTransform(RenderUtil.mc.timer.renderPartialTicks, 2);
@@ -884,6 +884,7 @@ public class RenderUtil {
     }
 
     public static void drawFilledBox(AxisAlignedBB axisAlignedBB, int red, int green, int blue, int alpha) {
+        alpha = clampAlpha(alpha);
         resetColor();
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldRenderer = tessellator.getWorldRenderer();
@@ -917,6 +918,7 @@ public class RenderUtil {
     }
 
     public static void drawBoundingBox(AxisAlignedBB axisAlignedBB, int red, int green, int blue, int alpha, float lineWidth) {
+        alpha = clampAlpha(alpha);
         resetColor();
         GL11.glLineWidth(lineWidth);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
@@ -1465,7 +1467,7 @@ public class RenderUtil {
     }
 
     public static void setColor(int argb) {
-        float f = (float) (argb >> 24 & 0xFF) / 255.0f;
+        float f = alphaToUnit((argb >> 24) & 0xFF);
         float f2 = (float) (argb >> 16 & 0xFF) / 255.0f;
         float f3 = (float) (argb >> 8 & 0xFF) / 255.0f;
         float f4 = (float) (argb & 0xFF) / 255.0f;
@@ -1905,7 +1907,26 @@ public class RenderUtil {
     }
 
     public static int mergeAlpha(int color, int alpha) {
-        return (color & 0xFFFFFF) | alpha << 24;
+        return (color & 0xFFFFFF) | clampAlpha(alpha) << 24;
+    }
+
+    /** Converts the canonical 0..255 alpha value to the OpenGL 0..1 range. */
+    public static float alphaToUnit(int alpha) {
+        return clampAlpha(alpha) / 255.0F;
+    }
+
+    /** Converts percentage opacity (0..100) to the canonical 0..255 alpha value. */
+    public static int opacityToAlpha(float opacity) {
+        return Math.round(Math.clamp(opacity, 0.0F, 100.0F) * 2.55F);
+    }
+
+    /** Converts percentage opacity (0..100) to the OpenGL 0..1 range. */
+    public static float opacityToUnit(float opacity) {
+        return alphaToUnit(opacityToAlpha(opacity));
+    }
+
+    private static int clampAlpha(int alpha) {
+        return Math.clamp(alpha, 0, 255);
     }
 
     public static int darkenColor(int color, double percent) {

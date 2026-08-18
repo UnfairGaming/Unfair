@@ -57,26 +57,26 @@ public class Tracers extends Module {
         }
     }
 
-    private Color getEntityColor(EntityPlayer entityPlayer, float alpha) {
+    private Color getEntityColor(EntityPlayer entityPlayer, int alpha) {
         if (TeamUtil.isFriend(entityPlayer)) {
             Color color = Unfair.friendManager.getColor();
-            return new Color((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, alpha);
+            return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
         } else if (TeamUtil.isTarget(entityPlayer)) {
             Color color = Unfair.targetManager.getColor();
-            return new Color((float) color.getRed() / 255.0F, (float) color.getGreen() / 255.0F, (float) color.getBlue() / 255.0F, alpha);
+            return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
         } else {
             switch (this.colorMode.getValue()) {
                 case 0:
-                    return TeamUtil.getTeamColor(entityPlayer, alpha);
+                    return TeamUtil.getTeamColor(entityPlayer, RenderUtil.alphaToUnit(alpha));
                 case 1:
                     int teamColor = TeamUtil.isSameTeam(entityPlayer) ? ChatColors.BLUE.toAwtColor() : ChatColors.RED.toAwtColor();
-                    return new Color(teamColor & Color.WHITE.getRGB() | (int) (alpha * 255.0F) << 24, true);
+                    return new Color(RenderUtil.mergeAlpha(teamColor, alpha), true);
                 case 2:
                     Unfair.moduleManager.modules.get(HUD.class);
                     int color = HUD.getColor(System.currentTimeMillis()).getRGB();
-                    return new Color(color & Color.WHITE.getRGB() | (int) (alpha * 255.0F) << 24, true);
+                    return new Color(RenderUtil.mergeAlpha(color, alpha), true);
                 default:
-                    return new Color(1.0F, 1.0F, 1.0F, alpha);
+                    return new Color(255, 255, 255, alpha);
             }
         }
     }
@@ -131,7 +131,7 @@ public class Tracers extends Module {
             }
             position = new Vec3(position.xCoord, position.yCoord + (double) mc.getRenderViewEntity().getEyeHeight(), position.zCoord);
             for (EntityPlayer player : TeamUtil.getLoadedEntitiesSorted().stream().filter(entity -> entity instanceof EntityPlayer && this.shouldRender((EntityPlayer) entity)).map(EntityPlayer.class::cast).collect(Collectors.toList())) {
-                Color color = this.getEntityColor(player, (float) this.opacity.getValue() / 100.0F);
+                Color color = this.getEntityColor(player, RenderUtil.opacityToAlpha(this.opacity.getValue().floatValue()));
                 double x = RenderUtil.lerpDouble(player.posX, player.lastTickPosX, event.partialTicks());
                 double y = RenderUtil.lerpDouble(player.posY, player.lastTickPosY, event.partialTicks()) - (player.isSneaking() ? 0.125 : 0.0);
                 double z = RenderUtil.lerpDouble(player.posZ, player.lastTickPosZ, event.partialTicks());
@@ -143,7 +143,7 @@ public class Tracers extends Module {
                         (float) color.getRed() / 255.0F,
                         (float) color.getGreen() / 255.0F,
                         (float) color.getBlue() / 255.0F,
-                        (float) color.getAlpha() / 255.0F,
+                        this.opacity.getValue().floatValue(),
                         1.5F
                 );
             }
@@ -166,12 +166,12 @@ public class Tracers extends Module {
                 }
                 float arrowDirX = (float) Math.sin(Math.toRadians(yawBetween));
                 float arrowDirY = (float) Math.cos(Math.toRadians(yawBetween)) * -1.0F;
-                float opacity = this.opacity.getValue().floatValue() / 100.0F;
+                int alpha = RenderUtil.opacityToAlpha(this.opacity.getValue().floatValue());
                 yawBetween = Math.abs(MathHelper.wrapAngleTo180_float(yawBetween));
                 if (yawBetween < 30.0F) {
-                    opacity = 0.0F;
+                    alpha = 0;
                 } else if (yawBetween < 60.0F) {
-                    opacity *= (yawBetween - 30.0F) / 30.0F;
+                    alpha = Math.round(alpha * (yawBetween - 30.0F) / 30.0F);
                 }
                 HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
                 GlStateManager.pushMatrix();
@@ -189,7 +189,7 @@ public class Tracers extends Module {
                         0.0F,
                         (float) (Math.atan2(arrowDirY, arrowDirX) + Math.PI),
                         10.0F,
-                        this.getEntityColor(player, opacity).getRGB()
+                        this.getEntityColor(player, alpha).getRGB()
                 );
                 RenderUtil.disableRenderState();
                 GlStateManager.popMatrix();

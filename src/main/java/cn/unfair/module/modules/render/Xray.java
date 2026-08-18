@@ -102,7 +102,7 @@ public class Xray extends Module {
     private void renderOreHighlight(BlockPos blockPos, int blockId, Vec3 viewVector) {
         if (mc.thePlayer.getDistance(blockPos.getX(), blockPos.getY(), blockPos.getZ()) <= this.range.getValue().doubleValue()) {
             Color color = this.getOreColor(blockId);
-            RenderUtil.drawBlockBoundingBox(blockPos, 1.0, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), 1.5F);
+            RenderUtil.drawBlockBoundingBox(blockPos, 1.0, color.getRed(), color.getGreen(), color.getBlue(), RenderUtil.opacityToAlpha(this.opacity.getValue().floatValue()), 1.5F);
             if (this.shouldDrawTracer(blockId)) {
                 RenderUtil.drawLine3D(
                         viewVector,
@@ -112,7 +112,7 @@ public class Xray extends Module {
                         (float) color.getRed() / 255.0F,
                         (float) color.getGreen() / 255.0F,
                         (float) color.getBlue() / 255.0F,
-                        1.0F,
+                        this.opacity.getValue().floatValue(),
                         1.5F
                 );
             }
