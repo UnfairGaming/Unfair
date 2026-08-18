@@ -4,16 +4,15 @@ import cn.unfair.Unfair;
 import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.LoadWorldEvent;
-import cn.unfair.events.MoveInputEvent;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.UpdateEvent;
+import cn.unfair.events.*;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.BackTrack;
 import cn.unfair.module.modules.combat.KillAura;
+import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.property.properties.IntProperty;
+import cn.unfair.util.RandomUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
@@ -24,6 +23,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.ServerBoundInteractAttack;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
+import net.minecraft.potion.Potion;
 import net.minecraft.util.BlockPos;
 
 import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
@@ -41,9 +41,27 @@ public class GrimReduceVelocity extends SubModule {
     private int suspendTicks;
     private boolean knockback;
     private int lastInteractTick = -1;
+    private boolean jumpFlag = false;
 
     public GrimReduceVelocity() {
         super("GrimReduce");
+    }
+
+    @EventTarget
+    public void onKnockback(KnockbackEvent event) {
+        if (this.isEnabled() && !event.isCancelled()) {
+            this.jumpFlag = event.getY() > 0.0;
+        }
+    }
+
+    @EventTarget
+    public void onLivingUpdate(LivingUpdateEvent event) {
+        if (this.jumpFlag) {
+            this.jumpFlag = false;
+            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !Velocity.isInLiquidOrWeb()) {
+                mc.thePlayer.movementInput.jump = true;
+            }
+        }
     }
 
     @EventTarget
