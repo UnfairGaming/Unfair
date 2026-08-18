@@ -41,8 +41,6 @@ public class RavenClickGui extends GuiScreen {
     private float partialTicks;
     private boolean clickGuiOpen = false;
     private long openedTime;
-    private int hudColorCached = Color.white.getRGB();
-    private long lastHudColorUpdate = 0;
 
     public RavenClickGui() {
         instance = this;
@@ -94,31 +92,17 @@ public class RavenClickGui extends GuiScreen {
 
         drawRect(0, 0, this.width, this.height, (int) (this.getLerpValueFloat(this.backgroundFadeStart, 450.0F, 0.0F, 0.7F, 2) * 255.0F) << 24);
 
-        // Update cached HUD color every 50ms
-        if (System.currentTimeMillis() - lastHudColorUpdate > 50) {
-            HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-            hudColorCached = HUD.getColor(System.currentTimeMillis()).getRGB();
-            lastHudColorUpdate = System.currentTimeMillis();
-        }
-
         int h = this.height / 4;
         int wd = this.width / 2;
         int w_c = 30 - this.getLerpValueInt(this.logoSmoothWidthStart, 500.0F, 0, 30, 3);
 
-        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        int hudColor1 = HUD.getColor(System.currentTimeMillis()).getRGB();
-        int hudColor2 = HUD.getColor(System.currentTimeMillis() + 300).getRGB();
-        int hudColor3 = HUD.getColor(System.currentTimeMillis() + 600).getRGB();
-        int hudColor4 = HUD.getColor(System.currentTimeMillis() + 900).getRGB();
-        int hudColor5 = HUD.getColor(System.currentTimeMillis() + 1200).getRGB();
-        int hudColor6 = HUD.getColor(System.currentTimeMillis() + 1500).getRGB();
-
-        this.drawCenteredString(this.fontRendererObj, "U", wd + 1 - w_c, h - 25, hudColor6);
-        this.drawCenteredString(this.fontRendererObj, "n", wd - w_c, h - 15, hudColor5);
-        this.drawCenteredString(this.fontRendererObj, "f", wd - w_c, h - 5, hudColor4);
-        this.drawCenteredString(this.fontRendererObj, "a", wd - w_c, h + 5, hudColor3);
-        this.drawCenteredString(this.fontRendererObj, "i", wd - w_c, h + 15, hudColor2);
-        this.drawCenteredString(this.fontRendererObj, "r", wd + 1 + w_c, h + 30, hudColor1);
+        long gradientTime = System.currentTimeMillis();
+        this.drawGradientCenteredString("U", wd + 1 - w_c, h - 25, gradientTime, 0);
+        this.drawGradientCenteredString("n", wd - w_c, h - 15, gradientTime, 1);
+        this.drawGradientCenteredString("f", wd - w_c, h - 5, gradientTime, 2);
+        this.drawGradientCenteredString("a", wd - w_c, h + 5, gradientTime, 3);
+        this.drawGradientCenteredString("i", wd - w_c, h + 15, gradientTime, 4);
+        this.drawGradientCenteredString("r", wd + 1 + w_c, h + 30, gradientTime, 5);
         this.drawVerticalLine(wd - 10 - w_c, h - 30, h + 43, Color.white.getRGB());
         this.drawVerticalLine(wd + 10 + w_c, h - 30, h + 43, Color.white.getRGB());
         if (this.logoSmoothLengthStart > 0L) {
@@ -159,9 +143,8 @@ public class RavenClickGui extends GuiScreen {
             int[] displaySize = {this.width, this.height};
             int y = displaySize[1] + (8 - this.getLerpValueInt(this.footerSlideStart, 600.0F, 0, 30, 2));
 
-            mc.fontRendererObj.drawString(clientName + "-" + Unfair.version, 4, y, hudColorCached, true);
-
             long elapsedTime = System.currentTimeMillis() - openedTime + 50L;
+            this.drawGradientString(clientName + "-" + Unfair.version, 4, y, elapsedTime, true);
             int characterIndex = (int) (elapsedTime / 200L);
             y += this.fontRendererObj.FONT_HEIGHT + 1;
 
@@ -175,10 +158,25 @@ public class RavenClickGui extends GuiScreen {
                     obfuscated += currentChar;
                 }
 
-                mc.fontRendererObj.drawString(obfuscated, 4, y, hudColorCached, true);
+                this.drawGradientString(obfuscated, 4, y, elapsedTime, true);
             } else {
-                mc.fontRendererObj.drawString(developer, 4, y, hudColorCached, true);
+                this.drawGradientString(developer, 4, y, elapsedTime, true);
             }
+        }
+    }
+
+    private void drawGradientCenteredString(String text, float centerX, float y, long time, int characterOffset) {
+        float x = centerX - this.fontRendererObj.getStringWidth(text) / 2.0F;
+        this.drawGradientString(text, x, y, time + characterOffset * 120L, false);
+    }
+
+    private void drawGradientString(String text, float x, float y, long time, boolean shadow) {
+        float characterX = x;
+        for (int i = 0; i < text.length(); i++) {
+            char character = text.charAt(i);
+            int color = HUD.getColor(time + i * 120L).getRGB();
+            this.fontRendererObj.drawString(String.valueOf(character), characterX, y, color, shadow);
+            characterX += this.fontRendererObj.getCharWidth(character);
         }
     }
 

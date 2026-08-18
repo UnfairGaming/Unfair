@@ -1,6 +1,5 @@
 package cn.unfair.ui.clickgui.raven.components;
 
-import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.ui.clickgui.raven.Component;
@@ -31,8 +30,7 @@ public class BindComponent implements Component {
     public void draw(AtomicInteger offset) {
         GL11.glPushMatrix();
         GL11.glScaled(0.5D, 0.5D, 0.5D);
-        Unfair.moduleManager.modules.get(HUD.class);
-        this.renderText(this.isBinding ? BindStage.binding : BindStage.bind + ": " + Keyboard.getKeyName(this.parentModule.mod.getKey()), HUD.getColor(System.currentTimeMillis(), offset.get()).getRGB());
+        this.renderText(this.isBinding ? BindStage.binding : BindStage.bind + ": " + Keyboard.getKeyName(this.parentModule.mod.getKey()), offset.get());
         GL11.glPopMatrix();
     }
 
@@ -95,8 +93,16 @@ public class BindComponent implements Component {
         return true;
     }
 
-    private void renderText(String s, int color) {
-        mc.fontRendererObj.drawString(s, (this.parentModule.category.getX() + 4) * 2, (this.parentModule.category.getY() + this.offsetY + 3) * 2, color);
+    private void renderText(String s, int offset) {
+        float characterX = (this.parentModule.category.getX() + 4) * 2.0F;
+        float y = (this.parentModule.category.getY() + this.offsetY + 3) * 2.0F;
+        long time = System.currentTimeMillis() + offset * 120L;
+        for (int i = 0; i < s.length(); i++) {
+            char character = s.charAt(i);
+            mc.fontRendererObj.drawString(String.valueOf(character), characterX, y,
+                    HUD.getColor(time + i * 120L).getRGB());
+            characterX += mc.fontRendererObj.getCharWidth(character);
+        }
     }
 
     @Override
