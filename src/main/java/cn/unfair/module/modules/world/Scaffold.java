@@ -24,8 +24,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -48,7 +50,7 @@ public class Scaffold extends Module {
     private static final float BLOCK_COUNT_ICON_GAP = 3.0F;
     private static final float BLOCK_COUNT_TEXT_GAP = 2.0F;
 
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge", "Legit"});
     public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
     public final IntProperty placeTick = new IntProperty("Place Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
     public final IntProperty rotTick = new IntProperty("Rotation Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
@@ -61,62 +63,62 @@ public class Scaffold extends Module {
     public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true);
     public final ModeProperty blockSlotMode = new ModeProperty("Block Slot Mode", 0, new String[]{"Farthest", "Most Blocks"});
     public final ModeProperty jumpMode = new ModeProperty("Jump Mode", 1, new String[]{"Parkour", "Normal", "None"}, () -> this.mode.getValue() == 0);
-    public final BooleanProperty godBridgeJump = new BooleanProperty("GodBridge Auto Jump", true, () -> this.mode.getValue() == 2);
-    public final IntProperty godBridgeJumpMin = new IntProperty("GodBridge Jump Min", 4, 1, 8,
-            () -> this.mode.getValue() == 2 && !godBridgeJump.getValue());
-    public final IntProperty godBridgeJumpMax = new IntProperty("GodBridge Jump Max", 4, 1, 8,
-            () -> this.mode.getValue() == 2 && !godBridgeJump.getValue());
-    public final ModeProperty godBridgeRotations = new ModeProperty("GodBridge Rotations", 1,
+    public final BooleanProperty godBridgeJump = new BooleanProperty("Auto Jump", true, this::isGodBridgeMode);
+    public final IntProperty godBridgeJumpMin = new IntProperty("Jump Min", 4, 1, 8,
+            () -> this.isGodBridgeMode() && !godBridgeJump.getValue());
+    public final IntProperty godBridgeJumpMax = new IntProperty("Jump Max", 4, 1, 8,
+            () -> this.isGodBridgeMode() && !godBridgeJump.getValue());
+    public final ModeProperty godBridgeRotations = new ModeProperty("Rotations", 1,
             new String[]{"Off", "Normal", "Stabilized", "ReverseYaw", "GodBridge"},
-            () -> this.mode.getValue() == 2);
-    public final BooleanProperty godBridgeApplyServerSide = new BooleanProperty("GodBridge Apply Server Side", true,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final BooleanProperty godBridgeKeepRotation = new BooleanProperty("GodBridge Keep Rotation", true,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
-    public final IntProperty godBridgeResetTicks = new IntProperty("GodBridge Reset Ticks", 1, 1, 20,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
-    public final BooleanProperty godBridgeLegitimize = new BooleanProperty("GodBridge Legitimize", false,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeHorizontalSpeedMin = new FloatProperty("GodBridge Horizontal Speed Min", 180.0F, 1.0F, 180.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeHorizontalSpeedMax = new FloatProperty("GodBridge Horizontal Speed Max", 180.0F, 1.0F, 180.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeVerticalSpeedMin = new FloatProperty("GodBridge Vertical Speed Min", 180.0F, 1.0F, 180.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeVerticalSpeedMax = new FloatProperty("GodBridge Vertical Speed Max", 180.0F, 1.0F, 180.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeAngleResetDifference = new FloatProperty("GodBridge Angle Reset Difference", 5.0F, 0.0F, 180.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
-    public final FloatProperty godBridgeMinRotationDifference = new FloatProperty("GodBridge Min Rotation Difference", 2.0F, 0.0F, 4.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final ModeProperty godBridgeMinRotationTiming = new ModeProperty("GodBridge Min Rotation Timing", 0,
+            this::isGodBridgeMode);
+    public final BooleanProperty godBridgeApplyServerSide = new BooleanProperty("Apply Server Side", true,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final BooleanProperty godBridgeKeepRotation = new BooleanProperty("Keep Rotation", true,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
+    public final IntProperty godBridgeResetTicks = new IntProperty("Reset Ticks", 1, 1, 20,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
+    public final BooleanProperty godBridgeLegitimize = new BooleanProperty("Legitimize", false,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final FloatProperty godBridgeHorizontalSpeedMin = new FloatProperty("Horizontal Speed Min", 180.0F, 1.0F, 180.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final FloatProperty godBridgeHorizontalSpeedMax = new FloatProperty("Horizontal Speed Max", 180.0F, 1.0F, 180.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final FloatProperty godBridgeVerticalSpeedMin = new FloatProperty("Vertical Speed Min", 180.0F, 1.0F, 180.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final FloatProperty godBridgeVerticalSpeedMax = new FloatProperty("Vertical Speed Max", 180.0F, 1.0F, 180.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final FloatProperty godBridgeAngleResetDifference = new FloatProperty("Angle Reset Difference", 5.0F, 0.0F, 180.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
+    public final FloatProperty godBridgeMinRotationDifference = new FloatProperty("Min Rotation Difference", 2.0F, 0.0F, 4.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final ModeProperty godBridgeMinRotationTiming = new ModeProperty("Min Rotation Timing", 0,
             new String[]{"OnStart", "OnSlowDown", "Always"},
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final BooleanProperty godBridgeWaitForRotations = new BooleanProperty("GodBridge Wait For Rotations", false,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final BooleanProperty godBridgeOptimizedPitch = new BooleanProperty("GodBridge Optimized Pitch", false,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgePitch = new FloatProperty("GodBridge Pitch", 73.5F, 0.0F, 90.0F,
-            () -> this.mode.getValue() == 2 && godBridgeRotations.getValue() != 0 && !godBridgeOptimizedPitch.getValue());
-    public final BooleanProperty godBridgeAllowClutching = new BooleanProperty("GodBridge Allow Clutching", true,
-            () -> this.mode.getValue() == 2);
-    public final IntProperty godBridgeHorizontalClutch = new IntProperty("GodBridge Horizontal Clutch", 3, 1, 5,
-            () -> this.mode.getValue() == 2 && godBridgeAllowClutching.getValue());
-    public final IntProperty godBridgeVerticalClutch = new IntProperty("GodBridge Vertical Clutch", 2, 1, 3,
-            () -> this.mode.getValue() == 2 && godBridgeAllowClutching.getValue());
-    public final FloatProperty godBridgeSpeedModifier = new FloatProperty("GodBridge Speed Modifier", 1.0F, 0.0F, 2.0F,
-            () -> this.mode.getValue() == 2);
-    public final BooleanProperty godBridgeTrackCps = new BooleanProperty("GodBridge Track CPS", false,
-            () -> this.mode.getValue() == 2);
-    public final BooleanProperty godBridgeExtraClicks = new BooleanProperty("GodBridge Extra Clicks", false, () -> this.mode.getValue() == 2);
-    public final BooleanProperty godBridgeDoubleClick = new BooleanProperty("GodBridge Double Click", false,
-            () -> this.mode.getValue() == 2 && godBridgeExtraClicks.getValue());
-    public final IntProperty godBridgeExtraClickMinCps = new IntProperty("GodBridge Extra Min CPS", 3, 0, 50,
-            () -> this.mode.getValue() == 2 && godBridgeExtraClicks.getValue());
-    public final IntProperty godBridgeExtraClickMaxCps = new IntProperty("GodBridge Extra Max CPS", 7, 0, 50,
-            () -> this.mode.getValue() == 2 && godBridgeExtraClicks.getValue());
-    public final ModeProperty godBridgePlacementAttempt = new ModeProperty("GodBridge Placement Attempt", 0,
-            new String[]{"Fail", "Independent"}, () -> this.mode.getValue() == 2 && godBridgeExtraClicks.getValue());
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final BooleanProperty godBridgeWaitForRotations = new BooleanProperty("Wait For Rotations", false,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final BooleanProperty godBridgeOptimizedPitch = new BooleanProperty("Optimized Pitch", false,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
+    public final FloatProperty godBridgePitch = new FloatProperty("Pitch", 73.5F, 0.0F, 90.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && !godBridgeOptimizedPitch.getValue());
+    public final BooleanProperty godBridgeAllowClutching = new BooleanProperty("Allow Clutching", true,
+            this::isGodBridgeMode);
+    public final IntProperty godBridgeHorizontalClutch = new IntProperty("Horizontal Clutch", 3, 1, 5,
+            () -> this.isGodBridgeMode() && godBridgeAllowClutching.getValue());
+    public final IntProperty godBridgeVerticalClutch = new IntProperty("Vertical Clutch", 2, 1, 3,
+            () -> this.isGodBridgeMode() && godBridgeAllowClutching.getValue());
+    public final FloatProperty godBridgeSpeedModifier = new FloatProperty("Speed Modifier", 1.0F, 0.0F, 2.0F,
+            this::isGodBridgeMode);
+    public final BooleanProperty godBridgeTrackCps = new BooleanProperty("Track CPS", false,
+            this::isGodBridgeMode);
+    public final BooleanProperty godBridgeExtraClicks = new BooleanProperty("Extra Clicks", false, this::isGodBridgeMode);
+    public final BooleanProperty godBridgeDoubleClick = new BooleanProperty("Double Click", false,
+            () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
+    public final IntProperty godBridgeExtraClickMinCps = new IntProperty("Extra Min CPS", 3, 0, 50,
+            () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
+    public final IntProperty godBridgeExtraClickMaxCps = new IntProperty("Extra Max CPS", 7, 0, 50,
+            () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
+    public final ModeProperty godBridgePlacementAttempt = new ModeProperty("Placement Attempt", 0,
+            new String[]{"Fail", "Independent"}, () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
     public final FloatProperty safeDistance = new FloatProperty("Clutch Safe Distance", 4.5F, 1.0F, 5.0F);
     public final BooleanProperty mark = new BooleanProperty("Mark", true);
     public final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
@@ -162,6 +164,11 @@ public class Scaffold extends Module {
     private int godBridgeExtraClickDelay = 0;
     private int godBridgeQueuedExtraClicks = 0;
     private final Deque<Long> godBridgeRightClicks = new ArrayDeque<>();
+    private boolean legitStartSneak;
+    private boolean legitPressingSneak;
+    private boolean legitSneakStarted;
+    private long legitStartSneakTime;
+    private boolean legitPlacedStartBlock;
     private int ups = 0;
     private int onGroundTicks = 0;
     private int offGroundTicks = 0;
@@ -197,6 +204,63 @@ public class Scaffold extends Module {
         super("Scaffold", false);
     }
 
+    private boolean isGodBridgeMode() {
+        return this.mode.getValue() == 2 || this.mode.getValue() == 3;
+    }
+
+    private boolean isLegitMode() {
+        return this.mode.getValue() == 3;
+    }
+
+    private Rotation limitLegitPitch(Rotation rotation) {
+        if (rotation == null || !this.isLegitMode()) {
+            return rotation;
+        }
+        return new Rotation(rotation.yaw, MathHelper.clamp_float(rotation.pitch, 75.0F, 77.0F));
+    }
+
+    private void updateLegitSneak() {
+        if (!this.isLegitMode() || mc.currentScreen != null) {
+            this.restoreLegitSneakKey();
+            return;
+        }
+
+        double[] offset = MoveUtil.predictMovement();
+        boolean atEdge = PlayerUtil.canMove(mc.thePlayer.motionX + offset[0], mc.thePlayer.motionZ + offset[1]);
+        boolean startingSneak = legitStartSneak && mc.thePlayer.onGround;
+        boolean shouldSneak = startingSneak || (mc.thePlayer.onGround && atEdge);
+        if (startingSneak) {
+            legitStartSneak = false;
+            legitSneakStarted = true;
+            legitStartSneakTime = System.currentTimeMillis();
+        }
+        if (shouldSneak) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+            legitPressingSneak = true;
+        } else {
+            this.restoreLegitSneakKey();
+        }
+    }
+
+    private void restoreLegitSneakKey() {
+        if (legitPressingSneak) {
+            KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(),
+                    Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode()));
+            legitPressingSneak = false;
+        }
+    }
+
+    private boolean shouldUpdateLegitAimTarget() {
+        return this.isLegitMode() && legitSneakStarted
+                && ((mc.thePlayer.motionY > 0.0D && this.hasLegitMovementInput())
+                || !legitPlacedStartBlock && System.currentTimeMillis() - legitStartSneakTime > 1000L);
+    }
+
+    private boolean hasLegitMovementInput() {
+        return mc.thePlayer.movementInput.moveForward != 0.0F
+                || mc.thePlayer.movementInput.moveStrafe != 0.0F;
+    }
+
     @Override
     public void onEnabled() {
         ups = 0;
@@ -219,6 +283,11 @@ public class Scaffold extends Module {
         godBridgeExtraClickDelay = randomGodBridgeClickDelay();
         godBridgeQueuedExtraClicks = 0;
         godBridgeRightClicks.clear();
+        legitStartSneak = this.isLegitMode();
+        legitPressingSneak = false;
+        legitSneakStarted = false;
+        legitStartSneakTime = 0L;
+        legitPlacedStartBlock = false;
         if (mc.thePlayer == null) {
             return;
         }
@@ -261,6 +330,11 @@ public class Scaffold extends Module {
         godBridgeExtraClickDelay = 0;
         godBridgeQueuedExtraClicks = 0;
         godBridgeRightClicks.clear();
+        this.restoreLegitSneakKey();
+        legitStartSneak = false;
+        legitSneakStarted = false;
+        legitStartSneakTime = 0L;
+        legitPlacedStartBlock = false;
         if (mc.thePlayer == null) {
             return;
         }
@@ -528,11 +602,16 @@ public class Scaffold extends Module {
     }
 
     private GodBridgePlaceRotation findGodBridgeTarget(BlockPos targetPos) {
+        return this.findGodBridgeTarget(targetPos, false);
+    }
+
+    private GodBridgePlaceRotation findGodBridgeTarget(BlockPos targetPos, boolean prioritizeHitDistance) {
         if (!BlockUtil.isReplaceable(targetPos)) {
             return null;
         }
 
         Rotation currentRotation = getGodBridgeClickRotation();
+        Vec3 eyePosition = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
         GodBridgePlaceRotation best = null;
         for (EnumFacing side : EnumFacing.values()) {
             BlockPos supportPos = targetPos.offset(side);
@@ -551,7 +630,9 @@ public class Scaffold extends Module {
                     && raycast.sideHit == data.facing()) {
                 rotation = currentRotation;
             } else {
-                rotation = fixedSensitivity(getClosestToBlockFace(data, currentRotation.yaw, currentRotation.pitch));
+                rotation = this.limitLegitPitch(fixedSensitivity(
+                        getClosestToBlockFace(data, currentRotation.yaw, currentRotation.pitch)
+                ));
                 raycast = RayCastUtil.rayTrace(
                         rotation.yaw, rotation.pitch, mc.playerController.getBlockReachDistance(), 1.0F
                 );
@@ -564,13 +645,32 @@ public class Scaffold extends Module {
             }
 
             GodBridgePlaceRotation candidate = new GodBridgePlaceRotation(data, rotation, raycast.hitVec);
-            if (best == null || getGodBridgeRotationDifference(
-                    candidate.rotation(), currentRotation.yaw, currentRotation.pitch
-            ) < getGodBridgeRotationDifference(best.rotation(), currentRotation.yaw, currentRotation.pitch)) {
+            if (best == null || this.isBetterGodBridgeTarget(
+                    candidate, best, currentRotation, eyePosition, prioritizeHitDistance
+            )) {
                 best = candidate;
             }
         }
         return best;
+    }
+
+    private boolean isBetterGodBridgeTarget(GodBridgePlaceRotation candidate, GodBridgePlaceRotation best,
+                                            Rotation currentRotation, Vec3 eyePosition, boolean prioritizeHitDistance) {
+        float candidateRotationDifference = getGodBridgeRotationDifference(
+                candidate.rotation(), currentRotation.yaw, currentRotation.pitch
+        );
+        float bestRotationDifference = getGodBridgeRotationDifference(
+                best.rotation(), currentRotation.yaw, currentRotation.pitch
+        );
+        if (!prioritizeHitDistance) {
+            return candidateRotationDifference < bestRotationDifference;
+        }
+
+        double candidateDistance = candidate.hitVec().squareDistanceTo(eyePosition);
+        double bestDistance = best.hitVec().squareDistanceTo(eyePosition);
+        return candidateDistance < bestDistance - 1.0E-4D
+                || Math.abs(candidateDistance - bestDistance) <= 1.0E-4D
+                && candidateRotationDifference < bestRotationDifference;
     }
 
     private GodBridgePlaceRotation searchGodBridgeTarget() {
@@ -622,6 +722,51 @@ public class Scaffold extends Module {
         }
         blockData = godBridgePlaceRotation != null ? godBridgePlaceRotation.blockData() : null;
         canPlace = true;
+    }
+
+    private void updateLegitAimTarget() {
+        if (mc.playerController == null) {
+            return;
+        }
+
+        BlockPos blockPosition = mc.thePlayer.posY == Math.round(mc.thePlayer.posY) + 0.5D
+                ? new BlockPos(mc.thePlayer)
+                : new BlockPos(mc.thePlayer).down();
+        int horizontal = godBridgeAllowClutching.getValue() ? godBridgeHorizontalClutch.getValue() : 1;
+        int vertical = godBridgeAllowClutching.getValue() ? godBridgeVerticalClutch.getValue() : 1;
+        List<BlockPos> positions = new ArrayList<>();
+        for (BlockPos pos : BlockPos.getAllInBox(
+                blockPosition.add(-horizontal, 0, -horizontal),
+                blockPosition.add(horizontal, -vertical, horizontal)
+        )) {
+            positions.add(pos);
+        }
+
+        GodBridgePlaceRotation best = null;
+        Vec3 playerPosition = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ);
+        positions.sort(Comparator.comparingDouble(pos -> new Vec3(
+                pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D
+        ).squareDistanceTo(playerPosition)));
+        for (BlockPos pos : positions) {
+            GodBridgePlaceRotation candidate = this.findGodBridgeTarget(pos, true);
+            if (candidate == null) {
+                continue;
+            }
+            if (best == null || this.isBetterGodBridgeTarget(
+                    candidate, best, getGodBridgeClickRotation(),
+                    new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ), true
+            )) {
+                best = candidate;
+            }
+        }
+
+        if (best != null) {
+            godBridgePlaceRotation = best;
+            blockData = best.blockData();
+            godBridgeTargetRotation = this.limitLegitPitch(fixedSensitivity(best.rotation()));
+            godBridgeLimitedRotation = godBridgeTargetRotation;
+            godBridgeResettingRotation = false;
+        }
     }
 
     private BlockPos getBlockPos() {
@@ -767,7 +912,7 @@ public class Scaffold extends Module {
     }
 
     private Rotation getBRot() {
-        if (mode.getValue() == 2) {
+        if (this.isGodBridgeMode()) {
             return godBridgeRotation();
         }
         Rotation rotation = blockData != null
@@ -819,12 +964,17 @@ public class Scaffold extends Module {
     }
 
     private Rotation godBridgeRotation() {
-        return godBridgeLimitedRotation;
+        return this.limitLegitPitch(godBridgeLimitedRotation);
     }
 
     private boolean applyGodBridgeRotation(UpdateEvent event) {
         if (godBridgeRotations.getValue() == 0) {
             rot = null;
+            if (this.isLegitMode()) {
+                event.setRotation(mc.thePlayer.rotationYaw,
+                        MathHelper.clamp_float(mc.thePlayer.rotationPitch, 75.0F, 77.0F), 3);
+                event.setPervRotation(mc.thePlayer.rotationYaw, 3);
+            }
             return true;
         }
 
@@ -889,7 +1039,7 @@ public class Scaffold extends Module {
         yawStep = applyGodBridgeSlowDown(yawStep, minYaw, godBridgeLastYawStep);
         pitchStep = applyGodBridgeSlowDown(pitchStep, minPitch, godBridgeLastPitchStep);
 
-        godBridgeLimitedRotation = fixedSensitivity(new Rotation(currentYaw + yawStep, currentPitch + pitchStep));
+        godBridgeLimitedRotation = fixedSensitivity(this.limitLegitPitch(new Rotation(currentYaw + yawStep, currentPitch + pitchStep)));
         godBridgeLastYawStep = MathHelper.wrapAngleTo180_float(godBridgeLimitedRotation.yaw - currentYaw);
         godBridgeLastPitchStep = godBridgeLimitedRotation.pitch - currentPitch;
     }
@@ -953,7 +1103,7 @@ public class Scaffold extends Module {
 
         godBridgeResettingRotation = true;
         float resetYaw = currentYaw + MathHelper.wrapAngleTo180_float(mc.thePlayer.rotationYaw - currentYaw);
-        godBridgeTargetRotation = fixedSensitivity(new Rotation(resetYaw, mc.thePlayer.rotationPitch));
+        godBridgeTargetRotation = fixedSensitivity(this.limitLegitPitch(new Rotation(resetYaw, mc.thePlayer.rotationPitch)));
         updateGodBridgeLimitedRotation();
     }
 
@@ -991,7 +1141,7 @@ public class Scaffold extends Module {
                     : null;
             if (placeRotation != null) {
                 float axisMovement = (float) Math.floor(placeRotation.yaw / 90.0F) * 90.0F;
-                godBridgeTargetRotation = fixedSensitivity(new Rotation(axisMovement + 45.0F, 75.0F));
+                godBridgeTargetRotation = fixedSensitivity(this.limitLegitPitch(new Rotation(axisMovement + 45.0F, 75.0F)));
                 godBridgeRotationTicks = godBridgeResetTicks.getValue();
                 updateGodBridgeLimitedRotation();
                 return;
@@ -1041,7 +1191,7 @@ public class Scaffold extends Module {
             rotation = new Rotation(movingYaw, 75.6F);
         }
 
-        godBridgeTargetRotation = fixedSensitivity(rotation);
+        godBridgeTargetRotation = fixedSensitivity(this.limitLegitPitch(rotation));
         godBridgeRotationTicks = godBridgeApplyServerSide.getValue() ? godBridgeResetTicks.getValue() : 1;
         updateGodBridgeLimitedRotation();
     }
@@ -1129,12 +1279,12 @@ public class Scaffold extends Module {
 
     private Rotation getGodBridgeClickRotation() {
         if (godBridgeLimitedRotation != null) {
-            return godBridgeLimitedRotation;
+            return this.limitLegitPitch(godBridgeLimitedRotation);
         }
         if (RotationState.isActived() && RotationState.getPriority() == 3.0F) {
-            return new Rotation(RotationState.getSmoothedYaw(), RotationState.getRotationPitch());
+            return this.limitLegitPitch(new Rotation(RotationState.getSmoothedYaw(), RotationState.getRotationPitch()));
         }
-        return new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
+        return this.limitLegitPitch(new Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch));
     }
 
     private void registerGodBridgeRightClick() {
@@ -1176,6 +1326,9 @@ public class Scaffold extends Module {
         }
 
         lastPlacePosition = clickPos.offset(side);
+        if (this.isLegitMode()) {
+            legitPlacedStartBlock = true;
+        }
         if (!placementAttempt && mc.thePlayer.onGround) {
             mc.thePlayer.motionX *= godBridgeSpeedModifier.getValue();
             mc.thePlayer.motionZ *= godBridgeSpeedModifier.getValue();
@@ -1185,7 +1338,7 @@ public class Scaffold extends Module {
         } else {
             mc.thePlayer.swingItem();
         }
-        if (!godBridgeJump.getValue()) {
+        if (mode.getValue() == 2 && !godBridgeJump.getValue()) {
             bridgePlaceCount++;
         }
         if (stack.stackSize <= 0 && blockSlot != null && !blockSlot.offhand()) {
@@ -1344,8 +1497,12 @@ public class Scaffold extends Module {
             return;
         }
         if (event.getType() == EventType.POST) {
-            if (mode.getValue() == 2) {
-                updateGodBridgeRotationTarget();
+            if (this.isGodBridgeMode()) {
+                if (this.shouldUpdateLegitAimTarget()) {
+                    this.updateLegitAimTarget();
+                } else {
+                    updateGodBridgeRotationTarget();
+                }
             }
             return;
         }
@@ -1361,7 +1518,11 @@ public class Scaffold extends Module {
             offGroundTicks++;
         }
 
-        boolean hasGodBridgeRotation = mode.getValue() != 2 || applyGodBridgeRotation(event);
+        if (this.shouldUpdateLegitAimTarget()) {
+            this.updateLegitAimTarget();
+        }
+
+        boolean hasGodBridgeRotation = !this.isGodBridgeMode() || applyGodBridgeRotation(event);
 
         this.blockSlot = null;
 
@@ -1392,7 +1553,7 @@ public class Scaffold extends Module {
             posY = mc.thePlayer.getPosition().getY() - 1;
         }
 
-        if (mode.getValue() == 2) {
+        if (this.isGodBridgeMode()) {
             updateGodBridgePlaceTarget();
         } else {
             BlockPos playerBlock = new BlockPos(
@@ -1454,7 +1615,7 @@ public class Scaffold extends Module {
             mc.thePlayer.inventory.currentItem = this.blockSlot.slot();
         }
 
-        if (mode.getValue() != 2) {
+        if (!this.isGodBridgeMode()) {
             rot = getBRot();
             if (rot == null) {
                 return;
@@ -1478,7 +1639,7 @@ public class Scaffold extends Module {
             return;
         }
 
-        if (mode.getValue() != 2) {
+        if (!this.isGodBridgeMode()) {
             if (abuseRotation.getValue()) {
                 rotationAbuse(30f, rot.yaw);
             }
@@ -1533,12 +1694,18 @@ public class Scaffold extends Module {
         if (!this.isEnabled() || mc.thePlayer == null) {
             return;
         }
-        if (mode.getValue() == 2) {
+        if (this.isGodBridgeMode()) {
             godBridgeRawForward = mc.thePlayer.movementInput.moveForward;
             godBridgeRawStrafe = mc.thePlayer.movementInput.moveStrafe;
         }
 
-        if (mode.getValue() == 2 && mc.thePlayer.onGround) {
+        if (this.isLegitMode()) {
+            this.updateLegitSneak();
+        } else {
+            this.restoreLegitSneakKey();
+        }
+
+        if (this.isGodBridgeMode() && mc.thePlayer.onGround) {
             if (godBridgeRotations.getValue() != 0
                     && godBridgeWaitForRotations.getValue()
                     && godBridgeTargetRotation != null) {
@@ -1557,38 +1724,40 @@ public class Scaffold extends Module {
                 }
             }
 
-            MovementInput predictionInput = new MovementInput();
-            predictionInput.moveForward = godBridgeModifiedForward;
-            predictionInput.moveStrafe = godBridgeModifiedStrafe;
-            SimulatedPlayer simulatedPlayer = SimulatedPlayer.fromClientPlayer(predictionInput, false, true);
-            simulatedPlayer.rotationYaw = RotationState.isActived() && RotationState.getPriority() == 3.0F
-                    ? RotationState.getSmoothedYaw()
-                    : mc.thePlayer.rotationYaw;
-            simulatedPlayer.tick();
+            if (!this.isLegitMode() || godBridgeJump.getValue()) {
+                MovementInput predictionInput = new MovementInput();
+                predictionInput.moveForward = godBridgeModifiedForward;
+                predictionInput.moveStrafe = godBridgeModifiedStrafe;
+                SimulatedPlayer simulatedPlayer = SimulatedPlayer.fromClientPlayer(predictionInput, false, true);
+                simulatedPlayer.rotationYaw = RotationState.isActived() && RotationState.getPriority() == 3.0F
+                        ? RotationState.getSmoothedYaw()
+                        : mc.thePlayer.rotationYaw;
+                simulatedPlayer.tick();
 
-            boolean shouldJump = godBridgeJump.getValue()
-                    ? !simulatedPlayer.onGround
-                    : bridgePlaceCount > godBridgeBlocksToJump;
-            if (shouldJump) {
-                mc.thePlayer.movementInput.jump = true;
-                bridgeJumping = true;
-                bridgePlaceCount = 0;
-                godBridgeBlocksToJump = randomGodBridgeJumpInterval();
+                boolean shouldJump = godBridgeJump.getValue()
+                        ? !simulatedPlayer.onGround
+                        : bridgePlaceCount > godBridgeBlocksToJump;
+                if (shouldJump) {
+                    mc.thePlayer.movementInput.jump = true;
+                    bridgeJumping = true;
+                    bridgePlaceCount = 0;
+                    godBridgeBlocksToJump = randomGodBridgeJumpInterval();
+                }
             }
         }
 
-        boolean hasMovementInput = mode.getValue() == 2
+        boolean hasMovementInput = this.isGodBridgeMode()
                 ? godBridgeRawForward != 0.0F || godBridgeRawStrafe != 0.0F
                 : MoveUtil.isForwardPressed();
         if (RotationState.isActived()
                 && RotationState.getPriority() == 3.0F
                 && hasMovementInput
-                && (mode.getValue() != 2
+                && (!this.isGodBridgeMode()
                 || godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue())) {
             MoveUtil.fixStrafe(RotationState.getSmoothedYaw());
         }
 
-        if (mode.getValue() == 2) {
+        if (this.isGodBridgeMode()) {
             godBridgeModifiedForward = mc.thePlayer.movementInput.moveForward;
             godBridgeModifiedStrafe = mc.thePlayer.movementInput.moveStrafe;
         }
@@ -1597,7 +1766,7 @@ public class Scaffold extends Module {
     @EventTarget
     public void onRender3D(Render3DEvent event) {
         if (this.isEnabled()
-                && mode.getValue() == 2
+                && this.isGodBridgeMode()
                 && godBridgeExtraClicks.getValue()
                 && mc.thePlayer != null
                 && mc.theWorld != null

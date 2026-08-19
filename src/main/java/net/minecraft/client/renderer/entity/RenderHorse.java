@@ -13,6 +13,12 @@ import java.util.Map;
 public class RenderHorse extends RenderLiving<EntityHorse> {
     private static final Map<String, ResourceLocation> field_110852_a = Maps.<String, ResourceLocation>newHashMap();
     private static final ResourceLocation whiteHorseTextures = ResourceLocation.of("textures/entity/horse/horse_white.png");
+    private static final ResourceLocation creamyHorseTextures = ResourceLocation.of("textures/entity/horse/horse_creamy.png");
+    private static final ResourceLocation chestnutHorseTextures = ResourceLocation.of("textures/entity/horse/horse_chestnut.png");
+    private static final ResourceLocation brownHorseTextures = ResourceLocation.of("textures/entity/horse/horse_brown.png");
+    private static final ResourceLocation blackHorseTextures = ResourceLocation.of("textures/entity/horse/horse_black.png");
+    private static final ResourceLocation grayHorseTextures = ResourceLocation.of("textures/entity/horse/horse_gray.png");
+    private static final ResourceLocation darkBrownHorseTextures = ResourceLocation.of("textures/entity/horse/horse_darkbrown.png");
     private static final ResourceLocation muleTextures = ResourceLocation.of("textures/entity/horse/mule.png");
     private static final ResourceLocation donkeyTextures = ResourceLocation.of("textures/entity/horse/donkey.png");
     private static final ResourceLocation zombieHorseTextures = ResourceLocation.of("textures/entity/horse/horse_zombie.png");
@@ -44,27 +50,29 @@ public class RenderHorse extends RenderLiving<EntityHorse> {
      * Returns the location of an entity's texture. Doesn't seem to be called unless you call Render.bindEntityTexture.
      */
     protected ResourceLocation getEntityTexture(EntityHorse entity) {
-        if (!entity.func_110239_cn()) {
-            switch (entity.getHorseType()) {
-                case 0:
-                default:
-                    return whiteHorseTextures;
+        return this.getBaseHorseTexture(entity);
+    }
 
-                case 1:
-                    return donkeyTextures;
-
-                case 2:
-                    return muleTextures;
-
-                case 3:
-                    return zombieHorseTextures;
-
-                case 4:
-                    return skeletonHorseTextures;
-            }
-        } else {
-            return this.func_110848_b(entity);
+    private ResourceLocation getBaseHorseTexture(EntityHorse horse) {
+        if (horse.getHorseType() != 0) {
+            return switch (horse.getHorseType()) {
+                case 1 -> donkeyTextures;
+                case 2 -> muleTextures;
+                case 3 -> zombieHorseTextures;
+                case 4 -> skeletonHorseTextures;
+                default -> whiteHorseTextures;
+            };
         }
+
+        return switch (horse.getHorseVariant() & 255) {
+            case 1 -> creamyHorseTextures;
+            case 2 -> chestnutHorseTextures;
+            case 3 -> brownHorseTextures;
+            case 4 -> blackHorseTextures;
+            case 5 -> grayHorseTextures;
+            case 6 -> darkBrownHorseTextures;
+            default -> whiteHorseTextures;
+        };
     }
 
     private ResourceLocation func_110848_b(EntityHorse horse) {
@@ -77,7 +85,12 @@ public class RenderHorse extends RenderLiving<EntityHorse> {
 
             if (resourcelocation == null) {
                 resourcelocation = ResourceLocation.of(s);
-                Minecraft.getMinecraft().getTextureManager().loadTexture(resourcelocation, new LayeredTexture(horse.getVariantTexturePaths()));
+                boolean loaded = Minecraft.getMinecraft().getTextureManager().loadTexture(
+                        resourcelocation, new LayeredTexture(horse.getVariantTexturePaths())
+                );
+                if (!loaded) {
+                    return null;
+                }
                 field_110852_a.put(s, resourcelocation);
             }
 
