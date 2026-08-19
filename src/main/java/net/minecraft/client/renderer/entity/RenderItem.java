@@ -1,6 +1,8 @@
 package net.minecraft.client.renderer.entity;
 
 import cn.unfair.util.via.ViaBackwardsItemModels;
+import cn.unfair.event.EventManager;
+import cn.unfair.events.GlintEvent;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -37,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public class RenderItem implements IResourceManagerReloadListener {
-    private static final ResourceLocation RES_ITEM_GLINT = ResourceLocation.of("textures/misc/enchanted_item_glint.png");
+    public static final ResourceLocation RES_ITEM_GLINT = ResourceLocation.of("textures/misc/enchanted_item_glint.png");
     private final ItemModelMesher itemModelMesher;
     private final TextureManager textureManager;
     /**
@@ -48,6 +50,14 @@ public class RenderItem implements IResourceManagerReloadListener {
     private ModelResourceLocation modelLocation = null;
     private boolean renderItemGui = false;
     private boolean renderModelHasEmissive = false;
+
+    public net.minecraft.client.renderer.texture.TextureManager getTextureManager() {
+        return this.textureManager;
+    }
+
+    public boolean isRenderItemGui() {
+        return this.renderItemGui;
+    }
     private boolean renderModelEmissive = false;
     private EntityLivingBase lastEntityToRenderFor;
 
@@ -186,7 +196,10 @@ public class RenderItem implements IResourceManagerReloadListener {
                     OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, f, f1);
                 }
 
-                if (stack.hasEffect() && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model))) {
+                GlintEvent glintEvent = new GlintEvent(stack, model, stack.hasEffect());
+                EventManager.call(glintEvent);
+                if (!glintEvent.isCancelled() && glintEvent.isEnchanted()
+                        && (!Config.isCustomItems() || !CustomItems.renderCustomEffect(this, stack, model))) {
                     this.renderEffect(model);
                 }
             }
