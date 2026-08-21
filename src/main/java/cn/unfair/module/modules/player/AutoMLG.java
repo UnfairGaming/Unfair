@@ -10,6 +10,7 @@ import cn.unfair.util.BlockUtil;
 import cn.unfair.util.PacketUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
+import cn.unfair.util.player.SimulatedPlayer;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -288,20 +289,42 @@ public class AutoMLG extends Module {
     }
 
     private BlockPos findCurrentLandingBlock() {
+        SimulatedPlayer simulated = SimulatedPlayer.fromClientPlayer(mc.thePlayer.movementInput, false, true);
+        simulated.rotationYaw = mc.thePlayer.rotationYaw;
+        BlockPos lastCandidate = null;
+
+        for (int tick = 0; tick < 40; tick++) {
+            simulated.tick();
+            Vec3 position = simulated.getPos();
+            int x = MathHelper.floor_double(position.xCoord);
+            int z = MathHelper.floor_double(position.zCoord);
+            int feetY = MathHelper.floor_double(position.yCoord - 0.01D);
+            for (int y = feetY; y >= Math.max(0, feetY - 8); y--) {
+                BlockPos pos = new BlockPos(x, y, z);
+                Block block = mc.theWorld.getBlockState(pos).getBlock();
+                if (block != Blocks.air && BlockUtil.isSolid(block) && BlockUtil.isReplaceable(pos.up())) {
+                    lastCandidate = pos;
+                    break;
+                }
+            }
+            if (simulated.onGround) {
+                return lastCandidate;
+            }
+        }
+        return lastCandidate != null ? lastCandidate : findVerticalLandingBlock();
+    }
+
+    private BlockPos findVerticalLandingBlock() {
         int x = MathHelper.floor_double(mc.thePlayer.posX);
         int z = MathHelper.floor_double(mc.thePlayer.posZ);
         int startY = MathHelper.floor_double(mc.thePlayer.posY + mc.thePlayer.motionY);
-
         for (int y = startY; y >= Math.max(0, startY - 8); y--) {
             BlockPos pos = new BlockPos(x, y, z);
             Block block = mc.theWorld.getBlockState(pos).getBlock();
-            if (block != Blocks.air
-                    && BlockUtil.isSolid(block)
-                    && BlockUtil.isReplaceable(pos.up())) {
+            if (block != Blocks.air && BlockUtil.isSolid(block) && BlockUtil.isReplaceable(pos.up())) {
                 return pos;
             }
         }
-
         return null;
     }
 

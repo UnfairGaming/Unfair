@@ -621,9 +621,8 @@ public class Scaffold extends Module {
 
             BlockData data = new BlockData(supportPos, side.getOpposite());
             Rotation rotation;
-            MovingObjectPosition raycast = RayCastUtil.rayTrace(
-                    currentRotation.yaw, currentRotation.pitch, mc.playerController.getBlockReachDistance(), 1.0F
-            );
+            MovingObjectPosition raycast = strictBlockRayTrace(currentRotation.yaw, currentRotation.pitch,
+                    mc.playerController.getBlockReachDistance(), data.blockPos(), data.facing());
             if (raycast != null
                     && raycast.typeOfHit == MovingObjectType.BLOCK
                     && raycast.getBlockPos().equals(data.blockPos())
@@ -633,9 +632,8 @@ public class Scaffold extends Module {
                 rotation = this.limitLegitPitch(fixedSensitivity(
                         getClosestToBlockFace(data, currentRotation.yaw, currentRotation.pitch)
                 ));
-                raycast = RayCastUtil.rayTrace(
-                        rotation.yaw, rotation.pitch, mc.playerController.getBlockReachDistance(), 1.0F
-                );
+                raycast = strictBlockRayTrace(rotation.yaw, rotation.pitch,
+                        mc.playerController.getBlockReachDistance(), data.blockPos(), data.facing());
                 if (raycast == null
                         || raycast.typeOfHit != MovingObjectType.BLOCK
                         || !raycast.getBlockPos().equals(data.blockPos())
@@ -1428,11 +1426,28 @@ public class Scaffold extends Module {
         if (player == null || expectedFace == null) {
             return false;
         }
-        MovingObjectPosition result = RayCastUtil.rayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), 1.0F);
-        if (result == null || result.typeOfHit != MovingObjectType.BLOCK) {
-            return false;
+        return strictBlockRayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), targetPos, expectedFace) != null;
+    }
+
+    private static MovingObjectPosition strictBlockRayTrace(float yaw, float pitch, double distance,
+                                                             BlockPos targetPos, EnumFacing expectedFace) {
+        if (mc.thePlayer == null || mc.theWorld == null || targetPos == null || expectedFace == null) {
+            return null;
         }
-        return result.getBlockPos().equals(targetPos) && (result.sideHit == expectedFace);
+        Vec3 eye = mc.thePlayer.getPositionEyes(1.0F);
+        Vec3 look = mc.thePlayer.getVectorForRotation(pitch, yaw);
+        Vec3 end = eye.addVector(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance);
+        MovingObjectPosition result = mc.theWorld.rayTraceBlocks(eye, end, false, false, false);
+        if (result == null || result.typeOfHit != MovingObjectType.BLOCK
+                || !targetPos.equals(result.getBlockPos()) || result.sideHit != expectedFace) {
+            return null;
+        }
+        Vec3 hit = result.hitVec;
+        double epsilon = 1.0E-5D;
+        return hit.xCoord >= targetPos.getX() - epsilon && hit.xCoord <= targetPos.getX() + 1.0D + epsilon
+                && hit.yCoord >= targetPos.getY() - epsilon && hit.yCoord <= targetPos.getY() + 1.0D + epsilon
+                && hit.zCoord >= targetPos.getZ() - epsilon && hit.zCoord <= targetPos.getZ() + 1.0D + epsilon
+                ? result : null;
     }
 
     private void place() {
@@ -1448,9 +1463,9 @@ public class Scaffold extends Module {
         if (!canPlace) {
             return;
         }
-        MovingObjectPosition mop = RayCastUtil.rayTrace(rot.yaw, rot.pitch, mc.playerController.getBlockReachDistance(), 1.0F);
-        if (mop == null || mop.typeOfHit != MovingObjectType.BLOCK
-                || !mop.getBlockPos().equals(blockData.blockPos()) || mop.sideHit != blockData.facing()) {
+        MovingObjectPosition mop = strictBlockRayTrace(rot.yaw, rot.pitch,
+                mc.playerController.getBlockReachDistance(), blockData.blockPos(), blockData.facing());
+        if (mop == null) {
             return;
         }
         Vec3 hitVec = mop.hitVec;
