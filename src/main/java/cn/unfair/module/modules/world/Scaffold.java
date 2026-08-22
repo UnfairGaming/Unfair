@@ -11,9 +11,7 @@ import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.player.FallingPlayer;
 import cn.unfair.util.player.SimulatedPlayer;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.BlockWorkbench;
+import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -342,12 +340,10 @@ public class Scaffold extends Module {
     }
 
     private boolean isValid(Item item) {
-        if (!(item instanceof ItemBlock)) return false;
-        Block block = ((ItemBlock) item).getBlock();
-        return !invalidBlocks.contains(block)
-                && BlockUtil.isSolid(block)
-                && !BlockUtil.isInteractable(block)
-                && block.isFullCube();
+        return item instanceof ItemBlock
+                && !invalidBlocks.contains(((ItemBlock) item).getBlock())
+                && BlockUtil.isSolid(((ItemBlock) item).getBlock())
+                && !BlockUtil.isInteractable(((ItemBlock) item).getBlock());
     }
 
     private boolean isFullBlock(ItemStack stack) {
@@ -845,21 +841,16 @@ public class Scaffold extends Module {
 
     private boolean isPosSolid(BlockPos pos) {
         Block block = mc.theWorld.getBlockState(pos).getBlock();
-        if (block instanceof net.minecraft.block.BlockTrapDoor
-                || block instanceof net.minecraft.block.BlockDoor
-                || block instanceof net.minecraft.block.BlockFenceGate) {
+        if (block instanceof BlockTrapDoor || block instanceof BlockDoor || block instanceof BlockFenceGate) {
             return false;
         }
         return !BlockUtil.isReplaceable(pos)
                 && BlockUtil.isSolid(block)
-                && !BlockUtil.isInteractable(pos)
-                && block.isFullCube();
+                && !BlockUtil.isInteractable(pos);
     }
 
     private boolean canGodBridgeClick(BlockPos pos) {
-        if (!mc.theWorld.getWorldBorder().contains(pos)) {
-            return false;
-        }
+        if (!mc.theWorld.getWorldBorder().contains(pos)) return false;
         IBlockState state = mc.theWorld.getBlockState(pos);
         Block block = state.getBlock();
         if (!block.canCollideCheck(state, false)
@@ -868,7 +859,7 @@ public class Scaffold extends Module {
                 || block.getCollisionBoundingBox(mc.theWorld, pos, state) == null
                 || block instanceof BlockContainer
                 || block instanceof BlockWorkbench
-                || !block.isFullCube()) {
+                || !BlockUtil.isSolid(block)) {
             return false;
         }
         for (Entity entity : mc.theWorld.loadedEntityList) {
