@@ -1,5 +1,6 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
@@ -31,7 +32,6 @@ public class Scoreboard extends Module {
     private static final int TEXT_COLOR = 0xE8E9EDF5;
 
     public final PercentProperty background = new PercentProperty("Background", 55);
-    public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
 
     private final FontRenderer fontRenderer = Fonts.interMedium.get(FONT_SIZE);
     private float cachedWidth = MIN_WIDTH;
@@ -123,10 +123,13 @@ public class Scoreboard extends Module {
     }
 
     private void drawBackground(float x, float y, int color) {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Float radius = hud.roundRadius.getValue();
+
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        RenderUtil.drawRoundedRectangle(x, y, x + this.cachedWidth, y + this.cachedHeight, 2.5F, color);
+        RenderUtil.drawRoundedRectangle(x, y, x + this.cachedWidth, y + this.cachedHeight, radius, color);
     }
 
     private int getBackgroundColor() {
@@ -135,7 +138,9 @@ public class Scoreboard extends Module {
     }
 
     private float getLineHeight() {
-        return Math.max(5.0F, this.getFontHeight() + (this.shadow.getValue() ? 0.5F : 0.0F) - 2.0F);
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Boolean shouldShadow = hud.shadow.getValue();
+        return Math.max(5.0F, this.getFontHeight() + (shouldShadow ? 0.5F : 0.0F) - 2.0F);
     }
 
     private float getFontHeight() {
@@ -147,7 +152,9 @@ public class Scoreboard extends Module {
     }
 
     private void drawString(String text, float x, float y, int color) {
-        if (this.shadow.getValue()) {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Boolean shouldShadow = hud.shadow.getValue();
+        if (shouldShadow) {
             this.fontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
             this.fontRenderer.drawString(text, x, y, color);

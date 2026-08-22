@@ -1,5 +1,6 @@
 package cn.unfair.module.modules.render;
 
+import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.RenderUtil;
@@ -108,12 +109,14 @@ public class PotionEffects extends Module {
         float top = y - 3.0F;
         float right = x + size[0] + 3.0F;
         float bottom = y + size[1];
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Float radius = hud.roundRadius.getValue();
         if (mask) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, color);
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, color);
             return;
         }
         if (this.background.getValue() > 0) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, new Color(0, 0, 0, this.background.getValue()).getRGB());
+            RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, new Color(0, 0, 0, this.background.getValue()).getRGB());
         }
         float rowY = y;
         for (PotionEffect effect : effects) {
@@ -131,10 +134,10 @@ public class PotionEffects extends Module {
         float textX = x + 20.0F;
         if (this.showName.getValue()) {
             float textY = y + this.getTextBlockOffset();
-            this.drawString(getEffectName(effect), textX, textY, this.nameColor.getValue(), true);
-            this.drawString(getDurationText(effect), textX, textY + this.getFontHeight() + 1.0F, this.durationColor.getValue(), true);
+            this.drawString(getEffectName(effect), textX, textY, this.nameColor.getValue());
+            this.drawString(getDurationText(effect), textX, textY + this.getFontHeight() + 1.0F, this.durationColor.getValue());
         } else {
-            this.drawString(getDurationText(effect), textX, y + (this.getRowHeight() - this.getFontHeight()) / 2.0F, this.durationColor.getValue(), true);
+            this.drawString(getDurationText(effect), textX, y + (this.getRowHeight() - this.getFontHeight()) / 2.0F, this.durationColor.getValue());
         }
     }
 
@@ -172,15 +175,17 @@ public class PotionEffects extends Module {
         return fontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT : fontRenderer.getHeight();
     }
 
-    private void drawString(String text, float x, float y, int color, boolean shadow) {
+    private void drawString(String text, float x, float y, int color) {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Boolean shouldShadow = hud.shadow.getValue();
         if (this.useMinecraftFont()) {
-            mc.fontRendererObj.drawString(text, x, y, color, shadow);
+            mc.fontRendererObj.drawString(text, x, y, color, shouldShadow);
             return;
         }
         FontRenderer fontRenderer = this.getCustomFont();
         if (fontRenderer == null) {
-            mc.fontRendererObj.drawString(text, x, y, color, shadow);
-        } else if (shadow) {
+            mc.fontRendererObj.drawString(text, x, y, color, shouldShadow);
+        } else if (shouldShadow) {
             fontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
             fontRenderer.drawString(text, x, y, color);

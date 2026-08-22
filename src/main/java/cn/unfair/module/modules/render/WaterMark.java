@@ -28,7 +28,6 @@ public class WaterMark extends Module {
     public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
     public final PercentProperty background = new PercentProperty("Background", 0);
-    public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
     public final BooleanProperty showVersion = new BooleanProperty("Version", true);
     public final BooleanProperty showFps = new BooleanProperty("Fps", false);
     public final BooleanProperty showPing = new BooleanProperty("Ping", false);
@@ -88,18 +87,20 @@ public class WaterMark extends Module {
 
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        this.drawString("Unfair", x + paddingX, y + paddingY, accent, this.shadow.getValue());
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Boolean shouldShadow = hud.shadow.getValue();
+        this.drawString("Unfair", x + paddingX, y + paddingY, accent, shouldShadow);
 
         float cursor = x + paddingX + this.getStringWidth("Unfair");
         if (this.showVersion.getValue()) {
-            this.drawString(" " + Unfair.version, cursor, y + paddingY, VERSION_COLOR, this.shadow.getValue());
+            this.drawString(" " + Unfair.version, cursor, y + paddingY, VERSION_COLOR, shouldShadow);
             cursor += this.getStringWidth(" " + Unfair.version);
         }
 
         for (String segment : this.cachedSegments) {
             this.drawSeparator(cursor + 3.0F * scaleValue, y + paddingY, accent);
             cursor += separatorGap;
-            this.drawString(segment, cursor, y + paddingY, INFO_COLOR, this.shadow.getValue());
+            this.drawString(segment, cursor, y + paddingY, INFO_COLOR, shouldShadow);
             cursor += this.getStringWidth(segment);
         }
         GlStateManager.disableBlend();
@@ -116,17 +117,23 @@ public class WaterMark extends Module {
     }
 
     private void drawBackground(float left, float top, float right, float bottom, int color) {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Float radius = hud.roundRadius.getValue();
+
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, color);
+        RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, color);
     }
 
     private void drawBackgroundMask(float left, float top, float right, float bottom, int color) {
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Float radius = hud.roundRadius.getValue();
+
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        RenderUtil.drawRoundedRectangle(left, top, right, bottom, 2.5F, color);
+        RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, color);
     }
 
     public float[] getWidgetSize() {
@@ -202,10 +209,6 @@ public class WaterMark extends Module {
         return this.font.getValue() == 0;
     }
 
-    private FontRenderer getCustomFont() {
-        return this.getCustomFont(this.scale.getValue());
-    }
-
     private FontRenderer getCustomFont(float scaleValue) {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
@@ -235,6 +238,8 @@ public class WaterMark extends Module {
 
     private void drawString(String text, float x, float y, int color, boolean shadow) {
         float scaleValue = this.scale.getValue();
+        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
+        Boolean shouldShadow = hud.shadow.getValue();
         if (this.useMinecraftFont()) {
             GlStateManager.pushMatrix();
             GlStateManager.translate(x, y, 0.0F);
@@ -250,7 +255,7 @@ public class WaterMark extends Module {
             GlStateManager.scale(scaleValue, scaleValue, 1.0F);
             mc.fontRendererObj.drawString(text, 0.0F, 0.0F, color, shadow);
             GlStateManager.popMatrix();
-        } else if (shadow) {
+        } else if (shouldShadow) {
             fontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
             fontRenderer.drawString(text, x, y, color);
