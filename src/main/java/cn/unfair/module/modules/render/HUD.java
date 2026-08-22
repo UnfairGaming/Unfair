@@ -163,7 +163,7 @@ public class HUD extends Module {
             String character = String.valueOf(text.charAt(i));
             double phaseOffset = this.getColorApplicationOffset(
                     normalOffset,
-                    characterX,  // 此处不再乘以scale，因为整体缩放会自动处理
+                    characterX,
                     y
             );
             int characterColor = getColorAtOffset(time, phaseOffset).getRGB();
@@ -201,7 +201,7 @@ public class HUD extends Module {
         int width = this.getTextWidth(string);
         if (this.suffixes.getValue()) {
             for (String str : arr) {
-                width += 3 + this.getTextWidth(str);
+                width += 3 * this.scale.getValue() + this.getTextWidth(str);   // 3 * scale
             }
         }
         return width;
@@ -217,46 +217,49 @@ public class HUD extends Module {
         if (fontIndex < 0 || fontIndex >= fonts.length) {
             return null;
         }
-        return fonts[fontIndex].get(HUD_FONT_SIZE);
+        return fonts[fontIndex].get(HUD_FONT_SIZE * this.scale.getValue());
     }
 
-    // 文字宽度始终返回未缩放值（整体缩放会统一处理）
     private int getTextWidth(String text) {
+        float scale = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return mc.fontRendererObj.getStringWidth(text);
+            return (int) (mc.fontRendererObj.getStringWidth(text) * scale);
         }
         FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
+        return fontRenderer == null ? (int) (mc.fontRendererObj.getStringWidth(text) * scale) : fontRenderer.getStringWidth(text);
     }
 
-    // 精确宽度（未缩放）
     private float getExactTextWidth(String text) {
+        float scale = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return (float) mc.fontRendererObj.getStringWidth(text);
+            return mc.fontRendererObj.getStringWidth(text) * scale;
         }
         FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null
-                ? (float) mc.fontRendererObj.getStringWidth(text)
-                : fontRenderer.getExactStringWidth(text);
+        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) * scale : fontRenderer.getExactStringWidth(text);
     }
 
-    // 文字高度（未缩放）
     private float getTextHeight() {
+        float scale = this.scale.getValue();
         if (this.useMinecraftFont()) {
-            return (float) mc.fontRendererObj.FONT_HEIGHT - 1.0F;
+            return (mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scale;
         }
         FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? (float) mc.fontRendererObj.FONT_HEIGHT - 1.0F : (float) fontRenderer.getHeight();
+        return fontRenderer == null ? (mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scale : fontRenderer.getHeight();
     }
 
     private void drawHudString(String text, float x, float y, int color, boolean shadow, boolean alignTop) {
-        float renderY = y + (!shadow && !alignTop ? 1.0F : 0.0F);
+        float scale = this.scale.getValue();
+        float renderY = y + (!shadow && !alignTop ? scale : 0.0F);
         if (this.useMinecraftFont()) {
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(x, y, 0.0F);
+            GlStateManager.scale(scale, scale, 1.0F);
             if (shadow) {
-                mc.fontRendererObj.drawStringWithShadow(text, x, y, color);
+                mc.fontRendererObj.drawStringWithShadow(text, 0.0F, 0.0F, color);
             } else {
-                mc.fontRendererObj.drawString(text, x, renderY, color, false);
+                mc.fontRendererObj.drawString(text, 0.0F, renderY / scale, color, false);
             }
+            GlStateManager.popMatrix();
             return;
         }
 
@@ -385,15 +388,16 @@ public class HUD extends Module {
         return this.shouldRenderWidget() && this.background.getValue() > 0 && !this.getRenderList().isEmpty();
     }
 
-    // 条目高度：未缩放（整体缩放统一放大）
     public float getEntryHeight() {
-        return this.getTextHeight() + (this.shadow.getValue() ? 1.0F : 0.0F) + 2 * this.bgHeightPadding.getValue();
+        float scale = this.scale.getValue();
+        return this.getTextHeight() + (this.shadow.getValue() ? scale : 0.0F) + 2 * this.bgHeightPadding.getValue() * scale;
     }
 
     public float[] getWidgetSize() {
         List<Module> renderList = this.getRenderList();
+        float scale = this.scale.getValue();
         if (renderList.isEmpty()) {
-            return new float[]{80.0F * this.scale.getValue(), 20.0F * this.scale.getValue()};
+            return new float[]{80.0F * scale, 20.0F * scale};
         }
 
         float maxWidth = 0.0F;
@@ -402,9 +406,9 @@ public class HUD extends Module {
             String[] moduleSuffix = this.getModuleSuffix(module);
             maxWidth = Math.max(maxWidth, (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1)));
         }
-        float barExtra = this.showBar.getValue() && this.barPos.getValue() != 2 ? 3.0F : 0.0F;
-        float width = (maxWidth + 2.0F + barExtra) * this.scale.getValue();
-        float height = (renderList.size() * this.getEntryHeight() + 2.0F) * this.scale.getValue();
+        float barExtra = this.showBar.getValue() && this.barPos.getValue() != 2 ? 3.0F * scale : 0.0F;
+        float width = (maxWidth + 2.0F * scale + barExtra);
+        float height = (renderList.size() * this.getEntryHeight() + 2.0F * scale);
         return new float[]{width, height};
     }
 
@@ -434,23 +438,20 @@ public class HUD extends Module {
                 long movementPacketSize = Unfair.blinkManager.countMovement();
                 if (movementPacketSize > 0L) {
                     long colorOffset = this.getRenderList().size();
-                    GlStateManager.pushMatrix();
-                    GlStateManager.scale(this.scale.getValue(), this.scale.getValue(), 0.0F);
-                    GlStateManager.enableBlend();
-                    GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                    ScaledResolution sr = new ScaledResolution(mc);
                     String movementText = String.valueOf(movementPacketSize);
-                    // 独立绘制，坐标需适应缩放
+                    float textWidth = this.getExactTextWidth(movementText);
+                    float centerX = sr.getScaledWidth() / 2.0F;
+                    float centerY = sr.getScaledHeight() / 5.0F * 3.0F;
+
                     this.drawHudString(
                             movementText,
-                            (float) new ScaledResolution(mc).getScaledWidth() / 2.0F / this.scale.getValue()
-                                    - (float) this.getTextWidth(movementText) / 2.0F,
-                            (float) new ScaledResolution(mc).getScaledHeight() / 5.0F * 3.0F / this.scale.getValue(),
+                            centerX - textWidth / 2.0F,
+                            centerY,
                             getColor(System.currentTimeMillis(), colorOffset).getRGB() & 16777215 | -1090519040,
                             this.shadow.getValue(),
                             true
                     );
-                    GlStateManager.disableBlend();
-                    GlStateManager.popMatrix();
                 }
             }
         }
@@ -466,10 +467,6 @@ public class HUD extends Module {
         float currentBaseX = x;
         long time = System.currentTimeMillis();
         long offset = 0L;
-
-        // 整体缩放：所有后续绘制坐标和尺寸均以未缩放值传入，由矩阵统一放大
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(this.scale.getValue(), this.scale.getValue(), 0.0F);
 
         for (Module module : renderList) {
             String moduleName = this.getModuleName(module);
@@ -489,7 +486,7 @@ public class HUD extends Module {
             float rowOffset = this.getRenderRow(module, offset, partialTicks) * this.getEntryHeight();
             float currentX = currentBaseX + xSlideAmount;
             float currentY = y + rowOffset * (alignTop ? 1.0F : -1.0F);
-            // 文字绘制坐标：未缩放，整体缩放会放大
+
             float textX = currentX - (alignLeft ? 0.0F : totalWidth);
             int color = getColorAtOffset(
                     time,
@@ -537,7 +534,7 @@ public class HUD extends Module {
                             offset
                     );
                     if (this.suffixes.getValue() && moduleSuffix.length > 0 && animProgress > 0.5F) {
-                        float width = (float) this.getTextWidth(moduleName) + 3.0F;
+                        float width = (float) this.getTextWidth(moduleName) + 3.0F * this.scale.getValue();
                         int suffixAlpha = (int) (((animProgress - 0.5F) / 0.5F) * 255.0F);
                         suffixAlpha = Math.min(suffixAlpha, 255);
                         int suffixColor = ChatColors.GRAY.toAwtColor() & 0x00FFFFFF | (suffixAlpha << 24);
@@ -550,7 +547,7 @@ public class HUD extends Module {
                                     this.shadow.getValue(),
                                     alignTop
                             );
-                            width += (float) this.getTextWidth(string) + (this.shadow.getValue() ? 3.0F : 2.0F);
+                            width += (float) this.getTextWidth(string) + (this.shadow.getValue() ? 3.0F * this.scale.getValue() : 2.0F * this.scale.getValue());
                         }
                     }
                     GlStateManager.disableBlend();
@@ -560,12 +557,11 @@ public class HUD extends Module {
 
             offset++;
         }
-
-        GlStateManager.popMatrix();
     }
 
     private void drawHudBar(float currentX, float currentY, float totalWidth, float height,
                             boolean alignLeft, boolean alignTop, long offset, int color, float animProgress) {
+        float scale = this.scale.getValue();
         int barAlpha = (int) (animProgress * 255.0F);
         barAlpha = Math.min(barAlpha, 255);
         int barColor = (color & 0x00FFFFFF) | (barAlpha << 24);
@@ -574,42 +570,43 @@ public class HUD extends Module {
         float barY = 0, barY2 = 0;
         boolean shouldDrawBar = true;
 
-        // 所有坐标使用未缩放值，整体缩放会统一放大
+        float heightPadding = this.bgHeightPadding.getValue() * scale;
+
         if (barPos.getValue() == 0) {
             if (alignLeft) {
-                barX = currentX - 2.0F;
-                barX2 = currentX - 1.0F;
+                barX = currentX - 2.0F * scale;
+                barX2 = currentX - scale;
             } else {
-                barX = currentX - totalWidth - 2.0F;
-                barX2 = currentX - totalWidth - 1.0F;
+                barX = currentX - totalWidth - 2.0F * scale;
+                barX2 = currentX - totalWidth - scale;
             }
-            barY = currentY - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F);
-            barY2 = currentY + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F));
+            barY = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : scale);
+            barY2 = currentY + height + (alignTop ? scale : (offset == 0L ? scale : 0.0F));
         } else if (barPos.getValue() == 1) {
             if (alignLeft) {
-                barX = currentX + totalWidth + 1.0F;
-                barX2 = currentX + totalWidth + 2.0F;
+                barX = currentX + totalWidth + scale;
+                barX2 = currentX + totalWidth + 2.0F * scale;
             } else {
-                barX = currentX + 1.0F;
-                barX2 = currentX + 2.0F;
+                barX = currentX + scale;
+                barX2 = currentX + 2.0F * scale;
             }
-            barY = currentY - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : 1.0F);
-            barY2 = currentY + height + (alignTop ? 1.0F : (offset == 0L ? 1.0F : 0.0F));
+            barY = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : scale);
+            barY2 = currentY + height + (alignTop ? scale : (offset == 0L ? scale : 0.0F));
         } else {
             if (offset == 0L) {
                 if (alignLeft) {
-                    barX = currentX - 1.0F;
-                    barX2 = currentX + totalWidth + 1.0F;
+                    barX = currentX - scale;
+                    barX2 = currentX + totalWidth + scale;
                 } else {
-                    barX = currentX - totalWidth - 1.0F;
-                    barX2 = currentX + 1.0F;
+                    barX = currentX - totalWidth - scale;
+                    barX2 = currentX + scale;
                 }
                 if (alignTop) {
-                    barY = currentY - 2.0F;
-                    barY2 = currentY - 1.0F;
+                    barY = currentY - 2.0F * scale;
+                    barY2 = currentY - scale;
                 } else {
-                    barY = currentY + height + 1.0F;
-                    barY2 = currentY + height + 2.0F;
+                    barY = currentY + height + scale;
+                    barY2 = currentY + height + 2.0F * scale;
                 }
             } else {
                 shouldDrawBar = false;
@@ -617,6 +614,8 @@ public class HUD extends Module {
         }
 
         if (shouldDrawBar) {
+            barY -= heightPadding;
+            barY2 += heightPadding;
             RenderUtil.drawRect(barX, barY, barX2, barY2, barColor);
         }
     }
@@ -640,19 +639,18 @@ public class HUD extends Module {
         return animation.getRenderIndex(partialTicks);
     }
 
-    // 背景边界构建：使用未缩放坐标
     private HudEntry buildHudEntry(List<Module> renderList, Module module, float currentX, float currentY, float totalWidth,
                                    float height, boolean alignLeft, boolean alignTop, long offset) {
-        float left = currentX - 1.0F - (alignLeft ? 0.0F : totalWidth);
-        float right = currentX + 1.0F + (alignLeft ? totalWidth : 0.0F);
-        float top = currentY - (alignTop ? (offset == 0L ? 1.0F : 0.0F) : (this.shadow.getValue() ? 1.0F : 0.0F));
-        float bottom = currentY + height + (alignTop ? (this.shadow.getValue() ? 1.0F : 0.0F) : (offset == 0L ? 1.0F : 0.0F));
+        float scale = this.scale.getValue();
+        float left = currentX - scale - (alignLeft ? 0.0F : totalWidth);
+        float right = currentX + scale + (alignLeft ? totalWidth : 0.0F);
+        float top = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : (this.shadow.getValue() ? scale : 0.0F));
+        float bottom = currentY + height + (alignTop ? (this.shadow.getValue() ? scale : 0.0F) : (offset == 0L ? scale : 0.0F));
 
-        // 应用背景 padding（未缩放）
-        left -= this.bgWidthPadding.getValue();
-        right += this.bgWidthPadding.getValue();
-        top -= this.bgHeightPadding.getValue();
-        bottom += this.bgHeightPadding.getValue();
+        left -= this.bgWidthPadding.getValue() * scale;
+        right += this.bgWidthPadding.getValue() * scale;
+        top -= this.bgHeightPadding.getValue() * scale;
+        bottom += this.bgHeightPadding.getValue() * scale;
 
         int moduleIndex = renderList.indexOf(module);
         float bgWidth = right - left;
@@ -664,7 +662,7 @@ public class HUD extends Module {
         boolean nextWidthSame = false;
         if (moduleIndex < renderList.size() - 1) {
             Module nextModule = renderList.get(moduleIndex + 1);
-            float nextWidth = (float) (this.calculateStringWidth(this.getModuleName(nextModule), this.getModuleSuffix(nextModule)) - (this.shadow.getValue() ? 0 : 1)) + 2.0F;
+            float nextWidth = (float) (this.calculateStringWidth(this.getModuleName(nextModule), this.getModuleSuffix(nextModule)) - (this.shadow.getValue() ? 0 : 1)) + 2.0F * scale;
             nextWidthSame = Math.abs(nextWidth - bgWidth) < 1.0F;
         }
 
@@ -730,9 +728,8 @@ public class HUD extends Module {
         }
     }
 
-    // 圆角矩形绘制：直接使用未缩放坐标，整体缩放会统一放大
     private void drawHudRoundedRect(HudEntry entry, int color, boolean mask) {
-        float radius = this.roundRadius.getValue();  // 未缩放
+        float radius = this.roundRadius.getValue() * this.scale.getValue();
         float left = entry.left;
         float top = entry.top;
         float right = entry.right;

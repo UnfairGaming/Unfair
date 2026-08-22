@@ -549,6 +549,45 @@ public class RenderUtil {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
+    public static void renderPotionEffect(PotionEffect potionEffect, int x, int y, float scale) {
+        if (potionEffect == null) {
+            return;
+        }
+
+        Potion potion = Potion.potionTypes[potionEffect.getPotionID()];
+        if (potion == null || !potion.hasStatusIcon()) {
+            return;
+        }
+
+        int icon = potion.getStatusIconIndex();
+        GlRenderState previousGlState = new GlRenderState();
+        GlStateManager.pushMatrix();
+        try {
+            GlStateManager.translate(x, y, 0);
+            GlStateManager.scale(scale, scale, 1.0F);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.disableLighting();
+            GlStateManager.disableDepth();
+            GlStateManager.depthMask(false);
+            GlStateManager.enableBlend();
+            GlStateManager.enableAlpha();
+            GlStateManager.enableTexture2D();
+            GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            GlStateManager.scale(1.0F, 1.0F, -0.01F);
+            mc.getTextureManager().bindTexture(INVENTORY_TEXTURE);
+            Gui.drawModalRectWithCustomSizedTexture(
+                    0, 0,
+                    icon % 8 * 18,
+                    198 + icon / 8 * 18,
+                    18, 18,
+                    256.0F, 256.0F
+            );
+        } finally {
+            GlStateManager.popMatrix();
+            previousGlState.restore();
+        }
+    }
+
     public static void renderPotionEffect(PotionEffect potionEffect, int x, int y) {
         if (potionEffect == null) {
             return;

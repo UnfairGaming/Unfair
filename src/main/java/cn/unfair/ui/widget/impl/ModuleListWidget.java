@@ -121,7 +121,7 @@ public class ModuleListWidget extends Widget {
         float outlineX = this.getOutlineX(sr, this.isLeft);
         float outlineY = this.getOutlineY(sr);
         this.renderX = this.isLeft ? outlineX : outlineX + this.width;
-        this.renderY = this.isTop ? outlineY : outlineY + this.height - hud.getEntryHeight();
+        this.renderY = this.isTop ? outlineY : outlineY + this.height;
     }
 
     private float getOutlineX(ScaledResolution sr) {
