@@ -9,7 +9,6 @@ import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.velocity.GrimReduceVelocity;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
@@ -65,12 +64,10 @@ public class BackTrack extends Module {
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
     public boolean isBackTracking;
-    private Vec3 animatedPosition;
-    private long animatedFrameTime;
+    private Vec3 lastRenderPos;
+    private Vec3 currentRenderPos;
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
-    private Vec3 lastRenderPosition;
-    private Vec3 currentRenderPosition;
     private boolean dispatched;
     private boolean outOfRange;
     private boolean attacked;
@@ -216,8 +213,8 @@ public class BackTrack extends Module {
         this.activeMode = this.mode.getValue();
         realPosition = zeroVec();
         realLastPos = zeroVec();
-        this.lastRenderPosition = null;
-        this.currentRenderPosition = null;
+        this.lastRenderPos = null;
+        this.currentRenderPos = null;
         this.lastTarget = null;
         this.isBackTracking = false;
         this.velocityDelayWasActive = false;
@@ -230,8 +227,8 @@ public class BackTrack extends Module {
         shouldLag = false;
         realPosition = null;
         realLastPos = null;
-        this.lastRenderPosition = null;
-        this.currentRenderPosition = null;
+        this.lastRenderPos = null;
+        this.currentRenderPos = null;
         this.target = null;
         this.lastTarget = null;
         this.isBackTracking = false;
@@ -252,17 +249,13 @@ public class BackTrack extends Module {
         this.checkModeChange();
         if (event.type() == EventType.PRE) {
             BackTrackUtil.onPreTick();
-        } else if (event.type() == EventType.POST && this.isClassic()) {
+        } else if (event.type() == EventType.POST) {
             if (this.target != null && realPosition != null) {
-                if (this.currentRenderPosition == null) {
-                    this.lastRenderPosition = realPosition;
-                } else {
-                    this.lastRenderPosition = this.currentRenderPosition;
-                }
-                this.currentRenderPosition = realPosition;
+                this.lastRenderPos = this.currentRenderPos;
+                this.currentRenderPos = realPosition;
             } else {
-                this.lastRenderPosition = null;
-                this.currentRenderPosition = null;
+                this.lastRenderPos = null;
+                this.currentRenderPos = null;
             }
         }
     }
@@ -319,7 +312,8 @@ public class BackTrack extends Module {
             this.lastTarget = newTarget;
             realPosition = getPositionVector(newTarget);
             realLastPos = realPosition;
-            this.resetAnimation(realPosition);
+            this.lastRenderPos = realPosition;
+            this.currentRenderPos = realPosition;
         }
 
         KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
@@ -379,8 +373,6 @@ public class BackTrack extends Module {
         this.target = getTarget(8.0D);
         if (this.target == null) {
             this.lastTarget = null;
-            this.lastRenderPosition = null;
-            this.currentRenderPosition = null;
             this.isBackTracking = false;
             BackTrackUtil.onPostTick();
             return;
@@ -388,8 +380,8 @@ public class BackTrack extends Module {
         if (this.target != this.lastTarget || realPosition == null || realLastPos == null) {
             realPosition = getServerPositionVector(this.target);
             realLastPos = realPosition;
-            this.lastRenderPosition = realPosition;
-            this.currentRenderPosition = realPosition;
+            this.lastRenderPos = realPosition;
+            this.currentRenderPos = realPosition;
             this.lastTarget = this.target;
         }
 
@@ -521,7 +513,7 @@ public class BackTrack extends Module {
         }
 
         if (this.isLegitReach()) {
-            this.renderLegitReachPosition();
+            this.renderLegitReachPosition(event.partialTicks());
             return;
         }
         if (!shouldLag || this.esp.getValue() != 1) {
@@ -552,28 +544,17 @@ public class BackTrack extends Module {
         mc.getRenderManager().doRenderEntity(this.target, renderPosition.xCoord, renderPosition.yCoord, renderPosition.zCoord, this.target.rotationYawHead, partialTicks, true);
     }
 
-    private void renderLegitReachPosition() {
+    private void renderLegitReachPosition(float partialTicks) {
         if (!this.renderRealLocation.getValue()) {
             return;
         }
-
-        long now = AnimationUtil.start();
-        if (this.animatedPosition == null) {
-            this.resetAnimation(realPosition);
-        }
-
-        long deltaMillis = Math.min(50L, Math.max(0L, now - this.animatedFrameTime));
-        this.animatedPosition = new Vec3(
-                AnimationUtil.smooth(this.animatedPosition.xCoord, realPosition.xCoord, deltaMillis, 65.0D),
-                AnimationUtil.smooth(this.animatedPosition.yCoord, realPosition.yCoord, deltaMillis, 65.0D),
-                AnimationUtil.smooth(this.animatedPosition.zCoord, realPosition.zCoord, deltaMillis, 65.0D)
-        );
-        this.animatedFrameTime = now;
+        Vec3 renderPos = this.getRenderPosition(partialTicks);
+        if (renderPos == null) return;
 
         double expand = 0.14D;
         AxisAlignedBB bb = mc.thePlayer.getEntityBoundingBox()
                 .offset(-mc.thePlayer.posX, -mc.thePlayer.posY, -mc.thePlayer.posZ)
-                .offset(this.animatedPosition.xCoord, this.animatedPosition.yCoord, this.animatedPosition.zCoord)
+                .offset(renderPos.xCoord, renderPos.yCoord, renderPos.zCoord)
                 .expand(expand, expand, expand)
                 .offset(
                         -mc.getRenderManager().getRenderPosX(),
@@ -619,13 +600,13 @@ public class BackTrack extends Module {
     }
 
     private Vec3 getRenderPosition(float partialTicks) {
-        if (this.currentRenderPosition == null || this.lastRenderPosition == null) {
-            return realPosition;
+        if (this.currentRenderPos == null || this.lastRenderPos == null) {
+            return this.currentRenderPos != null ? this.currentRenderPos : realPosition;
         }
         return new Vec3(
-                RenderUtil.lerpDouble(this.currentRenderPosition.xCoord, this.lastRenderPosition.xCoord, partialTicks),
-                RenderUtil.lerpDouble(this.currentRenderPosition.yCoord, this.lastRenderPosition.yCoord, partialTicks),
-                RenderUtil.lerpDouble(this.currentRenderPosition.zCoord, this.lastRenderPosition.zCoord, partialTicks)
+                RenderUtil.lerpDouble(this.currentRenderPos.xCoord, this.lastRenderPos.xCoord, partialTicks),
+                RenderUtil.lerpDouble(this.currentRenderPos.yCoord, this.lastRenderPos.yCoord, partialTicks),
+                RenderUtil.lerpDouble(this.currentRenderPos.zCoord, this.lastRenderPos.zCoord, partialTicks)
         );
     }
 
@@ -675,8 +656,8 @@ public class BackTrack extends Module {
         this.resetTargetState();
         realPosition = zeroVec();
         realLastPos = zeroVec();
-        this.animatedPosition = null;
-        this.animatedFrameTime = 0L;
+        this.lastRenderPos = null;
+        this.currentRenderPos = null;
     }
 
     private boolean isVelocityDelaying() {
@@ -700,16 +681,11 @@ public class BackTrack extends Module {
         this.isBackTracking = false;
         this.target = null;
         this.lastTarget = null;
-        this.lastRenderPosition = null;
-        this.currentRenderPosition = null;
+        this.lastRenderPos = null;
+        this.currentRenderPos = null;
         this.outOfRange = false;
         this.attacked = false;
         this.velocityDelayWasActive = false;
-    }
-
-    private void resetAnimation(Vec3 position) {
-        this.animatedPosition = position;
-        this.animatedFrameTime = AnimationUtil.start();
     }
 
     private void stopLaggingForRespawn() {
@@ -718,5 +694,4 @@ public class BackTrack extends Module {
         this.dispatched = true;
         this.resetTargetState();
     }
-
 }

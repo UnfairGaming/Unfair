@@ -201,7 +201,7 @@ public class HUD extends Module {
         int width = this.getTextWidth(string);
         if (this.suffixes.getValue()) {
             for (String str : arr) {
-                width += 3 * this.scale.getValue() + this.getTextWidth(str);   // 3 * scale
+                width += 3 * this.scale.getValue() + this.getTextWidth(str);
             }
         }
         return width;
@@ -457,6 +457,7 @@ public class HUD extends Module {
         }
     }
 
+
     private void renderModuleList(float partialTicks, float x, float y, boolean alignLeft, boolean alignTop, boolean mask, int maskColor) {
         List<Module> renderList = this.getRenderList();
         if (renderList.isEmpty()) {
@@ -468,7 +469,8 @@ public class HUD extends Module {
         long time = System.currentTimeMillis();
         long offset = 0L;
 
-        for (Module module : renderList) {
+        for (int i = 0; i < renderList.size(); i++) {
+            Module module = renderList.get(i);
             String moduleName = this.getModuleName(module);
             String[] moduleSuffix = this.getModuleSuffix(module);
             float totalWidth = (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1));
@@ -478,6 +480,14 @@ public class HUD extends Module {
             if (isFadingOut && animProgress <= 0.01F) {
                 offset++;
                 continue;
+            }
+
+            Float nextTotalWidth = null;
+            if (i + 1 < renderList.size()) {
+                Module nextModule = renderList.get(i + 1);
+                String nextName = this.getModuleName(nextModule);
+                String[] nextSuffix = this.getModuleSuffix(nextModule);
+                nextTotalWidth = (float) (this.calculateStringWidth(nextName, nextSuffix) - (this.shadow.getValue() ? 0 : 1));
             }
 
             float xSlideDir = alignLeft ? -1.0F : 1.0F;
@@ -496,7 +506,7 @@ public class HUD extends Module {
             if (mask) {
                 if (animProgress > 0.02F) {
                     RenderUtil.enableRenderState();
-                    HudEntry entry = this.buildHudEntry(renderList, module, currentX, currentY, totalWidth, height, alignLeft, alignTop, offset);
+                    HudEntry entry = this.buildHudEntry(renderList, module, currentX, currentY, totalWidth, height, alignLeft, alignTop, offset, nextTotalWidth);
                     this.drawHudMask(entry, maskColor);
                     RenderUtil.disableRenderState();
                 }
@@ -511,7 +521,7 @@ public class HUD extends Module {
                 if (this.background.getValue() > 0 && animProgress > 0.02F) {
                     int bgAlpha = (int) (animProgress * this.background.getValue().floatValue() / 100.0F * 255.0F);
                     bgAlpha = Math.min(bgAlpha, 255);
-                    HudEntry entry = this.buildHudEntry(renderList, module, currentX, currentY, totalWidth, height, alignLeft, alignTop, offset);
+                    HudEntry entry = this.buildHudEntry(renderList, module, currentX, currentY, totalWidth, height, alignLeft, alignTop, offset, nextTotalWidth);
                     this.drawHudBackground(entry, new Color(0.0F, 0.0F, 0.0F, bgAlpha / 255.0F).getRGB());
                 }
                 if (this.showBar.getValue() && animProgress > 0.02F) {
@@ -557,6 +567,85 @@ public class HUD extends Module {
 
             offset++;
         }
+    }
+
+    private HudEntry buildHudEntry(List<Module> renderList, Module module, float currentX, float currentY,
+                                   float totalWidth, float height, boolean alignLeft, boolean alignTop,
+                                   long offset, Float nextTotalWidth) {
+        float scale = this.scale.getValue();
+        float left = currentX - scale - (alignLeft ? 0.0F : totalWidth);
+        float right = currentX + scale + (alignLeft ? totalWidth : 0.0F);
+        float top = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : (this.shadow.getValue() ? scale : 0.0F));
+        float bottom = currentY + height + (alignTop ? (this.shadow.getValue() ? scale : 0.0F) : (offset == 0L ? scale : 0.0F));
+
+        left -= this.bgWidthPadding.getValue() * scale;
+        right += this.bgWidthPadding.getValue() * scale;
+        top -= this.bgHeightPadding.getValue() * scale;
+        bottom += this.bgHeightPadding.getValue() * scale;
+
+        int moduleIndex = renderList.indexOf(module);
+        float bgWidth = right - left;
+        boolean leftTop = false, rightTop = false, leftBot = false, rightBot = false;
+
+        boolean nextWidthSame = false;
+        if (moduleIndex < renderList.size() - 1) {
+            Module nextModule = renderList.get(moduleIndex + 1);
+            float nextWidth = (float) (this.calculateStringWidth(this.getModuleName(nextModule), this.getModuleSuffix(nextModule)) - (this.shadow.getValue() ? 0 : 1)) + 2.0F * scale;
+            nextWidthSame = Math.abs(nextWidth - bgWidth) < 1.0F;
+        }
+
+        if (moduleIndex == 0) {
+            if (renderList.size() == 1) {
+                leftTop = true; rightTop = true; leftBot = true; rightBot = true;
+            } else if (alignTop) {
+                leftTop = true; rightTop = true;
+                if (!nextWidthSame) {
+                    if (alignLeft) rightBot = true;
+                    else leftBot = true;
+                }
+            } else {
+                leftBot = true; rightBot = true;
+                if (!nextWidthSame) {
+                    if (alignLeft) rightTop = true;
+                    else leftTop = true;
+                }
+            }
+        } else if (moduleIndex == renderList.size() - 1) {
+            if (alignTop) { leftBot = true; rightBot = true; }
+            else { leftTop = true; rightTop = true; }
+        } else {
+            if (alignLeft) {
+                if (alignTop) { if (!nextWidthSame) rightBot = true; }
+                else { if (!nextWidthSame) rightTop = true; }
+            } else {
+                if (alignTop) { if (!nextWidthSame) leftBot = true; }
+                else { if (!nextWidthSame) leftTop = true; }
+            }
+        }
+
+        float baseRadius = this.round.getValue() ? this.roundRadius.getValue() * scale : 0F;
+        float radiusTL = leftTop ? baseRadius : 0;
+        float radiusTR = rightTop ? baseRadius : 0;
+
+        float radiusBL = 0, radiusBR = 0;
+        if (leftBot) {
+            if (nextTotalWidth != null) {
+                float diff = Math.abs(nextTotalWidth - totalWidth);
+                radiusBL = Math.min(baseRadius, diff);
+            } else {
+                radiusBL = baseRadius;
+            }
+        }
+        if (rightBot) {
+            if (nextTotalWidth != null) {
+                float diff = Math.abs(nextTotalWidth - totalWidth);
+                radiusBR = Math.min(baseRadius, diff);
+            } else {
+                radiusBR = baseRadius;
+            }
+        }
+
+        return new HudEntry(left, top, right, bottom, radiusTL, radiusTR, radiusBL, radiusBR);
     }
 
     private void drawHudBar(float currentX, float currentY, float totalWidth, float height,
@@ -639,117 +728,27 @@ public class HUD extends Module {
         return animation.getRenderIndex(partialTicks);
     }
 
-    private HudEntry buildHudEntry(List<Module> renderList, Module module, float currentX, float currentY, float totalWidth,
-                                   float height, boolean alignLeft, boolean alignTop, long offset) {
-        float scale = this.scale.getValue();
-        float left = currentX - scale - (alignLeft ? 0.0F : totalWidth);
-        float right = currentX + scale + (alignLeft ? totalWidth : 0.0F);
-        float top = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : (this.shadow.getValue() ? scale : 0.0F));
-        float bottom = currentY + height + (alignTop ? (this.shadow.getValue() ? scale : 0.0F) : (offset == 0L ? scale : 0.0F));
-
-        left -= this.bgWidthPadding.getValue() * scale;
-        right += this.bgWidthPadding.getValue() * scale;
-        top -= this.bgHeightPadding.getValue() * scale;
-        bottom += this.bgHeightPadding.getValue() * scale;
-
-        int moduleIndex = renderList.indexOf(module);
-        float bgWidth = right - left;
-        boolean leftTop = false;
-        boolean rightTop = false;
-        boolean leftBot = false;
-        boolean rightBot = false;
-
-        boolean nextWidthSame = false;
-        if (moduleIndex < renderList.size() - 1) {
-            Module nextModule = renderList.get(moduleIndex + 1);
-            float nextWidth = (float) (this.calculateStringWidth(this.getModuleName(nextModule), this.getModuleSuffix(nextModule)) - (this.shadow.getValue() ? 0 : 1)) + 2.0F * scale;
-            nextWidthSame = Math.abs(nextWidth - bgWidth) < 1.0F;
-        }
-
-        if (moduleIndex == 0) {
-            if (renderList.size() == 1) {
-                leftTop = true;
-                rightTop = true;
-                leftBot = true;
-                rightBot = true;
-            } else if (alignTop) {
-                leftTop = true;
-                rightTop = true;
-                if (!nextWidthSame) {
-                    if (alignLeft) rightBot = true;
-                    else leftBot = true;
-                }
-            } else {
-                leftBot = true;
-                rightBot = true;
-                if (!nextWidthSame) {
-                    if (alignLeft) rightTop = true;
-                    else leftTop = true;
-                }
-            }
-        } else if (moduleIndex == renderList.size() - 1) {
-            if (alignTop) {
-                leftBot = true;
-                rightBot = true;
-            } else {
-                leftTop = true;
-                rightTop = true;
-            }
-        } else if (alignLeft) {
-            if (alignTop) {
-                if (!nextWidthSame) rightBot = true;
-            } else {
-                if (!nextWidthSame) rightTop = true;
-            }
-        } else {
-            if (alignTop) {
-                if (!nextWidthSame) leftBot = true;
-            } else {
-                if (!nextWidthSame) leftTop = true;
-            }
-        }
-
-        return new HudEntry(left, top, right, bottom, leftTop, rightTop, leftBot, rightBot);
-    }
 
     private void drawHudBackground(HudEntry entry, int color) {
         if (this.round.getValue()) {
-            this.drawHudRoundedRect(entry, color, false);
+            RenderUtil.drawRoundedRect(
+                    entry.left, entry.top,
+                    entry.right - entry.left, entry.bottom - entry.top,
+                    entry.radiusTL, entry.radiusTR,
+                    entry.radiusBL, entry.radiusBR,
+                    color
+            );
         } else {
             RenderUtil.drawRect(entry.left, entry.top, entry.right, entry.bottom, color);
         }
     }
 
     private void drawHudMask(HudEntry entry, int color) {
-        if (this.round.getValue()) {
-            this.drawHudRoundedRect(entry, color, true);
-        } else {
-            RenderUtil.drawRect(entry.left, entry.top, entry.right, entry.bottom, color);
-        }
+        drawHudBackground(entry, color);
     }
 
-    private void drawHudRoundedRect(HudEntry entry, int color, boolean mask) {
-        float radius = this.roundRadius.getValue() * this.scale.getValue();
-        float left = entry.left;
-        float top = entry.top;
-        float right = entry.right;
-        float bottom = entry.bottom;
-
-        if (mask) {
-            RenderUtil.drawRoundedRectMaskWithCorners(
-                    left, top, right, bottom, color, radius,
-                    entry.leftTop, entry.rightTop, entry.leftBot, entry.rightBot
-            );
-        } else {
-            RenderUtil.drawRoundedRectWithCorners(
-                    left, top, right, bottom, color, radius,
-                    entry.leftTop, entry.rightTop, entry.leftBot, entry.rightBot
-            );
-        }
-    }
-
-    private record HudEntry(float left, float top, float right, float bottom, boolean leftTop, boolean rightTop,
-                            boolean leftBot, boolean rightBot) {
+    private record HudEntry(float left, float top, float right, float bottom,
+                            float radiusTL, float radiusTR, float radiusBL, float radiusBR) {
     }
 
     private static class HudAnimation {
