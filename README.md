@@ -26,19 +26,33 @@ Linux/macOS:
 
 ## 鸣谢
 
-bzdhyp / zzz 的深度优化后的 MCP 与 Augustus Click Gui
+bzdhyp / zzz 的深度优化后的 MCP 与 Augustus ClickGui
+
+ViaVerison / ViaBackwards / ViaRewind
+
+Leader Lite 的源码 https://github.com/woshijiejue/Leader-Lite
+
+OpenMyau 的源码 https://github.com/60124808866/OpenMyau
+
+Raven BS 的源码 https://codeberg.org/strangerrrrs/raven-bS
+
+LiquidBounce Legacy 的源码 https://github.com/CCBlueX/LiquidBounce/tree/legacy
+
+Epilogue Client 的源码/资源 https://github.com/qm123pz/Epilogue-Client
+
+Naven Client的源码
 
 Demise Client 的源码/资源
 
 Augustus Client 的资源
 
-Epilogue Client 的源码/资源 https://github.com/qm123pz/Epilogue-Client
-
-Un1336 / Falling Star / Fall1ng Star / qm123pz 的开发
+Falling Star / Un1336 / qm123pz 的开发
 
 ModernSkidder / 张金辰 的开发
 
-GPT 的开发（80%以上）
+K0t1yaSanae 的开发
+
+GPT 的开发（60%以上）
 
 DeepSeek 的开发
 
