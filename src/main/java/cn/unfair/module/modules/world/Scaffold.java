@@ -1828,7 +1828,7 @@ public class Scaffold extends Module {
     }
 
     @EventTarget
-    public void onPostProcessBlur(RenderBlurEvent event) {
+    public void onRenderBlur(RenderBlurEvent event) {
         if (event.getType() == EventType.PRE) {
             if (this.updateBlockCountAnimation()) {
                 event.setCancelled(true);
@@ -1841,7 +1841,7 @@ public class Scaffold extends Module {
     }
 
     @EventTarget
-    public void onPostProcessBloom(RenderBloomEvent event) {
+    public void onRenderBloom(RenderBloomEvent event) {
         if (event.getType() == EventType.PRE) {
             if (this.updateBlockCountAnimation()) {
                 event.setCancelled(true);

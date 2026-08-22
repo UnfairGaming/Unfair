@@ -78,7 +78,7 @@ public class WidgetManager {
     }
 
     @EventTarget
-    public void onPostProcessBlur(RenderBlurEvent event) {
+    public void onRenderBlur(RenderBlurEvent event) {
         if (event.getType() == EventType.PRE) {
             this.blurMaskWidgets.clear();
         }
@@ -107,7 +107,7 @@ public class WidgetManager {
     }
 
     @EventTarget
-    public void onPostProcessBloom(RenderBloomEvent event) {
+    public void onRenderBloom(RenderBloomEvent event) {
         if (event.getType() == EventType.PRE) {
             this.bloomMaskWidgets.clear();
         }
