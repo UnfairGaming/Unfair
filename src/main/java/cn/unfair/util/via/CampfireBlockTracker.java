@@ -13,7 +13,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 import java.util.Map;
-
+// WTF is this class ?? idk i wrote this
 public final class CampfireBlockTracker {
     private static final Map<BlockPos, IBlockState> STATES = Maps.newHashMap();
 

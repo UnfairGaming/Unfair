@@ -1,4 +1,4 @@
-package cn.unfair.util.anticheat.check;
+package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
