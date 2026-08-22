@@ -342,10 +342,12 @@ public class Scaffold extends Module {
     }
 
     private boolean isValid(Item item) {
-        return item instanceof ItemBlock
-                && !invalidBlocks.contains(((ItemBlock) item).getBlock())
-                && BlockUtil.isSolid(((ItemBlock) item).getBlock())
-                && !BlockUtil.isInteractable(((ItemBlock) item).getBlock());
+        if (!(item instanceof ItemBlock)) return false;
+        Block block = ((ItemBlock) item).getBlock();
+        return !invalidBlocks.contains(block)
+                && BlockUtil.isSolid(block)
+                && !BlockUtil.isInteractable(block)
+                && block.isFullBlock();
     }
 
     private boolean isFullBlock(ItemStack stack) {
@@ -848,7 +850,10 @@ public class Scaffold extends Module {
                 || block instanceof net.minecraft.block.BlockFenceGate) {
             return false;
         }
-        return !BlockUtil.isReplaceable(pos) && BlockUtil.isSolid(block) && !BlockUtil.isInteractable(pos);
+        return !BlockUtil.isReplaceable(pos)
+                && BlockUtil.isSolid(block)
+                && !BlockUtil.isInteractable(pos)
+                && block.isFullBlock();
     }
 
     private boolean canGodBridgeClick(BlockPos pos) {
@@ -862,7 +867,8 @@ public class Scaffold extends Module {
                 || block.hasTileEntity()
                 || block.getCollisionBoundingBox(mc.theWorld, pos, state) == null
                 || block instanceof BlockContainer
-                || block instanceof BlockWorkbench) {
+                || block instanceof BlockWorkbench
+                || !block.isFullBlock()) {
             return false;
         }
         for (Entity entity : mc.theWorld.loadedEntityList) {
