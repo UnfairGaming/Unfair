@@ -9,6 +9,7 @@ import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.velocity.GrimReduceVelocity;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
+import cn.unfair.util.ChatUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
@@ -210,6 +211,11 @@ public class BackTrack extends Module {
 
     @Override
     public void onEnabled() {
+        LagRange lagRange = (LagRange) Unfair.moduleManager.modules.get(LagRange.class);
+        if (lagRange.isEnabled()) {
+            lagRange.setEnabled(false);
+            ChatUtil.dbg("Disabled LagRange because BackTrack is Enabled");
+        }
         this.activeMode = this.mode.getValue();
         realPosition = zeroVec();
         realLastPos = zeroVec();
