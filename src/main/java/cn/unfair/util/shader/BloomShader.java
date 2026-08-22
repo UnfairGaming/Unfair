@@ -1,4 +1,4 @@
-package cn.unfair.util.postprocessing;
+package cn.unfair.util.shader;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;

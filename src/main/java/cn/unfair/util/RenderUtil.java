@@ -1,7 +1,7 @@
 package cn.unfair.util;
 
 import cn.unfair.enums.ChatColors;
-import cn.unfair.util.postprocessing.ShaderUtil;
+import cn.unfair.util.shader.ShaderUtil;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;

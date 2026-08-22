@@ -7,7 +7,7 @@ import cn.unfair.module.modules.misc.NickHider;
 import cn.unfair.module.modules.player.AutoBlockIn;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.module.modules.render.Animations;
-import cn.unfair.util.postprocessing.PostProcessingRenderer;
+import cn.unfair.util.shader.PostProcessingRenderer;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import lombok.Getter;

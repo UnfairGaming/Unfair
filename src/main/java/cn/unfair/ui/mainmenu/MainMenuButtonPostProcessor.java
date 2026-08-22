@@ -50,13 +50,13 @@ public final class MainMenuButtonPostProcessor {
                     renderer.renderMask(bound);
                 }
                 StencilUtil.erase(true);
-                cn.unfair.util.postprocessing.PostProcessing.drawBlurFullScreen(pp.blurIterations.getValue(), pp.blurOffset.getValue());
+                cn.unfair.util.shader.PostProcessing.drawBlurFullScreen(pp.blurIterations.getValue(), pp.blurOffset.getValue());
                 StencilUtil.dispose();
                 mc.getFramebuffer().bindFramebuffer(false);
             }
 
             if (pp.bloom.getValue()) {
-                Framebuffer bloomBuffer = cn.unfair.util.postprocessing.PostProcessing.beginBloom();
+                Framebuffer bloomBuffer = cn.unfair.util.shader.PostProcessing.beginBloom();
                 if (bloomBuffer != null) {
                     GlStateManager.enableBlend();
                     GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -66,7 +66,7 @@ public final class MainMenuButtonPostProcessor {
                     }
                     mc.getFramebuffer().bindFramebuffer(false);
                     Color color = pp.getBloomColor(System.currentTimeMillis());
-                    cn.unfair.util.postprocessing.PostProcessing.endBloom(bloomBuffer, pp.bloomIterations.getValue(), pp.bloomOffset.getValue(), color);
+                    cn.unfair.util.shader.PostProcessing.endBloom(bloomBuffer, pp.bloomIterations.getValue(), pp.bloomOffset.getValue(), color);
                 }
             }
         } finally {

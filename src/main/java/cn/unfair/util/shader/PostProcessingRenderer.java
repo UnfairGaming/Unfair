@@ -1,4 +1,4 @@
-package cn.unfair.util.postprocessing;
+package cn.unfair.util.shader;
 
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
@@ -50,7 +50,7 @@ public class PostProcessingRenderer {
                         GL11.glDisable(GL11.GL_CULL_FACE);
                     }
 
-                    cn.unfair.util.postprocessing.PostProcessing.drawBlurFullScreen(pp.blurIterations.getValue(), pp.blurOffset.getValue());
+                    cn.unfair.util.shader.PostProcessing.drawBlurFullScreen(pp.blurIterations.getValue(), pp.blurOffset.getValue());
                 } finally {
                     StencilUtil.dispose();
                     if (cullWasEnabled) {
@@ -85,11 +85,11 @@ public class PostProcessingRenderer {
                         GL11.glDisable(GL11.GL_CULL_FACE);
                     }
 
-                    bloomBuffer = cn.unfair.util.postprocessing.PostProcessing.beginBloom();
+                    bloomBuffer = cn.unfair.util.shader.PostProcessing.beginBloom();
                     if (bloomBuffer != null) {
                         EventManager.call(post);
                         mc.getFramebuffer().forceBind(true);
-                        cn.unfair.util.postprocessing.PostProcessing.endBloom(bloomBuffer, pp.bloomIterations.getValue(), pp.bloomOffset.getValue(), pp.getBloomColor(System.currentTimeMillis()));
+                        cn.unfair.util.shader.PostProcessing.endBloom(bloomBuffer, pp.bloomIterations.getValue(), pp.bloomOffset.getValue(), pp.getBloomColor(System.currentTimeMillis()));
                     }
                 } finally {
                     if (cullWasEnabled) {

@@ -3,7 +3,7 @@ package cn.unfair.ui.mainmenu;
 import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
-import cn.unfair.util.postprocessing.ShaderUtil;
+import cn.unfair.util.shader.ShaderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.opengl.GL11;

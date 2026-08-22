@@ -1,4 +1,4 @@
-package cn.unfair.util.postprocessing;
+package cn.unfair.util.shader;
 
 import cn.unfair.util.MathUtil;
 import net.minecraft.client.Minecraft;
