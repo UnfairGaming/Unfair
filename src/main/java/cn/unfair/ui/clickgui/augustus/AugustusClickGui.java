@@ -3,8 +3,8 @@ package cn.unfair.ui.clickgui.augustus;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.PostProcessBloomEvent;
-import cn.unfair.events.PostProcessBlurEvent;
+import cn.unfair.events.RenderBloomEvent;
+import cn.unfair.events.RenderBlurEvent;
 import cn.unfair.module.Category;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
@@ -1127,7 +1127,7 @@ public class AugustusClickGui extends GuiScreen {
     }
 
     @EventTarget
-    public void onPostProcessBlur(PostProcessBlurEvent event) {
+    public void onPostProcessBlur(RenderBlurEvent event) {
         if (mc.currentScreen != this) {
             return;
         }
@@ -1141,7 +1141,7 @@ public class AugustusClickGui extends GuiScreen {
     }
 
     @EventTarget
-    public void onPostProcessBloom(PostProcessBloomEvent event) {
+    public void onPostProcessBloom(RenderBloomEvent event) {
         if (mc.currentScreen != this) {
             return;
         }

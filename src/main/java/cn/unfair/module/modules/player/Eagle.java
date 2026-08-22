@@ -73,6 +73,8 @@ public class Eagle extends Module {
                     && (this.sneakDelay > 0 || this.canMoveSafely());
             if (shouldPressSneak) {
                 this.setSneakKey(true);
+            } else if (this.sneakOnly.getValue() && Keyboard.isKeyDown(mc.gameSettings.keyBindSneak.getKeyCode())) {
+                this.setSneakKey(false);
             } else if (this.pressingSneak) {
                 this.restoreSneakKey();
             }

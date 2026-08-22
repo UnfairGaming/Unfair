@@ -3,8 +3,8 @@ package cn.unfair.util.postprocessing;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.PostProcessBloomEvent;
-import cn.unfair.events.PostProcessBlurEvent;
+import cn.unfair.events.RenderBloomEvent;
+import cn.unfair.events.RenderBlurEvent;
 import cn.unfair.module.modules.render.PostProcessing;
 import cn.unfair.util.AndroidUtil;
 import cn.unfair.util.StencilUtil;
@@ -31,10 +31,10 @@ public class PostProcessingRenderer {
         }
 
         if (pp.blur.getValue()) {
-            PostProcessBlurEvent pre = new PostProcessBlurEvent(EventType.PRE, partialTicks);
+            RenderBlurEvent pre = new RenderBlurEvent(EventType.PRE, partialTicks);
             EventManager.call(pre);
             if (pre.isCancelled()) {
-                PostProcessBlurEvent post = new PostProcessBlurEvent(EventType.POST, partialTicks);
+                RenderBlurEvent post = new RenderBlurEvent(EventType.POST, partialTicks);
 
                 boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
                 boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
@@ -71,10 +71,10 @@ public class PostProcessingRenderer {
         }
 
         if (pp.bloom.getValue()) {
-            PostProcessBloomEvent pre = new PostProcessBloomEvent(EventType.PRE, partialTicks);
+            RenderBloomEvent pre = new RenderBloomEvent(EventType.PRE, partialTicks);
             EventManager.call(pre);
             if (pre.isCancelled()) {
-                PostProcessBloomEvent post = new PostProcessBloomEvent(EventType.POST, partialTicks);
+                RenderBloomEvent post = new RenderBloomEvent(EventType.POST, partialTicks);
                 boolean cullWasEnabled = GL11.glIsEnabled(GL11.GL_CULL_FACE);
                 boolean depthWasEnabled = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
                 boolean depthMaskWasEnabled = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);

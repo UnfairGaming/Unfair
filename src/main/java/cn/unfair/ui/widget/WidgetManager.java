@@ -3,8 +3,8 @@ package cn.unfair.ui.widget;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.ChatGUIEvent;
-import cn.unfair.events.PostProcessBloomEvent;
-import cn.unfair.events.PostProcessBlurEvent;
+import cn.unfair.events.RenderBloomEvent;
+import cn.unfair.events.RenderBlurEvent;
 import cn.unfair.events.Render2DEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
@@ -78,7 +78,7 @@ public class WidgetManager {
     }
 
     @EventTarget
-    public void onPostProcessBlur(PostProcessBlurEvent event) {
+    public void onPostProcessBlur(RenderBlurEvent event) {
         if (event.getType() == EventType.PRE) {
             this.blurMaskWidgets.clear();
         }
@@ -107,7 +107,7 @@ public class WidgetManager {
     }
 
     @EventTarget
-    public void onPostProcessBloom(PostProcessBloomEvent event) {
+    public void onPostProcessBloom(RenderBloomEvent event) {
         if (event.getType() == EventType.PRE) {
             this.bloomMaskWidgets.clear();
         }

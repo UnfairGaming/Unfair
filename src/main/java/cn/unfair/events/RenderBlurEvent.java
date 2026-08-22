@@ -3,16 +3,16 @@ package cn.unfair.events;
 import cn.unfair.event.events.Event;
 import cn.unfair.event.types.EventType;
 
-public class PostProcessBloomEvent implements Event {
+public class RenderBlurEvent implements Event {
     private final EventType type;
     private final float partialTicks;
     private boolean cancelled;
 
-    public PostProcessBloomEvent(EventType type) {
+    public RenderBlurEvent(EventType type) {
         this(type, 1.0F);
     }
 
-    public PostProcessBloomEvent(EventType type, float partialTicks) {
+    public RenderBlurEvent(EventType type, float partialTicks) {
         this.type = type;
         this.partialTicks = partialTicks;
         this.cancelled = false;
