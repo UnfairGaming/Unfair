@@ -55,16 +55,6 @@ public class Animations extends Module {
         super("Animations", false, true);
     }
 
-    @Override
-    public void onEnabled() {
-        this.sentStartDestroyBlock = false;
-    }
-
-    @Override
-    public void onDisabled() {
-        this.sentStartDestroyBlock = false;
-    }
-
     private static Animations instance() {
         if (Unfair.moduleManager == null) return null;
         return (Animations) Unfair.moduleManager.getModule(Animations.class);
@@ -75,12 +65,35 @@ public class Animations extends Module {
         return animations != null && animations.isEnabled() && property.getValue();
     }
 
-    public static boolean oldRodEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldRod); }
-    public static boolean oldBowEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldBow); }
-    public static boolean oldDamageEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldDamage); }
-    public static boolean oldHeartsEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldHearts); }
-    public static boolean oldSneakEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldSneak); }
-    public static boolean oldDebugEnabled() { Animations a = instance(); return a != null && legacyEnabled(a.oldDebug); }
+    public static boolean oldRodEnabled() {
+        Animations a = instance();
+        return a != null && legacyEnabled(a.oldRod);
+    }
+
+    public static boolean oldBowEnabled() {
+        Animations a = instance();
+        return a != null && legacyEnabled(a.oldBow);
+    }
+
+    public static boolean oldDamageEnabled() {
+        Animations a = instance();
+        return a != null && legacyEnabled(a.oldDamage);
+    }
+
+    public static boolean oldHeartsEnabled() {
+        Animations a = instance();
+        return a != null && legacyEnabled(a.oldHearts);
+    }
+
+    public static boolean oldSneakEnabled() {
+        Animations a = instance();
+        return a != null && legacyEnabled(a.oldSneak);
+    }
+
+    public static boolean oldDebugEnabled() {
+        Animations a = instance();
+        return a != null && legacyEnabled(a.oldDebug);
+    }
 
     public static void performLegacyBlockBreak() {
         Animations animations = instance();
@@ -93,6 +106,16 @@ public class Animations extends Module {
             return;
         }
         mc.thePlayer.swingItem();
+    }
+
+    @Override
+    public void onEnabled() {
+        this.sentStartDestroyBlock = false;
+    }
+
+    @Override
+    public void onDisabled() {
+        this.sentStartDestroyBlock = false;
     }
 
     @EventTarget

@@ -8,7 +8,6 @@ import cn.unfair.events.PacketEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.movement.Sprint;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.ui.clickgui.augustus.AugustusClickGui;

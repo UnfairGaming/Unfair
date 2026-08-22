@@ -11,14 +11,14 @@ import net.minecraft.util.Vec3;
 import java.util.ArrayList;
 
 public final class AdvancedPredictionEngine {
+    public static final ArrayList<Double> previousTargetMotions = new ArrayList<>();
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final TimerUtil updateTimer = new TimerUtil();
+    public static int currentReactionTime;
+    public static boolean lastReset;
     private static float currentTargetOffset;
     private static AxisAlignedBB lastTrackedAABB;
     private static int ticksExisted;
-    public static int currentReactionTime;
-    public static final ArrayList<Double> previousTargetMotions = new ArrayList<>();
-    public static boolean lastReset;
-    private static final TimerUtil updateTimer = new TimerUtil();
     private static Vec3 lastTrackedMoveDelta = new Vec3(0.0D, 0.0D, 0.0D);
 
     private AdvancedPredictionEngine() {

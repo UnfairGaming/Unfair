@@ -64,7 +64,7 @@ public final class ModernFluidPhysics {
 
         double flowX = 0.0D;
         double flowZ = 0.0D;
-        EnumFacing[] directions = new EnumFacing[] {EnumFacing.NORTH, EnumFacing.EAST, EnumFacing.SOUTH, EnumFacing.WEST};
+        EnumFacing[] directions = new EnumFacing[]{EnumFacing.NORTH, EnumFacing.EAST, EnumFacing.SOUTH, EnumFacing.WEST};
         for (EnumFacing direction : directions) {
             BlockPos adjacent = position.offset(direction);
             if (!affectsFlow(world, position, adjacent, material)) {

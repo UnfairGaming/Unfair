@@ -44,7 +44,7 @@ public class ItemUtil {
         return modelName != null
                 ? isToolModel(modelName, toolClass)
                 : itemStack.getItem() instanceof ItemTool
-                && itemStack.getItem().getToolClasses(itemStack).contains(toolClass);
+                  && itemStack.getItem().getToolClasses(itemStack).contains(toolClass);
     }
 
     public static boolean isTool(ItemStack itemStack) {
@@ -54,8 +54,8 @@ public class ItemUtil {
         String modelName = getViaModelName(itemStack);
         return modelName != null
                 ? isToolModel(modelName, "pickaxe")
-                || isToolModel(modelName, "shovel")
-                || isToolModel(modelName, "axe")
+                  || isToolModel(modelName, "shovel")
+                  || isToolModel(modelName, "axe")
                 : itemStack.getItem() instanceof ItemTool;
     }
 
@@ -190,7 +190,7 @@ public class ItemUtil {
     public static double getArmorProtection(ItemStack itemStack) {
         double protection = 0.0;
         if (getArmorType(itemStack) != -1 && itemStack.getItem() instanceof ItemArmor) {
-            protection = (double) ((ItemArmor) itemStack.getItem()).damageReduceAmount;
+            protection = ((ItemArmor) itemStack.getItem()).damageReduceAmount;
             if (itemStack.isItemEnchanted()) {
                 protection += (double) EnchantmentHelper.getEnchantmentLevel(Enchantment.protection.effectId, itemStack) * 0.25;
             }

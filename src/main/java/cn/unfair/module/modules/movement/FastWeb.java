@@ -40,7 +40,7 @@ public class FastWeb extends Module {
 
     @EventTarget
     public void onStuck(StuckInBlockEvent event) {
-        if (!this.isEnabled() || mc.thePlayer == null || event.getEntity() != mc.thePlayer || this.mode.getValue() != 0) {
+        if (!this.isEnabled() || mc.thePlayer == null || event.entity() != mc.thePlayer || this.mode.getValue() != 0) {
             return;
         }
 

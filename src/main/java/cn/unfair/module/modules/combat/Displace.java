@@ -40,6 +40,14 @@ public class Displace extends Module {
     private static final double[] VOID_SCAN_Z = new double[VOID_SCAN_DIRECTIONS];
     private static final long ARROW_FADE_MS = 250L;
 
+    static {
+        for (int i = 0; i < VOID_SCAN_DIRECTIONS; i++) {
+            double angle = Math.PI * 2.0D * i / VOID_SCAN_DIRECTIONS;
+            VOID_SCAN_X[i] = Math.cos(angle);
+            VOID_SCAN_Z[i] = Math.sin(angle);
+        }
+    }
+
     public final FloatProperty yawOffset = new FloatProperty("Yaw Offset", 90.0F, 0.0F, 180.0F);
     public final FloatProperty delay = new FloatProperty("Delay", 500.0F, 0.0F, 1000.0F);
     public final ModeProperty direction = new ModeProperty("Direction", 0, new String[]{"Left", "Right"});
@@ -48,7 +56,7 @@ public class Displace extends Module {
     public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", false);
     public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
     public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
-
+    private final Map<Integer, Integer> targetWindowStartTicks = new HashMap<>();
     private boolean displaceThisTick;
     private boolean active;
     private boolean compensateNextTick;
@@ -60,18 +68,16 @@ public class Displace extends Module {
     private long lastRenderedArrowMs;
     private int tickCounter;
     private int activeTargetId = -1;
-    private final Map<Integer, Integer> targetWindowStartTicks = new HashMap<>();
-
-    static {
-        for (int i = 0; i < VOID_SCAN_DIRECTIONS; i++) {
-            double angle = Math.PI * 2.0D * i / VOID_SCAN_DIRECTIONS;
-            VOID_SCAN_X[i] = Math.cos(angle);
-            VOID_SCAN_Z[i] = Math.sin(angle);
-        }
-    }
 
     public Displace() {
         super("Displace", false);
+    }
+
+    private static int msToTicks(double ms) {
+        if (ms <= 0.0D) {
+            return 0;
+        }
+        return (int) Math.ceil(ms / 50.0D);
     }
 
     @Override
@@ -235,13 +241,6 @@ public class Displace extends Module {
                 iterator.remove();
             }
         }
-    }
-
-    private static int msToTicks(double ms) {
-        if (ms <= 0.0D) {
-            return 0;
-        }
-        return (int) Math.ceil(ms / 50.0D);
     }
 
     private Float findStaticVoidYaw(EntityPlayer target) {

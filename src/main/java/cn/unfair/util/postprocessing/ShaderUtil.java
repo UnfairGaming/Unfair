@@ -164,32 +164,6 @@ public class ShaderUtil {
         cachedScaledHeight = (float) sr.getScaledHeight_double();
     }
 
-    private int createShader(String source, int type) {
-        int shader = compileShader(source, type);
-        if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) != 0) {
-            return shader;
-        }
-
-        String originalInfo = GL20.glGetShaderInfoLog(shader, 1024);
-        GL20.glDeleteShader(shader);
-
-        String fallbackSource = prepareSource(source);
-        if (!fallbackSource.equals(source)) {
-            shader = compileShader(fallbackSource, type);
-            if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) != 0) {
-                return shader;
-            }
-
-            String fallbackInfo = GL20.glGetShaderInfoLog(shader, 1024);
-            GL20.glDeleteShader(shader);
-            throw new IllegalStateException(
-                    "Failed to compile shader.\nOriginal: " + originalInfo + "\nGLES2 fallback: " + fallbackInfo
-            );
-        }
-
-        throw new IllegalStateException("Failed to compile shader: " + originalInfo);
-    }
-
     private static int compileShader(String source, int type) {
         int shader = GL20.glCreateShader(type);
         GL20.glShaderSource(shader, source);
@@ -216,6 +190,32 @@ public class ShaderUtil {
         }
 
         return prepared;
+    }
+
+    private int createShader(String source, int type) {
+        int shader = compileShader(source, type);
+        if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) != 0) {
+            return shader;
+        }
+
+        String originalInfo = GL20.glGetShaderInfoLog(shader, 1024);
+        GL20.glDeleteShader(shader);
+
+        String fallbackSource = prepareSource(source);
+        if (!fallbackSource.equals(source)) {
+            shader = compileShader(fallbackSource, type);
+            if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) != 0) {
+                return shader;
+            }
+
+            String fallbackInfo = GL20.glGetShaderInfoLog(shader, 1024);
+            GL20.glDeleteShader(shader);
+            throw new IllegalStateException(
+                    "Failed to compile shader.\nOriginal: " + originalInfo + "\nGLES2 fallback: " + fallbackInfo
+            );
+        }
+
+        throw new IllegalStateException("Failed to compile shader: " + originalInfo);
     }
 
     private String loadFragment(String name) {

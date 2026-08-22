@@ -13,6 +13,8 @@ public class SimulatedPlayer {
 
     private final EntityPlayerSP player;
     private final MovementInput movementInput;
+    private final boolean checkGroundSupportAfterMove;
+    private final boolean normalizeSmallMotion;
     public float rotationYaw;
     public boolean onGround;
     public boolean isCollidedHorizontally;
@@ -26,8 +28,6 @@ public class SimulatedPlayer {
     private double motionZ;
     private boolean isSprinting;
     private int jumpTicks;
-    private final boolean checkGroundSupportAfterMove;
-    private final boolean normalizeSmallMotion;
 
     private SimulatedPlayer(EntityPlayerSP player, MovementInput movementInput, boolean checkGroundSupportAfterMove,
                             boolean normalizeSmallMotion) {
@@ -59,7 +59,7 @@ public class SimulatedPlayer {
     }
 
     public static SimulatedPlayer fromClientPlayer(MovementInput input, boolean checkGroundSupportAfterMove,
-                                                    boolean normalizeSmallMotion) {
+                                                   boolean normalizeSmallMotion) {
         MovementInput copy = new MovementInput();
         copy.moveForward = input.moveForward;
         copy.moveStrafe = input.moveStrafe;

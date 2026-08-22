@@ -7,11 +7,14 @@ import net.minecraft.network.Packet;
 import net.minecraft.potion.Potion;
 
 public class MotionBCheck extends AntiCheatCheck {
-    public MotionBCheck() { super("Motion B", "Checks invalid acceleration."); }
+    public MotionBCheck() {
+        super("Motion B", "Checks invalid acceleration.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
-        if (!isMovementPacket(packet) || data.ticksSinceLastVelocity <= 40 || data.timeSinceLastMovementPacket >= 150L) return;
+        if (!isMovementPacket(packet) || data.ticksSinceLastVelocity <= 40 || data.timeSinceLastMovementPacket >= 150L)
+            return;
         double acceleration = data.packetSpeed - data.lastPacketSpeed;
         if (acceleration < 10.0D) {
             double multiplier = 1.0D;

@@ -9,11 +9,7 @@ import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.world.Scaffold;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.IntProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.MoveUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -27,30 +23,12 @@ public class Speed extends Module {
     public final FloatProperty multiplier = new FloatProperty("Multiplier", 1.0F, 0.0F, 10.0F, () -> this.mode.getValue() == 1);
     public final FloatProperty friction = new FloatProperty("Friction", 1.0F, 0.0F, 10.0F, () -> this.mode.getValue() == 1);
     public final PercentProperty strafe = new PercentProperty("Strafe", 0, () -> this.mode.getValue() == 1);
-
-    public Speed() {
-        super("Speed", false);
-    }
-
     private int ticks = 0;
     private float yaw = 0f;
-    private YawOffsetMode yawOffsetMode = YawOffsetMode.AIR;
+    private final YawOffsetMode yawOffsetMode = YawOffsetMode.AIR;
     private boolean finished = false;
-
-    public enum YawOffsetMode {
-        GROUND("Ground"),
-        AIR("Air"),
-        CONSTANT("Constant");
-
-        private final String tag;
-
-        YawOffsetMode(String tag) {
-            this.tag = tag;
-        }
-
-        public String getTag() {
-            return tag;
-        }
+    public Speed() {
+        super("Speed", false);
     }
 
     private boolean canBoost() {
@@ -140,7 +118,7 @@ public class Speed extends Module {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (isEnabled() && this.mode.getValue() == 0 && event.getType() == EventType.PRE && rotation.getValue()) {
-            if (canBoost() && !((KillAura) Unfair.moduleManager.modules.get(KillAura.class)).isEnabled()) {
+            if (canBoost() && !Unfair.moduleManager.modules.get(KillAura.class).isEnabled()) {
                 switch (yawOffsetMode) {
                     case GROUND:
                         computeGroundYawOffset();
@@ -160,7 +138,7 @@ public class Speed extends Module {
 
     @EventTarget
     public void onMove(MoveInputEvent event) {
-        if (this.isEnabled() && this.mode.getValue() == 0 && rotation.getValue() && canBoost() && !((KillAura) Unfair.moduleManager.modules.get(KillAura.class)).isEnabled()) {
+        if (this.isEnabled() && this.mode.getValue() == 0 && rotation.getValue() && canBoost() && !Unfair.moduleManager.modules.get(KillAura.class).isEnabled()) {
             if (RotationState.isActived() && RotationState.getPriority() == 2.0F && MoveUtil.isForwardPressed()) {
                 MoveUtil.fixStrafe(RotationState.getSmoothedYaw());
             }
@@ -213,5 +191,21 @@ public class Speed extends Module {
     @Override
     public String[] getSuffix() {
         return new String[]{mode.getModeString()};
+    }
+
+    public enum YawOffsetMode {
+        GROUND("Ground"),
+        AIR("Air"),
+        CONSTANT("Constant");
+
+        private final String tag;
+
+        YawOffsetMode(String tag) {
+            this.tag = tag;
+        }
+
+        public String getTag() {
+            return tag;
+        }
     }
 }

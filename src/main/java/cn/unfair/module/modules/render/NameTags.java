@@ -46,7 +46,16 @@ public class NameTags extends Module {
     private static final int ENCHANT_LINE_HEIGHT = 8;
     private static final int ENCHANT_Y_OFFSET = 24;
     private static final Comparator<NametagRenderState> FAR_TO_NEAR = (a, b) -> Double.compare(b.distanceSq, a.distanceSq);
-
+    private static final int[] ARMOR_ENCHANT_IDS = {0, 7, 34};
+    private static final String[] ARMOR_ENCHANT_ABBR = {"P", "T", "U"};
+    private static final int[] SWORD_ENCHANT_IDS = {16, 20, 19};
+    private static final String[] SWORD_ENCHANT_ABBR = {"S", "F", "K"};
+    private static final int[] BOW_ENCHANT_IDS = {48, 49, 50};
+    private static final String[] BOW_ENCHANT_ABBR = {"Pw", "Pu", "Fl"};
+    private static final int[] TOOL_ENCHANT_IDS = {32, 35, 34};
+    private static final String[] TOOL_ENCHANT_ABBR = {"E", "Fo", "U"};
+    private static final int[] MISC_ENCHANT_IDS = {19};
+    private static final String[] MISC_ENCHANT_ABBR = {"K"};
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.1F, 2.0F);
     public final ModeProperty font = new ModeProperty("Font", 0, new String[]{"Minecraft", "Inter", "Tahoma", "Comfortaa"});
     public final BooleanProperty autoScale = new BooleanProperty("Auto Scale", false);
@@ -75,50 +84,8 @@ public class NameTags extends Module {
     public final BooleanProperty bots = new BooleanProperty("Bots", false);
     public final ColorProperty friendColor = new ColorProperty("Friend Color", 0x55FFFF);
     public final ColorProperty enemyColor = new ColorProperty("Enemy Color", 0xFF5555);
-
     private final List<NametagRenderState> renderStates = new ArrayList<>();
     private int renderStateCount;
-
-    private static class NametagRenderState {
-        private Entity entity;
-        private String displayName;
-        private int stringHalfWidth;
-        private int teamColor;
-        private int relationshipColor;
-        private int playerNameStart;
-        private int playerNameEnd;
-        private double distanceSq;
-        private float baseScale;
-        private float yOffset;
-        private ItemStack heldItem;
-        private ItemStack boots;
-        private ItemStack leggings;
-        private ItemStack chestplate;
-        private ItemStack helmet;
-        private int totalItems;
-
-        private void set(Entity entity, String displayName, int stringHalfWidth, int teamColor, int relationshipColor,
-                         int playerNameStart, int playerNameEnd, double distanceSq, float baseScale, float yOffset,
-                         ItemStack heldItem, ItemStack boots, ItemStack leggings, ItemStack chestplate, ItemStack helmet,
-                         int totalItems) {
-            this.entity = entity;
-            this.displayName = displayName;
-            this.stringHalfWidth = stringHalfWidth;
-            this.teamColor = teamColor;
-            this.relationshipColor = relationshipColor;
-            this.playerNameStart = playerNameStart;
-            this.playerNameEnd = playerNameEnd;
-            this.distanceSq = distanceSq;
-            this.baseScale = baseScale;
-            this.yOffset = yOffset;
-            this.heldItem = heldItem;
-            this.boots = boots;
-            this.leggings = leggings;
-            this.chestplate = chestplate;
-            this.helmet = helmet;
-            this.totalItems = totalItems;
-        }
-    }
 
     public NameTags() {
         super("NameTags", false, true);
@@ -209,7 +176,7 @@ public class NameTags extends Module {
             int stringHalfWidth = getStringWidth(displayName) / 2;
             int relationshipColor = entity instanceof EntityPlayer ? resolveRelationshipColor((EntityPlayer) entity) : -1;
             int[] playerNameRange = entity instanceof EntityPlayer
-                    ? findVisiblePlayerNameRange(displayName, ((EntityPlayer) entity).getName())
+                    ? findVisiblePlayerNameRange(displayName, entity.getName())
                     : new int[]{-1, -1};
 
             ItemStack heldItem = null;
@@ -522,17 +489,6 @@ public class NameTags extends Module {
         GlStateManager.enableDepth();
     }
 
-    private static final int[] ARMOR_ENCHANT_IDS = {0, 7, 34};
-    private static final String[] ARMOR_ENCHANT_ABBR = {"P", "T", "U"};
-    private static final int[] SWORD_ENCHANT_IDS = {16, 20, 19};
-    private static final String[] SWORD_ENCHANT_ABBR = {"S", "F", "K"};
-    private static final int[] BOW_ENCHANT_IDS = {48, 49, 50};
-    private static final String[] BOW_ENCHANT_ABBR = {"Pw", "Pu", "Fl"};
-    private static final int[] TOOL_ENCHANT_IDS = {32, 35, 34};
-    private static final String[] TOOL_ENCHANT_ABBR = {"E", "Fo", "U"};
-    private static final int[] MISC_ENCHANT_IDS = {19};
-    private static final String[] MISC_ENCHANT_ABBR = {"K"};
-
     private void renderEnchantText(ItemStack stack, int xPos, int yPos) {
         int[] ids;
         String[] abbreviations;
@@ -714,6 +670,47 @@ public class NameTags extends Module {
             drawString(glyph, drawX, y, color, shadow.getValue());
             drawX += getStringWidth(glyph);
             visibleIndex++;
+        }
+    }
+
+    private static class NametagRenderState {
+        private Entity entity;
+        private String displayName;
+        private int stringHalfWidth;
+        private int teamColor;
+        private int relationshipColor;
+        private int playerNameStart;
+        private int playerNameEnd;
+        private double distanceSq;
+        private float baseScale;
+        private float yOffset;
+        private ItemStack heldItem;
+        private ItemStack boots;
+        private ItemStack leggings;
+        private ItemStack chestplate;
+        private ItemStack helmet;
+        private int totalItems;
+
+        private void set(Entity entity, String displayName, int stringHalfWidth, int teamColor, int relationshipColor,
+                         int playerNameStart, int playerNameEnd, double distanceSq, float baseScale, float yOffset,
+                         ItemStack heldItem, ItemStack boots, ItemStack leggings, ItemStack chestplate, ItemStack helmet,
+                         int totalItems) {
+            this.entity = entity;
+            this.displayName = displayName;
+            this.stringHalfWidth = stringHalfWidth;
+            this.teamColor = teamColor;
+            this.relationshipColor = relationshipColor;
+            this.playerNameStart = playerNameStart;
+            this.playerNameEnd = playerNameEnd;
+            this.distanceSq = distanceSq;
+            this.baseScale = baseScale;
+            this.yOffset = yOffset;
+            this.heldItem = heldItem;
+            this.boots = boots;
+            this.leggings = leggings;
+            this.chestplate = chestplate;
+            this.helmet = helmet;
+            this.totalItems = totalItems;
         }
     }
 }

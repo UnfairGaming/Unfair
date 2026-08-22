@@ -55,6 +55,7 @@ public class TargetHUD extends ModuleWithModuleSettings {
     public TimerUtil fadeTimer = null;
     public boolean fadingIn = false;
     public EntityLivingBase fadingEntity = null;
+
     public TargetHUD() {
         super("TargetHUD", false, true, "Mode",
                 new MyauTargetHUD(),
@@ -64,6 +65,14 @@ public class TargetHUD extends ModuleWithModuleSettings {
                 new NovolineTargetHUD(),
                 new ExhibitionTargetHUD()
         );
+    }
+
+    public static float finiteOrDefault(float value, float fallback) {
+        return Float.isFinite(value) ? value : fallback;
+    }
+
+    public static float finiteHealth(float value) {
+        return Math.max(0.0F, finiteOrDefault(value, 0.0F));
     }
 
     public TargetHUDMode getCurrentMode() {
@@ -173,14 +182,6 @@ public class TargetHUD extends ModuleWithModuleSettings {
         }
         Score score = scoreboard.getValueFromObjective(entityLivingBase.getName(), objective);
         return score == null ? -1.0F : (float) score.getScorePoints();
-    }
-
-    public static float finiteOrDefault(float value, float fallback) {
-        return Float.isFinite(value) ? value : fallback;
-    }
-
-    public static float finiteHealth(float value) {
-        return Math.max(0.0F, finiteOrDefault(value, 0.0F));
     }
 
     public HealthInfo getHealthInfo(EntityLivingBase entityLivingBase) {
@@ -406,13 +407,13 @@ public class TargetHUD extends ModuleWithModuleSettings {
     public record TargetHudBounds(int left, int top, int right, int contentBottom, int bottom, int textX, int textY) {
 
         public float width() {
-                return this.right - this.left;
-            }
-
-            public float height() {
-                return this.bottom - this.top;
-            }
+            return this.right - this.left;
         }
+
+        public float height() {
+            return this.bottom - this.top;
+        }
+    }
 
     public record HealthInfo(float health, float absorption, float maxHealth) {
     }

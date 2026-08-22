@@ -7,7 +7,9 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S0BPacketAnimation;
 
 public class AutoClickerBCheck extends AntiCheatCheck {
-    public AutoClickerBCheck() { super("AutoClicker B", "Checks excessive attack frequency."); }
+    public AutoClickerBCheck() {
+        super("AutoClicker B", "Checks excessive attack frequency.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {

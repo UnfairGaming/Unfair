@@ -7,7 +7,9 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S0BPacketAnimation;
 
 public class InvalidSwingCheck extends AntiCheatCheck {
-    public InvalidSwingCheck() { super("Invalid swing", "Checks swinging while using an item."); }
+    public InvalidSwingCheck() {
+        super("Invalid swing", "Checks swinging while using an item.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {

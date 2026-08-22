@@ -17,7 +17,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.WorldSettings.GameType;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -29,8 +29,8 @@ public class ChestStealer extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Instant", "Drop"});
 
-    public final IntProperty minDelay = new IntProperty("Min Delay", 1, 0, 20, ()-> this.mode.getValue() != 1);
-    public final IntProperty maxDelay = new IntProperty("Max Delay", 2, 0, 20, ()-> this.mode.getValue() != 1);
+    public final IntProperty minDelay = new IntProperty("Min Delay", 1, 0, 20, () -> this.mode.getValue() != 1);
+    public final IntProperty maxDelay = new IntProperty("Max Delay", 2, 0, 20, () -> this.mode.getValue() != 1);
     public final IntProperty openDelay = new IntProperty("Open Delay", 1, 0, 20);
     public final BooleanProperty autoClose = new BooleanProperty("Auto Close", true);
     public final BooleanProperty nameCheck = new BooleanProperty("Name Check", true);
@@ -165,9 +165,7 @@ public class ChestStealer extends Module {
                                 mc.thePlayer.closeScreen();
                             }
                         }
-                    }
-
-                    else if ((this.mode.getValue() == 0 || this.mode.getValue() == 2) && this.oDelay <= 0 && this.clickDelay <= 0) {
+                    } else if ((this.mode.getValue() == 0 || this.mode.getValue() == 2) && this.oDelay <= 0 && this.clickDelay <= 0) {
                         if (this.mode.getValue() == 0 && mc.thePlayer.inventory.getFirstEmptyStack() == -1) {
                             if (!this.warnedFull) {
                                 ChatUtil.sendFormatted(String.format("%s%s: &cYour inventory is full!&r", Unfair.clientName, this.getName()));

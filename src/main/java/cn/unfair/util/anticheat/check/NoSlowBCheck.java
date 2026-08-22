@@ -6,7 +6,9 @@ import cn.unfair.util.anticheat.AnticheatManager;
 import net.minecraft.network.Packet;
 
 public class NoSlowBCheck extends AntiCheatCheck {
-    public NoSlowBCheck() { super("NoSlow B", "Checks movement speed after item use."); }
+    public NoSlowBCheck() {
+        super("NoSlow B", "Checks movement speed after item use.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {

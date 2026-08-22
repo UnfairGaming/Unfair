@@ -34,6 +34,24 @@ public class Ambience extends Module {
         super("Ambience", false, true);
     }
 
+    public static Vec3 getWorldColorVec() {
+        if (mc == null || mc.theWorld == null || cn.unfair.Unfair.moduleManager == null) {
+            return null;
+        }
+
+        Module module = cn.unfair.Unfair.moduleManager.getModule(Ambience.class);
+        if (!(module instanceof Ambience ambience) || !ambience.isEnabled() || !ambience.worldColor.getValue()) {
+            return null;
+        }
+
+        int rgb = ambience.color.getValue();
+        return new Vec3(
+                (rgb >> 16 & 255) / 255.0D,
+                (rgb >> 8 & 255) / 255.0D,
+                (rgb & 255) / 255.0D
+        );
+    }
+
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || mc.theWorld == null) {
@@ -112,23 +130,5 @@ public class Ambience extends Module {
     @Override
     public String[] getSuffix() {
         return this.timeMode.getValue() == 0 ? new String[0] : new String[]{this.timeMode.getDisplayModeString()};
-    }
-
-    public static Vec3 getWorldColorVec() {
-        if (mc == null || mc.theWorld == null || cn.unfair.Unfair.moduleManager == null) {
-            return null;
-        }
-
-        Module module = cn.unfair.Unfair.moduleManager.getModule(Ambience.class);
-        if (!(module instanceof Ambience ambience) || !ambience.isEnabled() || !ambience.worldColor.getValue()) {
-            return null;
-        }
-
-        int rgb = ambience.color.getValue();
-        return new Vec3(
-                (rgb >> 16 & 255) / 255.0D,
-                (rgb >> 8 & 255) / 255.0D,
-                (rgb & 255) / 255.0D
-        );
     }
 }

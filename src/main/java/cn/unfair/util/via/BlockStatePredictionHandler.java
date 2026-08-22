@@ -18,12 +18,11 @@ import java.util.Map;
 @Getter
 @Setter
 public class BlockStatePredictionHandler implements AutoCloseable {
+    public static boolean isC08;
     private final Long2ObjectOpenHashMap<ServerVerifiedState> serverVerifiedStates = new Long2ObjectOpenHashMap<>();
     @Setter
     public int currentSequence;
     private boolean isPredicting;
-
-    public static boolean isC08;
 
     public void retainKnownServerState(BlockPos pos, IBlockState state, EntityPlayerSP self) {
         this.serverVerifiedStates

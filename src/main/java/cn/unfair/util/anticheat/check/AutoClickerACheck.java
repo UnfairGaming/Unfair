@@ -9,7 +9,9 @@ import net.minecraft.network.play.server.S0BPacketAnimation;
 import java.util.Collection;
 
 public class AutoClickerACheck extends AntiCheatCheck {
-    public AutoClickerACheck() { super("AutoClicker A", "Checks attack interval regularity."); }
+    public AutoClickerACheck() {
+        super("AutoClicker A", "Checks attack interval regularity.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {

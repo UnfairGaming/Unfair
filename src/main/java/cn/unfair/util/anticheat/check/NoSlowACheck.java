@@ -6,7 +6,9 @@ import cn.unfair.util.anticheat.AnticheatManager;
 import net.minecraft.network.Packet;
 
 public class NoSlowACheck extends AntiCheatCheck {
-    public NoSlowACheck() { super("NoSlow A", "Checks sprinting while using an item."); }
+    public NoSlowACheck() {
+        super("NoSlow A", "Checks sprinting while using an item.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {

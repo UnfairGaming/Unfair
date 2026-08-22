@@ -13,7 +13,6 @@ import cn.unfair.property.Property;
 import cn.unfair.property.PropertyManager;
 import cn.unfair.ui.widget.WidgetManager;
 import cn.unfair.ui.widget.impl.HudWidgets;
-import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.rotation.AdvancedJitterHandler;
 import de.florianmichael.viamcp.ViaMCP;
 

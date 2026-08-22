@@ -17,17 +17,14 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.ContainerPlayer;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.WorldSettings.GameType;
 import org.apache.commons.lang3.RandomUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
@@ -271,7 +268,7 @@ public class InvManager extends Module {
         for (int i = 0; i < 36; i++) {
             int currentSlot = ((startSlot + i) % 36 + 36) % 36;
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(currentSlot);
-            if (stack == null || !ItemUtil.isTool(stack, toolClass)) {
+            if (!ItemUtil.isTool(stack, toolClass)) {
                 continue;
             }
             if (checkDurability && !this.hasMinimumDurability(stack)) {
@@ -293,7 +290,7 @@ public class InvManager extends Module {
         for (int i = 0; i < 36; i++) {
             int currentSlot = ((startSlot + i) % 36 + 36) % 36;
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(currentSlot);
-            if (stack == null || !ItemUtil.isSword(stack)) {
+            if (!ItemUtil.isSword(stack)) {
                 continue;
             }
             if (checkDurability && !this.hasMinimumDurability(stack)) {

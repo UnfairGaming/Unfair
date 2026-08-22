@@ -26,15 +26,13 @@ import net.minecraft.potion.Potion;
 
 public class HypixelVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
-
-    private boolean delayFlag;
-    private boolean knockback;
-    private boolean jumpFlag;
-
     public final BooleanProperty debug = new BooleanProperty("Debug", false);
     public final BooleanProperty jump = new BooleanProperty("Jump", true);
     public final BooleanProperty reduce = new BooleanProperty("Reduce", true);
     public final BooleanProperty delay = new BooleanProperty("Delay", true);
+    private boolean delayFlag;
+    private boolean knockback;
+    private boolean jumpFlag;
 
     public HypixelVelocity() {
         super("Hypixel");

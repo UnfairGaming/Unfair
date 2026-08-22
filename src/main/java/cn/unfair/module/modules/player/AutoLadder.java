@@ -22,12 +22,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 
 public final class AutoLadder extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -53,6 +48,10 @@ public final class AutoLadder extends Module {
 
     public AutoLadder() {
         super("AutoLadder", false);
+    }
+
+    private static double square(double value) {
+        return value * value;
     }
 
     @EventTarget(Priority.HIGHEST)
@@ -175,7 +174,6 @@ public final class AutoLadder extends Module {
         if (this.state == 6) {
             this.switchSlot(this.oldSlot);
             this.clear(false);
-            return;
         }
     }
 
@@ -233,13 +231,26 @@ public final class AutoLadder extends Module {
     private void aim(UpdateEvent event, BlockPos target, EnumFacing face) {
         Vec3 hit = new Vec3(target.getX() + 0.5D, target.getY() + 0.5D, target.getZ() + 0.5D);
         switch (face) {
-            case UP: hit = new Vec3(hit.xCoord, target.getY() + 0.99D, hit.zCoord); break;
-            case DOWN: hit = new Vec3(hit.xCoord, target.getY() + 0.01D, hit.zCoord); break;
-            case NORTH: hit = new Vec3(hit.xCoord, hit.yCoord, target.getZ() + 0.01D); break;
-            case SOUTH: hit = new Vec3(hit.xCoord, hit.yCoord, target.getZ() + 0.99D); break;
-            case WEST: hit = new Vec3(target.getX() + 0.01D, hit.yCoord, hit.zCoord); break;
-            case EAST: hit = new Vec3(target.getX() + 0.99D, hit.yCoord, hit.zCoord); break;
-            default: break;
+            case UP:
+                hit = new Vec3(hit.xCoord, target.getY() + 0.99D, hit.zCoord);
+                break;
+            case DOWN:
+                hit = new Vec3(hit.xCoord, target.getY() + 0.01D, hit.zCoord);
+                break;
+            case NORTH:
+                hit = new Vec3(hit.xCoord, hit.yCoord, target.getZ() + 0.01D);
+                break;
+            case SOUTH:
+                hit = new Vec3(hit.xCoord, hit.yCoord, target.getZ() + 0.99D);
+                break;
+            case WEST:
+                hit = new Vec3(target.getX() + 0.01D, hit.yCoord, hit.zCoord);
+                break;
+            case EAST:
+                hit = new Vec3(target.getX() + 0.99D, hit.yCoord, hit.zCoord);
+                break;
+            default:
+                break;
         }
         float[] rotation = RotationUtil.getRotations(hit.xCoord, hit.yCoord, hit.zCoord,
                 mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ);
@@ -323,7 +334,8 @@ public final class AutoLadder extends Module {
     private int findLadder() {
         for (int i = 0; i < 9; i++) {
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
-            if (stack != null && stack.getItem() instanceof ItemBlock && ((ItemBlock) stack.getItem()).getBlock() == Blocks.ladder) return i;
+            if (stack != null && stack.getItem() instanceof ItemBlock && ((ItemBlock) stack.getItem()).getBlock() == Blocks.ladder)
+                return i;
         }
         return -1;
     }
@@ -333,7 +345,8 @@ public final class AutoLadder extends Module {
             ItemStack stack = mc.thePlayer.inventory.getStackInSlot(i);
             if (stack == null || !(stack.getItem() instanceof ItemBlock)) continue;
             Block block = ((ItemBlock) stack.getItem()).getBlock();
-            if (block != Blocks.ladder && block.isFullCube() && BlockUtil.isSolid(block) && !BlockUtil.isInteractable(block)) return i;
+            if (block != Blocks.ladder && block.isFullCube() && BlockUtil.isSolid(block) && !BlockUtil.isInteractable(block))
+                return i;
         }
         return -1;
     }
@@ -425,11 +438,16 @@ public final class AutoLadder extends Module {
 
     private double gapToLadder(AxisAlignedBB playerBox, AxisAlignedBB ladderBox) {
         switch (this.forward) {
-            case EAST: return ladderBox.minX - playerBox.maxX;
-            case WEST: return playerBox.minX - ladderBox.maxX;
-            case SOUTH: return ladderBox.minZ - playerBox.maxZ;
-            case NORTH: return playerBox.minZ - ladderBox.maxZ;
-            default: return 0.0D;
+            case EAST:
+                return ladderBox.minX - playerBox.maxX;
+            case WEST:
+                return playerBox.minX - ladderBox.maxX;
+            case SOUTH:
+                return ladderBox.minZ - playerBox.maxZ;
+            case NORTH:
+                return playerBox.minZ - ladderBox.maxZ;
+            default:
+                return 0.0D;
         }
     }
 
@@ -441,11 +459,16 @@ public final class AutoLadder extends Module {
                 pos.getX() + 1.0D, pos.getY() + 1.0D, pos.getZ() + 1.0D
         );
         switch (this.forward) {
-            case EAST:  return blockBox.minX - playerBox.maxX;
-            case WEST:  return playerBox.minX - blockBox.maxX;
-            case SOUTH: return blockBox.minZ - playerBox.maxZ;
-            case NORTH: return playerBox.minZ - blockBox.maxZ;
-            default:    return 0.0D;
+            case EAST:
+                return blockBox.minX - playerBox.maxX;
+            case WEST:
+                return playerBox.minX - blockBox.maxX;
+            case SOUTH:
+                return blockBox.minZ - playerBox.maxZ;
+            case NORTH:
+                return playerBox.minZ - blockBox.maxZ;
+            default:
+                return 0.0D;
         }
     }
 
@@ -535,10 +558,6 @@ public final class AutoLadder extends Module {
     private void applyKeys(KeyInput input) {
         mc.thePlayer.movementInput.moveForward = input.forward();
         mc.thePlayer.movementInput.moveStrafe = input.strafe();
-    }
-
-    private static double square(double value) {
-        return value * value;
     }
 
     private void updatePlacementTarget() {
@@ -668,8 +687,15 @@ public final class AutoLadder extends Module {
         forward = null;
     }
 
-    @Override public void onEnabled() { clear(false); }
-    @Override public void onDisabled() { clear(true); }
+    @Override
+    public void onEnabled() {
+        clear(false);
+    }
+
+    @Override
+    public void onDisabled() {
+        clear(true);
+    }
 
     private record KeyInput(float forward, float strafe) {
     }

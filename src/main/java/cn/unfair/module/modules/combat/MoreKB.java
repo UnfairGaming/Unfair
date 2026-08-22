@@ -2,11 +2,7 @@ package cn.unfair.module.modules.combat;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.AttackEvent;
-import cn.unfair.events.LivingUpdateEvent;
-import cn.unfair.events.MoveInputEvent;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.UpdateEvent;
+import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
@@ -43,49 +39,85 @@ public class MoreKB extends Module {
     public final IntProperty ticksUntilBlockMax = new IntProperty(
             "Ticks Until Block Max", 2, 0, 5, () -> this.mode.getValue() == 0
     );
+    private int blockInputTicks = this.randomTicksUntilBlock();
     public final IntProperty reSprintTicksMin = new IntProperty(
             "Re Sprint Ticks Min", 1, 1, 5, () -> this.mode.getValue() == 0
     );
     public final IntProperty reSprintTicksMax = new IntProperty(
             "Re Sprint Ticks Max", 2, 1, 5, () -> this.mode.getValue() == 0
     );
+    private int allowInputTicks = this.randomReSprintTicks();
     public final IntProperty targetDistance = new IntProperty(
             "Target Distance", 3, 1, 5, () -> this.mode.getValue() == 0
     );
-
     public final IntProperty pressBackTicks = new IntProperty(
             "Press Back Ticks", 1, 1, 5, () -> this.mode.getValue() == 2
     );
     public final IntProperty releaseBackTicks = new IntProperty(
             "Release Back Ticks", 2, 1, 5, () -> this.mode.getValue() == 2
     );
-
     public final FloatProperty minEnemyRotDiffToIgnore = new FloatProperty(
             "Min Rotation Diff From Enemy To Ignore", 180.0F, 0.0F, 180.0F
     );
-
     public final BooleanProperty onlyGround = new BooleanProperty("Only Ground", false);
     public final BooleanProperty onlyMove = new BooleanProperty("Only Move", true);
     public final BooleanProperty onlyMoveForward = new BooleanProperty(
             "Only Move Forward", true, this.onlyMove::getValue
     );
     public final BooleanProperty onlyWhenTargetGoesBack = new BooleanProperty("Only When Target Goes Back", false);
-
+    private final TimerUtil timer = new TimerUtil();
     private int ticks;
     private int forceSprintState;
-    private final TimerUtil timer = new TimerUtil();
-
-    private int blockInputTicks = this.randomTicksUntilBlock();
     private int blockTicksElapsed;
     private boolean startWaiting;
     private boolean blockInput;
-    private int allowInputTicks = this.randomReSprintTicks();
     private int ticksElapsed;
 
     private int sprintTicks;
 
     public MoreKB() {
         super("MoreKB", false);
+    }
+
+    private static int randomInclusive(int min, int max) {
+        return ThreadLocalRandom.current().nextInt(min, max + 1);
+    }
+
+    private static boolean isMoving(EntityLivingBase entity) {
+        return entity.moveForward != 0.0F || entity.moveStrafing != 0.0F;
+    }
+
+    private static AxisAlignedBB getHitBox(Entity entity) {
+        double borderSize = entity.getCollisionBorderSize();
+        return entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
+    }
+
+    private static double getDistanceToEntityBox(Entity player, Entity target) {
+        return getDistanceToBox(player, getHitBox(target));
+    }
+
+    private static double getDistanceToBox(Entity player, AxisAlignedBB box) {
+        Vec3 eyes = player.getPositionEyes(1.0F);
+        Vec3 nearest = new Vec3(
+                MathHelper.clamp_double(eyes.xCoord, box.minX, box.maxX),
+                MathHelper.clamp_double(eyes.yCoord, box.minY, box.maxY),
+                MathHelper.clamp_double(eyes.zCoord, box.minZ, box.maxZ)
+        );
+        return eyes.distanceTo(nearest);
+    }
+
+    private static float getRotationToPlayer(EntityPlayerSP player, EntityLivingBase target) {
+        AxisAlignedBB playerHitBox = getHitBox(player);
+        double targetX = (playerHitBox.minX + playerHitBox.maxX) * 0.5D;
+        double targetZ = (playerHitBox.minZ + playerHitBox.maxZ) * 0.5D;
+        Vec3 targetEyes = target.getPositionEyes(1.0F);
+        float yaw = MathHelper.wrapAngleTo180_float(
+                (float) Math.toDegrees(Math.atan2(targetZ - targetEyes.zCoord, targetX - targetEyes.xCoord)) - 90.0F
+        );
+
+        float sensitivityFactor = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+        float gcd = sensitivityFactor * sensitivityFactor * sensitivityFactor * 1.2F;
+        return player.getLastReportedYaw() + Math.round((yaw - player.getLastReportedYaw()) / gcd) * gcd;
     }
 
     @EventTarget
@@ -341,46 +373,5 @@ public class MoreKB extends Module {
 
     private int randomReSprintTicks() {
         return randomInclusive(this.reSprintTicksMin.getValue(), this.reSprintTicksMax.getValue());
-    }
-
-    private static int randomInclusive(int min, int max) {
-        return ThreadLocalRandom.current().nextInt(min, max + 1);
-    }
-
-    private static boolean isMoving(EntityLivingBase entity) {
-        return entity.moveForward != 0.0F || entity.moveStrafing != 0.0F;
-    }
-
-    private static AxisAlignedBB getHitBox(Entity entity) {
-        double borderSize = entity.getCollisionBorderSize();
-        return entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
-    }
-
-    private static double getDistanceToEntityBox(Entity player, Entity target) {
-        return getDistanceToBox(player, getHitBox(target));
-    }
-
-    private static double getDistanceToBox(Entity player, AxisAlignedBB box) {
-        Vec3 eyes = player.getPositionEyes(1.0F);
-        Vec3 nearest = new Vec3(
-                MathHelper.clamp_double(eyes.xCoord, box.minX, box.maxX),
-                MathHelper.clamp_double(eyes.yCoord, box.minY, box.maxY),
-                MathHelper.clamp_double(eyes.zCoord, box.minZ, box.maxZ)
-        );
-        return eyes.distanceTo(nearest);
-    }
-
-    private static float getRotationToPlayer(EntityPlayerSP player, EntityLivingBase target) {
-        AxisAlignedBB playerHitBox = getHitBox(player);
-        double targetX = (playerHitBox.minX + playerHitBox.maxX) * 0.5D;
-        double targetZ = (playerHitBox.minZ + playerHitBox.maxZ) * 0.5D;
-        Vec3 targetEyes = target.getPositionEyes(1.0F);
-        float yaw = MathHelper.wrapAngleTo180_float(
-                (float) Math.toDegrees(Math.atan2(targetZ - targetEyes.zCoord, targetX - targetEyes.xCoord)) - 90.0F
-        );
-
-        float sensitivityFactor = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
-        float gcd = sensitivityFactor * sensitivityFactor * sensitivityFactor * 1.2F;
-        return player.getLastReportedYaw() + Math.round((yaw - player.getLastReportedYaw()) / gcd) * gcd;
     }
 }

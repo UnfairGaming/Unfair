@@ -16,27 +16,21 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityFallingBlock;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class Scaffold extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -47,7 +41,14 @@ public class Scaffold extends Module {
     private static final float BLOCK_COUNT_ICON_SIZE = 16.0F;
     private static final float BLOCK_COUNT_ICON_GAP = 3.0F;
     private static final float BLOCK_COUNT_TEXT_GAP = 2.0F;
-
+    private static final List<Block> invalidBlocks = Arrays.asList(
+            net.minecraft.init.Blocks.enchanting_table, net.minecraft.init.Blocks.chest, net.minecraft.init.Blocks.ender_chest,
+            net.minecraft.init.Blocks.trapped_chest, net.minecraft.init.Blocks.anvil, net.minecraft.init.Blocks.sand,
+            net.minecraft.init.Blocks.web, net.minecraft.init.Blocks.torch, net.minecraft.init.Blocks.crafting_table,
+            net.minecraft.init.Blocks.furnace, net.minecraft.init.Blocks.dispenser, net.minecraft.init.Blocks.stone_pressure_plate,
+            net.minecraft.init.Blocks.noteblock, net.minecraft.init.Blocks.dropper, net.minecraft.init.Blocks.tnt,
+            net.minecraft.init.Blocks.redstone_torch, net.minecraft.init.Blocks.daylight_detector
+    );
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge", "Legit"});
     public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
     public final IntProperty placeTick = new IntProperty("Place Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
@@ -75,6 +76,8 @@ public class Scaffold extends Module {
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
     public final IntProperty godBridgeResetTicks = new IntProperty("Reset Ticks", 1, 1, 20,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
+    public final FloatProperty godBridgeAngleResetDifference = new FloatProperty("Angle Reset Difference", 5.0F, 0.0F, 180.0F,
+            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
     public final BooleanProperty godBridgeLegitimize = new BooleanProperty("Legitimize", false,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
     public final FloatProperty godBridgeHorizontalSpeedMin = new FloatProperty("Horizontal Speed Min", 180.0F, 1.0F, 180.0F,
@@ -85,8 +88,6 @@ public class Scaffold extends Module {
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
     public final FloatProperty godBridgeVerticalSpeedMax = new FloatProperty("Vertical Speed Max", 180.0F, 1.0F, 180.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeAngleResetDifference = new FloatProperty("Angle Reset Difference", 5.0F, 0.0F, 180.0F,
-            () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
     public final FloatProperty godBridgeMinRotationDifference = new FloatProperty("Min Rotation Difference", 2.0F, 0.0F, 4.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
     public final ModeProperty godBridgeMinRotationTiming = new ModeProperty("Min Rotation Timing", 0,
@@ -124,16 +125,9 @@ public class Scaffold extends Module {
     public final BooleanProperty blockCount = new BooleanProperty("Block Count", true);
     public final IntProperty blockCountOffset = new IntProperty("Block Count Y Offset", 0, 0, 200);
     public final PercentProperty blockCountOpacity = new PercentProperty("Block Count Opacity", 70, this.blockCount::getValue);
-
-    private static final List<Block> invalidBlocks = Arrays.asList(
-            net.minecraft.init.Blocks.enchanting_table, net.minecraft.init.Blocks.chest, net.minecraft.init.Blocks.ender_chest,
-            net.minecraft.init.Blocks.trapped_chest, net.minecraft.init.Blocks.anvil, net.minecraft.init.Blocks.sand,
-            net.minecraft.init.Blocks.web, net.minecraft.init.Blocks.torch, net.minecraft.init.Blocks.crafting_table,
-            net.minecraft.init.Blocks.furnace, net.minecraft.init.Blocks.dispenser, net.minecraft.init.Blocks.stone_pressure_plate,
-            net.minecraft.init.Blocks.noteblock, net.minecraft.init.Blocks.dropper, net.minecraft.init.Blocks.tnt,
-            net.minecraft.init.Blocks.redstone_torch, net.minecraft.init.Blocks.daylight_detector
-    );
-
+    private final Deque<Long> godBridgeRightClicks = new ArrayDeque<>();
+    private final TimerUtil blockCountTransitionTimer = new TimerUtil();
+    private final TimerUtil blockCountPopTimer = new TimerUtil();
     private SlotData slot;
     private SlotData blockSlot;
     private int oldSlot;
@@ -161,7 +155,6 @@ public class Scaffold extends Module {
     private long godBridgeExtraClickLast = 0L;
     private int godBridgeExtraClickDelay = 0;
     private int godBridgeQueuedExtraClicks = 0;
-    private final Deque<Long> godBridgeRightClicks = new ArrayDeque<>();
     private boolean legitStartSneak;
     private boolean legitPressingSneak;
     private boolean legitSneakStarted;
@@ -170,8 +163,6 @@ public class Scaffold extends Module {
     private int ups = 0;
     private int onGroundTicks = 0;
     private int offGroundTicks = 0;
-    private final TimerUtil blockCountTransitionTimer = new TimerUtil();
-    private final TimerUtil blockCountPopTimer = new TimerUtil();
     private float blockCountDisplay;
     private float blockCountTransitionStart;
     private int blockCountTarget;
@@ -179,27 +170,40 @@ public class Scaffold extends Module {
     private boolean blockCountVisible;
     private boolean blockCountHiding;
 
-    private record BlockCountLayout(
-            float left,
-            float top,
-            float width,
-            float height,
-            float scale,
-            int alpha,
-            int count,
-            String label,
-            String amount,
-            FontRenderer font,
-            float labelWidth,
-            float iconX,
-            float iconY,
-            float textX,
-            float textY
-    ) {
-    }
-
     public Scaffold() {
         super("Scaffold", false);
+    }
+
+    private static float snapGodBridgeYaw(float yaw) {
+        return (float) Math.rint(yaw / 45.0F) * 45.0F;
+    }
+
+    private static boolean didHitBlockFace(Entity player, float yaw, float pitch, BlockPos targetPos, EnumFacing expectedFace) {
+        if (player == null || expectedFace == null) {
+            return false;
+        }
+        return strictBlockRayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), targetPos, expectedFace) != null;
+    }
+
+    private static MovingObjectPosition strictBlockRayTrace(float yaw, float pitch, double distance,
+                                                            BlockPos targetPos, EnumFacing expectedFace) {
+        if (mc.thePlayer == null || mc.theWorld == null || targetPos == null || expectedFace == null) {
+            return null;
+        }
+        Vec3 eye = mc.thePlayer.getPositionEyes(1.0F);
+        Vec3 look = mc.thePlayer.getVectorForRotation(pitch, yaw);
+        Vec3 end = eye.addVector(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance);
+        MovingObjectPosition result = mc.theWorld.rayTraceBlocks(eye, end, false, false, false);
+        if (result == null || result.typeOfHit != MovingObjectType.BLOCK
+                || !targetPos.equals(result.getBlockPos()) || result.sideHit != expectedFace) {
+            return null;
+        }
+        Vec3 hit = result.hitVec;
+        double epsilon = 1.0E-5D;
+        return hit.xCoord >= targetPos.getX() - epsilon && hit.xCoord <= targetPos.getX() + 1.0D + epsilon
+                && hit.yCoord >= targetPos.getY() - epsilon && hit.yCoord <= targetPos.getY() + 1.0D + epsilon
+                && hit.zCoord >= targetPos.getZ() - epsilon && hit.zCoord <= targetPos.getZ() + 1.0D + epsilon
+                ? result : null;
     }
 
     private boolean isGodBridgeMode() {
@@ -1153,7 +1157,7 @@ public class Scaffold extends Module {
         boolean movingStraight = godBridgeApplyServerSide.getValue()
                 ? movingYaw % 90.0F == 0.0F
                 : (movingYaw == -135.0F || movingYaw == -45.0F || movingYaw == 45.0F || movingYaw == 135.0F)
-                && godBridgeRawStrafe != 0.0F;
+                  && godBridgeRawStrafe != 0.0F;
 
         Rotation rotation;
         if (movingStraight) {
@@ -1189,10 +1193,6 @@ public class Scaffold extends Module {
         godBridgeTargetRotation = fixedSensitivity(this.limitLegitPitch(rotation));
         godBridgeRotationTicks = godBridgeApplyServerSide.getValue() ? godBridgeResetTicks.getValue() : 1;
         updateGodBridgeLimitedRotation();
-    }
-
-    private static float snapGodBridgeYaw(float yaw) {
-        return (float) Math.rint(yaw / 45.0F) * 45.0F;
     }
 
     private float getGodBridgeDirection() {
@@ -1417,34 +1417,6 @@ public class Scaffold extends Module {
         clickGodBridgeBlock(
                 mc.thePlayer.inventory.getCurrentItem(), raycast.getBlockPos(), raycast.sideHit, raycast.hitVec, false
         );
-    }
-
-    private static boolean didHitBlockFace(Entity player, float yaw, float pitch, BlockPos targetPos, EnumFacing expectedFace) {
-        if (player == null || expectedFace == null) {
-            return false;
-        }
-        return strictBlockRayTrace(yaw, pitch, mc.playerController.getBlockReachDistance(), targetPos, expectedFace) != null;
-    }
-
-    private static MovingObjectPosition strictBlockRayTrace(float yaw, float pitch, double distance,
-                                                             BlockPos targetPos, EnumFacing expectedFace) {
-        if (mc.thePlayer == null || mc.theWorld == null || targetPos == null || expectedFace == null) {
-            return null;
-        }
-        Vec3 eye = mc.thePlayer.getPositionEyes(1.0F);
-        Vec3 look = mc.thePlayer.getVectorForRotation(pitch, yaw);
-        Vec3 end = eye.addVector(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance);
-        MovingObjectPosition result = mc.theWorld.rayTraceBlocks(eye, end, false, false, false);
-        if (result == null || result.typeOfHit != MovingObjectType.BLOCK
-                || !targetPos.equals(result.getBlockPos()) || result.sideHit != expectedFace) {
-            return null;
-        }
-        Vec3 hit = result.hitVec;
-        double epsilon = 1.0E-5D;
-        return hit.xCoord >= targetPos.getX() - epsilon && hit.xCoord <= targetPos.getX() + 1.0D + epsilon
-                && hit.yCoord >= targetPos.getY() - epsilon && hit.yCoord <= targetPos.getY() + 1.0D + epsilon
-                && hit.zCoord >= targetPos.getZ() - epsilon && hit.zCoord <= targetPos.getZ() + 1.0D + epsilon
-                ? result : null;
     }
 
     private void place() {
@@ -1946,6 +1918,25 @@ public class Scaffold extends Module {
     @Override
     public String[] getSuffix() {
         return new String[]{mode.getModeString()};
+    }
+
+    private record BlockCountLayout(
+            float left,
+            float top,
+            float width,
+            float height,
+            float scale,
+            int alpha,
+            int count,
+            String label,
+            String amount,
+            FontRenderer font,
+            float labelWidth,
+            float iconX,
+            float iconY,
+            float textX,
+            float textY
+    ) {
     }
 
     public record BlockData(BlockPos blockPos, EnumFacing facing) {

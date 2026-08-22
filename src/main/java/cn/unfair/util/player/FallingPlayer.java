@@ -5,17 +5,17 @@ import net.minecraft.util.Vec3;
 
 public class FallingPlayer {
 
+    private final float yaw;
+    private final float strafe;
+    private final float forward;
+    private final float jumpMovementFactor;
+    private final float eyeHeight;
     private double x;
     private double y;
     private double z;
     private double motionX;
     private double motionY;
     private double motionZ;
-    private final float yaw;
-    private final float strafe;
-    private final float forward;
-    private final float jumpMovementFactor;
-    private final float eyeHeight;
 
     public FallingPlayer(EntityPlayerSP player) {
         this.x = player.posX;

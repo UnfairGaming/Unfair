@@ -3,11 +3,7 @@ package cn.unfair.module.modules.render;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.LoadWorldEvent;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.Render2DEvent;
-import cn.unfair.events.Render3DEvent;
-import cn.unfair.events.ResizeEvent;
+import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.AndroidUtil;
@@ -15,12 +11,12 @@ import cn.unfair.util.RenderUtil;
 import cn.unfair.util.postprocessing.GlowESPBlurShader;
 import cn.unfair.util.postprocessing.ShaderUtil;
 import lombok.Getter;
+import net.minecraft.block.BlockChest;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.block.BlockChest;
 import net.minecraft.init.Blocks;
 import net.minecraft.network.play.server.S24PacketBlockAction;
 import net.minecraft.tileentity.TileEntity;
@@ -48,6 +44,7 @@ public class ChestESP extends Module {
     public final BooleanProperty tracers = new BooleanProperty("Tracers", false);
     public final FloatProperty glowExposure = new FloatProperty("Glow Exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == 1);
     public final IntProperty glowRadius = new IntProperty("Glow Radius", 5, 2, 30, () -> this.mode.getValue() == 1);
+    private final List<BlockPos> openedChests = new CopyOnWriteArrayList<>();
     private GlowESPBlurShader blurShader;
     private boolean glowAvailable;
     @Getter
@@ -55,7 +52,6 @@ public class ChestESP extends Module {
     private Framebuffer framebuffer = null;
     private Framebuffer glowFrameBuffer = null;
     private List<TileEntity> glowChests = new ArrayList<>();
-    private final List<BlockPos> openedChests = new CopyOnWriteArrayList<>();
 
     public ChestESP() {
         super("ChestESP", false, true);

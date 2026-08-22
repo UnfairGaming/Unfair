@@ -5,11 +5,7 @@ import cn.unfair.enums.BlinkModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
-import cn.unfair.events.PacketEvent;
-import cn.unfair.events.RenderItemEvent;
-import cn.unfair.events.RightClickMouseEvent;
-import cn.unfair.events.TickEvent;
-import cn.unfair.events.UseItemEvent;
+import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.property.properties.BooleanProperty;
@@ -54,6 +50,13 @@ public class Autoblock extends Module {
 
     public Autoblock() {
         super("Autoblock", false, true);
+    }
+
+    private static int msToTicks(int milliseconds) {
+        if (milliseconds <= 0) {
+            return 0;
+        }
+        return (int) Math.ceil(milliseconds / 50.0D);
     }
 
     @Override
@@ -208,13 +211,6 @@ public class Autoblock extends Module {
             event.setEnumAction(EnumAction.BLOCK);
             event.setUseItem(true);
         }
-    }
-
-    private static int msToTicks(int milliseconds) {
-        if (milliseconds <= 0) {
-            return 0;
-        }
-        return (int) Math.ceil(milliseconds / 50.0D);
     }
 
     private boolean isReady() {

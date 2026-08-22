@@ -12,7 +12,6 @@ import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.RandomUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
@@ -26,8 +25,8 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.potion.Potion;
 import net.minecraft.util.BlockPos;
 
-import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 import static cn.unfair.management.BadPacketManager.bad;
+import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
 
 public class GrimReduceVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();

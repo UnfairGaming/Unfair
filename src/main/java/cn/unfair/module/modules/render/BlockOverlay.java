@@ -28,21 +28,12 @@ import java.util.List;
 public class BlockOverlay extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final double PADDING = 0.0020000000949949026;
-    private final List<Block> plants = Arrays.asList(
-            Blocks.deadbush,
-            Blocks.double_plant,
-            Blocks.red_flower,
-            Blocks.tallgrass,
-            Blocks.yellow_flower
-    );
-
     public final ModeProperty renderMode = new ModeProperty("Render Mode", 1, new String[]{"Hidden", "Vanilla", "Side", "Full"});
     public final BooleanProperty persistence = new BooleanProperty("Persistence", false);
     public final BooleanProperty depthless = new BooleanProperty("Depthless", false);
     public final BooleanProperty barriers = new BooleanProperty("Barriers", false);
     public final BooleanProperty hidePlants = new BooleanProperty("Hide Plants", false);
     public final FloatProperty thickness = new FloatProperty("Thickness", 2.0F, 1.0F, 10.0F);
-
     public final BooleanProperty overlayVisible = new BooleanProperty("Overlay Visible", true);
     public final ModeProperty overlayColorMode = new ModeProperty("Overlay Color Mode", 0, new String[]{"Static", "Gradient", "Fade", "Chroma"});
     public final ColorProperty overlayStaticColor = new ColorProperty("Overlay Static Color", Color.WHITE.getRGB(), () -> this.overlayColorMode.getValue() == 0);
@@ -58,7 +49,6 @@ public class BlockOverlay extends Module {
     public final FloatProperty overlayFadeSpeed = new FloatProperty("Overlay Fade Speed", 5.5F, 1.0F, 10.0F, () -> this.overlayColorMode.getValue() == 2);
     public final PercentProperty overlayChromaOpacity = new PercentProperty("Overlay Chroma Opacity", 100, 7, 100, () -> this.overlayColorMode.getValue() == 3);
     public final FloatProperty overlayChromaSpeed = new FloatProperty("Overlay Chroma Speed", 5.5F, 1.0F, 10.0F, () -> this.overlayColorMode.getValue() == 3);
-
     public final BooleanProperty outlineVisible = new BooleanProperty("Outline Visible", true);
     public final ModeProperty outlineColorMode = new ModeProperty("Outline Color Mode", 0, new String[]{"Static", "Gradient", "Fade", "Chroma"});
     public final ColorProperty outlineStaticColor = new ColorProperty("Outline Static Color", Color.BLACK.getRGB(), () -> this.outlineColorMode.getValue() == 0);
@@ -74,6 +64,13 @@ public class BlockOverlay extends Module {
     public final FloatProperty outlineFadeSpeed = new FloatProperty("Outline Fade Speed", 5.5F, 1.0F, 10.0F, () -> this.outlineColorMode.getValue() == 2);
     public final PercentProperty outlineChromaOpacity = new PercentProperty("Outline Chroma Opacity", 100, 7, 100, () -> this.outlineColorMode.getValue() == 3);
     public final FloatProperty outlineChromaSpeed = new FloatProperty("Outline Chroma Speed", 5.5F, 1.0F, 10.0F, () -> this.outlineColorMode.getValue() == 3);
+    private final List<Block> plants = Arrays.asList(
+            Blocks.deadbush,
+            Blocks.double_plant,
+            Blocks.red_flower,
+            Blocks.tallgrass,
+            Blocks.yellow_flower
+    );
 
     public BlockOverlay() {
         super("BlockOverlay", false, true);
@@ -200,10 +197,14 @@ public class BlockOverlay extends Module {
 
     private int getOverlayStartColor() {
         return switch (this.overlayColorMode.getValue()) {
-            case 0 -> ColorUtil.setAlpha(this.overlayStaticColor.getValue(), this.overlayStaticOpacity.getValue() / 100.0);
-            case 1 -> ColorUtil.setAlpha(this.overlayGradientStartColor.getValue(), this.overlayGradientStartOpacity.getValue() / 100.0);
-            case 2 -> this.fadeColor(this.overlayFadeStartColor, this.overlayFadeStartOpacity, this.overlayFadeEndColor, this.overlayFadeEndOpacity, this.overlayFadeSpeed, 0L);
-            case 3 -> ColorUtil.setAlpha(ColorUtil.getChroma(this.overlayChromaSpeed.getValue()), this.overlayChromaOpacity.getValue() / 100.0);
+            case 0 ->
+                    ColorUtil.setAlpha(this.overlayStaticColor.getValue(), this.overlayStaticOpacity.getValue() / 100.0);
+            case 1 ->
+                    ColorUtil.setAlpha(this.overlayGradientStartColor.getValue(), this.overlayGradientStartOpacity.getValue() / 100.0);
+            case 2 ->
+                    this.fadeColor(this.overlayFadeStartColor, this.overlayFadeStartOpacity, this.overlayFadeEndColor, this.overlayFadeEndOpacity, this.overlayFadeSpeed, 0L);
+            case 3 ->
+                    ColorUtil.setAlpha(ColorUtil.getChroma(this.overlayChromaSpeed.getValue()), this.overlayChromaOpacity.getValue() / 100.0);
             default -> Color.WHITE.getRGB();
         };
     }
@@ -211,18 +212,24 @@ public class BlockOverlay extends Module {
     private int getOverlayEndColor() {
         return switch (this.overlayColorMode.getValue()) {
             case 0, 3 -> this.getOverlayStartColor();
-            case 1 -> ColorUtil.setAlpha(this.overlayGradientEndColor.getValue(), this.overlayGradientEndOpacity.getValue() / 100.0);
-            case 2 -> this.fadeColor(this.overlayFadeStartColor, this.overlayFadeStartOpacity, this.overlayFadeEndColor, this.overlayFadeEndOpacity, this.overlayFadeSpeed, 500L);
+            case 1 ->
+                    ColorUtil.setAlpha(this.overlayGradientEndColor.getValue(), this.overlayGradientEndOpacity.getValue() / 100.0);
+            case 2 ->
+                    this.fadeColor(this.overlayFadeStartColor, this.overlayFadeStartOpacity, this.overlayFadeEndColor, this.overlayFadeEndOpacity, this.overlayFadeSpeed, 500L);
             default -> Color.WHITE.getRGB();
         };
     }
 
     private int getOutlineStartColor() {
         return switch (this.outlineColorMode.getValue()) {
-            case 0 -> ColorUtil.setAlpha(this.outlineStaticColor.getValue(), this.outlineStaticOpacity.getValue() / 100.0);
-            case 1 -> ColorUtil.setAlpha(this.outlineGradientStartColor.getValue(), this.outlineGradientStartOpacity.getValue() / 100.0);
-            case 2 -> this.fadeColor(this.outlineFadeStartColor, this.outlineFadeStartOpacity, this.outlineFadeEndColor, this.outlineFadeEndOpacity, this.outlineFadeSpeed, 0L);
-            case 3 -> ColorUtil.setAlpha(ColorUtil.getChroma(this.outlineChromaSpeed.getValue()), this.outlineChromaOpacity.getValue() / 100.0);
+            case 0 ->
+                    ColorUtil.setAlpha(this.outlineStaticColor.getValue(), this.outlineStaticOpacity.getValue() / 100.0);
+            case 1 ->
+                    ColorUtil.setAlpha(this.outlineGradientStartColor.getValue(), this.outlineGradientStartOpacity.getValue() / 100.0);
+            case 2 ->
+                    this.fadeColor(this.outlineFadeStartColor, this.outlineFadeStartOpacity, this.outlineFadeEndColor, this.outlineFadeEndOpacity, this.outlineFadeSpeed, 0L);
+            case 3 ->
+                    ColorUtil.setAlpha(ColorUtil.getChroma(this.outlineChromaSpeed.getValue()), this.outlineChromaOpacity.getValue() / 100.0);
             default -> Color.WHITE.getRGB();
         };
     }
@@ -230,8 +237,10 @@ public class BlockOverlay extends Module {
     private int getOutlineEndColor() {
         return switch (this.outlineColorMode.getValue()) {
             case 0, 3 -> this.getOutlineStartColor();
-            case 1 -> ColorUtil.setAlpha(this.outlineGradientEndColor.getValue(), this.outlineGradientEndOpacity.getValue() / 100.0);
-            case 2 -> this.fadeColor(this.outlineFadeStartColor, this.outlineFadeStartOpacity, this.outlineFadeEndColor, this.outlineFadeEndOpacity, this.outlineFadeSpeed, 500L);
+            case 1 ->
+                    ColorUtil.setAlpha(this.outlineGradientEndColor.getValue(), this.outlineGradientEndOpacity.getValue() / 100.0);
+            case 2 ->
+                    this.fadeColor(this.outlineFadeStartColor, this.outlineFadeStartOpacity, this.outlineFadeEndColor, this.outlineFadeEndOpacity, this.outlineFadeSpeed, 500L);
             default -> Color.WHITE.getRGB();
         };
     }
@@ -268,19 +277,6 @@ public class BlockOverlay extends Module {
             );
         }
 
-        private void restore() {
-            GL11.glShadeModel(this.shadeModel);
-            GL11.glLineWidth(this.lineWidth);
-            setState(GL11.GL_LINE_SMOOTH, this.lineSmooth);
-            setGlState(this.lighting, GlStateManager::enableLighting, GlStateManager::disableLighting);
-            setGlState(this.cull, GlStateManager::enableCull, GlStateManager::disableCull);
-            setGlState(this.depth, GlStateManager::enableDepth, GlStateManager::disableDepth);
-            setGlState(this.texture2D, GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
-            setGlState(this.alpha, GlStateManager::enableAlpha, GlStateManager::disableAlpha);
-            setGlState(this.blend, GlStateManager::enableBlend, GlStateManager::disableBlend);
-            GlStateManager.depthMask(this.depthMask);
-        }
-
         private static void setGlState(boolean enabled, Runnable enable, Runnable disable) {
             if (enabled) {
                 enable.run();
@@ -295,6 +291,19 @@ public class BlockOverlay extends Module {
             } else {
                 GL11.glDisable(cap);
             }
+        }
+
+        private void restore() {
+            GL11.glShadeModel(this.shadeModel);
+            GL11.glLineWidth(this.lineWidth);
+            setState(GL11.GL_LINE_SMOOTH, this.lineSmooth);
+            setGlState(this.lighting, GlStateManager::enableLighting, GlStateManager::disableLighting);
+            setGlState(this.cull, GlStateManager::enableCull, GlStateManager::disableCull);
+            setGlState(this.depth, GlStateManager::enableDepth, GlStateManager::disableDepth);
+            setGlState(this.texture2D, GlStateManager::enableTexture2D, GlStateManager::disableTexture2D);
+            setGlState(this.alpha, GlStateManager::enableAlpha, GlStateManager::disableAlpha);
+            setGlState(this.blend, GlStateManager::enableBlend, GlStateManager::disableBlend);
+            GlStateManager.depthMask(this.depthMask);
         }
     }
 }

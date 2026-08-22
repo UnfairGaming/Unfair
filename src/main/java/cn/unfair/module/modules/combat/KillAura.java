@@ -9,11 +9,11 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.module.modules.player.AutoBlockIn;
 import cn.unfair.module.modules.player.AutoHeal;
-import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.module.modules.render.HUD;
+import cn.unfair.module.modules.world.BedNuker;
+import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.*;
 import cn.unfair.util.player.DelayGenerator;
@@ -55,19 +55,11 @@ import java.util.concurrent.ThreadLocalRandom;
 public class KillAura extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public static AttackData target = null;
+    public static Vec3 currentAimVec;
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Single", "Switch"});
     public final ModeProperty sort = new ModeProperty("Sort", 0, new String[]{"Distance", "Health", "HurtTime", "Fov"});
     public final ModeProperty autoBlock = new ModeProperty(
             "Auto Block", 0, new String[]{"None", "Vanilla", "Legit", "Fake", "HypixelLagA", "HypixelLagB"}
-    );
-    private final BooleanProperty alwaysRenderBlocking = new BooleanProperty(
-            "Always Render Blocking", true, () -> this.autoBlock.getValue() == 4 || this.autoBlock.getValue() == 5
-    );
-    private final BooleanProperty c09Instead = new BooleanProperty(
-            "C09 Instead", true, () -> this.autoBlock.getValue() == 4
-    );
-    private final BooleanProperty fullC09 = new BooleanProperty(
-            "Full C09 (Will Cause Damage Less)", false, () -> this.autoBlock.getValue() == 5
     );
     public final BooleanProperty autoBlockRequirePress = new BooleanProperty("Auto Block Require Press", false);
     public final IntProperty autoBlockCPS = new IntProperty("Auto Block Aps", 10, 1, 20);
@@ -98,13 +90,13 @@ public class KillAura extends Module {
     public final BooleanProperty blacklistTorso = new BooleanProperty("Blacklist Torso", false, () -> this.rotations.getValue() == 3);
     public final BooleanProperty blacklistFeet = new BooleanProperty("Blacklist Feet", false, () -> this.rotations.getValue() == 3);
     public final BooleanProperty blacklistBadHitVec = new BooleanProperty("Blacklist Bad Hitvec", false, () -> this.rotations.getValue() == 3);
-    public final BooleanProperty blacklistHeuristic = new BooleanProperty("Blacklist Heuristic", false, () -> this.rotations.getValue() == 3);
     public final FloatProperty badHitVecBuffer = new FloatProperty("Bad Hitvec Buffer", 0.5F, 0.01F, 2.0F, () -> this.rotations.getValue() == 3 && this.blacklistBadHitVec.getValue());
+    public final BooleanProperty blacklistHeuristic = new BooleanProperty("Blacklist Heuristic", false, () -> this.rotations.getValue() == 3);
     public final FloatProperty heuristicBuffer = new FloatProperty("Heuristic Buffer", 0.1F, 0.01F, 2.0F, () -> this.rotations.getValue() == 3 && this.blacklistHeuristic.getValue());
     public final BooleanProperty dynamicTrim = new BooleanProperty("Dynamic Trim", false, () -> this.rotations.getValue() == 3);
     public final FloatProperty yTrim = new FloatProperty("Y Trim", 0.0F, 0.0F, 0.5F, () -> this.rotations.getValue() == 3 && !this.dynamicTrim.getValue());
-    public final FloatProperty xzTrim = new FloatProperty("Xz Trim", 0.0F, 0.0F, 0.5F, () -> this.rotations.getValue() == 3);
     public final FloatProperty xzRandAdd = new FloatProperty("Xz Rand Add", 0.0F, 0.0F, 0.5F, () -> this.rotations.getValue() == 3 && this.dynamicTrim.getValue());
+    public final FloatProperty xzTrim = new FloatProperty("Xz Trim", 0.0F, 0.0F, 0.5F, () -> this.rotations.getValue() == 3);
     public final BooleanProperty predictionEngine = new BooleanProperty("Prediction Engine", false, () -> this.rotations.getValue() == 3);
     public final BooleanProperty simulateReactionTime = new BooleanProperty("Simulate Reaction Time", false, () -> this.rotations.getValue() == 3 && this.predictionEngine.getValue());
     public final IntProperty minReactionTime = new IntProperty("Min Reaction Time", 0, 0, 20, () -> this.rotations.getValue() == 3 && this.predictionEngine.getValue() && this.simulateReactionTime.getValue());
@@ -142,8 +134,18 @@ public class KillAura extends Module {
     public final BooleanProperty golems = new BooleanProperty("Golems", false);
     public final BooleanProperty silverfish = new BooleanProperty("Silverfish", false);
     public final ModeProperty showTarget = new ModeProperty("Show Target", 0, new String[]{"None", "3Dbox"});
+    private final BooleanProperty alwaysRenderBlocking = new BooleanProperty(
+            "Always Render Blocking", true, () -> this.autoBlock.getValue() == 4 || this.autoBlock.getValue() == 5
+    );
+    private final BooleanProperty c09Instead = new BooleanProperty(
+            "C09 Instead", true, () -> this.autoBlock.getValue() == 4
+    );
+    private final BooleanProperty fullC09 = new BooleanProperty(
+            "Full C09 (Will Cause Damage Less)", false, () -> this.autoBlock.getValue() == 5
+    );
     private final TimerUtil timer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();
+    private final AdvancedRotationLimiter advancedLimiter = new AdvancedRotationLimiter();
     public boolean attackDisabled = false;
     private int switchTick = 0;
     private boolean hitRegistered = false;
@@ -160,7 +162,6 @@ public class KillAura extends Module {
     private float serverPitch;
     private boolean easingOut;
     private boolean controlledRotation;
-    private final AdvancedRotationLimiter advancedLimiter = new AdvancedRotationLimiter();
     private double lastXOffset;
     private double lastYOffset;
     private double lastZOffset;
@@ -169,7 +170,6 @@ public class KillAura extends Module {
     private float[] normalisedRot;
     private double finalXZTrim;
     private double xzRandShrinkThing;
-    public static Vec3 currentAimVec;
 
     public KillAura() {
         super("KillAura", false);

@@ -6,11 +6,14 @@ import cn.unfair.util.anticheat.AnticheatManager;
 import net.minecraft.network.Packet;
 
 public class MotionACheck extends AntiCheatCheck {
-    public MotionACheck() { super("Motion A", "Checks excessive horizontal motion."); }
+    public MotionACheck() {
+        super("Motion A", "Checks excessive horizontal motion.");
+    }
 
     @Override
     public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
-        if (!isMovementPacket(packet) || data.ticksSinceLastVelocity <= 40 || data.timeSinceLastMovementPacket >= 150L) return;
+        if (!isMovementPacket(packet) || data.ticksSinceLastVelocity <= 40 || data.timeSinceLastMovementPacket >= 150L)
+            return;
         if (data.packetSpeed > 0.8D) {
             data.motionABuffer += data.packetSpeed - 0.8D;
             if (data.motionABuffer > 1.0D) {

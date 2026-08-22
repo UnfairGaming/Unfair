@@ -49,6 +49,10 @@ public class Radar extends Module {
         return modes;
     }
 
+    private static int withAlpha(int rgb, int alpha) {
+        return (Math.clamp(alpha, 0, 255) << 24) | (rgb & 0xFFFFFF);
+    }
+
     public boolean shouldRenderWidget() {
         return this.isEnabled() && mc.theWorld != null && mc.thePlayer != null && !mc.gameSettings.showDebugInfo;
     }
@@ -89,9 +93,9 @@ public class Radar extends Module {
         RenderUtil.enableRenderState();
         GlStateManager.pushMatrix();
         try {
-            float yaw = (float)Math.toRadians(mc.thePlayer.rotationYaw);
+            float yaw = (float) Math.toRadians(mc.thePlayer.rotationYaw);
             if (mc.gameSettings.thirdPersonView != 2) {
-                yaw += (float)Math.toRadians(180.0F);
+                yaw += (float) Math.toRadians(180.0F);
             }
 
             this.drawRadarCircle(centerX, centerY, yaw, radius);
@@ -140,7 +144,7 @@ public class Radar extends Module {
 
     private void drawDirections(float centerX, float centerY, float angle, float radius) {
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        int color = hud.getColor(System.currentTimeMillis()).getRGB();
+        int color = HUD.getColor(System.currentTimeMillis()).getRGB();
         boolean shadow = hud.shadow.getValue();
 
         double dx1 = Math.sin(angle);
@@ -204,7 +208,7 @@ public class Radar extends Module {
     private void drawCenteredString(String text, double x, double y, int color, boolean shadow) {
         GlStateManager.enableTexture2D();
         GlStateManager.enableBlend();
-        this.drawString(text, (float)(x - this.getStringWidth(text) / 2.0F), (float)(y - this.getFontHeight() / 2.0F), color, shadow);
+        this.drawString(text, (float) (x - this.getStringWidth(text) / 2.0F), (float) (y - this.getFontHeight() / 2.0F), color, shadow);
         GlStateManager.disableTexture2D();
     }
 
@@ -294,15 +298,12 @@ public class Radar extends Module {
                     int teamColor = TeamUtil.isSameTeam(entityPlayer) ? ChatColors.BLUE.toAwtColor() : ChatColors.RED.toAwtColor();
                     return new Color(teamColor | 255 << 24, true);
                 case 2:
-                    int color = ((HUD) Unfair.moduleManager.modules.get(HUD.class)).getColor(System.currentTimeMillis()).getRGB();
+                    Unfair.moduleManager.modules.get(HUD.class);
+                    int color = HUD.getColor(System.currentTimeMillis()).getRGB();
                     return new Color(color | 255 << 24, true);
                 default:
                     return Color.WHITE;
             }
         }
-    }
-
-    private static int withAlpha(int rgb, int alpha) {
-        return (Math.clamp(alpha, 0, 255) << 24) | (rgb & 0xFFFFFF);
     }
 }

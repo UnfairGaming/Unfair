@@ -93,6 +93,44 @@ public class HitParticles extends Module {
         super("HitParticles", false, true);
     }
 
+    private static EntityLivingBase getCollisionEntity(EntityArrow arrow) {
+        World world = arrow.worldObj;
+        Vec3 pos = new Vec3(arrow.posX, arrow.posY, arrow.posZ);
+        Vec3 motionEnd = new Vec3(arrow.posX + arrow.motionX, arrow.posY + arrow.motionY, arrow.posZ + arrow.motionZ);
+        MovingObjectPosition rayTrace = world.rayTraceBlocks(pos, motionEnd, false, true, false);
+        Vec3 traceEnd = rayTrace != null ? rayTrace.hitVec : motionEnd;
+
+        EntityLivingBase target = null;
+        double closestSq = 0.0D;
+        AxisAlignedBB search = arrow.getEntityBoundingBox().addCoord(arrow.motionX, arrow.motionY, arrow.motionZ).expand(1.0D, 1.0D, 1.0D);
+        @SuppressWarnings("unchecked")
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(arrow, search);
+
+        for (Entity entity : entities) {
+            if (!(entity instanceof EntityLivingBase living)) {
+                continue;
+            }
+            if (!living.canBeCollidedWith() || living == arrow.shootingEntity) {
+                continue;
+            }
+
+            AxisAlignedBB collisionBox = entity.getEntityBoundingBox().expand(0.3D, 0.3D, 0.3D);
+            MovingObjectPosition collision = collisionBox.calculateIntercept(pos, traceEnd);
+            if (collision == null) {
+                continue;
+            }
+
+            double distSq = pos.squareDistanceTo(collision.hitVec);
+            if (distSq >= closestSq && closestSq != 0.0D) {
+                continue;
+            }
+            target = living;
+            closestSq = distSq;
+        }
+
+        return target;
+    }
+
     @Override
     public void onDisabled() {
         rangedSpawnForArrow.clear();
@@ -175,43 +213,5 @@ public class HitParticles extends Module {
                 mc.effectRenderer.spawnEffectParticle(id, x, y, z, xOffset, yOffset, zOffset, args);
             }
         }
-    }
-
-    private static EntityLivingBase getCollisionEntity(EntityArrow arrow) {
-        World world = arrow.worldObj;
-        Vec3 pos = new Vec3(arrow.posX, arrow.posY, arrow.posZ);
-        Vec3 motionEnd = new Vec3(arrow.posX + arrow.motionX, arrow.posY + arrow.motionY, arrow.posZ + arrow.motionZ);
-        MovingObjectPosition rayTrace = world.rayTraceBlocks(pos, motionEnd, false, true, false);
-        Vec3 traceEnd = rayTrace != null ? rayTrace.hitVec : motionEnd;
-
-        EntityLivingBase target = null;
-        double closestSq = 0.0D;
-        AxisAlignedBB search = arrow.getEntityBoundingBox().addCoord(arrow.motionX, arrow.motionY, arrow.motionZ).expand(1.0D, 1.0D, 1.0D);
-        @SuppressWarnings("unchecked")
-        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(arrow, search);
-
-        for (Entity entity : entities) {
-            if (!(entity instanceof EntityLivingBase living)) {
-                continue;
-            }
-            if (!living.canBeCollidedWith() || living == arrow.shootingEntity) {
-                continue;
-            }
-
-            AxisAlignedBB collisionBox = entity.getEntityBoundingBox().expand(0.3D, 0.3D, 0.3D);
-            MovingObjectPosition collision = collisionBox.calculateIntercept(pos, traceEnd);
-            if (collision == null) {
-                continue;
-            }
-
-            double distSq = pos.squareDistanceTo(collision.hitVec);
-            if (distSq >= closestSq && closestSq != 0.0D) {
-                continue;
-            }
-            target = living;
-            closestSq = distSq;
-        }
-
-        return target;
     }
 }

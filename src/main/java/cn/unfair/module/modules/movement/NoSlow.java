@@ -31,6 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class NoSlow extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    public static boolean fakeEating = false;
     public final ModeProperty swordMode = new ModeProperty("Sword Mode", 1, new String[]{"None", "Vanilla"});
     public final PercentProperty swordMotion = new PercentProperty("Sword Motion", 100, () -> this.swordMode.getValue() != 0);
     public final BooleanProperty swordSprint = new BooleanProperty("Sword Sprint", true, () -> this.swordMode.getValue() != 0);
@@ -42,18 +43,13 @@ public class NoSlow extends Module {
     public final ModeProperty bowMode = new ModeProperty("Bow Mode", 0, new String[]{"None", "Vanilla", "Float"});
     public final PercentProperty bowMotion = new PercentProperty("Bow Motion", 100, () -> this.bowMode.getValue() != 0);
     public final BooleanProperty bowSprint = new BooleanProperty("Bow Sprint", true, () -> this.bowMode.getValue() != 0);
-    private int lastSlot = -1;
-
-    private enum C0FStep {NONE, CANCEL_C0F, SWAP_HANDS, EATING}
-
-    private C0FStep c0fStep = C0FStep.NONE;
-    private int c0fNoUsingItemTicks = 0;
-    private int c0fSwapSlowdownTicks = 0;
     private final LinkedBlockingQueue<Packet<?>> c0fPackets = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedVelocity = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedInteraction = new LinkedBlockingQueue<>();
-
-    public static boolean fakeEating = false;
+    private int lastSlot = -1;
+    private C0FStep c0fStep = C0FStep.NONE;
+    private int c0fNoUsingItemTicks = 0;
+    private int c0fSwapSlowdownTicks = 0;
 
     public NoSlow() {
         super("NoSlow", false);
@@ -274,8 +270,7 @@ public class NoSlow extends Module {
         if (event.getType() == EventType.RECEIVE
                 && this.c0fDelayKnockback.getValue()
                 && this.c0fStep != C0FStep.NONE
-                && packet instanceof S12PacketEntityVelocity) {
-            S12PacketEntityVelocity velocity = (S12PacketEntityVelocity) packet;
+                && packet instanceof S12PacketEntityVelocity velocity) {
             if (mc.thePlayer != null && velocity.getEntityID() == mc.thePlayer.getEntityId()) {
                 event.setCancelled(true);
                 this.c0fDelayedVelocity.offer(packet);
@@ -286,8 +281,7 @@ public class NoSlow extends Module {
         if (event.getType() == EventType.SEND
                 && this.c0fDelayInteract.getValue()
                 && this.c0fStep != C0FStep.NONE
-                && packet instanceof C08PacketPlayerBlockPlacement) {
-            C08PacketPlayerBlockPlacement placement = (C08PacketPlayerBlockPlacement) packet;
+                && packet instanceof C08PacketPlayerBlockPlacement placement) {
             if (placement.getPlacedBlockDirection() != 255 && this.isFoodUsePacket(placement)) {
                 event.setCancelled(true);
                 this.c0fDelayedInteraction.offer(packet);
@@ -385,4 +379,6 @@ public class NoSlow extends Module {
     public String[] getSuffix() {
         return new String[]{this.swordMode.getModeString()};
     }
+
+    private enum C0FStep {NONE, CANCEL_C0F, SWAP_HANDS, EATING}
 }

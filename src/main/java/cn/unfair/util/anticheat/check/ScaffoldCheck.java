@@ -22,10 +22,10 @@ public class ScaffoldCheck extends AntiCheatCheck {
         ACPlayerData.PositionSample current = data.positionHistory.get(size - 1);
         ACPlayerData.PositionSample previous = data.positionHistory.get(size - 2);
         ACPlayerData.PositionSample previous2 = data.positionHistory.get(size - 3);
-        double speedX = (current.pos.xCoord - previous.pos.xCoord) * 20.0D;
-        double speedZ = (current.pos.zCoord - previous.pos.zCoord) * 20.0D;
+        double speedX = (current.pos().xCoord - previous.pos().xCoord) * 20.0D;
+        double speedZ = (current.pos().zCoord - previous.pos().zCoord) * 20.0D;
         double speed = Math.sqrt(speedX * speedX + speedZ * speedZ);
-        double accelY = ((previous.pos.yCoord - previous2.pos.yCoord) * 20.0D);
+        double accelY = ((previous.pos().yCoord - previous2.pos().yCoord) * 20.0D);
         double angle = relativeMoveAngle(speedX / 20.0D, speedZ / 20.0D, player.rotationYaw);
 
         if (!player.isSwingInProgress || player.hurtTime != 0

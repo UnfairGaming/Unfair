@@ -6,11 +6,11 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.LoadWorldEvent;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
+import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.management.BadPacketManager;
 import cn.unfair.util.MoveUtil;
 import cn.unfair.util.RayCastUtil;
 import cn.unfair.util.RotationUtil;
@@ -20,10 +20,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class ReduceVelocity extends SubModule {
+    public static final BooleanProperty attack = new BooleanProperty("Attack Before Reduce", true);
     private static final Minecraft mc = Minecraft.getMinecraft();
     public boolean knockback = false;
-
-    public static final BooleanProperty attack = new BooleanProperty("Attack Before Reduce", true);
 
     public ReduceVelocity() {
         super("Reduce");

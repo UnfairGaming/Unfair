@@ -2,9 +2,9 @@ package cn.unfair.management;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
 import cn.unfair.events.LoadWorldEvent;
 import cn.unfair.events.PacketEvent;
-import cn.unfair.event.types.Priority;
 import net.minecraft.network.play.client.*;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,33 +29,6 @@ public class BadPacketManager {
                 || (checkSwing && hasFlag(currentState, SWING))
                 || (checkBlock && hasFlag(currentState, BLOCK))
                 || (checkInventory && hasFlag(currentState, INVENTORY));
-    }
-
-    @EventTarget(Priority.LOWEST)
-    public void onPacket(PacketEvent event) {
-        if (event.getType() != EventType.SEND || event.isCancelled()) return;
-
-        if (event.getPacket() instanceof C03PacketPlayer) {
-            resetBadPackets();
-            return;
-        }
-
-        if (isAttackPacket(event.getPacket())) {
-            addFlag(ATTACK);
-        } else if (isInventoryPacket(event.getPacket())) {
-            addFlag(INVENTORY);
-        } else if (isSwingPacket(event.getPacket())) {
-            addFlag(SWING);
-        } else if (isBlockPacket(event.getPacket())) {
-            addFlag(BLOCK);
-        } else if (isSlotPacket(event.getPacket())) {
-            addFlag(SLOT);
-        }
-    }
-
-    @EventTarget
-    public void onLoadWorld(LoadWorldEvent event) {
-        resetBadPackets();
     }
 
     private static boolean isAttackPacket(Object packet) {
@@ -93,6 +66,33 @@ public class BadPacketManager {
 
     private static void addFlag(int flag) {
         state.updateAndGet(currentState -> currentState | flag);
+    }
+
+    @EventTarget(Priority.LOWEST)
+    public void onPacket(PacketEvent event) {
+        if (event.getType() != EventType.SEND || event.isCancelled()) return;
+
+        if (event.getPacket() instanceof C03PacketPlayer) {
+            resetBadPackets();
+            return;
+        }
+
+        if (isAttackPacket(event.getPacket())) {
+            addFlag(ATTACK);
+        } else if (isInventoryPacket(event.getPacket())) {
+            addFlag(INVENTORY);
+        } else if (isSwingPacket(event.getPacket())) {
+            addFlag(SWING);
+        } else if (isBlockPacket(event.getPacket())) {
+            addFlag(BLOCK);
+        } else if (isSlotPacket(event.getPacket())) {
+            addFlag(SLOT);
+        }
+    }
+
+    @EventTarget
+    public void onLoadWorld(LoadWorldEvent event) {
+        resetBadPackets();
     }
 
     private void resetBadPackets() {

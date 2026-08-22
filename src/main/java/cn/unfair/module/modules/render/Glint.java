@@ -12,14 +12,13 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.model.IBakedModel;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.src.Config;
 import net.optifine.CustomItems;
 import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersRender;
 
-import java.awt.Color;
+import java.awt.*;
 
 public final class Glint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();

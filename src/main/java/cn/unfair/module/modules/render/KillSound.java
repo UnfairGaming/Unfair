@@ -17,12 +17,11 @@ public class KillSound extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final ResourceLocation KILL_SOUND_1 = new ResourceLocation("minecraft:unfair/sound/killsound1.mp3");
     private static final ResourceLocation KILL_SOUND_2 = new ResourceLocation("minecraft:unfair/sound/killsound2.mp3");
-
-    private EntityPlayer target;
     private final Random random = new Random();
+    private EntityPlayer target;
 
     public KillSound() {
-        super ("KillSound", false);
+        super("KillSound", false);
         CodecMp3.register();
     }
 

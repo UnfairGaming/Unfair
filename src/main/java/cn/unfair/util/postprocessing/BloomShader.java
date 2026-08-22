@@ -161,18 +161,23 @@ public class BloomShader {
 
     private static void setDownUniforms(Framebuffer framebuffer, float offset) {
         if (downOffsetLocation >= 0) GL20.glUniform2f(downOffsetLocation, offset, offset);
-        if (downHalfpixelLocation >= 0) GL20.glUniform2f(downHalfpixelLocation, 1.0F / framebuffer.framebufferWidth, 1.0F / framebuffer.framebufferHeight);
-        if (downResolutionLocation >= 0) GL20.glUniform2f(downResolutionLocation, framebuffer.framebufferWidth, framebuffer.framebufferHeight);
+        if (downHalfpixelLocation >= 0)
+            GL20.glUniform2f(downHalfpixelLocation, 1.0F / framebuffer.framebufferWidth, 1.0F / framebuffer.framebufferHeight);
+        if (downResolutionLocation >= 0)
+            GL20.glUniform2f(downResolutionLocation, framebuffer.framebufferWidth, framebuffer.framebufferHeight);
         if (downTextureLocation >= 0) GL20.glUniform1i(downTextureLocation, 0);
     }
 
     private static void setUpUniforms(Framebuffer framebuffer, float offset, Color color, int check) {
         if (upOffsetLocation >= 0) GL20.glUniform2f(upOffsetLocation, offset, offset);
-        if (upHalfpixelLocation >= 0) GL20.glUniform2f(upHalfpixelLocation, 1.0F / framebuffer.framebufferWidth, 1.0F / framebuffer.framebufferHeight);
-        if (upResolutionLocation >= 0) GL20.glUniform2f(upResolutionLocation, framebuffer.framebufferWidth, framebuffer.framebufferHeight);
+        if (upHalfpixelLocation >= 0)
+            GL20.glUniform2f(upHalfpixelLocation, 1.0F / framebuffer.framebufferWidth, 1.0F / framebuffer.framebufferHeight);
+        if (upResolutionLocation >= 0)
+            GL20.glUniform2f(upResolutionLocation, framebuffer.framebufferWidth, framebuffer.framebufferHeight);
         if (upTextureLocation >= 0) GL20.glUniform1i(upTextureLocation, 0);
         if (upCheckLocation >= 0) GL20.glUniform1i(upCheckLocation, check);
         if (upTextureToCheckLocation >= 0) GL20.glUniform1i(upTextureToCheckLocation, 1);
-        if (upColorLocation >= 0) GL20.glUniform3f(upColorLocation, color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F);
+        if (upColorLocation >= 0)
+            GL20.glUniform3f(upColorLocation, color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F);
     }
 }

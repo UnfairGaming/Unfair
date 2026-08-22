@@ -39,143 +39,6 @@ public class RenderUtil {
     private static final int SKEET_MIDDLE_COLOR = 0xFF2A2A2A;
     private static final int SKEET_INNER_COLOR = 0xFF171717;
     private static final Deque<GlRenderState> RENDER_STATE_STACK = new ArrayDeque<>();
-    public static class GlRenderState {
-        private final boolean alpha;
-        private final boolean blend;
-        private final boolean cull;
-        private final boolean depth;
-        private final boolean depthMask;
-        private final boolean lighting;
-        private final boolean normalize;
-        private final boolean rescaleNormal;
-        private final boolean texture2D;
-        private final int activeTexture;
-        private final int blendDst;
-        private final int blendDstAlpha;
-        private final int blendSrc;
-        private final int blendSrcAlpha;
-        private final int depthFunc;
-        private final int shadeModel;
-        private final int textureBinding;
-        private final float red;
-        private final float green;
-        private final float blue;
-        private final float alphaValue;
-
-        private GlRenderState() {
-            this.alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
-            this.blend = GL11.glIsEnabled(GL11.GL_BLEND);
-            this.cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
-            this.depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
-            this.depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
-            this.lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
-            this.normalize = GL11.glIsEnabled(GL11.GL_NORMALIZE);
-            this.rescaleNormal = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
-            this.texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
-            this.activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
-            this.blendDst = GL11.glGetInteger(GL11.GL_BLEND_DST);
-            this.blendDstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
-            this.blendSrc = GL11.glGetInteger(GL11.GL_BLEND_SRC);
-            this.blendSrcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA);
-            this.depthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
-            this.shadeModel = GL11.glGetInteger(GL11.GL_SHADE_MODEL);
-            this.textureBinding = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-
-            FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(4);
-            GL11.glGetFloat(GL11.GL_CURRENT_COLOR, colorBuffer);
-            this.red = colorBuffer.get(0);
-            this.green = colorBuffer.get(1);
-            this.blue = colorBuffer.get(2);
-            this.alphaValue = colorBuffer.get(3);
-        }
-
-        public void restore() {
-            setAlpha(this.alpha);
-            setBlend(this.blend);
-            setCull(this.cull);
-            setDepth(this.depth);
-            setLighting(this.lighting);
-            setNormalize(this.normalize);
-            setRescaleNormal(this.rescaleNormal);
-            setTexture2D(this.texture2D);
-            GlStateManager.depthMask(this.depthMask);
-            GlStateManager.depthFunc(this.depthFunc);
-            GlStateManager.tryBlendFuncSeparate(this.blendSrc, this.blendDst, this.blendSrcAlpha, this.blendDstAlpha);
-            GlStateManager.shadeModel(this.shadeModel);
-            GlStateManager.setActiveTexture(this.activeTexture);
-            GlStateManager.bindTexture(this.textureBinding);
-            GlStateManager.color(this.red, this.green, this.blue, this.alphaValue);
-        }
-
-        private static void setAlpha(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableAlpha();
-            } else {
-                GlStateManager.disableAlpha();
-            }
-        }
-
-        private static void setBlend(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableBlend();
-            } else {
-                GlStateManager.disableBlend();
-            }
-        }
-
-        private static void setCull(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableCull();
-            } else {
-                GlStateManager.disableCull();
-            }
-        }
-
-        private static void setDepth(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableDepth();
-            } else {
-                GlStateManager.disableDepth();
-            }
-        }
-
-        private static void setLighting(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableLighting();
-            } else {
-                GlStateManager.disableLighting();
-            }
-        }
-
-        private static void setNormalize(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableNormalize();
-            } else {
-                GlStateManager.disableNormalize();
-            }
-        }
-
-        private static void setRescaleNormal(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableRescaleNormal();
-            } else {
-                GlStateManager.disableRescaleNormal();
-            }
-        }
-
-        private static void setTexture2D(boolean enabled) {
-            if (enabled) {
-                GlStateManager.enableTexture2D();
-            } else {
-                GlStateManager.disableTexture2D();
-            }
-        }
-    }
-
-    public static GlRenderState captureGlState() {
-        return new GlRenderState();
-    }
-
     private static final String ROUNDED_RECT_SRC =
             """
                     #version 120
@@ -304,6 +167,10 @@ public class RenderUtil {
         RenderUtil.projectionBuffer = GLAllocation.createDirectFloatBuffer(16);
         RenderUtil.vectorBuffer = GLAllocation.createDirectFloatBuffer(4);
         RenderUtil.enchantmentMap = new EnchantmentMap();
+    }
+
+    public static GlRenderState captureGlState() {
+        return new GlRenderState();
     }
 
     private static ChatColors getColorForLevel(int currentLevel, int maxLevel) {
@@ -1000,12 +867,18 @@ public class RenderUtil {
 
     public static void drawBlockSide(AxisAlignedBB box, EnumFacing side, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
         switch (side) {
-            case UP -> drawBlockTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case DOWN -> drawBlockBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case NORTH -> drawBlockNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case EAST -> drawBlockEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case SOUTH -> drawBlockSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case WEST -> drawBlockWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case UP ->
+                    drawBlockTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case DOWN ->
+                    drawBlockBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case NORTH ->
+                    drawBlockNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case EAST ->
+                    drawBlockEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case SOUTH ->
+                    drawBlockSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case WEST ->
+                    drawBlockWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
         }
     }
 
@@ -1157,12 +1030,18 @@ public class RenderUtil {
 
     private static void drawStairsSide(AxisAlignedBB box, BlockStairs.EnumHalf blockHalf, EnumFacing blockFacing, EnumFacing side, Color overlayStartColor, Color overlayEndColor, Color outlineStartColor, Color outlineEndColor, boolean overlay, boolean outline) {
         switch (getSide(blockHalf, blockFacing, side)) {
-            case UP -> drawStairsTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case DOWN -> drawStairsBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case NORTH -> drawStairsNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case EAST -> drawStairsEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case SOUTH -> drawStairsSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
-            case WEST -> drawStairsWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case UP ->
+                    drawStairsTop(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case DOWN ->
+                    drawStairsBottom(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case NORTH ->
+                    drawStairsNorth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case EAST ->
+                    drawStairsEast(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case SOUTH ->
+                    drawStairsSouth(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
+            case WEST ->
+                    drawStairsWest(box, overlayStartColor, overlayEndColor, outlineStartColor, outlineEndColor, overlay, outline);
         }
     }
 
@@ -1949,17 +1828,23 @@ public class RenderUtil {
         return (color & 0xFFFFFF) | clampAlpha(alpha) << 24;
     }
 
-    /** Converts the canonical 0..255 alpha value to the OpenGL 0..1 range. */
+    /**
+     * Converts the canonical 0..255 alpha value to the OpenGL 0..1 range.
+     */
     public static float alphaToUnit(int alpha) {
         return clampAlpha(alpha) / 255.0F;
     }
 
-    /** Converts percentage opacity (0..100) to the canonical 0..255 alpha value. */
+    /**
+     * Converts percentage opacity (0..100) to the canonical 0..255 alpha value.
+     */
     public static int opacityToAlpha(float opacity) {
         return Math.round(Math.clamp(opacity, 0.0F, 100.0F) * 2.55F);
     }
 
-    /** Converts percentage opacity (0..100) to the OpenGL 0..1 range. */
+    /**
+     * Converts percentage opacity (0..100) to the OpenGL 0..1 range.
+     */
     public static float opacityToUnit(float opacity) {
         return alphaToUnit(opacityToAlpha(opacity));
     }
@@ -2170,6 +2055,139 @@ public class RenderUtil {
 
     private static int interpolateInt(int oldValue, int newValue, double interpolationValue) {
         return (int) (oldValue + (newValue - oldValue) * interpolationValue);
+    }
+
+    public static class GlRenderState {
+        private final boolean alpha;
+        private final boolean blend;
+        private final boolean cull;
+        private final boolean depth;
+        private final boolean depthMask;
+        private final boolean lighting;
+        private final boolean normalize;
+        private final boolean rescaleNormal;
+        private final boolean texture2D;
+        private final int activeTexture;
+        private final int blendDst;
+        private final int blendDstAlpha;
+        private final int blendSrc;
+        private final int blendSrcAlpha;
+        private final int depthFunc;
+        private final int shadeModel;
+        private final int textureBinding;
+        private final float red;
+        private final float green;
+        private final float blue;
+        private final float alphaValue;
+
+        private GlRenderState() {
+            this.alpha = GL11.glIsEnabled(GL11.GL_ALPHA_TEST);
+            this.blend = GL11.glIsEnabled(GL11.GL_BLEND);
+            this.cull = GL11.glIsEnabled(GL11.GL_CULL_FACE);
+            this.depth = GL11.glIsEnabled(GL11.GL_DEPTH_TEST);
+            this.depthMask = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
+            this.lighting = GL11.glIsEnabled(GL11.GL_LIGHTING);
+            this.normalize = GL11.glIsEnabled(GL11.GL_NORMALIZE);
+            this.rescaleNormal = GL11.glIsEnabled(GL12.GL_RESCALE_NORMAL);
+            this.texture2D = GL11.glIsEnabled(GL11.GL_TEXTURE_2D);
+            this.activeTexture = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
+            this.blendDst = GL11.glGetInteger(GL11.GL_BLEND_DST);
+            this.blendDstAlpha = GL11.glGetInteger(GL14.GL_BLEND_DST_ALPHA);
+            this.blendSrc = GL11.glGetInteger(GL11.GL_BLEND_SRC);
+            this.blendSrcAlpha = GL11.glGetInteger(GL14.GL_BLEND_SRC_ALPHA);
+            this.depthFunc = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
+            this.shadeModel = GL11.glGetInteger(GL11.GL_SHADE_MODEL);
+            this.textureBinding = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+
+            FloatBuffer colorBuffer = BufferUtils.createFloatBuffer(4);
+            GL11.glGetFloat(GL11.GL_CURRENT_COLOR, colorBuffer);
+            this.red = colorBuffer.get(0);
+            this.green = colorBuffer.get(1);
+            this.blue = colorBuffer.get(2);
+            this.alphaValue = colorBuffer.get(3);
+        }
+
+        private static void setAlpha(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableAlpha();
+            } else {
+                GlStateManager.disableAlpha();
+            }
+        }
+
+        private static void setBlend(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableBlend();
+            } else {
+                GlStateManager.disableBlend();
+            }
+        }
+
+        private static void setCull(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableCull();
+            } else {
+                GlStateManager.disableCull();
+            }
+        }
+
+        private static void setDepth(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableDepth();
+            } else {
+                GlStateManager.disableDepth();
+            }
+        }
+
+        private static void setLighting(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableLighting();
+            } else {
+                GlStateManager.disableLighting();
+            }
+        }
+
+        private static void setNormalize(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableNormalize();
+            } else {
+                GlStateManager.disableNormalize();
+            }
+        }
+
+        private static void setRescaleNormal(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableRescaleNormal();
+            } else {
+                GlStateManager.disableRescaleNormal();
+            }
+        }
+
+        private static void setTexture2D(boolean enabled) {
+            if (enabled) {
+                GlStateManager.enableTexture2D();
+            } else {
+                GlStateManager.disableTexture2D();
+            }
+        }
+
+        public void restore() {
+            setAlpha(this.alpha);
+            setBlend(this.blend);
+            setCull(this.cull);
+            setDepth(this.depth);
+            setLighting(this.lighting);
+            setNormalize(this.normalize);
+            setRescaleNormal(this.rescaleNormal);
+            setTexture2D(this.texture2D);
+            GlStateManager.depthMask(this.depthMask);
+            GlStateManager.depthFunc(this.depthFunc);
+            GlStateManager.tryBlendFuncSeparate(this.blendSrc, this.blendDst, this.blendSrcAlpha, this.blendDstAlpha);
+            GlStateManager.shadeModel(this.shadeModel);
+            GlStateManager.setActiveTexture(this.activeTexture);
+            GlStateManager.bindTexture(this.textureBinding);
+            GlStateManager.color(this.red, this.green, this.blue, this.alphaValue);
+        }
     }
 
     public record EnchantmentData(String shortName, int maxLevel) {

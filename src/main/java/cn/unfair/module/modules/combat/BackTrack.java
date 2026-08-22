@@ -9,11 +9,11 @@ import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.velocity.GrimReduceVelocity;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.player.BackTrackUtil;
+import cn.unfair.util.AnimationUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
-import cn.unfair.util.AnimationUtil;
+import cn.unfair.util.player.BackTrackUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.entity.Entity;
@@ -21,8 +21,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.*;
-import net.minecraft.network.play.server.*;
+import net.minecraft.network.play.client.C02PacketUseEntity;
+import net.minecraft.network.play.client.C16PacketClientStatus;
+import net.minecraft.network.play.server.S14PacketEntity;
+import net.minecraft.network.play.server.S18PacketEntityTeleport;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
@@ -54,17 +56,17 @@ public class BackTrack extends Module {
     public final IntProperty maxPingSpoof = new IntProperty("Max Ping Spoof", 1000, 50, 2000, this::isLegitReach);
     public final BooleanProperty renderRealLocation = new BooleanProperty("Render Real Location", true, this::isLegitReach);
     public final ModeProperty esp = new ModeProperty("Render Mode", 1, new String[]{"FakePlayer", "Box", "None"}, this::isClassic);
-    public final BooleanProperty players = new BooleanProperty("Players", true);
-    public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
-    public final BooleanProperty animals = new BooleanProperty("Animals", false);
     public final ModeProperty boxColor = new ModeProperty("Box Color", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && this.esp.getValue() == 1);
     public final ColorProperty boxCustomColor = new ColorProperty("Box Custom Color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
     public final FloatProperty outlineWidth = new FloatProperty("Outline Width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final BooleanProperty players = new BooleanProperty("Players", true);
+    public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
+    public final BooleanProperty animals = new BooleanProperty("Animals", false);
     private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
+    public boolean isBackTracking;
     private Vec3 animatedPosition;
     private long animatedFrameTime;
-    public boolean isBackTracking;
     private EntityLivingBase target;
     private EntityLivingBase lastTarget;
     private Vec3 lastRenderPosition;
@@ -78,14 +80,6 @@ public class BackTrack extends Module {
 
     public BackTrack() {
         super("BackTrack", false);
-    }
-
-    private boolean isClassic() {
-        return this.mode.getValue() == 0;
-    }
-
-    private boolean isLegitReach() {
-        return this.mode.getValue() == 1;
     }
 
     private static double getDistanceToEntityBox(Entity entity) {
@@ -182,10 +176,6 @@ public class BackTrack extends Module {
         return (int) randomizeDouble(-value, value);
     }
 
-    private int getDelayMs() {
-        return Math.max(0, this.ms.getValue() + this.nextRand);
-    }
-
     private static double randomizeDouble(double min, double max) {
         if (min == max) {
             return min;
@@ -198,6 +188,27 @@ public class BackTrack extends Module {
 
     private static Vec3 zeroVec() {
         return new Vec3(0.0D, 0.0D, 0.0D);
+    }
+
+    private static boolean isGrimReduceActive() {
+        Module velocity = Unfair.moduleManager.getModule(Velocity.class);
+        if (!(velocity instanceof Velocity velocityModule) || !velocityModule.isEnabled()) {
+            return false;
+        }
+        SubModule current = velocityModule.getCurrentSubModule();
+        return current instanceof GrimReduceVelocity && current.isEnabled();
+    }
+
+    private boolean isClassic() {
+        return this.mode.getValue() == 0;
+    }
+
+    private boolean isLegitReach() {
+        return this.mode.getValue() == 1;
+    }
+
+    private int getDelayMs() {
+        return Math.max(0, this.ms.getValue() + this.nextRand);
     }
 
     @Override
@@ -668,22 +679,10 @@ public class BackTrack extends Module {
         this.animatedFrameTime = 0L;
     }
 
-
     private boolean isVelocityDelaying() {
         Module velocity = Unfair.moduleManager.getModule(Velocity.class);
         return velocity instanceof Velocity velocityModule && velocityModule.isDelayingVelocity();
     }
-
-
-    private static boolean isGrimReduceActive() {
-        Module velocity = Unfair.moduleManager.getModule(Velocity.class);
-        if (!(velocity instanceof Velocity velocityModule) || !velocityModule.isEnabled()) {
-            return false;
-        }
-        SubModule current = velocityModule.getCurrentSubModule();
-        return current instanceof GrimReduceVelocity && current.isEnabled();
-    }
-
 
     private void pauseForVelocityDelay() {
         if (this.isBackTracking || shouldLag || !this.dispatched) {

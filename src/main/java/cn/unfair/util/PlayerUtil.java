@@ -1,6 +1,5 @@
 package cn.unfair.util;
 
-import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
 import net.minecraft.block.Block;

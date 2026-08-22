@@ -4,15 +4,15 @@ import com.google.common.collect.Maps;
 import com.viaversion.nbt.io.NBTIO;
 import com.viaversion.nbt.limiter.TagLimiter;
 import com.viaversion.nbt.tag.CompoundTag;
-import com.viaversion.viabackwards.protocol.v1_13to1_12_2.Protocol1_13To1_12_2;
-import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viabackwards.protocol.v1_11to1_10.Protocol1_11To1_10;
+import com.viaversion.viabackwards.protocol.v1_13to1_12_2.Protocol1_13To1_12_2;
 import com.viaversion.viabackwards.protocol.v1_14to1_13_2.Protocol1_14To1_13_2;
 import com.viaversion.viabackwards.protocol.v1_15to1_14_4.Protocol1_15To1_14_4;
 import com.viaversion.viabackwards.protocol.v1_16to1_15_2.Protocol1_16To1_15_2;
 import com.viaversion.viabackwards.protocol.v1_17to1_16_4.Protocol1_17To1_16_4;
 import com.viaversion.viabackwards.protocol.v1_19to1_18_2.Protocol1_19To1_18_2;
 import com.viaversion.viabackwards.protocol.v1_20to1_19_4.Protocol1_20To1_19_4;
+import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.data.MappingData;
@@ -24,32 +24,25 @@ import com.viaversion.viaversion.api.minecraft.chunks.ChunkSection;
 import com.viaversion.viaversion.api.minecraft.chunks.DataPalette;
 import com.viaversion.viaversion.api.minecraft.chunks.PaletteType;
 import com.viaversion.viaversion.api.protocol.AbstractProtocol;
+import com.viaversion.viaversion.api.protocol.Protocol;
 import com.viaversion.viaversion.api.protocol.packet.ClientboundPacketType;
 import com.viaversion.viaversion.api.protocol.packet.Direction;
-import com.viaversion.viaversion.api.protocol.Protocol;
 import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMapping;
 import com.viaversion.viaversion.api.protocol.packet.mapping.PacketMappings;
 import com.viaversion.viaversion.api.protocol.remapper.PacketHandler;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_14;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_13;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_9_1;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_9_3;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_15;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_16;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_17;
-import com.viaversion.viaversion.api.type.types.chunk.ChunkType1_18;
+import com.viaversion.viaversion.api.type.types.chunk.*;
 import com.viaversion.viaversion.protocols.v1_12_2to1_13.data.BlockStates1_13;
 import com.viaversion.viaversion.protocols.v1_12_2to1_13.packet.ClientboundPackets1_13;
-import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ClientboundPackets1_9;
-import com.viaversion.viaversion.protocols.v1_9_1to1_9_3.packet.ClientboundPackets1_9_3;
 import com.viaversion.viaversion.protocols.v1_13_2to1_14.packet.ClientboundPackets1_14;
 import com.viaversion.viaversion.protocols.v1_14_4to1_15.packet.ClientboundPackets1_15;
 import com.viaversion.viaversion.protocols.v1_15_2to1_16.packet.ClientboundPackets1_16;
 import com.viaversion.viaversion.protocols.v1_16_4to1_17.packet.ClientboundPackets1_17;
 import com.viaversion.viaversion.protocols.v1_18_2to1_19.packet.ClientboundPackets1_19;
 import com.viaversion.viaversion.protocols.v1_19_3to1_19_4.packet.ClientboundPackets1_19_4;
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ClientboundPackets1_9;
+import com.viaversion.viaversion.protocols.v1_9_1to1_9_3.packet.ClientboundPackets1_9_3;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.ModernBlock;
@@ -58,19 +51,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 
-import java.lang.reflect.Field;
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
-/** Preserves selected modern block states before ViaBackwards replaces them. */
+/**
+ * Preserves selected modern block states before ViaBackwards replaces them.
+ */
 public final class ModernBlockStateTracker {
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, ModernState>> CHUNKS = Maps.newConcurrentMap();
     private static final ConcurrentMap<Long, ConcurrentMap<Integer, IBlockState[]>> EXTENDED_SECTIONS = Maps.newConcurrentMap();
@@ -171,15 +162,59 @@ public final class ModernBlockStateTracker {
     }
 
     private static void install1_9(Protocol1_9To1_8 protocol) {
-        prepend(protocol, ClientboundPackets1_9.LEVEL_CHUNK, wrapper -> { ChunkType1_9_1 type = ChunkType1_9_1.forEnvironment(wrapper.user().getClientWorld(Protocol1_9To1_8.class).getEnvironment()); com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk = wrapper.read(type); captureChunk(chunk, 0, ProtocolVersion.v1_9); wrapper.write(type, chunk); wrapper.resetReader(); });
-        prepend(protocol, ClientboundPackets1_9.BLOCK_UPDATE, wrapper -> { BlockPosition pos = wrapper.read(Types.BLOCK_POSITION1_8); int id = wrapper.read(Types.VAR_INT); capture(pos.x(), pos.y(), pos.z(), id, ProtocolVersion.v1_9); wrapper.write(Types.BLOCK_POSITION1_8, pos); wrapper.write(Types.VAR_INT, id); wrapper.resetReader(); });
-        prepend(protocol, ClientboundPackets1_9.CHUNK_BLOCKS_UPDATE, wrapper -> { int x = wrapper.read(Types.INT), z = wrapper.read(Types.INT); BlockChangeRecord[] records = wrapper.read(Types.BLOCK_CHANGE_ARRAY); for (BlockChangeRecord record : records) capture((x << 4) + record.getSectionX(), record.getY(), (z << 4) + record.getSectionZ(), record.getBlockId(), ProtocolVersion.v1_9); wrapper.write(Types.INT, x); wrapper.write(Types.INT, z); wrapper.write(Types.BLOCK_CHANGE_ARRAY, records); wrapper.resetReader(); });
+        prepend(protocol, ClientboundPackets1_9.LEVEL_CHUNK, wrapper -> {
+            ChunkType1_9_1 type = ChunkType1_9_1.forEnvironment(wrapper.user().getClientWorld(Protocol1_9To1_8.class).getEnvironment());
+            com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk = wrapper.read(type);
+            captureChunk(chunk, 0, ProtocolVersion.v1_9);
+            wrapper.write(type, chunk);
+            wrapper.resetReader();
+        });
+        prepend(protocol, ClientboundPackets1_9.BLOCK_UPDATE, wrapper -> {
+            BlockPosition pos = wrapper.read(Types.BLOCK_POSITION1_8);
+            int id = wrapper.read(Types.VAR_INT);
+            capture(pos.x(), pos.y(), pos.z(), id, ProtocolVersion.v1_9);
+            wrapper.write(Types.BLOCK_POSITION1_8, pos);
+            wrapper.write(Types.VAR_INT, id);
+            wrapper.resetReader();
+        });
+        prepend(protocol, ClientboundPackets1_9.CHUNK_BLOCKS_UPDATE, wrapper -> {
+            int x = wrapper.read(Types.INT), z = wrapper.read(Types.INT);
+            BlockChangeRecord[] records = wrapper.read(Types.BLOCK_CHANGE_ARRAY);
+            for (BlockChangeRecord record : records)
+                capture((x << 4) + record.getSectionX(), record.getY(), (z << 4) + record.getSectionZ(), record.getBlockId(), ProtocolVersion.v1_9);
+            wrapper.write(Types.INT, x);
+            wrapper.write(Types.INT, z);
+            wrapper.write(Types.BLOCK_CHANGE_ARRAY, records);
+            wrapper.resetReader();
+        });
     }
 
     private static void install1_11(Protocol1_11To1_10 protocol) {
-        prepend(protocol, ClientboundPackets1_9_3.LEVEL_CHUNK, wrapper -> { ChunkType1_9_3 type = ChunkType1_9_3.forEnvironment(wrapper.user().getClientWorld(Protocol1_11To1_10.class).getEnvironment()); com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk = wrapper.read(type); captureChunk(chunk, 0, ProtocolVersion.v1_11); wrapper.write(type, chunk); wrapper.resetReader(); });
-        prepend(protocol, ClientboundPackets1_9_3.BLOCK_UPDATE, wrapper -> { BlockPosition pos = wrapper.read(Types.BLOCK_POSITION1_8); int id = wrapper.read(Types.VAR_INT); capture(pos.x(), pos.y(), pos.z(), id, ProtocolVersion.v1_11); wrapper.write(Types.BLOCK_POSITION1_8, pos); wrapper.write(Types.VAR_INT, id); wrapper.resetReader(); });
-        prepend(protocol, ClientboundPackets1_9_3.CHUNK_BLOCKS_UPDATE, wrapper -> { int x = wrapper.read(Types.INT), z = wrapper.read(Types.INT); BlockChangeRecord[] records = wrapper.read(Types.BLOCK_CHANGE_ARRAY); for (BlockChangeRecord record : records) capture((x << 4) + record.getSectionX(), record.getY(), (z << 4) + record.getSectionZ(), record.getBlockId(), ProtocolVersion.v1_11); wrapper.write(Types.INT, x); wrapper.write(Types.INT, z); wrapper.write(Types.BLOCK_CHANGE_ARRAY, records); wrapper.resetReader(); });
+        prepend(protocol, ClientboundPackets1_9_3.LEVEL_CHUNK, wrapper -> {
+            ChunkType1_9_3 type = ChunkType1_9_3.forEnvironment(wrapper.user().getClientWorld(Protocol1_11To1_10.class).getEnvironment());
+            com.viaversion.viaversion.api.minecraft.chunks.Chunk chunk = wrapper.read(type);
+            captureChunk(chunk, 0, ProtocolVersion.v1_11);
+            wrapper.write(type, chunk);
+            wrapper.resetReader();
+        });
+        prepend(protocol, ClientboundPackets1_9_3.BLOCK_UPDATE, wrapper -> {
+            BlockPosition pos = wrapper.read(Types.BLOCK_POSITION1_8);
+            int id = wrapper.read(Types.VAR_INT);
+            capture(pos.x(), pos.y(), pos.z(), id, ProtocolVersion.v1_11);
+            wrapper.write(Types.BLOCK_POSITION1_8, pos);
+            wrapper.write(Types.VAR_INT, id);
+            wrapper.resetReader();
+        });
+        prepend(protocol, ClientboundPackets1_9_3.CHUNK_BLOCKS_UPDATE, wrapper -> {
+            int x = wrapper.read(Types.INT), z = wrapper.read(Types.INT);
+            BlockChangeRecord[] records = wrapper.read(Types.BLOCK_CHANGE_ARRAY);
+            for (BlockChangeRecord record : records)
+                capture((x << 4) + record.getSectionX(), record.getY(), (z << 4) + record.getSectionZ(), record.getBlockId(), ProtocolVersion.v1_11);
+            wrapper.write(Types.INT, x);
+            wrapper.write(Types.INT, z);
+            wrapper.write(Types.BLOCK_CHANGE_ARRAY, records);
+            wrapper.resetReader();
+        });
     }
 
     private static synchronized void finishLayer(Throwable throwable, Runnable installer) {
@@ -325,20 +360,51 @@ public final class ModernBlockStateTracker {
         });
     }
 
-    private static ChunkType1_18 chunkType1_18(EntityTracker tracker) { return new ChunkType1_18(tracker.currentWorldSectionHeight(), tracker.currentMinY(), tracker.biomesSent()); }
+    private static ChunkType1_18 chunkType1_18(EntityTracker tracker) {
+        return new ChunkType1_18(tracker.currentWorldSectionHeight(), tracker.currentMinY(), tracker.biomesSent());
+    }
+
     private static void install1_19(Protocol1_19To1_18_2 protocol) {
-        prepend(protocol, ClientboundPackets1_19.LEVEL_CHUNK_WITH_LIGHT, wrapper -> { EntityTracker t=wrapper.user().getEntityTracker(Protocol1_19To1_18_2.class); ChunkType1_18 type=chunkType1_18(t); com.viaversion.viaversion.api.minecraft.chunks.Chunk c=wrapper.read(type); captureChunk(c,t.currentMinY()>>4,ProtocolVersion.v1_19); wrapper.write(type,c); wrapper.resetReader(); });
+        prepend(protocol, ClientboundPackets1_19.LEVEL_CHUNK_WITH_LIGHT, wrapper -> {
+            EntityTracker t = wrapper.user().getEntityTracker(Protocol1_19To1_18_2.class);
+            ChunkType1_18 type = chunkType1_18(t);
+            com.viaversion.viaversion.api.minecraft.chunks.Chunk c = wrapper.read(type);
+            captureChunk(c, t.currentMinY() >> 4, ProtocolVersion.v1_19);
+            wrapper.write(type, c);
+            wrapper.resetReader();
+        });
         prepend(protocol, ClientboundPackets1_19.BLOCK_UPDATE, wrapper -> captureModernBlockUpdate(wrapper, ProtocolVersion.v1_19));
         prepend(protocol, ClientboundPackets1_19.SECTION_BLOCKS_UPDATE,
                 wrapper -> captureModernSectionUpdate(wrapper, ProtocolVersion.v1_19, true));
     }
+
     private static void install1_20(Protocol1_20To1_19_4 protocol) {
-        prepend(protocol, ClientboundPackets1_19_4.LEVEL_CHUNK_WITH_LIGHT, wrapper -> { EntityTracker t=wrapper.user().getEntityTracker(Protocol1_20To1_19_4.class); ChunkType1_18 type=chunkType1_18(t); com.viaversion.viaversion.api.minecraft.chunks.Chunk c=wrapper.read(type); captureChunk(c,t.currentMinY()>>4,ProtocolVersion.v1_20); wrapper.write(type,c); wrapper.resetReader(); });
+        prepend(protocol, ClientboundPackets1_19_4.LEVEL_CHUNK_WITH_LIGHT, wrapper -> {
+            EntityTracker t = wrapper.user().getEntityTracker(Protocol1_20To1_19_4.class);
+            ChunkType1_18 type = chunkType1_18(t);
+            com.viaversion.viaversion.api.minecraft.chunks.Chunk c = wrapper.read(type);
+            captureChunk(c, t.currentMinY() >> 4, ProtocolVersion.v1_20);
+            wrapper.write(type, c);
+            wrapper.resetReader();
+        });
         prepend(protocol, ClientboundPackets1_19_4.BLOCK_UPDATE, wrapper -> captureModernBlockUpdate(wrapper, ProtocolVersion.v1_20));
         prepend(protocol, ClientboundPackets1_19_4.SECTION_BLOCKS_UPDATE,
                 wrapper -> captureModernSectionUpdate(wrapper, ProtocolVersion.v1_20, false));
     }
-    private static void captureModernBlockUpdate(com.viaversion.viaversion.api.protocol.packet.PacketWrapper wrapper, ProtocolVersion version) { try { BlockPosition p=wrapper.read(Types.BLOCK_POSITION1_14);int id=wrapper.read(Types.VAR_INT);capture(p.x(),p.y(),p.z(),id,version);wrapper.write(Types.BLOCK_POSITION1_14,p);wrapper.write(Types.VAR_INT,id);wrapper.resetReader(); } catch (Exception e) { throw new IllegalStateException(e); } }
+
+    private static void captureModernBlockUpdate(com.viaversion.viaversion.api.protocol.packet.PacketWrapper wrapper, ProtocolVersion version) {
+        try {
+            BlockPosition p = wrapper.read(Types.BLOCK_POSITION1_14);
+            int id = wrapper.read(Types.VAR_INT);
+            capture(p.x(), p.y(), p.z(), id, version);
+            wrapper.write(Types.BLOCK_POSITION1_14, p);
+            wrapper.write(Types.VAR_INT, id);
+            wrapper.resetReader();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private static void captureModernSectionUpdate(
             com.viaversion.viaversion.api.protocol.packet.PacketWrapper wrapper,
             ProtocolVersion version,
@@ -902,8 +968,7 @@ public final class ModernBlockStateTracker {
     private static void discoverModernBlocks() {
         List<ModernBlock> discovered = new ArrayList<>();
         for (Block block : Block.blockRegistry) {
-            if (block instanceof ModernBlock) {
-                ModernBlock modernBlock = (ModernBlock) block;
+            if (block instanceof ModernBlock modernBlock) {
                 if (modernBlock.getViaStateIdMin() <= modernBlock.getViaStateIdMax()) {
                     discovered.add(modernBlock);
                 }
@@ -933,37 +998,21 @@ public final class ModernBlockStateTracker {
         return (long) chunkX & 0xFFFFFFFFL | ((long) chunkZ & 0xFFFFFFFFL) << 32;
     }
 
-    private static final class ModernState {
-        private final ModernBlock block;
-        private final int stateId;
-        private final ProtocolVersion protocol;
-
-        private ModernState(ModernBlock block, int stateId, ProtocolVersion protocol) {
-            this.block = block;
-            this.stateId = stateId;
-            this.protocol = protocol;
-        }
+    private record ModernState(ModernBlock block, int stateId, ProtocolVersion protocol) {
 
         private IBlockState toBlockState() {
-            return block.getStateFromViaState(protocol, stateId);
+                return block.getStateFromViaState(protocol, stateId);
+            }
+
+            private boolean belongsTo(ProtocolVersion sourceVersion) {
+                return protocol.equals(sourceVersion);
+            }
+
+            private void onApplied(BlockPos pos, IBlockState state) {
+                block.onModernStateApplied(pos, state);
+            }
         }
 
-        private boolean belongsTo(ProtocolVersion sourceVersion) {
-            return protocol.equals(sourceVersion);
-        }
-
-        private void onApplied(BlockPos pos, IBlockState state) {
-            block.onModernStateApplied(pos, state);
-        }
-    }
-
-    private static final class NativeState {
-        private final String identifier;
-        private final Map<String, String> properties;
-
-        private NativeState(String identifier, Map<String, String> properties) {
-            this.identifier = identifier;
-            this.properties = properties;
-        }
+    private record NativeState(String identifier, Map<String, String> properties) {
     }
 }

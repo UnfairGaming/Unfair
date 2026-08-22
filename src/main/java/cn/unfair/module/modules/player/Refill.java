@@ -17,11 +17,21 @@ import net.minecraft.item.ItemStack;
 public class Refill extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final IntProperty delay = new IntProperty("Delay", 1, 0, 20);
-    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Soup","Pot"});
+    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Soup", "Pot"});
     private final TimerUtil time = new TimerUtil();
 
     public Refill() {
         super("Refill", false);
+    }
+
+    public static boolean isHotbarFull() {
+        for (int i = 0; i <= 36; ++i) {
+            ItemStack itemstack = mc.thePlayer.inventory.getStackInSlot(i);
+            if (itemstack == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @EventTarget
@@ -37,7 +47,7 @@ public class Refill extends Module {
 
     private void refill(Item targetItem) {
         if (mc.currentScreen instanceof GuiInventory) {
-            if (!isHotbarFull() && this.time.hasTimeElapsed(delay.getValue() * 50)) {
+            if (!isHotbarFull() && this.time.hasTimeElapsed(delay.getValue() * 50L)) {
                 for (int i = 9; i < 36; ++i) {
                     ItemStack itemstack = mc.thePlayer.inventoryContainer.getSlot(i).getStack();
                     if (itemstack != null && itemstack.getItem() == targetItem) {
@@ -48,16 +58,6 @@ public class Refill extends Module {
                 this.time.reset();
             }
         }
-    }
-
-    public static boolean isHotbarFull() {
-        for (int i = 0; i <= 36; ++i) {
-            ItemStack itemstack = mc.thePlayer.inventory.getStackInSlot(i);
-            if (itemstack == null) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

@@ -23,11 +23,7 @@ import net.minecraft.network.play.server.S23PacketBlockChange;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BedWars extends Module {
@@ -76,7 +72,7 @@ public class BedWars extends Module {
             String itemType = this.getItemType(heldItem);
             if (itemType != null && !this.lastHeldItems.containsKey(name)) {
                 this.lastHeldItems.put(name, itemType);
-                int distance = (int) Math.round(mc.thePlayer.getDistanceToEntity(player));
+                int distance = Math.round(mc.thePlayer.getDistanceToEntity(player));
                 this.handleAlert(itemType, player.getDisplayName().getFormattedText(), distance);
             } else if (this.lastHeldItems.containsKey(name) && !this.lastHeldItems.get(name).equals(itemType)) {
                 this.lastHeldItems.remove(name);

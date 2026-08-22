@@ -247,10 +247,10 @@ public final class EventManager {
     }
 
     /**
-         * @author DarkMagician6
-         * @since January 2, 2014
-         */
-        private record MethodData(Object source, Method target, byte priority) {
+     * @author DarkMagician6
+     * @since January 2, 2014
+     */
+    private record MethodData(Object source, Method target, byte priority) {
         /**
          * Sets the values of the data.
          *
@@ -263,34 +263,34 @@ public final class EventManager {
         private MethodData {
         }
 
-            /**
-             * Gets the source Object of the data.
-             *
-             * @return Source Object of the targeted Method.
-             */
-            @Override
-            public Object source() {
-                return source;
-            }
-
-            /**
-             * Gets the targeted Method.
-             *
-             * @return The Method that is listening to certain Event calls.
-             */
-            @Override
-            public Method target() {
-                return target;
-            }
-
-            /**
-             * Gets the priority value of the targeted Method.
-             *
-             * @return The priority value of the targeted Method.
-             */
-            @Override
-            public byte priority() {
-                return priority;
-            }
+        /**
+         * Gets the source Object of the data.
+         *
+         * @return Source Object of the targeted Method.
+         */
+        @Override
+        public Object source() {
+            return source;
         }
+
+        /**
+         * Gets the targeted Method.
+         *
+         * @return The Method that is listening to certain Event calls.
+         */
+        @Override
+        public Method target() {
+            return target;
+        }
+
+        /**
+         * Gets the priority value of the targeted Method.
+         *
+         * @return The priority value of the targeted Method.
+         */
+        @Override
+        public byte priority() {
+            return priority;
+        }
+    }
 }

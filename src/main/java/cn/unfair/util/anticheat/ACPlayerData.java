@@ -11,12 +11,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ACPlayerData {
-    private final EntityPlayer player;
     public final Map<String, CheckData> checkDataMap = new ConcurrentHashMap<>();
     public final List<PositionSample> positionHistory = new ArrayList<>();
     public final List<Integer> crouchDurations = new ArrayList<>();
     public final List<SwingData> swingHistory = new ArrayList<>();
-
+    public final List<Long> movementPacketTimes = new ArrayList<>();
+    public final List<Long> clickIntervals = new ArrayList<>();
+    public final List<Long> clickDeviationSamples = new ArrayList<>();
+    private final EntityPlayer player;
     public Vec3 velocity;
     public Vec3 lastVelocity;
     public Vec3 lastPosition;
@@ -76,7 +78,6 @@ public class ACPlayerData {
     public long fakeLagAverage;
     public long fakeLagPossibleDelay;
     public int fakeLagPacketsInRow;
-    public final List<Long> movementPacketTimes = new ArrayList<>();
     public double noSlowABuffer;
     public double noSlowBBuffer;
     public double motionABuffer;
@@ -84,8 +85,6 @@ public class ACPlayerData {
     public double motionCBuffer;
     public double invalidSwingBuffer;
     public long lastSwingPacketTime;
-    public final List<Long> clickIntervals = new ArrayList<>();
-    public final List<Long> clickDeviationSamples = new ArrayList<>();
     public double autoClickABuffer;
     public long autoClickAStarted;
     public long autoClickBStarted;
@@ -130,14 +129,7 @@ public class ACPlayerData {
         public long lastAlertTime;
     }
 
-    public static class PositionSample {
-        public final Vec3 pos;
-        public final long timestamp;
-
-        public PositionSample(Vec3 pos, long timestamp) {
-            this.pos = pos;
-            this.timestamp = timestamp;
-        }
+    public record PositionSample(Vec3 pos, long timestamp) {
     }
 
     public static class SwingData {

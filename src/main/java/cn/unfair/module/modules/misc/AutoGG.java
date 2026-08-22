@@ -26,17 +26,16 @@ public class AutoGG extends Module {
             return;
         }
 
-        if (!(event.getPacket() instanceof S45PacketTitle)) {
+        if (!(event.getPacket() instanceof S45PacketTitle packet)) {
             return;
         }
 
-        S45PacketTitle packet = (S45PacketTitle) event.getPacket();
         if (packet.getType() != S45PacketTitle.Type.TITLE || packet.getMessage() == null) {
             return;
         }
 
         String title = packet.getMessage().getUnformattedText();
-        if(!title.toUpperCase().contains("VICTORY") && !title.contains("胜利")) {
+        if (!title.toUpperCase().contains("VICTORY") && !title.contains("胜利")) {
             return;
         }
 

@@ -2,7 +2,10 @@ package cn.unfair.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 
 public class RotationUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();

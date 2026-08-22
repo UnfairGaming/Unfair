@@ -7,10 +7,10 @@ import cn.unfair.util.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.client.renderer.GlStateManager;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -141,14 +141,14 @@ public class PotionEffects extends Module {
         if (this.showName.getValue()) {
             float textY = y + this.getTextBlockOffset(scale);
             this.drawString(getEffectName(effect), textX, textY, this.nameColor.getValue(), scale);
-            this.drawString(getDurationText(effect), textX, textY + this.getFontHeight() + 1.0F * scale, this.durationColor.getValue(), scale);
+            this.drawString(getDurationText(effect), textX, textY + this.getFontHeight() + scale, this.durationColor.getValue(), scale);
         } else {
             this.drawString(getDurationText(effect), textX, y + (this.getRowHeight() - this.getFontHeight()) / 2.0F, this.durationColor.getValue(), scale);
         }
     }
 
     private float getTextBlockOffset(float scale) {
-        float textHeight = this.getFontHeight() * 2.0F + 1.0F * scale;
+        float textHeight = this.getFontHeight() * 2.0F + scale;
         return Math.max(0.0F, (this.getRowHeight() - textHeight) / 2.0F);
     }
 

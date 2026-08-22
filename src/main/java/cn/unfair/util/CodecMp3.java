@@ -18,19 +18,19 @@ import java.net.URL;
 
 public class CodecMp3 implements ICodec {
 
-    public static void register() {
-        try {
-            SoundSystemConfig.setCodec("mp3", CodecMp3.class);
-        } catch (SoundSystemException ignored) {
-        }
-    }
-
     private Bitstream bitstream;
     private Decoder decoder;
     private InputStream inputStream;
     private AudioFormat audioFormat;
     private boolean initialized;
     private boolean endOfStream;
+
+    public static void register() {
+        try {
+            SoundSystemConfig.setCodec("mp3", CodecMp3.class);
+        } catch (SoundSystemException ignored) {
+        }
+    }
 
     @Override
     public void reverseByteOrder(boolean b) {

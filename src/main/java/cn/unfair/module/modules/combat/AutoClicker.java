@@ -31,12 +31,12 @@ public class AutoClicker extends Module {
     public final BooleanProperty breakBlocks = new BooleanProperty("Break Blocks", true);
     public final BooleanProperty invClick = new BooleanProperty("Inv Click", false);
     public final IntProperty invCps = new IntProperty("Inv Cps", 1, 1, 20, this.invClick::getValue);
+    private final DelayGenerator delayGenerator = new DelayGenerator();
     private boolean clickPending = false;
     private long clickDelay = 0L;
     private boolean blockHitPending = false;
     private long blockHitDelay = 0L;
     private int ticks = 0;
-    private final DelayGenerator delayGenerator = new DelayGenerator();
 
     public AutoClicker() {
         super("AutoClicker", false);

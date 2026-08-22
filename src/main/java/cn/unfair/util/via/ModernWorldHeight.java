@@ -4,7 +4,9 @@ import com.viaversion.viabackwards.protocol.v1_17to1_16_4.Protocol1_17To1_16_4;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.data.entity.EntityTracker;
 
-/** Height-limit model used while a 1.17+ server is translated to the 1.8 client. */
+/**
+ * Height-limit model used while a 1.17+ server is translated to the 1.8 client.
+ */
 public final class ModernWorldHeight {
     private static final int LEGACY_BOTTOM_Y = 0;
     private static final int LEGACY_SECTION_COUNT = 16;

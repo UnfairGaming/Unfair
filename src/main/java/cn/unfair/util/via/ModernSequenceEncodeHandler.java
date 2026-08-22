@@ -16,7 +16,9 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 
 import java.util.List;
 
-/** Replaces ViaBackwards' placeholder sequence in the final 1.20.5 packet. */
+/**
+ * Replaces ViaBackwards' placeholder sequence in the final 1.20.5 packet.
+ */
 @ChannelHandler.Sharable
 public final class ModernSequenceEncodeHandler extends MessageToMessageEncoder<ByteBuf> {
 
@@ -26,12 +28,6 @@ public final class ModernSequenceEncodeHandler extends MessageToMessageEncoder<B
 
     public ModernSequenceEncodeHandler(UserConnection connection) {
         this.connection = connection;
-    }
-
-    @Override
-    protected void encode(ChannelHandlerContext context, ByteBuf buffer, List<Object> output) {
-        patchSequence(connection, buffer);
-        output.add(buffer.retain());
     }
 
     public static void patchSequence(UserConnection connection, ByteBuf buffer) {
@@ -92,5 +88,11 @@ public final class ModernSequenceEncodeHandler extends MessageToMessageEncoder<B
         buffer.writerIndex(sequenceIndex);
         Types.VAR_INT.writePrimitive(buffer, storage.next());
         buffer.writeBytes(trailingData);
+    }
+
+    @Override
+    protected void encode(ChannelHandlerContext context, ByteBuf buffer, List<Object> output) {
+        patchSequence(connection, buffer);
+        output.add(buffer.retain());
     }
 }

@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 public class ModuleManager {
     public final LinkedHashMap<Class<?>, Module> modules = new LinkedHashMap<>();
     private boolean sound = false;
+    private boolean enableSound;
 
     public ModuleManager() {
         autoRegisterModules();
@@ -127,8 +128,6 @@ public class ModuleManager {
         categoryModules.sort(Comparator.comparing(m -> m.getName().toLowerCase()));
         return categoryModules;
     }
-
-    private boolean enableSound;
 
     public void playSound(boolean enabled) {
         this.enableSound = enabled;
