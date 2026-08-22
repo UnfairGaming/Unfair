@@ -14,7 +14,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-public final class BackTrackLagUtils {
+public final class BackTrackUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final long DEFAULT_TIMER_DELAY = 100L;
     private static final long BLINK_DELAY = 9999999L;
@@ -24,7 +24,7 @@ public final class BackTrackLagUtils {
     private static long delayAmount;
     private static boolean post;
 
-    private BackTrackLagUtils() {
+    private BackTrackUtil() {
     }
 
     public static void onPacket(PacketEvent event, boolean outgoing) {

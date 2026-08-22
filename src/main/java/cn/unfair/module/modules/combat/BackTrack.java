@@ -9,12 +9,11 @@ import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.velocity.GrimReduceVelocity;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.player.BackTrackLagUtils;
+import cn.unfair.util.player.BackTrackUtil;
 import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.TimerUtil;
 import cn.unfair.util.AnimationUtil;
-import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.entity.Entity;
@@ -215,8 +214,8 @@ public class BackTrack extends Module {
 
     @Override
     public void onDisabled() {
-        BackTrackLagUtils.disable();
-        BackTrackLagUtils.dispatch();
+        BackTrackUtil.disable();
+        BackTrackUtil.dispatch();
         shouldLag = false;
         realPosition = null;
         realLastPos = null;
@@ -241,7 +240,7 @@ public class BackTrack extends Module {
 
         this.checkModeChange();
         if (event.type() == EventType.PRE) {
-            BackTrackLagUtils.onPreTick();
+            BackTrackUtil.onPreTick();
         } else if (event.type() == EventType.POST && this.isClassic()) {
             if (this.target != null && realPosition != null) {
                 if (this.currentRenderPosition == null) {
@@ -274,13 +273,13 @@ public class BackTrack extends Module {
     private void runLegitReach() {
         if (mc.thePlayer == null || mc.theWorld == null) {
             this.resetTargetState();
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
         if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
             this.stopLaggingForRespawn();
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -293,14 +292,14 @@ public class BackTrack extends Module {
         }
         if (this.isVelocityDelaying()) {
             this.pauseForVelocityDelay();
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
         EntityLivingBase newTarget = this.getTarget(9.0D);
         if (newTarget == null) {
             this.resetTargetState();
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -316,7 +315,7 @@ public class BackTrack extends Module {
         if (!mc.thePlayer.isSwingInProgress && (killAura == null || !killAura.isEnabled())) {
             shouldLag = false;
             this.isBackTracking = false;
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -326,26 +325,26 @@ public class BackTrack extends Module {
         this.isBackTracking = shouldLag;
 
         if (shouldLag) {
-            BackTrackLagUtils.spoof(this.maxPingSpoof.getValue(), true, !isGrimReduceActive(), true, true, false, false);
+            BackTrackUtil.spoof(this.maxPingSpoof.getValue(), true, !isGrimReduceActive(), true, true, false, false);
             this.dispatched = false;
         } else if (!this.dispatched) {
-            BackTrackLagUtils.disable();
-            BackTrackLagUtils.dispatch();
+            BackTrackUtil.disable();
+            BackTrackUtil.dispatch();
             this.dispatched = true;
         }
-        BackTrackLagUtils.onPostTick();
+        BackTrackUtil.onPostTick();
     }
 
     private void runBackTrack() {
         if (mc.thePlayer == null || mc.theWorld == null) {
             this.isBackTracking = false;
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
         if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
             this.stopLaggingForRespawn();
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -358,7 +357,7 @@ public class BackTrack extends Module {
         }
         if (this.isVelocityDelaying()) {
             this.pauseForVelocityDelay();
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -372,7 +371,7 @@ public class BackTrack extends Module {
             this.lastRenderPosition = null;
             this.currentRenderPosition = null;
             this.isBackTracking = false;
-            BackTrackLagUtils.onPostTick();
+            BackTrackUtil.onPostTick();
             return;
         }
         if (this.target != this.lastTarget || realPosition == null || realLastPos == null) {
@@ -427,19 +426,19 @@ public class BackTrack extends Module {
 
         if (shouldLag) {
             if (this.relagTimer.hasTimeElapsed(this.delayForNextLag.getValue())) {
-                BackTrackLagUtils.spoof(this.getDelayMs(), true, !isGrimReduceActive(), true, true, false, false);
+                BackTrackUtil.spoof(this.getDelayMs(), true, !isGrimReduceActive(), true, true, false, false);
                 this.dispatched = false;
             }
         } else if (!this.dispatched) {
-            BackTrackLagUtils.disable();
-            BackTrackLagUtils.dispatch();
+            BackTrackUtil.disable();
+            BackTrackUtil.dispatch();
             this.relagTimer.reset();
             this.dispatched = true;
             this.nextRand = randomizeAround(this.extraRand.getValue());
         }
 
         this.attacked = false;
-        BackTrackLagUtils.onPostTick();
+        BackTrackUtil.onPostTick();
     }
 
     @EventTarget
@@ -490,7 +489,7 @@ public class BackTrack extends Module {
                     }
                 }
             }
-            BackTrackLagUtils.onPacket(event, false);
+            BackTrackUtil.onPacket(event, false);
         } else if (event.getType() == EventType.SEND) {
             if (this.isClassic()
                     && packet instanceof C02PacketUseEntity
@@ -500,7 +499,7 @@ public class BackTrack extends Module {
                     && this.onlyWhenNeeded.getValue()) {
                 this.attackTimer.reset();
             }
-            BackTrackLagUtils.onPacket(event, true);
+            BackTrackUtil.onPacket(event, true);
         }
     }
 
@@ -659,8 +658,8 @@ public class BackTrack extends Module {
             return;
         }
 
-        BackTrackLagUtils.disable();
-        BackTrackLagUtils.dispatch();
+        BackTrackUtil.disable();
+        BackTrackUtil.dispatch();
         this.activeMode = this.mode.getValue();
         this.resetTargetState();
         realPosition = zeroVec();
@@ -688,8 +687,8 @@ public class BackTrack extends Module {
 
     private void pauseForVelocityDelay() {
         if (this.isBackTracking || shouldLag || !this.dispatched) {
-            BackTrackLagUtils.disable();
-            BackTrackLagUtils.dispatch();
+            BackTrackUtil.disable();
+            BackTrackUtil.dispatch();
             this.dispatched = true;
         }
         shouldLag = false;
@@ -715,8 +714,8 @@ public class BackTrack extends Module {
     }
 
     private void stopLaggingForRespawn() {
-        BackTrackLagUtils.disable();
-        BackTrackLagUtils.dispatch();
+        BackTrackUtil.disable();
+        BackTrackUtil.dispatch();
         this.dispatched = true;
         this.resetTargetState();
     }
