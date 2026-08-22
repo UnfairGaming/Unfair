@@ -347,7 +347,7 @@ public class Scaffold extends Module {
         return !invalidBlocks.contains(block)
                 && BlockUtil.isSolid(block)
                 && !BlockUtil.isInteractable(block)
-                && block.isFullBlock();
+                && block.isFullCube();
     }
 
     private boolean isFullBlock(ItemStack stack) {
@@ -853,7 +853,7 @@ public class Scaffold extends Module {
         return !BlockUtil.isReplaceable(pos)
                 && BlockUtil.isSolid(block)
                 && !BlockUtil.isInteractable(pos)
-                && block.isFullBlock();
+                && block.isFullCube();
     }
 
     private boolean canGodBridgeClick(BlockPos pos) {
@@ -868,7 +868,7 @@ public class Scaffold extends Module {
                 || block.getCollisionBoundingBox(mc.theWorld, pos, state) == null
                 || block instanceof BlockContainer
                 || block instanceof BlockWorkbench
-                || !block.isFullBlock()) {
+                || !block.isFullCube()) {
             return false;
         }
         for (Entity entity : mc.theWorld.loadedEntityList) {
