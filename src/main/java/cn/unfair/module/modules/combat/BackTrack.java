@@ -38,19 +38,7 @@ public class BackTrack extends Module {
     public static Vec3 realPosition = zeroVec();
     public static Vec3 realLastPos = zeroVec();
     public static boolean shouldLag;
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Classic", "Rise"}) {
-        @Override
-        public boolean read(JsonObject jsonObject) {
-            String configuredMode = jsonObject.get(this.getName()).getAsString();
-            if (configuredMode.equalsIgnoreCase("FAKE_PLAYER")
-                    || configuredMode.equalsIgnoreCase("BOX")
-                    || configuredMode.equalsIgnoreCase("NONE")) {
-                BackTrack.this.esp.parseString(configuredMode);
-                return this.setValue(0);
-            }
-            return super.read(jsonObject);
-        }
-    };
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Classic", "Rise"});
     public final BooleanProperty onlyWhenNeeded = new BooleanProperty("Only When Needed", false, this::isClassic);
     public final FloatProperty attackRange = new FloatProperty("Attack Range", 3.0F, 0.1F, 8.0F, () -> this.isClassic() && this.onlyWhenNeeded.getValue());
     public final FloatProperty rangeStart = new FloatProperty("Range Start", 3.0F, 1.0F, 8.0F, () -> this.isClassic() && !this.onlyWhenNeeded.getValue());
@@ -296,9 +284,6 @@ public class BackTrack extends Module {
             return;
         }
 
-        // The velocity module (GrimReduce) is delaying the incoming stream: pause our lag
-        // queue so we don't double-delay transactions/entity updates and desync Grim's
-        // knockback measurement. Re-sync once it is over.
         if (this.velocityDelayWasActive) {
             this.velocityDelayWasActive = false;
             if (this.target != null) {
@@ -341,7 +326,6 @@ public class BackTrack extends Module {
         this.isBackTracking = shouldLag;
 
         if (shouldLag) {
-            // When GrimReduce owns the knockback, leave S12/explosion packets alone.
             BackTrackLagUtils.spoof(this.maxPingSpoof.getValue(), true, !isGrimReduceActive(), true, true, false, false);
             this.dispatched = false;
         } else if (!this.dispatched) {
@@ -365,7 +349,6 @@ public class BackTrack extends Module {
             return;
         }
 
-        // Same pause/resume as above: never stack our incoming delay on GrimReduce's.
         if (this.velocityDelayWasActive) {
             this.velocityDelayWasActive = false;
             if (this.target != null) {
@@ -444,7 +427,6 @@ public class BackTrack extends Module {
 
         if (shouldLag) {
             if (this.relagTimer.hasTimeElapsed(this.delayForNextLag.getValue())) {
-                // When GrimReduce owns the knockback, leave S12/explosion packets alone.
                 BackTrackLagUtils.spoof(this.getDelayMs(), true, !isGrimReduceActive(), true, true, false, false);
                 this.dispatched = false;
             }
@@ -687,13 +669,13 @@ public class BackTrack extends Module {
         this.animatedFrameTime = 0L;
     }
 
-    /** True while the Velocity module is delaying the incoming stream (GrimReduce/Hypixel). */
+
     private boolean isVelocityDelaying() {
         Module velocity = Unfair.moduleManager.getModule(Velocity.class);
         return velocity instanceof Velocity velocityModule && velocityModule.isDelayingVelocity();
     }
 
-    /** True when the GrimReduce velocity mode is the active one and enabled. */
+
     private static boolean isGrimReduceActive() {
         Module velocity = Unfair.moduleManager.getModule(Velocity.class);
         if (!(velocity instanceof Velocity velocityModule) || !velocityModule.isEnabled()) {
@@ -703,7 +685,7 @@ public class BackTrack extends Module {
         return current instanceof GrimReduceVelocity && current.isEnabled();
     }
 
-    /** Flush our lag queue and stand down while another module delays the incoming stream. */
+
     private void pauseForVelocityDelay() {
         if (this.isBackTracking || shouldLag || !this.dispatched) {
             BackTrackLagUtils.disable();

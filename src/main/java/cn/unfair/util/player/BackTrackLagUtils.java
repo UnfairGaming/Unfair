@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/** Shared packet delay queue used by BackTrack modes. */
+
 public final class BackTrackLagUtils {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final long DEFAULT_TIMER_DELAY = 100L;
