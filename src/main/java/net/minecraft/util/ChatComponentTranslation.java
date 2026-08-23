@@ -15,7 +15,7 @@ public class ChatComponentTranslation extends ChatComponentStyle {
     private final String key;
     private final Object[] formatArgs;
     private final Object syncLock = new Object();
-    List<IChatComponent> children = Lists.<IChatComponent>newArrayList();
+    List<IChatComponent> children = Lists.newArrayList();
     private long lastTranslationUpdateTimeInMilliseconds = -1L;
 
     public ChatComponentTranslation(String translationKey, Object... args) {
@@ -74,7 +74,7 @@ public class ChatComponentTranslation extends ChatComponentStyle {
                 l = matcher.end();
 
                 if (k > j) {
-                    ChatComponentText chatcomponenttext = new ChatComponentText(String.format(format.substring(j, k), new Object[0]));
+                    ChatComponentText chatcomponenttext = new ChatComponentText(String.format(format.substring(j, k)));
                     chatcomponenttext.getChatStyle().setParentStyle(this.getChatStyle());
                     this.children.add(chatcomponenttext);
                 }
@@ -101,7 +101,7 @@ public class ChatComponentTranslation extends ChatComponentStyle {
             }
 
             if (j < format.length()) {
-                ChatComponentText chatcomponenttext1 = new ChatComponentText(String.format(format.substring(j), new Object[0]));
+                ChatComponentText chatcomponenttext1 = new ChatComponentText(String.format(format.substring(j)));
                 chatcomponenttext1.getChatStyle().setParentStyle(this.getChatStyle());
                 this.children.add(chatcomponenttext1);
             }
@@ -148,7 +148,7 @@ public class ChatComponentTranslation extends ChatComponentStyle {
 
     public Iterator<IChatComponent> iterator() {
         this.ensureInitialized();
-        return Iterators.<IChatComponent>concat(createDeepCopyIterator(this.children), createDeepCopyIterator(this.siblings));
+        return Iterators.concat(createDeepCopyIterator(this.children), createDeepCopyIterator(this.siblings));
     }
 
     /**

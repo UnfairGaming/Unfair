@@ -20,7 +20,7 @@ import java.util.Map;
 
 public abstract class LayerArmorBase<T extends ModelBase> implements LayerRenderer<EntityLivingBase> {
     protected static final ResourceLocation ENCHANTED_ITEM_GLINT_RES = ResourceLocation.of("textures/misc/enchanted_item_glint.png");
-    private static final Map<String, ResourceLocation> ARMOR_TEXTURE_RES_MAP = Maps.<String, ResourceLocation>newHashMap();
+    private static final Map<String, ResourceLocation> ARMOR_TEXTURE_RES_MAP = Maps.newHashMap();
     private final RendererLivingEntity<?> renderer;
     protected T modelLeggings;
     protected T modelArmor;

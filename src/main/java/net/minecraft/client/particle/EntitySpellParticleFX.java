@@ -112,7 +112,7 @@ public class EntitySpellParticleFX extends EntityFX {
             EntityFX entityfx = new EntitySpellParticleFX(worldIn, xCoordIn, yCoordIn, zCoordIn, xSpeedIn, ySpeedIn, zSpeedIn);
             ((EntitySpellParticleFX) entityfx).setBaseSpellTextureIndex(144);
             float f = worldIn.rand.nextFloat() * 0.5F + 0.35F;
-            entityfx.setRBGColorF(1.0F * f, 0.0F * f, 1.0F * f);
+            entityfx.setRBGColorF(f, 0.0F * f, f);
             return entityfx;
         }
     }

@@ -138,7 +138,7 @@ public class JsonToNBT {
     private static JsonToNBT.Any func_179270_a(String p_179270_0_, boolean p_179270_1_) throws NBTException {
         String s = func_150313_b(p_179270_0_, p_179270_1_);
         String s1 = func_150311_c(p_179270_0_, p_179270_1_);
-        return func_179272_a(new String[]{s, s1});
+        return func_179272_a(s, s1);
     }
 
     private static String func_150314_a(String p_150314_0_, boolean p_150314_1_) throws NBTException {
@@ -295,7 +295,7 @@ public class JsonToNBT {
     }
 
     static class Compound extends JsonToNBT.Any {
-        protected java.util.List<JsonToNBT.Any> field_150491_b = Lists.<JsonToNBT.Any>newArrayList();
+        protected java.util.List<JsonToNBT.Any> field_150491_b = Lists.newArrayList();
 
         public Compound(String p_i45137_1_) {
             this.json = p_i45137_1_;
@@ -313,7 +313,7 @@ public class JsonToNBT {
     }
 
     static class List extends JsonToNBT.Any {
-        protected java.util.List<JsonToNBT.Any> field_150492_b = Lists.<JsonToNBT.Any>newArrayList();
+        protected java.util.List<JsonToNBT.Any> field_150492_b = Lists.newArrayList();
 
         public List(String json) {
             this.json = json;

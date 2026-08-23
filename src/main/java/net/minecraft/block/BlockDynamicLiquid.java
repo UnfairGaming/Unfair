@@ -163,7 +163,7 @@ public class BlockDynamicLiquid extends BlockLiquid {
 
     private Set<EnumFacing> getPossibleFlowDirections(World worldIn, BlockPos pos) {
         int i = 1000;
-        Set<EnumFacing> set = EnumSet.<EnumFacing>noneOf(EnumFacing.class);
+        Set<EnumFacing> set = EnumSet.noneOf(EnumFacing.class);
 
         for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
             BlockPos blockpos = pos.offset(enumfacing);

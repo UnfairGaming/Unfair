@@ -320,7 +320,7 @@ public class ConnectedTexturesCompact
         float f1 = Float.intBitsToFloat(data[j + 4 + 1]);
         double d0 = spriteFrom.getSpriteU16(f);
         double d1 = spriteFrom.getSpriteV16(f1);
-        float f2 = Float.intBitsToFloat(data[j + 0]);
+        float f2 = Float.intBitsToFloat(data[j]);
         float f3 = Float.intBitsToFloat(data[j + 1]);
         float f4 = Float.intBitsToFloat(data[j + 2]);
         float f5;
@@ -427,12 +427,12 @@ public class ConnectedTexturesCompact
 
         data[j + 4] = Float.floatToRawIntBits(spriteTo.getInterpolatedU(d0));
         data[j + 4 + 1] = Float.floatToRawIntBits(spriteTo.getInterpolatedV(d1));
-        data[j + 0] = Float.floatToRawIntBits(f2);
+        data[j] = Float.floatToRawIntBits(f2);
         data[j + 1] = Float.floatToRawIntBits(f3);
         data[j + 2] = Float.floatToRawIntBits(f4);
     }
 
-    private static enum Dir
+    private enum Dir
     {
         UP,
         UP_RIGHT,

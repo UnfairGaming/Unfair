@@ -198,16 +198,14 @@ public final class AutoLadder extends Module {
         }
     }
 
-    private boolean switchSlot(int slot) {
+    private void switchSlot(int slot) {
         if (slot < 0) {
-            return false;
+            return;
         }
         if (mc.thePlayer.inventory.currentItem != slot) {
             mc.thePlayer.inventory.currentItem = slot;
             mc.playerController.syncCurrentPlayItem();
-            return true;
         }
-        return false;
     }
 
     private boolean place(UpdateEvent event, BlockPos target, EnumFacing face) {

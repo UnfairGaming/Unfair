@@ -9,7 +9,7 @@ import net.minecraft.entity.passive.*;
 import java.util.HashMap;
 
 public class EntitySpawnPlacementRegistry {
-    private static final HashMap<Class, EntityLiving.SpawnPlacementType> ENTITY_PLACEMENTS = Maps.<Class, EntityLiving.SpawnPlacementType>newHashMap();
+    private static final HashMap<Class, EntityLiving.SpawnPlacementType> ENTITY_PLACEMENTS = Maps.newHashMap();
 
     static {
         ENTITY_PLACEMENTS.put(EntityBat.class, EntityLiving.SpawnPlacementType.ON_GROUND);

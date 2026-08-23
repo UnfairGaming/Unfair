@@ -25,7 +25,7 @@ public abstract class GuiContainer extends GuiScreen {
      * The location of the inventory background texture
      */
     protected static final ResourceLocation inventoryBackground = ResourceLocation.of("textures/gui/container/inventory.png");
-    protected final Set<Slot> dragSplittingSlots = Sets.<Slot>newHashSet();
+    protected final Set<Slot> dragSplittingSlots = Sets.newHashSet();
     /**
      * A list of the players inventory slots
      */
@@ -120,7 +120,7 @@ public abstract class GuiContainer extends GuiScreen {
         this.theSlot = null;
         int k = 240;
         int l = 240;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) k / 1.0F, (float) l / 1.0F);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) k, (float) l);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         for (int i1 = 0; i1 < this.inventorySlots.inventorySlots.size(); ++i1) {

@@ -24,7 +24,7 @@ public class Potion {
      */
     public static final Potion[] potionTypes = new Potion[32];
     public static final Potion field_180151_b = null;
-    private static final Map<ResourceLocation, Potion> field_180150_I = Maps.<ResourceLocation, Potion>newHashMap();
+    private static final Map<ResourceLocation, Potion> field_180150_I = Maps.newHashMap();
     public static final Potion moveSpeed = (new Potion(1, ResourceLocation.of("speed"), false, 8171462)).setPotionName("potion.moveSpeed").setIconIndex(0, 0).registerPotionAttributeModifier(SharedMonsterAttributes.movementSpeed, "91AEAA56-376B-4498-935B-2F7F68070635", 0.20000000298023224D, 2);
     public static final Potion moveSlowdown = (new Potion(2, ResourceLocation.of("slowness"), true, 5926017)).setPotionName("potion.moveSlowdown").setIconIndex(1, 0).registerPotionAttributeModifier(SharedMonsterAttributes.movementSpeed, "7107DE5E-7CE8-4030-940E-514C1F160890", -0.15000000596046448D, 2);
     public static final Potion digSpeed = (new Potion(3, ResourceLocation.of("haste"), false, 14270531)).setPotionName("potion.digSpeed").setIconIndex(2, 0).setEffectiveness(1.5D);
@@ -99,7 +99,7 @@ public class Potion {
      * The Id of a Potion object.
      */
     public final int id;
-    private final Map<IAttribute, AttributeModifier> attributeModifierMap = Maps.<IAttribute, AttributeModifier>newHashMap();
+    private final Map<IAttribute, AttributeModifier> attributeModifierMap = Maps.newHashMap();
 
     /**
      * This field indicated if the effect is 'bad' - negative - for the entity.

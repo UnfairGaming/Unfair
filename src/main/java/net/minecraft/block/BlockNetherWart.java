@@ -103,6 +103,6 @@ public class BlockNetherWart extends BlockBush {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{AGE});
+        return new BlockState(this, AGE);
     }
 }

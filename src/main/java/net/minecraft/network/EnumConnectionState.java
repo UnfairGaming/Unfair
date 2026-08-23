@@ -149,7 +149,7 @@ public enum EnumConnectionState {
         }
     };
 
-    private static final Map<Class<? extends Packet>, EnumConnectionState> STATES_BY_CLASS = Maps.<Class<? extends Packet>, EnumConnectionState>newHashMap();
+    private static final Map<Class<? extends Packet>, EnumConnectionState> STATES_BY_CLASS = Maps.newHashMap();
     private static int field_181136_e = -1;
     private static int field_181137_f = 2;
     private static final EnumConnectionState[] STATES_BY_ID = new EnumConnectionState[field_181137_f - field_181136_e + 1];
@@ -185,7 +185,7 @@ public enum EnumConnectionState {
     private final int id;
     private final Map<EnumPacketDirection, BiMap<Integer, Class<? extends Packet>>> directionMaps;
 
-    private EnumConnectionState(int protocolId) {
+    EnumConnectionState(int protocolId) {
         this.directionMaps = Maps.newEnumMap(EnumPacketDirection.class);
         this.id = protocolId;
     }
@@ -202,7 +202,7 @@ public enum EnumConnectionState {
         BiMap<Integer, Class<? extends Packet>> bimap = this.directionMaps.get(direction);
 
         if (bimap == null) {
-            bimap = HashBiMap.<Integer, Class<? extends Packet>>create();
+            bimap = HashBiMap.create();
             this.directionMaps.put(direction, bimap);
         }
 

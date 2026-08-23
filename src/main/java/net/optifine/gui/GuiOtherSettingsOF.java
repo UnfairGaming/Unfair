@@ -25,7 +25,7 @@ public class GuiOtherSettingsOF extends GuiScreen implements GuiYesNoCallback
      */
     public void initGui()
     {
-        this.title = I18n.format("of.options.otherTitle", new Object[0]);
+        this.title = I18n.format("of.options.otherTitle");
         this.buttonList.clear();
 
         for (int i = 0; i < enumOptions.length; ++i)
@@ -44,8 +44,8 @@ public class GuiOtherSettingsOF extends GuiScreen implements GuiYesNoCallback
             }
         }
 
-        this.buttonList.add(new GuiButton(210, this.width / 2 - 100, this.height / 6 + 168 + 11 - 44, I18n.format("of.options.other.reset", new Object[0])));
-        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168 + 11, I18n.format("gui.done", new Object[0])));
+        this.buttonList.add(new GuiButton(210, this.width / 2 - 100, this.height / 6 + 168 + 11 - 44, I18n.format("of.options.other.reset")));
+        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168 + 11, I18n.format("gui.done")));
     }
 
     /**
@@ -70,7 +70,7 @@ public class GuiOtherSettingsOF extends GuiScreen implements GuiYesNoCallback
             if (guibutton.id == 210)
             {
                 this.mc.gameSettings.saveOptions();
-                GuiYesNo guiyesno = new GuiYesNo(this, I18n.format("of.message.other.reset", new Object[0]), "", 9999);
+                GuiYesNo guiyesno = new GuiYesNo(this, I18n.format("of.message.other.reset"), "", 9999);
                 this.mc.displayGuiScreen(guiyesno);
             }
         }

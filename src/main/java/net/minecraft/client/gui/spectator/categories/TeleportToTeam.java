@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Random;
 
 public class TeleportToTeam implements ISpectatorMenuView, ISpectatorMenuObject {
-    private final List<ISpectatorMenuObject> field_178672_a = Lists.<ISpectatorMenuObject>newArrayList();
+    private final List<ISpectatorMenuObject> field_178672_a = Lists.newArrayList();
 
     public TeleportToTeam() {
         Minecraft minecraft = Minecraft.getMinecraft();
@@ -70,7 +70,7 @@ public class TeleportToTeam implements ISpectatorMenuView, ISpectatorMenuObject 
 
         public TeamSelectionObject(ScorePlayerTeam p_i45492_2_) {
             this.field_178676_b = p_i45492_2_;
-            this.field_178675_d = Lists.<NetworkPlayerInfo>newArrayList();
+            this.field_178675_d = Lists.newArrayList();
 
             for (String s : p_i45492_2_.getMembershipCollection()) {
                 NetworkPlayerInfo networkplayerinfo = Minecraft.getMinecraft().getNetHandler().getPlayerInfo(s);

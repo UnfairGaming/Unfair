@@ -16,7 +16,7 @@ public class GuiUtilRenderComponents {
     public static List<IChatComponent> splitText(IChatComponent p_178908_0_, int p_178908_1_, FontRenderer p_178908_2_, boolean p_178908_3_, boolean p_178908_4_) {
         int i = 0;
         IChatComponent ichatcomponent = new ChatComponentText("");
-        List<IChatComponent> list = Lists.<IChatComponent>newArrayList();
+        List<IChatComponent> list = Lists.newArrayList();
         List<IChatComponent> list1 = Lists.newArrayList(p_178908_0_);
 
         for (int j = 0; j < list1.size(); ++j) {

@@ -17,7 +17,7 @@ public enum EnumDifficulty {
     private final int difficultyId;
     private final String difficultyResourceKey;
 
-    private EnumDifficulty(int difficultyIdIn, String difficultyResourceKeyIn) {
+    EnumDifficulty(int difficultyIdIn, String difficultyResourceKeyIn) {
         this.difficultyId = difficultyIdIn;
         this.difficultyResourceKey = difficultyResourceKeyIn;
     }

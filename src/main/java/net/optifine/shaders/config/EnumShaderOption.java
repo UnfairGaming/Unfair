@@ -26,7 +26,7 @@ public enum EnumShaderOption
     private String propertyKey = null;
     private String valueDefault = null;
 
-    private EnumShaderOption(String resourceKey, String propertyKey, String valueDefault)
+    EnumShaderOption(String resourceKey, String propertyKey, String valueDefault)
     {
         this.resourceKey = resourceKey;
         this.propertyKey = propertyKey;

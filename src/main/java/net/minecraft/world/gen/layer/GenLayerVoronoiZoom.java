@@ -24,9 +24,9 @@ public class GenLayerVoronoiZoom extends GenLayer {
 
         for (int k1 = 0; k1 < l - 1; ++k1) {
             int l1 = 0;
-            int i2 = aint[l1 + 0 + (k1 + 0) * k];
+            int i2 = aint[l1 + (k1) * k];
 
-            for (int j2 = aint[l1 + 0 + (k1 + 1) * k]; l1 < k - 1; ++l1) {
+            for (int j2 = aint[l1 + (k1 + 1) * k]; l1 < k - 1; ++l1) {
                 double d0 = 3.6D;
                 this.initChunkSeed(l1 + i << 2, k1 + j << 2);
                 double d1 = ((double) this.nextInt(1024) / 1024.0D - 0.5D) * 3.6D;
@@ -40,7 +40,7 @@ public class GenLayerVoronoiZoom extends GenLayer {
                 this.initChunkSeed(l1 + i + 1 << 2, k1 + j + 1 << 2);
                 double d7 = ((double) this.nextInt(1024) / 1024.0D - 0.5D) * 3.6D + 4.0D;
                 double d8 = ((double) this.nextInt(1024) / 1024.0D - 0.5D) * 3.6D + 4.0D;
-                int k2 = aint[l1 + 1 + (k1 + 0) * k] & 255;
+                int k2 = aint[l1 + 1 + (k1) * k] & 255;
                 int l2 = aint[l1 + 1 + (k1 + 1) * k] & 255;
 
                 for (int i3 = 0; i3 < 4; ++i3) {

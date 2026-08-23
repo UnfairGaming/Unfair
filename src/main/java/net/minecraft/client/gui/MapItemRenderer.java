@@ -17,7 +17,7 @@ import java.util.Map;
 public class MapItemRenderer {
     private static final ResourceLocation mapIcons = ResourceLocation.of("textures/map/map_icons.png");
     private final TextureManager textureManager;
-    private final Map<String, MapItemRenderer.Instance> loadedMaps = Maps.<String, MapItemRenderer.Instance>newHashMap();
+    private final Map<String, MapItemRenderer.Instance> loadedMaps = Maps.newHashMap();
 
     public MapItemRenderer(TextureManager textureManagerIn) {
         this.textureManager = textureManagerIn;
@@ -101,10 +101,10 @@ public class MapItemRenderer {
             GlStateManager.tryBlendFuncSeparate(1, 771, 0, 1);
             GlStateManager.disableAlpha();
             worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
-            worldrenderer.pos((float) (i + 0) + f, (float) (j + 128) - f, -0.009999999776482582D).tex(0.0D, 1.0D).endVertex();
+            worldrenderer.pos((float) (i) + f, (float) (j + 128) - f, -0.009999999776482582D).tex(0.0D, 1.0D).endVertex();
             worldrenderer.pos((float) (i + 128) - f, (float) (j + 128) - f, -0.009999999776482582D).tex(1.0D, 1.0D).endVertex();
-            worldrenderer.pos((float) (i + 128) - f, (float) (j + 0) + f, -0.009999999776482582D).tex(1.0D, 0.0D).endVertex();
-            worldrenderer.pos((float) (i + 0) + f, (float) (j + 0) + f, -0.009999999776482582D).tex(0.0D, 0.0D).endVertex();
+            worldrenderer.pos((float) (i + 128) - f, (float) (j) + f, -0.009999999776482582D).tex(1.0D, 0.0D).endVertex();
+            worldrenderer.pos((float) (i) + f, (float) (j) + f, -0.009999999776482582D).tex(0.0D, 0.0D).endVertex();
             tessellator.draw();
             GlStateManager.enableAlpha();
             GlStateManager.disableBlend();
@@ -119,8 +119,8 @@ public class MapItemRenderer {
                     GlStateManager.scale(4.0F, 4.0F, 3.0F);
                     GlStateManager.translate(-0.125F, 0.125F, 0.0F);
                     byte b0 = vec4b.func_176110_a();
-                    float f1 = (float) (b0 % 4 + 0) / 4.0F;
-                    float f2 = (float) (b0 / 4 + 0) / 4.0F;
+                    float f1 = (float) (b0 % 4) / 4.0F;
+                    float f2 = (float) (b0 / 4) / 4.0F;
                     float f3 = (float) (b0 % 4 + 1) / 4.0F;
                     float f4 = (float) (b0 / 4 + 1) / 4.0F;
                     worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);

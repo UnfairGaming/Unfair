@@ -24,7 +24,7 @@ public class StateMap extends StateMapperBase {
 
     @SuppressWarnings("unchecked")
     protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
-        Map<IProperty, Comparable> map = Maps.<IProperty, Comparable>newLinkedHashMap(state.getProperties());
+        Map<IProperty, Comparable> map = Maps.newLinkedHashMap(state.getProperties());
         String s;
 
         if (this.name == null) {
@@ -45,7 +45,7 @@ public class StateMap extends StateMapperBase {
     }
 
     public static class Builder {
-        private final List<IProperty<?>> ignored = Lists.<IProperty<?>>newArrayList();
+        private final List<IProperty<?>> ignored = Lists.newArrayList();
         private IProperty<?> name;
         private String suffix;
 

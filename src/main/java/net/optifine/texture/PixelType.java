@@ -26,7 +26,7 @@ public enum PixelType
 
     private int id;
 
-    private PixelType(int id)
+    PixelType(int id)
     {
         this.id = id;
     }

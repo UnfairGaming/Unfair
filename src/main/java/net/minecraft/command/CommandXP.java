@@ -33,7 +33,7 @@ public class CommandXP extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length <= 0) {
-            throw new WrongUsageException("commands.xp.usage", new Object[0]);
+            throw new WrongUsageException("commands.xp.usage");
         } else {
             String s = args[0];
             boolean flag = s.endsWith("l") || s.endsWith("L");
@@ -56,20 +56,20 @@ public class CommandXP extends CommandBase {
 
                 if (flag1) {
                     entityplayer.addExperienceLevel(-i);
-                    notifyOperators(sender, this, "commands.xp.success.negative.levels", new Object[]{i, entityplayer.getName()});
+                    notifyOperators(sender, this, "commands.xp.success.negative.levels", i, entityplayer.getName());
                 } else {
                     entityplayer.addExperienceLevel(i);
-                    notifyOperators(sender, this, "commands.xp.success.levels", new Object[]{i, entityplayer.getName()});
+                    notifyOperators(sender, this, "commands.xp.success.levels", i, entityplayer.getName());
                 }
             } else {
                 sender.setCommandStat(CommandResultStats.Type.QUERY_RESULT, entityplayer.experienceTotal);
 
                 if (flag1) {
-                    throw new CommandException("commands.xp.failure.widthdrawXp", new Object[0]);
+                    throw new CommandException("commands.xp.failure.widthdrawXp");
                 }
 
                 entityplayer.addExperience(i);
-                notifyOperators(sender, this, "commands.xp.success", new Object[]{i, entityplayer.getName()});
+                notifyOperators(sender, this, "commands.xp.success", i, entityplayer.getName());
             }
         }
     }

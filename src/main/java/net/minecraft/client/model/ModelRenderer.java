@@ -76,7 +76,7 @@ public class ModelRenderer {
         this.textureWidth = 64.0F;
         this.textureHeight = 32.0F;
         this.showModel = true;
-        this.cubeList = Lists.<ModelBox>newArrayList();
+        this.cubeList = Lists.newArrayList();
         this.baseModel = model;
         model.boxList.add(this);
         this.boxName = boxNameIn;
@@ -97,7 +97,7 @@ public class ModelRenderer {
      */
     public void addChild(ModelRenderer renderer) {
         if (this.childModels == null) {
-            this.childModels = Lists.<ModelRenderer>newArrayList();
+            this.childModels = Lists.newArrayList();
         }
 
         this.childModels.add(renderer);

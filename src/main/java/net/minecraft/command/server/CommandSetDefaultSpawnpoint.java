@@ -42,7 +42,7 @@ public class CommandSetDefaultSpawnpoint extends CommandBase {
             blockpos = getCommandSenderAsPlayer(sender).getPosition();
         } else {
             if (args.length != 3 || sender.getEntityWorld() == null) {
-                throw new WrongUsageException("commands.setworldspawn.usage", new Object[0]);
+                throw new WrongUsageException("commands.setworldspawn.usage");
             }
 
             blockpos = parseBlockPos(sender, args, 0, true);
@@ -50,7 +50,7 @@ public class CommandSetDefaultSpawnpoint extends CommandBase {
 
         sender.getEntityWorld().setSpawnPoint(blockpos);
         MinecraftServer.getServer().getConfigurationManager().sendPacketToAllPlayers(new S05PacketSpawnPosition(blockpos));
-        notifyOperators(sender, this, "commands.setworldspawn.success", new Object[]{blockpos.getX(), blockpos.getY(), blockpos.getZ()});
+        notifyOperators(sender, this, "commands.setworldspawn.success", blockpos.getX(), blockpos.getY(), blockpos.getZ());
     }
 
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {

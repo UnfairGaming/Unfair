@@ -12,6 +12,6 @@ public class GuiResourcePackAvailable extends GuiResourcePackList {
     }
 
     protected String getListHeader() {
-        return I18n.format("resourcePack.available.title", new Object[0]);
+        return I18n.format("resourcePack.available.title");
     }
 }

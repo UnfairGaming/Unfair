@@ -116,7 +116,7 @@ public final class EventManager {
                 sortListValue(indexClass);
             }
         } else {
-            REGISTRY_MAP.put(indexClass, new CopyOnWriteArrayList<MethodData>() {
+            REGISTRY_MAP.put(indexClass, new CopyOnWriteArrayList<>() {
                 //Eclipse was bitching about a serialVersionUID.
                 private static final long serialVersionUID = 666L;
 

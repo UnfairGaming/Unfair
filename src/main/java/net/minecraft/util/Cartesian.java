@@ -23,7 +23,7 @@ public class Cartesian {
     }
 
     private static <T> T[] toArray(Class<? super T> clazz, Iterable<? extends T> it) {
-        List<T> list = Lists.<T>newArrayList();
+        List<T> list = Lists.newArrayList();
 
         for (T t : it) {
             list.add(t);
@@ -41,7 +41,7 @@ public class Cartesian {
         }
 
         public List<T> apply(Object[] p_apply_1_) {
-            return Arrays.<T>asList((T[]) p_apply_1_);
+            return Arrays.asList((T[]) p_apply_1_);
         }
     }
 

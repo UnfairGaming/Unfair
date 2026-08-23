@@ -64,42 +64,42 @@ public enum ShaderParameterFloat
     private String[] indexNames1;
     private String[] indexNames2;
 
-    private ShaderParameterFloat(String name)
+    ShaderParameterFloat(String name)
     {
         this.name = name;
     }
 
-    private ShaderParameterFloat(ShaderUniformBase uniform)
+    ShaderParameterFloat(ShaderUniformBase uniform)
     {
         this.name = uniform.getName();
         this.uniform = uniform;
 
-        if (!instanceOf(uniform, new Class[] {ShaderUniform1f.class, ShaderUniform1i.class}))
+        if (!instanceOf(uniform, ShaderUniform1f.class, ShaderUniform1i.class))
         {
             throw new IllegalArgumentException("Invalid uniform type for enum: " + this + ", uniform: " + uniform.getClass().getName());
         }
     }
 
-    private ShaderParameterFloat(ShaderUniformBase uniform, String[] indexNames1)
+    ShaderParameterFloat(ShaderUniformBase uniform, String[] indexNames1)
     {
         this.name = uniform.getName();
         this.uniform = uniform;
         this.indexNames1 = indexNames1;
 
-        if (!instanceOf(uniform, new Class[] {ShaderUniform2i.class, ShaderUniform2f.class, ShaderUniform3f.class, ShaderUniform4f.class}))
+        if (!instanceOf(uniform, ShaderUniform2i.class, ShaderUniform2f.class, ShaderUniform3f.class, ShaderUniform4f.class))
         {
             throw new IllegalArgumentException("Invalid uniform type for enum: " + this + ", uniform: " + uniform.getClass().getName());
         }
     }
 
-    private ShaderParameterFloat(ShaderUniformBase uniform, String[] indexNames1, String[] indexNames2)
+    ShaderParameterFloat(ShaderUniformBase uniform, String[] indexNames1, String[] indexNames2)
     {
         this.name = uniform.getName();
         this.uniform = uniform;
         this.indexNames1 = indexNames1;
         this.indexNames2 = indexNames2;
 
-        if (!instanceOf(uniform, new Class[] {ShaderUniformM4.class}))
+        if (!instanceOf(uniform, ShaderUniformM4.class))
         {
             throw new IllegalArgumentException("Invalid uniform type for enum: " + this + ", uniform: " + uniform.getClass().getName());
         }

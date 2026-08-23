@@ -20,9 +20,9 @@ import java.util.Random;
 public class BlockDoor extends Block {
     public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
     public static final PropertyBool OPEN = PropertyBool.create("open");
-    public static final PropertyEnum<BlockDoor.EnumHingePosition> HINGE = PropertyEnum.<BlockDoor.EnumHingePosition>create("hinge", BlockDoor.EnumHingePosition.class);
+    public static final PropertyEnum<BlockDoor.EnumHingePosition> HINGE = PropertyEnum.create("hinge", BlockDoor.EnumHingePosition.class);
     public static final PropertyBool POWERED = PropertyBool.create("powered");
-    public static final PropertyEnum<BlockDoor.EnumDoorHalf> HALF = PropertyEnum.<BlockDoor.EnumDoorHalf>create("half", BlockDoor.EnumDoorHalf.class);
+    public static final PropertyEnum<BlockDoor.EnumDoorHalf> HALF = PropertyEnum.create("half", BlockDoor.EnumDoorHalf.class);
 
     protected BlockDoor(Material materialIn) {
         super(materialIn);
@@ -338,10 +338,10 @@ public class BlockDoor extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{HALF, FACING, OPEN, HINGE, POWERED});
+        return new BlockState(this, HALF, FACING, OPEN, HINGE, POWERED);
     }
 
-    public static enum EnumDoorHalf implements IStringSerializable {
+    public enum EnumDoorHalf implements IStringSerializable {
         UPPER,
         LOWER;
 
@@ -354,7 +354,7 @@ public class BlockDoor extends Block {
         }
     }
 
-    public static enum EnumHingePosition implements IStringSerializable {
+    public enum EnumHingePosition implements IStringSerializable {
         LEFT,
         RIGHT;
 

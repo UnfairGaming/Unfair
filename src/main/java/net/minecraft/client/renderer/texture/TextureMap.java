@@ -213,7 +213,7 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                                     try {
                                         abufferedimage[j4] = TextureUtil.readBufferedImage(resourceManager.getResource(resourcelocation).getInputStream());
                                     } catch (IOException ioexception) {
-                                        logger.error("Unable to load miplevel {} from: {}", new Object[]{j4, resourcelocation, ioexception});
+                                        logger.error("Unable to load miplevel {} from: {}", j4, resourcelocation, ioexception);
                                     }
                                 }
                             }
@@ -233,7 +233,7 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                     int j3 = Math.min(Integer.lowestOneBit(textureatlassprite3.getIconWidth()), Integer.lowestOneBit(textureatlassprite3.getIconHeight()));
 
                     if (j3 < k) {
-                        logger.warn("Texture {} with size {}x{} limits mip level from {} to {}", new Object[]{resourcelocation2, textureatlassprite3.getIconWidth(), textureatlassprite3.getIconHeight(), MathHelper.calculateLogBaseTwo(k), MathHelper.calculateLogBaseTwo(j3)});
+                        logger.warn("Texture {} with size {}x{} limits mip level from {} to {}", resourcelocation2, textureatlassprite3.getIconWidth(), textureatlassprite3.getIconHeight(), MathHelper.calculateLogBaseTwo(k), MathHelper.calculateLogBaseTwo(j3));
                         k = j3;
                     }
 
@@ -258,7 +258,7 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
             }
 
             if (k2 < this.mipmapLevels) {
-                logger.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", new Object[]{this.basePath, this.mipmapLevels, k2, j2});
+                logger.warn("{}: dropping miplevel from {} to {}, because of minimum power of two: {}", this.basePath, this.mipmapLevels, k2, j2);
                 this.mipmapLevels = k2;
             }
 
@@ -286,7 +286,7 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
 
             stitcher.doStitch();
 
-            logger.info("Created: {}x{} {}-atlas", new Object[]{stitcher.getCurrentWidth(), stitcher.getCurrentHeight(), this.basePath});
+            logger.info("Created: {}x{} {}-atlas", stitcher.getCurrentWidth(), stitcher.getCurrentHeight(), this.basePath);
 
             if (Config.isShaders()) {
                 ShadersTex.allocateTextureMap(this.getGlTextureId(), this.mipmapLevels, stitcher.getCurrentWidth(), stitcher.getCurrentHeight(), stitcher, this);

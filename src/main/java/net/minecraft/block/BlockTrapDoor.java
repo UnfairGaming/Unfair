@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 public class BlockTrapDoor extends Block {
     public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
     public static final PropertyBool OPEN = PropertyBool.create("open");
-    public static final PropertyEnum<BlockTrapDoor.DoorHalf> HALF = PropertyEnum.<BlockTrapDoor.DoorHalf>create("half", BlockTrapDoor.DoorHalf.class);
+    public static final PropertyEnum<BlockTrapDoor.DoorHalf> HALF = PropertyEnum.create("half", BlockTrapDoor.DoorHalf.class);
 
     protected BlockTrapDoor(Material materialIn) {
         super(materialIn);
@@ -233,16 +233,16 @@ public class BlockTrapDoor extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, OPEN, HALF});
+        return new BlockState(this, FACING, OPEN, HALF);
     }
 
-    public static enum DoorHalf implements IStringSerializable {
+    public enum DoorHalf implements IStringSerializable {
         TOP("top"),
         BOTTOM("bottom");
 
         private final String name;
 
-        private DoorHalf(String name) {
+        DoorHalf(String name) {
             this.name = name;
         }
 

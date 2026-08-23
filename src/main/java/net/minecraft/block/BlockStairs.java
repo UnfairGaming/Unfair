@@ -24,8 +24,8 @@ import java.util.Random;
 
 public class BlockStairs extends Block {
     public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
-    public static final PropertyEnum<BlockStairs.EnumHalf> HALF = PropertyEnum.<BlockStairs.EnumHalf>create("half", BlockStairs.EnumHalf.class);
-    public static final PropertyEnum<BlockStairs.EnumShape> SHAPE = PropertyEnum.<BlockStairs.EnumShape>create("shape", BlockStairs.EnumShape.class);
+    public static final PropertyEnum<BlockStairs.EnumHalf> HALF = PropertyEnum.create("half", BlockStairs.EnumHalf.class);
+    public static final PropertyEnum<BlockStairs.EnumShape> SHAPE = PropertyEnum.create("shape", BlockStairs.EnumShape.class);
     private static final int[][] field_150150_a = new int[][]{{4, 5}, {5, 7}, {6, 7}, {4, 6}, {0, 1}, {1, 3}, {2, 3}, {0, 2}};
     private static final int[] MODERN_SHAPE_MASKS = new int[]{
             12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8
@@ -699,16 +699,16 @@ public class BlockStairs extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, HALF, SHAPE});
+        return new BlockState(this, FACING, HALF, SHAPE);
     }
 
-    public static enum EnumHalf implements IStringSerializable {
+    public enum EnumHalf implements IStringSerializable {
         TOP("top"),
         BOTTOM("bottom");
 
         private final String name;
 
-        private EnumHalf(String name) {
+        EnumHalf(String name) {
             this.name = name;
         }
 
@@ -721,7 +721,7 @@ public class BlockStairs extends Block {
         }
     }
 
-    public static enum EnumShape implements IStringSerializable {
+    public enum EnumShape implements IStringSerializable {
         STRAIGHT("straight"),
         INNER_LEFT("inner_left"),
         INNER_RIGHT("inner_right"),
@@ -730,7 +730,7 @@ public class BlockStairs extends Block {
 
         private final String name;
 
-        private EnumShape(String name) {
+        EnumShape(String name) {
             this.name = name;
         }
 

@@ -133,7 +133,7 @@ public abstract class ShaderOption
 
     public void addPaths(String[] newPaths)
     {
-        List<String> list = Arrays.<String>asList(this.paths);
+        List<String> list = Arrays.asList(this.paths);
 
         for (int i = 0; i < newPaths.length; ++i)
         {
@@ -232,7 +232,7 @@ public abstract class ShaderOption
             }
             else
             {
-                float f = 1.0F * (float)i / ((float)this.values.length - 1.0F);
+                float f = (float) i / ((float)this.values.length - 1.0F);
                 return f;
             }
         }

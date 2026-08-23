@@ -35,7 +35,7 @@ public class UserList<K, V extends UserListEntry<K>> {
     };
     protected final Gson gson;
     private final File saveFile;
-    private final Map<String, V> values = Maps.<String, V>newHashMap();
+    private final Map<String, V> values = Maps.newHashMap();
     private boolean lanServer = true;
 
     public UserList(File saveFile) {
@@ -101,7 +101,7 @@ public class UserList<K, V extends UserListEntry<K>> {
      * Removes expired bans from the list. See {@link BanEntry#hasBanExpired}
      */
     private void removeExpired() {
-        List<K> list = Lists.<K>newArrayList();
+        List<K> list = Lists.newArrayList();
 
         for (V v : this.values.values()) {
             if (v.hasBanExpired()) {

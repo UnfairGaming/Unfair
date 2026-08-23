@@ -17,7 +17,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 import java.util.List;
 
 public class ChunkProviderDebug implements IChunkProvider {
-    private static final List<IBlockState> field_177464_a = Lists.<IBlockState>newArrayList();
+    private static final List<IBlockState> field_177464_a = Lists.newArrayList();
     private static final int field_177462_b;
     private static final int field_181039_c;
 

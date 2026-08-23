@@ -7,7 +7,7 @@ import net.minecraft.client.settings.GameSettings;
 import java.util.List;
 
 public class GuiOptionsRowList extends GuiListExtended {
-    private final List<GuiOptionsRowList.Row> field_148184_k = Lists.<GuiOptionsRowList.Row>newArrayList();
+    private final List<GuiOptionsRowList.Row> field_148184_k = Lists.newArrayList();
 
     public GuiOptionsRowList(Minecraft mcIn, int p_i45015_2_, int p_i45015_3_, int p_i45015_4_, int p_i45015_5_, int p_i45015_6_, GameSettings.Options... p_i45015_7_) {
         super(mcIn, p_i45015_2_, p_i45015_3_, p_i45015_4_, p_i45015_5_, p_i45015_6_);

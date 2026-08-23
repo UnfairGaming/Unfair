@@ -18,7 +18,7 @@ public class BlockModernCandleCake extends BlockModernShape {
 
     @Override
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{LIT});
+        return new BlockState(this, LIT);
     }
 
     @Override

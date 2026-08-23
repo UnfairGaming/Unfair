@@ -72,22 +72,22 @@ public enum FunctionType
     public static FunctionType[] VALUES = values();
     private static final Map<Integer, Float> mapSmooth = new HashMap<>();
 
-    private FunctionType(ExpressionType expressionType, String name, ExpressionType[] parameterTypes)
+    FunctionType(ExpressionType expressionType, String name, ExpressionType[] parameterTypes)
     {
         this(0, expressionType, name, parameterTypes);
     }
 
-    private FunctionType(int precedence, ExpressionType expressionType, String name, ExpressionType[] parameterTypes)
+    FunctionType(int precedence, ExpressionType expressionType, String name, ExpressionType[] parameterTypes)
     {
         this(precedence, expressionType, name, new Parameters(parameterTypes));
     }
 
-    private FunctionType(ExpressionType expressionType, String name, IParameters parameters)
+    FunctionType(ExpressionType expressionType, String name, IParameters parameters)
     {
         this(0, expressionType, name, parameters);
     }
 
-    private FunctionType(int precedence, ExpressionType expressionType, String name, IParameters parameters)
+    FunctionType(int precedence, ExpressionType expressionType, String name, IParameters parameters)
     {
         this.precedence = precedence;
         this.expressionType = expressionType;

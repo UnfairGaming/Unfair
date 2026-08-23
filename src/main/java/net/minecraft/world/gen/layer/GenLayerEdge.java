@@ -112,7 +112,7 @@ public class GenLayerEdge extends GenLayer {
         return aint1;
     }
 
-    public static enum Mode {
+    public enum Mode {
         COOL_WARM,
         HEAT_ICE,
         SPECIAL;

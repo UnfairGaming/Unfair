@@ -111,8 +111,8 @@ public class PathNavigateGround extends PathNavigate {
                 sizeZ = sizeZ - 2;
                 double d4 = 1.0D / Math.abs(d0);
                 double d5 = 1.0D / Math.abs(d1);
-                double d6 = (double) (i * 1) - posVec31.xCoord;
-                double d7 = (double) (j * 1) - posVec31.zCoord;
+                double d6 = (double) (i) - posVec31.xCoord;
+                double d7 = (double) (j) - posVec31.zCoord;
 
                 if (d0 >= 0.0D) {
                     ++d6;

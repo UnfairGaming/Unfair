@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Random;
 
 public class BlockTallGrass extends BlockBush implements IGrowable {
-    public static final PropertyEnum<BlockTallGrass.EnumType> TYPE = PropertyEnum.<BlockTallGrass.EnumType>create("type", BlockTallGrass.EnumType.class);
+    public static final PropertyEnum<BlockTallGrass.EnumType> TYPE = PropertyEnum.create("type", BlockTallGrass.EnumType.class);
 
     protected BlockTallGrass() {
         super(Material.vine);
@@ -138,7 +138,7 @@ public class BlockTallGrass extends BlockBush implements IGrowable {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{TYPE});
+        return new BlockState(this, TYPE);
     }
 
     /**
@@ -148,7 +148,7 @@ public class BlockTallGrass extends BlockBush implements IGrowable {
         return Block.EnumOffsetType.XYZ;
     }
 
-    public static enum EnumType implements IStringSerializable {
+    public enum EnumType implements IStringSerializable {
         DEAD_BUSH(0, "dead_bush"),
         GRASS(1, "tall_grass"),
         FERN(2, "fern");
@@ -164,7 +164,7 @@ public class BlockTallGrass extends BlockBush implements IGrowable {
         private final int meta;
         private final String name;
 
-        private EnumType(int meta, String name) {
+        EnumType(int meta, String name) {
             this.meta = meta;
             this.name = name;
         }

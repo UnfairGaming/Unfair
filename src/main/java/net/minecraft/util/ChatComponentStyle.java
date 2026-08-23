@@ -8,21 +8,15 @@ import java.util.Iterator;
 import java.util.List;
 
 public abstract class ChatComponentStyle implements IChatComponent {
-    protected List<IChatComponent> siblings = Lists.<IChatComponent>newArrayList();
+    protected List<IChatComponent> siblings = Lists.newArrayList();
     private ChatStyle style;
 
     public static Iterator<IChatComponent> createDeepCopyIterator(Iterable<IChatComponent> components) {
-        Iterator<IChatComponent> iterator = Iterators.concat(Iterators.transform(components.iterator(), new Function<IChatComponent, Iterator<IChatComponent>>() {
-            public Iterator<IChatComponent> apply(IChatComponent p_apply_1_) {
-                return p_apply_1_.iterator();
-            }
-        }));
-        iterator = Iterators.transform(iterator, new Function<IChatComponent, IChatComponent>() {
-            public IChatComponent apply(IChatComponent p_apply_1_) {
-                IChatComponent ichatcomponent = p_apply_1_.createCopy();
-                ichatcomponent.setChatStyle(ichatcomponent.getChatStyle().createDeepCopy());
-                return ichatcomponent;
-            }
+        Iterator<IChatComponent> iterator = Iterators.concat(Iterators.transform(components.iterator(), p_apply_1_ -> p_apply_1_.iterator()));
+        iterator = Iterators.transform(iterator, p_apply_1_ -> {
+            IChatComponent ichatcomponent = p_apply_1_.createCopy();
+            ichatcomponent.setChatStyle(ichatcomponent.getChatStyle().createDeepCopy());
+            return ichatcomponent;
         });
         return iterator;
     }
@@ -70,7 +64,7 @@ public abstract class ChatComponentStyle implements IChatComponent {
     }
 
     public Iterator<IChatComponent> iterator() {
-        return Iterators.<IChatComponent>concat(Iterators.<IChatComponent>forArray(new ChatComponentStyle[]{this}), createDeepCopyIterator(this.siblings));
+        return Iterators.concat(Iterators.<IChatComponent>forArray(this), createDeepCopyIterator(this.siblings));
     }
 
     /**

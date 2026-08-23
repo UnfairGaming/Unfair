@@ -50,17 +50,17 @@ public class CommandWeather extends CommandBase {
                 worldinfo.setThunderTime(0);
                 worldinfo.setRaining(false);
                 worldinfo.setThundering(false);
-                notifyOperators(sender, this, "commands.weather.clear", new Object[0]);
+                notifyOperators(sender, this, "commands.weather.clear");
             } else if ("rain".equalsIgnoreCase(args[0])) {
                 worldinfo.setCleanWeatherTime(0);
                 worldinfo.setRainTime(i);
                 worldinfo.setThunderTime(i);
                 worldinfo.setRaining(true);
                 worldinfo.setThundering(false);
-                notifyOperators(sender, this, "commands.weather.rain", new Object[0]);
+                notifyOperators(sender, this, "commands.weather.rain");
             } else {
                 if (!"thunder".equalsIgnoreCase(args[0])) {
-                    throw new WrongUsageException("commands.weather.usage", new Object[0]);
+                    throw new WrongUsageException("commands.weather.usage");
                 }
 
                 worldinfo.setCleanWeatherTime(0);
@@ -68,14 +68,14 @@ public class CommandWeather extends CommandBase {
                 worldinfo.setThunderTime(i);
                 worldinfo.setRaining(true);
                 worldinfo.setThundering(true);
-                notifyOperators(sender, this, "commands.weather.thunder", new Object[0]);
+                notifyOperators(sender, this, "commands.weather.thunder");
             }
         } else {
-            throw new WrongUsageException("commands.weather.usage", new Object[0]);
+            throw new WrongUsageException("commands.weather.usage");
         }
     }
 
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, new String[]{"clear", "rain", "thunder"}) : null;
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, "clear", "rain", "thunder") : null;
     }
 }

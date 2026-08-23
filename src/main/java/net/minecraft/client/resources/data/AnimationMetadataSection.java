@@ -58,7 +58,7 @@ public class AnimationMetadataSection implements IMetadataSection {
     }
 
     public Set<Integer> getFrameIndexSet() {
-        Set<Integer> set = Sets.<Integer>newHashSet();
+        Set<Integer> set = Sets.newHashSet();
 
         for (AnimationFrame animationframe : this.animationFrames) {
             set.add(animationframe.getFrameIndex());

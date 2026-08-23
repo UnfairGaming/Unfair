@@ -114,7 +114,7 @@ public class BlockCampfire extends ModernBlockDirectional {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, LIT});
+        return new BlockState(this, FACING, LIT);
     }
 
     public int getViaStateIdMin() {

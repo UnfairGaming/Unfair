@@ -20,19 +20,15 @@ import java.util.Comparator;
 import java.util.List;
 
 public class TeleportToPlayer implements ISpectatorMenuView, ISpectatorMenuObject {
-    private static final Ordering<NetworkPlayerInfo> field_178674_a = Ordering.from(new Comparator<NetworkPlayerInfo>() {
-        public int compare(NetworkPlayerInfo p_compare_1_, NetworkPlayerInfo p_compare_2_) {
-            return ComparisonChain.start().compare(p_compare_1_.getGameProfile().getId(), p_compare_2_.getGameProfile().getId()).result();
-        }
-    });
+    private static final Ordering<NetworkPlayerInfo> field_178674_a = Ordering.from((p_compare_1_, p_compare_2_) -> ComparisonChain.start().compare(p_compare_1_.getGameProfile().getId(), p_compare_2_.getGameProfile().getId()).result());
     private final List<ISpectatorMenuObject> field_178673_b;
 
     public TeleportToPlayer() {
-        this(field_178674_a.<NetworkPlayerInfo>sortedCopy(Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap()));
+        this(field_178674_a.sortedCopy(Minecraft.getMinecraft().getNetHandler().getPlayerInfoMap()));
     }
 
     public TeleportToPlayer(Collection<NetworkPlayerInfo> p_i45493_1_) {
-        this.field_178673_b = Lists.<ISpectatorMenuObject>newArrayList();
+        this.field_178673_b = Lists.newArrayList();
 
         for (NetworkPlayerInfo networkplayerinfo : field_178674_a.sortedCopy(p_i45493_1_)) {
             if (networkplayerinfo.getGameType() != WorldSettings.GameType.SPECTATOR) {

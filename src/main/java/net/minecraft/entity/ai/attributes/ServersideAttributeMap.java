@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class ServersideAttributeMap extends BaseAttributeMap {
     protected final Map<String, IAttributeInstance> descriptionToAttributeInstanceMap = new LowerStringMap<>();
-    private final Set<IAttributeInstance> attributeInstanceSet = Sets.<IAttributeInstance>newHashSet();
+    private final Set<IAttributeInstance> attributeInstanceSet = Sets.newHashSet();
 
     public ModifiableAttributeInstance getAttributeInstance(IAttribute attribute) {
         return (ModifiableAttributeInstance) super.getAttributeInstance(attribute);
@@ -61,7 +61,7 @@ public class ServersideAttributeMap extends BaseAttributeMap {
     }
 
     public Collection<IAttributeInstance> getWatchedAttributes() {
-        Set<IAttributeInstance> set = Sets.<IAttributeInstance>newHashSet();
+        Set<IAttributeInstance> set = Sets.newHashSet();
 
         for (IAttributeInstance iattributeinstance : this.getAllAttributes()) {
             if (iattributeinstance.getAttribute().getShouldWatch()) {

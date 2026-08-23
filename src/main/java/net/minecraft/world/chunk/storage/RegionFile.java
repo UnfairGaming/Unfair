@@ -53,7 +53,7 @@ public class RegionFile {
             }
 
             int k1 = (int) this.dataFile.length() / 4096;
-            this.sectorFree = Lists.<Boolean>newArrayListWithCapacity(k1);
+            this.sectorFree = Lists.newArrayListWithCapacity(k1);
 
             for (int j = 0; j < k1; ++j) {
                 this.sectorFree.add(Boolean.TRUE);

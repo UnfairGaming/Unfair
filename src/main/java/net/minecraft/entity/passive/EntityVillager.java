@@ -154,7 +154,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
                 this.detachHome();
             } else {
                 BlockPos blockpos1 = this.villageObj.getCenter();
-                this.setHomePosAndDistance(blockpos1, (int) ((float) this.villageObj.getVillageRadius() * 1.0F));
+                this.setHomePosAndDistance(blockpos1, (int) ((float) this.villageObj.getVillageRadius()));
 
                 if (this.isLookingForHome) {
                     this.isLookingForHome = false;
@@ -562,7 +562,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
             }
 
             if (s1 != null) {
-                ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("entity.Villager." + s1, new Object[0]);
+                ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("entity.Villager." + s1);
                 chatcomponenttranslation.getChatStyle().setChatHoverEvent(this.getHoverEvent());
                 chatcomponenttranslation.getChatStyle().setInsertion(this.getUniqueID().toString());
                 return chatcomponenttranslation;
@@ -599,7 +599,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
             double d0 = this.rand.nextGaussian() * 0.02D;
             double d1 = this.rand.nextGaussian() * 0.02D;
             double d2 = this.rand.nextGaussian() * 0.02D;
-            this.worldObj.spawnParticle(particleType, this.posX + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width, this.posY + 1.0D + (double) (this.rand.nextFloat() * this.height), this.posZ + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width, d0, d1, d2, new int[0]);
+            this.worldObj.spawnParticle(particleType, this.posX + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width, this.posY + 1.0D + (double) (this.rand.nextFloat() * this.height), this.posZ + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width, d0, d1, d2);
         }
     }
 

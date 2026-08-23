@@ -103,7 +103,6 @@ public class HitParticles extends Module {
         EntityLivingBase target = null;
         double closestSq = 0.0D;
         AxisAlignedBB search = arrow.getEntityBoundingBox().addCoord(arrow.motionX, arrow.motionY, arrow.motionZ).expand(1.0D, 1.0D, 1.0D);
-        @SuppressWarnings("unchecked")
         List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(arrow, search);
 
         for (Entity entity : entities) {
@@ -156,7 +155,6 @@ public class HitParticles extends Module {
         pruneArrowDedupeMap();
 
         AxisAlignedBB scan = mc.thePlayer.getEntityBoundingBox().expand(ARROW_SCAN_EXPAND, ARROW_SCAN_EXPAND, ARROW_SCAN_EXPAND);
-        @SuppressWarnings("unchecked")
         List<EntityArrow> arrows = mc.theWorld.getEntitiesWithinAABB(EntityArrow.class, scan);
         for (EntityArrow arrow : arrows) {
             if (arrow.shootingEntity != mc.thePlayer) {

@@ -11,7 +11,7 @@ public enum ProgramStage
 
     private String name;
 
-    private ProgramStage(String name)
+    ProgramStage(String name)
     {
         this.name = name;
     }

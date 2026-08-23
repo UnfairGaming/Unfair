@@ -20,7 +20,7 @@ import java.util.Map.Entry;
 
 public class ResourceIndex {
     private static final Logger logger = LogManager.getLogger();
-    private final Map<String, File> resourceMap = Maps.<String, File>newHashMap();
+    private final Map<String, File> resourceMap = Maps.newHashMap();
 
     public ResourceIndex(File p_i1047_1_, String p_i1047_2_) {
         if (p_i1047_2_ != null) {

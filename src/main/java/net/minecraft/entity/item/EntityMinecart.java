@@ -937,14 +937,14 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable {
             chatcomponenttext.getChatStyle().setInsertion(this.getUniqueID().toString());
             return chatcomponenttext;
         } else {
-            ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation(this.getName(), new Object[0]);
+            ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation(this.getName());
             chatcomponenttranslation.getChatStyle().setChatHoverEvent(this.getHoverEvent());
             chatcomponenttranslation.getChatStyle().setInsertion(this.getUniqueID().toString());
             return chatcomponenttranslation;
         }
     }
 
-    public static enum EnumMinecartType {
+    public enum EnumMinecartType {
         RIDEABLE(0, "MinecartRideable"),
         CHEST(1, "MinecartChest"),
         FURNACE(2, "MinecartFurnace"),
@@ -953,7 +953,7 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable {
         HOPPER(5, "MinecartHopper"),
         COMMAND_BLOCK(6, "MinecartCommandBlock");
 
-        private static final Map<Integer, EntityMinecart.EnumMinecartType> ID_LOOKUP = Maps.<Integer, EntityMinecart.EnumMinecartType>newHashMap();
+        private static final Map<Integer, EntityMinecart.EnumMinecartType> ID_LOOKUP = Maps.newHashMap();
 
         static {
             for (EntityMinecart.EnumMinecartType entityminecart$enumminecarttype : values()) {
@@ -964,7 +964,7 @@ public abstract class EntityMinecart extends Entity implements IWorldNameable {
         private final int networkID;
         private final String name;
 
-        private EnumMinecartType(int networkID, String name) {
+        EnumMinecartType(int networkID, String name) {
             this.networkID = networkID;
             this.name = name;
         }

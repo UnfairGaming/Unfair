@@ -122,7 +122,7 @@ public class RenderDragon extends RenderLiving<EntityDragon> {
         for (int j = 0; j <= 8; ++j) {
             float f9 = MathHelper.sin((float) (j % 8) * (float) Math.PI * 2.0F / 8.0F) * 0.75F;
             float f10 = MathHelper.cos((float) (j % 8) * (float) Math.PI * 2.0F / 8.0F) * 0.75F;
-            float f11 = (float) (j % 8) * 1.0F / 8.0F;
+            float f11 = (float) (j % 8) / 8.0F;
             worldrenderer.pos(f9 * 0.2F, f10 * 0.2F, 0.0D).tex(f11, f8).color(0, 0, 0, 255).endVertex();
             worldrenderer.pos(f9, f10, f6).tex(f11, f7).color(255, 255, 255, 255).endVertex();
         }

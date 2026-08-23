@@ -17,7 +17,7 @@ public class RecipesArmor {
 
             for (int j = 0; j < this.recipeItems.length - 1; ++j) {
                 Item item1 = this.recipeItems[j + 1][i];
-                craftManager.addRecipe(new ItemStack(item1), new Object[]{this.recipePatterns[j], 'X', item});
+                craftManager.addRecipe(new ItemStack(item1), this.recipePatterns[j], 'X', item);
             }
         }
     }

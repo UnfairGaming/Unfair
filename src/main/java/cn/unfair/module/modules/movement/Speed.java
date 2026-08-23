@@ -11,6 +11,7 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.MoveUtil;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 
@@ -193,6 +194,7 @@ public class Speed extends Module {
         return new String[]{mode.getModeString()};
     }
 
+    @Getter
     public enum YawOffsetMode {
         GROUND("Ground"),
         AIR("Air"),
@@ -204,8 +206,5 @@ public class Speed extends Module {
             this.tag = tag;
         }
 
-        public String getTag() {
-            return tag;
-        }
     }
 }

@@ -17,8 +17,8 @@ import java.util.Set;
 
 public class CommandHandler implements ICommandManager {
     private static final Logger logger = LogManager.getLogger();
-    private final Map<String, ICommand> commandMap = Maps.<String, ICommand>newHashMap();
-    private final Set<ICommand> commandSet = Sets.<ICommand>newHashSet();
+    private final Map<String, ICommand> commandMap = Maps.newHashMap();
+    private final Set<ICommand> commandSet = Sets.newHashSet();
 
     /**
      * creates a new array and sets elements 0..n-2 to be 0..n-1 of the input (n elements)
@@ -53,12 +53,12 @@ public class CommandHandler implements ICommandManager {
         int j = 0;
 
         if (icommand == null) {
-            ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("commands.generic.notFound", new Object[0]);
+            ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("commands.generic.notFound");
             chatcomponenttranslation.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(chatcomponenttranslation);
         } else if (icommand.canCommandSenderUseCommand(sender)) {
             if (i > -1) {
-                List<Entity> list = PlayerSelector.<Entity>matchEntities(sender, astring[i], Entity.class);
+                List<Entity> list = PlayerSelector.matchEntities(sender, astring[i], Entity.class);
                 String s1 = astring[i];
                 sender.setCommandStat(CommandResultStats.Type.AFFECTED_ENTITIES, list.size());
 
@@ -79,7 +79,7 @@ public class CommandHandler implements ICommandManager {
                 }
             }
         } else {
-            ChatComponentTranslation chatcomponenttranslation1 = new ChatComponentTranslation("commands.generic.permission", new Object[0]);
+            ChatComponentTranslation chatcomponenttranslation1 = new ChatComponentTranslation("commands.generic.permission");
             chatcomponenttranslation1.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(chatcomponenttranslation1);
         }
@@ -93,7 +93,7 @@ public class CommandHandler implements ICommandManager {
             command.processCommand(sender, args);
             return true;
         } catch (WrongUsageException wrongusageexception) {
-            ChatComponentTranslation chatcomponenttranslation2 = new ChatComponentTranslation("commands.generic.usage", new Object[]{new ChatComponentTranslation(wrongusageexception.getMessage(), wrongusageexception.getErrorObjects())});
+            ChatComponentTranslation chatcomponenttranslation2 = new ChatComponentTranslation("commands.generic.usage", new ChatComponentTranslation(wrongusageexception.getMessage(), wrongusageexception.getErrorObjects()));
             chatcomponenttranslation2.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(chatcomponenttranslation2);
         } catch (CommandException commandexception) {
@@ -101,7 +101,7 @@ public class CommandHandler implements ICommandManager {
             chatcomponenttranslation1.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(chatcomponenttranslation1);
         } catch (Throwable var9) {
-            ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("commands.generic.exception", new Object[0]);
+            ChatComponentTranslation chatcomponenttranslation = new ChatComponentTranslation("commands.generic.exception");
             chatcomponenttranslation.getChatStyle().setColor(EnumChatFormatting.RED);
             sender.addChatMessage(chatcomponenttranslation);
             logger.warn("Couldn\'t process command: \'" + input + "\'");
@@ -133,7 +133,7 @@ public class CommandHandler implements ICommandManager {
         String s = astring[0];
 
         if (astring.length == 1) {
-            List<String> list = Lists.<String>newArrayList();
+            List<String> list = Lists.newArrayList();
 
             for (Entry<String, ICommand> entry : this.commandMap.entrySet()) {
                 if (CommandBase.doesStringStartWith(s, entry.getKey()) && entry.getValue().canCommandSenderUseCommand(sender)) {
@@ -156,7 +156,7 @@ public class CommandHandler implements ICommandManager {
     }
 
     public List<ICommand> getPossibleCommands(ICommandSender sender) {
-        List<ICommand> list = Lists.<ICommand>newArrayList();
+        List<ICommand> list = Lists.newArrayList();
 
         for (ICommand icommand : this.commandSet) {
             if (icommand.canCommandSenderUseCommand(sender)) {

@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class NBTTagCompound extends NBTBase {
-    private Map<String, NBTBase> tagMap = Maps.<String, NBTBase>newHashMap();
+    private Map<String, NBTBase> tagMap = Maps.newHashMap();
 
     private static void writeEntry(String name, NBTBase data, DataOutput output) throws IOException {
         output.writeByte(data.getId());
@@ -376,16 +376,8 @@ public class NBTTagCompound extends NBTBase {
     private CrashReport createCrashReport(final String key, final int expectedType, ClassCastException ex) {
         CrashReport crashreport = CrashReport.makeCrashReport(ex, "Reading NBT data");
         CrashReportCategory crashreportcategory = crashreport.makeCategoryDepth("Corrupt NBT tag", 1);
-        crashreportcategory.addCrashSectionCallable("Tag type found", new Callable<String>() {
-            public String call() throws Exception {
-                return NBTBase.NBT_TYPES[NBTTagCompound.this.tagMap.get(key).getId()];
-            }
-        });
-        crashreportcategory.addCrashSectionCallable("Tag type expected", new Callable<String>() {
-            public String call() throws Exception {
-                return NBTBase.NBT_TYPES[expectedType];
-            }
-        });
+        crashreportcategory.addCrashSectionCallable("Tag type found", () -> NBTBase.NBT_TYPES[NBTTagCompound.this.tagMap.get(key).getId()]);
+        crashreportcategory.addCrashSectionCallable("Tag type expected", () -> NBTBase.NBT_TYPES[expectedType]);
         crashreportcategory.addCrashSection("Tag name", key);
         return crashreport;
     }

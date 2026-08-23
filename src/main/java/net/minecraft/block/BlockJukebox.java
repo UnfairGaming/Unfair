@@ -135,7 +135,7 @@ public class BlockJukebox extends BlockContainer {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{HAS_RECORD});
+        return new BlockState(this, HAS_RECORD);
     }
 
     public static class TileEntityJukebox extends TileEntity {

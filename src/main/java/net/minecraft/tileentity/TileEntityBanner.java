@@ -155,8 +155,8 @@ public class TileEntityBanner extends TileEntity {
             if (!this.field_175119_g) {
                 this.patternResourceLocation = "";
             } else {
-                this.patternList = Lists.<TileEntityBanner.EnumBannerPattern>newArrayList();
-                this.colorList = Lists.<EnumDyeColor>newArrayList();
+                this.patternList = Lists.newArrayList();
+                this.colorList = Lists.newArrayList();
                 this.patternList.add(TileEntityBanner.EnumBannerPattern.BASE);
                 this.colorList.add(EnumDyeColor.byDyeDamage(this.baseColor));
                 this.patternResourceLocation = "b" + this.baseColor;
@@ -178,7 +178,7 @@ public class TileEntityBanner extends TileEntity {
         }
     }
 
-    public static enum EnumBannerPattern {
+    public enum EnumBannerPattern {
         BASE("base", "b"),
         SQUARE_BOTTOM_LEFT("square_bottom_left", "bl", "   ", "   ", "#  "),
         SQUARE_BOTTOM_RIGHT("square_bottom_right", "br", "   ", "   ", "  #"),
@@ -224,18 +224,18 @@ public class TileEntityBanner extends TileEntity {
         private String[] craftingLayers;
         private ItemStack patternCraftingStack;
 
-        private EnumBannerPattern(String name, String id) {
+        EnumBannerPattern(String name, String id) {
             this.craftingLayers = new String[3];
             this.patternName = name;
             this.patternID = id;
         }
 
-        private EnumBannerPattern(String name, String id, ItemStack craftingItem) {
+        EnumBannerPattern(String name, String id, ItemStack craftingItem) {
             this(name, id);
             this.patternCraftingStack = craftingItem;
         }
 
-        private EnumBannerPattern(String name, String id, String craftingTop, String craftingMid, String craftingBot) {
+        EnumBannerPattern(String name, String id, String craftingTop, String craftingMid, String craftingBot) {
             this(name, id);
             this.craftingLayers[0] = craftingTop;
             this.craftingLayers[1] = craftingMid;

@@ -30,13 +30,13 @@ public abstract class Team {
 
     public abstract Team.EnumVisible getDeathMessageVisibility();
 
-    public static enum EnumVisible {
+    public enum EnumVisible {
         ALWAYS("always", 0),
         NEVER("never", 1),
         HIDE_FOR_OTHER_TEAMS("hideForOtherTeams", 2),
         HIDE_FOR_OWN_TEAM("hideForOwnTeam", 3);
 
-        private static Map<String, Team.EnumVisible> field_178828_g = Maps.<String, Team.EnumVisible>newHashMap();
+        private static Map<String, Team.EnumVisible> field_178828_g = Maps.newHashMap();
 
         static {
             for (Team.EnumVisible team$enumvisible : values()) {
@@ -47,7 +47,7 @@ public abstract class Team {
         public final String internalName;
         public final int id;
 
-        private EnumVisible(String p_i45550_3_, int p_i45550_4_) {
+        EnumVisible(String p_i45550_3_, int p_i45550_4_) {
             this.internalName = p_i45550_3_;
             this.id = p_i45550_4_;
         }

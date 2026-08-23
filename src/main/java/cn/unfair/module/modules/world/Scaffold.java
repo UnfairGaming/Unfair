@@ -1293,14 +1293,6 @@ public class Scaffold extends Module {
         }
     }
 
-    public int getGodBridgeRightCps() {
-        long now = System.currentTimeMillis();
-        while (!godBridgeRightClicks.isEmpty() && now - godBridgeRightClicks.peekFirst() > 1000L) {
-            godBridgeRightClicks.removeFirst();
-        }
-        return godBridgeRightClicks.size();
-    }
-
     private boolean clickGodBridgeBlock(
             ItemStack stack, BlockPos clickPos, EnumFacing side, Vec3 hitVec, boolean placementAttempt
     ) {

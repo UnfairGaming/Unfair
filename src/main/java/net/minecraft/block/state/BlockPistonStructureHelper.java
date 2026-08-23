@@ -16,8 +16,8 @@ public class BlockPistonStructureHelper {
     private final BlockPos pistonPos;
     private final BlockPos blockToMove;
     private final EnumFacing moveDirection;
-    private final List<BlockPos> toMove = Lists.<BlockPos>newArrayList();
-    private final List<BlockPos> toDestroy = Lists.<BlockPos>newArrayList();
+    private final List<BlockPos> toMove = Lists.newArrayList();
+    private final List<BlockPos> toDestroy = Lists.newArrayList();
 
     public BlockPistonStructureHelper(World worldIn, BlockPos posIn, EnumFacing pistonFacing, boolean extending) {
         this.world = worldIn;
@@ -146,9 +146,9 @@ public class BlockPistonStructureHelper {
     }
 
     private void func_177255_a(int p_177255_1_, int p_177255_2_) {
-        List<BlockPos> list = Lists.<BlockPos>newArrayList();
-        List<BlockPos> list1 = Lists.<BlockPos>newArrayList();
-        List<BlockPos> list2 = Lists.<BlockPos>newArrayList();
+        List<BlockPos> list = Lists.newArrayList();
+        List<BlockPos> list1 = Lists.newArrayList();
+        List<BlockPos> list2 = Lists.newArrayList();
         list.addAll(this.toMove.subList(0, p_177255_2_));
         list1.addAll(this.toMove.subList(this.toMove.size() - p_177255_1_, this.toMove.size()));
         list2.addAll(this.toMove.subList(p_177255_2_, this.toMove.size() - p_177255_1_));

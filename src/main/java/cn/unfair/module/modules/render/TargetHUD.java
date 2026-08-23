@@ -377,7 +377,6 @@ public class TargetHUD extends ModuleWithModuleSettings {
     }
 
     public int[] getRavenGradientColors() {
-        HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         return new int[]{
                 HUD.getColor(System.currentTimeMillis()).getRGB(),
                 HUD.getColor(System.currentTimeMillis() + 500L).getRGB()

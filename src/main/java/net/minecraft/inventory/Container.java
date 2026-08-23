@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class Container {
-    private final Set<Slot> dragSlots = Sets.<Slot>newHashSet();
-    public List<ItemStack> inventoryItemStacks = Lists.<ItemStack>newArrayList();
-    public List<Slot> inventorySlots = Lists.<Slot>newArrayList();
+    private final Set<Slot> dragSlots = Sets.newHashSet();
+    public List<ItemStack> inventoryItemStacks = Lists.newArrayList();
+    public List<Slot> inventorySlots = Lists.newArrayList();
     public int windowId;
-    protected List<ICrafting> crafters = Lists.<ICrafting>newArrayList();
+    protected List<ICrafting> crafters = Lists.newArrayList();
     private short transactionID;
     /**
      * The current drag mode (0 : evenly split, 1 : one item by slot, 2 : not used ?)
@@ -27,7 +27,7 @@ public abstract class Container {
      * The current drag event (0 : start, 1 : add slot : 2 : end)
      */
     private int dragEvent;
-    private Set<EntityPlayer> playerList = Sets.<EntityPlayer>newHashSet();
+    private Set<EntityPlayer> playerList = Sets.newHashSet();
 
     /**
      * Extracts the drag mode. Args : eventButton. Return (0 : evenly split, 1 : one item by slot, 2 : not used ?)
@@ -141,7 +141,7 @@ public abstract class Container {
     }
 
     public List<ItemStack> getInventory() {
-        List<ItemStack> list = Lists.<ItemStack>newArrayList();
+        List<ItemStack> list = Lists.newArrayList();
 
         for (int i = 0; i < this.inventorySlots.size(); ++i) {
             list.add(this.inventorySlots.get(i).getStack());

@@ -25,7 +25,7 @@ import java.util.Random;
 
 public class BlockRedstoneComparator extends BlockRedstoneDiode implements ITileEntityProvider {
     public static final PropertyBool POWERED = PropertyBool.create("powered");
-    public static final PropertyEnum<BlockRedstoneComparator.Mode> MODE = PropertyEnum.<BlockRedstoneComparator.Mode>create("mode", BlockRedstoneComparator.Mode.class);
+    public static final PropertyEnum<BlockRedstoneComparator.Mode> MODE = PropertyEnum.create("mode", BlockRedstoneComparator.Mode.class);
 
     public BlockRedstoneComparator(boolean powered) {
         super(powered);
@@ -122,11 +122,7 @@ public class BlockRedstoneComparator extends BlockRedstoneDiode implements ITile
     }
 
     private EntityItemFrame findItemFrame(World worldIn, final EnumFacing facing, BlockPos pos) {
-        List<EntityItemFrame> list = worldIn.<EntityItemFrame>getEntitiesWithinAABB(EntityItemFrame.class, new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1), new Predicate<Entity>() {
-            public boolean apply(Entity p_apply_1_) {
-                return p_apply_1_ != null && p_apply_1_.getHorizontalFacing() == facing;
-            }
-        });
+        List<EntityItemFrame> list = worldIn.getEntitiesWithinAABB(EntityItemFrame.class, new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1), (Predicate<Entity>) p_apply_1_ -> p_apply_1_ != null && p_apply_1_.getHorizontalFacing() == facing);
         return list.size() == 1 ? list.get(0) : null;
     }
 
@@ -244,7 +240,7 @@ public class BlockRedstoneComparator extends BlockRedstoneDiode implements ITile
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, MODE, POWERED});
+        return new BlockState(this, FACING, MODE, POWERED);
     }
 
     /**
@@ -255,13 +251,13 @@ public class BlockRedstoneComparator extends BlockRedstoneDiode implements ITile
         return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite()).withProperty(POWERED, Boolean.FALSE).withProperty(MODE, BlockRedstoneComparator.Mode.COMPARE);
     }
 
-    public static enum Mode implements IStringSerializable {
+    public enum Mode implements IStringSerializable {
         COMPARE("compare"),
         SUBTRACT("subtract");
 
         private final String name;
 
-        private Mode(String name) {
+        Mode(String name) {
             this.name = name;
         }
 

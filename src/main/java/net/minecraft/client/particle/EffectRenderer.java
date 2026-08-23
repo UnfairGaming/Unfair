@@ -220,16 +220,8 @@ public class EffectRenderer {
             CrashReport crashreport = CrashReport.makeCrashReport(throwable, "绮掑瓙鏇存柊");
             CrashReportCategory crashreportcategory = crashreport.makeCategory("琚洿鏂扮殑绮掑瓙");
             final int i = particle.getFXLayer();
-            crashreportcategory.addCrashSectionCallable("绮掑瓙", new Callable<String>() {
-                public String call() throws Exception {
-                    return particle.toString();
-                }
-            });
-            crashreportcategory.addCrashSectionCallable("绮掑瓙绫诲瀷", new Callable<String>() {
-                public String call() throws Exception {
-                    return i == 0 ? "MISC_TEXTURE" : (i == 1 ? "TERRAIN_TEXTURE" : (i == 3 ? "ENTITY_PARTICLE_TEXTURE" : "Unknown - " + i));
-                }
-            });
+            crashreportcategory.addCrashSectionCallable("绮掑瓙", () -> particle.toString());
+            crashreportcategory.addCrashSectionCallable("绮掑瓙绫诲瀷", () -> i == 0 ? "MISC_TEXTURE" : (i == 1 ? "TERRAIN_TEXTURE" : (i == 3 ? "ENTITY_PARTICLE_TEXTURE" : "Unknown - " + i)));
             throw new ReportedException(crashreport);
         }
     }

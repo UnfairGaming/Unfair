@@ -142,7 +142,7 @@ public class BlockCake extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{BITES});
+        return new BlockState(this, BITES);
     }
 
     public int getComparatorInputOverride(World worldIn, BlockPos pos) {

@@ -103,6 +103,6 @@ public class BlockEndPortalFrame extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, EYE});
+        return new BlockState(this, FACING, EYE);
     }
 }

@@ -54,7 +54,7 @@ public class FontRenderer implements IResourceManagerReloadListener {
     private final TextureManager renderEngine;
     private final float[] charWidthFloat = new float[256];
     private final GlBlendState oldBlendState = new GlBlendState();
-    private final Map<String, Integer> stringWidthCache = new LinkedHashMap<String, Integer>(256, 0.75F, true) {
+    private final Map<String, Integer> stringWidthCache = new LinkedHashMap<>(256, 0.75F, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Integer> eldest) {
             return this.size() > 512;

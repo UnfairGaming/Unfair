@@ -22,7 +22,7 @@ public class Language implements Comparable<Language> {
     }
 
     public String toString() {
-        return String.format("%s (%s)", new Object[]{this.name, this.region});
+        return String.format("%s (%s)", this.name, this.region);
     }
 
     public boolean equals(Object p_equals_1_) {

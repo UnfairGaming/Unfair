@@ -15,7 +15,7 @@ public class GuiDisconnected extends GuiScreen {
 
     public GuiDisconnected(GuiScreen screen, String reasonLocalizationKey, IChatComponent chatComp) {
         this.parentScreen = screen;
-        this.reason = I18n.format(reasonLocalizationKey, new Object[0]);
+        this.reason = I18n.format(reasonLocalizationKey);
         this.message = chatComp;
     }
 
@@ -34,7 +34,7 @@ public class GuiDisconnected extends GuiScreen {
         this.buttonList.clear();
         this.multilineMessage = this.fontRendererObj.listFormattedStringToWidth(this.message.getFormattedText(), this.width - 50);
         this.field_175353_i = this.multilineMessage.size() * this.fontRendererObj.FONT_HEIGHT;
-        this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 2 + this.field_175353_i / 2 + this.fontRendererObj.FONT_HEIGHT, I18n.format("gui.toMenu", new Object[0])));
+        this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 2 + this.field_175353_i / 2 + this.fontRendererObj.FONT_HEIGHT, I18n.format("gui.toMenu")));
     }
 
     /**

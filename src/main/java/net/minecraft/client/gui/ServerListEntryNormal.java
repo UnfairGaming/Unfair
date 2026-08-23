@@ -50,17 +50,15 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry {
             this.server.pingToServer = -2L;
             this.server.serverMOTD = "";
             this.server.populationInfo = "";
-            field_148302_b.submit(new Runnable() {
-                public void run() {
-                    try {
-                        ServerListEntryNormal.this.owner.getOldServerPinger().ping(ServerListEntryNormal.this.server);
-                    } catch (UnknownHostException var2) {
-                        ServerListEntryNormal.this.server.pingToServer = -1L;
-                        ServerListEntryNormal.this.server.serverMOTD = EnumChatFormatting.DARK_RED + "Can\'t resolve hostname";
-                    } catch (Exception var3) {
-                        ServerListEntryNormal.this.server.pingToServer = -1L;
-                        ServerListEntryNormal.this.server.serverMOTD = EnumChatFormatting.DARK_RED + "Can\'t connect to server.";
-                    }
+            field_148302_b.submit(() -> {
+                try {
+                    ServerListEntryNormal.this.owner.getOldServerPinger().ping(ServerListEntryNormal.this.server);
+                } catch (UnknownHostException var2) {
+                    ServerListEntryNormal.this.server.pingToServer = -1L;
+                    ServerListEntryNormal.this.server.serverMOTD = EnumChatFormatting.DARK_RED + "Can\'t resolve hostname";
+                } catch (Exception var3) {
+                    ServerListEntryNormal.this.server.pingToServer = -1L;
+                    ServerListEntryNormal.this.server.serverMOTD = EnumChatFormatting.DARK_RED + "Can\'t connect to server.";
                 }
             });
         }
@@ -200,8 +198,8 @@ public class ServerListEntryNormal implements GuiListExtended.IGuiListEntry {
             {
                 try {
                     bufferedimage = TextureUtil.readBufferedImage(new ByteBufInputStream(bytebuf1));
-                    Validate.validState(bufferedimage.getWidth() == 64, "Must be 64 pixels wide", new Object[0]);
-                    Validate.validState(bufferedimage.getHeight() == 64, "Must be 64 pixels high", new Object[0]);
+                    Validate.validState(bufferedimage.getWidth() == 64, "Must be 64 pixels wide");
+                    Validate.validState(bufferedimage.getHeight() == 64, "Must be 64 pixels high");
                     break label101;
                 } catch (Throwable throwable) {
                     logger.error("Invalid icon for server " + this.server.serverName + " (" + this.server.serverIP + ")", throwable);

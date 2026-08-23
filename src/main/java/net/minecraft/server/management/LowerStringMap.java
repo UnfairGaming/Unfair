@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class LowerStringMap<V> implements Map<String, V> {
-    private final Map<String, V> internalMap = Maps.<String, V>newLinkedHashMap();
+    private final Map<String, V> internalMap = Maps.newLinkedHashMap();
 
     public int size() {
         return this.internalMap.size();

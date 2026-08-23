@@ -33,7 +33,7 @@ public class ImageBufferDownload implements IImageBuffer {
                 graphics.drawImage(bufferedimage, 28 * k, 48 * k, 24 * k, 52 * k, 8 * k, 16 * k, 12 * k, 20 * k, null);
                 graphics.drawImage(bufferedimage, 20 * k, 52 * k, 16 * k, 64 * k, 8 * k, 20 * k, 12 * k, 32 * k, null);
                 graphics.drawImage(bufferedimage, 24 * k, 52 * k, 20 * k, 64 * k, 4 * k, 20 * k, 8 * k, 32 * k, null);
-                graphics.drawImage(bufferedimage, 28 * k, 52 * k, 24 * k, 64 * k, 0 * k, 20 * k, 4 * k, 32 * k, null);
+                graphics.drawImage(bufferedimage, 28 * k, 52 * k, 24 * k, 64 * k, 0, 20 * k, 4 * k, 32 * k, null);
                 graphics.drawImage(bufferedimage, 32 * k, 52 * k, 28 * k, 64 * k, 12 * k, 20 * k, 16 * k, 32 * k, null);
                 graphics.drawImage(bufferedimage, 40 * k, 48 * k, 36 * k, 52 * k, 44 * k, 16 * k, 48 * k, 20 * k, null);
                 graphics.drawImage(bufferedimage, 44 * k, 48 * k, 40 * k, 52 * k, 48 * k, 16 * k, 52 * k, 20 * k, null);
@@ -45,13 +45,13 @@ public class ImageBufferDownload implements IImageBuffer {
 
             graphics.dispose();
             this.imageData = ((DataBufferInt) bufferedimage.getRaster().getDataBuffer()).getData();
-            this.setAreaOpaque(0 * k, 0 * k, 32 * k, 16 * k);
-            this.setAreaTransparent(32 * k, 0 * k, 64 * k, 32 * k);
-            this.setAreaOpaque(0 * k, 16 * k, 64 * k, 32 * k);
-            this.setAreaTransparent(0 * k, 32 * k, 16 * k, 48 * k);
+            this.setAreaOpaque(0, 0, 32 * k, 16 * k);
+            this.setAreaTransparent(32 * k, 0, 64 * k, 32 * k);
+            this.setAreaOpaque(0, 16 * k, 64 * k, 32 * k);
+            this.setAreaTransparent(0, 32 * k, 16 * k, 48 * k);
             this.setAreaTransparent(16 * k, 32 * k, 40 * k, 48 * k);
             this.setAreaTransparent(40 * k, 32 * k, 56 * k, 48 * k);
-            this.setAreaTransparent(0 * k, 48 * k, 16 * k, 64 * k);
+            this.setAreaTransparent(0, 48 * k, 16 * k, 64 * k);
             this.setAreaOpaque(16 * k, 48 * k, 48 * k, 64 * k);
             this.setAreaTransparent(48 * k, 48 * k, 64 * k, 64 * k);
             return bufferedimage;

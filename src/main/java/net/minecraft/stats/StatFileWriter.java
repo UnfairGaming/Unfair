@@ -8,7 +8,7 @@ import net.minecraft.util.TupleIntJsonSerializable;
 import java.util.Map;
 
 public class StatFileWriter {
-    protected final Map<StatBase, TupleIntJsonSerializable> statsData = Maps.<StatBase, TupleIntJsonSerializable>newConcurrentMap();
+    protected final Map<StatBase, TupleIntJsonSerializable> statsData = Maps.newConcurrentMap();
 
     /**
      * Returns true if the achievement has been unlocked.

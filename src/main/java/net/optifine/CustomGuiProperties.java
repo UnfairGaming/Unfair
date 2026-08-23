@@ -617,7 +617,7 @@ public class CustomGuiProperties
         return "name: " + this.fileName + ", container: " + this.container + ", textures: " + this.textureLocations;
     }
 
-    public static enum EnumContainer
+    public enum EnumContainer
     {
         ANVIL,
         BEACON,
@@ -637,7 +637,7 @@ public class CustomGuiProperties
         public static final CustomGuiProperties.EnumContainer[] VALUES = values();
     }
 
-    private static enum EnumVariant
+    private enum EnumVariant
     {
         HORSE,
         DONKEY,

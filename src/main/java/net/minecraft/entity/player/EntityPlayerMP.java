@@ -66,8 +66,8 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
      * The ItemInWorldManager belonging to this player
      */
     public final ItemInWorldManager theItemInWorldManager;
-    public final List<ChunkCoordIntPair> loadedChunks = Lists.<ChunkCoordIntPair>newLinkedList();
-    private final List<Integer> destroyedItemsNetCache = Lists.<Integer>newLinkedList();
+    public final List<ChunkCoordIntPair> loadedChunks = Lists.newLinkedList();
+    private final List<Integer> destroyedItemsNetCache = Lists.newLinkedList();
     private final StatisticsFile statsFile;
     /**
      * The NetServerHandler assigned to this player by the ServerConfigurationManager.
@@ -246,9 +246,9 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
         }
 
         if (!this.loadedChunks.isEmpty()) {
-            List<Chunk> list = Lists.<Chunk>newArrayList();
+            List<Chunk> list = Lists.newArrayList();
             Iterator<ChunkCoordIntPair> iterator1 = this.loadedChunks.iterator();
-            List<TileEntity> list1 = Lists.<TileEntity>newArrayList();
+            List<TileEntity> list1 = Lists.newArrayList();
 
             while (iterator1.hasNext() && list.size() < 10) {
                 ChunkCoordIntPair chunkcoordintpair = iterator1.next();
@@ -328,7 +328,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
                 this.combinedHealth = this.getHealth() + this.getAbsorptionAmount();
 
                 for (ScoreObjective scoreobjective : this.getWorldScoreboard().getObjectivesFromCriteria(IScoreObjectiveCriteria.health)) {
-                    this.getWorldScoreboard().getValueFromObjective(this.getName(), scoreobjective).func_96651_a(Arrays.<EntityPlayer>asList(new EntityPlayer[]{this}));
+                    this.getWorldScoreboard().getValueFromObjective(this.getName(), scoreobjective).func_96651_a(Arrays.asList(this));
                 }
             }
 
@@ -625,7 +625,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
             ILockableContainer ilockablecontainer = (ILockableContainer) chestInventory;
 
             if (ilockablecontainer.isLocked() && !this.canOpen(ilockablecontainer.getLockCode()) && !this.isSpectator()) {
-                this.playerNetServerHandler.sendPacket(new S02PacketChat(new ChatComponentTranslation("container.isLocked", new Object[]{chestInventory.getDisplayName()}), (byte) 2));
+                this.playerNetServerHandler.sendPacket(new S02PacketChat(new ChatComponentTranslation("container.isLocked", chestInventory.getDisplayName()), (byte) 2));
                 this.playerNetServerHandler.sendPacket(new S29PacketSoundEffect("random.door_close", this.posX, this.posY, this.posZ, 1.0F, 1.0F));
                 return;
             }
@@ -994,7 +994,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
      */
     public void removeEntity(Entity p_152339_1_) {
         if (p_152339_1_ instanceof EntityPlayer) {
-            this.playerNetServerHandler.sendPacket(new S13PacketDestroyEntities(new int[]{p_152339_1_.getEntityId()}));
+            this.playerNetServerHandler.sendPacket(new S13PacketDestroyEntities(p_152339_1_.getEntityId()));
         } else {
             this.destroyedItemsNetCache.add(p_152339_1_.getEntityId());
         }

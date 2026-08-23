@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClassInheritanceMultiMap<T> extends AbstractSet<T> {
-    private static final Set<Class<?>> field_181158_a = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
+    private static final Set<Class<?>> field_181158_a = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Map<Class<?>, List<T>> map = Maps.newHashMap();
     private final Set<Class<?>> knownKeys = Sets.newIdentityHashSet();
     private final Class<T> baseClass;

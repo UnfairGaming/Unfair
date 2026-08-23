@@ -16,7 +16,7 @@ import java.util.Set;
 
 public abstract class Enchantment {
     private static final Enchantment[] enchantmentsList = new Enchantment[256];
-    private static final Map<ResourceLocation, Enchantment> locationEnchantments = Maps.<ResourceLocation, Enchantment>newHashMap();
+    private static final Map<ResourceLocation, Enchantment> locationEnchantments = Maps.newHashMap();
 
     public static final Enchantment protection = new EnchantmentProtection(0, ResourceLocation.of("protection"), 10, 0);
     public static final Enchantment fireProtection = new EnchantmentProtection(1, ResourceLocation.of("fire_protection"), 5, 1);
@@ -47,7 +47,7 @@ public abstract class Enchantment {
     public static final Enchantment[] enchantmentsBookList;
 
     static {
-        List<Enchantment> list = Lists.<Enchantment>newArrayList();
+        List<Enchantment> list = Lists.newArrayList();
 
         for (Enchantment enchantment : enchantmentsList) {
             if (enchantment != null) {

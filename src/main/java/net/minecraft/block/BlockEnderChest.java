@@ -120,7 +120,7 @@ public class BlockEnderChest extends BlockContainer {
             double d3 = rand.nextFloat() * (float) j;
             double d4 = ((double) rand.nextFloat() - 0.5D) * 0.125D;
             double d5 = rand.nextFloat() * (float) k;
-            worldIn.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5, new int[0]);
+            worldIn.spawnParticle(EnumParticleTypes.PORTAL, d0, d1, d2, d3, d4, d5);
         }
     }
 
@@ -145,6 +145,6 @@ public class BlockEnderChest extends BlockContainer {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING});
+        return new BlockState(this, FACING);
     }
 }

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Random;
 
 public abstract class BlockSlab extends Block {
-    public static final PropertyEnum<BlockSlab.EnumBlockHalf> HALF = PropertyEnum.<BlockSlab.EnumBlockHalf>create("half", BlockSlab.EnumBlockHalf.class);
+    public static final PropertyEnum<BlockSlab.EnumBlockHalf> HALF = PropertyEnum.create("half", BlockSlab.EnumBlockHalf.class);
 
     public BlockSlab(Material materialIn) {
         super(materialIn);
@@ -136,13 +136,13 @@ public abstract class BlockSlab extends Block {
 
     public abstract Object getVariant(ItemStack stack);
 
-    public static enum EnumBlockHalf implements IStringSerializable {
+    public enum EnumBlockHalf implements IStringSerializable {
         TOP("top"),
         BOTTOM("bottom");
 
         private final String name;
 
-        private EnumBlockHalf(String name) {
+        EnumBlockHalf(String name) {
             this.name = name;
         }
 

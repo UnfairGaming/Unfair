@@ -27,7 +27,7 @@ public class AttributeModifier {
         this.name = nameIn;
         this.amount = amountIn;
         this.operation = operationIn;
-        Validate.notEmpty(nameIn, "Modifier name cannot be empty", new Object[0]);
+        Validate.notEmpty(nameIn, "Modifier name cannot be empty");
         Validate.inclusiveBetween(0L, 2L, operationIn, "Invalid operation");
     }
 

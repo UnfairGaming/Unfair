@@ -19,7 +19,7 @@ public class QuadBounds
         for (int j = 0; j < 4; ++j)
         {
             int k = j * i;
-            float f = Float.intBitsToFloat(vertexData[k + 0]);
+            float f = Float.intBitsToFloat(vertexData[k]);
             float f1 = Float.intBitsToFloat(vertexData[k + 1]);
             float f2 = Float.intBitsToFloat(vertexData[k + 2]);
 

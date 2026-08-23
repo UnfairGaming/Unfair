@@ -143,7 +143,7 @@ public class BlockDaylightDetector extends BlockContainer {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{POWER});
+        return new BlockState(this, POWER);
     }
 
     /**

@@ -67,7 +67,7 @@ public class GuiDownloadTerrain extends GuiScreen {
             this.drawBackground(0);
         }
 
-        this.drawCenteredString(this.fontRendererObj, I18n.format("multiplayer.downloadingTerrain", new Object[0]), this.width / 2, this.height / 2 - 50, 16777215);
+        this.drawCenteredString(this.fontRendererObj, I18n.format("multiplayer.downloadingTerrain"), this.width / 2, this.height / 2 - 50, 16777215);
         this.drawCenteredString(this.fontRendererObj, "If stuck press ESC to return to Main Menu.", this.width / 2, this.height / 2 - 38, 11184810);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }

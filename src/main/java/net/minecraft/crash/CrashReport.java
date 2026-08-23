@@ -36,7 +36,7 @@ public class CrashReport {
      * Category of crash
      */
     private final CrashReportCategory theReportCategory = new CrashReportCategory(this, "System Details");
-    private final List<CrashReportCategory> crashReportSections = Lists.<CrashReportCategory>newArrayList();
+    private final List<CrashReportCategory> crashReportSections = Lists.newArrayList();
 
     /**
      * File of crash report.

@@ -105,7 +105,7 @@ public class GameRules {
         return gamerules$value != null && (gamerules$value.getType() == otherValue || otherValue == GameRules.ValueType.ANY_VALUE);
     }
 
-    public static enum ValueType {
+    public enum ValueType {
         ANY_VALUE,
         BOOLEAN_VALUE,
         NUMERICAL_VALUE;

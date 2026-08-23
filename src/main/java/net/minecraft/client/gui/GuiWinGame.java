@@ -80,7 +80,7 @@ public class GuiWinGame extends GuiScreen {
      */
     public void initGui() {
         if (this.field_146582_i == null) {
-            this.field_146582_i = Lists.<String>newArrayList();
+            this.field_146582_i = Lists.newArrayList();
 
             try {
                 String s = "";

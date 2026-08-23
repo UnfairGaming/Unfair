@@ -38,7 +38,7 @@ public class CommandExecuteAt extends CommandBase {
      */
     public void processCommand(final ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 5) {
-            throw new WrongUsageException("commands.execute.usage", new Object[0]);
+            throw new WrongUsageException("commands.execute.usage");
         } else {
             final Entity entity = getEntity(sender, args[0], Entity.class);
             final double d0 = parseDouble(entity.posX, args[1], false);
@@ -58,7 +58,7 @@ public class CommandExecuteAt extends CommandBase {
                 IBlockState iblockstate = world.getBlockState(blockpos1);
 
                 if (iblockstate.getBlock() != block || k >= 0 && iblockstate.getBlock().getMetaFromState(iblockstate) != k) {
-                    throw new CommandException("commands.execute.failed", new Object[]{"detect", entity.getName()});
+                    throw new CommandException("commands.execute.failed", "detect", entity.getName());
                 }
 
                 i = 10;
@@ -113,10 +113,10 @@ public class CommandExecuteAt extends CommandBase {
                 int j = icommandmanager.executeCommand(icommandsender, s);
 
                 if (j < 1) {
-                    throw new CommandException("commands.execute.allInvocationsFailed", new Object[]{s});
+                    throw new CommandException("commands.execute.allInvocationsFailed", s);
                 }
             } catch (Throwable var23) {
-                throw new CommandException("commands.execute.failed", new Object[]{s, entity.getName()});
+                throw new CommandException("commands.execute.failed", s, entity.getName());
             }
         }
     }

@@ -16,7 +16,7 @@ public class BlockModernShrieker extends BlockModernShape {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{CAN_SUMMON});
+        return new BlockState(this, CAN_SUMMON);
     }
 
     public IBlockState getStateFromViaStateId(int id) {

@@ -129,10 +129,10 @@ public class ScreenShotHelper {
             IChatComponent ichatcomponent = new ChatComponentText(file2.getName());
             ichatcomponent.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file2.getAbsolutePath()));
             ichatcomponent.getChatStyle().setUnderlined(Boolean.TRUE);
-            return new ChatComponentTranslation("screenshot.success", new Object[]{ichatcomponent});
+            return new ChatComponentTranslation("screenshot.success", ichatcomponent);
         } catch (Exception exception) {
             logger.warn("Couldn\'t save screenshot", exception);
-            return new ChatComponentTranslation("screenshot.failure", new Object[]{exception.getMessage()});
+            return new ChatComponentTranslation("screenshot.failure", exception.getMessage());
         }
     }
 

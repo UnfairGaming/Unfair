@@ -398,6 +398,6 @@ public class BlockPistonBase extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, EXTENDED});
+        return new BlockState(this, FACING, EXTENDED);
     }
 }

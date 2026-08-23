@@ -131,7 +131,7 @@ public class BlockBrewingStand extends BlockContainer {
         double d0 = (float) pos.getX() + 0.4F + rand.nextFloat() * 0.2F;
         double d1 = (float) pos.getY() + 0.7F + rand.nextFloat() * 0.3F;
         double d2 = (float) pos.getZ() + 0.4F + rand.nextFloat() * 0.2F;
-        worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0, d1, d2, 0.0D, 0.0D, 0.0D, new int[0]);
+        worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0, d1, d2, 0.0D, 0.0D, 0.0D);
     }
 
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
@@ -196,6 +196,6 @@ public class BlockBrewingStand extends BlockContainer {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{HAS_BOTTLE[0], HAS_BOTTLE[1], HAS_BOTTLE[2]});
+        return new BlockState(this, HAS_BOTTLE[0], HAS_BOTTLE[1], HAS_BOTTLE[2]);
     }
 }

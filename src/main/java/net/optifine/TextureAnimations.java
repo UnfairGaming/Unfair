@@ -310,7 +310,7 @@ public class TextureAnimations
                             k1 = j2;
                         }
 
-                        abyte[k * 4 + 0] = (byte)i1;
+                        abyte[k * 4] = (byte)i1;
                         abyte[k * 4 + 1] = (byte)j1;
                         abyte[k * 4 + 2] = (byte)k1;
                         abyte[k * 4 + 3] = (byte)l;

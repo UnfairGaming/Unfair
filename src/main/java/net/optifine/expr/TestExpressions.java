@@ -5,7 +5,7 @@ import java.io.InputStreamReader;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class TestExpressions {
-    public static void main(String[] args) throws Exception {
+    static void main(String[] args) throws Exception {
         ExpressionParser expressionparser = new ExpressionParser(null);
 
         while (true) {

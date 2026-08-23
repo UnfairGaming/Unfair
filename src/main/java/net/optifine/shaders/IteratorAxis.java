@@ -92,7 +92,7 @@ public class IteratorAxis implements Iterator<BlockPos>
         throw new RuntimeException("Not implemented");
     }
 
-    public static void main(String[] args) throws Exception
+    static void main(String[] args) throws Exception
     {
         BlockPos blockpos = new BlockPos(-2, 10, 20);
         BlockPos blockpos1 = new BlockPos(2, 12, 22);

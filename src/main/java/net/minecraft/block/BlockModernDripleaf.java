@@ -44,7 +44,7 @@ public class BlockModernDripleaf extends ModernBlock {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, TILT});
+        return new BlockState(this, FACING, TILT);
     }
 
     public boolean isOpaqueCube() {

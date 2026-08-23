@@ -36,9 +36,9 @@ public class PlayerProfileCache {
         }
     };
     protected final Gson gson;
-    private final Map<String, PlayerProfileCache.ProfileEntry> usernameToProfileEntryMap = Maps.<String, PlayerProfileCache.ProfileEntry>newHashMap();
-    private final Map<UUID, PlayerProfileCache.ProfileEntry> uuidToProfileEntryMap = Maps.<UUID, PlayerProfileCache.ProfileEntry>newHashMap();
-    private final LinkedList<GameProfile> gameProfiles = Lists.<GameProfile>newLinkedList();
+    private final Map<String, PlayerProfileCache.ProfileEntry> usernameToProfileEntryMap = Maps.newHashMap();
+    private final Map<UUID, PlayerProfileCache.ProfileEntry> uuidToProfileEntryMap = Maps.newHashMap();
+    private final LinkedList<GameProfile> gameProfiles = Lists.newLinkedList();
     private final MinecraftServer mcServer;
     private final File usercacheFile;
 
@@ -225,7 +225,7 @@ public class PlayerProfileCache {
     }
 
     private List<PlayerProfileCache.ProfileEntry> getEntriesWithLimit(int limitSize) {
-        ArrayList<PlayerProfileCache.ProfileEntry> arraylist = Lists.<PlayerProfileCache.ProfileEntry>newArrayList();
+        ArrayList<PlayerProfileCache.ProfileEntry> arraylist = Lists.newArrayList();
 
         for (GameProfile gameprofile : Lists.newArrayList(Iterators.limit(this.gameProfiles.iterator(), limitSize))) {
             PlayerProfileCache.ProfileEntry playerprofilecache$profileentry = this.getByUUID(gameprofile.getId());

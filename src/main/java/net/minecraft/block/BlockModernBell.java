@@ -38,7 +38,7 @@ public class BlockModernBell extends BlockModernShape {
 
     @Override
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{ATTACHMENT, FACING});
+        return new BlockState(this, ATTACHMENT, FACING);
     }
 
     @Override

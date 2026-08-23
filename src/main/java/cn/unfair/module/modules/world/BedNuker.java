@@ -71,7 +71,7 @@ public class BedNuker extends Module {
     public final ModeProperty showProgress = new ModeProperty("Show Progress", 1, new String[]{"None", "Default", "Hud"});
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     private final TimerUtil timer = new TimerUtil();
-    private final ArrayList<BlockPos> bedWhitelist = new ArrayList<BlockPos>();
+    private final ArrayList<BlockPos> bedWhitelist = new ArrayList<>();
     private final Color colorRed = new Color(ChatColors.RED.toAwtColor());
     private final Color colorYellow = new Color(ChatColors.YELLOW.toAwtColor());
     private final Color colorGreen = new Color(ChatColors.GREEN.toAwtColor());

@@ -48,7 +48,7 @@ public class Achievement extends StatBase {
     }
 
     public Achievement(String statIdIn, String unlocalizedName, int column, int row, ItemStack stack, Achievement parent) {
-        super(statIdIn, new ChatComponentTranslation("achievement." + unlocalizedName, new Object[0]));
+        super(statIdIn, new ChatComponentTranslation("achievement." + unlocalizedName));
         this.theItemStack = stack;
         this.achievementDescription = "achievement." + unlocalizedName + ".desc";
         this.displayColumn = column;

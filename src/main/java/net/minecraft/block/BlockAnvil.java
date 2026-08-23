@@ -164,7 +164,7 @@ public class BlockAnvil extends BlockFalling {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, DAMAGE});
+        return new BlockState(this, FACING, DAMAGE);
     }
 
     public static class Anvil implements IInteractionObject {
@@ -185,7 +185,7 @@ public class BlockAnvil extends BlockFalling {
         }
 
         public IChatComponent getDisplayName() {
-            return new ChatComponentTranslation(Blocks.anvil.getUnlocalizedName() + ".name", new Object[0]);
+            return new ChatComponentTranslation(Blocks.anvil.getUnlocalizedName() + ".name");
         }
 
         public Container createContainer(InventoryPlayer playerInventory, EntityPlayer playerIn) {

@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 public class MapStorage {
-    protected Map<String, WorldSavedData> loadedDataMap = Maps.<String, WorldSavedData>newHashMap();
+    protected Map<String, WorldSavedData> loadedDataMap = Maps.newHashMap();
     private ISaveHandler saveHandler;
-    private List<WorldSavedData> loadedDataList = Lists.<WorldSavedData>newArrayList();
-    private Map<String, Short> idCounts = Maps.<String, Short>newHashMap();
+    private List<WorldSavedData> loadedDataList = Lists.newArrayList();
+    private Map<String, Short> idCounts = Maps.newHashMap();
 
     public MapStorage(ISaveHandler saveHandlerIn) {
         this.saveHandler = saveHandlerIn;
@@ -39,7 +39,7 @@ public class MapStorage {
 
                     if (file1 != null && file1.exists()) {
                         try {
-                            worldsaveddata = clazz.getConstructor(new Class[]{String.class}).newInstance(new Object[]{dataIdentifier});
+                            worldsaveddata = clazz.getConstructor(new Class[]{String.class}).newInstance(dataIdentifier);
                         } catch (Exception exception) {
                             throw new RuntimeException("Failed to instantiate " + clazz.toString(), exception);
                         }

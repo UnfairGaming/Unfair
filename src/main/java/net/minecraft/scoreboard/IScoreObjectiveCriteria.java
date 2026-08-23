@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IScoreObjectiveCriteria {
-    Map<String, IScoreObjectiveCriteria> INSTANCES = Maps.<String, IScoreObjectiveCriteria>newHashMap();
+    Map<String, IScoreObjectiveCriteria> INSTANCES = Maps.newHashMap();
     IScoreObjectiveCriteria DUMMY = new ScoreDummyCriteria("dummy");
     IScoreObjectiveCriteria TRIGGER = new ScoreDummyCriteria("trigger");
     IScoreObjectiveCriteria deathCount = new ScoreDummyCriteria("deathCount");
@@ -26,11 +26,11 @@ public interface IScoreObjectiveCriteria {
 
     IScoreObjectiveCriteria.EnumRenderType getRenderType();
 
-    public static enum EnumRenderType {
+    enum EnumRenderType {
         INTEGER("integer"),
         HEARTS("hearts");
 
-        private static final Map<String, IScoreObjectiveCriteria.EnumRenderType> field_178801_c = Maps.<String, IScoreObjectiveCriteria.EnumRenderType>newHashMap();
+        private static final Map<String, IScoreObjectiveCriteria.EnumRenderType> field_178801_c = Maps.newHashMap();
 
         static {
             for (IScoreObjectiveCriteria.EnumRenderType iscoreobjectivecriteria$enumrendertype : values()) {
@@ -40,7 +40,7 @@ public interface IScoreObjectiveCriteria {
 
         private final String field_178798_d;
 
-        private EnumRenderType(String p_i45548_3_) {
+        EnumRenderType(String p_i45548_3_) {
             this.field_178798_d = p_i45548_3_;
         }
 

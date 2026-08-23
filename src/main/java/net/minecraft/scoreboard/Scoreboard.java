@@ -13,15 +13,15 @@ import java.util.Map;
 
 public class Scoreboard {
     private static String[] field_178823_g = null;
-    private final Map<String, ScoreObjective> scoreObjectives = Maps.<String, ScoreObjective>newHashMap();
-    private final Map<IScoreObjectiveCriteria, List<ScoreObjective>> scoreObjectiveCriterias = Maps.<IScoreObjectiveCriteria, List<ScoreObjective>>newHashMap();
-    private final Map<String, Map<ScoreObjective, Score>> entitiesScoreObjectives = Maps.<String, Map<ScoreObjective, Score>>newHashMap();
+    private final Map<String, ScoreObjective> scoreObjectives = Maps.newHashMap();
+    private final Map<IScoreObjectiveCriteria, List<ScoreObjective>> scoreObjectiveCriterias = Maps.newHashMap();
+    private final Map<String, Map<ScoreObjective, Score>> entitiesScoreObjectives = Maps.newHashMap();
     /**
      * Index 0 is tab menu, 1 is sidebar, and 2 is below name
      */
     private final ScoreObjective[] objectiveDisplaySlots = new ScoreObjective[19];
-    private final Map<String, ScorePlayerTeam> teams = Maps.<String, ScorePlayerTeam>newHashMap();
-    private final Map<String, ScorePlayerTeam> teamMemberships = Maps.<String, ScorePlayerTeam>newHashMap();
+    private final Map<String, ScorePlayerTeam> teams = Maps.newHashMap();
+    private final Map<String, ScorePlayerTeam> teamMemberships = Maps.newHashMap();
 
     /**
      * Returns 'list' for 0, 'sidebar' for 1, 'belowName for 2, otherwise null.
@@ -109,7 +109,7 @@ public class Scoreboard {
                 List<ScoreObjective> list = this.scoreObjectiveCriterias.get(criteria);
 
                 if (list == null) {
-                    list = Lists.<ScoreObjective>newArrayList();
+                    list = Lists.newArrayList();
                     this.scoreObjectiveCriterias.put(criteria, list);
                 }
 
@@ -123,7 +123,7 @@ public class Scoreboard {
 
     public Collection<ScoreObjective> getObjectivesFromCriteria(IScoreObjectiveCriteria criteria) {
         Collection<ScoreObjective> collection = this.scoreObjectiveCriterias.get(criteria);
-        return collection == null ? Lists.<ScoreObjective>newArrayList() : Lists.newArrayList(collection);
+        return collection == null ? Lists.newArrayList() : Lists.newArrayList(collection);
     }
 
     /**
@@ -150,7 +150,7 @@ public class Scoreboard {
             Map<ScoreObjective, Score> map = this.entitiesScoreObjectives.get(name);
 
             if (map == null) {
-                map = Maps.<ScoreObjective, Score>newHashMap();
+                map = Maps.newHashMap();
                 this.entitiesScoreObjectives.put(name, map);
             }
 
@@ -166,7 +166,7 @@ public class Scoreboard {
     }
 
     public Collection<Score> getSortedScores(ScoreObjective objective) {
-        List<Score> list = Lists.<Score>newArrayList();
+        List<Score> list = Lists.newArrayList();
 
         for (Map<ScoreObjective, Score> map : this.entitiesScoreObjectives.values()) {
             Score score = map.get(objective);
@@ -219,7 +219,7 @@ public class Scoreboard {
 
     public Collection<Score> getScores() {
         Collection<Map<ScoreObjective, Score>> collection = this.entitiesScoreObjectives.values();
-        List<Score> list = Lists.<Score>newArrayList();
+        List<Score> list = Lists.newArrayList();
 
         for (Map<ScoreObjective, Score> map : collection) {
             list.addAll(map.values());
@@ -232,7 +232,7 @@ public class Scoreboard {
         Map<ScoreObjective, Score> map = this.entitiesScoreObjectives.get(name);
 
         if (map == null) {
-            map = Maps.<ScoreObjective, Score>newHashMap();
+            map = Maps.newHashMap();
         }
 
         return map;

@@ -15,8 +15,8 @@ public enum SoundCategory {
     PLAYERS("player", 7),
     AMBIENT("ambient", 8);
 
-    private static final Map<String, SoundCategory> NAME_CATEGORY_MAP = Maps.<String, SoundCategory>newHashMap();
-    private static final Map<Integer, SoundCategory> ID_CATEGORY_MAP = Maps.<Integer, SoundCategory>newHashMap();
+    private static final Map<String, SoundCategory> NAME_CATEGORY_MAP = Maps.newHashMap();
+    private static final Map<Integer, SoundCategory> ID_CATEGORY_MAP = Maps.newHashMap();
 
     static {
         for (SoundCategory soundcategory : values()) {
@@ -32,7 +32,7 @@ public enum SoundCategory {
     private final String categoryName;
     private final int categoryId;
 
-    private SoundCategory(String name, int id) {
+    SoundCategory(String name, int id) {
         this.categoryName = name;
         this.categoryId = id;
     }

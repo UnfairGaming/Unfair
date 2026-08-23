@@ -2,7 +2,6 @@ package net.minecraft.world;
 
 import com.google.common.collect.Sets;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntitySpawnPlacementRegistry;
 import net.minecraft.entity.EnumCreatureType;
@@ -57,7 +56,6 @@ public final class SpawnerAnimals {
                 return block.getMaterial().isLiquid() && worldIn.getBlockState(pos.down()).getBlock().getMaterial().isLiquid() && !worldIn.getBlockState(pos.up()).getBlock().isNormalCube();
             } else {
                 BlockPos blockpos = pos.down();
-                IBlockState iblockstate = worldIn.getBlockState(blockpos);
                 boolean flag = World.doesBlockHaveSolidTopSurface(worldIn, blockpos);
 
                 if (!flag) {
@@ -97,7 +95,7 @@ public final class SpawnerAnimals {
                             EntityLiving entityliving;
 
                             try {
-                                entityliving = biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[]{World.class}).newInstance(new Object[]{worldIn});
+                                entityliving = biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[]{World.class}).newInstance(worldIn);
                             } catch (Exception exception1) {
                                 exception1.printStackTrace();
                                 continue;
@@ -231,7 +229,7 @@ public final class SpawnerAnimals {
                                                     entityliving = this.mapSampleEntitiesByClass.get(biomegenbase$spawnlistentry.entityClass);
 
                                                     if (entityliving == null) {
-                                                        entityliving = biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[]{World.class}).newInstance(new Object[]{worldServerIn});
+                                                        entityliving = biomegenbase$spawnlistentry.entityClass.getConstructor(new Class[]{World.class}).newInstance(worldServerIn);
                                                         this.mapSampleEntitiesByClass.put(biomegenbase$spawnlistentry.entityClass, entityliving);
                                                     }
                                                 } catch (Exception exception1) {

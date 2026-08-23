@@ -28,7 +28,7 @@ public class GuiAchievement extends Gui {
     }
 
     public void displayAchievement(Achievement ach) {
-        this.achievementTitle = I18n.format("achievement.get", new Object[0]);
+        this.achievementTitle = I18n.format("achievement.get");
         this.achievementDescription = ach.getStatName().getUnformattedText();
         this.notificationTime = Minecraft.getSystemTime();
         this.theAchievement = ach;
@@ -95,7 +95,7 @@ public class GuiAchievement extends Gui {
             d1 = d1 * d1;
             d1 = d1 * d1;
             int i = this.width - 160;
-            int j = 0 - (int) (d1 * 36.0D);
+            int j = -(int) (d1 * 36.0D);
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             GlStateManager.enableTexture2D();
             this.mc.getTextureManager().bindTexture(achievementBg);

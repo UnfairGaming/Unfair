@@ -20,7 +20,7 @@ import java.util.List;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class BlockModelCustomizer
 {
-    private static final List<BakedQuad> NO_QUADS = ImmutableList.<BakedQuad>of();
+    private static final List<BakedQuad> NO_QUADS = ImmutableList.of();
 
     public static IBakedModel getRenderModel(IBakedModel modelIn, IBlockState stateIn, RenderEnv renderEnv)
     {

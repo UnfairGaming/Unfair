@@ -25,7 +25,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 public class Village {
-    private final List<VillageDoorInfo> villageDoorInfoList = Lists.<VillageDoorInfo>newArrayList();
+    private final List<VillageDoorInfo> villageDoorInfoList = Lists.newArrayList();
     private World worldObj;
     /**
      * This is the sum of all door coordinates and used to calculate the actual village center by dividing by the number
@@ -47,7 +47,7 @@ public class Village {
      */
     private int noBreedTicks;
     private TreeMap<String, Integer> playerReputation = new TreeMap<>();
-    private List<Village.VillageAggressor> villageAgressors = Lists.<Village.VillageAggressor>newArrayList();
+    private List<Village.VillageAggressor> villageAgressors = Lists.newArrayList();
     private int numIronGolems;
 
     public Village() {
@@ -125,12 +125,12 @@ public class Village {
     }
 
     private void updateNumIronGolems() {
-        List<EntityIronGolem> list = this.worldObj.<EntityIronGolem>getEntitiesWithinAABB(EntityIronGolem.class, new AxisAlignedBB(this.center.getX() - this.villageRadius, this.center.getY() - 4, this.center.getZ() - this.villageRadius, this.center.getX() + this.villageRadius, this.center.getY() + 4, this.center.getZ() + this.villageRadius));
+        List<EntityIronGolem> list = this.worldObj.getEntitiesWithinAABB(EntityIronGolem.class, new AxisAlignedBB(this.center.getX() - this.villageRadius, this.center.getY() - 4, this.center.getZ() - this.villageRadius, this.center.getX() + this.villageRadius, this.center.getY() + 4, this.center.getZ() + this.villageRadius));
         this.numIronGolems = list.size();
     }
 
     private void updateNumVillagers() {
-        List<EntityVillager> list = this.worldObj.<EntityVillager>getEntitiesWithinAABB(EntityVillager.class, new AxisAlignedBB(this.center.getX() - this.villageRadius, this.center.getY() - 4, this.center.getZ() - this.villageRadius, this.center.getX() + this.villageRadius, this.center.getY() + 4, this.center.getZ() + this.villageRadius));
+        List<EntityVillager> list = this.worldObj.getEntitiesWithinAABB(EntityVillager.class, new AxisAlignedBB(this.center.getX() - this.villageRadius, this.center.getY() - 4, this.center.getZ() - this.villageRadius, this.center.getX() + this.villageRadius, this.center.getY() + 4, this.center.getZ() + this.villageRadius));
         this.numVillagers = list.size();
 
         if (this.numVillagers == 0) {

@@ -12,7 +12,7 @@ public class SMath
         {
             for (int j = 0; j < 4; ++j)
             {
-                matOut[4 * i + j] = matA[4 * i + 0] * matB[0 + j] + matA[4 * i + 1] * matB[4 + j] + matA[4 * i + 2] * matB[8 + j] + matA[4 * i + 3] * matB[12 + j];
+                matOut[4 * i + j] = matA[4 * i] * matB[j] + matA[4 * i + 1] * matB[4 + j] + matA[4 * i + 2] * matB[8 + j] + matA[4 * i + 3] * matB[12 + j];
             }
         }
     }

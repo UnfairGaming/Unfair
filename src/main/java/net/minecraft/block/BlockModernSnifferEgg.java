@@ -16,7 +16,7 @@ public class BlockModernSnifferEgg extends BlockModernShape {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{HATCH});
+        return new BlockState(this, HATCH);
     }
 
     public IBlockState getStateFromViaStateId(int id) {

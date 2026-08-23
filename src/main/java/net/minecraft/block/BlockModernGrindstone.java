@@ -36,7 +36,7 @@ public class BlockModernGrindstone extends BlockModernShape {
 
     @Override
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACE, FACING});
+        return new BlockState(this, FACE, FACING);
     }
 
     @Override

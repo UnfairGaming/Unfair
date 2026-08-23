@@ -57,13 +57,13 @@ public class ChunkProviderEnd implements IChunkProvider {
             for (int j1 = 0; j1 < i; ++j1) {
                 for (int k1 = 0; k1 < 32; ++k1) {
                     double d0 = 0.25D;
-                    double d1 = this.densities[((i1 + 0) * l + j1 + 0) * k + k1 + 0];
-                    double d2 = this.densities[((i1 + 0) * l + j1 + 1) * k + k1 + 0];
-                    double d3 = this.densities[((i1 + 1) * l + j1 + 0) * k + k1 + 0];
-                    double d4 = this.densities[((i1 + 1) * l + j1 + 1) * k + k1 + 0];
-                    double d5 = (this.densities[((i1 + 0) * l + j1 + 0) * k + k1 + 1] - d1) * d0;
-                    double d6 = (this.densities[((i1 + 0) * l + j1 + 1) * k + k1 + 1] - d2) * d0;
-                    double d7 = (this.densities[((i1 + 1) * l + j1 + 0) * k + k1 + 1] - d3) * d0;
+                    double d1 = this.densities[((i1) * l + j1) * k + k1];
+                    double d2 = this.densities[((i1) * l + j1 + 1) * k + k1];
+                    double d3 = this.densities[((i1 + 1) * l + j1) * k + k1];
+                    double d4 = this.densities[((i1 + 1) * l + j1 + 1) * k + k1];
+                    double d5 = (this.densities[((i1) * l + j1) * k + k1 + 1] - d1) * d0;
+                    double d6 = (this.densities[((i1) * l + j1 + 1) * k + k1 + 1] - d2) * d0;
+                    double d7 = (this.densities[((i1 + 1) * l + j1) * k + k1 + 1] - d3) * d0;
                     double d8 = (this.densities[((i1 + 1) * l + j1 + 1) * k + k1 + 1] - d4) * d0;
 
                     for (int l1 = 0; l1 < 4; ++l1) {
@@ -185,8 +185,8 @@ public class ChunkProviderEnd implements IChunkProvider {
 
         for (int j = 0; j < p_73187_5_; ++j) {
             for (int k = 0; k < p_73187_7_; ++k) {
-                float f = (float) (j + p_73187_2_) / 1.0F;
-                float f1 = (float) (k + p_73187_4_) / 1.0F;
+                float f = (float) (j + p_73187_2_);
+                float f1 = (float) (k + p_73187_4_);
                 float f2 = 100.0F - MathHelper.sqrt_float(f * f + f1 * f1) * 8.0F;
 
                 if (f2 > 80.0F) {

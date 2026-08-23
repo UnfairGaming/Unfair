@@ -22,7 +22,7 @@ public class ScreenChatOptions extends GuiScreen {
      */
     public void initGui() {
         int i = 0;
-        this.field_146401_i = I18n.format("options.chat.title", new Object[0]);
+        this.field_146401_i = I18n.format("options.chat.title");
 
         for (GameSettings.Options gamesettings$options : field_146399_a) {
             if (gamesettings$options.getEnumFloat()) {
@@ -34,7 +34,7 @@ public class ScreenChatOptions extends GuiScreen {
             ++i;
         }
 
-        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 120, I18n.format("gui.done", new Object[0])));
+        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 120, I18n.format("gui.done")));
     }
 
     /**

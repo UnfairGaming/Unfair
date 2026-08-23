@@ -207,10 +207,10 @@ public class SmartLeaves
                 int[] aint = bakedquad1.getVertexData();
                 int[] aint1 = aint.clone();
                 int j = aint.length / 4;
-                System.arraycopy(aint, 0 * j, aint1, 3 * j, j);
-                System.arraycopy(aint, 1 * j, aint1, 2 * j, j);
-                System.arraycopy(aint, 2 * j, aint1, 1 * j, j);
-                System.arraycopy(aint, 3 * j, aint1, 0 * j, j);
+                System.arraycopy(aint, 0, aint1, 3 * j, j);
+                System.arraycopy(aint, j, aint1, 2 * j, j);
+                System.arraycopy(aint, 2 * j, aint1, j, j);
+                System.arraycopy(aint, 3 * j, aint1, 0, j);
                 System.arraycopy(aint1, 0, aint, 0, aint1.length);
                 list1.add(bakedquad1);
             }

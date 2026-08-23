@@ -21,11 +21,7 @@ import java.util.Random;
 
 public class BlockStem extends BlockBush implements IGrowable {
     public static final PropertyInteger AGE = PropertyInteger.create("age", 0, 7);
-    public static final PropertyDirection FACING = PropertyDirection.create("facing", new Predicate<EnumFacing>() {
-        public boolean apply(EnumFacing p_apply_1_) {
-            return p_apply_1_ != EnumFacing.DOWN;
-        }
-    });
+    public static final PropertyDirection FACING = PropertyDirection.create("facing", p_apply_1_ -> p_apply_1_ != EnumFacing.DOWN);
     private final Block crop;
 
     protected BlockStem(Block crop) {
@@ -193,6 +189,6 @@ public class BlockStem extends BlockBush implements IGrowable {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{AGE, FACING});
+        return new BlockState(this, AGE, FACING);
     }
 }

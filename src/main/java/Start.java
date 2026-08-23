@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 
 public class Start {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         System.setProperty("org.lwjgl.librarypath", new File("../test_natives/" + (System.getProperty("os.name").startsWith("Windows") ? "windows" : "linux")).getAbsolutePath());
 
         Main.main(concat(new String[]{"--version", "MCP", "--accessToken", "0", "--assetsDir", "assets", "--assetIndex", "1.8", "--userProperties", "{}"}, args));

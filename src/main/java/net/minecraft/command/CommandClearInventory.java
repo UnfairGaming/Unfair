@@ -47,12 +47,12 @@ public class CommandClearInventory extends CommandBase {
             try {
                 nbttagcompound = JsonToNBT.getTagFromJson(buildString(args, 4));
             } catch (NBTException nbtexception) {
-                throw new CommandException("commands.clear.tagError", new Object[]{nbtexception.getMessage()});
+                throw new CommandException("commands.clear.tagError", nbtexception.getMessage());
             }
         }
 
         if (args.length >= 2 && item == null) {
-            throw new CommandException("commands.clear.failure", new Object[]{entityplayermp.getName()});
+            throw new CommandException("commands.clear.failure", entityplayermp.getName());
         } else {
             int k = entityplayermp.inventory.clearMatchingItems(item, i, j, nbttagcompound);
             entityplayermp.inventoryContainer.detectAndSendChanges();
@@ -64,12 +64,12 @@ public class CommandClearInventory extends CommandBase {
             sender.setCommandStat(CommandResultStats.Type.AFFECTED_ITEMS, k);
 
             if (k == 0) {
-                throw new CommandException("commands.clear.failure", new Object[]{entityplayermp.getName()});
+                throw new CommandException("commands.clear.failure", entityplayermp.getName());
             } else {
                 if (j == 0) {
-                    sender.addChatMessage(new ChatComponentTranslation("commands.clear.testing", new Object[]{entityplayermp.getName(), k}));
+                    sender.addChatMessage(new ChatComponentTranslation("commands.clear.testing", entityplayermp.getName(), k));
                 } else {
-                    notifyOperators(sender, this, "commands.clear.success", new Object[]{entityplayermp.getName(), k});
+                    notifyOperators(sender, this, "commands.clear.success", entityplayermp.getName(), k);
                 }
             }
         }

@@ -23,6 +23,6 @@ public class TextureMetadataSection implements IMetadataSection {
     }
 
     public List<Integer> getListMipmaps() {
-        return Collections.<Integer>unmodifiableList(this.listMipmaps);
+        return Collections.unmodifiableList(this.listMipmaps);
     }
 }

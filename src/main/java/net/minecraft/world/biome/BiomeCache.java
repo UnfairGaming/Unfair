@@ -17,7 +17,7 @@ public class BiomeCache {
      */
     private long lastCleanupTime;
     private LongHashMap<BiomeCache.Block> cacheMap = new LongHashMap<>();
-    private List<BiomeCache.Block> cache = Lists.<BiomeCache.Block>newArrayList();
+    private List<BiomeCache.Block> cache = Lists.newArrayList();
 
     public BiomeCache(WorldChunkManager chunkManagerIn) {
         this.chunkManager = chunkManagerIn;

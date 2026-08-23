@@ -35,7 +35,7 @@ public class CommandPlaySound extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 2) {
-            throw new WrongUsageException(this.getCommandUsage(sender), new Object[0]);
+            throw new WrongUsageException(this.getCommandUsage(sender));
         } else {
             int i = 0;
             String s = args[i++];
@@ -82,7 +82,7 @@ public class CommandPlaySound extends CommandBase {
 
             if (d7 > d6) {
                 if (d5 <= 0.0D) {
-                    throw new CommandException("commands.playsound.playerTooFar", new Object[]{entityplayermp.getName()});
+                    throw new CommandException("commands.playsound.playerTooFar", entityplayermp.getName());
                 }
 
                 double d8 = d0 - entityplayermp.posX;
@@ -100,7 +100,7 @@ public class CommandPlaySound extends CommandBase {
             }
 
             entityplayermp.playerNetServerHandler.sendPacket(new S29PacketSoundEffect(s, d0, d1, d2, (float) d3, (float) d4));
-            notifyOperators(sender, this, "commands.playsound.success", new Object[]{s, entityplayermp.getName()});
+            notifyOperators(sender, this, "commands.playsound.success", s, entityplayermp.getName());
         }
     }
 

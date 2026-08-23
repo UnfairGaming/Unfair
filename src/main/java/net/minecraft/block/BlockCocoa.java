@@ -198,6 +198,6 @@ public class BlockCocoa extends BlockDirectional implements IGrowable {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, AGE});
+        return new BlockState(this, FACING, AGE);
     }
 }

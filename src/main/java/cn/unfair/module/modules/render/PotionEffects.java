@@ -67,7 +67,6 @@ public class PotionEffects extends Module {
 
     public float[] getWidgetSize() {
         float[] contentSize = this.getContentSize();
-        float scale = this.scale.getValue();
         this.widgetWidth = Math.max(this.widgetWidth, contentSize[0]);
         return new float[]{this.widgetWidth, contentSize[1]};
     }

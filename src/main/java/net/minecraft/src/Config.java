@@ -1748,7 +1748,7 @@ public class Config {
             int[] aint = new int[j];
             System.arraycopy(p_addIntsToArray_0_, 0, aint, 0, i);
 
-            System.arraycopy(p_addIntsToArray_1_, 0, aint, 0 + i, p_addIntsToArray_1_.length);
+            System.arraycopy(p_addIntsToArray_1_, 0, aint, i, p_addIntsToArray_1_.length);
 
             return aint;
         } else {

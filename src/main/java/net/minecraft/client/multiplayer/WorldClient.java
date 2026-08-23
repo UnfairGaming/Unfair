@@ -38,10 +38,10 @@ import java.util.concurrent.Callable;
 
 public class WorldClient extends World {
     public final BlockStatePredictionHandler predictionHandler;
-    private final Set<Entity> entityList = Sets.<Entity>newHashSet();
-    private final Set<Entity> entitySpawnQueue = Sets.<Entity>newHashSet();
+    private final Set<Entity> entityList = Sets.newHashSet();
+    private final Set<Entity> entitySpawnQueue = Sets.newHashSet();
     private final Minecraft mc = Minecraft.getMinecraft();
-    private final Set<ChunkCoordIntPair> previousActiveChunkSet = Sets.<ChunkCoordIntPair>newHashSet();
+    private final Set<ChunkCoordIntPair> previousActiveChunkSet = Sets.newHashSet();
     /**
      * The packets that need to be sent to the server.
      */
@@ -295,7 +295,7 @@ public class WorldClient extends World {
             iblockstate.getBlock().randomDisplayTick(this, blockpos$mutableblockpos, iblockstate, random);
 
             if (flag && iblockstate.getBlock() == Blocks.barrier) {
-                this.spawnParticle(EnumParticleTypes.BARRIER, (float) k + 0.5F, (float) l + 0.5F, (float) i1 + 0.5F, 0.0D, 0.0D, 0.0D, new int[0]);
+                this.spawnParticle(EnumParticleTypes.BARRIER, (float) k + 0.5F, (float) l + 0.5F, (float) i1 + 0.5F, 0.0D, 0.0D, 0.0D);
             }
         }
     }
@@ -353,26 +353,10 @@ public class WorldClient extends World {
      */
     public CrashReportCategory addWorldInfoToCrashReport(CrashReport report) {
         CrashReportCategory crashreportcategory = super.addWorldInfoToCrashReport(report);
-        crashreportcategory.addCrashSectionCallable("Forced entities", new Callable<String>() {
-            public String call() {
-                return WorldClient.this.entityList.size() + " total; " + WorldClient.this.entityList.toString();
-            }
-        });
-        crashreportcategory.addCrashSectionCallable("Retry entities", new Callable<String>() {
-            public String call() {
-                return WorldClient.this.entitySpawnQueue.size() + " total; " + WorldClient.this.entitySpawnQueue.toString();
-            }
-        });
-        crashreportcategory.addCrashSectionCallable("Server brand", new Callable<String>() {
-            public String call() throws Exception {
-                return WorldClient.this.mc.thePlayer.getClientBrand();
-            }
-        });
-        crashreportcategory.addCrashSectionCallable("Server type", new Callable<String>() {
-            public String call() throws Exception {
-                return WorldClient.this.mc.getIntegratedServer() == null ? "Non-integrated multiplayer server" : "Integrated singleplayer server";
-            }
-        });
+        crashreportcategory.addCrashSectionCallable("Forced entities", () -> WorldClient.this.entityList.size() + " total; " + WorldClient.this.entityList.toString());
+        crashreportcategory.addCrashSectionCallable("Retry entities", () -> WorldClient.this.entitySpawnQueue.size() + " total; " + WorldClient.this.entitySpawnQueue.toString());
+        crashreportcategory.addCrashSectionCallable("Server brand", () -> WorldClient.this.mc.thePlayer.getClientBrand());
+        crashreportcategory.addCrashSectionCallable("Server type", () -> WorldClient.this.mc.getIntegratedServer() == null ? "Non-integrated multiplayer server" : "Integrated singleplayer server");
         return crashreportcategory;
     }
 

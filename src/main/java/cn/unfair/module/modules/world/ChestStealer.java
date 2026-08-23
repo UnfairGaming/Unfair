@@ -95,14 +95,13 @@ public class ChestStealer extends Module {
         return slots;
     }
 
-    private boolean takeAllInstant(Container container, IInventory inventory) {
+    private void takeAllInstant(Container container, IInventory inventory) {
         List<Integer> slots = this.collectInstantSlots(container, inventory);
         for (int slot : slots) {
             if (container.getSlot(slot).getHasStack()) {
                 this.shiftClick(container.windowId, slot);
             }
         }
-        return !slots.isEmpty();
     }
 
     @EventTarget

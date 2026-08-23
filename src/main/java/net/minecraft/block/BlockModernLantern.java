@@ -16,7 +16,7 @@ public class BlockModernLantern extends BlockModernShape {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{HANGING});
+        return new BlockState(this, HANGING);
     }
 
     public IBlockState getStateFromViaStateId(int id) {

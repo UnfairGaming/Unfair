@@ -329,6 +329,6 @@ public abstract class BlockButton extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, POWERED});
+        return new BlockState(this, FACING, POWERED);
     }
 }

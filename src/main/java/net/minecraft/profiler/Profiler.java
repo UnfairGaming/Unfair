@@ -24,9 +24,9 @@ public class Profiler {
     private static final int HASH_PRE_RENDER_ERRORS = "preRenderErrors".hashCode();
     private static final int HASH_RENDER = "render".hashCode();
     private static final int HASH_DISPLAY = "display".hashCode();
-    private final List<String> sectionList = Lists.<String>newArrayList();
-    private final List<Long> timestampList = Lists.<Long>newArrayList();
-    private final Map<String, Long> profilingMap = Maps.<String, Long>newHashMap();
+    private final List<String> sectionList = Lists.newArrayList();
+    private final List<Long> timestampList = Lists.newArrayList();
+    private final Map<String, Long> profilingMap = Maps.newHashMap();
     /**
      * Flag profiling enabled
      */
@@ -124,7 +124,7 @@ public class Profiler {
         } else {
             long i = this.profilingMap.containsKey("root") ? this.profilingMap.get("root") : 0L;
             long j = this.profilingMap.containsKey(profilerName) ? this.profilingMap.get(profilerName) : -1L;
-            List<Profiler.Result> list = Lists.<Profiler.Result>newArrayList();
+            List<Profiler.Result> list = Lists.newArrayList();
 
             if (!profilerName.isEmpty()) {
                 profilerName = profilerName + ".";

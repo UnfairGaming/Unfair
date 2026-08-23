@@ -9,7 +9,7 @@ import java.util.Random;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class LinkedListTest
 {
-    public static void main(String[] args) throws Exception
+    static void main(String[] args) throws Exception
     {
         LinkedList<VboRange> linkedlist = new LinkedList<>();
         List<VboRange> list = new ArrayList<>();

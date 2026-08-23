@@ -29,7 +29,7 @@ public enum ShaderParameterBool implements IExpressionBool
     private RenderManager renderManager;
     private static final ShaderParameterBool[] VALUES = values();
 
-    private ShaderParameterBool(String name)
+    ShaderParameterBool(String name)
     {
         this.name = name;
         this.renderManager = Minecraft.getMinecraft().getRenderManager();

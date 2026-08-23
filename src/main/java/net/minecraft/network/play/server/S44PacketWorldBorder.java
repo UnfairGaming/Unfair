@@ -161,7 +161,7 @@ public class S44PacketWorldBorder implements Packet<INetHandlerPlayClient> {
         }
     }
 
-    public static enum Action {
+    public enum Action {
         SET_SIZE,
         LERP_SIZE,
         SET_CENTER,

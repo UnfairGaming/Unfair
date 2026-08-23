@@ -5,7 +5,7 @@ import net.minecraft.util.MathHelper;
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
 public class MathUtilsTest
 {
-    public static void main(String[] args) throws Exception
+    static void main(String[] args) throws Exception
     {
         MathUtilsTest.OPER[] amathutilstest$oper = MathUtilsTest.OPER.values();
 
@@ -75,7 +75,7 @@ public class MathUtilsTest
                     return;
             }
 
-            dbg(String.format("%.2f, Math: %f, Helper: %f, diff: %f", new Object[] {d2, f, f1, Math.abs(f - f1)}));
+            dbg(String.format("%.2f, Math: %f, Helper: %f, diff: %f", d2, f, f1, Math.abs(f - f1)));
         }
     }
 
@@ -84,7 +84,7 @@ public class MathUtilsTest
         System.out.println(str);
     }
 
-    private static enum OPER
+    private enum OPER
     {
         SIN,
         COS,

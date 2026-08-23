@@ -154,6 +154,6 @@ public class BlockScaffolding extends ModernBlock {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{BOTTOM, DISTANCE});
+        return new BlockState(this, BOTTOM, DISTANCE);
     }
 }

@@ -23,7 +23,7 @@ public class Teleporter {
      */
     private final Random random;
     private final LongHashMap<Teleporter.PortalPosition> destinationCoordinateCache = new LongHashMap<>();
-    private final List<Long> destinationCoordinateKeys = Lists.<Long>newArrayList();
+    private final List<Long> destinationCoordinateKeys = Lists.newArrayList();
 
     public Teleporter(WorldServer worldIn) {
         this.worldServerInstance = worldIn;

@@ -50,7 +50,7 @@ public class FontRenderer {
     private final Map<Integer, FontAtlas> atlases = new HashMap<>();
     private final Map<Integer, FontAtlas> harmonyRegularAtlases = new HashMap<>();
     private final Map<Integer, FontAtlas> harmonyMediumAtlases = new HashMap<>();
-    private final Map<String, Integer> stringWidthCache = new LinkedHashMap<String, Integer>(256, 0.75F, true) {
+    private final Map<String, Integer> stringWidthCache = new LinkedHashMap<>(256, 0.75F, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Integer> eldest) {
             return this.size() > 512;

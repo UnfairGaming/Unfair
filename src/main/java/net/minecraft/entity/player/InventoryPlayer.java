@@ -375,11 +375,7 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory {
                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Item being added");
                 crashreportcategory.addCrashSection("Item ID", Item.getIdFromItem(itemStackIn.getItem()));
                 crashreportcategory.addCrashSection("Item data", itemStackIn.getMetadata());
-                crashreportcategory.addCrashSectionCallable("Item name", new Callable<String>() {
-                    public String call() throws Exception {
-                        return itemStackIn.getDisplayName();
-                    }
-                });
+                crashreportcategory.addCrashSectionCallable("Item name", () -> itemStackIn.getDisplayName());
                 throw new ReportedException(crashreport);
             }
         } else {
@@ -590,7 +586,7 @@ public class InventoryPlayer implements IInventory, ModernOffhandInventory {
      * Get the formatted ChatComponent that will be used for the sender's username in chat
      */
     public IChatComponent getDisplayName() {
-        return this.hasCustomName() ? new ChatComponentText(this.getName()) : new ChatComponentTranslation(this.getName(), new Object[0]);
+        return this.hasCustomName() ? new ChatComponentText(this.getName()) : new ChatComponentTranslation(this.getName());
     }
 
     /**

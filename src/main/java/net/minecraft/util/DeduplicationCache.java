@@ -16,7 +16,7 @@ public class DeduplicationCache<T> {
     }
 
     public DeduplicationCache() {
-        this.pool = new ObjectOpenCustomHashSet<>(new Hash.Strategy<T>() {
+        this.pool = new ObjectOpenCustomHashSet<>(new Hash.Strategy<>() {
             @Override
             public int hashCode(T o) {
                 return Objects.hashCode(o);

@@ -32,7 +32,7 @@ public class GuiChat extends GuiScreen {
     private boolean clientAutocompleteFound;
     private int autocompleteIndex;
     private int clientAutocompleteStart;
-    private List<String> foundPlayerNames = Lists.<String>newArrayList();
+    private List<String> foundPlayerNames = Lists.newArrayList();
     /**
      * is the text that appears when you press the chat key and the input box appears pre-filled
      */

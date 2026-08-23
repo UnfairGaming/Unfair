@@ -131,6 +131,6 @@ public class BlockTNT extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{EXPLODE});
+        return new BlockState(this, EXPLODE);
     }
 }

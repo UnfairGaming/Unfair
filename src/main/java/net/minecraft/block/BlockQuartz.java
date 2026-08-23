@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public class BlockQuartz extends Block {
-    public static final PropertyEnum<BlockQuartz.EnumType> VARIANT = PropertyEnum.<BlockQuartz.EnumType>create("variant", BlockQuartz.EnumType.class);
+    public static final PropertyEnum<BlockQuartz.EnumType> VARIANT = PropertyEnum.create("variant", BlockQuartz.EnumType.class);
 
     public BlockQuartz() {
         super(Material.rock);
@@ -93,10 +93,10 @@ public class BlockQuartz extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{VARIANT});
+        return new BlockState(this, VARIANT);
     }
 
-    public static enum EnumType implements IStringSerializable {
+    public enum EnumType implements IStringSerializable {
         DEFAULT(0, "default", "default"),
         CHISELED(1, "chiseled", "chiseled"),
         LINES_Y(2, "lines_y", "lines"),
@@ -115,7 +115,7 @@ public class BlockQuartz extends Block {
         private final String field_176805_h;
         private final String unlocalizedName;
 
-        private EnumType(int meta, String name, String unlocalizedName) {
+        EnumType(int meta, String name, String unlocalizedName) {
             this.meta = meta;
             this.field_176805_h = name;
             this.unlocalizedName = unlocalizedName;

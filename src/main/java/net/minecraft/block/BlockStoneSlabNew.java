@@ -21,7 +21,7 @@ import java.util.Random;
 
 public abstract class BlockStoneSlabNew extends BlockSlab {
     public static final PropertyBool SEAMLESS = PropertyBool.create("seamless");
-    public static final PropertyEnum<BlockStoneSlabNew.EnumType> VARIANT = PropertyEnum.<BlockStoneSlabNew.EnumType>create("variant", BlockStoneSlabNew.EnumType.class);
+    public static final PropertyEnum<BlockStoneSlabNew.EnumType> VARIANT = PropertyEnum.create("variant", BlockStoneSlabNew.EnumType.class);
 
     public BlockStoneSlabNew() {
         super(Material.rock);
@@ -115,7 +115,7 @@ public abstract class BlockStoneSlabNew extends BlockSlab {
     }
 
     protected BlockState createBlockState() {
-        return this.isDouble() ? new BlockState(this, new IProperty[]{SEAMLESS, VARIANT}) : new BlockState(this, new IProperty[]{HALF, VARIANT});
+        return this.isDouble() ? new BlockState(this, SEAMLESS, VARIANT) : new BlockState(this, HALF, VARIANT);
     }
 
     /**
@@ -133,7 +133,7 @@ public abstract class BlockStoneSlabNew extends BlockSlab {
         return state.getValue(VARIANT).getMetadata();
     }
 
-    public static enum EnumType implements IStringSerializable {
+    public enum EnumType implements IStringSerializable {
         RED_SANDSTONE(0, "red_sandstone", BlockSand.EnumType.RED_SAND.getMapColor());
 
         private static final BlockStoneSlabNew.EnumType[] META_LOOKUP = new BlockStoneSlabNew.EnumType[values().length];
@@ -148,7 +148,7 @@ public abstract class BlockStoneSlabNew extends BlockSlab {
         private final String name;
         private final MapColor field_181069_e;
 
-        private EnumType(int p_i46391_3_, String p_i46391_4_, MapColor p_i46391_5_) {
+        EnumType(int p_i46391_3_, String p_i46391_4_, MapColor p_i46391_5_) {
             this.meta = p_i46391_3_;
             this.name = p_i46391_4_;
             this.field_181069_e = p_i46391_5_;

@@ -176,7 +176,7 @@ public class SoundHandler implements IResourceManagerReloadListener, ITickable {
         }
 
         SoundEventAccessorComposite aliasAccessor = new SoundEventAccessorComposite(aliasLocation, 1.0D, 1.0D, targetAccessor.getSoundCategory());
-        aliasAccessor.addSoundToEventPool(new ISoundEventAccessor<SoundPoolEntry>() {
+        aliasAccessor.addSoundToEventPool(new ISoundEventAccessor<>() {
             public int getWeight() {
                 return targetAccessor.getWeight();
             }

@@ -21,7 +21,7 @@ public class NickHider extends Module {
     public String replaceNick(String input) {
         if (input != null && mc.thePlayer != null) {
             if (this.scoreboard.getValue() && input.matches("§7\\d{2}/\\d{2}/\\d{2}(?:\\d{2})?  ?§8.*")) {
-                input = input.replaceAll("§8", "§8§k").replaceAll("[^\\x00-\\x7F§]", "?");
+                input = input.replace("§8", "§8§k").replaceAll("[^\\x00-\\x7F§]", "?");
             }
             return input.replaceAll(
                     mc.thePlayer.getName(), Matcher.quoteReplacement(ChatColors.formatColor(this.protectName.getValue()))

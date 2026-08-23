@@ -15,8 +15,8 @@ import java.util.Map.Entry;
 
 public class FurnaceRecipes {
     private static final FurnaceRecipes smeltingBase = new FurnaceRecipes();
-    private Map<ItemStack, ItemStack> smeltingList = Maps.<ItemStack, ItemStack>newHashMap();
-    private Map<ItemStack, Float> experienceList = Maps.<ItemStack, Float>newHashMap();
+    private Map<ItemStack, ItemStack> smeltingList = Maps.newHashMap();
+    private Map<ItemStack, Float> experienceList = Maps.newHashMap();
 
     private FurnaceRecipes() {
         this.addSmeltingRecipeForBlock(Blocks.iron_ore, new ItemStack(Items.iron_ingot), 0.7F);

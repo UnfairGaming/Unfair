@@ -42,8 +42,8 @@ public abstract class BiomeGenBase {
     protected static final BiomeGenBase.Height height_LowIslands = new BiomeGenBase.Height(0.2F, 0.3F);
     protected static final BiomeGenBase.Height height_PartiallySubmerged = new BiomeGenBase.Height(-0.2F, 0.1F);
 
-    public static final Set<BiomeGenBase> explorationBiomesList = Sets.<BiomeGenBase>newHashSet();
-    public static final Map<String, BiomeGenBase> BIOME_ID_MAP = Maps.<String, BiomeGenBase>newHashMap();
+    public static final Set<BiomeGenBase> explorationBiomesList = Sets.newHashSet();
+    public static final Map<String, BiomeGenBase> BIOME_ID_MAP = Maps.newHashMap();
 
     private static final BiomeGenBase[] biomeList = new BiomeGenBase[256];
 
@@ -234,10 +234,10 @@ public abstract class BiomeGenBase {
         this.temperature = 0.5F;
         this.rainfall = 0.5F;
         this.waterColorMultiplier = 16777215;
-        this.spawnableMonsterList = Lists.<BiomeGenBase.SpawnListEntry>newArrayList();
-        this.spawnableCreatureList = Lists.<BiomeGenBase.SpawnListEntry>newArrayList();
-        this.spawnableWaterCreatureList = Lists.<BiomeGenBase.SpawnListEntry>newArrayList();
-        this.spawnableCaveCreatureList = Lists.<BiomeGenBase.SpawnListEntry>newArrayList();
+        this.spawnableMonsterList = Lists.newArrayList();
+        this.spawnableCreatureList = Lists.newArrayList();
+        this.spawnableWaterCreatureList = Lists.newArrayList();
+        this.spawnableCaveCreatureList = Lists.newArrayList();
         this.enableRain = true;
         this.worldGeneratorTrees = new WorldGenTrees(false);
         this.worldGeneratorBigTree = new WorldGenBigTree(false);
@@ -395,7 +395,7 @@ public abstract class BiomeGenBase {
                 return this.spawnableCaveCreatureList;
 
             default:
-                return Collections.<BiomeGenBase.SpawnListEntry>emptyList();
+                return Collections.emptyList();
         }
     }
 
@@ -446,7 +446,7 @@ public abstract class BiomeGenBase {
      */
     public final float getFloatTemperature(BlockPos pos) {
         if (pos.getY() > 64) {
-            float f = (float) (temperatureNoise.func_151601_a((double) pos.getX() * 1.0D / 8.0D, (double) pos.getZ() * 1.0D / 8.0D) * 4.0D);
+            float f = (float) (temperatureNoise.func_151601_a((double) pos.getX() / 8.0D, (double) pos.getZ() / 8.0D) * 4.0D);
             return this.temperature - (f + (float) pos.getY() - 64.0F) * 0.05F / 30.0F;
         } else {
             return this.temperature;
@@ -575,7 +575,7 @@ public abstract class BiomeGenBase {
         return (double) this.temperature < 0.2D ? BiomeGenBase.TempCategory.COLD : ((double) this.temperature < 1.0D ? BiomeGenBase.TempCategory.MEDIUM : BiomeGenBase.TempCategory.WARM);
     }
 
-    public static enum TempCategory {
+    public enum TempCategory {
         OCEAN,
         COLD,
         MEDIUM,

@@ -193,7 +193,6 @@ public class Animations extends Module {
         double scaleValue = scale.getValue();
         EnumAction itemAction = event.getEnumAction();
         ItemRenderer itemRenderer = mc.getItemRenderer();
-        ItemRenderer accessor = itemRenderer;
         float animationProgression = alwaysShow.getValue() && event.isUseItem() ? 0.0F : event.getAnimationProgression();
         float swingProgress = event.getSwingProgress();
         if (event.isUseItem() && oldBlockHit.getValue() && itemAction == EnumAction.BLOCK) {
@@ -207,7 +206,7 @@ public class Animations extends Module {
             if (onlyWhenBlocking.getValue()) {
                 GlStateManager.translate(x.getValue(), y.getValue(), z.getValue());
             }
-            renderBlockAnimation(accessor, animationProgression, swingProgress, convertedProgress, scaleValue);
+            renderBlockAnimation(itemRenderer, animationProgression, swingProgress, convertedProgress, scaleValue);
             event.setCancelled(true);
         } else if (event.isUseItem() && (itemAction == EnumAction.EAT || itemAction == EnumAction.DRINK)
                 && oldEat.getValue()) {
@@ -217,7 +216,7 @@ public class Animations extends Module {
             itemRenderer.transformFirstPersonItemEat(animationProgression, 0.0F);
             event.setCancelled(true);
         } else if (!event.isUseItem()) {
-            renderSwingAnimation(accessor, animationProgression, swingProgress, scaleValue);
+            renderSwingAnimation(itemRenderer, animationProgression, swingProgress, scaleValue);
             event.setCancelled(true);
         }
     }

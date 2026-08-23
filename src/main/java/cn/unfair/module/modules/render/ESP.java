@@ -18,6 +18,7 @@ import cn.unfair.util.RenderUtil;
 import cn.unfair.util.TeamUtil;
 import cn.unfair.util.shader.GlowESPBlurShader;
 import cn.unfair.util.shader.ShaderUtil;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -98,6 +99,7 @@ public class ESP extends Module {
     private Framebuffer framebuffer = null;
     private Framebuffer glowFrameBuffer = null;
     private List<EntityPlayer> glowEntities = new ArrayList<>();
+    @Getter
     private boolean renderingGlowEntities = false;
 
     public ESP() {
@@ -210,10 +212,6 @@ public class ESP extends Module {
 
     private Color getGlowColor() {
         return HUD.getColor(System.currentTimeMillis());
-    }
-
-    public boolean isRenderingGlowEntities() {
-        return this.renderingGlowEntities;
     }
 
     @EventTarget
@@ -578,7 +576,6 @@ public class ESP extends Module {
     @EventTarget(Priority.HIGH)
     public void onRender(Render2DEvent event) {
         boolean glowMode = this.mode.getValue() == MODE_GLOW;
-        boolean fallbackTo2D = glowMode && !this.glowAvailable;
 
         if (this.isEnabled() && (this.mode.getValue() == MODE_2D || (glowMode && !this.glowAvailable))) {
             this.render2DESP(event.partialTicks());

@@ -26,7 +26,7 @@ public class MacroState
     private static final String ELSE = "else";
     private static final String ELIF = "elif";
     private static final String ENDIF = "endif";
-    private static final List<String> MACRO_NAMES = Arrays.<String>asList(new String[] {"define", "undef", "ifdef", "ifndef", "if", "else", "elif", "endif"});
+    private static final List<String> MACRO_NAMES = Arrays.asList("define", "undef", "ifdef", "ifndef", "if", "else", "elif", "endif");
 
     public boolean processLine(String line)
     {

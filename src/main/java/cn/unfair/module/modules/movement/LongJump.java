@@ -12,6 +12,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.*;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemFireball;
@@ -28,6 +29,7 @@ public class LongJump extends Module {
     public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
     private final TimerUtil fireballTimer = new TimerUtil();
     private final TimerUtil jumpTimer = new TimerUtil();
+    @Getter
     private boolean isJumping = false;
     private int tickCounter = 0;
     private int jumpModeStage = 0;
@@ -73,10 +75,6 @@ public class LongJump extends Module {
 
     public boolean canStartJump() {
         return !this.fireballTimer.hasTimeElapsed(1000L) && !this.isJumping;
-    }
-
-    public boolean isJumping() {
-        return this.isJumping;
     }
 
     @EventTarget(Priority.HIGHEST)

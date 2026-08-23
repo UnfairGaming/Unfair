@@ -39,7 +39,7 @@ import java.util.List;
 public class OldServerPinger {
     private static final Splitter PING_RESPONSE_SPLITTER = Splitter.on('\u0000').limit(6);
     private static final Logger logger = LogManager.getLogger();
-    private final List<NetworkManager> pingDestinations = Collections.<NetworkManager>synchronizedList(Lists.<NetworkManager>newArrayList());
+    private final List<NetworkManager> pingDestinations = Collections.synchronizedList(Lists.newArrayList());
 
     public void ping(final ServerData server) throws UnknownHostException {
         ServerAddress serveraddress = ServerAddress.fromString(server.serverIP);
@@ -147,7 +147,7 @@ public class OldServerPinger {
 
     private void tryCompatibilityPing(final ServerData server) {
         final ServerAddress serveraddress = ServerAddress.fromString(server.serverIP);
-        (new Bootstrap()).group(NetworkManager.CLIENT_NIO_EVENTLOOP.getValue()).handler(new ChannelInitializer<Channel>() {
+        (new Bootstrap()).group(NetworkManager.CLIENT_NIO_EVENTLOOP.getValue()).handler(new ChannelInitializer<>() {
             protected void initChannel(Channel p_initChannel_1_) throws Exception {
                 try {
                     p_initChannel_1_.config().setOption(ChannelOption.TCP_NODELAY, Boolean.TRUE);
@@ -155,7 +155,7 @@ public class OldServerPinger {
                     ;
                 }
 
-                p_initChannel_1_.pipeline().addLast(new ChannelHandler[]{new SimpleChannelInboundHandler<ByteBuf>() {
+                p_initChannel_1_.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
                     public void channelActive(ChannelHandlerContext p_channelActive_1_) throws Exception {
                         super.channelActive(p_channelActive_1_);
                         ByteBuf bytebuf = Unpooled.buffer();
@@ -213,7 +213,6 @@ public class OldServerPinger {
                     public void exceptionCaught(ChannelHandlerContext p_exceptionCaught_1_, Throwable p_exceptionCaught_2_) throws Exception {
                         p_exceptionCaught_1_.close();
                     }
-                }
                 });
             }
         }).channel(NioSocketChannel.class).connect(serveraddress.getIP(), serveraddress.getPort());

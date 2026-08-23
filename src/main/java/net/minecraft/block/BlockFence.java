@@ -289,6 +289,6 @@ public class BlockFence extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{NORTH, EAST, WEST, SOUTH});
+        return new BlockState(this, NORTH, EAST, WEST, SOUTH);
     }
 }

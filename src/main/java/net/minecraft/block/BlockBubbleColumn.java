@@ -81,6 +81,6 @@ public class BlockBubbleColumn extends ModernBlock {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{DRAG});
+        return new BlockState(this, DRAG);
     }
 }

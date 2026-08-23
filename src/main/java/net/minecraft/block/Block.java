@@ -1422,7 +1422,7 @@ public class Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[0]);
+        return new BlockState(this);
     }
 
     public BlockState getBlockState() {
@@ -1455,7 +1455,7 @@ public class Block {
         return "Block{" + blockRegistry.getNameForObject(this) + "}";
     }
 
-    public static enum EnumOffsetType {
+    public enum EnumOffsetType {
         NONE,
         XZ,
         XYZ;

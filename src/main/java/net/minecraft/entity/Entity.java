@@ -2826,30 +2826,14 @@ public abstract class Entity implements ICommandSender, Cullable {
     }
 
     public void addEntityCrashInfo(CrashReportCategory category) {
-        category.addCrashSectionCallable("Entity Type", new Callable<String>() {
-            public String call() throws Exception {
-                return EntityList.getEntityString(Entity.this) + " (" + Entity.this.getClass().getCanonicalName() + ")";
-            }
-        });
+        category.addCrashSectionCallable("Entity Type", () -> EntityList.getEntityString(Entity.this) + " (" + Entity.this.getClass().getCanonicalName() + ")");
         category.addCrashSection("Entity ID", this.entityId);
-        category.addCrashSectionCallable("Entity Name", new Callable<String>() {
-            public String call() throws Exception {
-                return Entity.this.getName();
-            }
-        });
+        category.addCrashSectionCallable("Entity Name", () -> Entity.this.getName());
         category.addCrashSection("Entity's Exact location", String.format("%.2f, %.2f, %.2f", this.posX, this.posY, this.posZ));
         category.addCrashSection("Entity's Block location", CrashReportCategory.getCoordinateInfo(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)));
         category.addCrashSection("Entity's Momentum", String.format("%.2f, %.2f, %.2f", this.motionX, this.motionY, this.motionZ));
-        category.addCrashSectionCallable("Entity's Rider", new Callable<String>() {
-            public String call() throws Exception {
-                return Entity.this.riddenByEntity.toString();
-            }
-        });
-        category.addCrashSectionCallable("Entity's Vehicle", new Callable<String>() {
-            public String call() throws Exception {
-                return Entity.this.ridingEntity.toString();
-            }
-        });
+        category.addCrashSectionCallable("Entity's Rider", () -> Entity.this.riddenByEntity.toString());
+        category.addCrashSectionCallable("Entity's Vehicle", () -> Entity.this.ridingEntity.toString());
     }
 
     /**

@@ -18,7 +18,7 @@ public class ServerList {
      * The Minecraft instance.
      */
     private final Minecraft mc;
-    private final List<ServerData> servers = Lists.<ServerData>newArrayList();
+    private final List<ServerData> servers = Lists.newArrayList();
 
     public ServerList(Minecraft mcIn) {
         this.mc = mcIn;

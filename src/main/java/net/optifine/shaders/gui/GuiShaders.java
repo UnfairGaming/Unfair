@@ -88,7 +88,7 @@ public class GuiShaders extends GuiScreenOF {
      * window resizes, the buttonList is cleared beforehand.
      */
     public void initGui() {
-        this.screenTitle = I18n.format("of.options.shadersTitle", new Object[0]);
+        this.screenTitle = I18n.format("of.options.shadersTitle");
 
         if (Shaders.shadersConfig == null) {
             Shaders.loadConfig();
@@ -102,8 +102,8 @@ public class GuiShaders extends GuiScreenOF {
         int j1 = this.width - i - 20;
         this.shaderList = new GuiSlotShaders(this, j1, this.height, l, this.height - 50, 16);
         this.shaderList.registerScrollButtons(7, 8);
-        this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.ANTIALIASING, k, 0 * i1 + l, i, j));
-        this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.NORMAL_MAP, k, 1 * i1 + l, i, j));
+        this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.ANTIALIASING, k, 0 + l, i, j));
+        this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.NORMAL_MAP, k, i1 + l, i, j));
         this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.SPECULAR_MAP, k, 2 * i1 + l, i, j));
         this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.RENDER_RES_MUL, k, 3 * i1 + l, i, j));
         this.buttonList.add(new GuiButtonEnumShaderOption(EnumShaderOption.SHADOW_RES_MUL, k, 4 * i1 + l, i, j));
@@ -115,7 +115,7 @@ public class GuiShaders extends GuiScreenOF {
         int i2 = this.height - 25;
         this.buttonList.add(new GuiButton(201, l1, i2, k1 - 22 + 1, j, Lang.get("of.options.shaders.shadersFolder")));
         this.buttonList.add(new GuiButtonDownloadShaders(210, l1 + k1 - 22 - 1, i2));
-        this.buttonList.add(new GuiButton(202, j1 / 4 * 3 - k1 / 2, this.height - 25, k1, j, I18n.format("gui.done", new Object[0])));
+        this.buttonList.add(new GuiButton(202, j1 / 4 * 3 - k1 / 2, this.height - 25, k1, j, I18n.format("gui.done")));
         this.buttonList.add(new GuiButton(203, k, this.height - 25, i, j, Lang.get("of.options.shaders.shaderOptions")));
         this.updateButtons();
     }
@@ -157,7 +157,7 @@ public class GuiShaders extends GuiScreenOF {
                         case 201:
                             switch (getOSType()) {
                                 case 1:
-                                    String s = String.format("cmd.exe /C start \"Open file\" \"%s\"", new Object[]{Shaders.shaderPacksDir.getAbsolutePath()});
+                                    String s = String.format("cmd.exe /C start \"Open file\" \"%s\"", Shaders.shaderPacksDir.getAbsolutePath());
 
                                     try {
                                         Runtime.getRuntime().exec(s);
@@ -180,8 +180,8 @@ public class GuiShaders extends GuiScreenOF {
 
                             try {
                                 Class oclass1 = Class.forName("java.awt.Desktop");
-                                Object object1 = oclass1.getMethod("getDesktop", new Class[0]).invoke(null, new Object[0]);
-                                oclass1.getMethod("browse", new Class[]{URI.class}).invoke(object1, new Object[]{(new File(this.mc.mcDataDir, "shaderpacks")).toURI()});
+                                Object object1 = oclass1.getMethod("getDesktop", new Class[0]).invoke(null);
+                                oclass1.getMethod("browse", new Class[]{URI.class}).invoke(object1, (new File(this.mc.mcDataDir, "shaderpacks")).toURI());
                             } catch (Throwable throwable1) {
                                 throwable1.printStackTrace();
                                 flag = true;
@@ -208,8 +208,8 @@ public class GuiShaders extends GuiScreenOF {
                         case 210:
                             try {
                                 Class<?> oclass = Class.forName("java.awt.Desktop");
-                                Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null, new Object[0]);
-                                oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new Object[]{new URI("http://optifine.net/shaderPacks")});
+                                Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
+                                oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new URI("http://optifine.net/shaderPacks"));
                             } catch (Throwable throwable) {
                                 throwable.printStackTrace();
                             }

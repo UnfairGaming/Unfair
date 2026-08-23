@@ -15,7 +15,7 @@ import net.minecraft.util.StatCollector;
 import java.util.List;
 
 public class BlockPrismarine extends Block {
-    public static final PropertyEnum<BlockPrismarine.EnumType> VARIANT = PropertyEnum.<BlockPrismarine.EnumType>create("variant", BlockPrismarine.EnumType.class);
+    public static final PropertyEnum<BlockPrismarine.EnumType> VARIANT = PropertyEnum.create("variant", BlockPrismarine.EnumType.class);
     public static final int ROUGH_META = BlockPrismarine.EnumType.ROUGH.getMetadata();
     public static final int BRICKS_META = BlockPrismarine.EnumType.BRICKS.getMetadata();
     public static final int DARK_META = BlockPrismarine.EnumType.DARK.getMetadata();
@@ -56,7 +56,7 @@ public class BlockPrismarine extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{VARIANT});
+        return new BlockState(this, VARIANT);
     }
 
     /**
@@ -75,7 +75,7 @@ public class BlockPrismarine extends Block {
         list.add(new ItemStack(itemIn, 1, DARK_META));
     }
 
-    public static enum EnumType implements IStringSerializable {
+    public enum EnumType implements IStringSerializable {
         ROUGH(0, "prismarine", "rough"),
         BRICKS(1, "prismarine_bricks", "bricks"),
         DARK(2, "dark_prismarine", "dark");
@@ -92,7 +92,7 @@ public class BlockPrismarine extends Block {
         private final String name;
         private final String unlocalizedName;
 
-        private EnumType(int meta, String name, String unlocalizedName) {
+        EnumType(int meta, String name, String unlocalizedName) {
             this.meta = meta;
             this.name = name;
             this.unlocalizedName = unlocalizedName;

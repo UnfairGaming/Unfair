@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
 public class EntityTracker {
     private static final Logger logger = LogManager.getLogger();
     private final WorldServer theWorld;
-    private Set<EntityTrackerEntry> trackedEntities = Sets.<EntityTrackerEntry>newHashSet();
+    private Set<EntityTrackerEntry> trackedEntities = Sets.newHashSet();
     private IntHashMap<EntityTrackerEntry> trackedEntityHashTable = new IntHashMap<>();
     private int maxTrackingDistanceThreshold;
 
@@ -124,16 +124,14 @@ public class EntityTracker {
             CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Adding entity to track");
             CrashReportCategory crashreportcategory = crashreport.makeCategory("Entity To Track");
             crashreportcategory.addCrashSection("Tracking range", trackingRange + " blocks");
-            crashreportcategory.addCrashSectionCallable("Update interval", new Callable<String>() {
-                public String call() throws Exception {
-                    String s = "Once per " + updateFrequency + " ticks";
+            crashreportcategory.addCrashSectionCallable("Update interval", () -> {
+                String s = "Once per " + updateFrequency + " ticks";
 
-                    if (updateFrequency == Integer.MAX_VALUE) {
-                        s = "Maximum (" + s + ")";
-                    }
-
-                    return s;
+                if (updateFrequency == Integer.MAX_VALUE) {
+                    s = "Maximum (" + s + ")";
                 }
+
+                return s;
             });
             entityIn.addEntityCrashInfo(crashreportcategory);
             CrashReportCategory crashreportcategory1 = crashreport.makeCategory("Entity That Is Already Tracked");
@@ -165,7 +163,7 @@ public class EntityTracker {
     }
 
     public void updateTrackedEntities() {
-        List<EntityPlayerMP> list = Lists.<EntityPlayerMP>newArrayList();
+        List<EntityPlayerMP> list = Lists.newArrayList();
 
         for (EntityTrackerEntry entitytrackerentry : this.trackedEntities) {
             entitytrackerentry.updatePlayerList(this.theWorld.playerEntities);

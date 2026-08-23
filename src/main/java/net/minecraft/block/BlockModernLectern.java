@@ -17,7 +17,7 @@ public class BlockModernLectern extends BlockModernFacingShape {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, HAS_BOOK, POWERED});
+        return new BlockState(this, FACING, HAS_BOOK, POWERED);
     }
 
     public IBlockState getStateFromViaStateId(int id) {

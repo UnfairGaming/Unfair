@@ -33,8 +33,8 @@ public class GuiScreenOptionsSounds extends GuiScreen {
      */
     public void initGui() {
         int i = 0;
-        this.field_146507_a = I18n.format("options.sounds.title", new Object[0]);
-        this.field_146508_h = I18n.format("options.off", new Object[0]);
+        this.field_146507_a = I18n.format("options.sounds.title");
+        this.field_146508_h = I18n.format("options.off");
         this.buttonList.add(new GuiScreenOptionsSounds.Button(SoundCategory.MASTER.getCategoryId(), this.width / 2 - 155 + i % 2 * 160, this.height / 6 - 12 + 24 * (i >> 1), SoundCategory.MASTER, true));
         i = i + 2;
 
@@ -45,7 +45,7 @@ public class GuiScreenOptionsSounds extends GuiScreen {
             }
         }
 
-        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.format("gui.done", new Object[0])));
+        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.format("gui.done")));
     }
 
     /**
@@ -83,7 +83,7 @@ public class GuiScreenOptionsSounds extends GuiScreen {
         public Button(int p_i45024_2_, int p_i45024_3_, int p_i45024_4_, SoundCategory p_i45024_5_, boolean p_i45024_6_) {
             super(p_i45024_2_, p_i45024_3_, p_i45024_4_, p_i45024_6_ ? 310 : 150, 20, "");
             this.field_146153_r = p_i45024_5_;
-            this.field_146152_s = I18n.format("soundCategory." + p_i45024_5_.getCategoryName(), new Object[0]);
+            this.field_146152_s = I18n.format("soundCategory." + p_i45024_5_.getCategoryName());
             this.displayString = this.field_146152_s + ": " + GuiScreenOptionsSounds.this.getSoundVolume(p_i45024_5_);
             this.field_146156_o = GuiScreenOptionsSounds.this.game_settings_4.getSoundLevel(p_i45024_5_);
         }

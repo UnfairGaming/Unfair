@@ -28,7 +28,7 @@ public class StatisticsFile extends StatFileWriter {
     private static final Logger logger = LogManager.getLogger();
     private final MinecraftServer mcServer;
     private final File statsFile;
-    private final Set<StatBase> field_150888_e = Sets.<StatBase>newHashSet();
+    private final Set<StatBase> field_150888_e = Sets.newHashSet();
     private int field_150885_f = -300;
     private boolean field_150886_g = false;
 
@@ -93,7 +93,7 @@ public class StatisticsFile extends StatFileWriter {
             this.field_150886_g = true;
 
             if (this.mcServer.isAnnouncingPlayerAchievements()) {
-                this.mcServer.getConfigurationManager().sendChatMsg(new ChatComponentTranslation("chat.type.achievement", new Object[]{playerIn.getDisplayName(), statIn.createChatComponent()}));
+                this.mcServer.getConfigurationManager().sendChatMsg(new ChatComponentTranslation("chat.type.achievement", playerIn.getDisplayName(), statIn.createChatComponent()));
             }
         }
 
@@ -101,7 +101,7 @@ public class StatisticsFile extends StatFileWriter {
             this.field_150886_g = true;
 
             if (this.mcServer.isAnnouncingPlayerAchievements()) {
-                this.mcServer.getConfigurationManager().sendChatMsg(new ChatComponentTranslation("chat.type.achievement.taken", new Object[]{playerIn.getDisplayName(), statIn.createChatComponent()}));
+                this.mcServer.getConfigurationManager().sendChatMsg(new ChatComponentTranslation("chat.type.achievement.taken", playerIn.getDisplayName(), statIn.createChatComponent()));
             }
         }
     }
@@ -117,10 +117,10 @@ public class StatisticsFile extends StatFileWriter {
         JsonElement jsonelement = JsonParser.parseString(p_150881_1_);
 
         if (!jsonelement.isJsonObject()) {
-            return Maps.<StatBase, TupleIntJsonSerializable>newHashMap();
+            return Maps.newHashMap();
         } else {
             JsonObject jsonobject = jsonelement.getAsJsonObject();
-            Map<StatBase, TupleIntJsonSerializable> map = Maps.<StatBase, TupleIntJsonSerializable>newHashMap();
+            Map<StatBase, TupleIntJsonSerializable> map = Maps.newHashMap();
 
             for (Entry<String, JsonElement> entry : jsonobject.entrySet()) {
                 StatBase statbase = StatList.getOneShotStat(entry.getKey());
@@ -139,8 +139,8 @@ public class StatisticsFile extends StatFileWriter {
 
                         if (jsonobject1.has("progress") && statbase.func_150954_l() != null) {
                             try {
-                                Constructor<? extends IJsonSerializable> constructor = statbase.func_150954_l().getConstructor(new Class[0]);
-                                IJsonSerializable ijsonserializable = constructor.newInstance(new Object[0]);
+                                Constructor<? extends IJsonSerializable> constructor = statbase.func_150954_l().getConstructor();
+                                IJsonSerializable ijsonserializable = constructor.newInstance();
                                 ijsonserializable.fromJson(jsonobject1.get("progress"));
                                 tupleintjsonserializable.setJsonSerializableValue(ijsonserializable);
                             } catch (Throwable throwable) {
@@ -167,7 +167,7 @@ public class StatisticsFile extends StatFileWriter {
 
     public void func_150876_a(EntityPlayerMP p_150876_1_) {
         int i = this.mcServer.getTickCounter();
-        Map<StatBase, Integer> map = Maps.<StatBase, Integer>newHashMap();
+        Map<StatBase, Integer> map = Maps.newHashMap();
 
         if (this.field_150886_g || i - this.field_150885_f > 300) {
             this.field_150885_f = i;
@@ -181,7 +181,7 @@ public class StatisticsFile extends StatFileWriter {
     }
 
     public void sendAchievements(EntityPlayerMP player) {
-        Map<StatBase, Integer> map = Maps.<StatBase, Integer>newHashMap();
+        Map<StatBase, Integer> map = Maps.newHashMap();
 
         for (Achievement achievement : AchievementList.achievementList) {
             if (this.hasAchievementUnlocked(achievement)) {

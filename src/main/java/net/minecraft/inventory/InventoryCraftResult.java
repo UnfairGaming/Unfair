@@ -44,7 +44,7 @@ public class InventoryCraftResult implements IInventory {
      * Get the formatted ChatComponent that will be used for the sender's username in chat
      */
     public IChatComponent getDisplayName() {
-        return this.hasCustomName() ? new ChatComponentText(this.getName()) : new ChatComponentTranslation(this.getName(), new Object[0]);
+        return this.hasCustomName() ? new ChatComponentText(this.getName()) : new ChatComponentTranslation(this.getName());
     }
 
     /**

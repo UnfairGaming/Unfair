@@ -32,7 +32,7 @@ public class CacheObjectArray
         }
     }
 
-    public static void main(String[] args) throws Exception
+    static void main(String[] args) throws Exception
     {
         int i = 4096;
         int j = 500000;

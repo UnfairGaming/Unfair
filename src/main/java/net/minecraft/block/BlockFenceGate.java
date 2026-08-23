@@ -156,6 +156,6 @@ public class BlockFenceGate extends BlockDirectional {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, OPEN, POWERED, IN_WALL});
+        return new BlockState(this, FACING, OPEN, POWERED, IN_WALL);
     }
 }

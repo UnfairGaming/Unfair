@@ -43,7 +43,7 @@ public class BlockModernCandle extends ModernBlock {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{CANDLES, LIT});
+        return new BlockState(this, CANDLES, LIT);
     }
 
     public boolean isOpaqueCube() {

@@ -34,7 +34,7 @@ public enum RenderEntityParameterFloat implements IExpressionFloat
     private RenderManager renderManager;
     private static final RenderEntityParameterFloat[] VALUES = values();
 
-    private RenderEntityParameterFloat(String name)
+    RenderEntityParameterFloat(String name)
     {
         this.name = name;
         this.renderManager = Minecraft.getMinecraft().getRenderManager();

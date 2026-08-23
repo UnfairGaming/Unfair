@@ -25,11 +25,11 @@ public class CommandDefaultGameMode extends CommandGameMode {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length <= 0) {
-            throw new WrongUsageException("commands.defaultgamemode.usage", new Object[0]);
+            throw new WrongUsageException("commands.defaultgamemode.usage");
         } else {
             WorldSettings.GameType worldsettings$gametype = this.getGameModeFromCommand(sender, args[0]);
             this.setGameType(worldsettings$gametype);
-            notifyOperators(sender, this, "commands.defaultgamemode.success", new Object[]{new ChatComponentTranslation("gameMode." + worldsettings$gametype.getName(), new Object[0])});
+            notifyOperators(sender, this, "commands.defaultgamemode.success", new ChatComponentTranslation("gameMode." + worldsettings$gametype.getName()));
         }
     }
 

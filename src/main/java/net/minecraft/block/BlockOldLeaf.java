@@ -20,11 +20,7 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public class BlockOldLeaf extends BlockLeaves {
-    public static final PropertyEnum<BlockPlanks.EnumType> VARIANT = PropertyEnum.<BlockPlanks.EnumType>create("variant", BlockPlanks.EnumType.class, new Predicate<BlockPlanks.EnumType>() {
-        public boolean apply(BlockPlanks.EnumType p_apply_1_) {
-            return p_apply_1_.getMetadata() < 4;
-        }
-    });
+    public static final PropertyEnum<BlockPlanks.EnumType> VARIANT = PropertyEnum.create("variant", BlockPlanks.EnumType.class, p_apply_1_ -> p_apply_1_.getMetadata() < 4);
 
     public BlockOldLeaf() {
         this.setDefaultState(this.blockState.getBaseState().withProperty(VARIANT, BlockPlanks.EnumType.OAK).withProperty(CHECK_DECAY, Boolean.TRUE).withProperty(DECAYABLE, Boolean.TRUE));
@@ -111,7 +107,7 @@ public class BlockOldLeaf extends BlockLeaves {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{VARIANT, CHECK_DECAY, DECAYABLE});
+        return new BlockState(this, VARIANT, CHECK_DECAY, DECAYABLE);
     }
 
     /**

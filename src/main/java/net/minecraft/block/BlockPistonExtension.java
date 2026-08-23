@@ -24,7 +24,7 @@ import java.util.Random;
 
 public class BlockPistonExtension extends Block {
     public static final PropertyDirection FACING = PropertyDirection.create("facing");
-    public static final PropertyEnum<BlockPistonExtension.EnumPistonType> TYPE = PropertyEnum.<BlockPistonExtension.EnumPistonType>create("type", BlockPistonExtension.EnumPistonType.class);
+    public static final PropertyEnum<BlockPistonExtension.EnumPistonType> TYPE = PropertyEnum.create("type", BlockPistonExtension.EnumPistonType.class);
     public static final PropertyBool SHORT = PropertyBool.create("short");
 
     public BlockPistonExtension() {
@@ -226,16 +226,16 @@ public class BlockPistonExtension extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, TYPE, SHORT});
+        return new BlockState(this, FACING, TYPE, SHORT);
     }
 
-    public static enum EnumPistonType implements IStringSerializable {
+    public enum EnumPistonType implements IStringSerializable {
         DEFAULT("normal"),
         STICKY("sticky");
 
         private final String VARIANT;
 
-        private EnumPistonType(String name) {
+        EnumPistonType(String name) {
             this.VARIANT = name;
         }
 

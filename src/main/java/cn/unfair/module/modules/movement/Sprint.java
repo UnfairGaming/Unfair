@@ -28,10 +28,6 @@ public class Sprint extends Module {
         }
     }
 
-    public boolean shouldKeepFov(boolean boolean2) {
-        return this.foxFix.getValue() && !boolean2 && this.wasSprinting;
-    }
-
     @EventTarget
     public void onTick(TickEvent event) {
         if (this.isEnabled()) {

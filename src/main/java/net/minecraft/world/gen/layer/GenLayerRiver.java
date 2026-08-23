@@ -22,9 +22,9 @@ public class GenLayerRiver extends GenLayer {
 
         for (int i1 = 0; i1 < areaHeight; ++i1) {
             for (int j1 = 0; j1 < areaWidth; ++j1) {
-                int k1 = this.func_151630_c(aint[j1 + 0 + (i1 + 1) * k]);
+                int k1 = this.func_151630_c(aint[j1 + (i1 + 1) * k]);
                 int l1 = this.func_151630_c(aint[j1 + 2 + (i1 + 1) * k]);
-                int i2 = this.func_151630_c(aint[j1 + 1 + (i1 + 0) * k]);
+                int i2 = this.func_151630_c(aint[j1 + 1 + (i1) * k]);
                 int j2 = this.func_151630_c(aint[j1 + 1 + (i1 + 2) * k]);
                 int k2 = this.func_151630_c(aint[j1 + 1 + (i1 + 1) * k]);
 

@@ -455,11 +455,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             return this.getBlock0(x & 15, y, z & 15);
         } catch (ReportedException reportedexception) {
             CrashReportCategory crashreportcategory = reportedexception.getCrashReport().makeCategory("姝ｅ湪琚幏鍙栫殑鏂瑰潡");
-            crashreportcategory.addCrashSectionCallable("Location", new Callable<String>() {
-                public String call() throws Exception {
-                    return CrashReportCategory.getCoordinateInfo(new BlockPos(Chunk.this.xPosition * 16 + x, y, Chunk.this.zPosition * 16 + z));
-                }
-            });
+            crashreportcategory.addCrashSectionCallable("Location", () -> CrashReportCategory.getCoordinateInfo(new BlockPos(Chunk.this.xPosition * 16 + x, y, Chunk.this.zPosition * 16 + z)));
             throw reportedexception;
         }
     }
@@ -469,11 +465,7 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
             return this.getBlock0(pos.getX() & 15, pos.getY(), pos.getZ() & 15);
         } catch (ReportedException reportedexception) {
             CrashReportCategory crashreportcategory = reportedexception.getCrashReport().makeCategory("姝ｅ湪琚幏鍙栫殑鏂瑰潡");
-            crashreportcategory.addCrashSectionCallable("Location", new Callable<String>() {
-                public String call() throws Exception {
-                    return CrashReportCategory.getCoordinateInfo(pos);
-                }
-            });
+            crashreportcategory.addCrashSectionCallable("Location", () -> CrashReportCategory.getCoordinateInfo(pos));
             throw reportedexception;
         }
     }

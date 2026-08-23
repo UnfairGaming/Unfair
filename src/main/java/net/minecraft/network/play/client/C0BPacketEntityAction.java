@@ -58,7 +58,7 @@ public class C0BPacketEntityAction implements Packet<INetHandlerPlayServer> {
         return this.auxData;
     }
 
-    public static enum Action {
+    public enum Action {
         START_SNEAKING,
         STOP_SNEAKING,
         STOP_SLEEPING,

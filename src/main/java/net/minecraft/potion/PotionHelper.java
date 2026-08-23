@@ -25,9 +25,9 @@ public class PotionHelper {
     public static final String goldenCarrotEffect = "-0+1+2-3+13&4-4";
     public static final String pufferfishEffect = "+0-1+2+3+13&4-4";
     public static final String rabbitFootEffect = "+0+1-2+3&4-4+13";
-    private static final Map<Integer, String> potionRequirements = Maps.<Integer, String>newHashMap();
-    private static final Map<Integer, String> potionAmplifiers = Maps.<Integer, String>newHashMap();
-    private static final Map<Integer, Integer> DATAVALUE_COLORS = Maps.<Integer, Integer>newHashMap();
+    private static final Map<Integer, String> potionRequirements = Maps.newHashMap();
+    private static final Map<Integer, String> potionAmplifiers = Maps.newHashMap();
+    private static final Map<Integer, Integer> DATAVALUE_COLORS = Maps.newHashMap();
 
     /**
      * An array of possible potion prefix names, as translation IDs.
@@ -370,7 +370,7 @@ public class PotionHelper {
                         }
 
                         if (list == null) {
-                            list = Lists.<PotionEffect>newArrayList();
+                            list = Lists.newArrayList();
                         }
 
                         PotionEffect potioneffect = new PotionEffect(potion.getId(), i, j);

@@ -29,16 +29,14 @@ public class EntityAIFindEntityNearest extends EntityAIBase {
             LOGGER.warn("Use NearestAttackableTargetGoal.class for PathfinerMob mobs!");
         }
 
-        this.field_179443_c = new Predicate<EntityLivingBase>() {
-            public boolean apply(EntityLivingBase p_apply_1_) {
-                double d0 = EntityAIFindEntityNearest.this.getFollowRange();
+        this.field_179443_c = p_apply_1_ -> {
+            double d0 = EntityAIFindEntityNearest.this.getFollowRange();
 
-                if (p_apply_1_.isSneaking()) {
-                    d0 *= 0.800000011920929D;
-                }
-
-                return !p_apply_1_.isInvisible() && (!((double) p_apply_1_.getDistanceToEntity(EntityAIFindEntityNearest.this.mob) > d0) && EntityAITarget.isSuitableTarget(EntityAIFindEntityNearest.this.mob, p_apply_1_, false, true));
+            if (p_apply_1_.isSneaking()) {
+                d0 *= 0.800000011920929D;
             }
+
+            return !p_apply_1_.isInvisible() && (!((double) p_apply_1_.getDistanceToEntity(EntityAIFindEntityNearest.this.mob) > d0) && EntityAITarget.isSuitableTarget(EntityAIFindEntityNearest.this.mob, p_apply_1_, false, true));
         };
         this.field_179440_d = new EntityAINearestAttackableTarget.Sorter(mobIn);
     }
@@ -48,7 +46,7 @@ public class EntityAIFindEntityNearest extends EntityAIBase {
      */
     public boolean shouldExecute() {
         double d0 = this.getFollowRange();
-        List<EntityLivingBase> list = this.mob.worldObj.<EntityLivingBase>getEntitiesWithinAABB(this.field_179439_f, this.mob.getEntityBoundingBox().expand(d0, 4.0D, d0), this.field_179443_c);
+        List<EntityLivingBase> list = this.mob.worldObj.getEntitiesWithinAABB(this.field_179439_f, this.mob.getEntityBoundingBox().expand(d0, 4.0D, d0), this.field_179443_c);
         Collections.sort(list, this.field_179440_d);
 
         if (list.isEmpty()) {

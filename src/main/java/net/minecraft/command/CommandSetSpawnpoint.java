@@ -33,14 +33,14 @@ public class CommandSetSpawnpoint extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length > 1 && args.length < 4) {
-            throw new WrongUsageException("commands.spawnpoint.usage", new Object[0]);
+            throw new WrongUsageException("commands.spawnpoint.usage");
         } else {
             EntityPlayerMP entityplayermp = args.length > 0 ? getPlayer(sender, args[0]) : getCommandSenderAsPlayer(sender);
             BlockPos blockpos = args.length > 3 ? parseBlockPos(sender, args, 1, true) : entityplayermp.getPosition();
 
             if (entityplayermp.worldObj != null) {
                 entityplayermp.setSpawnPoint(blockpos, true);
-                notifyOperators(sender, this, "commands.spawnpoint.success", new Object[]{entityplayermp.getName(), blockpos.getX(), blockpos.getY(), blockpos.getZ()});
+                notifyOperators(sender, this, "commands.spawnpoint.success", entityplayermp.getName(), blockpos.getX(), blockpos.getY(), blockpos.getZ());
             }
         }
     }

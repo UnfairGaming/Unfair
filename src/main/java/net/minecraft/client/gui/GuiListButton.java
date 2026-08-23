@@ -26,7 +26,7 @@ public class GuiListButton extends GuiButton {
      * Builds the localized display string for this GuiListButton
      */
     private String buildDisplayString() {
-        return I18n.format(this.localizationStr, new Object[0]) + ": " + (this.field_175216_o ? I18n.format("gui.yes", new Object[0]) : I18n.format("gui.no", new Object[0]));
+        return I18n.format(this.localizationStr) + ": " + (this.field_175216_o ? I18n.format("gui.yes") : I18n.format("gui.no"));
     }
 
     public void func_175212_b(boolean p_175212_1_) {

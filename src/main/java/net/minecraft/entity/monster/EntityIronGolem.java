@@ -111,7 +111,7 @@ public class EntityIronGolem extends EntityGolem {
             Block block = iblockstate.getBlock();
 
             if (block.getMaterial() != Material.air) {
-                this.worldObj.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.posX + ((double) this.rand.nextFloat() - 0.5D) * (double) this.width, this.getEntityBoundingBox().minY + 0.1D, this.posZ + ((double) this.rand.nextFloat() - 0.5D) * (double) this.width, 4.0D * ((double) this.rand.nextFloat() - 0.5D), 0.5D, ((double) this.rand.nextFloat() - 0.5D) * 4.0D, new int[]{Block.getStateId(iblockstate)});
+                this.worldObj.spawnParticle(EnumParticleTypes.BLOCK_CRACK, this.posX + ((double) this.rand.nextFloat() - 0.5D) * (double) this.width, this.getEntityBoundingBox().minY + 0.1D, this.posZ + ((double) this.rand.nextFloat() - 0.5D) * (double) this.width, 4.0D * ((double) this.rand.nextFloat() - 0.5D), 0.5D, ((double) this.rand.nextFloat() - 0.5D) * 4.0D, Block.getStateId(iblockstate));
             }
         }
     }
@@ -248,37 +248,35 @@ public class EntityIronGolem extends EntityGolem {
     static class AINearestAttackableTargetNonCreeper<T extends EntityLivingBase> extends EntityAINearestAttackableTarget<T> {
         public AINearestAttackableTargetNonCreeper(final EntityCreature creature, Class<T> classTarget, int chance, boolean p_i45858_4_, boolean p_i45858_5_, final Predicate<? super T> p_i45858_6_) {
             super(creature, classTarget, chance, p_i45858_4_, p_i45858_5_, p_i45858_6_);
-            this.targetEntitySelector = new Predicate<T>() {
-                public boolean apply(T p_apply_1_) {
-                    if (p_i45858_6_ != null && !p_i45858_6_.apply(p_apply_1_)) {
-                        return false;
-                    } else if (p_apply_1_ instanceof EntityCreeper) {
-                        return false;
-                    } else {
-                        if (p_apply_1_ instanceof EntityPlayer) {
-                            double d0 = AINearestAttackableTargetNonCreeper.this.getTargetDistance();
+            this.targetEntitySelector = (Predicate<T>) p_apply_1_ -> {
+                if (p_i45858_6_ != null && !p_i45858_6_.apply(p_apply_1_)) {
+                    return false;
+                } else if (p_apply_1_ instanceof EntityCreeper) {
+                    return false;
+                } else {
+                    if (p_apply_1_ instanceof EntityPlayer) {
+                        double d0 = AINearestAttackableTargetNonCreeper.this.getTargetDistance();
 
-                            if (p_apply_1_.isSneaking()) {
-                                d0 *= 0.800000011920929D;
-                            }
-
-                            if (p_apply_1_.isInvisible()) {
-                                float f = ((EntityPlayer) p_apply_1_).getArmorVisibility();
-
-                                if (f < 0.1F) {
-                                    f = 0.1F;
-                                }
-
-                                d0 *= 0.7F * f;
-                            }
-
-                            if ((double) p_apply_1_.getDistanceToEntity(creature) > d0) {
-                                return false;
-                            }
+                        if (p_apply_1_.isSneaking()) {
+                            d0 *= 0.800000011920929D;
                         }
 
-                        return AINearestAttackableTargetNonCreeper.this.isSuitableTarget(p_apply_1_, false);
+                        if (p_apply_1_.isInvisible()) {
+                            float f = ((EntityPlayer) p_apply_1_).getArmorVisibility();
+
+                            if (f < 0.1F) {
+                                f = 0.1F;
+                            }
+
+                            d0 *= 0.7F * f;
+                        }
+
+                        if ((double) p_apply_1_.getDistanceToEntity(creature) > d0) {
+                            return false;
+                        }
                     }
+
+                    return AINearestAttackableTargetNonCreeper.this.isSuitableTarget(p_apply_1_, false);
                 }
             };
         }

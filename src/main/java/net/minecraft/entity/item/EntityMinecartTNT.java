@@ -40,7 +40,7 @@ public class EntityMinecartTNT extends EntityMinecart {
 
         if (this.minecartTNTFuse > 0) {
             --this.minecartTNTFuse;
-            this.worldObj.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, this.posX, this.posY + 0.5D, this.posZ, 0.0D, 0.0D, 0.0D, new int[0]);
+            this.worldObj.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, this.posX, this.posY + 0.5D, this.posZ, 0.0D, 0.0D, 0.0D);
         } else if (this.minecartTNTFuse == 0) {
             this.explodeCart(this.motionX * this.motionX + this.motionZ * this.motionZ);
         }

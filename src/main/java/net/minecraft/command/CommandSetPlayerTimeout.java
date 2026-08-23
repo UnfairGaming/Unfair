@@ -29,11 +29,11 @@ public class CommandSetPlayerTimeout extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length != 1) {
-            throw new WrongUsageException("commands.setidletimeout.usage", new Object[0]);
+            throw new WrongUsageException("commands.setidletimeout.usage");
         } else {
             int i = parseInt(args[0], 0);
             MinecraftServer.getServer().setPlayerIdleTimeout(i);
-            notifyOperators(sender, this, "commands.setidletimeout.success", new Object[]{i});
+            notifyOperators(sender, this, "commands.setidletimeout.success", i);
         }
     }
 }

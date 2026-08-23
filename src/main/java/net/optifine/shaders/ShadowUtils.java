@@ -35,7 +35,7 @@ public class ShadowUtils
         }
         else
         {
-            List<RenderChunk> list = Arrays.<RenderChunk>asList(viewFrustum.renderChunks);
+            List<RenderChunk> list = Arrays.asList(viewFrustum.renderChunks);
             Iterator<RenderChunk> iterator = list.iterator();
             return iterator;
         }

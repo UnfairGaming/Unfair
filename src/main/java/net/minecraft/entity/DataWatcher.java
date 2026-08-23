@@ -19,7 +19,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DataWatcher {
-    private static final Map<Class<?>, Integer> dataTypes = Maps.<Class<?>, Integer>newHashMap();
+    private static final Map<Class<?>, Integer> dataTypes = Maps.newHashMap();
 
     static {
         dataTypes.put(Byte.class, 0);
@@ -33,7 +33,7 @@ public class DataWatcher {
     }
 
     private final Entity owner;
-    private final Map<Integer, DataWatcher.WatchableObject> watchedObjects = Maps.<Integer, DataWatcher.WatchableObject>newHashMap();
+    private final Map<Integer, DataWatcher.WatchableObject> watchedObjects = Maps.newHashMap();
     public BiomeGenBase spawnBiome = BiomeGenBase.plains;
     public BlockPos spawnPosition = BlockPos.ORIGIN;
     /**
@@ -118,7 +118,7 @@ public class DataWatcher {
 
         for (int i = buffer.readByte(); i != 127; i = buffer.readByte()) {
             if (list == null) {
-                list = Lists.<DataWatcher.WatchableObject>newArrayList();
+                list = Lists.newArrayList();
             }
 
             int j = (i & 224) >> 5;
@@ -293,7 +293,7 @@ public class DataWatcher {
                     datawatcher$watchableobject.setWatched(false);
 
                     if (list == null) {
-                        list = Lists.<DataWatcher.WatchableObject>newArrayList();
+                        list = Lists.newArrayList();
                     }
 
                     list.add(datawatcher$watchableobject);
@@ -324,7 +324,7 @@ public class DataWatcher {
 
         for (DataWatcher.WatchableObject datawatcher$watchableobject : this.watchedObjects.values()) {
             if (list == null) {
-                list = Lists.<DataWatcher.WatchableObject>newArrayList();
+                list = Lists.newArrayList();
             }
 
             list.add(datawatcher$watchableobject);

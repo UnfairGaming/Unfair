@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class ItemPotion extends Item {
-    private static final Map<List<PotionEffect>, Integer> SUB_ITEMS_CACHE = Maps.<List<PotionEffect>, Integer>newLinkedHashMap();
-    private Map<Integer, List<PotionEffect>> effectCache = Maps.<Integer, List<PotionEffect>>newHashMap();
+    private static final Map<List<PotionEffect>, Integer> SUB_ITEMS_CACHE = Maps.newLinkedHashMap();
+    private Map<Integer, List<PotionEffect>> effectCache = Maps.newHashMap();
 
     public ItemPotion() {
         this.setMaxStackSize(1);
@@ -45,7 +45,7 @@ public class ItemPotion extends Item {
 
     public List<PotionEffect> getEffects(ItemStack stack) {
         if (stack.hasTagCompound() && stack.getTagCompound().hasKey("CustomPotionEffects", 9)) {
-            List<PotionEffect> list1 = Lists.<PotionEffect>newArrayList();
+            List<PotionEffect> list1 = Lists.newArrayList();
             NBTTagList nbttaglist = stack.getTagCompound().getTagList("CustomPotionEffects", 10);
 
             for (int i = 0; i < nbttaglist.tagCount(); ++i) {
@@ -203,7 +203,7 @@ public class ItemPotion extends Item {
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
         if (stack.getMetadata() != 0) {
             List<PotionEffect> list = Items.potionitem.getEffects(stack);
-            Multimap<String, AttributeModifier> multimap = HashMultimap.<String, AttributeModifier>create();
+            Multimap<String, AttributeModifier> multimap = HashMultimap.create();
 
             if (list != null && !list.isEmpty()) {
                 for (PotionEffect potioneffect : list) {

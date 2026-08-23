@@ -36,35 +36,33 @@ public class EntityAINearestAttackableTarget<T extends EntityLivingBase> extends
         this.targetChance = chance;
         this.theNearestAttackableTargetSorter = new EntityAINearestAttackableTarget.Sorter(creature);
         this.setMutexBits(1);
-        this.targetEntitySelector = new Predicate<T>() {
-            public boolean apply(T p_apply_1_) {
-                if (targetSelector != null && !targetSelector.apply(p_apply_1_)) {
-                    return false;
-                } else {
-                    if (p_apply_1_ instanceof EntityPlayer) {
-                        double d0 = EntityAINearestAttackableTarget.this.getTargetDistance();
+        this.targetEntitySelector = (Predicate<T>) p_apply_1_ -> {
+            if (targetSelector != null && !targetSelector.apply(p_apply_1_)) {
+                return false;
+            } else {
+                if (p_apply_1_ instanceof EntityPlayer) {
+                    double d0 = EntityAINearestAttackableTarget.this.getTargetDistance();
 
-                        if (p_apply_1_.isSneaking()) {
-                            d0 *= 0.800000011920929D;
-                        }
-
-                        if (p_apply_1_.isInvisible()) {
-                            float f = ((EntityPlayer) p_apply_1_).getArmorVisibility();
-
-                            if (f < 0.1F) {
-                                f = 0.1F;
-                            }
-
-                            d0 *= 0.7F * f;
-                        }
-
-                        if ((double) p_apply_1_.getDistanceToEntity(EntityAINearestAttackableTarget.this.taskOwner) > d0) {
-                            return false;
-                        }
+                    if (p_apply_1_.isSneaking()) {
+                        d0 *= 0.800000011920929D;
                     }
 
-                    return EntityAINearestAttackableTarget.this.isSuitableTarget(p_apply_1_, false);
+                    if (p_apply_1_.isInvisible()) {
+                        float f = ((EntityPlayer) p_apply_1_).getArmorVisibility();
+
+                        if (f < 0.1F) {
+                            f = 0.1F;
+                        }
+
+                        d0 *= 0.7F * f;
+                    }
+
+                    if ((double) p_apply_1_.getDistanceToEntity(EntityAINearestAttackableTarget.this.taskOwner) > d0) {
+                        return false;
+                    }
                 }
+
+                return EntityAINearestAttackableTarget.this.isSuitableTarget(p_apply_1_, false);
             }
         };
     }
@@ -77,7 +75,7 @@ public class EntityAINearestAttackableTarget<T extends EntityLivingBase> extends
             return false;
         } else {
             double d0 = this.getTargetDistance();
-            List<T> list = this.taskOwner.worldObj.<T>getEntitiesWithinAABB(this.targetClass, this.taskOwner.getEntityBoundingBox().expand(d0, 4.0D, d0), Predicates.<T>and(this.targetEntitySelector, EntitySelectors.NOT_SPECTATING));
+            List<T> list = this.taskOwner.worldObj.getEntitiesWithinAABB(this.targetClass, this.taskOwner.getEntityBoundingBox().expand(d0, 4.0D, d0), Predicates.and(this.targetEntitySelector, EntitySelectors.NOT_SPECTATING));
             Collections.sort(list, this.theNearestAttackableTargetSorter);
 
             if (list.isEmpty()) {

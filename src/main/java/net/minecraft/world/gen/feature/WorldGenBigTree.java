@@ -54,7 +54,7 @@ public class WorldGenBigTree extends WorldGenAbstractTree {
 
         int j = this.basePos.getY() + this.height;
         int k = this.heightLimit - this.leafDistanceLimit;
-        this.field_175948_j = Lists.<WorldGenBigTree.FoliageCoordinates>newArrayList();
+        this.field_175948_j = Lists.newArrayList();
         this.field_175948_j.add(new WorldGenBigTree.FoliageCoordinates(this.basePos.up(k), j));
 
         for (; k >= 0; --k) {

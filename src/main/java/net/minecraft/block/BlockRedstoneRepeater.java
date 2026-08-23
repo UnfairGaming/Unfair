@@ -103,7 +103,7 @@ public class BlockRedstoneRepeater extends BlockRedstoneDiode {
             f = f / 16.0F;
             double d3 = f * (float) enumfacing.getFrontOffsetX();
             double d4 = f * (float) enumfacing.getFrontOffsetZ();
-            worldIn.spawnParticle(EnumParticleTypes.REDSTONE, d0 + d3, d1, d2 + d4, 0.0D, 0.0D, 0.0D, new int[0]);
+            worldIn.spawnParticle(EnumParticleTypes.REDSTONE, d0 + d3, d1, d2 + d4, 0.0D, 0.0D, 0.0D);
         }
     }
 
@@ -130,6 +130,6 @@ public class BlockRedstoneRepeater extends BlockRedstoneDiode {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING, DELAY, LOCKED});
+        return new BlockState(this, FACING, DELAY, LOCKED);
     }
 }

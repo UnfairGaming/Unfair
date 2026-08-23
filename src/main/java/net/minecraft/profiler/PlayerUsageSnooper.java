@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class PlayerUsageSnooper {
-    private final Map<String, Object> snooperStats = Maps.<String, Object>newHashMap();
-    private final Map<String, Object> clientStats = Maps.<String, Object>newHashMap();
+    private final Map<String, Object> snooperStats = Maps.newHashMap();
+    private final Map<String, Object> clientStats = Maps.newHashMap();
     private final String uniqueID = UUID.randomUUID().toString();
 
     /**
@@ -59,7 +59,7 @@ public class PlayerUsageSnooper {
                         Map<String, Object> map;
 
                         synchronized (PlayerUsageSnooper.this.syncLock) {
-                            map = Maps.<String, Object>newHashMap(PlayerUsageSnooper.this.clientStats);
+                            map = Maps.newHashMap(PlayerUsageSnooper.this.clientStats);
 
                             if (PlayerUsageSnooper.this.selfCounter == 0) {
                                 map.putAll(PlayerUsageSnooper.this.snooperStats);
@@ -126,7 +126,7 @@ public class PlayerUsageSnooper {
     }
 
     public Map<String, String> getCurrentStats() {
-        Map<String, String> map = Maps.<String, String>newLinkedHashMap();
+        Map<String, String> map = Maps.newLinkedHashMap();
 
         synchronized (this.syncLock) {
             this.addMemoryStatsToSnooper();

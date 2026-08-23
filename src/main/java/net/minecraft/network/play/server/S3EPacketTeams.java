@@ -24,13 +24,13 @@ public class S3EPacketTeams implements Packet<INetHandlerPlayClient> {
     public S3EPacketTeams() {
         this.nameTagVisibility = Team.EnumVisible.ALWAYS.internalName;
         this.color = -1;
-        this.players = Lists.<String>newArrayList();
+        this.players = Lists.newArrayList();
     }
 
     public S3EPacketTeams(ScorePlayerTeam teamIn, int actionIn) {
         this.nameTagVisibility = Team.EnumVisible.ALWAYS.internalName;
         this.color = -1;
-        this.players = Lists.<String>newArrayList();
+        this.players = Lists.newArrayList();
         this.name = teamIn.getRegisteredName();
         this.action = actionIn;
 
@@ -51,7 +51,7 @@ public class S3EPacketTeams implements Packet<INetHandlerPlayClient> {
     public S3EPacketTeams(ScorePlayerTeam teamIn, Collection<String> playersIn, int actionIn) {
         this.nameTagVisibility = Team.EnumVisible.ALWAYS.internalName;
         this.color = -1;
-        this.players = Lists.<String>newArrayList();
+        this.players = Lists.newArrayList();
 
         if (actionIn != 3 && actionIn != 4) {
             throw new IllegalArgumentException("Method must be join or leave for player constructor");

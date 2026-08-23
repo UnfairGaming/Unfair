@@ -92,10 +92,10 @@ public class Mipmaps
                 {
                     for (int k1 = 0; k1 < l; ++k1)
                     {
-                        int l1 = aint[j1 * 2 + 0 + (k1 * 2 + 0) * i];
-                        int i2 = aint[j1 * 2 + 1 + (k1 * 2 + 0) * i];
+                        int l1 = aint[j1 * 2 + (k1 * 2) * i];
+                        int i2 = aint[j1 * 2 + 1 + (k1 * 2) * i];
                         int j2 = aint[j1 * 2 + 1 + (k1 * 2 + 1) * i];
-                        int k2 = aint[j1 * 2 + 0 + (k1 * 2 + 1) * i];
+                        int k2 = aint[j1 * 2 + (k1 * 2 + 1) * i];
                         int l2 = alphaBlend(l1, i2, j2, k2);
                         aint2[j1 + k1 * k] = l2;
                     }

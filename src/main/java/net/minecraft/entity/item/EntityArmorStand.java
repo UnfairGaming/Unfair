@@ -487,7 +487,7 @@ public class EntityArmorStand extends EntityLivingBase {
 
     private void playParticles() {
         if (this.worldObj instanceof WorldServer) {
-            ((WorldServer) this.worldObj).spawnParticle(EnumParticleTypes.BLOCK_DUST, this.posX, this.posY + (double) this.height / 1.5D, this.posZ, 10, this.width / 4.0F, this.height / 4.0F, this.width / 4.0F, 0.05D, new int[]{Block.getStateId(Blocks.planks.getDefaultState())});
+            ((WorldServer) this.worldObj).spawnParticle(EnumParticleTypes.BLOCK_DUST, this.posX, this.posY + (double) this.height / 1.5D, this.posZ, 10, this.width / 4.0F, this.height / 4.0F, this.width / 4.0F, 0.05D, Block.getStateId(Blocks.planks.getDefaultState()));
         }
     }
 

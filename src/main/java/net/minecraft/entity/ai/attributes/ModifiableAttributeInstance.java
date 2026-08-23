@@ -19,9 +19,9 @@ public class ModifiableAttributeInstance implements IAttributeInstance {
      * The Attribute this is an instance of
      */
     private final IAttribute genericAttribute;
-    private final Map<Integer, Set<AttributeModifier>> mapByOperation = Maps.<Integer, Set<AttributeModifier>>newHashMap();
-    private final Map<String, Set<AttributeModifier>> mapByName = Maps.<String, Set<AttributeModifier>>newHashMap();
-    private final Map<UUID, AttributeModifier> mapByUUID = Maps.<UUID, AttributeModifier>newHashMap();
+    private final Map<Integer, Set<AttributeModifier>> mapByOperation = Maps.newHashMap();
+    private final Map<String, Set<AttributeModifier>> mapByName = Maps.newHashMap();
+    private final Map<UUID, AttributeModifier> mapByUUID = Maps.newHashMap();
     private double baseValue;
     private boolean needsUpdate = true;
     private double cachedValue;
@@ -32,7 +32,7 @@ public class ModifiableAttributeInstance implements IAttributeInstance {
         this.baseValue = genericAttributeIn.getDefaultValue();
 
         for (int i = 0; i < 3; ++i) {
-            this.mapByOperation.put(i, Sets.<AttributeModifier>newHashSet());
+            this.mapByOperation.put(i, Sets.newHashSet());
         }
     }
 
@@ -59,7 +59,7 @@ public class ModifiableAttributeInstance implements IAttributeInstance {
     }
 
     public Collection<AttributeModifier> func_111122_c() {
-        Set<AttributeModifier> set = Sets.<AttributeModifier>newHashSet();
+        Set<AttributeModifier> set = Sets.newHashSet();
 
         for (int i = 0; i < 3; ++i) {
             set.addAll(this.getModifiersByOperation(i));
@@ -86,7 +86,7 @@ public class ModifiableAttributeInstance implements IAttributeInstance {
             Set<AttributeModifier> set = this.mapByName.get(modifier.getName());
 
             if (set == null) {
-                set = Sets.<AttributeModifier>newHashSet();
+                set = Sets.newHashSet();
                 this.mapByName.put(modifier.getName(), set);
             }
 

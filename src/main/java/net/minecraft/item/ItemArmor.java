@@ -31,7 +31,7 @@ public class ItemArmor extends Item {
             int j = blockpos.getY();
             int k = blockpos.getZ();
             AxisAlignedBB axisalignedbb = new AxisAlignedBB(i, j, k, i + 1, j + 1, k + 1);
-            List<EntityLivingBase> list = source.getWorld().<EntityLivingBase>getEntitiesWithinAABB(EntityLivingBase.class, axisalignedbb, Predicates.<EntityLivingBase>and(EntitySelectors.NOT_SPECTATING, new EntitySelectors.ArmoredMob(stack)));
+            List<EntityLivingBase> list = source.getWorld().getEntitiesWithinAABB(EntityLivingBase.class, axisalignedbb, Predicates.and(EntitySelectors.NOT_SPECTATING, new EntitySelectors.ArmoredMob(stack)));
 
             if (!list.isEmpty()) {
                 EntityLivingBase entitylivingbase = list.get(0);
@@ -204,7 +204,7 @@ public class ItemArmor extends Item {
         return itemStackIn;
     }
 
-    public static enum ArmorMaterial {
+    public enum ArmorMaterial {
         LEATHER("leather", 5, new int[]{1, 3, 2, 1}, 15),
         CHAIN("chainmail", 15, new int[]{2, 5, 4, 1}, 12),
         IRON("iron", 15, new int[]{2, 6, 5, 2}, 9),
@@ -216,7 +216,7 @@ public class ItemArmor extends Item {
         private final int[] damageReductionAmountArray;
         private final int enchantability;
 
-        private ArmorMaterial(String name, int maxDamage, int[] reductionAmounts, int enchantability) {
+        ArmorMaterial(String name, int maxDamage, int[] reductionAmounts, int enchantability) {
             this.name = name;
             this.maxDamageFactor = maxDamage;
             this.damageReductionAmountArray = reductionAmounts;

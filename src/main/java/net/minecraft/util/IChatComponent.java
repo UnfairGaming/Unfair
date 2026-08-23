@@ -44,7 +44,7 @@ public interface IChatComponent extends Iterable<IChatComponent> {
      */
     IChatComponent createCopy();
 
-    public static class Serializer implements JsonDeserializer<IChatComponent>, JsonSerializer<IChatComponent> {
+    class Serializer implements JsonDeserializer<IChatComponent>, JsonSerializer<IChatComponent> {
         private static final Gson GSON;
 
         static {
@@ -112,7 +112,7 @@ public interface IChatComponent extends Iterable<IChatComponent> {
 
                         ichatcomponent = new ChatComponentTranslation(s, aobject);
                     } else {
-                        ichatcomponent = new ChatComponentTranslation(s, new Object[0]);
+                        ichatcomponent = new ChatComponentTranslation(s);
                     }
                 } else if (jsonobject.has("score")) {
                     JsonObject jsonobject1 = jsonobject.getAsJsonObject("score");

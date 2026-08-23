@@ -38,14 +38,6 @@ public class AutoMLG extends Module {
         super("AutoMLG", false);
     }
 
-    public static boolean isPreparingMLG() {
-        return preTicks >= 0;
-    }
-
-    public static boolean isActiveMLG() {
-        return active;
-    }
-
     public static boolean shouldLockInventorySlot() {
         return active || preTicks >= 0;
     }

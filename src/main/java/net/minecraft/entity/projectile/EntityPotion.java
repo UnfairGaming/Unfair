@@ -87,7 +87,7 @@ public class EntityPotion extends EntityThrowable {
 
             if (list != null && !list.isEmpty()) {
                 AxisAlignedBB axisalignedbb = this.getEntityBoundingBox().expand(4.0D, 2.0D, 4.0D);
-                List<EntityLivingBase> list1 = this.worldObj.<EntityLivingBase>getEntitiesWithinAABB(EntityLivingBase.class, axisalignedbb);
+                List<EntityLivingBase> list1 = this.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, axisalignedbb);
 
                 if (!list1.isEmpty()) {
                     for (EntityLivingBase entitylivingbase : list1) {

@@ -41,7 +41,7 @@ public class CommandTestFor extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 1) {
-            throw new WrongUsageException("commands.testfor.usage", new Object[0]);
+            throw new WrongUsageException("commands.testfor.usage");
         } else {
             Entity entity = getEntity(sender, args[0]);
             NBTTagCompound nbttagcompound = null;
@@ -50,7 +50,7 @@ public class CommandTestFor extends CommandBase {
                 try {
                     nbttagcompound = JsonToNBT.getTagFromJson(buildString(args, 1));
                 } catch (NBTException nbtexception) {
-                    throw new CommandException("commands.testfor.tagError", new Object[]{nbtexception.getMessage()});
+                    throw new CommandException("commands.testfor.tagError", nbtexception.getMessage());
                 }
             }
 
@@ -59,11 +59,11 @@ public class CommandTestFor extends CommandBase {
                 entity.writeToNBT(nbttagcompound1);
 
                 if (!NBTUtil.func_181123_a(nbttagcompound, nbttagcompound1, true)) {
-                    throw new CommandException("commands.testfor.failure", new Object[]{entity.getName()});
+                    throw new CommandException("commands.testfor.failure", entity.getName());
                 }
             }
 
-            notifyOperators(sender, this, "commands.testfor.success", new Object[]{entity.getName()});
+            notifyOperators(sender, this, "commands.testfor.success", entity.getName());
         }
     }
 

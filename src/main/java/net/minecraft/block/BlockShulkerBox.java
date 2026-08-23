@@ -101,7 +101,7 @@ public class BlockShulkerBox extends ModernBlock {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING});
+        return new BlockState(this, FACING);
     }
 
     private static final class Animation {

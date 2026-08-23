@@ -13,10 +13,10 @@ public abstract class ModelBase {
     public float swingProgress;
     public boolean isRiding;
     public boolean isChild = true;
-    public List<ModelRenderer> boxList = Lists.<ModelRenderer>newArrayList();
+    public List<ModelRenderer> boxList = Lists.newArrayList();
     public int textureWidth = 64;
     public int textureHeight = 32;
-    private Map<String, TextureOffset> modelTextureMap = Maps.<String, TextureOffset>newHashMap();
+    private Map<String, TextureOffset> modelTextureMap = Maps.newHashMap();
 
     /**
      * Copies the angles from one object to another. This is used when objects should stay aligned with each other, like

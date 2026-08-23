@@ -22,11 +22,7 @@ import java.util.List;
 import java.util.Random;
 
 public class BlockRailDetector extends BlockRailBase {
-    public static final PropertyEnum<BlockRailBase.EnumRailDirection> SHAPE = PropertyEnum.<BlockRailBase.EnumRailDirection>create("shape", BlockRailBase.EnumRailDirection.class, new Predicate<BlockRailBase.EnumRailDirection>() {
-        public boolean apply(BlockRailBase.EnumRailDirection p_apply_1_) {
-            return p_apply_1_ != BlockRailBase.EnumRailDirection.NORTH_EAST && p_apply_1_ != BlockRailBase.EnumRailDirection.NORTH_WEST && p_apply_1_ != BlockRailBase.EnumRailDirection.SOUTH_EAST && p_apply_1_ != BlockRailBase.EnumRailDirection.SOUTH_WEST;
-        }
-    });
+    public static final PropertyEnum<BlockRailBase.EnumRailDirection> SHAPE = PropertyEnum.create("shape", BlockRailBase.EnumRailDirection.class, p_apply_1_ -> p_apply_1_ != EnumRailDirection.NORTH_EAST && p_apply_1_ != EnumRailDirection.NORTH_WEST && p_apply_1_ != EnumRailDirection.SOUTH_EAST && p_apply_1_ != EnumRailDirection.SOUTH_WEST);
     public static final PropertyBool POWERED = PropertyBool.create("powered");
 
     public BlockRailDetector() {
@@ -83,7 +79,7 @@ public class BlockRailDetector extends BlockRailBase {
     private void updatePoweredState(World worldIn, BlockPos pos, IBlockState state) {
         boolean flag = state.getValue(POWERED);
         boolean flag1 = false;
-        List<EntityMinecart> list = this.<EntityMinecart>findMinecarts(worldIn, pos, EntityMinecart.class);
+        List<EntityMinecart> list = this.findMinecarts(worldIn, pos, EntityMinecart.class);
 
         if (!list.isEmpty()) {
             flag1 = true;
@@ -125,13 +121,13 @@ public class BlockRailDetector extends BlockRailBase {
 
     public int getComparatorInputOverride(World worldIn, BlockPos pos) {
         if (worldIn.getBlockState(pos).getValue(POWERED)) {
-            List<EntityMinecartCommandBlock> list = this.<EntityMinecartCommandBlock>findMinecarts(worldIn, pos, EntityMinecartCommandBlock.class);
+            List<EntityMinecartCommandBlock> list = this.findMinecarts(worldIn, pos, EntityMinecartCommandBlock.class);
 
             if (!list.isEmpty()) {
                 return list.get(0).getCommandBlockLogic().getSuccessCount();
             }
 
-            List<EntityMinecart> list1 = this.<EntityMinecart>findMinecarts(worldIn, pos, EntityMinecart.class, EntitySelectors.selectInventories);
+            List<EntityMinecart> list1 = this.findMinecarts(worldIn, pos, EntityMinecart.class, EntitySelectors.selectInventories);
 
             if (!list1.isEmpty()) {
                 return Container.calcRedstoneFromInventory((IInventory) list1.get(0));
@@ -174,6 +170,6 @@ public class BlockRailDetector extends BlockRailBase {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{SHAPE, POWERED});
+        return new BlockState(this, SHAPE, POWERED);
     }
 }

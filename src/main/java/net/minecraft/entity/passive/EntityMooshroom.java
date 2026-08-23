@@ -36,7 +36,7 @@ public class EntityMooshroom extends EntityCow {
 
         if (itemstack != null && itemstack.getItem() == Items.shears && this.getGrowingAge() >= 0) {
             this.setDead();
-            this.worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_LARGE, this.posX, this.posY + (double) (this.height / 2.0F), this.posZ, 0.0D, 0.0D, 0.0D, new int[0]);
+            this.worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_LARGE, this.posX, this.posY + (double) (this.height / 2.0F), this.posZ, 0.0D, 0.0D, 0.0D);
 
             if (!this.worldObj.isRemote) {
                 EntityCow entitycow = new EntityCow(this.worldObj);

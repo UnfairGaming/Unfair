@@ -16,7 +16,7 @@ public class IgnCommand extends Command {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public IgnCommand() {
-        super(new ArrayList<String>(Arrays.asList("username", "name", "ign")));
+        super(new ArrayList<>(Arrays.asList("username", "name", "ign")));
     }
 
     @Override

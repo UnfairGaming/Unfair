@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 import java.util.List;
 
 public abstract class MobSpawnerBaseLogic {
-    private final List<MobSpawnerBaseLogic.WeightedRandomMinecart> minecartToSpawn = Lists.<MobSpawnerBaseLogic.WeightedRandomMinecart>newArrayList();
+    private final List<MobSpawnerBaseLogic.WeightedRandomMinecart> minecartToSpawn = Lists.newArrayList();
     /**
      * The delay to spawn.
      */
@@ -87,8 +87,8 @@ public abstract class MobSpawnerBaseLogic {
                 double d3 = (float) blockpos.getX() + this.getSpawnerWorld().rand.nextFloat();
                 double d4 = (float) blockpos.getY() + this.getSpawnerWorld().rand.nextFloat();
                 double d5 = (float) blockpos.getZ() + this.getSpawnerWorld().rand.nextFloat();
-                this.getSpawnerWorld().spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d3, d4, d5, 0.0D, 0.0D, 0.0D, new int[0]);
-                this.getSpawnerWorld().spawnParticle(EnumParticleTypes.FLAME, d3, d4, d5, 0.0D, 0.0D, 0.0D, new int[0]);
+                this.getSpawnerWorld().spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d3, d4, d5, 0.0D, 0.0D, 0.0D);
+                this.getSpawnerWorld().spawnParticle(EnumParticleTypes.FLAME, d3, d4, d5, 0.0D, 0.0D, 0.0D);
 
                 if (this.spawnDelay > 0) {
                     --this.spawnDelay;

@@ -19,7 +19,7 @@ public class LanguageManager implements IResourceManagerReloadListener {
     private static final Logger logger = LogManager.getLogger();
     private final IMetadataSerializer theMetadataSerializer;
     private String currentLanguage;
-    private Map<String, Language> languageMap = Maps.<String, Language>newHashMap();
+    private Map<String, Language> languageMap = Maps.newHashMap();
 
     public LanguageManager(IMetadataSerializer theMetadataSerializerIn, String currentLanguageIn) {
         this.theMetadataSerializer = theMetadataSerializerIn;
@@ -50,7 +50,7 @@ public class LanguageManager implements IResourceManagerReloadListener {
     }
 
     public void onResourceManagerReload(IResourceManager resourceManager) {
-        List<String> list = Lists.newArrayList(new String[]{"en_US"});
+        List<String> list = Lists.newArrayList("en_US");
 
         if (!"en_US".equals(this.currentLanguage)) {
             list.add(this.currentLanguage);

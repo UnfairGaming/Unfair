@@ -33,7 +33,7 @@ public class S37PacketStatistics implements Packet<INetHandlerPlayClient> {
      */
     public void readPacketData(PacketBuffer buf) throws IOException {
         int i = buf.readVarIntFromBuffer();
-        this.field_148976_a = Maps.<StatBase, Integer>newHashMap();
+        this.field_148976_a = Maps.newHashMap();
 
         for (int j = 0; j < i; ++j) {
             StatBase statbase = StatList.getOneShotStat(buf.readStringFromBuffer(32767));

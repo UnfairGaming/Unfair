@@ -10,7 +10,7 @@ import java.util.List;
 
 public class AnimationMetadataSectionSerializer extends BaseMetadataSectionSerializer<AnimationMetadataSection> implements JsonSerializer<AnimationMetadataSection> {
     public AnimationMetadataSection deserialize(JsonElement p_deserialize_1_, Type p_deserialize_2_, JsonDeserializationContext p_deserialize_3_) throws JsonParseException {
-        List<AnimationFrame> list = Lists.<AnimationFrame>newArrayList();
+        List<AnimationFrame> list = Lists.newArrayList();
         JsonObject jsonobject = JsonUtils.getJsonObject(p_deserialize_1_, "metadata section");
         int i = JsonUtils.getInt(jsonobject, "frametime", 1);
 

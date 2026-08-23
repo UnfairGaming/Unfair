@@ -33,7 +33,7 @@ public class BlockModernDripstone extends BlockModernShape {
 
     @Override
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{THICKNESS, VERTICAL_DIRECTION});
+        return new BlockState(this, THICKNESS, VERTICAL_DIRECTION);
     }
 
     @Override

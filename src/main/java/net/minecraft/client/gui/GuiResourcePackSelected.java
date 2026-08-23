@@ -12,6 +12,6 @@ public class GuiResourcePackSelected extends GuiResourcePackList {
     }
 
     protected String getListHeader() {
-        return I18n.format("resourcePack.selected.title", new Object[0]);
+        return I18n.format("resourcePack.selected.title");
     }
 }

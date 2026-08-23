@@ -36,7 +36,7 @@ public class CommandGameMode extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length <= 0) {
-            throw new WrongUsageException("commands.gamemode.usage", new Object[0]);
+            throw new WrongUsageException("commands.gamemode.usage");
         } else {
             WorldSettings.GameType worldsettings$gametype = this.getGameModeFromCommand(sender, args[0]);
             EntityPlayer entityplayer = args.length >= 2 ? getPlayer(sender, args[1]) : getCommandSenderAsPlayer(sender);
@@ -44,15 +44,15 @@ public class CommandGameMode extends CommandBase {
             entityplayer.fallDistance = 0.0F;
 
             if (sender.getEntityWorld().getGameRules().getBoolean("sendCommandFeedback")) {
-                entityplayer.addChatMessage(new ChatComponentTranslation("gameMode.changed", new Object[0]));
+                entityplayer.addChatMessage(new ChatComponentTranslation("gameMode.changed"));
             }
 
-            IChatComponent ichatcomponent = new ChatComponentTranslation("gameMode." + worldsettings$gametype.getName(), new Object[0]);
+            IChatComponent ichatcomponent = new ChatComponentTranslation("gameMode." + worldsettings$gametype.getName());
 
             if (entityplayer != sender) {
-                notifyOperators(sender, this, 1, "commands.gamemode.success.other", new Object[]{entityplayer.getName(), ichatcomponent});
+                notifyOperators(sender, this, 1, "commands.gamemode.success.other", entityplayer.getName(), ichatcomponent);
             } else {
-                notifyOperators(sender, this, 1, "commands.gamemode.success.self", new Object[]{ichatcomponent});
+                notifyOperators(sender, this, 1, "commands.gamemode.success.self", ichatcomponent);
             }
         }
     }
@@ -65,7 +65,7 @@ public class CommandGameMode extends CommandBase {
     }
 
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, new String[]{"survival", "creative", "adventure", "spectator"}) : (args.length == 2 ? getListOfStringsMatchingLastWord(args, this.getListOfPlayerUsernames()) : null);
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, "survival", "creative", "adventure", "spectator") : (args.length == 2 ? getListOfStringsMatchingLastWord(args, this.getListOfPlayerUsernames()) : null);
     }
 
     /**

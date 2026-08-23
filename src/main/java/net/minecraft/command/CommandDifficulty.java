@@ -34,11 +34,11 @@ public class CommandDifficulty extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length <= 0) {
-            throw new WrongUsageException("commands.difficulty.usage", new Object[0]);
+            throw new WrongUsageException("commands.difficulty.usage");
         } else {
             EnumDifficulty enumdifficulty = this.getDifficultyFromCommand(args[0]);
             MinecraftServer.getServer().setDifficultyForAllWorlds(enumdifficulty);
-            notifyOperators(sender, this, "commands.difficulty.success", new Object[]{new ChatComponentTranslation(enumdifficulty.getDifficultyResourceKey(), new Object[0])});
+            notifyOperators(sender, this, "commands.difficulty.success", new ChatComponentTranslation(enumdifficulty.getDifficultyResourceKey()));
         }
     }
 
@@ -47,6 +47,6 @@ public class CommandDifficulty extends CommandBase {
     }
 
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, new String[]{"peaceful", "easy", "normal", "hard"}) : null;
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, "peaceful", "easy", "normal", "hard") : null;
     }
 }

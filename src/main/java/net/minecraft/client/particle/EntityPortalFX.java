@@ -20,7 +20,7 @@ public class EntityPortalFX extends EntityFX {
         this.portalPosZ = this.posZ = zCoordIn;
         float f = this.rand.nextFloat() * 0.6F + 0.4F;
         this.portalParticleScale = this.particleScale = this.rand.nextFloat() * 0.2F + 0.5F;
-        this.particleRed = this.particleGreen = this.particleBlue = 1.0F * f;
+        this.particleRed = this.particleGreen = this.particleBlue = f;
         this.particleGreen *= 0.3F;
         this.particleRed *= 0.9F;
         this.particleMaxAge = (int) (Math.random() * 10.0D) + 40;

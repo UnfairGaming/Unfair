@@ -22,6 +22,6 @@ public class BlockModernFacingShape extends BlockModernShape {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{FACING});
+        return new BlockState(this, FACING);
     }
 }

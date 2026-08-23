@@ -317,7 +317,7 @@ public abstract class EntityLiving extends EntityLivingBase {
                 double d1 = this.rand.nextGaussian() * 0.02D;
                 double d2 = this.rand.nextGaussian() * 0.02D;
                 double d3 = 10.0D;
-                this.worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL, this.posX + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width - d0 * d3, this.posY + (double) (this.rand.nextFloat() * this.height) - d1 * d3, this.posZ + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width - d2 * d3, d0, d1, d2, new int[0]);
+                this.worldObj.spawnParticle(EnumParticleTypes.EXPLOSION_NORMAL, this.posX + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width - d0 * d3, this.posY + (double) (this.rand.nextFloat() * this.height) - d1 * d3, this.posZ + (double) (this.rand.nextFloat() * this.width * 2.0F) - (double) this.width - d2 * d3, d0, d1, d2);
             }
         } else {
             this.worldObj.setEntityState(this, (byte) 20);
@@ -1119,7 +1119,7 @@ public abstract class EntityLiving extends EntityLivingBase {
         return this.worldObj.getScoreboard().getPlayersTeam(this.teamUuidString);
     }
 
-    public static enum SpawnPlacementType {
+    public enum SpawnPlacementType {
         ON_GROUND,
         IN_AIR,
         IN_WATER;

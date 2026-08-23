@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ShaderGroup {
-    private final List<Shader> listShaders = Lists.<Shader>newArrayList();
-    private final Map<String, Framebuffer> mapFramebuffers = Maps.<String, Framebuffer>newHashMap();
-    private final List<Framebuffer> listFramebuffers = Lists.<Framebuffer>newArrayList();
+    private final List<Shader> listShaders = Lists.newArrayList();
+    private final Map<String, Framebuffer> mapFramebuffers = Maps.newHashMap();
+    private final List<Framebuffer> listFramebuffers = Lists.newArrayList();
     private Framebuffer mainFramebuffer;
     private IResourceManager resourceManager;
     private String shaderGroupName;

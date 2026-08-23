@@ -93,7 +93,7 @@ public class LegitTelly extends Module {
     boolean eagleDisabledForActivation = false;
     boolean eagleWasDisabledByTelly = false;
     boolean antiSwayTapUsed = false;
-    HashSet<String> cancelledGhostBlocks = new HashSet<String>();
+    HashSet<String> cancelledGhostBlocks = new HashSet<>();
     boolean tellyAutoPlaceWindow = false;
     boolean autoPlaceDebugActive = false;
     boolean safeWalkStateCaptured = false;

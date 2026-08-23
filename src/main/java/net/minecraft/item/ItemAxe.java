@@ -9,7 +9,7 @@ import net.minecraft.init.Blocks;
 import java.util.Set;
 
 public class ItemAxe extends ItemTool {
-    private static final Set<Block> EFFECTIVE_ON = Sets.newHashSet(new Block[]{Blocks.planks, Blocks.bookshelf, Blocks.log, Blocks.log2, Blocks.chest, Blocks.pumpkin, Blocks.lit_pumpkin, Blocks.melon_block, Blocks.ladder});
+    private static final Set<Block> EFFECTIVE_ON = Sets.newHashSet(Blocks.planks, Blocks.bookshelf, Blocks.log, Blocks.log2, Blocks.chest, Blocks.pumpkin, Blocks.lit_pumpkin, Blocks.melon_block, Blocks.ladder);
 
     protected ItemAxe(Item.ToolMaterial material) {
         super(3.0F, material, EFFECTIVE_ON);

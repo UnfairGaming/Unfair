@@ -8,6 +8,6 @@ public class AntiObfuscate extends Module {
     }
 
     public String stripObfuscated(String input) {
-        return input.replaceAll("§k", "");
+        return input.replace("§k", "");
     }
 }

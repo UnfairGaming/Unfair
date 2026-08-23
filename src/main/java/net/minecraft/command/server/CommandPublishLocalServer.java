@@ -28,9 +28,9 @@ public class CommandPublishLocalServer extends CommandBase {
         String s = MinecraftServer.getServer().shareToLAN(WorldSettings.GameType.SURVIVAL, false);
 
         if (s != null) {
-            notifyOperators(sender, this, "commands.publish.started", new Object[]{s});
+            notifyOperators(sender, this, "commands.publish.started", s);
         } else {
-            notifyOperators(sender, this, "commands.publish.failed", new Object[0]);
+            notifyOperators(sender, this, "commands.publish.failed");
         }
     }
 }

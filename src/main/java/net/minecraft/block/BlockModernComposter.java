@@ -16,7 +16,7 @@ public class BlockModernComposter extends BlockModernShape {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{LEVEL});
+        return new BlockState(this, LEVEL);
     }
 
     public IBlockState getStateFromViaStateId(int id) {

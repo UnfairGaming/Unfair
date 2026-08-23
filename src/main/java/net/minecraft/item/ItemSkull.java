@@ -129,14 +129,14 @@ public class ItemSkull extends Item {
     public String getItemStackDisplayName(ItemStack stack) {
         if (stack.getMetadata() == 3 && stack.hasTagCompound()) {
             if (stack.getTagCompound().hasKey("SkullOwner", 8)) {
-                return StatCollector.translateToLocalFormatted("item.skull.player.name", new Object[]{stack.getTagCompound().getString("SkullOwner")});
+                return StatCollector.translateToLocalFormatted("item.skull.player.name", stack.getTagCompound().getString("SkullOwner"));
             }
 
             if (stack.getTagCompound().hasKey("SkullOwner", 10)) {
                 NBTTagCompound nbttagcompound = stack.getTagCompound().getCompoundTag("SkullOwner");
 
                 if (nbttagcompound.hasKey("Name", 8)) {
-                    return StatCollector.translateToLocalFormatted("item.skull.player.name", new Object[]{nbttagcompound.getString("Name")});
+                    return StatCollector.translateToLocalFormatted("item.skull.player.name", nbttagcompound.getString("Name"));
                 }
             }
         }

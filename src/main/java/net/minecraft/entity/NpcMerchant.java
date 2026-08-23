@@ -61,6 +61,6 @@ public class NpcMerchant implements IMerchant {
      * Get the formatted ChatComponent that will be used for the sender's username in chat
      */
     public IChatComponent getDisplayName() {
-        return this.field_175548_d != null ? this.field_175548_d : new ChatComponentTranslation("entity.Villager.name", new Object[0]);
+        return this.field_175548_d != null ? this.field_175548_d : new ChatComponentTranslation("entity.Villager.name");
     }
 }

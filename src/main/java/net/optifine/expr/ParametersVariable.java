@@ -69,14 +69,14 @@ public class ParametersVariable implements IParameters
         }
 
         List<ExpressionType> list = new ArrayList();
-        list.addAll(Arrays.<ExpressionType>asList(this.first));
+        list.addAll(Arrays.asList(this.first));
 
         for (int i1 = 0; i1 < k; ++i1)
         {
-            list.addAll(Arrays.<ExpressionType>asList(this.repeat));
+            list.addAll(Arrays.asList(this.repeat));
         }
 
-        list.addAll(Arrays.<ExpressionType>asList(this.last));
+        list.addAll(Arrays.asList(this.last));
         ExpressionType[] aexpressiontype = list.toArray(new ExpressionType[list.size()]);
         return aexpressiontype;
     }

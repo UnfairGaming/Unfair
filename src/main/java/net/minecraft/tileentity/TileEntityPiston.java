@@ -27,7 +27,7 @@ public class TileEntityPiston extends TileEntity implements ITickable {
      * the progress in (de)extending
      */
     private float lastProgress;
-    private List<Entity> field_174933_k = Lists.<Entity>newArrayList();
+    private List<Entity> field_174933_k = Lists.newArrayList();
 
     public TileEntityPiston() {
     }

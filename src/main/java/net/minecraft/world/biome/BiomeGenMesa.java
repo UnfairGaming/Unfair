@@ -249,7 +249,7 @@ public class BiomeGenMesa extends BiomeGenBase {
     }
 
     private IBlockState func_180629_a(int p_180629_1_, int p_180629_2_, int p_180629_3_) {
-        int i = (int) Math.round(this.field_150625_aG.func_151601_a((double) p_180629_1_ * 1.0D / 512.0D, (double) p_180629_1_ * 1.0D / 512.0D) * 2.0D);
+        int i = (int) Math.round(this.field_150625_aG.func_151601_a((double) p_180629_1_ / 512.0D, (double) p_180629_1_ / 512.0D) * 2.0D);
         return this.field_150621_aC[(p_180629_2_ + i + 64) % 64];
     }
 

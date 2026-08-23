@@ -385,20 +385,18 @@ public class TextureAtlasSprite {
                     CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Generating mipmaps for frame");
                     CrashReportCategory crashreportcategory = crashreport.makeCategory("Frame being iterated");
                     crashreportcategory.addCrashSection("Frame index", i);
-                    crashreportcategory.addCrashSectionCallable("Frame sizes", new Callable<String>() {
-                        public String call() throws Exception {
-                            StringBuilder stringbuilder = new StringBuilder();
+                    crashreportcategory.addCrashSectionCallable("Frame sizes", () -> {
+                        StringBuilder stringbuilder = new StringBuilder();
 
-                            for (int[] aint1 : aint) {
-                                if (!stringbuilder.isEmpty()) {
-                                    stringbuilder.append(", ");
-                                }
-
-                                stringbuilder.append(aint1 == null ? "null" : Integer.valueOf(aint1.length));
+                        for (int[] aint1 : aint) {
+                            if (!stringbuilder.isEmpty()) {
+                                stringbuilder.append(", ");
                             }
 
-                            return stringbuilder.toString();
+                            stringbuilder.append(aint1 == null ? "null" : Integer.valueOf(aint1.length));
                         }
+
+                        return stringbuilder.toString();
                     });
                     throw new ReportedException(crashreport);
                 }

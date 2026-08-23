@@ -23,7 +23,7 @@ public class GuiButtonEnumShaderOption extends GuiButton
 
     private static String getButtonText(EnumShaderOption eso)
     {
-        String s = I18n.format(eso.getResourceKey(), new Object[0]) + ": ";
+        String s = I18n.format(eso.getResourceKey()) + ": ";
 
         switch (eso)
         {

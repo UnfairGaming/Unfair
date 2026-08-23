@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ItemRecord extends Item {
-    private static final Map<String, ItemRecord> RECORDS = Maps.<String, ItemRecord>newHashMap();
+    private static final Map<String, ItemRecord> RECORDS = Maps.newHashMap();
 
     /**
      * The name of the record.

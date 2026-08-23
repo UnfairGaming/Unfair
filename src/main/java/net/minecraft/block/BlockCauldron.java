@@ -253,6 +253,6 @@ public class BlockCauldron extends Block {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{LEVEL});
+        return new BlockState(this, LEVEL);
     }
 }

@@ -11,8 +11,8 @@ import java.util.List;
 public class EntityAITasks {
     private static final Logger logger = LogManager.getLogger();
     private final Profiler theProfiler;
-    public List<EntityAITasks.EntityAITaskEntry> taskEntries = Lists.<EntityAITasks.EntityAITaskEntry>newArrayList();
-    private List<EntityAITasks.EntityAITaskEntry> executingTaskEntries = Lists.<EntityAITasks.EntityAITaskEntry>newArrayList();
+    public List<EntityAITasks.EntityAITaskEntry> taskEntries = Lists.newArrayList();
+    private List<EntityAITasks.EntityAITaskEntry> executingTaskEntries = Lists.newArrayList();
     private int tickCount;
     private int tickRate = 3;
 

@@ -25,11 +25,7 @@ public class PreYggdrasilConverter {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static void lookupNames(MinecraftServer server, Collection<String> names, ProfileLookupCallback callback) {
-        String[] astring = Iterators.toArray(Iterators.filter(names.iterator(), new Predicate<String>() {
-            public boolean apply(String p_apply_1_) {
-                return !StringUtils.isNullOrEmpty(p_apply_1_);
-            }
-        }), String.class);
+        String[] astring = Iterators.toArray(Iterators.filter(names.iterator(), p_apply_1_ -> !StringUtils.isNullOrEmpty(p_apply_1_)), String.class);
 
         if (server.isServerInOnlineMode()) {
             server.getGameProfileRepository().findProfilesByNames(astring, Agent.MINECRAFT, callback);
@@ -50,7 +46,7 @@ public class PreYggdrasilConverter {
             if (gameprofile != null && gameprofile.getId() != null) {
                 return gameprofile.getId().toString();
             } else if (!minecraftserver.isSinglePlayer() && minecraftserver.isServerInOnlineMode()) {
-                final List<GameProfile> list = Lists.<GameProfile>newArrayList();
+                final List<GameProfile> list = Lists.newArrayList();
                 ProfileLookupCallback profilelookupcallback = new ProfileLookupCallback() {
                     public void onProfileLookupSucceeded(GameProfile p_onProfileLookupSucceeded_1_) {
                         minecraftserver.getPlayerProfileCache().addEntry(p_onProfileLookupSucceeded_1_);
@@ -61,7 +57,7 @@ public class PreYggdrasilConverter {
                         PreYggdrasilConverter.LOGGER.warn("Could not lookup user whitelist entry for " + p_onProfileLookupFailed_1_.getName(), p_onProfileLookupFailed_2_);
                     }
                 };
-                lookupNames(minecraftserver, Lists.newArrayList(new String[]{p_152719_0_}), profilelookupcallback);
+                lookupNames(minecraftserver, Lists.newArrayList(p_152719_0_), profilelookupcallback);
                 return !list.isEmpty() && list.get(0).getId() != null ? list.get(0).getId().toString() : "";
             } else {
                 return EntityPlayer.getUUID(new GameProfile(null, p_152719_0_)).toString();

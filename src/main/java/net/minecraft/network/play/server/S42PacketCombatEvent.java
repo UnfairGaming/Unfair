@@ -75,7 +75,7 @@ public class S42PacketCombatEvent implements Packet<INetHandlerPlayClient> {
         handler.handleCombatEvent(this);
     }
 
-    public static enum Event {
+    public enum Event {
         ENTER_COMBAT,
         END_COMBAT,
         ENTITY_DIED;

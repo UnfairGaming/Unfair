@@ -34,7 +34,7 @@ public class ModelBlock {
     }
 
     protected ModelBlock(ResourceLocation parentLocationIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemCameraTransforms cameraTransformsIn) {
-        this(parentLocationIn, Collections.<BlockPart>emptyList(), texturesIn, ambientOcclusionIn, gui3dIn, cameraTransformsIn);
+        this(parentLocationIn, Collections.emptyList(), texturesIn, ambientOcclusionIn, gui3dIn, cameraTransformsIn);
     }
 
     private ModelBlock(ResourceLocation parentLocationIn, List<BlockPart> elementsIn, Map<String, String> texturesIn, boolean ambientOcclusionIn, boolean gui3dIn, ItemCameraTransforms cameraTransformsIn) {
@@ -183,7 +183,7 @@ public class ModelBlock {
                 ItemCameraTransforms transforms = jsonobject.has("display")
                         ? p_deserialize_3_.deserialize(JsonUtils.getJsonObject(jsonobject, "display"), ItemCameraTransforms.class)
                         : ItemCameraTransforms.DEFAULT;
-                return new ModelBlock(Collections.<BlockPart>emptyList(), map, ambient, true, transforms);
+                return new ModelBlock(Collections.emptyList(), map, ambient, true, transforms);
             } else {
                 Map<String, String> map = this.getTextures(jsonobject);
                 boolean flag2 = this.getAmbientOcclusionEnabled(jsonobject);
@@ -200,7 +200,7 @@ public class ModelBlock {
         }
 
         private Map<String, String> getTextures(JsonObject p_178329_1_) {
-            Map<String, String> map = Maps.<String, String>newHashMap();
+            Map<String, String> map = Maps.newHashMap();
 
             if (p_178329_1_.has("textures")) {
                 JsonObject jsonobject = p_178329_1_.getAsJsonObject("textures");
@@ -222,7 +222,7 @@ public class ModelBlock {
         }
 
         protected List<BlockPart> getModelElements(JsonDeserializationContext p_178325_1_, JsonObject p_178325_2_) {
-            List<BlockPart> list = Lists.<BlockPart>newArrayList();
+            List<BlockPart> list = Lists.newArrayList();
 
             if (p_178325_2_.has("elements")) {
                 for (JsonElement jsonelement : JsonUtils.getJsonArray(p_178325_2_, "elements")) {

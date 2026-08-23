@@ -36,11 +36,11 @@ public class CommandKill extends CommandBase {
         if (args.length == 0) {
             EntityPlayer entityplayer = getCommandSenderAsPlayer(sender);
             entityplayer.onKillCommand();
-            notifyOperators(sender, this, "commands.kill.successful", new Object[]{entityplayer.getDisplayName()});
+            notifyOperators(sender, this, "commands.kill.successful", entityplayer.getDisplayName());
         } else {
             Entity entity = getEntity(sender, args[0]);
             entity.onKillCommand();
-            notifyOperators(sender, this, "commands.kill.successful", new Object[]{entity.getDisplayName()});
+            notifyOperators(sender, this, "commands.kill.successful", entity.getDisplayName());
         }
     }
 

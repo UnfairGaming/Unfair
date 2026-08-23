@@ -39,7 +39,7 @@ public enum EnumDyeColor implements IStringSerializable {
     private final MapColor mapColor;
     private final EnumChatFormatting chatColor;
 
-    private EnumDyeColor(int meta, int dyeDamage, String name, String unlocalizedName, MapColor mapColorIn, EnumChatFormatting chatColor) {
+    EnumDyeColor(int meta, int dyeDamage, String name, String unlocalizedName, MapColor mapColorIn, EnumChatFormatting chatColor) {
         this.meta = meta;
         this.dyeDamage = dyeDamage;
         this.name = name;

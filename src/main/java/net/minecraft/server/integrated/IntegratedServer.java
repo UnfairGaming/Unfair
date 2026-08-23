@@ -177,7 +177,7 @@ public class IntegratedServer extends MinecraftServer {
             super.tick();
 
             if (this.mc.gameSettings.renderDistanceChunks != this.getConfigurationManager().getViewDistance()) {
-                logger.info("Changing view distance to {}, from {}", new Object[]{this.mc.gameSettings.renderDistanceChunks, this.getConfigurationManager().getViewDistance()});
+                logger.info("Changing view distance to {}, from {}", this.mc.gameSettings.renderDistanceChunks, this.getConfigurationManager().getViewDistance());
                 this.getConfigurationManager().setViewDistance(this.mc.gameSettings.renderDistanceChunks);
             }
 
@@ -186,10 +186,10 @@ public class IntegratedServer extends MinecraftServer {
                 WorldInfo worldinfo = this.mc.theWorld.getWorldInfo();
 
                 if (!worldinfo1.isDifficultyLocked() && worldinfo.getDifficulty() != worldinfo1.getDifficulty()) {
-                    logger.info("Changing difficulty to {}, from {}", new Object[]{worldinfo.getDifficulty(), worldinfo1.getDifficulty()});
+                    logger.info("Changing difficulty to {}, from {}", worldinfo.getDifficulty(), worldinfo1.getDifficulty());
                     this.setDifficultyForAllWorlds(worldinfo.getDifficulty());
                 } else if (worldinfo.isDifficultyLocked() && !worldinfo1.isDifficultyLocked()) {
-                    logger.info("Locking difficulty to {}", new Object[]{worldinfo.getDifficulty()});
+                    logger.info("Locking difficulty to {}", worldinfo.getDifficulty());
 
                     for (WorldServer worldserver : this.worldServers) {
                         if (worldserver != null) {
@@ -290,21 +290,15 @@ public class IntegratedServer extends MinecraftServer {
      */
     public CrashReport addServerInfoToCrashReport(CrashReport report) {
         report = super.addServerInfoToCrashReport(report);
-        report.getCategory().addCrashSectionCallable("Type", new Callable<String>() {
-            public String call() throws Exception {
-                return "Integrated Server (map_client.txt)";
-            }
-        });
-        report.getCategory().addCrashSectionCallable("Is Modded", new Callable<String>() {
-            public String call() throws Exception {
-                String s = ClientBrandRetriever.getClientModName();
+        report.getCategory().addCrashSectionCallable("Type", () -> "Integrated Server (map_client.txt)");
+        report.getCategory().addCrashSectionCallable("Is Modded", () -> {
+            String s = ClientBrandRetriever.getClientModName();
 
-                if (!s.equals("vanilla")) {
-                    return "Definitely; Client brand changed to \'" + s + "\'";
-                } else {
-                    s = IntegratedServer.this.getServerModName();
-                    return !s.equals("vanilla") ? "Definitely; Server brand changed to \'" + s + "\'" : (Minecraft.class.getSigners() == null ? "Very likely; Jar signature invalidated" : "Probably not. Jar signature remains and both client + server brands are untouched.");
-                }
+            if (!s.equals("vanilla")) {
+                return "Definitely; Client brand changed to \'" + s + "\'";
+            } else {
+                s = IntegratedServer.this.getServerModName();
+                return !s.equals("vanilla") ? "Definitely; Server brand changed to \'" + s + "\'" : (Minecraft.class.getSigners() == null ? "Very likely; Jar signature invalidated" : "Probably not. Jar signature remains and both client + server brands are untouched.");
             }
         });
         return report;

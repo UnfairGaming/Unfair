@@ -35,7 +35,7 @@ public class CommandParticle extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 8) {
-            throw new WrongUsageException("commands.particle.usage", new Object[0]);
+            throw new WrongUsageException("commands.particle.usage");
         } else {
             boolean flag = false;
             EnumParticleTypes enumparticletypes = null;
@@ -55,7 +55,7 @@ public class CommandParticle extends CommandBase {
             }
 
             if (!flag) {
-                throw new CommandException("commands.particle.notFound", new Object[]{args[0]});
+                throw new CommandException("commands.particle.notFound", args[0]);
             } else {
                 String s = args[0];
                 Vec3 vec3 = sender.getPositionVector();
@@ -91,19 +91,19 @@ public class CommandParticle extends CommandBase {
                             try {
                                 aint[j - 1] = Integer.parseInt(astring[j]);
                             } catch (NumberFormatException var29) {
-                                throw new CommandException("commands.particle.notFound", new Object[]{args[0]});
+                                throw new CommandException("commands.particle.notFound", args[0]);
                             }
                         }
                     }
 
                     worldserver.spawnParticle(enumparticletypes, flag1, d6, d0, d1, i, d2, d3, d4, d5, aint);
-                    notifyOperators(sender, this, "commands.particle.success", new Object[]{s, Math.max(i, 1)});
+                    notifyOperators(sender, this, "commands.particle.success", s, Math.max(i, 1));
                 }
             }
         }
     }
 
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, EnumParticleTypes.getParticleNames()) : (args.length > 1 && args.length <= 4 ? func_175771_a(args, 1, pos) : (args.length == 10 ? getListOfStringsMatchingLastWord(args, new String[]{"normal", "force"}) : null));
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, EnumParticleTypes.getParticleNames()) : (args.length > 1 && args.length <= 4 ? func_175771_a(args, 1, pos) : (args.length == 10 ? getListOfStringsMatchingLastWord(args, "normal", "force") : null));
     }
 }

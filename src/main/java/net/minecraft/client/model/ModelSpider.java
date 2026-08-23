@@ -136,10 +136,10 @@ public class ModelSpider extends ModelBase {
         float f2 = 0.3926991F;
         this.spiderLeg1.rotateAngleY = f2 * 2.0F + f1;
         this.spiderLeg2.rotateAngleY = -f2 * 2.0F - f1;
-        this.spiderLeg3.rotateAngleY = f2 * 1.0F + f1;
-        this.spiderLeg4.rotateAngleY = -f2 * 1.0F - f1;
-        this.spiderLeg5.rotateAngleY = -f2 * 1.0F + f1;
-        this.spiderLeg6.rotateAngleY = f2 * 1.0F - f1;
+        this.spiderLeg3.rotateAngleY = f2 + f1;
+        this.spiderLeg4.rotateAngleY = -f2 - f1;
+        this.spiderLeg5.rotateAngleY = -f2 + f1;
+        this.spiderLeg6.rotateAngleY = f2 - f1;
         this.spiderLeg7.rotateAngleY = -f2 * 2.0F + f1;
         this.spiderLeg8.rotateAngleY = f2 * 2.0F - f1;
         float f3 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + 0.0F) * 0.4F) * limbSwingAmount;

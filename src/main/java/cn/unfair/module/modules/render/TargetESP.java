@@ -493,7 +493,6 @@ public class TargetESP extends Module {
                     double radians = Math.toRadians(i);
                     double plY = pl + Math.sin(radians * 1.2f) * 0.1f;
                     int firstColor = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
-                    int secondColor = ColorUtil.applyOpacity(getTargetColor(), getAlpha()).getRGB();
                     GlStateManager.pushMatrix();
                     RenderUtil.setupOrientationMatrix(markerX, markerY, markerZ);
 

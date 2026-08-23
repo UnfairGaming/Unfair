@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class BlockRedstoneTorch extends BlockTorch {
-    private static Map<World, List<BlockRedstoneTorch.Toggle>> toggles = Maps.<World, List<BlockRedstoneTorch.Toggle>>newHashMap();
+    private static Map<World, List<BlockRedstoneTorch.Toggle>> toggles = Maps.newHashMap();
     private final boolean isOn;
 
     protected BlockRedstoneTorch(boolean isOn) {
@@ -27,7 +27,7 @@ public class BlockRedstoneTorch extends BlockTorch {
 
     private boolean isBurnedOut(World worldIn, BlockPos pos, boolean turnOff) {
         if (!toggles.containsKey(worldIn)) {
-            toggles.put(worldIn, Lists.<BlockRedstoneTorch.Toggle>newArrayList());
+            toggles.put(worldIn, Lists.newArrayList());
         }
 
         List<BlockRedstoneTorch.Toggle> list = toggles.get(worldIn);
@@ -110,7 +110,7 @@ public class BlockRedstoneTorch extends BlockTorch {
                         double d0 = (double) pos.getX() + rand.nextDouble() * 0.6D + 0.2D;
                         double d1 = (double) pos.getY() + rand.nextDouble() * 0.6D + 0.2D;
                         double d2 = (double) pos.getZ() + rand.nextDouble() * 0.6D + 0.2D;
-                        worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0, d1, d2, 0.0D, 0.0D, 0.0D, new int[0]);
+                        worldIn.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, d0, d1, d2, 0.0D, 0.0D, 0.0D);
                     }
 
                     worldIn.scheduleUpdate(pos, worldIn.getBlockState(pos).getBlock(), 160);
@@ -165,7 +165,7 @@ public class BlockRedstoneTorch extends BlockTorch {
                 d2 += 0.27D * (double) enumfacing1.getFrontOffsetZ();
             }
 
-            worldIn.spawnParticle(EnumParticleTypes.REDSTONE, d0, d1, d2, 0.0D, 0.0D, 0.0D, new int[0]);
+            worldIn.spawnParticle(EnumParticleTypes.REDSTONE, d0, d1, d2, 0.0D, 0.0D, 0.0D);
         }
     }
 

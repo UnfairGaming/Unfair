@@ -252,7 +252,7 @@ public class CustomColors
                 }
                 else
                 {
-                    List<String> list = Arrays.<String>asList(validValues);
+                    List<String> list = Arrays.asList(validValues);
 
                     if (!list.contains(s))
                     {

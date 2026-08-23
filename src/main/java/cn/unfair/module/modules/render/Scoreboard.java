@@ -141,7 +141,7 @@ public class Scoreboard extends Module {
 
     private void drawBackground(float x, float y, int color) {
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
-        Float radius = hud.roundRadius.getValue() * hud.scale.getValue(); // HUD 已缩放，直接使用
+        Float radius = hud.roundRadius.getValue() * hud.scale.getValue();
 
         if (((color >> 24) & 0xFF) <= 0) {
             return;

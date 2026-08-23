@@ -18,7 +18,7 @@ public enum PixelFormat
 
     private int id;
 
-    private PixelFormat(int id)
+    PixelFormat(int id)
     {
         this.id = id;
     }

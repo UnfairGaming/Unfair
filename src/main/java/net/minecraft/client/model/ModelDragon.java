@@ -195,8 +195,8 @@ public class ModelDragon extends ModelBase {
         this.head.rotationPointZ = f3;
         this.head.rotationPointX = f4;
         double[] adouble2 = entitydragon.getMovementOffsets(0, this.partialTicks);
-        this.head.rotateAngleY = this.updateRotations(adouble2[0] - adouble[0]) * (float) Math.PI / 180.0F * 1.0F;
-        this.head.rotateAngleZ = -this.updateRotations(adouble2[0] - (double) f7) * (float) Math.PI / 180.0F * 1.0F;
+        this.head.rotateAngleY = this.updateRotations(adouble2[0] - adouble[0]) * (float) Math.PI / 180.0F;
+        this.head.rotateAngleZ = -this.updateRotations(adouble2[0] - (double) f7) * (float) Math.PI / 180.0F;
         this.head.render(scale);
         GlStateManager.pushMatrix();
         GlStateManager.translate(0.0F, 1.0F, 0.0F);

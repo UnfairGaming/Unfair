@@ -89,6 +89,6 @@ public class BlockChorusPlant extends ModernBlock {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{NORTH, EAST, SOUTH, WEST, UP, DOWN});
+        return new BlockState(this, NORTH, EAST, SOUTH, WEST, UP, DOWN);
     }
 }

@@ -46,7 +46,7 @@ public class LayerEnderDragonDeath implements LayerRenderer<EntityDragon> {
                 worldrenderer.pos(0.0D, 0.0D, 0.0D).color(255, 255, 255, (int) (255.0F * (1.0F - f1))).endVertex();
                 worldrenderer.pos(-0.866D * (double) f3, f2, -0.5F * f3).color(255, 0, 255, 0).endVertex();
                 worldrenderer.pos(0.866D * (double) f3, f2, -0.5F * f3).color(255, 0, 255, 0).endVertex();
-                worldrenderer.pos(0.0D, f2, 1.0F * f3).color(255, 0, 255, 0).endVertex();
+                worldrenderer.pos(0.0D, f2, f3).color(255, 0, 255, 0).endVertex();
                 worldrenderer.pos(-0.866D * (double) f3, f2, -0.5F * f3).color(255, 0, 255, 0).endVertex();
                 tessellator.draw();
             }

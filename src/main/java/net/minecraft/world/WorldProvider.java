@@ -122,7 +122,7 @@ public abstract class WorldProvider {
         }
 
         f = 1.0F - (float) ((Math.cos((double) f * Math.PI) + 1.0D) / 2.0D);
-        f = f + (f - f) / 3.0F;
+        f = f + (0.0f) / 3.0F;
         return f;
     }
 

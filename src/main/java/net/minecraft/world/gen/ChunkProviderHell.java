@@ -96,13 +96,13 @@ public class ChunkProviderHell implements IChunkProvider {
             for (int k1 = 0; k1 < i; ++k1) {
                 for (int l1 = 0; l1 < 16; ++l1) {
                     double d0 = 0.125D;
-                    double d1 = this.noiseField[((j1 + 0) * i1 + k1 + 0) * l + l1 + 0];
-                    double d2 = this.noiseField[((j1 + 0) * i1 + k1 + 1) * l + l1 + 0];
-                    double d3 = this.noiseField[((j1 + 1) * i1 + k1 + 0) * l + l1 + 0];
-                    double d4 = this.noiseField[((j1 + 1) * i1 + k1 + 1) * l + l1 + 0];
-                    double d5 = (this.noiseField[((j1 + 0) * i1 + k1 + 0) * l + l1 + 1] - d1) * d0;
-                    double d6 = (this.noiseField[((j1 + 0) * i1 + k1 + 1) * l + l1 + 1] - d2) * d0;
-                    double d7 = (this.noiseField[((j1 + 1) * i1 + k1 + 0) * l + l1 + 1] - d3) * d0;
+                    double d1 = this.noiseField[((j1) * i1 + k1) * l + l1];
+                    double d2 = this.noiseField[((j1) * i1 + k1 + 1) * l + l1];
+                    double d3 = this.noiseField[((j1 + 1) * i1 + k1) * l + l1];
+                    double d4 = this.noiseField[((j1 + 1) * i1 + k1 + 1) * l + l1];
+                    double d5 = (this.noiseField[((j1) * i1 + k1) * l + l1 + 1] - d1) * d0;
+                    double d6 = (this.noiseField[((j1) * i1 + k1 + 1) * l + l1 + 1] - d2) * d0;
+                    double d7 = (this.noiseField[((j1 + 1) * i1 + k1) * l + l1 + 1] - d3) * d0;
                     double d8 = (this.noiseField[((j1 + 1) * i1 + k1 + 1) * l + l1 + 1] - d4) * d0;
 
                     for (int i2 = 0; i2 < 8; ++i2) {

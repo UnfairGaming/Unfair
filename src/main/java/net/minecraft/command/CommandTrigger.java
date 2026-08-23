@@ -39,7 +39,7 @@ public class CommandTrigger extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 3) {
-            throw new WrongUsageException("commands.trigger.usage", new Object[0]);
+            throw new WrongUsageException("commands.trigger.usage");
         } else {
             EntityPlayerMP entityplayermp;
 
@@ -49,7 +49,7 @@ public class CommandTrigger extends CommandBase {
                 Entity entity = sender.getCommandSenderEntity();
 
                 if (!(entity instanceof EntityPlayerMP)) {
-                    throw new CommandException("commands.trigger.invalidPlayer", new Object[0]);
+                    throw new CommandException("commands.trigger.invalidPlayer");
                 }
 
                 entityplayermp = (EntityPlayerMP) entity;
@@ -62,18 +62,18 @@ public class CommandTrigger extends CommandBase {
                 int i = parseInt(args[2]);
 
                 if (!scoreboard.entityHasObjective(entityplayermp.getName(), scoreobjective)) {
-                    throw new CommandException("commands.trigger.invalidObjective", new Object[]{args[0]});
+                    throw new CommandException("commands.trigger.invalidObjective", args[0]);
                 } else {
                     Score score = scoreboard.getValueFromObjective(entityplayermp.getName(), scoreobjective);
 
                     if (score.isLocked()) {
-                        throw new CommandException("commands.trigger.disabled", new Object[]{args[0]});
+                        throw new CommandException("commands.trigger.disabled", args[0]);
                     } else {
                         if ("set".equals(args[1])) {
                             score.setScorePoints(i);
                         } else {
                             if (!"add".equals(args[1])) {
-                                throw new CommandException("commands.trigger.invalidMode", new Object[]{args[1]});
+                                throw new CommandException("commands.trigger.invalidMode", args[1]);
                             }
 
                             score.increseScore(i);
@@ -82,12 +82,12 @@ public class CommandTrigger extends CommandBase {
                         score.setLocked(true);
 
                         if (entityplayermp.theItemInWorldManager.isCreative()) {
-                            notifyOperators(sender, this, "commands.trigger.success", new Object[]{args[0], args[1], args[2]});
+                            notifyOperators(sender, this, "commands.trigger.success", args[0], args[1], args[2]);
                         }
                     }
                 }
             } else {
-                throw new CommandException("commands.trigger.invalidObjective", new Object[]{args[0]});
+                throw new CommandException("commands.trigger.invalidObjective", args[0]);
             }
         }
     }
@@ -95,7 +95,7 @@ public class CommandTrigger extends CommandBase {
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
         if (args.length == 1) {
             Scoreboard scoreboard = MinecraftServer.getServer().worldServerForDimension(0).getScoreboard();
-            List<String> list = Lists.<String>newArrayList();
+            List<String> list = Lists.newArrayList();
 
             for (ScoreObjective scoreobjective : scoreboard.getScoreObjectives()) {
                 if (scoreobjective.getCriteria() == IScoreObjectiveCriteria.TRIGGER) {
@@ -105,7 +105,7 @@ public class CommandTrigger extends CommandBase {
 
             return getListOfStringsMatchingLastWord(args, list.toArray(new String[list.size()]));
         } else {
-            return args.length == 2 ? getListOfStringsMatchingLastWord(args, new String[]{"add", "set"}) : null;
+            return args.length == 2 ? getListOfStringsMatchingLastWord(args, "add", "set") : null;
         }
     }
 }

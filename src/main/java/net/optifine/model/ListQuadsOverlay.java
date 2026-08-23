@@ -13,7 +13,7 @@ public class ListQuadsOverlay
 {
     private List<BakedQuad> listQuads = new ArrayList<>();
     private List<IBlockState> listBlockStates = new ArrayList<>();
-    private List<BakedQuad> listQuadsSingle = Arrays.<BakedQuad>asList(new BakedQuad[1]);
+    private List<BakedQuad> listQuadsSingle = Arrays.asList(new BakedQuad[1]);
 
     public void addQuad(BakedQuad quad, IBlockState blockState)
     {

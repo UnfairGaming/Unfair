@@ -22,7 +22,7 @@ public enum ModelVariableType
     private String name;
     public static ModelVariableType[] VALUES = values();
 
-    private ModelVariableType(String name)
+    ModelVariableType(String name)
     {
         this.name = name;
     }

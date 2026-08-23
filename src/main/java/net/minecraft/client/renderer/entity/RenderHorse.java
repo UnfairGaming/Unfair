@@ -11,7 +11,7 @@ import net.minecraft.util.ResourceLocation;
 import java.util.Map;
 
 public class RenderHorse extends RenderLiving<EntityHorse> {
-    private static final Map<String, ResourceLocation> field_110852_a = Maps.<String, ResourceLocation>newHashMap();
+    private static final Map<String, ResourceLocation> field_110852_a = Maps.newHashMap();
     private static final ResourceLocation whiteHorseTextures = ResourceLocation.of("textures/entity/horse/horse_white.png");
     private static final ResourceLocation creamyHorseTextures = ResourceLocation.of("textures/entity/horse/horse_creamy.png");
     private static final ResourceLocation chestnutHorseTextures = ResourceLocation.of("textures/entity/horse/horse_chestnut.png");

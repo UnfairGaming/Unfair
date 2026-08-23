@@ -70,7 +70,7 @@ public class EntityTrackerEntry {
     public double motionZ;
     public int updateCounter;
     public boolean playerEntitiesUpdated;
-    public Set<EntityPlayerMP> trackingPlayers = Sets.<EntityPlayerMP>newHashSet();
+    public Set<EntityPlayerMP> trackingPlayers = Sets.newHashSet();
     private double lastTrackedEntityPosX;
     private double lastTrackedEntityPosY;
     private double lastTrackedEntityPosZ;

@@ -134,7 +134,7 @@ public class BlockCommandBlock extends BlockContainer {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{TRIGGERED});
+        return new BlockState(this, TRIGGERED);
     }
 
     /**

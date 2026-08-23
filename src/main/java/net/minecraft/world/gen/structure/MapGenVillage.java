@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 public class MapGenVillage extends MapGenStructure {
-    public static final List<BiomeGenBase> villageSpawnBiomes = Arrays.<BiomeGenBase>asList(new BiomeGenBase[]{BiomeGenBase.plains, BiomeGenBase.desert, BiomeGenBase.savanna});
+    public static final List<BiomeGenBase> villageSpawnBiomes = Arrays.asList(BiomeGenBase.plains, BiomeGenBase.desert, BiomeGenBase.savanna);
 
     /**
      * World terrain type, 0 for normal, 1 for flat map

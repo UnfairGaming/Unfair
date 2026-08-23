@@ -662,20 +662,22 @@ public class InvManager extends Module {
         return plan;
     }
 
-    private boolean handleInventoryActions() {
+    private void handleInventoryActions() {
         if (this.mode.getValue() == 1) {
-            return this.handleInstantInventoryActions();
+            this.handleInstantInventoryActions();
+            return;
         }
 
         InventoryPlan plan = this.buildPlan();
         if (this.actionDelay <= 0 && (this.equipArmor(plan) || this.organizeItems(plan))) {
-            return true;
+            return;
         }
-        return this.dropTrash.getValue() && this.dropDelayCounter <= 0 && this.dropTrash(plan, true);
+        if (this.dropTrash.getValue() && this.dropDelayCounter <= 0) {
+            this.dropTrash(plan, true);
+        }
     }
 
-    private boolean handleInstantInventoryActions() {
-        boolean changed = false;
+    private void handleInstantInventoryActions() {
         Set<Long> seenStates = new HashSet<>();
         for (int i = 0; i < 64; i++) {
             long stateBefore = this.getInventoryStateFingerprint();
@@ -686,7 +688,6 @@ public class InvManager extends Module {
             if (this.equipArmor(plan)
                     || this.organizeItems(plan)
                     || this.dropTrash.getValue() && this.dropTrash(plan, false)) {
-                changed = true;
                 if (this.getInventoryStateFingerprint() == stateBefore) {
                     break;
                 }
@@ -694,7 +695,6 @@ public class InvManager extends Module {
             }
             break;
         }
-        return changed;
     }
 
     private long getInventoryStateFingerprint() {

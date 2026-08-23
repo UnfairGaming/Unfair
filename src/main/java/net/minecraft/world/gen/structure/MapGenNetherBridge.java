@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Random;
 
 public class MapGenNetherBridge extends MapGenStructure {
-    private List<BiomeGenBase.SpawnListEntry> spawnList = Lists.<BiomeGenBase.SpawnListEntry>newArrayList();
+    private List<BiomeGenBase.SpawnListEntry> spawnList = Lists.newArrayList();
 
     public MapGenNetherBridge() {
         this.spawnList.add(new BiomeGenBase.SpawnListEntry(EntityBlaze.class, 10, 2, 3));

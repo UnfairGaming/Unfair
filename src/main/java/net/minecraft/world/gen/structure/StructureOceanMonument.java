@@ -16,8 +16,8 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class StructureOceanMonument extends MapGenStructure {
-    public static final List<BiomeGenBase> field_175802_d = Arrays.<BiomeGenBase>asList(new BiomeGenBase[]{BiomeGenBase.ocean, BiomeGenBase.deepOcean, BiomeGenBase.river, BiomeGenBase.frozenOcean, BiomeGenBase.frozenRiver});
-    private static final List<BiomeGenBase.SpawnListEntry> field_175803_h = Lists.<BiomeGenBase.SpawnListEntry>newArrayList();
+    public static final List<BiomeGenBase> field_175802_d = Arrays.asList(BiomeGenBase.ocean, BiomeGenBase.deepOcean, BiomeGenBase.river, BiomeGenBase.frozenOcean, BiomeGenBase.frozenRiver);
+    private static final List<BiomeGenBase.SpawnListEntry> field_175803_h = Lists.newArrayList();
 
     static {
         field_175803_h.add(new BiomeGenBase.SpawnListEntry(EntityGuardian.class, 1, 2, 4));
@@ -91,7 +91,7 @@ public class StructureOceanMonument extends MapGenStructure {
     }
 
     public static class StartMonument extends StructureStart {
-        private Set<ChunkCoordIntPair> field_175791_c = Sets.<ChunkCoordIntPair>newHashSet();
+        private Set<ChunkCoordIntPair> field_175791_c = Sets.newHashSet();
         private boolean field_175790_d;
 
         public StartMonument() {

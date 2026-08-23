@@ -18,11 +18,11 @@ public class RecipesWeapons {
 
             for (int j = 0; j < this.recipeItems.length - 1; ++j) {
                 Item item = (Item) this.recipeItems[j + 1][i];
-                p_77583_1_.addRecipe(new ItemStack(item), new Object[]{this.recipePatterns[j], '#', Items.stick, 'X', object});
+                p_77583_1_.addRecipe(new ItemStack(item), this.recipePatterns[j], '#', Items.stick, 'X', object);
             }
         }
 
-        p_77583_1_.addRecipe(new ItemStack(Items.bow, 1), new Object[]{" #X", "# X", " #X", 'X', Items.string, '#', Items.stick});
-        p_77583_1_.addRecipe(new ItemStack(Items.arrow, 4), new Object[]{"X", "#", "Y", 'Y', Items.feather, 'X', Items.flint, '#', Items.stick});
+        p_77583_1_.addRecipe(new ItemStack(Items.bow, 1), " #X", "# X", " #X", 'X', Items.string, '#', Items.stick);
+        p_77583_1_.addRecipe(new ItemStack(Items.arrow, 4), "X", "#", "Y", 'Y', Items.feather, 'X', Items.flint, '#', Items.stick);
     }
 }

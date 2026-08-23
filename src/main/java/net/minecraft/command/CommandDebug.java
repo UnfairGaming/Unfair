@@ -64,28 +64,28 @@ public class CommandDebug extends CommandBase {
      */
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 1) {
-            throw new WrongUsageException("commands.debug.usage", new Object[0]);
+            throw new WrongUsageException("commands.debug.usage");
         } else {
             if (args[0].equals("start")) {
                 if (args.length != 1) {
-                    throw new WrongUsageException("commands.debug.usage", new Object[0]);
+                    throw new WrongUsageException("commands.debug.usage");
                 }
 
-                notifyOperators(sender, this, "commands.debug.start", new Object[0]);
+                notifyOperators(sender, this, "commands.debug.start");
                 MinecraftServer.getServer().enableProfiling();
                 this.profileStartTime = MinecraftServer.getCurrentTimeMillis();
                 this.profileStartTick = MinecraftServer.getServer().getTickCounter();
             } else {
                 if (!args[0].equals("stop")) {
-                    throw new WrongUsageException("commands.debug.usage", new Object[0]);
+                    throw new WrongUsageException("commands.debug.usage");
                 }
 
                 if (args.length != 1) {
-                    throw new WrongUsageException("commands.debug.usage", new Object[0]);
+                    throw new WrongUsageException("commands.debug.usage");
                 }
 
                 if (!MinecraftServer.getServer().theProfiler.profilingEnabled) {
-                    throw new CommandException("commands.debug.notStarted", new Object[0]);
+                    throw new CommandException("commands.debug.notStarted");
                 }
 
                 long i = MinecraftServer.getCurrentTimeMillis();
@@ -94,7 +94,7 @@ public class CommandDebug extends CommandBase {
                 int l = j - this.profileStartTick;
                 this.saveProfileResults(k, l);
                 MinecraftServer.getServer().theProfiler.profilingEnabled = false;
-                notifyOperators(sender, this, "commands.debug.stop", new Object[]{(float) k / 1000.0F, l});
+                notifyOperators(sender, this, "commands.debug.stop", (float) k / 1000.0F, l);
             }
         }
     }
@@ -126,7 +126,7 @@ public class CommandDebug extends CommandBase {
         stringbuilder.append("\n\n");
         stringbuilder.append("Time span: ").append(timeSpan).append(" ms\n");
         stringbuilder.append("Tick span: ").append(tickSpan).append(" ticks\n");
-        stringbuilder.append("// This is approximately ").append(String.format("%.2f", new Object[]{(float) tickSpan / ((float) timeSpan / 1000.0F)})).append(" ticks per second. It should be ").append(20).append(" ticks per second\n\n");
+        stringbuilder.append("// This is approximately ").append(String.format("%.2f", (float) tickSpan / ((float) timeSpan / 1000.0F))).append(" ticks per second. It should be ").append(20).append(" ticks per second\n\n");
         stringbuilder.append("--- BEGIN PROFILE DUMP ---\n\n");
         this.func_147202_a(0, "root", stringbuilder);
         stringbuilder.append("--- END PROFILE DUMP ---\n\n");
@@ -139,13 +139,13 @@ public class CommandDebug extends CommandBase {
         if (list != null && list.size() >= 3) {
             for (int i = 1; i < list.size(); ++i) {
                 Profiler.Result profiler$result = list.get(i);
-                stringBuilder.append(String.format("[%02d] ", new Object[]{p_147202_1_}));
+                stringBuilder.append(String.format("[%02d] ", p_147202_1_));
 
                 for (int j = 0; j < p_147202_1_; ++j) {
                     stringBuilder.append(" ");
                 }
 
-                stringBuilder.append(profiler$result.field_76331_c).append(" - ").append(String.format("%.2f", new Object[]{profiler$result.field_76332_a})).append("%/").append(String.format("%.2f", new Object[]{profiler$result.field_76330_b})).append("%\n");
+                stringBuilder.append(profiler$result.field_76331_c).append(" - ").append(String.format("%.2f", profiler$result.field_76332_a)).append("%/").append(String.format("%.2f", profiler$result.field_76330_b)).append("%\n");
 
                 if (!profiler$result.field_76331_c.equals("unspecified")) {
                     try {
@@ -159,6 +159,6 @@ public class CommandDebug extends CommandBase {
     }
 
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) {
-        return args.length == 1 ? getListOfStringsMatchingLastWord(args, new String[]{"start", "stop"}) : null;
+        return args.length == 1 ? getListOfStringsMatchingLastWord(args, "start", "stop") : null;
     }
 }

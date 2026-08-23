@@ -50,7 +50,7 @@ public class BlockWorkbench extends Block {
         }
 
         public IChatComponent getDisplayName() {
-            return new ChatComponentTranslation(Blocks.crafting_table.getUnlocalizedName() + ".name", new Object[0]);
+            return new ChatComponentTranslation(Blocks.crafting_table.getUnlocalizedName() + ".name");
         }
 
         public Container createContainer(InventoryPlayer playerInventory, EntityPlayer playerIn) {

@@ -19,7 +19,7 @@ public class BlockModernSculkSensor extends BlockModernShape {
 
     @Override
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{PHASE});
+        return new BlockState(this, PHASE);
     }
 
     @Override

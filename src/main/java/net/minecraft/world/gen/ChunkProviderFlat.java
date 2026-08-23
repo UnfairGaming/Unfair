@@ -23,7 +23,7 @@ import java.util.Random;
 public class ChunkProviderFlat implements IChunkProvider {
     private final IBlockState[] cachedBlockIDs = new IBlockState[256];
     private final FlatGeneratorInfo flatWorldGenInfo;
-    private final List<MapGenStructure> structureGenerators = Lists.<MapGenStructure>newArrayList();
+    private final List<MapGenStructure> structureGenerators = Lists.newArrayList();
     private final boolean hasDecoration;
     private final boolean hasDungeons;
     private World worldObj;

@@ -62,7 +62,7 @@ public class GuiAchievements extends GuiScreen implements IProgressMeter {
     public void initGui() {
         this.mc.getNetHandler().addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.REQUEST_STATS));
         this.buttonList.clear();
-        this.buttonList.add(new GuiOptionButton(1, this.width / 2 + 24, this.height / 2 + 74, 80, 20, I18n.format("gui.done", new Object[0])));
+        this.buttonList.add(new GuiOptionButton(1, this.width / 2 + 24, this.height / 2 + 74, 80, 20, I18n.format("gui.done")));
     }
 
     /**
@@ -95,7 +95,7 @@ public class GuiAchievements extends GuiScreen implements IProgressMeter {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         if (this.loadingAchievements) {
             this.drawDefaultBackground();
-            this.drawCenteredString(this.fontRendererObj, I18n.format("multiplayer.downloadingStats", new Object[0]), this.width / 2, this.height / 2, 16777215);
+            this.drawCenteredString(this.fontRendererObj, I18n.format("multiplayer.downloadingStats"), this.width / 2, this.height / 2, 16777215);
             this.drawCenteredString(this.fontRendererObj, lanSearchStates[(int) (Minecraft.getSystemTime() / 150L % (long) lanSearchStates.length)], this.width / 2, this.height / 2 + this.fontRendererObj.FONT_HEIGHT * 2, 16777215);
         } else {
             if (Mouse.isButtonDown(0)) {
@@ -199,7 +199,7 @@ public class GuiAchievements extends GuiScreen implements IProgressMeter {
     protected void drawTitle() {
         int i = (this.width - this.field_146555_f) / 2;
         int j = (this.height - this.field_146557_g) / 2;
-        this.fontRendererObj.drawString(I18n.format("gui.achievements", new Object[0]), i + 15, j + 5, 4210752);
+        this.fontRendererObj.drawString(I18n.format("gui.achievements"), i + 15, j + 5, 4210752);
     }
 
     protected void drawAchievementScreen(int p_146552_1_, int p_146552_2_, float p_146552_3_) {
@@ -424,18 +424,18 @@ public class GuiAchievements extends GuiScreen implements IProgressMeter {
                 this.fontRendererObj.drawSplitString(s1, i7, k7 + 12, j8, -6250336);
 
                 if (this.statFileWriter.hasAchievementUnlocked(achievement)) {
-                    this.fontRendererObj.drawStringWithShadow(I18n.format("achievement.taken", new Object[0]), (float) i7, (float) (k7 + i9 + 4), -7302913);
+                    this.fontRendererObj.drawStringWithShadow(I18n.format("achievement.taken"), (float) i7, (float) (k7 + i9 + 4), -7302913);
                 }
             } else if (i8 == 3) {
-                s = I18n.format("achievement.unknown", new Object[0]);
+                s = I18n.format("achievement.unknown");
                 int k8 = Math.max(this.fontRendererObj.getStringWidth(s), 120);
-                String s2 = (new ChatComponentTranslation("achievement.requires", new Object[]{achievement.parentAchievement.getStatName()})).getUnformattedText();
+                String s2 = (new ChatComponentTranslation("achievement.requires", achievement.parentAchievement.getStatName())).getUnformattedText();
                 int i5 = this.fontRendererObj.splitStringWidth(s2, k8);
                 this.drawGradientRect(i7 - 3, k7 - 3, i7 + k8 + 3, k7 + i5 + 12 + 3, -1073741824, -1073741824);
                 this.fontRendererObj.drawSplitString(s2, i7, k7 + 12, k8, -9416624);
             } else if (i8 < 3) {
                 int l8 = Math.max(this.fontRendererObj.getStringWidth(s), 120);
-                String s3 = (new ChatComponentTranslation("achievement.requires", new Object[]{achievement.parentAchievement.getStatName()})).getUnformattedText();
+                String s3 = (new ChatComponentTranslation("achievement.requires", achievement.parentAchievement.getStatName())).getUnformattedText();
                 int j9 = this.fontRendererObj.splitStringWidth(s3, l8);
                 this.drawGradientRect(i7 - 3, k7 - 3, i7 + l8 + 3, k7 + j9 + 12 + 3, -1073741824, -1073741824);
                 this.fontRendererObj.drawSplitString(s3, i7, k7 + 12, l8, -9416624);

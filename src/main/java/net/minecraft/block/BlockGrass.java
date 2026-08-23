@@ -139,6 +139,6 @@ public class BlockGrass extends Block implements IGrowable {
     }
 
     protected BlockState createBlockState() {
-        return new BlockState(this, new IProperty[]{SNOWY});
+        return new BlockState(this, SNOWY);
     }
 }

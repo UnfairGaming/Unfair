@@ -19,13 +19,6 @@ public class EmptyChunk extends Chunk {
     }
 
     /**
-     * Checks whether the chunk is at the X/Z location specified
-     */
-    public boolean isAtLocation(int x, int z) {
-        return x == this.xPosition && z == this.zPosition;
-    }
-
-    /**
      * Returns the value in the height map at this x, z coordinate in the chunk
      */
     public int getHeightValue(int x, int z) {

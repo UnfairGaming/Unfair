@@ -23,7 +23,7 @@ public enum EnumFaceDirection {
 
     private final EnumFaceDirection.VertexInformation[] vertexInfos;
 
-    private EnumFaceDirection(EnumFaceDirection.VertexInformation[] vertexInfosIn) {
+    EnumFaceDirection(EnumFaceDirection.VertexInformation[] vertexInfosIn) {
         this.vertexInfos = vertexInfosIn;
     }
 
