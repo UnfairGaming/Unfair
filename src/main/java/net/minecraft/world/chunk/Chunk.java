@@ -308,40 +308,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     }
 
     private void recheckGaps(boolean p_150803_1_) {
-//        this.worldObj.theProfiler.startSection("recheckGaps");
-//
-//        if (this.worldObj.isAreaLoaded(new BlockPos(this.xPosition * 16 + 8, 0, this.zPosition * 16 + 8), 16)) {
-//            for (int i = 0; i < 16; ++i) {
-//                for (int j = 0; j < 16; ++j) {
-//                    if (this.updateSkylightColumns[i + j * 16]) {
-//                        this.updateSkylightColumns[i + j * 16] = false;
-//                        int k = this.getHeightValue(i, j);
-//                        int l = this.xPosition * 16 + i;
-//                        int i1 = this.zPosition * 16 + j;
-//                        int j1 = Integer.MAX_VALUE;
-//
-//                        for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-//                            j1 = Math.min(j1, this.worldObj.getChunksLowestHorizon(l + enumfacing.getFrontOffsetX(), i1 + enumfacing.getFrontOffsetZ()));
-//                        }
-//
-//                        this.checkSkylightNeighborHeight(l, i1, j1);
-//
-//                        for (EnumFacing enumfacing1 : EnumFacing.Plane.HORIZONTAL) {
-//                            this.checkSkylightNeighborHeight(l + enumfacing1.getFrontOffsetX(), i1 + enumfacing1.getFrontOffsetZ(), k);
-//                        }
-//
-//                        if (p_150803_1_) {
-//                            this.worldObj.theProfiler.endSection();
-//                            return;
-//                        }
-//                    }
-//                }
-//            }
-//
-//            this.isGapLightingUpdated = false;
-//        }
-//
-//        this.worldObj.theProfiler.endSection();
         this.worldObj.theProfiler.startSection("recheckGaps");
 
         WorldChunkSlice slice = new WorldChunkSlice(this.worldObj, this.xPosition, this.zPosition);
@@ -574,9 +540,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
                         this.relightBlock(i, j, k);
                     }
 
-//                    if (j1 != k1 && (j1 < k1 || this.getLightFor(EnumSkyBlock.SKY, pos) > 0 || this.getLightFor(EnumSkyBlock.BLOCK, pos) > 0)) {
-//                        this.propagateSkylightOcclusion(i, k);
-//                    }
                 }
 
                 if (block1 instanceof ITileEntityProvider) {
@@ -611,11 +574,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     }
 
     public int getLightFor(EnumSkyBlock p_177413_1_, BlockPos pos) {
-//        int i = pos.getX() & 15;
-//        int j = pos.getY();
-//        int k = pos.getZ() & 15;
-//        ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
-//        return extendedblockstorage == null ? (this.canSeeSky(pos) ? p_177413_1_.defaultLightValue : 0) : (p_177413_1_ == EnumSkyBlock.SKY ? (this.worldObj.provider.getHasNoSky() ? 0 : extendedblockstorage.getExtSkylightValue(i, j & 15, k)) : (p_177413_1_ == EnumSkyBlock.BLOCK ? extendedblockstorage.getExtBlocklightValue(i, j & 15, k) : p_177413_1_.defaultLightValue));
         if (pos.getY() >= 0 && pos.getY() < 256) {
             this.getLightingEngine().processLightUpdatesForType(p_177413_1_);
         }
@@ -833,10 +791,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      */
     public void onChunkUnload() {
         this.isChunkLoaded = false;
-
-//        for (TileEntity tileentity : this.chunkTileEntityMap.values()) {
-//            this.worldObj.markTileEntityForRemoval(tileentity);
-//        }
 
         this.worldObj.markTileEntitiesInChunkForRemoval(this);
 
@@ -1202,35 +1156,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
      * blocks in a chunk, which may explain lagging light updates on initial world generation.
      */
     public void enqueueRelightChecks() {
-//        BlockPos blockpos = new BlockPos(this.xPosition << 4, 0, this.zPosition << 4);
-//
-//        for (int i = 0; i < 8; ++i) {
-//            if (this.queuedLightChecks >= 4096) {
-//                return;
-//            }
-//
-//            int j = this.queuedLightChecks % 16;
-//            int k = this.queuedLightChecks / 16 % 16;
-//            int l = this.queuedLightChecks / 256;
-//            ++this.queuedLightChecks;
-//
-//            for (int i1 = 0; i1 < 16; ++i1) {
-//                BlockPos blockpos1 = blockpos.add(k, (j << 4) + i1, l);
-//                boolean flag = i1 == 0 || i1 == 15 || k == 0 || k == 15 || l == 0 || l == 15;
-//
-//                if (this.storageArrays[j] == null && flag || this.storageArrays[j] != null && this.storageArrays[j].getBlockByExtId(k, i1, l).getMaterial() == Material.air) {
-//                    for (EnumFacing enumfacing : EnumFacing.values()) {
-//                        BlockPos blockpos2 = blockpos1.offset(enumfacing);
-//
-//                        if (this.worldObj.getBlockState(blockpos2).getBlock().getLightValue() > 0) {
-//                            this.worldObj.checkLight(blockpos2);
-//                        }
-//                    }
-//
-//                    this.worldObj.checkLight(blockpos1);
-//                }
-//            }
-//        }
         if (this.queuedLightChecks >= 4096) {
             return;
         }
@@ -1275,35 +1200,6 @@ public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngin
     }
 
     public void func_150809_p() {
-//        this.isTerrainPopulated = true;
-//        this.isLightPopulated = true;
-//        BlockPos blockpos = new BlockPos(this.xPosition << 4, 0, this.zPosition << 4);
-//
-//        if (!this.worldObj.provider.getHasNoSky()) {
-//            if (this.worldObj.isAreaLoaded(blockpos.add(-1, 0, -1), blockpos.add(16, this.worldObj.getSeaLevel(), 16))) {
-//                label92:
-//
-//                for (int i = 0; i < 16; ++i) {
-//                    for (int j = 0; j < 16; ++j) {
-//                        if (!this.func_150811_f(i, j)) {
-//                            this.isLightPopulated = false;
-//                            break label92;
-//                        }
-//                    }
-//                }
-//
-//                if (this.isLightPopulated) {
-//                    for (EnumFacing enumfacing : EnumFacing.Plane.HORIZONTAL) {
-//                        int k = enumfacing.getAxisDirection() == EnumFacing.AxisDirection.POSITIVE ? 16 : 1;
-//                        this.worldObj.getChunkFromBlockCoords(blockpos.offset(enumfacing, k)).func_180700_a(enumfacing.getOpposite());
-//                    }
-//
-//                    this.func_177441_y();
-//                }
-//            } else {
-//                this.isLightPopulated = false;
-//            }
-//        }
         this.isTerrainPopulated = true;
 
         LightingHooks.checkChunkLighting(this, this.worldObj);
