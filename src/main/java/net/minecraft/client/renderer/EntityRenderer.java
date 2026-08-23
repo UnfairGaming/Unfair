@@ -440,15 +440,19 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                     && killAura.isEnabled()
                     && KillAura.target != null;
             Autoblock autoblock = (Autoblock) Unfair.moduleManager.modules.get(Autoblock.class);
-            if (killAura.isEnabled() && killAura.isBlocking()) {
+
+            if (killAura != null && killAura.isEnabled() && killAura.isBlocking()) {
                 this.unfairHasSavedItemInUse = true;
                 this.unfairSavedItemInUse = this.mc.thePlayer.getItemInUse();
                 this.unfairSavedItemInUseCount = this.mc.thePlayer.getItemInUseCount();
                 this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
                 this.mc.thePlayer.setItemInUseCount(69000);
-            } else if (autoblock.isEnabled() && autoblock.forceBlockAnimation.getValue() && (Mouse.isButtonDown(0) || killAuraAttacking) && mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemSword){
-//                this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
-                this.mc.thePlayer.setItemInUseCount(69000);
+            } else if (autoblock != null && autoblock.isEnabled() && autoblock.forceBlockAnimation.getValue()
+                    && (Mouse.isButtonDown(0) || killAuraAttacking)) {
+                ItemStack currentItem = this.mc.thePlayer.inventory.getCurrentItem();
+                if (currentItem != null && currentItem.getItem() instanceof ItemSword) {
+                    this.mc.thePlayer.setItemInUseCount(69000);
+                }
             }
         }
     }
