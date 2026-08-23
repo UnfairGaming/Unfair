@@ -5,8 +5,8 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.TextProperty;
-import cn.unfair.util.ChatUtil;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.client.ChatUtil;
+import cn.unfair.util.client.TimerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S45PacketTitle;
 

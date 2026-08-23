@@ -7,7 +7,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.ItemUtil;
+import cn.unfair.util.player.ItemUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;

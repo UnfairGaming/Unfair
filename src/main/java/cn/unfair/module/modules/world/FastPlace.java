@@ -6,7 +6,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.RayCastUtil;
+import cn.unfair.util.rotation.RayCastUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;

@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.render;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;

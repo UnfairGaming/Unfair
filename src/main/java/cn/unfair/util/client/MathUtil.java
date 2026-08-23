@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.client;
 
 import net.minecraft.util.Vec3;
 

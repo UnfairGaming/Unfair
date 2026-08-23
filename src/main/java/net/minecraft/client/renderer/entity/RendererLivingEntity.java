@@ -6,7 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.RenderLivingEvent;
 import cn.unfair.module.modules.render.ESP;
 import cn.unfair.module.modules.render.NameTags;
-import cn.unfair.util.AndroidUtil;
+import cn.unfair.util.client.AndroidUtil;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;

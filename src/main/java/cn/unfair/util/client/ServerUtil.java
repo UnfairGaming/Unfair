@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.scoreboard.ScoreObjective;

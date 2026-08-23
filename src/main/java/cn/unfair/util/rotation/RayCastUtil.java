@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.rotation;
 
 import com.google.common.base.Predicate;
 import net.minecraft.client.Minecraft;

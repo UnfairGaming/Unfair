@@ -4,7 +4,7 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.events.RenderLivingEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.TeamUtil;
+import cn.unfair.util.client.TeamUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;

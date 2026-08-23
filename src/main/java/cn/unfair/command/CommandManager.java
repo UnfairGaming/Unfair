@@ -9,7 +9,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.Property;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.client.ChatUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.network.play.client.C01PacketChatMessage;

@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.client;
 
 public class TimerUtil {
     private long lastMS = 0L;

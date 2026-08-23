@@ -3,7 +3,7 @@ package cn.unfair.module.modules.render;
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;

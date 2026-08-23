@@ -2,7 +2,7 @@ package cn.unfair.command.commands;
 
 import cn.unfair.Unfair;
 import cn.unfair.command.Command;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.client.ChatUtil;
 import net.minecraft.client.Minecraft;
 
 import java.text.DecimalFormat;

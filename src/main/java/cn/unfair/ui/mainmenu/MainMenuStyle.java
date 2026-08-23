@@ -1,7 +1,7 @@
 package cn.unfair.ui.mainmenu;
 
-import cn.unfair.util.AndroidUtil;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.client.AndroidUtil;
+import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.shader.ShaderUtil;
 import net.minecraft.client.Minecraft;

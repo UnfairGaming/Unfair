@@ -3,7 +3,7 @@ package cn.unfair.util.anticheat;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.module.modules.misc.AntiCheat;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.anticheat.impl.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;

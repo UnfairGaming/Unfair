@@ -2,7 +2,7 @@ package cn.unfair.module.modules.render;
 
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.ColorUtil;
+import cn.unfair.util.render.ColorUtil;
 
 import java.awt.*;
 

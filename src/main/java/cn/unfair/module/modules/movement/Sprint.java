@@ -4,7 +4,7 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.KeyBindUtil;
+import cn.unfair.util.client.KeyBindUtil;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.ai.attributes.AttributeModifier;

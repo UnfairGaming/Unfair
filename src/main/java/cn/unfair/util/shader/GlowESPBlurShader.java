@@ -1,6 +1,6 @@
 package cn.unfair.util.shader;
 
-import cn.unfair.util.MathUtil;
+import cn.unfair.util.client.MathUtil;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.BufferUtils;
 

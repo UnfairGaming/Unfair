@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.sound;
 
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Decoder;

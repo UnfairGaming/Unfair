@@ -4,7 +4,7 @@ import cn.unfair.module.modules.render.TargetHUD;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;

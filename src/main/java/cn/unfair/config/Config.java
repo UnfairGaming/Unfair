@@ -3,7 +3,7 @@ package cn.unfair.config;
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.Property;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.client.ChatUtil;
 import com.google.gson.*;
 import net.minecraft.client.Minecraft;
 

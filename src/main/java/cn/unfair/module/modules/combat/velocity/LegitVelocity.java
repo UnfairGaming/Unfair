@@ -6,7 +6,7 @@ import cn.unfair.events.LivingUpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RandomUtil;
+import cn.unfair.util.client.RandomUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.potion.Potion;
 

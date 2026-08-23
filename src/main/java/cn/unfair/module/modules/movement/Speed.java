@@ -10,7 +10,7 @@ import cn.unfair.module.Module;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.MoveUtil;
+import cn.unfair.util.player.MoveUtil;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;

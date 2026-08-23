@@ -1,9 +1,9 @@
-package cn.unfair.util.rotation;
+package cn.unfair.util.rotation.advanced;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
-import cn.unfair.util.RandomUtil;
+import cn.unfair.util.client.RandomUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.client.C0APacketAnimation;
 

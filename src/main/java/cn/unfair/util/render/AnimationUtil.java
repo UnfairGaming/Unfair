@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.render;
 
 public class AnimationUtil {
     public static long start() {

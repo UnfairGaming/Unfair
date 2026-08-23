@@ -11,7 +11,7 @@ import cn.unfair.module.modules.combat.Autoblock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.MoveUtil;
+import cn.unfair.util.player.MoveUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 

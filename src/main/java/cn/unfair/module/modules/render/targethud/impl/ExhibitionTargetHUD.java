@@ -2,8 +2,8 @@ package cn.unfair.module.modules.render.targethud.impl;
 
 import cn.unfair.module.modules.render.TargetHUD;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
-import cn.unfair.util.ColorUtil;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.ColorUtil;
+import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.renderer.GlStateManager;

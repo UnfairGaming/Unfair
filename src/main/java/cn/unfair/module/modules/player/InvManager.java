@@ -8,7 +8,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.ItemUtil;
+import cn.unfair.util.player.ItemUtil;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;

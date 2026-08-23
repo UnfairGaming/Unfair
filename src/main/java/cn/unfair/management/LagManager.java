@@ -4,7 +4,7 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.TickEvent;
-import cn.unfair.util.PacketUtil;
+import cn.unfair.util.player.PacketUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
 import net.minecraft.network.handshake.client.C00Handshake;

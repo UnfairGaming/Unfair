@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.client;
 
 public final class AndroidUtil {
     private AndroidUtil() {

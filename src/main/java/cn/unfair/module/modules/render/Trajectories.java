@@ -5,7 +5,7 @@ import cn.unfair.events.Render3DEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;

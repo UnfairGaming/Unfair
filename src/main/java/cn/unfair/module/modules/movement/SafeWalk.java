@@ -9,9 +9,9 @@ import cn.unfair.module.Module;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.util.ItemUtil;
-import cn.unfair.util.MoveUtil;
-import cn.unfair.util.PlayerUtil;
+import cn.unfair.util.player.ItemUtil;
+import cn.unfair.util.player.MoveUtil;
+import cn.unfair.util.player.PlayerUtil;
 import net.minecraft.client.Minecraft;
 
 public class SafeWalk extends Module {

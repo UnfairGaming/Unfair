@@ -5,7 +5,7 @@ import cn.unfair.events.LoadWorldEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.KeyBindUtil;
+import cn.unfair.util.client.KeyBindUtil;
 import net.minecraft.client.Minecraft;
 
 public class FreeLook extends Module {

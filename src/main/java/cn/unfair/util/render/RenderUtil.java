@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.render;
 
 import cn.unfair.enums.ChatColors;
 import cn.unfair.util.shader.ShaderUtil;

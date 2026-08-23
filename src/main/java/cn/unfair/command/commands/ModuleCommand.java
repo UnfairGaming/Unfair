@@ -5,7 +5,7 @@ import cn.unfair.command.Command;
 import cn.unfair.module.Module;
 import cn.unfair.property.Property;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.client.ChatUtil;
 
 import java.util.ArrayList;
 import java.util.List;

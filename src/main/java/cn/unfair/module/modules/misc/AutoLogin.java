@@ -7,8 +7,8 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.TextProperty;
-import cn.unfair.util.ChatUtil;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.client.ChatUtil;
+import cn.unfair.util.client.TimerUtil;
 import net.minecraft.network.play.server.S02PacketChat;
 
 public class AutoLogin extends Module {

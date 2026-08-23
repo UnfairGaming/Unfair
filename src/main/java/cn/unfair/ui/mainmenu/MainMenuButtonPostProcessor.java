@@ -2,7 +2,7 @@ package cn.unfair.ui.mainmenu;
 
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.PostProcessing;
-import cn.unfair.util.StencilUtil;
+import cn.unfair.util.render.StencilUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;

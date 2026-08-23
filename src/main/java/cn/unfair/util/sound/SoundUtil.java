@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.sound;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;

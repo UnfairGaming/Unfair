@@ -1,7 +1,9 @@
-package cn.unfair.util;
+package cn.unfair.util.player;
 
 import cn.unfair.event.EventManager;
 import cn.unfair.events.AttackEvent;
+import cn.unfair.util.world.BlockUtil;
+import cn.unfair.util.client.KeyBindUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.client.Minecraft;

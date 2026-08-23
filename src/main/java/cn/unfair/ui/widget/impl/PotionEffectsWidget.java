@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.PotionEffects;
 import cn.unfair.ui.widget.Widget;
 import cn.unfair.ui.widget.WidgetAlign;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import com.google.gson.JsonObject;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;

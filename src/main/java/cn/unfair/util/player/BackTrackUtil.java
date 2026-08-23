@@ -1,8 +1,7 @@
 package cn.unfair.util.player;
 
 import cn.unfair.events.PacketEvent;
-import cn.unfair.util.PacketUtil;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.client.TimerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDownloadTerrain;
 import net.minecraft.network.Packet;

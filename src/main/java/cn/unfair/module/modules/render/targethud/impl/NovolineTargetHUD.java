@@ -2,7 +2,7 @@ package cn.unfair.module.modules.render.targethud.impl;
 
 import cn.unfair.module.modules.render.TargetHUD;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import net.minecraft.util.MathHelper;
 
 import java.awt.*;

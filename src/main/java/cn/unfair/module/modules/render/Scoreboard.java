@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.PercentProperty;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import com.google.common.collect.Iterables;

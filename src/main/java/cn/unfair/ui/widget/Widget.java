@@ -2,7 +2,7 @@ package cn.unfair.ui.widget;
 
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.HUD;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;

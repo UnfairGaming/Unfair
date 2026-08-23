@@ -10,7 +10,7 @@ import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.Property;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.RenderUtil;
+import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import com.google.gson.Gson;

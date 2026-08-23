@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.command.Command;
 import cn.unfair.config.Config;
 import cn.unfair.enums.ChatColors;
-import cn.unfair.util.ChatUtil;
+import cn.unfair.util.client.ChatUtil;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.ClickEvent.Action;
 import net.minecraft.event.HoverEvent;

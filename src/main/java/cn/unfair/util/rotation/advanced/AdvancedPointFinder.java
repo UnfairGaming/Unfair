@@ -1,4 +1,4 @@
-package cn.unfair.util.rotation;
+package cn.unfair.util.rotation.advanced;
 
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;

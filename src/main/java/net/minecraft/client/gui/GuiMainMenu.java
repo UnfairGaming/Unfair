@@ -3,7 +3,7 @@ package net.minecraft.client.gui;
 import cn.unfair.management.altmanager.AltManagerGui;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.ui.mainmenu.SilentMenuButton;
-import cn.unfair.util.AndroidUtil;
+import cn.unfair.util.client.AndroidUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import com.google.common.collect.Lists;

@@ -1,5 +1,6 @@
-package cn.unfair.util;
+package cn.unfair.util.player;
 
+import cn.unfair.util.world.BlockUtil;
 import cn.unfair.util.via.ViaBackwardsItemModels;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;

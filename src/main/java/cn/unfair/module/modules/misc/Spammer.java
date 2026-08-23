@@ -6,7 +6,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.TextProperty;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.client.TimerUtil;
 import net.minecraft.client.Minecraft;
 
 public class Spammer extends Module {

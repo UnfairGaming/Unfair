@@ -7,7 +7,7 @@ import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.util.TimerUtil;
+import cn.unfair.util.client.TimerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C02PacketUseEntity.Action;

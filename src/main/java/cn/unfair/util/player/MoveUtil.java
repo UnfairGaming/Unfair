@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.player;
 
 import cn.unfair.Unfair;
 import cn.unfair.management.RotationState;

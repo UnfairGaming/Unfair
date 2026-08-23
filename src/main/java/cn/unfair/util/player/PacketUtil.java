@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.player;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.INetHandler;

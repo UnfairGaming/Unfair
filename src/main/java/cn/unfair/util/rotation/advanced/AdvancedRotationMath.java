@@ -1,6 +1,6 @@
-package cn.unfair.util.rotation;
+package cn.unfair.util.rotation.advanced;
 
-import cn.unfair.util.RandomUtil;
+import cn.unfair.util.client.RandomUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;

@@ -1,4 +1,4 @@
-package cn.unfair.util;
+package cn.unfair.util.client;
 
 import cn.unfair.Unfair;
 import cn.unfair.enums.ChatColors;

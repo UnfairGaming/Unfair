@@ -2,7 +2,7 @@ package cn.unfair.module;
 
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.render.HUD;
-import cn.unfair.util.KeyBindUtil;
+import cn.unfair.util.client.KeyBindUtil;
 import lombok.Getter;
 import lombok.Setter;
 

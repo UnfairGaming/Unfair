@@ -9,7 +9,13 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.*;
+import cn.unfair.util.client.MathUtil;
+import cn.unfair.util.client.TeamUtil;
+import cn.unfair.util.client.TimerUtil;
+import cn.unfair.util.render.AnimationUtil;
+import cn.unfair.util.render.ColorUtil;
+import cn.unfair.util.render.ProjectionUtil;
+import cn.unfair.util.render.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -25,7 +31,7 @@ import org.lwjgl.opengl.GL20;
 
 import java.awt.*;
 
-import static cn.unfair.util.MathUtil.interpolate;
+import static cn.unfair.util.client.MathUtil.interpolate;
 
 public class TargetESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
