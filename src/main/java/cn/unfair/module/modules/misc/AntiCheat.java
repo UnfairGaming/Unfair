@@ -8,7 +8,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import lombok.Getter;
 
 public class AntiCheat extends Module {
@@ -24,11 +24,11 @@ public class AntiCheat extends Module {
     public final IntProperty cooldown = new IntProperty("Cooldown", 5, 0, 60);
 
     @Getter
-    private final AnticheatManager manager;
+    private final AntiCheatManager manager;
 
     public AntiCheat() {
         super("AntiCheat", false);
-        manager = new AnticheatManager(this);
+        manager = new AntiCheatManager(this);
     }
 
     @EventTarget

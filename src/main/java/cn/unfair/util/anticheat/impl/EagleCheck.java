@@ -2,7 +2,7 @@ package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import net.minecraft.entity.player.EntityPlayer;
 
 public class EagleCheck extends AntiCheatCheck {
@@ -11,7 +11,7 @@ public class EagleCheck extends AntiCheatCheck {
     }
 
     @Override
-    public void onTick(AnticheatManager manager, ACPlayerData data) {
+    public void onTick(AntiCheatManager manager, ACPlayerData data) {
         EntityPlayer player = data.getPlayer();
         if (player == null || player == net.minecraft.client.Minecraft.getMinecraft().thePlayer
                 || data.lastPosition == null || !data.isHoldingBlock()) {
@@ -54,7 +54,7 @@ public class EagleCheck extends AntiCheatCheck {
         }
     }
 
-    private void recordPattern(AnticheatManager manager, ACPlayerData data, String type,
+    private void recordPattern(AntiCheatManager manager, ACPlayerData data, String type,
                                double angle, long crouchDuration) {
         long tick = data.currentTick;
         if (tick - data.lastEaglePatternTick > 15L) data.eaglePatternCount = 0;

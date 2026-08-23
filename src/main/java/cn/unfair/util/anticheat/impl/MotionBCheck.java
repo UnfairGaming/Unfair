@@ -2,7 +2,7 @@ package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import net.minecraft.network.Packet;
 import net.minecraft.potion.Potion;
 
@@ -12,7 +12,7 @@ public class MotionBCheck extends AntiCheatCheck {
     }
 
     @Override
-    public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
+    public void onPacket(AntiCheatManager manager, ACPlayerData data, Packet<?> packet) {
         if (!isMovementPacket(packet) || data.ticksSinceLastVelocity <= 40 || data.timeSinceLastMovementPacket >= 150L)
             return;
         double acceleration = data.packetSpeed - data.lastPacketSpeed;

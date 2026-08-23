@@ -2,7 +2,7 @@ package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S0BPacketAnimation;
 
@@ -12,7 +12,7 @@ public class InvalidSwingCheck extends AntiCheatCheck {
     }
 
     @Override
-    public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
+    public void onPacket(AntiCheatManager manager, ACPlayerData data, Packet<?> packet) {
         if (!(packet instanceof S0BPacketAnimation animation)
                 || animation.getAnimationType() != 0
                 || data.getPlayer().getEntityId() != animation.getEntityID()) return;

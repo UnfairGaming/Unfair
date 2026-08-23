@@ -16,14 +16,14 @@ import net.minecraft.network.play.server.S18PacketEntityTeleport;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class AnticheatManager {
+public class AntiCheatManager {
     private final Minecraft mc = Minecraft.getMinecraft();
     private final Map<UUID, ACPlayerData> playerData = new ConcurrentHashMap<>();
     private final List<AntiCheatCheck> checks = new ArrayList<>();
     private final AntiCheat module;
     private long currentTick;
 
-    public AnticheatManager(AntiCheat module) {
+    public AntiCheatManager(AntiCheat module) {
         this.module = module;
         reloadChecks();
     }
@@ -43,14 +43,6 @@ public class AnticheatManager {
             checks.add(new MotionBCheck());
         }
         if (module.invalidSwingCheck.getValue()) checks.add(new InvalidSwingCheck());
-        if (module.autoClickerCheck.getValue()) {
-            checks.add(new AutoClickerACheck());
-            checks.add(new AutoClickerBCheck());
-        }
-    }
-
-    public ACPlayerData getPlayerData(EntityPlayer player) {
-        return player == null ? null : playerData.get(player.getUniqueID());
     }
 
     public void clearPlayers() {
@@ -65,8 +57,8 @@ public class AnticheatManager {
 
         currentTick++;
         Set<UUID> currentPlayers = new HashSet<>();
-        for (Object object : mc.theWorld.playerEntities) {
-            EntityPlayer player = (EntityPlayer) object;
+        for (EntityPlayer object : mc.theWorld.playerEntities) {
+            EntityPlayer player = object;
             if (player == mc.thePlayer) continue;
             currentPlayers.add(player.getUniqueID());
             ACPlayerData data = playerData.computeIfAbsent(player.getUniqueID(), key -> new ACPlayerData(player));

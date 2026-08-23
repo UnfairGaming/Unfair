@@ -19,10 +19,10 @@ public abstract class AntiCheatCheck {
         return description;
     }
 
-    public void onTick(AnticheatManager manager, ACPlayerData data) {
+    public void onTick(AntiCheatManager manager, ACPlayerData data) {
     }
 
-    public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
+    public void onPacket(AntiCheatManager manager, ACPlayerData data, Packet<?> packet) {
     }
 
     protected boolean isMovementPacket(Packet<?> packet) {

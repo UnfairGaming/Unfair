@@ -2,7 +2,7 @@ package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import net.minecraft.network.Packet;
 
 public class NoSlowBCheck extends AntiCheatCheck {
@@ -11,7 +11,7 @@ public class NoSlowBCheck extends AntiCheatCheck {
     }
 
     @Override
-    public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
+    public void onPacket(AntiCheatManager manager, ACPlayerData data, Packet<?> packet) {
         if (!isMovementPacket(packet)) return;
         boolean using = data.getPlayer().getItemInUseDuration() > 5;
         if (!using && data.lastUsingItemForPacket && data.getPlayer().hurtTime == 0 && data.packetSpeed > 0.2D) {

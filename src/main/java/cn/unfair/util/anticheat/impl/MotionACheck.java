@@ -2,7 +2,7 @@ package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import net.minecraft.network.Packet;
 
 public class MotionACheck extends AntiCheatCheck {
@@ -11,7 +11,7 @@ public class MotionACheck extends AntiCheatCheck {
     }
 
     @Override
-    public void onPacket(AnticheatManager manager, ACPlayerData data, Packet<?> packet) {
+    public void onPacket(AntiCheatManager manager, ACPlayerData data, Packet<?> packet) {
         if (!isMovementPacket(packet) || data.ticksSinceLastVelocity <= 40 || data.timeSinceLastMovementPacket >= 150L)
             return;
         if (data.packetSpeed > 0.8D) {

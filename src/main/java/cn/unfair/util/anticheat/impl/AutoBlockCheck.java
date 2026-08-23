@@ -2,7 +2,7 @@ package cn.unfair.util.anticheat.impl;
 
 import cn.unfair.util.anticheat.ACPlayerData;
 import cn.unfair.util.anticheat.AntiCheatCheck;
-import cn.unfair.util.anticheat.AnticheatManager;
+import cn.unfair.util.anticheat.AntiCheatManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemSword;
 
@@ -15,7 +15,7 @@ public class AutoBlockCheck extends AntiCheatCheck {
     }
 
     @Override
-    public void onTick(AnticheatManager manager, ACPlayerData data) {
+    public void onTick(AntiCheatManager manager, ACPlayerData data) {
         EntityPlayer player = data.getPlayer();
         if (player == null || player == net.minecraft.client.Minecraft.getMinecraft().thePlayer) return;
         long now = System.currentTimeMillis();
