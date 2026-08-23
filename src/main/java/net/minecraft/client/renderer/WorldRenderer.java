@@ -596,10 +596,8 @@ public class WorldRenderer {
 
                 case UINT:
                 case INT:
-                    this.byteBuffer.putFloat(i, (float) red);
-                    this.byteBuffer.putFloat(i + 4, (float) green);
-                    this.byteBuffer.putFloat(i + 8, (float) blue);
-                    this.byteBuffer.putFloat(i + 12, (float) alpha);
+                    int packed = (alpha << 24) | (blue << 16) | (green << 8) | red;
+                    this.byteBuffer.putInt(i, packed);
                     break;
 
                 case USHORT:
