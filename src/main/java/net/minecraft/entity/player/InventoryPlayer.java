@@ -16,8 +16,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ReportedException;
 
-import java.util.concurrent.Callable;
-
 public class InventoryPlayer implements IInventory, ModernOffhandInventory {
     /**
      * An array of 36 item stacks indicating the main player inventory (including the visible bar).

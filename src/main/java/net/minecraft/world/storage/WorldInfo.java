@@ -9,8 +9,6 @@ import net.minecraft.world.GameRules;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
 
-import java.util.concurrent.Callable;
-
 public class WorldInfo {
     public static final EnumDifficulty DEFAULT_DIFFICULTY = EnumDifficulty.NORMAL;
 

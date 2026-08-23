@@ -7,23 +7,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class NativeMemory
-{
-    private static final LongSupplier bufferAllocatedSupplier = makeLongSupplier(new String[][] {{"sun.misc.SharedSecrets", "getJavaNioAccess", "getDirectBufferPool", "getMemoryUsed"}, {"jdk.internal.misc.SharedSecrets", "getJavaNioAccess", "getDirectBufferPool", "getMemoryUsed"}});
-    private static final LongSupplier bufferMaximumSupplier = makeLongSupplier(new String[][] {{"sun.misc.VM", "maxDirectMemory"}, {"jdk.internal.misc.VM", "maxDirectMemory"}});
+public class NativeMemory {
+    private static final LongSupplier bufferAllocatedSupplier = makeLongSupplier(new String[][]{{"sun.misc.SharedSecrets", "getJavaNioAccess", "getDirectBufferPool", "getMemoryUsed"}, {"jdk.internal.misc.SharedSecrets", "getJavaNioAccess", "getDirectBufferPool", "getMemoryUsed"}});
+    private static final LongSupplier bufferMaximumSupplier = makeLongSupplier(new String[][]{{"sun.misc.VM", "maxDirectMemory"}, {"jdk.internal.misc.VM", "maxDirectMemory"}});
 
-    public static long getBufferAllocated()
-    {
+    public static long getBufferAllocated() {
         return bufferAllocatedSupplier == null ? -1L : bufferAllocatedSupplier.getAsLong();
     }
 
-    public static long getBufferMaximum()
-    {
+    public static long getBufferMaximum() {
         return bufferMaximumSupplier == null ? -1L : bufferMaximumSupplier.getAsLong();
     }
 
-    private static LongSupplier makeLongSupplier(String[][] paths)
-    {
+    private static LongSupplier makeLongSupplier(String[][] paths) {
         List<Throwable> list = new ArrayList<>();
 
         for (String[] astring : paths) {
@@ -34,8 +30,7 @@ public class NativeMemory
             }
         }
 
-        for (Throwable throwable1 : list)
-        {
+        for (Throwable throwable1 : list) {
             Config.warn(throwable1.getClass().getName() + ": " + throwable1.getMessage());
         }
 

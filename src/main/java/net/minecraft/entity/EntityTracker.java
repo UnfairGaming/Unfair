@@ -22,7 +22,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 public class EntityTracker {
     private static final Logger logger = LogManager.getLogger();

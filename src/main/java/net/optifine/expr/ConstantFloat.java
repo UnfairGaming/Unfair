@@ -1,27 +1,22 @@
 package net.optifine.expr;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class ConstantFloat implements IExpressionFloat
-{
+public class ConstantFloat implements IExpressionFloat {
     private float value;
 
-    public ConstantFloat(float value)
-    {
+    public ConstantFloat(float value) {
         this.value = value;
     }
 
-    public float eval()
-    {
+    public float eval() {
         return this.value;
     }
 
-    public ExpressionType getExpressionType()
-    {
+    public ExpressionType getExpressionType() {
         return ExpressionType.FLOAT;
     }
 
-    public String toString()
-    {
+    public String toString() {
         return "" + this.value;
     }
 }

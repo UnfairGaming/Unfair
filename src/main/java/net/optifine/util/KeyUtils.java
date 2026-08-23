@@ -7,14 +7,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class KeyUtils
-{
-    public static void fixKeyConflicts(KeyBinding[] keys, KeyBinding[] keysPrio)
-    {
+public class KeyUtils {
+    public static void fixKeyConflicts(KeyBinding[] keys, KeyBinding[] keysPrio) {
         Set<Integer> set = new HashSet();
 
-        for (int i = 0; i < keysPrio.length; ++i)
-        {
+        for (int i = 0; i < keysPrio.length; ++i) {
             KeyBinding keybinding = keysPrio[i];
             set.add(keybinding.getKeyCode());
         }
@@ -22,12 +19,10 @@ public class KeyUtils
         Set<KeyBinding> set1 = new HashSet(Arrays.asList(keys));
         set1.removeAll(Arrays.asList(keysPrio));
 
-        for (KeyBinding keybinding1 : set1)
-        {
+        for (KeyBinding keybinding1 : set1) {
             Integer integer = keybinding1.getKeyCode();
 
-            if (set.contains(integer))
-            {
+            if (set.contains(integer)) {
                 keybinding1.setKeyCode(0);
             }
         }

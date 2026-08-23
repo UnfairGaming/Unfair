@@ -1,8 +1,8 @@
 package net.minecraft.client.renderer.entity;
 
-import cn.unfair.util.via.ViaBackwardsItemModels;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.GlintEvent;
+import cn.unfair.util.via.ViaBackwardsItemModels;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -36,7 +36,6 @@ import net.optifine.shaders.Shaders;
 import net.optifine.shaders.ShadersRender;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class RenderItem implements IResourceManagerReloadListener {
     public static final ResourceLocation RES_ITEM_GLINT = ResourceLocation.of("textures/misc/enchanted_item_glint.png");

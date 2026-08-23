@@ -1,8 +1,8 @@
 package net.minecraft.world;
 
 import cn.unfair.Unfair;
-import cn.unfair.module.modules.player.AntiObbyTrap;
 import cn.unfair.module.modules.movement.Jesus;
+import cn.unfair.module.modules.player.AntiObbyTrap;
 import cn.unfair.module.modules.render.Ambience;
 import cn.unfair.util.via.ModernWorldHeight;
 import com.google.common.base.Predicate;
@@ -50,7 +50,6 @@ import net.minecraft.world.storage.MapStorage;
 import net.minecraft.world.storage.WorldInfo;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public abstract class World implements IBlockAccess, ILightingEngineProvider {
     static BlockPos.MutableBlockPos MUTABLE_BLOCK_POS = new BlockPos.MutableBlockPos();

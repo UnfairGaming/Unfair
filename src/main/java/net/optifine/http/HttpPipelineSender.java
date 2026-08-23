@@ -10,47 +10,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class HttpPipelineSender extends Thread
-{
+public class HttpPipelineSender extends Thread {
     private HttpPipelineConnection httpPipelineConnection = null;
     private static final String CRLF = "\r\n";
     private static Charset ASCII = StandardCharsets.US_ASCII;
 
-    public HttpPipelineSender(HttpPipelineConnection httpPipelineConnection)
-    {
+    public HttpPipelineSender(HttpPipelineConnection httpPipelineConnection) {
         super("HttpPipelineSender");
         this.httpPipelineConnection = httpPipelineConnection;
     }
 
-    public void run()
-    {
+    public void run() {
         HttpPipelineRequest httppipelinerequest = null;
 
-        try
-        {
+        try {
             this.connect();
 
-            while (!Thread.interrupted())
-            {
+            while (!Thread.interrupted()) {
                 httppipelinerequest = this.httpPipelineConnection.getNextRequestSend();
                 HttpRequest httprequest = httppipelinerequest.getHttpRequest();
                 OutputStream outputstream = this.httpPipelineConnection.getOutputStream();
                 this.writeRequest(httprequest, outputstream);
                 this.httpPipelineConnection.onRequestSent(httppipelinerequest);
             }
-        }
-        catch (InterruptedException var4)
-        {
+        } catch (InterruptedException var4) {
             return;
-        }
-        catch (Exception exception)
-        {
+        } catch (Exception exception) {
             this.httpPipelineConnection.onExceptionSend(httppipelinerequest, exception);
         }
     }
 
-    private void connect() throws IOException
-    {
+    private void connect() throws IOException {
         String s = this.httpPipelineConnection.getHost();
         int i = this.httpPipelineConnection.getPort();
         Proxy proxy = this.httpPipelineConnection.getProxy();
@@ -59,13 +49,11 @@ public class HttpPipelineSender extends Thread
         this.httpPipelineConnection.setSocket(socket);
     }
 
-    private void writeRequest(HttpRequest req, OutputStream out) throws IOException
-    {
+    private void writeRequest(HttpRequest req, OutputStream out) throws IOException {
         this.write(out, req.getMethod() + " " + req.getFile() + " " + req.getHttp() + "\r\n");
         Map<String, String> map = req.getHeaders();
 
-        for (String s : map.keySet())
-        {
+        for (String s : map.keySet()) {
             String s1 = req.getHeaders().get(s);
             this.write(out, s + ": " + s1 + "\r\n");
         }
@@ -73,8 +61,7 @@ public class HttpPipelineSender extends Thread
         this.write(out, "\r\n");
     }
 
-    private void write(OutputStream out, String str) throws IOException
-    {
+    private void write(OutputStream out, String str) throws IOException {
         byte[] abyte = str.getBytes(ASCII);
         out.write(abyte);
     }

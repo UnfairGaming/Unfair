@@ -1,7 +1,7 @@
 package net.minecraft.block;
 
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -11,8 +11,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
 public class BlockPowderSnow extends ModernBlock {
     protected BlockPowderSnow() {

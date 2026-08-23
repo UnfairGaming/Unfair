@@ -16,7 +16,6 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldSettings;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 public class TeleportToPlayer implements ISpectatorMenuView, ISpectatorMenuObject {

@@ -78,7 +78,6 @@ import org.lwjgl.util.vector.Vector4f;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public class RenderGlobal implements IWorldAccess, IResourceManagerReloadListener {
     private static final Logger logger = LogManager.getLogger();

@@ -1,9 +1,9 @@
 package net.minecraft.world.chunk;
 
+import cn.unfair.util.via.ModernWorldHeight;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
-import cn.unfair.util.via.ModernWorldHeight;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Chunk implements IChunkLighting, IChunkLightingData, ILightingEngineProvider {

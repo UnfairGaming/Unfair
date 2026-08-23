@@ -16,7 +16,6 @@ import net.minecraft.world.World;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 public abstract class CommandBlockLogic implements ICommandSender {
     /**

@@ -29,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.concurrent.Callable;
 
 public class IntegratedServer extends MinecraftServer {
     private static final Logger logger = LogManager.getLogger();

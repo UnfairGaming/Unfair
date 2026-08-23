@@ -1,30 +1,25 @@
 package net.optifine.util;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class CounterInt
-{
+public class CounterInt {
     private int startValue;
     private int value;
 
-    public CounterInt(int startValue)
-    {
+    public CounterInt(int startValue) {
         this.startValue = startValue;
         this.value = startValue;
     }
 
-    public synchronized int nextValue()
-    {
+    public synchronized int nextValue() {
         int i = this.value++;
         return i;
     }
 
-    public synchronized void reset()
-    {
+    public synchronized void reset() {
         this.value = this.startValue;
     }
 
-    public int getValue()
-    {
+    public int getValue() {
         return this.value;
     }
 }

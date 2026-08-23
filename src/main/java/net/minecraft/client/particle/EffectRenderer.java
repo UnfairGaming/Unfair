@@ -21,7 +21,6 @@ import net.minecraft.util.*;
 import net.minecraft.world.World;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public class EffectRenderer {
     private static final ResourceLocation particleTextures = ResourceLocation.of("textures/particle/particles.png");

@@ -11,8 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class GuiMessage extends GuiScreen
-{
+public class GuiMessage extends GuiScreen {
     private GuiScreen parentScreen;
     private String messageLine1;
     private String messageLine2;
@@ -20,8 +19,7 @@ public class GuiMessage extends GuiScreen
     protected String confirmButtonText;
     private int ticksUntilEnable;
 
-    public GuiMessage(GuiScreen parentScreen, String line1, String line2)
-    {
+    public GuiMessage(GuiScreen parentScreen, String line1, String line2) {
         this.parentScreen = parentScreen;
         this.messageLine1 = line1;
         this.messageLine2 = line2;
@@ -32,8 +30,7 @@ public class GuiMessage extends GuiScreen
      * Adds the buttons (and other controls) to the screen in question. Called when the GUI is displayed and when the
      * window resizes, the buttonList is cleared beforehand.
      */
-    public void initGui()
-    {
+    public void initGui() {
         this.buttonList.add(new GuiOptionButton(0, this.width / 2 - 74, this.height / 6 + 96, this.confirmButtonText));
         this.listLines2.clear();
         this.listLines2.addAll(this.fontRendererObj.listFormattedStringToWidth(this.messageLine2, this.width - 50));
@@ -42,22 +39,19 @@ public class GuiMessage extends GuiScreen
     /**
      * Called by the controls from the buttonList when activated. (Mouse pressed for buttons)
      */
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
+    protected void actionPerformed(GuiButton button) throws IOException {
         Config.getMinecraft().displayGuiScreen(this.parentScreen);
     }
 
     /**
      * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
      */
-    public void drawScreen(int mouseX, int mouseY, float partialTicks)
-    {
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRendererObj, this.messageLine1, this.width / 2, 70, 16777215);
         int i = 90;
 
-        for (Object o : this.listLines2)
-        {
+        for (Object o : this.listLines2) {
             String s = String.valueOf(o);
             this.drawCenteredString(this.fontRendererObj, s, this.width / 2, i, 16777215);
             i += this.fontRendererObj.FONT_HEIGHT;
@@ -66,12 +60,10 @@ public class GuiMessage extends GuiScreen
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
-    public void setButtonDelay(int ticksUntilEnable)
-    {
+    public void setButtonDelay(int ticksUntilEnable) {
         this.ticksUntilEnable = ticksUntilEnable;
 
-        for (GuiButton guibutton : this.buttonList)
-        {
+        for (GuiButton guibutton : this.buttonList) {
             guibutton.enabled = false;
         }
     }
@@ -79,14 +71,11 @@ public class GuiMessage extends GuiScreen
     /**
      * Called from the main game loop to update the screen.
      */
-    public void updateScreen()
-    {
+    public void updateScreen() {
         super.updateScreen();
 
-        if (--this.ticksUntilEnable == 0)
-        {
-            for (GuiButton guibutton : this.buttonList)
-            {
+        if (--this.ticksUntilEnable == 0) {
+            for (GuiButton guibutton : this.buttonList) {
                 guibutton.enabled = true;
             }
         }

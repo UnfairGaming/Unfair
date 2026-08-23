@@ -1,21 +1,17 @@
 package net.optifine.expr;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class ExpressionFloatCached implements IExpressionFloat, IExpressionCached
-{
+public class ExpressionFloatCached implements IExpressionFloat, IExpressionCached {
     private IExpressionFloat expression;
     private boolean cached;
     private float value;
 
-    public ExpressionFloatCached(IExpressionFloat expression)
-    {
+    public ExpressionFloatCached(IExpressionFloat expression) {
         this.expression = expression;
     }
 
-    public float eval()
-    {
-        if (!this.cached)
-        {
+    public float eval() {
+        if (!this.cached) {
             this.value = this.expression.eval();
             this.cached = true;
         }
@@ -23,18 +19,15 @@ public class ExpressionFloatCached implements IExpressionFloat, IExpressionCache
         return this.value;
     }
 
-    public void reset()
-    {
+    public void reset() {
         this.cached = false;
     }
 
-    public ExpressionType getExpressionType()
-    {
+    public ExpressionType getExpressionType() {
         return ExpressionType.FLOAT;
     }
 
-    public String toString()
-    {
+    public String toString() {
         return "cached(" + this.expression + ")";
     }
 }

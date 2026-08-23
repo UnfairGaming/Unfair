@@ -9,7 +9,6 @@ import cn.unfair.management.RotationState;
 import cn.unfair.module.modules.movement.Jesus;
 import cn.unfair.util.via.ModernPlayerPhysics;
 import cn.unfair.util.via.ViaProtocol;
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;

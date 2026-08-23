@@ -3,8 +3,8 @@ package net.minecraft.entity;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.KnockbackEvent;
-import cn.unfair.events.StuckInBlockEvent;
 import cn.unfair.events.SafeWalkEvent;
+import cn.unfair.events.StuckInBlockEvent;
 import cn.unfair.module.modules.movement.FastWeb;
 import cn.unfair.module.modules.render.FreeLook;
 import cn.unfair.util.via.ModernFluidPhysics;
@@ -55,7 +55,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 public abstract class Entity implements ICommandSender, Cullable {
     private static final AxisAlignedBB ZERO_AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);

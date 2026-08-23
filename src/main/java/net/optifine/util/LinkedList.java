@@ -3,8 +3,7 @@ package net.optifine.util;
 import java.util.Iterator;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public class LinkedList<T>
-{
+public class LinkedList<T> {
     private LinkedList.Node<T> first;
     private LinkedList.Node<T> last;
     private int size;
@@ -12,8 +11,7 @@ public class LinkedList<T>
     public void addFirst(LinkedList.Node<T> tNode) {
         this.checkNoParent(tNode);
 
-        if (this.isEmpty())
-        {
+        if (this.isEmpty()) {
             this.first = tNode;
             this.last = tNode;
         } else {
@@ -30,8 +28,7 @@ public class LinkedList<T>
     public void addLast(LinkedList.Node<T> tNode) {
         this.checkNoParent(tNode);
 
-        if (this.isEmpty())
-        {
+        if (this.isEmpty()) {
             this.first = tNode;
             this.last = tNode;
         } else {
@@ -87,64 +84,50 @@ public class LinkedList<T>
         return tNode;
     }
 
-    public void moveAfter(LinkedList.Node<T> nodePrev, LinkedList.Node<T> node)
-    {
+    public void moveAfter(LinkedList.Node<T> nodePrev, LinkedList.Node<T> node) {
         this.remove(node);
         this.addAfter(nodePrev, node);
     }
 
-    public boolean find(LinkedList.Node<T> nodeFind, LinkedList.Node<T> nodeFrom, LinkedList.Node<T> nodeTo)
-    {
+    public boolean find(LinkedList.Node<T> nodeFind, LinkedList.Node<T> nodeFrom, LinkedList.Node<T> nodeTo) {
         this.checkParent(nodeFrom);
 
-        if (nodeTo != null)
-        {
+        if (nodeTo != null) {
             this.checkParent(nodeTo);
         }
 
         LinkedList.Node<T> node;
 
-        for (node = nodeFrom; node != null && node != nodeTo; node = node.getNext())
-        {
-            if (node == nodeFind)
-            {
+        for (node = nodeFrom; node != null && node != nodeTo; node = node.getNext()) {
+            if (node == nodeFind) {
                 return true;
             }
         }
 
-        if (node != nodeTo)
-        {
+        if (node != nodeTo) {
             throw new IllegalArgumentException("Sublist is not linked, from: " + nodeFrom + ", to: " + nodeTo);
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
 
-    private void checkParent(LinkedList.Node<T> node)
-    {
-        if (node.parent != this)
-        {
+    private void checkParent(LinkedList.Node<T> node) {
+        if (node.parent != this) {
             throw new IllegalArgumentException("Node has different parent, node: " + node + ", parent: " + node.parent + ", this: " + this);
         }
     }
 
-    private void checkNoParent(LinkedList.Node<T> node)
-    {
-        if (node.parent != null)
-        {
+    private void checkNoParent(LinkedList.Node<T> node) {
+        if (node.parent != null) {
             throw new IllegalArgumentException("Node has different parent, node: " + node + ", parent: " + node.parent + ", this: " + this);
         }
     }
 
-    public boolean contains(LinkedList.Node<T> node)
-    {
+    public boolean contains(LinkedList.Node<T> node) {
         return node.parent == this;
     }
 
-    public Iterator<LinkedList.Node<T>> iterator()
-    {
+    public Iterator<LinkedList.Node<T>> iterator() {
         return new Iterator<>() {
             Node<T> node = LinkedList.this.getFirst();
 
@@ -164,34 +147,28 @@ public class LinkedList<T>
         };
     }
 
-    public LinkedList.Node<T> getFirst()
-    {
+    public LinkedList.Node<T> getFirst() {
         return this.first;
     }
 
-    public LinkedList.Node<T> getLast()
-    {
+    public LinkedList.Node<T> getLast() {
         return this.last;
     }
 
-    public int getSize()
-    {
+    public int getSize() {
         return this.size;
     }
 
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return this.size <= 0;
     }
 
-    public String toString()
-    {
+    public String toString() {
         StringBuilder builder = new StringBuilder();
 
         for (Iterator<Node<T>> it = iterator(); it.hasNext(); ) {
             Node<T> node = it.next();
-            if (!builder.isEmpty())
-            {
+            if (!builder.isEmpty()) {
                 builder.append(", ");
             }
 
@@ -201,50 +178,41 @@ public class LinkedList<T>
         return this.size + " [" + builder + "]";
     }
 
-    public static class Node<T>
-    {
+    public static class Node<T> {
         private final T item;
         private LinkedList.Node<T> prev;
         private LinkedList.Node<T> next;
         private LinkedList<T> parent;
 
-        public Node(T item)
-        {
+        public Node(T item) {
             this.item = item;
         }
 
-        public T getItem()
-        {
+        public T getItem() {
             return this.item;
         }
 
-        public LinkedList.Node<T> getPrev()
-        {
+        public LinkedList.Node<T> getPrev() {
             return this.prev;
         }
 
-        public LinkedList.Node<T> getNext()
-        {
+        public LinkedList.Node<T> getNext() {
             return this.next;
         }
 
-        private void setPrev(LinkedList.Node<T> prev)
-        {
+        private void setPrev(LinkedList.Node<T> prev) {
             this.prev = prev;
         }
 
-        private void setNext(LinkedList.Node<T> next)
-        {
+        private void setNext(LinkedList.Node<T> next) {
             this.next = next;
         }
 
-        private void setParent(LinkedList<T> parent)
-        {
+        private void setParent(LinkedList<T> parent) {
             this.parent = parent;
         }
 
-        public String toString()
-        {
+        public String toString() {
             return String.valueOf(this.item);
         }
     }

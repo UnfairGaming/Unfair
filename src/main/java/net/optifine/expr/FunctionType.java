@@ -11,8 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
-public enum FunctionType
-{
+public enum FunctionType {
     PLUS(10, ExpressionType.FLOAT, "+", new ExpressionType[]{ExpressionType.FLOAT, ExpressionType.FLOAT}),
     MINUS(10, ExpressionType.FLOAT, "-", new ExpressionType[]{ExpressionType.FLOAT, ExpressionType.FLOAT}),
     MUL(11, ExpressionType.FLOAT, "*", new ExpressionType[]{ExpressionType.FLOAT, ExpressionType.FLOAT}),
@@ -72,60 +71,50 @@ public enum FunctionType
     public static FunctionType[] VALUES = values();
     private static final Map<Integer, Float> mapSmooth = new HashMap<>();
 
-    FunctionType(ExpressionType expressionType, String name, ExpressionType[] parameterTypes)
-    {
+    FunctionType(ExpressionType expressionType, String name, ExpressionType[] parameterTypes) {
         this(0, expressionType, name, parameterTypes);
     }
 
-    FunctionType(int precedence, ExpressionType expressionType, String name, ExpressionType[] parameterTypes)
-    {
+    FunctionType(int precedence, ExpressionType expressionType, String name, ExpressionType[] parameterTypes) {
         this(precedence, expressionType, name, new Parameters(parameterTypes));
     }
 
-    FunctionType(ExpressionType expressionType, String name, IParameters parameters)
-    {
+    FunctionType(ExpressionType expressionType, String name, IParameters parameters) {
         this(0, expressionType, name, parameters);
     }
 
-    FunctionType(int precedence, ExpressionType expressionType, String name, IParameters parameters)
-    {
+    FunctionType(int precedence, ExpressionType expressionType, String name, IParameters parameters) {
         this.precedence = precedence;
         this.expressionType = expressionType;
         this.name = name;
         this.parameters = parameters;
     }
-    public String getName()
-    {
+
+    public String getName() {
         return this.name;
     }
 
-    public int getPrecedence()
-    {
+    public int getPrecedence() {
         return this.precedence;
     }
 
-    public ExpressionType getExpressionType()
-    {
+    public ExpressionType getExpressionType() {
         return this.expressionType;
     }
 
-    public IParameters getParameters()
-    {
+    public IParameters getParameters() {
         return this.parameters;
     }
 
-    public int getParameterCount(IExpression[] arguments)
-    {
+    public int getParameterCount(IExpression[] arguments) {
         return this.parameters.getParameterTypes(arguments).length;
     }
 
-    public ExpressionType[] getParameterTypes(IExpression[] arguments)
-    {
+    public ExpressionType[] getParameterTypes(IExpression[] arguments) {
         return this.parameters.getParameterTypes(arguments);
     }
 
-    public float evalFloat(IExpression[] args)
-    {
+    public float evalFloat(IExpression[] args) {
         switch (this) {
             case PLUS -> {
                 return evalFloat(args, 0) + evalFloat(args, 1);
@@ -257,22 +246,16 @@ public enum FunctionType
         }
     }
 
-    private float getMin(IExpression[] exprs)
-    {
-        if (exprs.length == 2)
-        {
+    private float getMin(IExpression[] exprs) {
+        if (exprs.length == 2) {
             return Math.min(evalFloat(exprs, 0), evalFloat(exprs, 1));
-        }
-        else
-        {
+        } else {
             float f = evalFloat(exprs, 0);
 
-            for (int i = 1; i < exprs.length; ++i)
-            {
+            for (int i = 1; i < exprs.length; ++i) {
                 float f1 = evalFloat(exprs, i);
 
-                if (f1 < f)
-                {
+                if (f1 < f) {
                     f = f1;
                 }
             }
@@ -281,22 +264,16 @@ public enum FunctionType
         }
     }
 
-    private float getMax(IExpression[] exprs)
-    {
-        if (exprs.length == 2)
-        {
+    private float getMax(IExpression[] exprs) {
+        if (exprs.length == 2) {
             return Math.max(evalFloat(exprs, 0), evalFloat(exprs, 1));
-        }
-        else
-        {
+        } else {
             float f = evalFloat(exprs, 0);
 
-            for (int i = 1; i < exprs.length; ++i)
-            {
+            for (int i = 1; i < exprs.length; ++i) {
                 float f1 = evalFloat(exprs, i);
 
-                if (f1 > f)
-                {
+                if (f1 > f) {
                     f = f1;
                 }
             }
@@ -305,14 +282,12 @@ public enum FunctionType
         }
     }
 
-    private static float evalFloat(IExpression[] exprs, int index)
-    {
-        IExpressionFloat iexpressionfloat = (IExpressionFloat)exprs[index];
+    private static float evalFloat(IExpression[] exprs, int index) {
+        IExpressionFloat iexpressionfloat = (IExpressionFloat) exprs[index];
         return iexpressionfloat.eval();
     }
 
-    public boolean evalBool(IExpression[] args)
-    {
+    public boolean evalBool(IExpression[] args) {
         switch (this) {
             case TRUE -> {
                 return true;
@@ -374,14 +349,12 @@ public enum FunctionType
         }
     }
 
-    private static boolean evalBool(IExpression[] exprs, int index)
-    {
-        IExpressionBool iexpressionbool = (IExpressionBool)exprs[index];
+    private static boolean evalBool(IExpression[] exprs, int index) {
+        IExpressionBool iexpressionbool = (IExpressionBool) exprs[index];
         return iexpressionbool.eval();
     }
 
-    public float[] evalFloatArray(IExpression[] args)
-    {
+    public float[] evalFloatArray(IExpression[] args) {
         switch (this) {
             case VEC2 -> {
                 return new float[]{evalFloat(args, 0), evalFloat(args, 1)};
@@ -399,8 +372,7 @@ public enum FunctionType
         }
     }
 
-    public static FunctionType parse(String str)
-    {
+    public static FunctionType parse(String str) {
         for (FunctionType functiontype : VALUES) {
             if (functiontype.getName().equals(str)) {
                 return functiontype;

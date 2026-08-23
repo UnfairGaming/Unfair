@@ -1,6 +1,5 @@
 package net.minecraft.util;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 

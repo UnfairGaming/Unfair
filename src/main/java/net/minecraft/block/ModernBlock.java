@@ -1,16 +1,12 @@
 package net.minecraft.block;
 
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.BlockPos;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemHoe;
-import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemSpade;
-import net.minecraft.item.ItemStack;
 import net.minecraft.entity.player.EntityPlayer;
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import net.minecraft.item.*;
+import net.minecraft.util.BlockPos;
 
 import java.util.List;
 
