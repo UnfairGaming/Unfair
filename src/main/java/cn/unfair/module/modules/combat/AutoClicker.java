@@ -7,7 +7,6 @@ import cn.unfair.events.LeftClickMouseEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.ItemUtil;
 import cn.unfair.util.KeyBindUtil;
@@ -24,8 +23,6 @@ public class AutoClicker extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final IntProperty minCPS = new IntProperty("Min Cps", 8, 1, 20);
     public final IntProperty maxCPS = new IntProperty("Max Cps", 12, 1, 20);
-    public final BooleanProperty blockHit = new BooleanProperty("Block Hit", false);
-    public final FloatProperty blockHitTicks = new FloatProperty("Block Hit Ticks", 1.5F, 1.0F, 20.0F, this.blockHit::getValue);
     public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", true);
     public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
     public final BooleanProperty breakBlocks = new BooleanProperty("Break Blocks", true);
@@ -44,10 +41,6 @@ public class AutoClicker extends Module {
 
     private long getNextClickDelay() {
         return this.delayGenerator.nextDelay(this.minCPS.getValue(), this.maxCPS.getValue());
-    }
-
-    private long getBlockHitDelay() {
-        return (long) (50.0F * this.blockHitTicks.getValue());
     }
 
     private boolean isBreakingBlock() {
@@ -111,17 +104,6 @@ public class AutoClicker extends Module {
                             this.clickDelay = this.clickDelay + this.getNextClickDelay();
                             KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
                             KeyBindUtil.pressKeyOnce(mc.gameSettings.keyBindAttack.getKeyCode());
-                        }
-                    }
-                    if (this.blockHit.getValue()
-                            && this.blockHitDelay <= 0L
-                            && mc.gameSettings.keyBindUseItem.isKeyDown()
-                            && ItemUtil.isHoldingSword()) {
-                        this.blockHitPending = true;
-                        KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
-                        if (!mc.thePlayer.isUsingItem()) {
-                            this.blockHitDelay = this.blockHitDelay + this.getBlockHitDelay();
-                            KeyBindUtil.pressKeyOnce(mc.gameSettings.keyBindUseItem.getKeyCode());
                         }
                     }
                 }
