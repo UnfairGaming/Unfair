@@ -5,6 +5,7 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.PickEvent;
 import cn.unfair.events.RaytraceEvent;
 import cn.unfair.events.Render3DEvent;
+import cn.unfair.module.modules.combat.Autoblock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.render.AntiDebuff;
 import cn.unfair.module.modules.player.AutoBlockIn;
@@ -57,6 +58,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.potion.Potion;
 import net.minecraft.rendering.ParticleCulling;
 import net.minecraft.server.integrated.IntegratedServer;
@@ -436,12 +438,18 @@ public class EntityRenderer implements IResourceManagerReloadListener {
 
         if (includeBlocking) {
             KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
-
+            boolean killAuraAttacking = killAura != null
+                    && killAura.isEnabled()
+                    && KillAura.target != null;
+            Autoblock autoblock = (Autoblock) Unfair.moduleManager.modules.get(Autoblock.class);
             if (killAura.isEnabled() && killAura.isBlocking()) {
                 this.unfairHasSavedItemInUse = true;
                 this.unfairSavedItemInUse = this.mc.thePlayer.getItemInUse();
                 this.unfairSavedItemInUseCount = this.mc.thePlayer.getItemInUseCount();
                 this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
+                this.mc.thePlayer.setItemInUseCount(69000);
+            } else if (autoblock.isEnabled() && autoblock.forceBlockAnimation.getValue() && (Mouse.isButtonDown(0) || killAuraAttacking) && mc.thePlayer.inventory.getCurrentItem().getItem() instanceof ItemSword){
+//                this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
                 this.mc.thePlayer.setItemInUseCount(69000);
             }
         }

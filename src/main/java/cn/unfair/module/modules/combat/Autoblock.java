@@ -94,6 +94,9 @@ public class Autoblock extends Module {
         if (!this.isEnabled() || event.getType() != EventType.SEND || event.isCancelled()) {
             return;
         }
+        if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            return;
+        }
         if (this.isBedNukerActive()) {
             this.releaseLag();
             return;
@@ -113,6 +116,9 @@ public class Autoblock extends Module {
     @EventTarget
     public void onTick(TickEvent event) {
         if (!this.isEnabled() || event.type() != EventType.PRE) {
+            return;
+        }
+        if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             return;
         }
         if (!this.isReady()) {
@@ -199,17 +205,6 @@ public class Autoblock extends Module {
                 }
                 this.stopBlocking(true);
             }
-        }
-    }
-
-    @EventTarget
-    public void onRenderItem(RenderItemEvent event) {
-        if (this.isEnabled()
-                && this.forceBlockAnimation.getValue()
-                && (this.blocking || this.lagging)
-                && ItemUtil.isHoldingSword()) {
-            event.setEnumAction(EnumAction.BLOCK);
-            event.setUseItem(true);
         }
     }
 
