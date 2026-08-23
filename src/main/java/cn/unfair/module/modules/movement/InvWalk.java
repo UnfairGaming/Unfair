@@ -11,7 +11,6 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.ui.clickgui.augustus.AugustusClickGui;
-import cn.unfair.ui.clickgui.raven.RavenClickGui;
 import cn.unfair.util.KeyBindUtil;
 import cn.unfair.util.PacketUtil;
 import net.minecraft.client.Minecraft;
@@ -93,7 +92,7 @@ public class InvWalk extends Module {
     public void onUpdate(UpdateEvent event) {
         if (!this.isEnabled() || event.getType() != EventType.PRE) return;
 
-        if ((mc.currentScreen instanceof RavenClickGui || mc.currentScreen instanceof AugustusClickGui) && this.guiEnabled.getValue()) {
+        if ((mc.currentScreen instanceof AugustusClickGui) && this.guiEnabled.getValue()) {
             pressMovementKeys();
             return;
         }
