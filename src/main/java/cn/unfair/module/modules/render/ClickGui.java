@@ -9,7 +9,7 @@ import org.lwjgl.input.Keyboard;
 
 public class ClickGui extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Augustus"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Augustus"});
     private AugustusClickGui augustusClickGui;
 
     public ClickGui() {
