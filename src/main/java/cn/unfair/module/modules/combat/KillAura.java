@@ -1096,12 +1096,22 @@ public class KillAura extends Module {
                     if (this.rotations.getValue() == 2) {
                         float randomOffset = (float) this.angleStep.getValue() + RandomUtil.nextFloat(-5.0F, 5.0F);
                         float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
-                        float[] targetRotations = RotationUtil.getRotationsToBox(
-                                target.getBox(),
-                                event.getYaw(),
-                                event.getPitch(),
-                                randomOffset,
-                                smoothFactor
+                        AxisAlignedBB targetBox = target.getBox();
+                        Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
+                        double preferredY = targetBox.minY + (targetBox.maxY - targetBox.minY) * 0.75D;
+                        Vec3 aimPoint = RotationUtil.getBestAimPoint(
+                                target.getEntity(), targetBox, eyes, preferredY,
+                                this.swingRange.getValue(), 1.0D, 1.0D,
+                                this.throughWalls.getValue(), true
+                        );
+                        if (aimPoint == null) {
+                            aimPoint = RotationUtil.getAimPoint(
+                                    targetBox, eyes, preferredY, 1.0D, 1.0D
+                            );
+                        }
+                        currentAimVec = aimPoint;
+                        float[] targetRotations = RotationUtil.getRotationsToPoint(
+                                aimPoint, eyes, event.getYaw(), event.getPitch(), randomOffset, smoothFactor
                         );
                         float[] smoothed = interpolateRotation(targetRotations[0], targetRotations[1]);
                         this.controlledRotation = true;

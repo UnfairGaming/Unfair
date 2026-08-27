@@ -6,10 +6,17 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class RotationUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final double AIM_FACE_INSET = 0.05D;
+    private static final int AIM_BACKUP_POINT_COUNT = 30;
 
     public static float wrapAngleDiff(float angle, float target) {
         return target + MathHelper.wrapAngleTo180_float(angle - target);
@@ -49,6 +56,204 @@ public class RotationUtil {
         double deltaY = eyePos.yCoord >= maxTargetY ? maxTargetY - eyePos.yCoord : (eyePos.yCoord <= minTargetY ? minTargetY - eyePos.yCoord : 0.0);
         double deltaZ = (boundingBox.minZ + boundingBox.maxZ) / 2.0 - eyePos.zCoord;
         return RotationUtil.getRotations(deltaX, deltaY, deltaZ, yaw, pitch, maxAngle, smoothFactor);
+    }
+
+    public static Vec3 getBestAimPoint(
+            Entity target, AxisAlignedBB boundingBox, Vec3 eyePos, double preferredY, double range,
+            double horizontalMultipoint, double verticalMultipoint,
+            boolean throughWalls, boolean throughEntities
+    ) {
+        Vec3 mainPoint = getAimPoint(
+                boundingBox, eyePos, preferredY, horizontalMultipoint, verticalMultipoint
+        );
+        if (throughWalls && throughEntities) {
+            return mainPoint;
+        }
+        if (eyePos.squareDistanceTo(mainPoint) < 1.0E-6D) {
+            return mainPoint;
+        }
+        if (!rayHitsBox(eyePos, mainPoint, boundingBox, range)) {
+            return null;
+        }
+        if (canAimAtPoint(eyePos, mainPoint, target, boundingBox, range, throughWalls, throughEntities)) {
+            return mainPoint;
+        }
+
+        List<Vec3> backupPoints = buildBackupAimPoints(boundingBox, eyePos);
+        backupPoints.sort(Comparator.comparingDouble(eyePos::squareDistanceTo));
+        for (Vec3 point : backupPoints) {
+            if (canAimAtPoint(eyePos, point, target, boundingBox, range, throughWalls, throughEntities)) {
+                return point;
+            }
+        }
+        return null;
+    }
+
+    public static Vec3 getAimPoint(
+            AxisAlignedBB boundingBox, Vec3 eyePos, double preferredY,
+            double horizontalMultipoint, double verticalMultipoint
+    ) {
+        double centerX = (boundingBox.minX + boundingBox.maxX) * 0.5D;
+        double centerY = MathHelper.clamp_double(preferredY, boundingBox.minY, boundingBox.maxY);
+        double centerZ = (boundingBox.minZ + boundingBox.maxZ) * 0.5D;
+        if (boundingBox.isVecInside(eyePos)) {
+            return new Vec3(centerX, eyePos.yCoord, centerZ);
+        }
+
+        Vec3 closest = getClosestPointOnBox(eyePos, boundingBox);
+        double horizontal = MathHelper.clamp_double(horizontalMultipoint, 0.0D, 1.0D);
+        double vertical = MathHelper.clamp_double(verticalMultipoint, 0.0D, 1.0D);
+        return new Vec3(
+                centerX + (closest.xCoord - centerX) * horizontal,
+                centerY + (closest.yCoord - centerY) * vertical,
+                centerZ + (closest.zCoord - centerZ) * horizontal
+        );
+    }
+
+    public static float[] getRotationsToPoint(
+            Vec3 point, Vec3 eyePos, float currentYaw, float currentPitch,
+            float maxAngle, float smoothFactor
+    ) {
+        return getRotations(
+                point.xCoord - eyePos.xCoord,
+                point.yCoord - eyePos.yCoord,
+                point.zCoord - eyePos.zCoord,
+                currentYaw, currentPitch, maxAngle, smoothFactor
+        );
+    }
+
+    public static float[] getRotationsToPoint(
+            Vec3 point, Vec3 eyePos, float currentYaw, float currentPitch, float pitchOffset
+    ) {
+        double deltaX = point.xCoord - eyePos.xCoord;
+        double deltaY = point.yCoord - eyePos.yCoord;
+        double deltaZ = point.zCoord - eyePos.zCoord;
+        double horizontalDistanceSquared = deltaX * deltaX + deltaZ * deltaZ;
+        float targetYaw = horizontalDistanceSquared < 1.0E-12D
+                ? currentYaw
+                : (float) Math.toDegrees(Math.atan2(deltaZ, deltaX)) - 90.0F;
+        float targetPitch = (float) -Math.toDegrees(
+                Math.atan2(deltaY, Math.sqrt(horizontalDistanceSquared))
+        );
+        return new float[]{
+                currentYaw + MathHelper.wrapAngleTo180_float(targetYaw - currentYaw),
+                MathHelper.clamp_float(
+                        currentPitch + MathHelper.wrapAngleTo180_float(targetPitch - currentPitch) + pitchOffset,
+                        -90.0F, 90.0F
+                )
+        };
+    }
+
+    private static boolean canAimAtPoint(
+            Vec3 eyePos, Vec3 point, Entity target, AxisAlignedBB targetBox, double range,
+            boolean throughWalls, boolean throughEntities
+    ) {
+        Vec3 end = extendToRange(eyePos, point, range);
+        if (end == null) {
+            return false;
+        }
+        MovingObjectPosition targetHit = targetBox.calculateIntercept(eyePos, end);
+        if (targetHit == null) {
+            return false;
+        }
+        double targetDistanceSquared = eyePos.squareDistanceTo(targetHit.hitVec);
+        if (!throughWalls) {
+            MovingObjectPosition blockHit = mc.theWorld.rayTraceBlocks(eyePos, end, false, false, false);
+            if (blockHit != null && eyePos.squareDistanceTo(blockHit.hitVec) < targetDistanceSquared) {
+                return false;
+            }
+        }
+        return throughEntities || !hasBlockingEntity(eyePos, end, target, targetDistanceSquared);
+    }
+
+    private static boolean hasBlockingEntity(Vec3 eyePos, Vec3 end, Entity target, double targetDistanceSquared) {
+        for (Entity entity : mc.theWorld.loadedEntityList) {
+            if (entity == mc.thePlayer || entity == target || entity.isDead || !entity.canBeCollidedWith()) {
+                continue;
+            }
+            float border = entity.getCollisionBorderSize();
+            AxisAlignedBB box = entity.getEntityBoundingBox().expand(border, border, border);
+            if (box.isVecInside(eyePos)) {
+                return true;
+            }
+            MovingObjectPosition hit = box.calculateIntercept(eyePos, end);
+            if (hit != null && eyePos.squareDistanceTo(hit.hitVec) < targetDistanceSquared - 1.0E-7D) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean rayHitsBox(Vec3 eyePos, Vec3 point, AxisAlignedBB box, double range) {
+        Vec3 end = extendToRange(eyePos, point, range);
+        return end != null && box.calculateIntercept(eyePos, end) != null;
+    }
+
+    private static Vec3 extendToRange(Vec3 eyePos, Vec3 point, double range) {
+        Vec3 delta = point.subtract(eyePos);
+        double length = delta.lengthVector();
+        if (length < 1.0E-6D) {
+            return null;
+        }
+        double scale = range / length;
+        return eyePos.addVector(delta.xCoord * scale, delta.yCoord * scale, delta.zCoord * scale);
+    }
+
+    private static List<Vec3> buildBackupAimPoints(AxisAlignedBB box, Vec3 eyePos) {
+        boolean positiveX = eyePos.xCoord > box.maxX;
+        boolean negativeX = eyePos.xCoord < box.minX;
+        boolean positiveY = eyePos.yCoord > box.maxY;
+        boolean negativeY = eyePos.yCoord < box.minY;
+        boolean positiveZ = eyePos.zCoord > box.maxZ;
+        boolean negativeZ = eyePos.zCoord < box.minZ;
+        int visibleFaces = (positiveX || negativeX ? 1 : 0)
+                + (positiveY || negativeY ? 1 : 0)
+                + (positiveZ || negativeZ ? 1 : 0);
+        List<Vec3> points = new ArrayList<>();
+        if (visibleFaces == 0) {
+            return points;
+        }
+
+        int pointsPerFace = AIM_BACKUP_POINT_COUNT / visibleFaces;
+        if (positiveX || negativeX) {
+            addFaceGrid(points, 0, positiveX ? box.maxX - AIM_FACE_INSET : box.minX + AIM_FACE_INSET,
+                    box.minY + AIM_FACE_INSET, box.maxY - AIM_FACE_INSET,
+                    box.minZ + AIM_FACE_INSET, box.maxZ - AIM_FACE_INSET, pointsPerFace);
+        }
+        if (positiveY || negativeY) {
+            addFaceGrid(points, 1, positiveY ? box.maxY - AIM_FACE_INSET : box.minY + AIM_FACE_INSET,
+                    box.minX + AIM_FACE_INSET, box.maxX - AIM_FACE_INSET,
+                    box.minZ + AIM_FACE_INSET, box.maxZ - AIM_FACE_INSET, pointsPerFace);
+        }
+        if (positiveZ || negativeZ) {
+            addFaceGrid(points, 2, positiveZ ? box.maxZ - AIM_FACE_INSET : box.minZ + AIM_FACE_INSET,
+                    box.minX + AIM_FACE_INSET, box.maxX - AIM_FACE_INSET,
+                    box.minY + AIM_FACE_INSET, box.maxY - AIM_FACE_INSET, pointsPerFace);
+        }
+        return points;
+    }
+
+    private static void addFaceGrid(
+            List<Vec3> points, int fixedAxis, double fixedValue,
+            double firstMin, double firstMax, double secondMin, double secondMax, int targetPoints
+    ) {
+        double firstSize = firstMax - firstMin;
+        double secondSize = secondMax - secondMin;
+        int firstCount = Math.max(2, (int) Math.round(Math.sqrt(targetPoints * firstSize / secondSize)));
+        int secondCount = Math.max(2, (int) Math.round(Math.sqrt(targetPoints * secondSize / firstSize)));
+        for (int first = 0; first < firstCount; first++) {
+            double firstValue = firstMin + firstSize * first / (firstCount - 1);
+            for (int second = 0; second < secondCount; second++) {
+                double secondValue = secondMin + secondSize * second / (secondCount - 1);
+                if (fixedAxis == 0) {
+                    points.add(new Vec3(fixedValue, firstValue, secondValue));
+                } else if (fixedAxis == 1) {
+                    points.add(new Vec3(firstValue, fixedValue, secondValue));
+                } else {
+                    points.add(new Vec3(firstValue, secondValue, fixedValue));
+                }
+            }
+        }
     }
 
     public static float[] getRotationsTo(double targetX, double targetY, double targetZ, float currentYaw, float currentPitch) {

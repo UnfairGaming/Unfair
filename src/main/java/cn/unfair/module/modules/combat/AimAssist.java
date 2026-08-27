@@ -31,8 +31,6 @@ import java.util.List;
 public class AimAssist extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int ROTATION_PRIORITY = 0;
-    private static final double BACKUP_FACE_INSET = 0.05D;
-    private static final int BACKUP_POINT_COUNT = 30;
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Silent"});
     public final IntProperty speed = new IntProperty("Speed", 10, 1, 30);
@@ -351,175 +349,28 @@ public class AimAssist extends Module {
     private Vec3 getAimPoint(Entity target) {
         AxisAlignedBB box = this.getExpandedBox(target);
         Vec3 eye = mc.thePlayer.getPositionEyes(1.0F);
-        double centerX = (box.minX + box.maxX) * 0.5D;
-        double centerY = target.posY + target.getEyeHeight();
-        double centerZ = (box.minZ + box.maxZ) * 0.5D;
-        if (box.isVecInside(eye)) {
-            return new Vec3(centerX, eye.yCoord, centerZ);
-        }
-        Vec3 closest = RotationUtil.getClosestPointOnBox(eye, box);
-        double horizontal = this.horizontalMultipoint.getValue() / 100.0D;
-        double vertical = this.verticalMultipoint.getValue() / 100.0D;
-        return new Vec3(
-                centerX + (closest.xCoord - centerX) * horizontal,
-                centerY + (closest.yCoord - centerY) * vertical,
-                centerZ + (closest.zCoord - centerZ) * horizontal
+        return RotationUtil.getAimPoint(
+                box, eye, target.posY + target.getEyeHeight(),
+                this.horizontalMultipoint.getValue() / 100.0D,
+                this.verticalMultipoint.getValue() / 100.0D
         );
     }
 
     private Vec3 findValidAimPoint(Entity target) {
         Vec3 eye = mc.thePlayer.getPositionEyes(1.0F);
-        Vec3 mainPoint = this.getAimPoint(target);
-        if (eye.squareDistanceTo(mainPoint) < 1.0E-6D) {
-            return mainPoint;
-        }
-        if (!this.rayHitsTarget(eye, mainPoint, target)) {
-            return null;
-        }
-        if (this.canAimAtPoint(eye, mainPoint, target)) {
-            return mainPoint;
-        }
-
-        List<Vec3> backupPoints = this.buildBackupPoints(target, eye);
-        backupPoints.sort(Comparator.comparingDouble(eye::squareDistanceTo));
-        for (Vec3 point : backupPoints) {
-            if (this.canAimAtPoint(eye, point, target)) {
-                return point;
-            }
-        }
-        return null;
-    }
-
-    private boolean canAimAtPoint(Vec3 eye, Vec3 point, Entity target) {
-        Vec3 delta = point.subtract(eye);
-        double length = delta.lengthVector();
-        if (length < 1.0E-6D) {
-            return false;
-        }
-        double scale = this.range.getValue() / length;
-        Vec3 end = eye.addVector(delta.xCoord * scale, delta.yCoord * scale, delta.zCoord * scale);
-        MovingObjectPosition targetHit = this.getExpandedBox(target).calculateIntercept(eye, end);
-        if (targetHit == null) {
-            return false;
-        }
-        double targetDistanceSquared = eye.squareDistanceTo(targetHit.hitVec);
-
-        if (!this.throughWalls.getValue()) {
-            MovingObjectPosition blockHit = mc.theWorld.rayTraceBlocks(eye, end, false, false, false);
-            if (blockHit != null && eye.squareDistanceTo(blockHit.hitVec) < targetDistanceSquared) {
-                return false;
-            }
-        }
-        return this.throughEntities.getValue()
-                || !this.hasBlockingEntity(eye, end, target, targetDistanceSquared);
-    }
-
-    private boolean hasBlockingEntity(Vec3 eye, Vec3 end, Entity target, double targetDistanceSquared) {
-        for (Entity entity : mc.theWorld.loadedEntityList) {
-            if (entity == mc.thePlayer || entity == target || entity.isDead || !entity.canBeCollidedWith()) {
-                continue;
-            }
-            AxisAlignedBB box = this.getExpandedBox(entity);
-            if (box.isVecInside(eye)) {
-                return true;
-            }
-            MovingObjectPosition hit = box.calculateIntercept(eye, end);
-            if (hit != null && eye.squareDistanceTo(hit.hitVec) < targetDistanceSquared - 1.0E-7D) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean rayHitsTarget(Vec3 eye, Vec3 point, Entity target) {
-        Vec3 delta = point.subtract(eye);
-        double length = delta.lengthVector();
-        if (length < 1.0E-6D) {
-            return false;
-        }
-        double scale = this.range.getValue() / length;
-        Vec3 end = eye.addVector(delta.xCoord * scale, delta.yCoord * scale, delta.zCoord * scale);
-        return this.getExpandedBox(target).calculateIntercept(eye, end) != null;
-    }
-
-    private List<Vec3> buildBackupPoints(Entity target, Vec3 eye) {
-        AxisAlignedBB box = this.getExpandedBox(target);
-        boolean positiveX = eye.xCoord > box.maxX;
-        boolean negativeX = eye.xCoord < box.minX;
-        boolean positiveY = eye.yCoord > box.maxY;
-        boolean negativeY = eye.yCoord < box.minY;
-        boolean positiveZ = eye.zCoord > box.maxZ;
-        boolean negativeZ = eye.zCoord < box.minZ;
-        int visibleFaces = (positiveX || negativeX ? 1 : 0)
-                + (positiveY || negativeY ? 1 : 0)
-                + (positiveZ || negativeZ ? 1 : 0);
-        List<Vec3> points = new ArrayList<>();
-        if (visibleFaces == 0) {
-            return points;
-        }
-
-        int pointsPerFace = BACKUP_POINT_COUNT / visibleFaces;
-        if (positiveX || negativeX) {
-            this.addFaceGrid(points, 0, positiveX ? box.maxX - BACKUP_FACE_INSET : box.minX + BACKUP_FACE_INSET,
-                    box.minY + BACKUP_FACE_INSET, box.maxY - BACKUP_FACE_INSET,
-                    box.minZ + BACKUP_FACE_INSET, box.maxZ - BACKUP_FACE_INSET, pointsPerFace);
-        }
-        if (positiveY || negativeY) {
-            this.addFaceGrid(points, 1, positiveY ? box.maxY - BACKUP_FACE_INSET : box.minY + BACKUP_FACE_INSET,
-                    box.minX + BACKUP_FACE_INSET, box.maxX - BACKUP_FACE_INSET,
-                    box.minZ + BACKUP_FACE_INSET, box.maxZ - BACKUP_FACE_INSET, pointsPerFace);
-        }
-        if (positiveZ || negativeZ) {
-            this.addFaceGrid(points, 2, positiveZ ? box.maxZ - BACKUP_FACE_INSET : box.minZ + BACKUP_FACE_INSET,
-                    box.minX + BACKUP_FACE_INSET, box.maxX - BACKUP_FACE_INSET,
-                    box.minY + BACKUP_FACE_INSET, box.maxY - BACKUP_FACE_INSET, pointsPerFace);
-        }
-        return points;
-    }
-
-    private void addFaceGrid(
-            List<Vec3> points, int fixedAxis, double fixedValue,
-            double firstMin, double firstMax, double secondMin, double secondMax, int targetPoints
-    ) {
-        double firstSize = firstMax - firstMin;
-        double secondSize = secondMax - secondMin;
-        int firstCount = Math.max(2, (int) Math.round(Math.sqrt(targetPoints * firstSize / secondSize)));
-        int secondCount = Math.max(2, (int) Math.round(Math.sqrt(targetPoints * secondSize / firstSize)));
-        for (int first = 0; first < firstCount; first++) {
-            double firstValue = firstMin + firstSize * first / (firstCount - 1);
-            for (int second = 0; second < secondCount; second++) {
-                double secondValue = secondMin + secondSize * second / (secondCount - 1);
-                switch (fixedAxis) {
-                    case 0:
-                        points.add(new Vec3(fixedValue, firstValue, secondValue));
-                        break;
-                    case 1:
-                        points.add(new Vec3(firstValue, fixedValue, secondValue));
-                        break;
-                    default:
-                        points.add(new Vec3(firstValue, secondValue, fixedValue));
-                }
-            }
-        }
+        return RotationUtil.getBestAimPoint(
+                target, this.getExpandedBox(target), eye, target.posY + target.getEyeHeight(),
+                this.range.getValue(),
+                this.horizontalMultipoint.getValue() / 100.0D,
+                this.verticalMultipoint.getValue() / 100.0D,
+                this.throughWalls.getValue(), this.throughEntities.getValue()
+        );
     }
 
     private float[] getRotationsToPoint(Vec3 point, float baseYaw, float basePitch) {
-        Vec3 eye = mc.thePlayer.getPositionEyes(1.0F);
-        double deltaX = point.xCoord - eye.xCoord;
-        double deltaY = point.yCoord - eye.yCoord;
-        double deltaZ = point.zCoord - eye.zCoord;
-        double horizontalDistanceSquared = deltaX * deltaX + deltaZ * deltaZ;
-        float targetYaw = horizontalDistanceSquared < 1.0E-12D
-                ? baseYaw
-                : (float) Math.toDegrees(Math.atan2(deltaZ, deltaX)) - 90.0F;
-        float targetPitch = (float) -Math.toDegrees(Math.atan2(deltaY, Math.sqrt(horizontalDistanceSquared)));
-        return new float[]{
-                baseYaw + MathHelper.wrapAngleTo180_float(targetYaw - baseYaw),
-                MathHelper.clamp_float(
-                        basePitch + MathHelper.wrapAngleTo180_float(targetPitch - basePitch) + 3.0F,
-                        -90.0F, 90.0F
-                )
-        };
+        return RotationUtil.getRotationsToPoint(
+                point, mc.thePlayer.getPositionEyes(1.0F), baseYaw, basePitch, 3.0F
+        );
     }
 
     private float[] smoothRotation(float baseYaw, float basePitch, float targetYaw, float targetPitch) {
