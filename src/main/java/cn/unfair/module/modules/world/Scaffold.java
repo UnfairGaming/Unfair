@@ -16,6 +16,7 @@ import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.util.render.AnimationUtil;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.rotation.RotationUtil;
+import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.world.BlockUtil;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
@@ -1302,17 +1303,26 @@ public class Scaffold extends Module {
     private boolean clickGodBridgeBlock(
             ItemStack stack, BlockPos clickPos, EnumFacing side, Vec3 hitVec, boolean placementAttempt
     ) {
+        boolean offhand = this.blockSlot != null && this.blockSlot.offhand();
+        if (offhand) {
+            stack = mc.thePlayer.inventory.getOffhand();
+        }
         if (stack == null || stack.stackSize <= 0 || !(stack.getItem() instanceof ItemBlock)) {
             return false;
         }
 
         int previousSize = stack.stackSize;
-        boolean clicked = mc.playerController.onPlayerRightClick(
-                mc.thePlayer, mc.theWorld, stack, clickPos, side, hitVec
-        );
+        boolean clicked;
+        if (offhand) {
+            clicked = ModernOffhandInteraction.sendUseItemOnBlock(mc.thePlayer, clickPos, side, hitVec);
+        } else {
+            clicked = mc.playerController.onPlayerRightClick(
+                    mc.thePlayer, mc.theWorld, stack, clickPos, side, hitVec
+            );
+        }
         registerGodBridgeRightClick();
         if (!clicked) {
-            if (mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, stack)) {
+            if (!offhand && mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, stack)) {
                 mc.entityRenderer.itemRenderer.resetEquippedProgress2();
             }
             return false;
@@ -1326,18 +1336,22 @@ public class Scaffold extends Module {
             mc.thePlayer.motionX *= godBridgeSpeedModifier.getValue();
             mc.thePlayer.motionZ *= godBridgeSpeedModifier.getValue();
         }
-        if (noSwing.getValue()) {
-            mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
-        } else {
-            mc.thePlayer.swingItem();
+        if (!offhand) {
+            if (noSwing.getValue()) {
+                mc.thePlayer.sendQueue.addToSendQueue(new C0APacketAnimation());
+            } else {
+                mc.thePlayer.swingItem();
+            }
         }
         if (mode.getValue() == 2 && !godBridgeJump.getValue()) {
             bridgePlaceCount++;
         }
-        if (stack.stackSize <= 0 && blockSlot != null && !blockSlot.offhand()) {
-            mc.thePlayer.inventory.mainInventory[mc.thePlayer.inventory.currentItem] = null;
-        } else if (stack.stackSize != previousSize || mc.playerController.isInCreativeMode()) {
-            mc.entityRenderer.itemRenderer.resetEquippedProgress();
+        if (!offhand) {
+            if (stack.stackSize <= 0 && blockSlot != null && !blockSlot.offhand()) {
+                mc.thePlayer.inventory.mainInventory[mc.thePlayer.inventory.currentItem] = null;
+            } else if (stack.stackSize != previousSize || mc.playerController.isInCreativeMode()) {
+                mc.entityRenderer.itemRenderer.resetEquippedProgress();
+            }
         }
         blockData = null;
         godBridgePlaceRotation = null;
@@ -1349,7 +1363,9 @@ public class Scaffold extends Module {
             return false;
         }
 
-        ItemStack stack = mc.thePlayer.inventory.getCurrentItem();
+        ItemStack stack = blockSlot.offhand()
+                ? mc.thePlayer.inventory.getOffhand()
+                : mc.thePlayer.inventory.getCurrentItem();
         if (!isFullBlock(stack)) {
             return false;
         }
@@ -1436,18 +1452,30 @@ public class Scaffold extends Module {
             return;
         }
         Vec3 hitVec = mop.hitVec;
-        if (!this.blockSlot.offhand()) {
+        boolean offhand = this.blockSlot != null && this.blockSlot.offhand();
+        boolean placed;
+        if (offhand) {
+            placed = ModernOffhandInteraction.sendUseItemOnBlock(
+                    mc.thePlayer, blockData.blockPos(), blockData.facing(), hitVec
+            );
+        } else {
             mc.thePlayer.inventory.currentItem = this.blockSlot.slot();
+            if (interactItem.getValue()) {
+                mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
+            }
+            placed = mc.playerController.onPlayerRightClick(
+                    mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem(),
+                    blockData.blockPos(), blockData.facing(), hitVec
+            );
         }
-        if (interactItem.getValue()) {
-            mc.playerController.sendUseItem(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem());
-        }
-        if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, mc.thePlayer.inventory.getCurrentItem(), blockData.blockPos(), blockData.facing(), hitVec)) {
+        if (placed) {
             lastPlacePosition = blockData.blockPos().offset(blockData.facing());
-            if (noSwing.getValue()) {
-                PacketUtil.sendPacket(new C0APacketAnimation());
-            } else {
-                mc.thePlayer.swingItem();
+            if (!offhand) {
+                if (noSwing.getValue()) {
+                    PacketUtil.sendPacket(new C0APacketAnimation());
+                } else {
+                    mc.thePlayer.swingItem();
+                }
             }
             if (mode.getValue() == 2 && !godBridgeJump.getValue()) {
                 bridgePlaceCount++;
