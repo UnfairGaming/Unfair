@@ -131,8 +131,9 @@ public class BedESP extends Module {
         if (this.isEnabled()) {
             this.updateTrackedBeds();
             RenderUtil.enableRenderState();
-            for (BlockPos blockPos : this.beds) {
-                IBlockState state = mc.theWorld.getBlockState(blockPos);
+            try {
+                for (BlockPos blockPos : this.beds) {
+                    IBlockState state = mc.theWorld.getBlockState(blockPos);
                 if (state.getBlock() instanceof BlockBed && state.getValue(BlockBed.PART) == EnumPartType.HEAD) {
                     BlockPos opposite = blockPos.offset(state.getValue(BlockBed.FACING).getOpposite());
                     IBlockState oppositeState = mc.theWorld.getBlockState(opposite);
@@ -193,8 +194,10 @@ public class BedESP extends Module {
                 } else {
                     this.beds.remove(blockPos);
                 }
+                }
+            } finally {
+                RenderUtil.disableRenderState();
             }
-            RenderUtil.disableRenderState();
         }
     }
 

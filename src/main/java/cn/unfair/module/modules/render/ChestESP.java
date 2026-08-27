@@ -3,6 +3,7 @@ package cn.unfair.module.modules.render;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
+import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
@@ -338,7 +339,7 @@ public class ChestESP extends Module {
         }
     }
 
-    @EventTarget
+    @EventTarget(Priority.LOW)
     public void onRender(Render3DEvent event) {
         if (!this.isEnabled() || mc.theWorld == null) {
             return;
@@ -364,26 +365,32 @@ public class ChestESP extends Module {
                 || this.mode.getValue() == 1 && !this.glowAvailable
                 || this.tracers.getValue()) {
             RenderUtil.enableRenderState();
-            Color color = this.getColor();
-            for (TileEntity chest : renderedChests) {
-                if (this.mode.getValue() == 0 || this.mode.getValue() == 1 && !this.glowAvailable) {
-                    this.drawDefaultBox(chest, color);
+            try {
+                Color color = this.getColor();
+                for (TileEntity chest : renderedChests) {
+                    if (this.mode.getValue() == 0 || this.mode.getValue() == 1 && !this.glowAvailable) {
+                        this.drawDefaultBox(chest, color);
+                    }
+                    if (this.tracers.getValue()) {
+                        this.drawTracer(chest, color);
+                    }
                 }
-                if (this.tracers.getValue()) {
-                    this.drawTracer(chest, color);
-                }
+            } finally {
+                RenderUtil.disableRenderState();
             }
-            RenderUtil.disableRenderState();
         }
 
         if (this.mode.getValue() == 2) {
             RenderUtil.enableRenderState();
-            for (TileEntity chest : renderedChests) {
-                if (chest instanceof TileEntityChest tileEntityChest) {
-                    this.drawNavenBox(tileEntityChest);
+            try {
+                for (TileEntity chest : renderedChests) {
+                    if (chest instanceof TileEntityChest tileEntityChest) {
+                        this.drawNavenBox(tileEntityChest);
+                    }
                 }
+            } finally {
+                RenderUtil.disableRenderState();
             }
-            RenderUtil.disableRenderState();
         }
     }
 }
