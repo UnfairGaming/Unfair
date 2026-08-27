@@ -90,13 +90,7 @@ public abstract class AbstractTexture implements ITextureObject {
     }
 
     public void bindTexture() {
-
-        if (this.getGlTextureId() == -1) {
-            return;
-        }
-
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.getGlTextureId());
-
+        GlStateManager.bindTexture(this.getGlTextureId());
     }
 
     public void deleteTexture() {
@@ -110,7 +104,7 @@ public abstract class AbstractTexture implements ITextureObject {
         } else {
             try {
                 Minecraft.getMinecraft().addScheduledTask(() -> {
-                    GL11.glDeleteTextures(this.getGlTextureId());
+                    GlStateManager.deleteTexture(this.getGlTextureId());
                     return null;
                 }).get();
             } catch (InterruptedException e) {

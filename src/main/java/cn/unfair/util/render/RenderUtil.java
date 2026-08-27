@@ -2027,12 +2027,12 @@ public class RenderUtil {
             created = true;
         }
         if (created) {
-            glBindTexture(GL_TEXTURE_2D, framebuffer.framebufferTexture);
+            GlStateManager.bindTexture(framebuffer.framebufferTexture);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            GlStateManager.bindTexture(0);
         }
         return framebuffer;
     }
@@ -2042,7 +2042,7 @@ public class RenderUtil {
     }
 
     public static void bindTexture(int texture) {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, texture);
+        GlStateManager.bindTexture(texture);
     }
 
     public static Color interpolateColorC(Color color1, Color color2, float amount) {

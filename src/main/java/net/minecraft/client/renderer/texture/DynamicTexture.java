@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.rendering.MemoryTracker;
 import org.lwjgl.opengl.GL11;
@@ -136,7 +137,7 @@ public class DynamicTexture extends AbstractTexture {
             }
         }
 
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GlStateManager.bindTexture(0);
 
     }
 
@@ -189,7 +190,7 @@ public class DynamicTexture extends AbstractTexture {
             }
         }
 
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GlStateManager.bindTexture(0);
     }
 
     public void clear() {

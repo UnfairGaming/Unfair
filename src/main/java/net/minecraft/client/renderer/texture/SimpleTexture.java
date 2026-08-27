@@ -1,6 +1,7 @@
 package net.minecraft.client.renderer.texture;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.data.TextureMetadataSection;
@@ -76,7 +77,7 @@ public class SimpleTexture extends AbstractTexture {
     private void uploadTexture(int texID, BufferedImage bufferedimage, boolean linear, boolean clamp) {
         TextureUtil.allocateTexture(this.getGlTextureId(), bufferedimage.getWidth(), bufferedimage.getHeight());
 
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.getGlTextureId());
+        GlStateManager.bindTexture(this.getGlTextureId());
         TextureUtil.setTextureBlurMipmap(linear, false);
         TextureUtil.setTextureClamped(clamp);
 

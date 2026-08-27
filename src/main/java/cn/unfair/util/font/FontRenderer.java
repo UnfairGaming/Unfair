@@ -649,7 +649,7 @@ public class FontRenderer {
                     g.drawChars(this.atlasChar, 0, 1, x * this.cellWidth + GLYPH_PADDING, y * this.cellHeight + GLYPH_PADDING + ascent);
                 }
             }
-            glBindTexture(GL_TEXTURE_2D, textureId);
+            GlStateManager.bindTexture(textureId);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this.textureWidth, this.textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageToBuffer());

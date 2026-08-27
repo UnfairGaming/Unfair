@@ -74,7 +74,7 @@ public final class MainMenuStyle {
         GlStateManager.enableAlpha();
         GlStateManager.disableDepth();
         GlStateManager.disableCull();
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+        GlStateManager.bindTexture(0);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
     }
 }
