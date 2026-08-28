@@ -17,6 +17,7 @@ public class RotationUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final double AIM_FACE_INSET = 0.05D;
     private static final int AIM_BACKUP_POINT_COUNT = 30;
+    private static final int AIM_VERTICAL_SCAN_STEPS = 16;
 
     public static float wrapAngleDiff(float angle, float target) {
         return target + MathHelper.wrapAngleTo180_float(angle - target);
@@ -89,7 +90,7 @@ public class RotationUtil {
                 return point;
             }
         }
-        return null;
+        return scanVerticalAimPoint(eyePos, boundingBox, preferredY, target, range, throughWalls, throughEntities);
     }
 
     public static Vec3 getAimPoint(
@@ -257,6 +258,41 @@ public class RotationUtil {
                 }
             }
         }
+    }
+
+    private static Vec3 scanVerticalAimPoint(Vec3 eyePos, AxisAlignedBB box, double preferredY,
+                                             Entity target, double range, boolean throughWalls, boolean throughEntities) {
+        double centerX = (box.minX + box.maxX) * 0.5D;
+        double centerZ = (box.minZ + box.maxZ) * 0.5D;
+        double faceX;
+        double faceZ;
+        if (Math.abs(eyePos.xCoord - centerX) >= Math.abs(eyePos.zCoord - centerZ)) {
+            faceX = eyePos.xCoord >= centerX ? box.maxX : box.minX;
+            faceZ = MathHelper.clamp_double(eyePos.zCoord, box.minZ, box.maxZ);
+        } else {
+            faceX = MathHelper.clamp_double(eyePos.xCoord, box.minX, box.maxX);
+            faceZ = eyePos.zCoord >= centerZ ? box.maxZ : box.minZ;
+        }
+
+        double step = (box.maxY - box.minY) / AIM_VERTICAL_SCAN_STEPS;
+        for (int i = 1; i <= AIM_VERTICAL_SCAN_STEPS; i++) {
+            double upY = preferredY + step * i;
+            if (upY <= box.maxY) {
+                Vec3 up = new Vec3(faceX, upY, faceZ);
+                if (canAimAtPoint(eyePos, up, target, box, range, throughWalls, throughEntities)) {
+                    return up;
+                }
+            }
+
+            double downY = preferredY - step * i;
+            if (downY >= box.minY) {
+                Vec3 down = new Vec3(faceX, downY, faceZ);
+                if (canAimAtPoint(eyePos, down, target, box, range, throughWalls, throughEntities)) {
+                    return down;
+                }
+            }
+        }
+        return null;
     }
 
     public static float[] getRotationsTo(double targetX, double targetY, double targetZ, float currentYaw, float currentPitch) {

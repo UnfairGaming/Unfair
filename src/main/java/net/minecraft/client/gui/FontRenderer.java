@@ -137,10 +137,6 @@ public class FontRenderer implements IResourceManagerReloadListener {
      */
     private boolean strikethroughStyle;
     private boolean blend = false;
-    /**
-     * §z/§y are non-standard codes (used only by ChatUtil.dbg) that wrap the client-name prefix
-     * so it renders with a per-character gradient resolved at draw time from HUD.getColor().
-     */
     private boolean gradientStyle;
     private int gradientIndex;
 
