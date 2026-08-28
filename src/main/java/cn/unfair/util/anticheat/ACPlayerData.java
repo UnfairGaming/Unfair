@@ -48,6 +48,8 @@ public class ACPlayerData {
     public int scaffoldConsecutiveViolations;
     public String lastScaffoldViolationType = "";
     public long lastScaffoldViolationTime;
+    public long lastScaffoldSwingTick;
+    public long lastScaffoldFlagTick;
     public long lastSwingDetected;
     public long noSlowStartTime;
     public boolean noSlowActive;

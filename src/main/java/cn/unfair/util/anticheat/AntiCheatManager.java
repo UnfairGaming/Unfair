@@ -41,6 +41,7 @@ public class AntiCheatManager {
             checks.add(new MotionBCheck());
         }
         if (module.invalidSwingCheck.getValue()) checks.add(new InvalidSwingCheck());
+        if (module.legitScaffoldCheck.getValue()) checks.add(new LegitScaffoldCheck());
     }
 
     public void clearPlayers() {

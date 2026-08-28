@@ -17,6 +17,7 @@ public class AntiCheat extends Module {
     public final BooleanProperty noSlowABCheck = new BooleanProperty("No Slow Ab Check", true);
     public final BooleanProperty motionCheck = new BooleanProperty("Motion Check", true);
     public final BooleanProperty invalidSwingCheck = new BooleanProperty("Invalid Swing Check", true);
+    public final BooleanProperty legitScaffoldCheck = new BooleanProperty("Legit Scaffold Check", true);
     public final IntProperty vl = new IntProperty("Vl", 10, 1, 100);
     public final IntProperty cooldown = new IntProperty("Cooldown", 5, 0, 60);
 
