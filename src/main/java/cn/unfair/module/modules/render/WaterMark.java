@@ -25,7 +25,7 @@ public class WaterMark extends Module {
     public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
     public final TextProperty text = new TextProperty("Text", "Unfair");
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
-    public final PercentProperty background = new PercentProperty("Background", 0);
+    public final PercentProperty background = new PercentProperty("Background", 50);
     public final BooleanProperty showVersion = new BooleanProperty("Version", true);
     public final BooleanProperty showFps = new BooleanProperty("Fps", false);
     public final BooleanProperty showPing = new BooleanProperty("Ping", false);

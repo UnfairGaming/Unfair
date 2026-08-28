@@ -35,7 +35,7 @@ public class Scoreboard extends Module {
 
     public final ModeProperty font = new ModeProperty("Font", getDefaultFontIndex(), getFontModes());
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
-    public final PercentProperty background = new PercentProperty("Background", 55);
+    public final PercentProperty background = new PercentProperty("Background", 50);
 
     private float cachedWidth = BASE_MIN_WIDTH;
     private float cachedHeight = 24.0F;
