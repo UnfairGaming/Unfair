@@ -14,12 +14,9 @@ import lombok.Getter;
 public class AntiCheat extends Module {
     public final BooleanProperty noSlowCheck = new BooleanProperty("No Slow Check", true);
     public final BooleanProperty autoBlockCheck = new BooleanProperty("Auto Block Check", true);
-    public final BooleanProperty eagleCheck = new BooleanProperty("Eagle Check", false);
-    public final BooleanProperty scaffoldCheck = new BooleanProperty("Scaffold Check", false);
     public final BooleanProperty noSlowABCheck = new BooleanProperty("No Slow Ab Check", true);
     public final BooleanProperty motionCheck = new BooleanProperty("Motion Check", true);
     public final BooleanProperty invalidSwingCheck = new BooleanProperty("Invalid Swing Check", true);
-    public final BooleanProperty autoClickerCheck = new BooleanProperty("Autoclicker Check", true);
     public final IntProperty vl = new IntProperty("Vl", 10, 1, 100);
     public final IntProperty cooldown = new IntProperty("Cooldown", 5, 0, 60);
 
