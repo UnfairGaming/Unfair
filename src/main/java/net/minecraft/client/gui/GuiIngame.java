@@ -255,8 +255,14 @@ public class GuiIngame extends Gui {
             }
 
             if (l1 > 8) {
+                int overlayY = j - 68;
+
+                if (this.remainingHighlightTicks > 0 && this.highlightingItemStack != null) {
+                    overlayY = j - 59 - this.getSelectedItemHealthOffset() - 10;
+                }
+
                 GlStateManager.pushMatrix();
-                GlStateManager.translate((float) (i / 2), (float) (j - 68), 0.0F);
+                GlStateManager.translate((float) (i / 2), (float) overlayY, 0.0F);
                 GlStateManager.enableBlend();
                 GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
                 int l = 16777215;
