@@ -4,6 +4,7 @@ import cn.unfair.command.CommandManager;
 import cn.unfair.command.commands.*;
 import cn.unfair.config.Config;
 import cn.unfair.config.WidgetConfig;
+import cn.unfair.enums.ChatColors;
 import cn.unfair.event.EventManager;
 import cn.unfair.management.*;
 import cn.unfair.module.Module;
@@ -20,7 +21,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 public class Unfair {
-    public static String clientName = "&l[&b&lUnfair&f&l]&r ";
+    public static String clientName = ChatColors.COLOR_CHAR + "z" + "&l[Unfair&l]&r" + ChatColors.COLOR_CHAR + "y ";
     public static String version = "B25.2";
     public static int skippedPlayerTicks;
     public static BadPacketManager badPacketManager;
