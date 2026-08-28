@@ -46,8 +46,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.*;
 import net.minecraft.network.play.client.C02PacketUseEntity.Action;
-import net.minecraft.network.play.server.S12PacketEntityVelocity;
-import net.minecraft.potion.Potion;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.WorldSettings.GameType;
@@ -125,8 +123,6 @@ public class KillAura extends Module {
     public final BooleanProperty interpolateVec = new BooleanProperty("Interpolate Vec", false, () -> this.rotations.getValue() == 3 && this.offsetMode.getValue() != 0);
     public final PercentProperty offsetAmount = new PercentProperty("Offset Amount", 50, () -> this.rotations.getValue() == 3 && this.offsetMode.getValue() != 0 && this.interpolateVec.getValue());
     public final FloatProperty advancedTolerance = new FloatProperty("Advanced Tolerance", 0.05F, 0.01F, 0.1F, () -> this.rotations.getValue() == 3 && this.offsetMode.getValue() == 3);
-    public final BooleanProperty oldPredictionKeepSprint = new BooleanProperty("Old Prediction Keep sprint", false);
-    public final BooleanProperty newUniversalKeepSprint = new BooleanProperty("New Universal Keep sprint", false);
     public final BooleanProperty throughWalls = new BooleanProperty("Through Walls", true);
     public final BooleanProperty requirePress = new BooleanProperty("Require Press", false);
     public final BooleanProperty allowMining = new BooleanProperty("Allow Mining", false);
@@ -155,10 +151,6 @@ public class KillAura extends Module {
     public boolean attackDisabled = false;
     private int switchTick = 0;
     private boolean hitRegistered = false;
-    private int attackPending = 0;
-    private boolean sprintCancelled = false;
-    private int velocityTicks = 1000;
-    private int groundTicks = 0;
     private boolean blockingState = false;
     private boolean isBlocking = false;
     private boolean fakeBlockState = false;
@@ -185,9 +177,19 @@ public class KillAura extends Module {
         return this.autoBlock.getValue() == 4 || this.autoBlock.getValue() == 5;
     }
 
+    public boolean isHypixelLagAutoBlockActive() {
+        return this.isEnabled() && this.isHypixelLagAutoBlock();
+    }
+
+    public int getAutoBlockTick() {
+        return this.blockTick;
+    }
+
     private long getAttackDelay() {
-        if (this.oldPredictionKeepSprint.getValue() && this.velocityTicks >= 7) {
-            return mc.thePlayer.ticksExisted % 2 == 0 ? 500L : -1L;
+        KeepSprint keepSprint = (KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class);
+        long keepSprintDelay = keepSprint.getOldPredictionAttackDelay();
+        if (keepSprintDelay != Long.MIN_VALUE) {
+            return keepSprintDelay;
         }
         if (this.isHypixelLagAutoBlock() && this.isBlocking) {
             return (long) (1000.0F / this.autoBlockCPS.getValue());
@@ -195,37 +197,10 @@ public class KillAura extends Module {
         return this.isBlocking ? this.delayGenerator.nextDelay(this.autoBlockCPS.getValue(), this.autoBlockCPS.getValue()) : this.delayGenerator.nextDelay(this.minCPS.getValue(), this.maxCPS.getValue());
     }
 
-    private boolean shouldSkipKeepSprint() {
-        return this.velocityTicks < 8;
-    }
-
     private boolean isWithinAttackCooldown() {
         return this.attackDelayMS <= 0L
                 && target != null
                 && mc.thePlayer.getDistanceToEntity(target.getEntity()) <= this.attackRange.getValue() + 0.5F;
-    }
-
-    private boolean stopSprinting() {
-        if (this.groundTicks == 1) {
-            return true;
-        } else if (mc.thePlayer.isSprinting()) {
-            mc.thePlayer.setSprinting(false);
-            KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
-            this.sprintCancelled = true;
-            return true;
-        }
-        return false;
-    }
-
-    private boolean shouldUseOldPredictionKeepSprint() {
-        return this.oldPredictionKeepSprint.getValue()
-                && target != null
-                && this.velocityTicks >= 7;
-    }
-
-    private boolean isKeepSprintTargetInRange() {
-        return target != null
-                && RotationUtil.distanceToEntity(target.getEntity()) <= 3.0D + MoveUtil.getSpeed();
     }
 
     private boolean performAttack(float yaw, float pitch) {
@@ -241,24 +216,19 @@ public class KillAura extends Module {
                     this.performSwing();
                     return false;
                 } else {
+                    KeepSprint keepSprint = (KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class);
+                    keepSprint.beginAuraAttack();
                     AttackEvent event = new AttackEvent(target.getEntity());
-                    EventManager.call(event);
-                    mc.playerController.syncCurrentPlayItem();
-                    AttackOrder.sendFixedPacketAttack(target.getEntity());
-                    boolean oldPredictionPacketAttack = this.shouldUseOldPredictionKeepSprint();
-                    if (mc.playerController.getCurrentGameType() != GameType.SPECTATOR) {
-                        if (!oldPredictionPacketAttack) {
+                    try {
+                        EventManager.call(event);
+                        mc.playerController.syncCurrentPlayItem();
+                        AttackOrder.sendFixedPacketAttack(target.getEntity());
+                        if (mc.playerController.getCurrentGameType() != GameType.SPECTATOR) {
                             PlayerUtil.attackEntity(target.getEntity());
-                        } else if (mc.thePlayer.fallDistance > 0.0F
-                                && !mc.thePlayer.onGround
-                                && !mc.thePlayer.isOnLadder()
-                                && !mc.thePlayer.isInWater()
-                                && !mc.thePlayer.isPotionActive(Potion.blindness)
-                                && mc.thePlayer.ridingEntity == null) {
-                            mc.thePlayer.onCriticalHit(target.getEntity());
                         }
+                    } finally {
+                        keepSprint.endAuraAttack();
                     }
-                    this.attackPending = Math.max(this.attackPending, 2);
                     this.hitRegistered = true;
                     return true;
                 }
@@ -390,7 +360,7 @@ public class KillAura extends Module {
                 return false;
             } else if (RotationUtil.angleToEntity(entityLivingBase) > this.fov.getValue().floatValue()) {
                 return false;
-            } else if (!this.throughWalls.getValue() && RayCastUtil.rayTrace(entityLivingBase) != null) {
+            } else if (!this.throughWalls.getValue() && !this.hasVisibleAimPoint(entityLivingBase)) {
                 return false;
             } else if (entityLivingBase instanceof EntityOtherPlayerMP) {
                 if (!this.players.getValue()) {
@@ -425,6 +395,32 @@ public class KillAura extends Module {
 
     private boolean isInRange(EntityLivingBase entityLivingBase) {
         return this.isInBlockRange(entityLivingBase) || this.isInSwingRange(entityLivingBase) || this.isInAttackRange(entityLivingBase);
+    }
+
+    private boolean hasVisibleAimPoint(EntityLivingBase entityLivingBase) {
+        AxisAlignedBB box = entityLivingBase.getEntityBoundingBox().expand(
+                entityLivingBase.getCollisionBorderSize(),
+                entityLivingBase.getCollisionBorderSize(),
+                entityLivingBase.getCollisionBorderSize()
+        );
+        double preferredY = this.getPreferredAimY(entityLivingBase, box);
+        return RotationUtil.getBestAimPoint(
+                entityLivingBase,
+                box,
+                mc.thePlayer.getPositionEyes(1.0F),
+                preferredY,
+                Math.max(this.swingRange.getValue(), this.autoBlockRange.getValue()),
+                1.0D,
+                0.0D,
+                false,
+                true
+        ) != null;
+    }
+
+    private double getPreferredAimY(EntityLivingBase entityLivingBase, AxisAlignedBB box) {
+        double heightDifference = entityLivingBase.posY - mc.thePlayer.posY;
+        double heightFactor = 0.75D - MathHelper.clamp_double(heightDifference / 4.0D, 0.0D, 0.65D);
+        return box.minY + (box.maxY - box.minY) * heightFactor;
     }
 
     private boolean isInBlockRange(EntityLivingBase entityLivingBase) {
@@ -879,18 +875,6 @@ public class KillAura extends Module {
     }
 
     private void handleUpdate(UpdateEvent event) {
-        if (event.getType() == EventType.PRE) {
-            if (this.velocityTicks < Integer.MAX_VALUE) {
-                this.velocityTicks++;
-            }
-            if (mc.thePlayer != null && mc.thePlayer.onGround) {
-                if (this.groundTicks < Integer.MAX_VALUE) {
-                    this.groundTicks++;
-                }
-            } else {
-                this.groundTicks = 0;
-            }
-        }
         if ((this.isEnabled() || this.easingOut) && event.getType() == EventType.PRE && this.isInventoryBlocked()) {
             this.resetInventoryBlockedState();
             return;
@@ -901,12 +885,6 @@ public class KillAura extends Module {
             return;
         }
         if (this.isEnabled() && event.getType() == EventType.PRE) {
-            if (mc.thePlayer.isSprinting() || target == null || !this.newUniversalKeepSprint.getValue()) {
-                this.sprintCancelled = false;
-            }
-            if (this.attackPending > 0) {
-                this.attackPending--;
-            }
             if (this.attackDelayMS > 0L) {
                 this.attackDelayMS -= 50L;
             }
@@ -1098,15 +1076,15 @@ public class KillAura extends Module {
                         float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
                         AxisAlignedBB targetBox = target.getBox();
                         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
-                        double preferredY = targetBox.minY + (targetBox.maxY - targetBox.minY) * 0.75D;
+                        double preferredY = this.getPreferredAimY(target.getEntity(), targetBox);
                         Vec3 aimPoint = RotationUtil.getBestAimPoint(
                                 target.getEntity(), targetBox, eyes, preferredY,
-                                this.swingRange.getValue(), 1.0D, 1.0D,
+                                this.swingRange.getValue(), 1.0D, 0.0D,
                                 this.throughWalls.getValue(), true
                         );
                         if (aimPoint == null) {
                             aimPoint = RotationUtil.getAimPoint(
-                                    targetBox, eyes, preferredY, 1.0D, 1.0D
+                                    targetBox, eyes, preferredY, 1.0D, 0.0D
                             );
                         }
                         currentAimVec = aimPoint;
@@ -1131,15 +1109,9 @@ public class KillAura extends Module {
                             event.setPervRotation(event.getNewYaw(), 1);
                         }
                     }
-                    if (attack && this.isWithinAttackCooldown()) {
-                        this.attackPending = Math.max(this.attackPending, 2);
-                    }
                     if (attack
-                            && this.newUniversalKeepSprint.getValue()
-                            && target != null
-                            && !this.shouldSkipKeepSprint()
                             && this.isWithinAttackCooldown()
-                            && this.stopSprinting()) {
+                            && ((KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class)).prepareAttack()) {
                         attack = false;
                     }
                     if (attack) {
@@ -1253,8 +1225,6 @@ public class KillAura extends Module {
 
     @EventTarget
     public void onLoadWorld(LoadWorldEvent event) {
-        this.velocityTicks = 1000;
-        this.groundTicks = 0;
         this.setEnabled(false);
     }
 
@@ -1262,12 +1232,6 @@ public class KillAura extends Module {
     public void onPacket(PacketEvent event) {
         if (event.isCancelled()) {
             return;
-        }
-        if (event.getType() == EventType.RECEIVE
-                && event.getPacket() instanceof S12PacketEntityVelocity velocity
-                && mc.thePlayer != null
-                && velocity.getEntityID() == mc.thePlayer.getEntityId()) {
-            this.velocityTicks = 0;
         }
         if (!this.isEnabled()) {
             return;
@@ -1309,31 +1273,6 @@ public class KillAura extends Module {
             return;
         }
 
-        if (this.newUniversalKeepSprint.getValue()
-                && this.sprintCancelled
-                && !mc.thePlayer.isSprinting()) {
-            event.setCancelled(true);
-        } else if (this.oldPredictionKeepSprint.getValue()
-                && this.attackPending > 0
-                && this.isKeepSprintTargetInRange()
-                && (!this.isHypixelLagAutoBlock() && mc.thePlayer.ticksExisted % 2 == 0
-                || this.isHypixelLagAutoBlock() && this.blockTick == 2)) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventTarget
-    public void onKeepSprintCancel(LivingUpdateEvent event) {
-        if (this.isEnabled()
-                && mc.thePlayer != null
-                && this.oldPredictionKeepSprint.getValue()
-                && this.attackPending > 0
-                && this.isKeepSprintTargetInRange()
-                && this.velocityTicks >= 7
-                && (!this.isHypixelLagAutoBlock() && mc.thePlayer.ticksExisted % 2 == 0
-                || this.isHypixelLagAutoBlock() && this.blockTick > 1)) {
-            mc.thePlayer.setSprinting(false);
-        }
     }
 
     @EventTarget
@@ -1422,8 +1361,6 @@ public class KillAura extends Module {
         target = null;
         this.switchTick = 0;
         this.hitRegistered = false;
-        this.attackPending = 0;
-        this.sprintCancelled = false;
         this.attackDelayMS = 0L;
         this.delayGenerator.reset();
         this.blockTick = 0;
@@ -1446,8 +1383,6 @@ public class KillAura extends Module {
         this.blockingState = false;
         this.isBlocking = false;
         this.fakeBlockState = false;
-        this.attackPending = 0;
-        this.sprintCancelled = false;
         if (!this.easingOut) {
             this.controlledRotation = false;
         }

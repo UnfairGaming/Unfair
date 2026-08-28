@@ -80,7 +80,10 @@ public class RotationUtil {
         }
 
         List<Vec3> backupPoints = buildBackupAimPoints(boundingBox, eyePos);
-        backupPoints.sort(Comparator.comparingDouble(eyePos::squareDistanceTo));
+        backupPoints.sort(
+                Comparator.comparingDouble((Vec3 point) -> Math.abs(point.yCoord - preferredY))
+                        .thenComparingDouble(eyePos::squareDistanceTo)
+        );
         for (Vec3 point : backupPoints) {
             if (canAimAtPoint(eyePos, point, target, boundingBox, range, throughWalls, throughEntities)) {
                 return point;

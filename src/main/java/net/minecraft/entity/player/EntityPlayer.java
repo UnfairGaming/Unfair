@@ -1174,7 +1174,7 @@ public abstract class EntityPlayer extends EntityLivingBase {
 
         KeepSprint keepSprint = (KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class);
         return keepSprint.isEnabled() && keepSprint.shouldKeepSprint()
-                ? 0.6D + 0.4D * (1.0D - keepSprint.slowdown.getValue().doubleValue() / 100.0D)
+                ? keepSprint.getAttackSlowdown()
                 : 0.6D;
     }
 

@@ -196,8 +196,11 @@ public class ESP extends Module {
         if (objective == null) {
             return -1.0F;
         }
-        Score score = scoreboard.getValueFromObjective(entityPlayer.getName(), objective);
-        return score == null ? -1.0F : (float) score.getScorePoints();
+        return scoreboard.getSortedScores(objective).stream()
+                .filter(score -> entityPlayer.getName().equals(score.getPlayerName()))
+                .findFirst()
+                .map(score -> (float) score.getScorePoints())
+                .orElse(-1.0F);
     }
 
     private float getHealthPoints(EntityPlayer entityPlayer) {
@@ -436,47 +439,45 @@ public class ESP extends Module {
                 EntityLivingBase living = (EntityLivingBase) entity;
                 double height = endPosY - posY;
 
-                float hp;
-                float maxHp = living.getMaxHealth();
-                if (entity instanceof EntityPlayer && this.health.getValue() == 1) {
-                    float tabHealth = this.getTabHealth((EntityPlayer) entity);
-                    if (tabHealth >= 0.0F) {
-                        hp = tabHealth;
-                        maxHp = 20.0F;
-                    } else {
-                        hp = ((EntityPlayer) entity).getHealth();
-                    }
-                } else if (entity instanceof EntityPlayer) {
-                    hp = ((EntityPlayer) entity).getHealth();
-                } else {
-                    hp = living.getHealth();
+                float tabHealth = entity instanceof EntityPlayer && this.health.getValue() == 1
+                        ? this.getTabHealth((EntityPlayer) entity)
+                        : -1.0F;
+                float hp = tabHealth >= 0.0F ? tabHealth : living.getHealth();
+                float maxHp = Math.max(living.getMaxHealth(), 1.0F);
+                if (tabHealth >= 0.0F) {
+                    maxHp = Math.max(20.0F, hp);
                 }
 
-                if (hp > maxHp) hp = maxHp;
+                hp = MathHelper.clamp_float(hp, 0.0F, maxHp);
                 double hpPercentage = hp / maxHp;
                 double hpHeight = height * hpPercentage;
 
                 if (healthBar2D.getValue()) {
-                    RenderUtil.drawRect(posX - 3.5, posY - 0.5, posX - 1.5, endPosY + 0.5, background);
+                    double healthBarLeft = posX - 5.0;
+                    double healthBarRight = posX - 2.0;
+                    double healthFillLeft = posX - 4.0;
+                    double healthFillRight = posX - 3.0;
+                    RenderUtil.drawRect(healthBarLeft, posY - 0.5, healthBarRight, endPosY + 0.5, background);
                     int healthColor = ColorUtil.getHealthBlend(hp / maxHp).getRGB();
 
                     if (hpBarMode.getValue() == 0 && height >= 60) {
                         for (int k = 0; k < 10; k++) {
                             double reratio = MathHelper.clamp_double(hp - k * (maxHp / 10.0), 0.0, maxHp / 10.0) / (maxHp / 10.0);
                             double hei = (height / 10.0 - 0.5) * reratio;
-                            RenderUtil.drawRect(posX - 3.0, endPosY - (height + 0.5) / 10.0 * k, posX - 2.0, endPosY - (height + 0.5) / 10.0 * k - hei, healthColor);
+                            double segmentBottom = endPosY - (height + 0.5) / 10.0 * k;
+                            RenderUtil.drawRect(healthFillLeft, segmentBottom - hei, healthFillRight, segmentBottom, healthColor);
                         }
                     } else {
-                        RenderUtil.drawRect(posX - 3.0, endPosY, posX - 2.0, endPosY - hpHeight, healthColor);
+                        RenderUtil.drawRect(healthFillLeft, endPosY - hpHeight, healthFillRight, endPosY, healthColor);
                         float absAmount = living.getAbsorptionAmount();
                         if (absorption.getValue() && absAmount > 0) {
-                            RenderUtil.drawRect(posX - 3.0, endPosY, posX - 2.0, endPosY - (height / 6.0) * (absAmount / 2.0), new Color(255, 215, 0, 100).getRGB());
+                            RenderUtil.drawRect(healthFillLeft, endPosY - (height / 6.0) * (absAmount / 2.0), healthFillRight, endPosY, new Color(255, 215, 0, 100).getRGB());
                         }
                     }
 
                     if (healthNumber.getValue()) {
                         String hpText = hpMode.getValue() == 0 ? dFormat.format(hp) + " §c❤" : (int) (hpPercentage * 100) + "%";
-                        drawScaledString(hpText, posX - 4.0 - mc.fontRendererObj.getStringWidth(hpText) * fontScaleValue.getValue(), endPosY - hpHeight - mc.fontRendererObj.FONT_HEIGHT / 2.0f * fontScaleValue.getValue(), fontScaleValue.getValue(), -1);
+                        drawScaledString(hpText, healthBarLeft - 1.0 - mc.fontRendererObj.getStringWidth(hpText) * fontScaleValue.getValue(), endPosY - hpHeight - mc.fontRendererObj.FONT_HEIGHT / 2.0f * fontScaleValue.getValue(), fontScaleValue.getValue(), -1);
                     }
                 }
 
