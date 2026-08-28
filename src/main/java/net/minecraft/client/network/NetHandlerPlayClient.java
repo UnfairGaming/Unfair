@@ -1786,10 +1786,14 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             ScoreObjective scoreobjective1 = scoreboard.getObjective(packetIn.func_149339_c());
 
             if (packetIn.func_149338_e() == 1) {
-                scoreboard.removeObjective(scoreobjective1);
+                if (scoreobjective1 != null) {
+                    scoreboard.removeObjective(scoreobjective1);
+                }
             } else if (packetIn.func_149338_e() == 2) {
-                scoreobjective1.setDisplayName(packetIn.func_149337_d());
-                scoreobjective1.setRenderType(packetIn.func_179817_d());
+                if (scoreobjective1 != null) {
+                    scoreobjective1.setDisplayName(packetIn.func_149337_d());
+                    scoreobjective1.setRenderType(packetIn.func_179817_d());
+                }
             }
         }
     }
