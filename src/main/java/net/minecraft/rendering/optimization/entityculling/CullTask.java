@@ -33,6 +33,7 @@ public class CullTask implements Runnable {
     private final Vec3d aabbMax = new Vec3d(0, 0, 0);
     public boolean requestCull = false;
     public long lastTime = 0;
+    private long lastProcessTime = 0;
 
     public CullTask(OcclusionCullingInstance culling, Set<String> unCullable) {
         this.culling = culling;
@@ -41,21 +42,25 @@ public class CullTask implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.debug("[*] Culling task is running!");
-        while (!Thread.currentThread().isInterrupted()) {
-            try {
-                Minecraft mc = Minecraft.getMinecraft();
-                if (mc == null) {
-                    Thread.sleep(100L);
-                    continue;
-                }
-                int sleepDelay = 10;
-                Thread.sleep(sleepDelay);
+        this.processPass();
+    }
 
-                WorldClient world = mc.theWorld;
-                EntityPlayerSP player = mc.thePlayer;
-                Entity renderViewEntity = mc.getRenderViewEntity();
-                if (world != null && player != null && player.ticksExisted > 10 && renderViewEntity != null) {
+    public void processPass() {
+        long now = System.currentTimeMillis();
+        if (now - this.lastProcessTime < 50L) {
+            return;
+        }
+        this.lastProcessTime = now;
+
+        try {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc == null) {
+                return;
+            }
+            WorldClient world = mc.theWorld;
+            EntityPlayerSP player = mc.thePlayer;
+            Entity renderViewEntity = mc.getRenderViewEntity();
+            if (world != null && player != null && player.ticksExisted > 10 && renderViewEntity != null) {
                     Vec3 cameraMC = getCameraPos(mc, renderViewEntity);
                     if (requestCull || !(cameraMC.xCoord == lastPos.x && cameraMC.yCoord == lastPos.y && cameraMC.zCoord == lastPos.z)) {
                         long start = System.currentTimeMillis();
@@ -143,8 +148,6 @@ public class CullTask implements Runnable {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-        LOGGER.debug("[*] Shutting down culling task!");
     }
 
     // 1.8 doesnt know where the heck the camera is... what?!?
