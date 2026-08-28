@@ -2,10 +2,7 @@ package cn.unfair.module.modules.render;
 
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
-import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.FloatProperty;
-import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.property.properties.*;
 import cn.unfair.util.render.ColorUtil;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
@@ -26,6 +23,7 @@ public class WaterMark extends Module {
     private static final int BACKGROUND_RGB = 9 << 16 | 11 << 8 | 15;
 
     public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
+    public final TextProperty text = new TextProperty("Text", "Unfair");
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
     public final PercentProperty background = new PercentProperty("Background", 0);
     public final BooleanProperty showVersion = new BooleanProperty("Version", true);
@@ -35,6 +33,7 @@ public class WaterMark extends Module {
     private boolean cachedShowVersion;
     private boolean cachedShowFps;
     private boolean cachedShowPing;
+    private String cachedText = "";
     private String cachedVersion = "";
     private long cachedInfoTime;
     private String[] cachedSegments = new String[0];
@@ -89,9 +88,9 @@ public class WaterMark extends Module {
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         Boolean shouldShadow = hud.shadow.getValue();
-        this.drawString("Unfair", x + paddingX, y + paddingY, accent, shouldShadow);
+        this.drawString(text.getValue(), x + paddingX, y + paddingY, accent, shouldShadow);
 
-        float cursor = x + paddingX + this.getStringWidth("Unfair");
+        float cursor = x + paddingX + this.getStringWidth(text.getValue());
         if (this.showVersion.getValue()) {
             this.drawString(" " + Unfair.version, cursor, y + paddingY, VERSION_COLOR, shouldShadow);
             cursor += this.getStringWidth(" " + Unfair.version);
@@ -147,6 +146,7 @@ public class WaterMark extends Module {
         boolean dynamicInfo = this.showFps.getValue() || this.showPing.getValue();
         boolean dirty = this.cachedFont != this.font.getValue()
                 || this.cachedScale != scaleValue
+                || !this.cachedText.equals(this.text.getValue())
                 || this.cachedShowVersion != this.showVersion.getValue()
                 || this.cachedShowFps != this.showFps.getValue()
                 || this.cachedShowPing != this.showPing.getValue()
@@ -160,12 +160,13 @@ public class WaterMark extends Module {
         this.cachedShowVersion = this.showVersion.getValue();
         this.cachedShowFps = this.showFps.getValue();
         this.cachedShowPing = this.showPing.getValue();
+        this.cachedText = this.text.getValue();
         this.cachedVersion = Unfair.version;
         this.cachedInfoTime = now;
         this.cachedScale = scaleValue;
         this.cachedSegments = this.buildInfoSegments();
 
-        float width = 8.0F * scaleValue + this.getStringWidth("Unfair");
+        float width = 8.0F * scaleValue + this.getStringWidth(text.getValue());
         if (this.showVersion.getValue()) {
             width += this.getStringWidth(" " + Unfair.version);
         }
