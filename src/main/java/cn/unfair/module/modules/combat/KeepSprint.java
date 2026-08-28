@@ -22,7 +22,7 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class KeepSprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Basic", "Old Prediction", "New Universal"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Basic", "OldPrediction", "Legit"});
     public final PercentProperty slowdown = new PercentProperty("Slowdown", 0, this::isBasic);
     public final BooleanProperty groundOnly = new BooleanProperty("Ground Only", false, this::isBasic);
     public final BooleanProperty reachOnly = new BooleanProperty("Reach Only", false, this::isBasic);
