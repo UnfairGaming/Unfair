@@ -1,8 +1,11 @@
 package cn.unfair.module.modules.player;
 
+import cn.unfair.events.LoadWorldEvent;
+import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.player.ItemUtil;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.player.PlayerUtil;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.RandomUtils;
 import org.lwjgl.input.Keyboard;
@@ -77,6 +80,21 @@ public class Eagle extends Module {
                     mc.thePlayer.movementInput.moveForward *= 0.3F;
                 }
             }
+        }
+    }
+
+    @EventTarget
+    public void onLoadWorld(LoadWorldEvent event) {
+        if (!this.isEnabled()) return;
+        if (ViaProtocol.newerThanOrEqualTo1_14()) {
+            ChatUtil.dbg("Do not use Eagle in high versions");
+        }
+    }
+
+    @Override
+    public void onEnabled() {
+        if (ViaProtocol.newerThanOrEqualTo1_14()) {
+            ChatUtil.dbg("Do not use Eagle in high versions");
         }
     }
 
