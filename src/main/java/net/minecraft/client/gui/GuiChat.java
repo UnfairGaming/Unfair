@@ -14,6 +14,8 @@ import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class GuiChat extends GuiScreen {
     private static final Logger logger = LogManager.getLogger();
@@ -21,6 +23,10 @@ public class GuiChat extends GuiScreen {
      * Chat entry field
      */
     protected GuiTextField inputField;
+    private GuiTextField searchField;
+    private boolean searchFocused;
+    private boolean regexSearch;
+    private String searchError;
     private String historyBuffer = "";
     /**
      * keeps position of which chat message you will select when you press up, (does not increase for duplicated
@@ -50,6 +56,8 @@ public class GuiChat extends GuiScreen {
      * window resizes, the buttonList is cleared beforehand.
      */
     public void initGui() {
+        String previousSearchText = this.searchField == null ? "" : this.searchField.getText();
+        boolean wasSearchFocused = this.searchFocused;
         Keyboard.enableRepeatEvents(true);
         this.sentHistoryCursor = this.mc.ingameGUI.getChatGUI().getSentMessages().size();
         this.inputField = new GuiTextField(0, this.fontRendererObj, 4, this.height - 12, this.width - 4, 12);
@@ -58,6 +66,15 @@ public class GuiChat extends GuiScreen {
         this.inputField.setFocused(true);
         this.inputField.setText(this.defaultInputFieldText);
         this.inputField.setCanLoseFocus(false);
+        this.searchField = new GuiTextField(1, this.fontRendererObj, 4, this.height - 25, 96, 12);
+        this.searchField.setMaxStringLength(256);
+        this.searchField.setEnableBackgroundDrawing(true);
+        this.searchField.setCanLoseFocus(false);
+        this.searchField.setText(previousSearchText);
+
+        if (wasSearchFocused) {
+            this.setSearchFocus(true);
+        }
     }
 
     public GuiTextField getInputField() {
@@ -70,6 +87,7 @@ public class GuiChat extends GuiScreen {
     public void onGuiClosed() {
         Keyboard.enableRepeatEvents(false);
         this.mc.ingameGUI.getChatGUI().resetScroll();
+        this.mc.ingameGUI.getChatGUI().clearSearch();
     }
 
     /**
@@ -77,6 +95,7 @@ public class GuiChat extends GuiScreen {
      */
     public void updateScreen() {
         this.inputField.updateCursorCounter();
+        this.searchField.updateCursorCounter();
     }
 
     /**
@@ -84,6 +103,27 @@ public class GuiChat extends GuiScreen {
      * KeyListener.keyTyped(KeyEvent e). Args : character (character on the key), keyCode (lwjgl Keyboard key code)
      */
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        if (keyCode == Keyboard.KEY_F && isCtrlKeyDown()) {
+            if (this.searchFocused && this.regexSearch == isShiftKeyDown()) {
+                this.setSearchFocus(false);
+            } else {
+                this.regexSearch = isShiftKeyDown();
+                this.setSearchFocus(true);
+                this.updateSearch();
+            }
+            return;
+        }
+
+        if (this.searchFocused) {
+            if (keyCode == Keyboard.KEY_ESCAPE) {
+                this.setSearchFocus(false);
+            } else {
+                this.searchField.textboxKeyTyped(typedChar, keyCode);
+                this.updateSearch();
+            }
+            return;
+        }
+
         this.waitingOnAutocomplete = false;
 
         if (keyCode == 15) {
@@ -222,6 +262,21 @@ public class GuiChat extends GuiScreen {
      * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
      */
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        boolean mouseOnSearchField = mouseX >= 4 && mouseX < 100 && mouseY >= this.height - 25 && mouseY < this.height - 13;
+
+        if (this.searchFocused) {
+            if (mouseButton == 0 && mouseOnSearchField) {
+                this.searchField.mouseClicked(mouseX, mouseY, mouseButton);
+                return;
+            }
+
+            this.setSearchFocus(false);
+        } else if (mouseButton == 0 && mouseOnSearchField) {
+            this.setSearchFocus(true);
+            this.searchField.mouseClicked(mouseX, mouseY, mouseButton);
+            return;
+        }
+
         if (mouseButton == 0) {
             IChatComponent ichatcomponent = this.mc.ingameGUI.getChatGUI().getChatComponent(Mouse.getX(), Mouse.getY());
 
@@ -328,6 +383,14 @@ public class GuiChat extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawRect(2, this.height - 14, this.width - 2, this.height - 2, Integer.MIN_VALUE);
         this.inputField.drawTextBox();
+        if (this.searchFocused) {
+            this.searchField.drawTextBox();
+            String label = this.regexSearch ? "Regex" : "Search";
+            this.fontRendererObj.drawStringWithShadow(label, 104.0F, (float) (this.height - 23), this.searchError == null ? 10526880 : 16733525);
+            if (this.searchError != null) {
+                this.fontRendererObj.drawStringWithShadow(this.searchError, 104.0F, (float) (this.height - 14), 16733525);
+            }
+        }
         IChatComponent ichatcomponent = this.mc.ingameGUI.getChatGUI().getChatComponent(Mouse.getX(), Mouse.getY());
 
         if (ichatcomponent != null && ichatcomponent.getChatStyle().getChatHoverEvent() != null) {
@@ -367,5 +430,25 @@ public class GuiChat extends GuiScreen {
      */
     public boolean doesGuiPauseGame() {
         return false;
+    }
+
+    private void setSearchFocus(boolean focused) {
+        this.searchFocused = focused;
+        this.searchField.setFocused(focused);
+        this.inputField.setFocused(!focused);
+    }
+
+    private void updateSearch() {
+        if (this.regexSearch) {
+            try {
+                this.mc.ingameGUI.getChatGUI().setSearchPattern(Pattern.compile(this.searchField.getText(), Pattern.CASE_INSENSITIVE));
+                this.searchError = null;
+            } catch (PatternSyntaxException exception) {
+                this.searchError = exception.getDescription();
+            }
+        } else {
+            this.mc.ingameGUI.getChatGUI().setSearchText(this.searchField.getText());
+            this.searchError = null;
+        }
     }
 }

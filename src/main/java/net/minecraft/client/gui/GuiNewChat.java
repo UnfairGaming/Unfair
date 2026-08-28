@@ -10,16 +10,24 @@ import net.minecraft.util.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class GuiNewChat extends Gui {
     private static final Logger logger = LogManager.getLogger();
+    private static final int MAX_CHAT_HISTORY = 32000;
     private final Minecraft mc;
     private final List<String> sentMessages = Lists.newArrayList();
     private final List<ChatLine> chatLines = Lists.newArrayList();
     private final List<ChatLine> drawnChatLines = Lists.newArrayList();
+    private final List<ChatLine> matchingChatLines = new ArrayList<>();
     private final Object chatLock = new Object();
+    private String searchText = "";
+    private Pattern searchPattern;
+    private boolean searchDirty;
     private int scrollPos;
     private boolean isScrolled;
 
@@ -45,7 +53,8 @@ public class GuiNewChat extends Gui {
             int i = this.getLineCount();
             boolean flag = false;
             int j = 0;
-            int k = this.drawnChatLines.size();
+            List<ChatLine> linesToRender = this.getLinesToRender();
+            int k = linesToRender.size();
             float backgroundOpacity = this.mc.gameSettings.chatOpacity;
 
             if (k > 0) {
@@ -59,8 +68,8 @@ public class GuiNewChat extends Gui {
                 GlStateManager.translate(2.0F, 20.0F, 0.0F);
                 GlStateManager.scale(f1, f1, 1.0F);
 
-                for (int i1 = 0; i1 + this.scrollPos < this.drawnChatLines.size() && i1 < i; ++i1) {
-                    ChatLine chatline = this.drawnChatLines.get(i1 + this.scrollPos);
+                for (int i1 = 0; i1 + this.scrollPos < linesToRender.size() && i1 < i; ++i1) {
+                    ChatLine chatline = linesToRender.get(i1 + this.scrollPos);
 
                     if (chatline != null) {
                         int j1 = updateCounter - chatline.getUpdatedCounter();
@@ -124,6 +133,8 @@ public class GuiNewChat extends Gui {
             this.drawnChatLines.clear();
             this.chatLines.clear();
             this.sentMessages.clear();
+            this.matchingChatLines.clear();
+            this.searchDirty = false;
         }
     }
 
@@ -182,17 +193,19 @@ public class GuiNewChat extends Gui {
             this.drawnChatLines.add(0, new ChatLine(updateCounter, ichatcomponent, chatLineId));
         }
 
-        while (this.drawnChatLines.size() > 100) {
+        while (this.drawnChatLines.size() > MAX_CHAT_HISTORY) {
             this.drawnChatLines.remove(this.drawnChatLines.size() - 1);
         }
 
         if (!displayOnly) {
             this.chatLines.add(0, new ChatLine(updateCounter, chatComponent, chatLineId));
 
-            while (this.chatLines.size() > 100) {
+            while (this.chatLines.size() > MAX_CHAT_HISTORY) {
                 this.chatLines.remove(this.chatLines.size() - 1);
             }
         }
+
+        this.searchDirty = true;
     }
 
     public void refreshChat() {
@@ -242,7 +255,7 @@ public class GuiNewChat extends Gui {
     public void scroll(int amount) {
         synchronized (this.chatLock) {
             this.scrollPos += amount;
-            int i = this.drawnChatLines.size();
+            int i = this.getLinesToRender().size();
 
             if (this.scrollPos > i - this.getLineCount()) {
                 this.scrollPos = i - this.getLineCount();
@@ -275,13 +288,14 @@ public class GuiNewChat extends Gui {
             k = MathHelper.floor_float((float) k / f);
 
             if (j >= 0 && k >= 0) {
-                int l = Math.min(this.getLineCount(), this.drawnChatLines.size());
+                List<ChatLine> linesToRender = this.getLinesToRender();
+                int l = Math.min(this.getLineCount(), linesToRender.size());
 
                 if (j <= MathHelper.floor_float((float) this.getChatWidth() / this.getChatScale()) && k < this.mc.fontRendererObj.FONT_HEIGHT * l + l) {
                     int i1 = k / this.mc.fontRendererObj.FONT_HEIGHT + this.scrollPos;
 
-                    if (i1 >= 0 && i1 < this.drawnChatLines.size()) {
-                        ChatLine chatline = this.drawnChatLines.get(i1);
+                    if (i1 >= 0 && i1 < linesToRender.size()) {
+                        ChatLine chatline = linesToRender.get(i1);
                         int j1 = 0;
 
                         for (IChatComponent ichatcomponent : chatline.getChatComponent()) {
@@ -340,7 +354,69 @@ public class GuiNewChat extends Gui {
                     break;
                 }
             }
+
+            this.searchDirty = true;
         }
+    }
+
+    public void setSearchText(String text) {
+        synchronized (this.chatLock) {
+            String normalizedText = text == null ? "" : text.toLowerCase(Locale.ROOT);
+            if (!this.searchText.equals(normalizedText) || this.searchPattern != null) {
+                this.searchText = normalizedText;
+                this.searchPattern = null;
+                this.searchDirty = true;
+                this.resetScroll();
+            }
+        }
+    }
+
+    public void setSearchPattern(Pattern pattern) {
+        synchronized (this.chatLock) {
+            this.searchText = "";
+            this.searchPattern = pattern;
+            this.searchDirty = true;
+            this.resetScroll();
+        }
+    }
+
+    public void clearSearch() {
+        synchronized (this.chatLock) {
+            this.searchText = "";
+            this.searchPattern = null;
+            this.matchingChatLines.clear();
+            this.searchDirty = false;
+            this.resetScroll();
+        }
+    }
+
+    private List<ChatLine> getLinesToRender() {
+        if (!this.isSearching()) {
+            return this.drawnChatLines;
+        }
+
+        if (this.searchDirty) {
+            this.matchingChatLines.clear();
+
+            for (ChatLine chatLine : this.drawnChatLines) {
+                String lineText = StringUtils.stripControlCodes(chatLine.getChatComponent().getUnformattedText());
+                boolean matches = this.searchPattern != null
+                        ? this.searchPattern.matcher(lineText).find()
+                        : lineText.toLowerCase(Locale.ROOT).contains(this.searchText);
+
+                if (matches) {
+                    this.matchingChatLines.add(chatLine);
+                }
+            }
+
+            this.searchDirty = false;
+        }
+
+        return this.matchingChatLines;
+    }
+
+    private boolean isSearching() {
+        return this.searchPattern != null && !this.searchPattern.pattern().isEmpty() || !this.searchText.isEmpty();
     }
 
     public int getChatWidth() {
