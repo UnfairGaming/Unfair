@@ -3,6 +3,7 @@ package cn.unfair.module.modules.render;
 import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
@@ -23,6 +24,7 @@ import java.util.List;
 public class Scoreboard extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final float BASE_FONT_SIZE = 16.0F;
+    private static final String MINECRAFT_FONT = "Minecraft";
     private static final float BASE_PADDING_X = 3.0F;
     private static final float BASE_PADDING_TOP = 3.0F;
     private static final float BASE_PADDING_BOTTOM = 3.0F;
@@ -31,6 +33,7 @@ public class Scoreboard extends Module {
     private static final int TITLE_COLOR = 0xFFF4F6FB;
     private static final int TEXT_COLOR = 0xE8E9EDF5;
 
+    public final ModeProperty font = new ModeProperty("Font", getDefaultFontIndex(), getFontModes());
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
     public final PercentProperty background = new PercentProperty("Background", 55);
 
@@ -41,8 +44,27 @@ public class Scoreboard extends Module {
         super("Scoreboard", false, true);
     }
 
-    private FontRenderer getFontRenderer() {
-        return Fonts.interMedium.get(BASE_FONT_SIZE * this.scale.getValue());
+    private static String[] getFontModes() {
+        Fonts[] fonts = Fonts.values();
+        String[] modes = new String[fonts.length + 1];
+        modes[0] = MINECRAFT_FONT;
+
+        for (int i = 0; i < fonts.length; i++) {
+            String fontName = fonts[i].name();
+            modes[i + 1] = Character.toUpperCase(fontName.charAt(0)) + fontName.substring(1);
+        }
+
+        return modes;
+    }
+
+    private static int getDefaultFontIndex() {
+        Fonts[] fonts = Fonts.values();
+        for (int i = 0; i < fonts.length; i++) {
+            if (fonts[i] == Fonts.interMedium) {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 
     public boolean shouldRenderWidget() {
@@ -155,6 +177,10 @@ public class Scoreboard extends Module {
     }
 
     private float getLineHeight() {
+        if (this.useMinecraftFont()) {
+            return this.getFontHeight();
+        }
+
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         Boolean shouldShadow = hud.shadow.getValue();
         float scale = this.scale.getValue();
@@ -163,22 +189,63 @@ public class Scoreboard extends Module {
     }
 
     private float getFontHeight() {
-        return this.getFontRenderer().getHeight();
+        float scaleValue = this.scale.getValue();
+        if (this.useMinecraftFont()) {
+            return Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue);
+        }
+
+        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
+        return fontRenderer == null ? Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue) : fontRenderer.getHeight();
     }
 
     private int getStringWidth(String text) {
-        return this.getFontRenderer().getStringWidth(text);
+        float scaleValue = this.scale.getValue();
+        if (this.useMinecraftFont()) {
+            return Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue);
+        }
+
+        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
+        return fontRenderer == null ? Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue) : fontRenderer.getStringWidth(text);
     }
 
     private void drawString(String text, float x, float y, int color) {
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         Boolean shouldShadow = hud.shadow.getValue();
-        FontRenderer fr = this.getFontRenderer();
-        if (shouldShadow) {
-            fr.drawStringWithShadow(text, x, y, color);
-        } else {
-            fr.drawString(text, x, y, color);
+        float scaleValue = this.scale.getValue();
+        if (this.useMinecraftFont()) {
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(x, y, 0.0F);
+            GlStateManager.scale(scaleValue, scaleValue, 1.0F);
+            mc.fontRendererObj.drawString(text, 0.0F, 0.0F, color, shouldShadow);
+            GlStateManager.popMatrix();
+            return;
         }
+
+        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
+        if (fontRenderer == null) {
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(x, y, 0.0F);
+            GlStateManager.scale(scaleValue, scaleValue, 1.0F);
+            mc.fontRendererObj.drawString(text, 0.0F, 0.0F, color, shouldShadow);
+            GlStateManager.popMatrix();
+        } else if (shouldShadow) {
+            fontRenderer.drawStringWithShadow(text, x, y, color);
+        } else {
+            fontRenderer.drawString(text, x, y, color);
+        }
+    }
+
+    private boolean useMinecraftFont() {
+        return this.font.getValue() == 0;
+    }
+
+    private FontRenderer getCustomFont(float scaleValue) {
+        int fontIndex = this.font.getValue() - 1;
+        Fonts[] fonts = Fonts.values();
+        if (fontIndex < 0 || fontIndex >= fonts.length) {
+            return null;
+        }
+        return fonts[fontIndex].get(BASE_FONT_SIZE * scaleValue);
     }
 
     private ScoreObjective getSidebarObjective() {
