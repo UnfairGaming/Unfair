@@ -56,6 +56,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      * Ticks left before sprinting is disabled.
      */
     public int sprintingTicksLeft;
+    public int groundTicks;
     public float renderArmYaw;
     public float renderArmPitch;
     public float prevRenderArmYaw;
@@ -202,6 +203,11 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      */
     public void onUpdate() {
         if (this.worldObj.isBlockLoaded(new BlockPos(this.posX, 0.0D, this.posZ))) {
+            if (this.onGround) {
+                this.groundTicks++;
+            } else {
+                this.groundTicks = 0;
+            }
             UpdateEvent event = new UpdateEvent(EventType.PRE, this.lastReportedYaw, this.lastReportedPitch, this.rotationYaw, this.rotationPitch);
             EventManager.call(event);
             RotationState.applyState(event.isRotated() && !this.isRiding(), event.getNewYaw(), event.getNewPitch(), event.getPreYaw(), event.isRotating());

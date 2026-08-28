@@ -27,10 +27,8 @@ public class KeepSprint extends Module {
     public final BooleanProperty groundOnly = new BooleanProperty("Ground Only", false, this::isBasic);
     public final BooleanProperty reachOnly = new BooleanProperty("Reach Only", false, this::isBasic);
     private int attackPending;
-    private int velocityTicks = 1000;
-    private int airTicks;
+    private int velocityTicks;
     private boolean sprintCancelled;
-    private int jumpCancelTicks;
     private boolean auraAttack;
     private Entity lastTarget;
 
@@ -94,14 +92,13 @@ public class KeepSprint extends Module {
     }
 
     private boolean stopSprinting() {
-        if (this.airTicks == 1) {
+        if (mc.thePlayer.groundTicks == 1) {
             return true;
         }
         if (mc.thePlayer.isSprinting()) {
             mc.thePlayer.setSprinting(false);
             KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
             this.sprintCancelled = true;
-            this.jumpCancelTicks = 1;
             return true;
         }
         return false;
@@ -110,6 +107,11 @@ public class KeepSprint extends Module {
     private boolean isTargetInRange() {
         return this.lastTarget != null
                 && RotationUtil.distanceToEntity(this.lastTarget) <= 3.0D + MoveUtil.getSpeed();
+    }
+
+    private boolean hasAttackTarget() {
+        KillAura killAura = (KillAura) cn.unfair.Unfair.moduleManager.modules.get(KillAura.class);
+        return killAura.isEnabled() && KillAura.target != null || this.attackPending > 0;
     }
 
     private boolean usesAuraAutoBlockTiming() {
@@ -129,26 +131,11 @@ public class KeepSprint extends Module {
         if (this.velocityTicks < Integer.MAX_VALUE) {
             this.velocityTicks++;
         }
-        if (mc.thePlayer != null) {
-            if (mc.thePlayer.onGround) {
-                this.airTicks = 0;
-            } else if (this.airTicks < Integer.MAX_VALUE) {
-                this.airTicks++;
-            }
-        }
         if (!this.isEnabled()) {
             return;
         }
-        if (mc.thePlayer.isSprinting() || !this.isUniversal()) {
+        if (mc.thePlayer.isSprinting() || !this.isUniversal() || !this.hasAttackTarget()) {
             this.sprintCancelled = false;
-            this.jumpCancelTicks = 0;
-        } else if (this.sprintCancelled) {
-            if (this.jumpCancelTicks > 0) {
-                this.jumpCancelTicks--;
-                if (this.jumpCancelTicks == 0) {
-                    this.sprintCancelled = false;
-                }
-            }
         }
         if (this.attackPending > 0) {
             this.attackPending--;
@@ -215,10 +202,8 @@ public class KeepSprint extends Module {
     @EventTarget
     public void onLoadWorld(LoadWorldEvent event) {
         this.attackPending = 0;
-        this.velocityTicks = 1000;
-        this.airTicks = 0;
+        this.velocityTicks = 0;
         this.sprintCancelled = false;
-        this.jumpCancelTicks = 0;
         this.auraAttack = false;
         this.lastTarget = null;
     }
@@ -226,7 +211,6 @@ public class KeepSprint extends Module {
     @Override
     public void onDisabled() {
         this.sprintCancelled = false;
-        this.jumpCancelTicks = 0;
         this.auraAttack = false;
     }
 
