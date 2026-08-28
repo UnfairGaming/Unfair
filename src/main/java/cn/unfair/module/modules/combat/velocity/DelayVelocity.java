@@ -7,7 +7,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
-import cn.unfair.module.modules.combat.Autoblock;
+import cn.unfair.module.modules.combat.AutoBlock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.property.properties.IntProperty;
@@ -31,7 +31,7 @@ public class DelayVelocity extends SubModule {
         if (mc.theWorld == null || mc.thePlayer == null) {
             return false;
         }
-        Autoblock autoblock = (Autoblock) Unfair.moduleManager.getModule(Autoblock.class);
+        AutoBlock autoblock = (AutoBlock) Unfair.moduleManager.getModule(AutoBlock.class);
         KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
         return autoblock != null && autoblock.isActive()
                 || mc.thePlayer.onGround && (!killAura.isEnabled() || !killAura.shouldAutoBlock());

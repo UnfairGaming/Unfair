@@ -23,12 +23,12 @@ import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.util.MovingObjectPosition;
 import org.lwjgl.input.Mouse;
 
-public class Autoblock extends Module {
+public class AutoBlock extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final FloatProperty range = new FloatProperty("Range", 4.0F, 2.0F, 6.0F);
-    public final IntProperty maxHurtTime = new IntProperty("Maximum Hurt Time", 200, 50, 500);
-    public final IntProperty maxHoldTime = new IntProperty("Maximum Hold Time", 150, 50, 500);
+    public final IntProperty maxHurtTime = new IntProperty("Maximum Hurt Time", 200, 1, 500);
+    public final IntProperty maxHoldTime = new IntProperty("Maximum Hold Time", 150, 1, 500);
     public final PercentProperty lagChance = new PercentProperty("Lag Chance", 100);
     public final IntProperty lagMaxDuration = new IntProperty("Lag Max Duration", 200, 50, 500);
     public final BooleanProperty preventDelayAttacks = new BooleanProperty("Prevent Delaying Attacks", true);
@@ -47,8 +47,8 @@ public class Autoblock extends Module {
     private int lagStartTick = -1;
     private int tickCounter;
 
-    public Autoblock() {
-        super("Autoblock", false, true);
+    public AutoBlock() {
+        super("AutoBlock", false, true);
     }
 
     private static int msToTicks(int milliseconds) {

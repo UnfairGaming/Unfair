@@ -5,7 +5,7 @@ import cn.unfair.event.EventManager;
 import cn.unfair.events.PickEvent;
 import cn.unfair.events.RaytraceEvent;
 import cn.unfair.events.Render3DEvent;
-import cn.unfair.module.modules.combat.Autoblock;
+import cn.unfair.module.modules.combat.AutoBlock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.exploit.GhostHand;
 import cn.unfair.module.modules.player.AutoBlockIn;
@@ -439,7 +439,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
             boolean killAuraAttacking = killAura != null
                     && killAura.isEnabled()
                     && KillAura.target != null;
-            Autoblock autoblock = (Autoblock) Unfair.moduleManager.modules.get(Autoblock.class);
+            AutoBlock autoblock = (AutoBlock) Unfair.moduleManager.modules.get(AutoBlock.class);
 
             if (killAura != null && killAura.isEnabled() && killAura.isBlocking()) {
                 this.unfairHasSavedItemInUse = true;
@@ -451,6 +451,10 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                     && (Mouse.isButtonDown(0) || killAuraAttacking)) {
                 ItemStack currentItem = this.mc.thePlayer.inventory.getCurrentItem();
                 if (currentItem != null && currentItem.getItem() instanceof ItemSword) {
+                    this.unfairHasSavedItemInUse = true;
+                    this.unfairSavedItemInUse = this.mc.thePlayer.getItemInUse();
+                    this.unfairSavedItemInUseCount = this.mc.thePlayer.getItemInUseCount();
+                    this.mc.thePlayer.setItemInUse(currentItem);
                     this.mc.thePlayer.setItemInUseCount(69000);
                 }
             }
