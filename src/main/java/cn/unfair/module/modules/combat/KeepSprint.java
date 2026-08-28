@@ -71,7 +71,7 @@ public class KeepSprint extends Module {
 
     public boolean prepareAttack() {
         return this.isEnabled()
-                && this.isNewUniversal()
+                && this.isLegit()
                 && this.velocityTicks >= 8
                 && this.stopSprinting();
     }
@@ -84,7 +84,7 @@ public class KeepSprint extends Module {
         return this.mode.getValue() == 1;
     }
 
-    private boolean isNewUniversal() {
+    private boolean isLegit() {
         return this.mode.getValue() == 2;
     }
 
@@ -133,7 +133,7 @@ public class KeepSprint extends Module {
         if (!this.isEnabled()) {
             return;
         }
-        if (!this.isNewUniversal()) {
+        if (!this.isLegit()) {
             this.jumpCancelTicks = 0;
         } else if (this.jumpCancelTicks > 0) {
             this.jumpCancelTicks--;
@@ -155,7 +155,7 @@ public class KeepSprint extends Module {
                 AttackOrder.sendFixedPacketAttack(event.getTarget());
             }
             event.setCancelled(true);
-        } else if (this.isNewUniversal() && this.prepareAttack()) {
+        } else if (this.isLegit() && this.prepareAttack()) {
             event.setCancelled(true);
         }
     }
@@ -175,7 +175,7 @@ public class KeepSprint extends Module {
         if (!this.isEnabled() || mc.thePlayer == null) {
             return;
         }
-        if (this.isNewUniversal() && this.jumpCancelTicks > 0) {
+        if (this.isLegit() && this.jumpCancelTicks > 0) {
             event.setCancelled(true);
         } else if (this.isOldPrediction()
                 && this.attackPending > 0
