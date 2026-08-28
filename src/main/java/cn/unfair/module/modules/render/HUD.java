@@ -9,10 +9,10 @@ import cn.unfair.events.Render2DEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.render.ColorUtil;
-import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
+import cn.unfair.util.render.ColorUtil;
+import cn.unfair.util.render.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -46,8 +46,7 @@ public class HUD extends Module {
     public final PercentProperty background = new PercentProperty("Background", 50);
     public final FloatProperty bgWidthPadding = new FloatProperty("BG Width Padding", 0.0F, -10.0F, 20.0F);
     public final FloatProperty bgHeightPadding = new FloatProperty("BG Height Padding", 0.0F, -10.0F, 20.0F);
-    public final BooleanProperty round = new BooleanProperty("Round", true, () -> this.background.getValue() > 0);
-    public final FloatProperty roundRadius = new FloatProperty("Round Radius", 2.5F, 0.5F, 10.0F, this.round::getValue);
+    public final FloatProperty roundRadius = new FloatProperty("Round Radius", 2.5F, 0.0F, 10.0F);
     public final BooleanProperty showBar = new BooleanProperty("Bar", true);
     public final ModeProperty barPos = new ModeProperty("Bar Mode", 0, new String[]{"Left", "Right", "Top"}, this.showBar::getValue);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
@@ -201,7 +200,7 @@ public class HUD extends Module {
         int width = this.getTextWidth(string);
         if (this.suffixes.getValue()) {
             for (String str : arr) {
-                width += 3 * this.scale.getValue() + this.getTextWidth(str);
+                width += (int) (3 * this.scale.getValue() + this.getTextWidth(str));
             }
         }
         return width;
@@ -596,34 +595,50 @@ public class HUD extends Module {
 
         if (moduleIndex == 0) {
             if (renderList.size() == 1) {
-                leftTop = true; rightTop = true; leftBot = true; rightBot = true;
+                leftTop = true;
+                rightTop = true;
+                leftBot = true;
+                rightBot = true;
             } else if (alignTop) {
-                leftTop = true; rightTop = true;
+                leftTop = true;
+                rightTop = true;
                 if (!nextWidthSame) {
                     if (alignLeft) rightBot = true;
                     else leftBot = true;
                 }
             } else {
-                leftBot = true; rightBot = true;
+                leftBot = true;
+                rightBot = true;
                 if (!nextWidthSame) {
                     if (alignLeft) rightTop = true;
                     else leftTop = true;
                 }
             }
         } else if (moduleIndex == renderList.size() - 1) {
-            if (alignTop) { leftBot = true; rightBot = true; }
-            else { leftTop = true; rightTop = true; }
+            if (alignTop) {
+                leftBot = true;
+                rightBot = true;
+            } else {
+                leftTop = true;
+                rightTop = true;
+            }
         } else {
             if (alignLeft) {
-                if (alignTop) { if (!nextWidthSame) rightBot = true; }
-                else { if (!nextWidthSame) rightTop = true; }
+                if (alignTop) {
+                    if (!nextWidthSame) rightBot = true;
+                } else {
+                    if (!nextWidthSame) rightTop = true;
+                }
             } else {
-                if (alignTop) { if (!nextWidthSame) leftBot = true; }
-                else { if (!nextWidthSame) leftTop = true; }
+                if (alignTop) {
+                    if (!nextWidthSame) leftBot = true;
+                } else {
+                    if (!nextWidthSame) leftTop = true;
+                }
             }
         }
 
-        float baseRadius = this.round.getValue() ? this.roundRadius.getValue() * scale : 0F;
+        float baseRadius = this.roundRadius.getValue() * scale;
         float radiusTL = leftTop ? baseRadius : 0;
         float radiusTR = rightTop ? baseRadius : 0;
 
@@ -730,17 +745,13 @@ public class HUD extends Module {
 
 
     private void drawHudBackground(HudEntry entry, int color) {
-        if (this.round.getValue()) {
-            RenderUtil.drawRoundedRect(
-                    entry.left, entry.top,
-                    entry.right - entry.left, entry.bottom - entry.top,
-                    entry.radiusTL, entry.radiusTR,
-                    entry.radiusBL, entry.radiusBR,
-                    color
-            );
-        } else {
-            RenderUtil.drawRect(entry.left, entry.top, entry.right, entry.bottom, color);
-        }
+        RenderUtil.drawRoundedRect(
+                entry.left, entry.top,
+                entry.right - entry.left, entry.bottom - entry.top,
+                entry.radiusTL, entry.radiusTR,
+                entry.radiusBL, entry.radiusBR,
+                color
+        );
     }
 
     private void drawHudMask(HudEntry entry, int color) {
