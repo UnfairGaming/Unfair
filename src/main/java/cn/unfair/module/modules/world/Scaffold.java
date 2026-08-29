@@ -32,6 +32,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import org.apache.commons.lang3.RandomUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -126,6 +127,8 @@ public class Scaffold extends Module {
             () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
     public final ModeProperty godBridgePlacementAttempt = new ModeProperty("Placement Attempt", 0,
             new String[]{"Fail", "Independent"}, () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
+    public final IntProperty sneakMinDelay = new IntProperty("Sneak Min Delay", 2, 0, 10, this::isLegitMode);
+    public final IntProperty sneakMaxDelay = new IntProperty("Sneak Max Delay", 3, 0, 10, this::isLegitMode);
     public final FloatProperty safeDistance = new FloatProperty("Clutch Safe Distance", 4.5F, 1.0F, 5.0F);
     public final BooleanProperty mark = new BooleanProperty("Mark", true);
     public final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
@@ -167,6 +170,7 @@ public class Scaffold extends Module {
     private boolean legitPressingSneak;
     private boolean legitSneakStarted;
     private long legitStartSneakTime;
+    private int legitSneakDelay;
     private boolean legitPlacedStartBlock;
     private int ups = 0;
     private int onGroundTicks = 0;
@@ -238,13 +242,24 @@ public class Scaffold extends Module {
         double[] offset = MoveUtil.predictMovement();
         boolean atEdge = PlayerUtil.canMove(mc.thePlayer.motionX + offset[0], mc.thePlayer.motionZ + offset[1]);
         boolean startingSneak = legitStartSneak && mc.thePlayer.onGround;
-        boolean shouldSneak = startingSneak || (mc.thePlayer.onGround && atEdge);
         if (startingSneak) {
             legitStartSneak = false;
             legitSneakStarted = true;
             legitStartSneakTime = System.currentTimeMillis();
         }
-        if (shouldSneak) {
+
+        // Eagle's exact sneak logic — shouldSneak (modifier) and atEdge (canMoveSafely) are
+        // two independent checks, exactly like Eagle.shouldSneak() / Eagle.canMoveSafely():
+        boolean shouldSneak = mc.thePlayer.onGround;
+
+        if (this.legitSneakDelay > 0) {
+            this.legitSneakDelay--;
+        }
+        if (this.legitSneakDelay == 0 && atEdge) {
+            this.legitSneakDelay = RandomUtils.nextInt(this.sneakMinDelay.getValue(), this.sneakMaxDelay.getValue() + 1);
+        }
+
+        if (shouldSneak && (this.legitSneakDelay > 0 || atEdge)) {
             KeyBinding.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
             legitPressingSneak = true;
         } else {
@@ -297,6 +312,7 @@ public class Scaffold extends Module {
         legitPressingSneak = false;
         legitSneakStarted = false;
         legitStartSneakTime = 0L;
+        legitSneakDelay = 0;
         legitPlacedStartBlock = false;
         if (mc.thePlayer == null) {
             return;
@@ -344,6 +360,7 @@ public class Scaffold extends Module {
         legitStartSneak = false;
         legitSneakStarted = false;
         legitStartSneakTime = 0L;
+        legitSneakDelay = 0;
         legitPlacedStartBlock = false;
         if (mc.thePlayer == null) {
             return;
@@ -1723,7 +1740,8 @@ public class Scaffold extends Module {
         if (this.isGodBridgeMode() && mc.thePlayer.onGround) {
             if (godBridgeRotations.getValue() != 0
                     && godBridgeWaitForRotations.getValue()
-                    && godBridgeTargetRotation != null) {
+                    && godBridgeTargetRotation != null
+                    && !this.isLegitMode()) {
                 float currentYaw = RotationState.isActived() && RotationState.getPriority() == 3.0F
                         ? RotationState.getSmoothedYaw()
                         : mc.thePlayer.rotationYaw;
