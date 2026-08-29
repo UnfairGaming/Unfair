@@ -136,6 +136,7 @@ public class LegitTelly extends Module {
     boolean rotationActive = false;
     long rotationStartedAt = 0L;
     long rotationDuration = 50L;
+    float maxSilentYawOffset = 8.0f;
     float rotationStartYaw = 0.0f;
     float rotationStartPitch = 0.0f;
     float rotationTargetYaw = 0.0f;
@@ -187,6 +188,8 @@ public class LegitTelly extends Module {
     boolean useSuppressed = false;
     boolean silentPitchActive = false;
     float silentPitch = 0f;
+    boolean silentYawActive = false;
+    float silentYaw = 0f;
     boolean placingViaModule = false;
     boolean manualC08InWindow = false;
 
@@ -226,10 +229,7 @@ public class LegitTelly extends Module {
     public void handleUpdate(UpdateEvent event) {
         if (!this.isEnabled()) return;
         if (event.getType() == EventType.PRE) {
-            // Raven/Flux cadence adapted to OpenMyau:
-            // 1) PreUpdate/autoplace still sees the stable rotation from the previous tick.
-            // 2) Then prepare this tick's movement phase and next rotation target.
-            // 3) Submit that scripted yaw to OpenMyau so move-fix and packet rotation use the same frame.
+
             onPreUpdate();
             if (running) {
                 advanceTellyCycle();
@@ -289,6 +289,16 @@ public class LegitTelly extends Module {
     @EventTarget(Priority.HIGHEST)
     public void handleLeftClick(LeftClickMouseEvent event) {
         if (this.isEnabled() && !onMouse(0, true, 0, 0)) event.setCancelled(true);
+    }
+
+    @EventTarget(Priority.HIGHEST)
+    public void handleRightClick(RightClickMouseEvent event) {
+        if (!this.isEnabled() || !running) return;
+        // 运行中统一取消 vanilla 右键，放置只走模块自己的 placeBlock -> onPlayerRightClick：
+        // - 1.19+：vanilla 右键发 USE_ITEM_ON，绕过模块的 C08 拦截，且 4 tick 节奏与逐 tick 放置错位；
+        // - ≤1.8/≤1.18：vanilla 右键的 C08 虽被拦截，但 onItemUse 本地预测仍落幽灵方块，
+        //   污染本地世界，起跳时触发 Grim GroundSpoof 回滚、方块消失。
+        event.setCancelled(true);
     }
 
     @EventTarget(Priority.HIGHEST)
@@ -1611,6 +1621,7 @@ public class LegitTelly extends Module {
         currentClientTick = tick;
         candidateResolvedThisTick = false;
         silentPitchActive = false;
+        silentYawActive = false;
     }
 
     boolean useExtendedSearch() {
@@ -1642,8 +1653,12 @@ public class LegitTelly extends Module {
     }
 
     void autoPlaceOnPreMotion(PlayerState state) {
-        if (silentPitchActive && !manualC08InWindow) {
+        if (manualC08InWindow) return;
+        if (silentPitchActive) {
             state.pitch = sanitizePitch(silentPitch, state.pitch);
+        }
+        if (silentYawActive) {
+            state.yaw = silentYaw;
         }
     }
 
@@ -1797,14 +1812,9 @@ public class LegitTelly extends Module {
         }
 
         // 运行中用脚本视角搜点；相机视角会导致候选块偏到后左并首块放空�?
-        if (ViaProtocol.newerThan1_8()) {
-            setKeyPressed("use", true);
-            tellyAutoPlaceWindow = true;
-            autoPlaceDebugActive = true;
-            forceSuppressTick = currentClientTick;
-            return;
-        }
-
+        // 高版本同样走逐 tick 的脚本放置（placeBlock 会按协议版本发 C08 或 Via 的 USE_ITEM_ON），
+        // 不再退回“按住 use 交给 vanilla 每 4 tick 右键”——那会与逐 tick 旋转曲线错位，
+        // 导致第一块放完后准心漂移、第二块放不出而掉落。
         float yaw = running ? scriptedRotationYaw : player.getYaw();
         float basePitch = sanitizePitch(running ? scriptedRotationPitch : player.getPitch(), player.getPitch());
         Object[] candidate = resolveCandidateWithOffCursorSilentPitch(player, yaw, basePitch, heldStack);
@@ -1837,12 +1847,6 @@ public class LegitTelly extends Module {
         if (attemptPlacement(player, candidate, heldStack)) return;
 
         if (placedInCurrentWindow()) return;
-        if (ViaProtocol.newerThan1_8()) {
-            suppressUse();
-            forceSuppressTick = currentClientTick;
-            releaseExperimentalPlacementClaim();
-            return;
-        }
 
         float retryYaw = running ? scriptedRotationYaw : player.getYaw();
         float retryPitch = running ? scriptedRotationPitch : player.getPitch();
@@ -1869,7 +1873,26 @@ public class LegitTelly extends Module {
         if (placedInCurrentWindow()) return false;
 
         float placementPitch = sanitizePitch(candidatePitch(candidate), running ? scriptedRotationPitch : player.getPitch());
-        Object[] prePlaceHit = resolveVerifiedHit(running ? scriptedRotationYaw : player.getYaw(), placementPitch, supportPos, face, placedPos);
+        float placementYaw = running ? scriptedRotationYaw : player.getYaw();
+        Object[] prePlaceHit = resolveVerifiedHit(placementYaw, placementPitch, supportPos, face, placedPos);
+        if (prePlaceHit == null && running) {
+            // 脚本 yaw 因玩家位置漂移对不上支撑面时（小概率漏放掉落的根源），
+            // 用命中点精确瞄准的静默 yaw 重试：包 yaw 命中支撑面，相机仍走脚本旋转。
+            // 只允许小幅修正（≤8°）：大角度时说明正处于摆头阶段，不强行放置以保持放置节奏。
+            Vec3 hitVec = candidateHitVec(candidate);
+            if (hitVec != null) {
+                float aimedYaw = computeYawToHitVec(player, hitVec);
+                if (Math.abs(tellyWrapAngle(aimedYaw - placementYaw)) <= maxSilentYawOffset) {
+                    Object[] aimedHit = resolveVerifiedHit(aimedYaw, placementPitch, supportPos, face, placedPos);
+                    if (aimedHit != null) {
+                        placementYaw = aimedYaw;
+                        silentYaw = aimedYaw;
+                        silentYawActive = true;
+                        prePlaceHit = aimedHit;
+                    }
+                }
+            }
+        }
         if (prePlaceHit == null) return false;
 
         if (cancelledGhostBlocks.contains(posKey(supportPos))) return false;
@@ -1883,6 +1906,11 @@ public class LegitTelly extends Module {
         boolean placed = placeBlock(new Vec3(supportPos[0], supportPos[1], supportPos[2]), faceName(face), hitAbs);
         placingViaModule = false;
         boolean packetSent = totalC08Counter > counterBefore;
+        if (ViaProtocol.newerThanOrEqualTo1_19()) {
+            // 1.19+ 的放置由 onPlayerRightClick 走 Via 的 USE_ITEM_ON 直发，
+            // 不经过 NetworkManager 的 C08 拦截/计数；这里改用本地放置预测结果判定。
+            packetSent = placed;
+        }
 
         if (!placed && !packetSent) return false;
         if (!packetSent) {
@@ -1893,6 +1921,15 @@ public class LegitTelly extends Module {
         lastPlacedPos = placedPos;
         lastSupportPos = supportPos;
         lastSupportFace = face;
+        // ≤1.18 时这些状态由 onPacketSent 的 C08 分支更新；1.19+ 的放置走 Via 的
+        // USE_ITEM_ON，不经 C08 拦截，这里必须同步更新，否则 firstTellyPlacementPending
+        // 永远不清理，自适应瞄准会持续锁死在首个支撑面，导致第二块起准心对不上而掉落。
+        latestStraightPlacedPos = new int[]{placedPos[0], placedPos[1], placedPos[2]};
+        if (firstTellyPlacementPending && setupTick < 0) {
+            firstTellyPlacementPending = false;
+            adaptiveAimValid = false;
+            adaptiveAimUpdatedAt = 0L;
+        }
         lastSuccessfulPlaceTick = currentClientTick;
         forceSuppressTick = currentClientTick;
         swing();
@@ -2553,6 +2590,13 @@ public class LegitTelly extends Module {
         double dy = hitVec.y - eyes.y;
         float pitch = (float) (-Math.toDegrees(Math.atan2(dy, horizontal)));
         return Math.clamp(pitch, -89.0f, 89.0f);
+    }
+
+    float computeYawToHitVec(Entity player, Vec3 hitVec) {
+        Vec3 eyes = getEyes(player);
+        double dx = hitVec.x - eyes.x;
+        double dz = hitVec.z - eyes.z;
+        return tellyWrapAngle((float) (Math.toDegrees(Math.atan2(dz, dx)) - 90.0));
     }
 
     List<int[]> getBelowTargets(Entity player, float yaw, float pitch) {
