@@ -14,8 +14,7 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.player.MoveUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
-
-import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
+import cn.unfair.util.player.PlayerUtil;
 
 public class DelayVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -46,7 +45,7 @@ public class DelayVelocity extends SubModule {
                     LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
                     if (!this.delayFlag
                             && !this.canDelay()
-                            && !isInLiquidOrWeb()
+                            && !PlayerUtil.isInLiquidOrWeb()
                             && (!longJump.isEnabled() || !longJump.canStartJump())) {
                         {
                             Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
@@ -67,7 +66,7 @@ public class DelayVelocity extends SubModule {
             if (this.delayFlag
                     && (
                     this.canDelay()
-                            || isInLiquidOrWeb()
+                            || PlayerUtil.isInLiquidOrWeb()
                             || Unfair.delayManager.getDelay() >= (long) this.delayTicks.getValue()
             )) {
                 Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);

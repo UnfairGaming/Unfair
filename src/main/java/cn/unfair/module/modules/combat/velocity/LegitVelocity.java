@@ -4,9 +4,9 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.events.KnockbackEvent;
 import cn.unfair.events.LivingUpdateEvent;
 import cn.unfair.module.SubModule;
-import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.client.RandomUtil;
+import cn.unfair.util.player.PlayerUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.potion.Potion;
 
@@ -32,7 +32,7 @@ public class LegitVelocity extends SubModule {
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (this.jumpFlag) {
             this.jumpFlag = false;
-            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !Velocity.isInLiquidOrWeb()) {
+            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !PlayerUtil.isInLiquidOrWeb()) {
                 mc.thePlayer.movementInput.jump = true;
             }
         }

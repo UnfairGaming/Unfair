@@ -10,7 +10,6 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.KillAura.AttackData;
-import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.player.PacketUtil;
 import cn.unfair.util.player.PlayerUtil;
@@ -277,7 +276,7 @@ public class GrimReduceVelocity extends SubModule {
         if (mc.currentScreen != null) {
             return false;
         }
-        if (Velocity.isInLiquidOrWeb()) {
+        if (PlayerUtil.isInLiquidOrWeb()) {
             return false;
         }
         KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);

@@ -3,7 +3,6 @@ package cn.unfair.module.modules.combat;
 import cn.unfair.module.ModuleWithModuleSettings;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.velocity.*;
-import cn.unfair.util.player.PlayerUtil;
 
 public class Velocity extends ModuleWithModuleSettings {
 
@@ -17,10 +16,6 @@ public class Velocity extends ModuleWithModuleSettings {
                 new PolarVelocity(),
                 new LegitVelocity()
         );
-    }
-
-    public static boolean isInLiquidOrWeb() {
-        return PlayerUtil.isInLiquidOrWeb();
     }
 
     public boolean isDelayingVelocity() {

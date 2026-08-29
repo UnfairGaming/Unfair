@@ -9,9 +9,9 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.player.MoveUtil;
+import cn.unfair.util.player.PlayerUtil;
 import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
@@ -71,7 +71,7 @@ public class ReduceVelocity extends SubModule {
                 && event.getType() == EventType.PRE
                 && knockback
                 && !BadPacketManager.bad()
-                && !Velocity.isInLiquidOrWeb()
+                && !PlayerUtil.isInLiquidOrWeb()
                 && MoveUtil.isForwardPressed()
                 && mc.thePlayer.isSprinting();
     }

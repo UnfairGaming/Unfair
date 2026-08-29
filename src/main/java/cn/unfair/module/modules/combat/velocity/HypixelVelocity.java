@@ -9,12 +9,12 @@ import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.AutoBlock;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.player.MoveUtil;
+import cn.unfair.util.player.PlayerUtil;
 import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
@@ -103,7 +103,7 @@ public class HypixelVelocity extends SubModule {
     public void onLivingUpdate(LivingUpdateEvent event) {
         if (this.jump.getValue() && this.jumpFlag) {
             this.jumpFlag = false;
-            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !Velocity.isInLiquidOrWeb()) {
+            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !PlayerUtil.isInLiquidOrWeb()) {
                 mc.thePlayer.movementInput.jump = true;
                 if (debug.getValue()) {
                     ChatUtil.dbg("Jump");
@@ -158,7 +158,7 @@ public class HypixelVelocity extends SubModule {
 
     private boolean isBlockedState() {
         Stuck stuck = (Stuck) Unfair.moduleManager.getModule(Stuck.class);
-        return Velocity.isInLiquidOrWeb() || (stuck != null && stuck.isEnabled());
+        return PlayerUtil.isInLiquidOrWeb() || (stuck != null && stuck.isEnabled());
     }
 
     private void reduceVelocity() {

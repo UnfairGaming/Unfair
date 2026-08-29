@@ -7,8 +7,8 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
-import cn.unfair.module.modules.combat.Velocity;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.player.PlayerUtil;
 import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import net.minecraft.client.Minecraft;
@@ -33,7 +33,7 @@ public class PolarVelocity extends SubModule {
     public void onUpdate(UpdateEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (!knockback || !isEnabled() || BadPacketManager.bad() || event.getType() != EventType.PRE) return;
-        if (Velocity.isInLiquidOrWeb()) return;
+        if (PlayerUtil.isInLiquidOrWeb()) return;
         switch (mode.getValue()) {
             case 0: {
                 // set in EntityPlayer
@@ -52,7 +52,7 @@ public class PolarVelocity extends SubModule {
     @EventTarget
     public void onPacket(PacketEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (Velocity.isInLiquidOrWeb()) return;
+        if (PlayerUtil.isInLiquidOrWeb()) return;
         if (this.isEnabled() && event.getType() == EventType.RECEIVE && !event.isCancelled()) {
             if (event.getPacket() instanceof S12PacketEntityVelocity packet) {
                 if (packet.getEntityID() == mc.thePlayer.getEntityId()) {
