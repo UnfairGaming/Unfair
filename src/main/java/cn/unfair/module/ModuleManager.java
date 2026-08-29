@@ -8,6 +8,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.module.modules.render.ClickGui;
 import cn.unfair.module.modules.render.FreeLook;
 import cn.unfair.module.modules.render.HUD;
+import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.sound.SoundUtil;
 import net.minecraft.util.ResourceLocation;
@@ -140,7 +141,7 @@ public class ModuleManager {
             if (module.getKey() != event.getKey()) {
                 continue;
             }
-            if (module instanceof FreeLook) {
+            if (module instanceof FreeLook || module instanceof BlockIn) {
                 continue;
             }
             boolean shouldNotify = module.toggle();

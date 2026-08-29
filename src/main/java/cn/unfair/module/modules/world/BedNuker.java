@@ -9,7 +9,7 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.player.AutoBlockIn;
+import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.module.modules.render.BedESP;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;
@@ -349,8 +349,8 @@ public class BedNuker extends Module {
                 Unfair.delayManager.setDelayState(false, DelayModules.BED_NUKER);
                 return;
             }
-            AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
-            if (autoBlockIn.isEnabled()) return;
+            BlockIn blockIn = (BlockIn) Unfair.moduleManager.modules.get(BlockIn.class);
+            if (blockIn.isEnabled()) return;
             if (this.targetBed != null) {
                 if (mc.theWorld.isAirBlock(this.targetBed) || !PlayerUtil.canReach(this.targetBed, this.range.getValue().doubleValue())) {
                     this.restoreSlot();
@@ -458,8 +458,8 @@ public class BedNuker extends Module {
                 this.resetBreaking();
                 return;
             }
-            AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
-            if (autoBlockIn.isEnabled()) return;
+            BlockIn blockIn = (BlockIn) Unfair.moduleManager.modules.get(BlockIn.class);
+            if (blockIn.isEnabled()) return;
             if (this.isReady()) {
                 double x = (double) this.targetBed.getX() + 0.5 - mc.thePlayer.posX;
                 double y = (double) this.targetBed.getY() + 0.5 - mc.thePlayer.posY - (double) mc.thePlayer.getEyeHeight();

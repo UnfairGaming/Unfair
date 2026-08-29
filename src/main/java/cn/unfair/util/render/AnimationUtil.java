@@ -31,6 +31,10 @@ public class AnimationUtil {
         return Math.round(value((float) begin, (float) end, startTime, duration, partialTicks, easing));
     }
 
+    public static float lerp(float start, float end, float t) {
+        return start + (end - start) * t;
+    }
+
     public static double smooth(double current, double target, long deltaMillis, double responseMillis) {
         if (deltaMillis <= 0L) {
             return current;
@@ -51,6 +55,11 @@ public class AnimationUtil {
         return 1.0F - (1.0F - t) * (1.0F - t);
     }
 
+    public static float quadInOutEasing(float t) {
+        if (t < 0.5f) return 2f * t * t;
+        return -1f + (4f - 2f * t) * t;
+    }
+
     public static float popScale(float progress) {
         return 0.82F + easeOutBack(progress) * 0.18F;
     }
@@ -64,7 +73,7 @@ public class AnimationUtil {
             case 3:
                 return bounce(t);
             case 4:
-                return t < 0.5F ? 2.0F * t * t : -1.0F + (4.0F - 2.0F * t) * t;
+                return quadInOutEasing(t);
             default:
                 return t;
         }

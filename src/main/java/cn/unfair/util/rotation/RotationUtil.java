@@ -322,6 +322,37 @@ public class RotationUtil {
         return new float[]{RotationUtil.quantizeAngle(currentYaw + yawDelta), RotationUtil.quantizeAngle(currentPitch + pitchDelta)};
     }
 
+    public static float[] smoothRotation(float baseYaw, float basePitch, float targetYaw, float targetPitch, int speed, int randomization) {
+        if (speed <= 0) {
+            return new float[]{baseYaw, MathHelper.clamp_float(basePitch, -90.0F, 90.0F)};
+        }
+        if (speed >= 30) {
+            return new float[]{MathHelper.wrapAngleTo180_float(targetYaw), MathHelper.clamp_float(targetPitch, -90.0F, 90.0F)};
+        }
+        float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - baseYaw);
+        float deltaPitch = targetPitch - basePitch;
+        float magnitude = MathHelper.sqrt_float(deltaYaw * deltaYaw + deltaPitch * deltaPitch);
+        if (magnitude < 0.001F) {
+            return new float[]{MathHelper.wrapAngleTo180_float(targetYaw), MathHelper.clamp_float(targetPitch, -90.0F, 90.0F)};
+        }
+        float t = speed / 30.0F;
+        float stepSize = t * t * 180.0F;
+        float randomRange = 0.6F * (randomization / 100.0F);
+        float multiplier = randomRange <= 0.001F ? 1.0F : (1.0F - randomRange * 0.5F + (float) Math.random() * randomRange);
+        stepSize *= multiplier;
+        float proximityFactor = Math.min(1.0F, magnitude / 180.0F);
+        proximityFactor = (float) Math.pow(proximityFactor, 0.7D);
+        float maxSlowdown = randomization / 100.0F;
+        float proximityMult = Math.max(0.8F, 1.0F - maxSlowdown * (1.0F - proximityFactor));
+        stepSize *= proximityMult;
+        float stepLength = Math.min(stepSize, magnitude);
+        float scale = stepLength / magnitude;
+        return new float[]{
+                MathHelper.wrapAngleTo180_float(baseYaw + deltaYaw * scale),
+                MathHelper.clamp_float(basePitch + deltaPitch * scale, -90.0F, 90.0F)
+        };
+    }
+
     public static Vec3 getClosestPointOnBox(Vec3 point, AxisAlignedBB bb) {
         double x = MathHelper.clamp_double(point.xCoord, bb.minX, bb.maxX);
         double y = MathHelper.clamp_double(point.yCoord, bb.minY, bb.maxY);

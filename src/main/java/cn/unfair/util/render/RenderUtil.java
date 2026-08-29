@@ -749,6 +749,46 @@ public class RenderUtil {
         GlStateManager.resetColor();
     }
 
+    public static void draw2DCircle(float cx, float cy, float radius, int segments, float thickness, float r, float g, float b, float a) {
+        enableRenderState();
+        GlStateManager.color(r, g, b, a);
+        GL11.glLineWidth(thickness);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+        GL11.glBegin(GL11.GL_LINE_LOOP);
+        for (int i = 0; i <= segments; i++) {
+            double angle = i * (Math.PI * 2 / segments);
+            GL11.glVertex2d(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+        }
+        GL11.glEnd();
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glLineWidth(2.0f);
+        disableRenderState();
+    }
+
+    public static void draw2DCircleArc(float cx, float cy, float radius, float startAngle, float endAngle, float thickness, int color) {
+        float a = ((color >> 24) & 0xFF) / 255f;
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+
+        enableRenderState();
+        GlStateManager.color(r, g, b, a);
+        GL11.glLineWidth(thickness);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+        GL11.glBegin(GL11.GL_LINE_STRIP);
+        int steps = 100;
+        for (int i = 0; i <= steps; i++) {
+            double angle = Math.toRadians(startAngle + (endAngle - startAngle) * i / steps);
+            GL11.glVertex2d(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+        }
+        GL11.glEnd();
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glLineWidth(2.0f);
+        disableRenderState();
+    }
+
     public static void drawEntityCircle(Entity entity, double radius, int segments, int color) {
         double d2 = RenderUtil.lerpDouble(entity.posX, entity.lastTickPosX, RenderUtil.mc.timer.renderPartialTicks) - mc.getRenderManager().getRenderPosX();
         double d3 = RenderUtil.lerpDouble(entity.posY, entity.lastTickPosY, RenderUtil.mc.timer.renderPartialTicks) - mc.getRenderManager().getRenderPosY();

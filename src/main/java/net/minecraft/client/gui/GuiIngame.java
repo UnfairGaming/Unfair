@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.modules.misc.NickHider;
-import cn.unfair.module.modules.player.AutoBlockIn;
+import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.util.shader.PostProcessingRenderer;
@@ -1008,10 +1008,10 @@ public class GuiIngame extends Gui {
                 }
             }
 
-            AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
+            BlockIn blockIn = (BlockIn) Unfair.moduleManager.modules.get(BlockIn.class);
 
-            if (autoBlockIn.itemSpoof.getValue() && autoBlockIn.isEnabled()) {
-                int slot = autoBlockIn.getSlot();
+            if (blockIn != null && blockIn.itemSpoof.getValue() && blockIn.isEnabled()) {
+                int slot = blockIn.getSlot();
 
                 if (slot >= 0) {
                     return this.mc.thePlayer.inventory.getStackInSlot(slot);

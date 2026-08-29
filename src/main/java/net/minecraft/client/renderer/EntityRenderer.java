@@ -8,7 +8,7 @@ import cn.unfair.events.Render3DEvent;
 import cn.unfair.module.modules.combat.AutoBlock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.exploit.GhostHand;
-import cn.unfair.module.modules.player.AutoBlockIn;
+import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.module.modules.render.*;
 import cn.unfair.module.modules.world.Scaffold;
 import com.google.common.base.Predicates;
@@ -422,10 +422,10 @@ public class EntityRenderer implements IResourceManagerReloadListener {
         }
 
         if (slot < 0) {
-            AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
+            BlockIn blockIn = (BlockIn) Unfair.moduleManager.modules.get(BlockIn.class);
 
-            if (autoBlockIn.isEnabled() && autoBlockIn.itemSpoof.getValue()) {
-                slot = autoBlockIn.getSlot();
+            if (blockIn != null && blockIn.isEnabled() && blockIn.itemSpoof.getValue()) {
+                slot = blockIn.getSlot();
             }
         }
 
