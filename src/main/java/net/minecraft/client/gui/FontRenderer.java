@@ -3,6 +3,7 @@ package net.minecraft.client.gui;
 import cn.unfair.Unfair;
 import cn.unfair.module.modules.misc.AntiObfuscate;
 import cn.unfair.module.modules.misc.NickHider;
+import cn.unfair.module.modules.render.HUD;
 import com.ibm.icu.text.ArabicShaping;
 import com.ibm.icu.text.ArabicShapingException;
 import com.ibm.icu.text.Bidi;
@@ -136,6 +137,8 @@ public class FontRenderer implements IResourceManagerReloadListener {
      */
     private boolean strikethroughStyle;
     private boolean blend = false;
+    private boolean gradientStyle;
+    private int gradientIndex;
 
     {
         charMap = new int['\uFFFF' + 1];
@@ -490,6 +493,7 @@ public class FontRenderer implements IResourceManagerReloadListener {
         this.italicStyle = false;
         this.underlineStyle = false;
         this.strikethroughStyle = false;
+        this.gradientStyle = false;
     }
 
     /**
@@ -505,6 +509,21 @@ public class FontRenderer implements IResourceManagerReloadListener {
 
             if (currentChar == '\247' && i + 1 < text.length()) {
                 char next = Character.toLowerCase(charArray[i + 1]);
+
+                if (next == 'z') {
+                    this.gradientStyle = true;
+                    this.gradientIndex = 0;
+                    ++i;
+                    continue;
+                }
+
+                if (next == 'y') {
+                    this.gradientStyle = false;
+                    this.setColor(this.red, this.blue, this.green, this.alpha);
+                    ++i;
+                    continue;
+                }
+
                 int formatIndex = "0123456789abcdefklmnor".indexOf(next);
 
                 if (formatIndex >= 0) {
@@ -569,6 +588,18 @@ public class FontRenderer implements IResourceManagerReloadListener {
                 if (flag) {
                     this.posX -= boldOffset;
                     this.posY -= boldOffset;
+                }
+
+                if (this.gradientStyle) {
+                    int gradientColor = HUD.getColor(System.currentTimeMillis(), this.gradientIndex).getRGB();
+
+                    if (shadow) {
+                        gradientColor = (gradientColor & 16579836) >> 2 | gradientColor & -16777216;
+                    }
+
+                    this.textColor = gradientColor;
+                    this.setColor((float) (gradientColor >> 16 & 255) / 255.0F, (float) (gradientColor >> 8 & 255) / 255.0F, (float) (gradientColor & 255) / 255.0F, this.alpha);
+                    ++this.gradientIndex;
                 }
 
                 float charWidth = this.renderChar(currentChar, this.italicStyle);

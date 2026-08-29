@@ -17,6 +17,7 @@ public class RotationUtil {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final double AIM_FACE_INSET = 0.05D;
     private static final int AIM_BACKUP_POINT_COUNT = 30;
+    private static final int AIM_VERTICAL_SCAN_STEPS = 16;
 
     public static float wrapAngleDiff(float angle, float target) {
         return target + MathHelper.wrapAngleTo180_float(angle - target);
@@ -89,7 +90,7 @@ public class RotationUtil {
                 return point;
             }
         }
-        return null;
+        return scanVerticalAimPoint(eyePos, boundingBox, preferredY, target, range, throughWalls, throughEntities);
     }
 
     public static Vec3 getAimPoint(
@@ -259,6 +260,41 @@ public class RotationUtil {
         }
     }
 
+    private static Vec3 scanVerticalAimPoint(Vec3 eyePos, AxisAlignedBB box, double preferredY,
+                                             Entity target, double range, boolean throughWalls, boolean throughEntities) {
+        double centerX = (box.minX + box.maxX) * 0.5D;
+        double centerZ = (box.minZ + box.maxZ) * 0.5D;
+        double faceX;
+        double faceZ;
+        if (Math.abs(eyePos.xCoord - centerX) >= Math.abs(eyePos.zCoord - centerZ)) {
+            faceX = eyePos.xCoord >= centerX ? box.maxX : box.minX;
+            faceZ = MathHelper.clamp_double(eyePos.zCoord, box.minZ, box.maxZ);
+        } else {
+            faceX = MathHelper.clamp_double(eyePos.xCoord, box.minX, box.maxX);
+            faceZ = eyePos.zCoord >= centerZ ? box.maxZ : box.minZ;
+        }
+
+        double step = (box.maxY - box.minY) / AIM_VERTICAL_SCAN_STEPS;
+        for (int i = 1; i <= AIM_VERTICAL_SCAN_STEPS; i++) {
+            double upY = preferredY + step * i;
+            if (upY <= box.maxY) {
+                Vec3 up = new Vec3(faceX, upY, faceZ);
+                if (canAimAtPoint(eyePos, up, target, box, range, throughWalls, throughEntities)) {
+                    return up;
+                }
+            }
+
+            double downY = preferredY - step * i;
+            if (downY >= box.minY) {
+                Vec3 down = new Vec3(faceX, downY, faceZ);
+                if (canAimAtPoint(eyePos, down, target, box, range, throughWalls, throughEntities)) {
+                    return down;
+                }
+            }
+        }
+        return null;
+    }
+
     public static float[] getRotationsTo(double targetX, double targetY, double targetZ, float currentYaw, float currentPitch) {
         return RotationUtil.getRotations(targetX, targetY, targetZ, currentYaw, currentPitch, 180.0f, 0.0f);
     }
@@ -284,6 +320,37 @@ public class RotationUtil {
         yawDelta = Math.abs(yawDelta) <= 1.0f ? 0.0f : RotationUtil.smoothAngle(RotationUtil.clampAngle(yawDelta, maxAngle), smoothFactor);
         pitchDelta = Math.abs(pitchDelta) <= 1.0f ? 0.0f : RotationUtil.smoothAngle(RotationUtil.clampAngle(pitchDelta, maxAngle), smoothFactor);
         return new float[]{RotationUtil.quantizeAngle(currentYaw + yawDelta), RotationUtil.quantizeAngle(currentPitch + pitchDelta)};
+    }
+
+    public static float[] smoothRotation(float baseYaw, float basePitch, float targetYaw, float targetPitch, int speed, int randomization) {
+        if (speed <= 0) {
+            return new float[]{baseYaw, MathHelper.clamp_float(basePitch, -90.0F, 90.0F)};
+        }
+        if (speed >= 30) {
+            return new float[]{MathHelper.wrapAngleTo180_float(targetYaw), MathHelper.clamp_float(targetPitch, -90.0F, 90.0F)};
+        }
+        float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - baseYaw);
+        float deltaPitch = targetPitch - basePitch;
+        float magnitude = MathHelper.sqrt_float(deltaYaw * deltaYaw + deltaPitch * deltaPitch);
+        if (magnitude < 0.001F) {
+            return new float[]{MathHelper.wrapAngleTo180_float(targetYaw), MathHelper.clamp_float(targetPitch, -90.0F, 90.0F)};
+        }
+        float t = speed / 30.0F;
+        float stepSize = t * t * 180.0F;
+        float randomRange = 0.6F * (randomization / 100.0F);
+        float multiplier = randomRange <= 0.001F ? 1.0F : (1.0F - randomRange * 0.5F + (float) Math.random() * randomRange);
+        stepSize *= multiplier;
+        float proximityFactor = Math.min(1.0F, magnitude / 180.0F);
+        proximityFactor = (float) Math.pow(proximityFactor, 0.7D);
+        float maxSlowdown = randomization / 100.0F;
+        float proximityMult = Math.max(0.8F, 1.0F - maxSlowdown * (1.0F - proximityFactor));
+        stepSize *= proximityMult;
+        float stepLength = Math.min(stepSize, magnitude);
+        float scale = stepLength / magnitude;
+        return new float[]{
+                MathHelper.wrapAngleTo180_float(baseYaw + deltaYaw * scale),
+                MathHelper.clamp_float(basePitch + deltaPitch * scale, -90.0F, 90.0F)
+        };
     }
 
     public static Vec3 getClosestPointOnBox(Vec3 point, AxisAlignedBB bb) {

@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.modules.misc.NickHider;
-import cn.unfair.module.modules.player.AutoBlockIn;
+import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.util.shader.PostProcessingRenderer;
@@ -255,8 +255,14 @@ public class GuiIngame extends Gui {
             }
 
             if (l1 > 8) {
+                int overlayY = j - 68;
+
+                if (this.remainingHighlightTicks > 0 && this.highlightingItemStack != null) {
+                    overlayY = j - 59 - this.getSelectedItemHealthOffset() - 10;
+                }
+
                 GlStateManager.pushMatrix();
-                GlStateManager.translate((float) (i / 2), (float) (j - 68), 0.0F);
+                GlStateManager.translate((float) (i / 2), (float) overlayY, 0.0F);
                 GlStateManager.enableBlend();
                 GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
                 int l = 16777215;
@@ -1002,10 +1008,10 @@ public class GuiIngame extends Gui {
                 }
             }
 
-            AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
+            BlockIn blockIn = (BlockIn) Unfair.moduleManager.modules.get(BlockIn.class);
 
-            if (autoBlockIn.itemSpoof.getValue() && autoBlockIn.isEnabled()) {
-                int slot = autoBlockIn.getSlot();
+            if (blockIn != null && blockIn.itemSpoof.getValue() && blockIn.isEnabled()) {
+                int slot = blockIn.getSlot();
 
                 if (slot >= 0) {
                     return this.mc.thePlayer.inventory.getStackInSlot(slot);

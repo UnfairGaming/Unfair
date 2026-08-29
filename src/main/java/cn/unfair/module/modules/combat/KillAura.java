@@ -9,8 +9,8 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.player.AutoBlockIn;
 import cn.unfair.module.modules.player.AutoHeal;
+import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.module.modules.world.Scaffold;
@@ -312,12 +312,12 @@ public class KillAura extends Module {
                     return false;
                 } else {
                     BedNuker bedNuker = (BedNuker) Unfair.moduleManager.modules.get(BedNuker.class);
-                    AutoBlockIn autoBlockIn = (AutoBlockIn) Unfair.moduleManager.modules.get(AutoBlockIn.class);
+                    BlockIn blockIn = (BlockIn) Unfair.moduleManager.modules.get(BlockIn.class);
                     if (bedNuker.isEnabled() && bedNuker.isReady()) {
                         return false;
                     } else if (Unfair.moduleManager.modules.get(Scaffold.class).isEnabled()) {
                         return false;
-                    } else if (autoBlockIn.isEnabled()) {
+                    } else if (blockIn.isEnabled()) {
                         return false;
                     } else if (this.requirePress.getValue()) {
                         return PlayerUtil.isAttacking();

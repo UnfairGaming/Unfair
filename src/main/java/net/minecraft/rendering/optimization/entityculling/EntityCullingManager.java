@@ -25,21 +25,16 @@ public class EntityCullingManager {
         instance = this;
         culling = new OcclusionCullingInstance(128, new Provider());
         cullTask = new CullTask(culling, new HashSet<>(Collections.singletonList("tile.beacon")));
-
-        Thread cullThread = new Thread(cullTask, "CullThread");
-        cullThread.setUncaughtExceptionHandler((thread, ex) -> {
-            LOGGER.error("Cull thread exception", ex);
-        });
-        cullThread.setPriority(10);
-        cullThread.start();
     }
 
     public void worldTick() {
         cullTask.requestCull = true;
+        cullTask.processPass();
     }
 
     public void clientTick() {
         cullTask.requestCull = true;
+        cullTask.processPass();
     }
 
 }

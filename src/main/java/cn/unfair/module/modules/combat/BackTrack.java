@@ -57,7 +57,7 @@ public class BackTrack extends Module {
     public final ModeProperty esp = new ModeProperty("Render Mode", 1, new String[]{"FakePlayer", "Box", "None"}, this::isClassic);
     public final ModeProperty boxColor = new ModeProperty("Box Color", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && this.esp.getValue() == 1);
     public final ColorProperty boxCustomColor = new ColorProperty("Box Custom Color", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
-    public final FloatProperty outlineWidth = new FloatProperty("Outline Width", 1.0F, 0.1F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final FloatProperty outlineWidth = new FloatProperty("Outline Width", 1.0F, 0.0F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
     public final BooleanProperty players = new BooleanProperty("Players", true);
     public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
     public final BooleanProperty animals = new BooleanProperty("Animals", false);

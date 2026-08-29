@@ -79,21 +79,11 @@ public class GuiOptions extends GuiScreen implements GuiYesNoCallback {
 
         this.buttonList.add(new GuiButton(106, this.width / 2 - 155, this.height / 6 + 72 - 6, 150, 20, I18n.format("options.sounds")));
 
-        GuiButton streamButton = new GuiButton(107, this.width / 2 + 5, this.height / 6 + 72 - 6, 150, 20, "Where's Stream?");
-        streamButton.enabled = false;
-
-        this.buttonList.add(streamButton);
-
         this.buttonList.add(new GuiButton(101, this.width / 2 - 155, this.height / 6 + 96 - 6, 150, 20, I18n.format("options.video")));
         this.buttonList.add(new GuiButton(100, this.width / 2 + 5, this.height / 6 + 96 - 6, 150, 20, I18n.format("options.controls")));
         this.buttonList.add(new GuiButton(102, this.width / 2 - 155, this.height / 6 + 120 - 6, 150, 20, I18n.format("options.language")));
         this.buttonList.add(new GuiButton(103, this.width / 2 + 5, this.height / 6 + 120 - 6, 150, 20, I18n.format("options.chat.title")));
         this.buttonList.add(new GuiButton(105, this.width / 2 - 155, this.height / 6 + 144 - 6, 150, 20, I18n.format("options.resourcepack")));
-
-        GuiButton snooperButton = new GuiButton(107, this.width / 2 + 5, this.height / 6 + 144 - 6, 150, 20, "Where's Snooper?");
-        snooperButton.enabled = false;
-
-        this.buttonList.add(snooperButton);
 
         this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.format("gui.done")));
     }

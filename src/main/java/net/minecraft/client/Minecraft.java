@@ -4,7 +4,6 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
-import cn.unfair.init.Initializer;
 import cn.unfair.module.modules.combat.NoHitDelay;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.via.ModernOffhandInteraction;
@@ -508,7 +507,6 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
      * Starts the game: initializes the canvas, the title, the settings, etcetera.
      */
     private void startGame() {
-        new Initializer();
         this.gameSettings = new GameSettings(this, this.mcDataDir);
         this.defaultResourcePacks.add(this.mcDefaultResourcePack);
         this.startTimerHackThread();

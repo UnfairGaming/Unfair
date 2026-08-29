@@ -32,8 +32,6 @@ public class AntiCheatManager {
         checks.clear();
         if (module.noSlowCheck.getValue()) checks.add(new NoSlowCCheck());
         if (module.autoBlockCheck.getValue()) checks.add(new AutoBlockCheck());
-        if (module.eagleCheck.getValue()) checks.add(new EagleCheck());
-        if (module.scaffoldCheck.getValue()) checks.add(new ScaffoldCheck());
         if (module.noSlowABCheck.getValue()) {
             checks.add(new NoSlowACheck());
             checks.add(new NoSlowBCheck());
@@ -43,6 +41,7 @@ public class AntiCheatManager {
             checks.add(new MotionBCheck());
         }
         if (module.invalidSwingCheck.getValue()) checks.add(new InvalidSwingCheck());
+        if (module.legitScaffoldCheck.getValue()) checks.add(new LegitScaffoldCheck());
     }
 
     public void clearPlayers() {

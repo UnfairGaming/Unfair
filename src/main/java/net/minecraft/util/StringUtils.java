@@ -3,7 +3,7 @@ package net.minecraft.util;
 import java.util.regex.Pattern;
 
 public class StringUtils {
-    private static final Pattern patternControlCode = Pattern.compile("(?i)\\u00A7[0-9A-FK-OR]");
+    private static final Pattern patternControlCode = Pattern.compile("(?i)\\u00A7[0-9A-FK-ORYZ]");
 
     /**
      * Returns the time elapsed for the given number of ticks, in "mm:ss" format.

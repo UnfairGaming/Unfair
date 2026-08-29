@@ -22,14 +22,13 @@ import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class KeepSprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Basic", "OldPrediction", "Legit"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Basic", "OldPrediction", "Universal"});
     public final PercentProperty slowdown = new PercentProperty("Slowdown", 0, this::isBasic);
     public final BooleanProperty groundOnly = new BooleanProperty("Ground Only", false, this::isBasic);
     public final BooleanProperty reachOnly = new BooleanProperty("Reach Only", false, this::isBasic);
     private int attackPending;
-    private int velocityTicks = 1000;
-    private int groundTicks;
-    private int jumpCancelTicks;
+    private int velocityTicks;
+    private boolean sprintCancelled;
     private boolean auraAttack;
     private Entity lastTarget;
 
@@ -71,8 +70,8 @@ public class KeepSprint extends Module {
 
     public boolean prepareAttack() {
         return this.isEnabled()
-                && this.isLegit()
-                && this.velocityTicks >= 8
+                && this.isUniversal()
+                && !this.shouldSkipKeepSprint()
                 && this.stopSprinting();
     }
 
@@ -84,18 +83,22 @@ public class KeepSprint extends Module {
         return this.mode.getValue() == 1;
     }
 
-    private boolean isLegit() {
+    private boolean isUniversal() {
         return this.mode.getValue() == 2;
     }
 
+    private boolean shouldSkipKeepSprint() {
+        return this.velocityTicks < 8;
+    }
+
     private boolean stopSprinting() {
-        if (this.groundTicks == 1) {
+        if (mc.thePlayer.groundTicks == 1) {
             return true;
         }
         if (mc.thePlayer.isSprinting()) {
             mc.thePlayer.setSprinting(false);
             KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSprint.getKeyCode(), false);
-            this.jumpCancelTicks = 1;
+            this.sprintCancelled = true;
             return true;
         }
         return false;
@@ -104,6 +107,11 @@ public class KeepSprint extends Module {
     private boolean isTargetInRange() {
         return this.lastTarget != null
                 && RotationUtil.distanceToEntity(this.lastTarget) <= 3.0D + MoveUtil.getSpeed();
+    }
+
+    private boolean hasAttackTarget() {
+        KillAura killAura = (KillAura) cn.unfair.Unfair.moduleManager.modules.get(KillAura.class);
+        return killAura.isEnabled() && KillAura.target != null || this.attackPending > 0;
     }
 
     private boolean usesAuraAutoBlockTiming() {
@@ -123,20 +131,11 @@ public class KeepSprint extends Module {
         if (this.velocityTicks < Integer.MAX_VALUE) {
             this.velocityTicks++;
         }
-        if (mc.thePlayer != null && mc.thePlayer.onGround) {
-            if (this.groundTicks < Integer.MAX_VALUE) {
-                this.groundTicks++;
-            }
-        } else {
-            this.groundTicks = 0;
-        }
         if (!this.isEnabled()) {
             return;
         }
-        if (!this.isLegit()) {
-            this.jumpCancelTicks = 0;
-        } else if (this.jumpCancelTicks > 0) {
-            this.jumpCancelTicks--;
+        if (mc.thePlayer.isSprinting() || !this.isUniversal() || !this.hasAttackTarget()) {
+            this.sprintCancelled = false;
         }
         if (this.attackPending > 0) {
             this.attackPending--;
@@ -155,7 +154,7 @@ public class KeepSprint extends Module {
                 AttackOrder.sendFixedPacketAttack(event.getTarget());
             }
             event.setCancelled(true);
-        } else if (this.isLegit() && this.prepareAttack()) {
+        } else if (this.isUniversal() && this.prepareAttack()) {
             event.setCancelled(true);
         }
     }
@@ -175,7 +174,7 @@ public class KeepSprint extends Module {
         if (!this.isEnabled() || mc.thePlayer == null) {
             return;
         }
-        if (this.isLegit() && this.jumpCancelTicks > 0) {
+        if (this.isUniversal() && this.sprintCancelled && !mc.thePlayer.isSprinting()) {
             event.setCancelled(true);
         } else if (this.isOldPrediction()
                 && this.attackPending > 0
@@ -203,16 +202,15 @@ public class KeepSprint extends Module {
     @EventTarget
     public void onLoadWorld(LoadWorldEvent event) {
         this.attackPending = 0;
-        this.velocityTicks = 1000;
-        this.groundTicks = 0;
-        this.jumpCancelTicks = 0;
+        this.velocityTicks = 0;
+        this.sprintCancelled = false;
         this.auraAttack = false;
         this.lastTarget = null;
     }
 
     @Override
     public void onDisabled() {
-        this.jumpCancelTicks = 0;
+        this.sprintCancelled = false;
         this.auraAttack = false;
     }
 

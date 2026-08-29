@@ -343,7 +343,7 @@ public class AimAssist extends Module {
             return null;
         }
         float[] targetRotations = this.getRotationsToPoint(point, baseYaw, basePitch);
-        return this.smoothRotation(baseYaw, basePitch, targetRotations[0], targetRotations[1]);
+        return RotationUtil.smoothRotation(baseYaw, basePitch, targetRotations[0], targetRotations[1], this.speed.getValue(), this.randomization.getValue());
     }
 
     private Vec3 getAimPoint(Entity target) {
@@ -371,34 +371,6 @@ public class AimAssist extends Module {
         return RotationUtil.getRotationsToPoint(
                 point, mc.thePlayer.getPositionEyes(1.0F), baseYaw, basePitch, 3.0F
         );
-    }
-
-    private float[] smoothRotation(float baseYaw, float basePitch, float targetYaw, float targetPitch) {
-        int speedValue = this.speed.getValue();
-        if (speedValue >= 30) {
-            return new float[]{targetYaw, targetPitch};
-        }
-        float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - baseYaw);
-        float deltaPitch = targetPitch - basePitch;
-        float magnitude = MathHelper.sqrt_float(deltaYaw * deltaYaw + deltaPitch * deltaPitch);
-        if (magnitude < 0.001F) {
-            return new float[]{targetYaw, targetPitch};
-        }
-
-        float speedFactor = speedValue / 30.0F;
-        float stepSize = speedFactor * speedFactor * 180.0F;
-        float randomRange = 0.6F * this.randomization.getValue() / 100.0F;
-        if (randomRange > 0.001F) {
-            stepSize *= 1.0F - randomRange * 0.5F + (float) Math.random() * randomRange;
-        }
-        float proximity = (float) Math.pow(Math.min(1.0F, magnitude / 180.0F), 0.7D);
-        float slowdown = this.randomization.getValue() / 100.0F;
-        stepSize *= Math.max(0.8F, 1.0F - slowdown * (1.0F - proximity));
-        float scale = Math.min(stepSize, magnitude) / magnitude;
-        return new float[]{
-                baseYaw + deltaYaw * scale,
-                MathHelper.clamp_float(basePitch + deltaPitch * scale, -90.0F, 90.0F)
-        };
     }
 
     private AxisAlignedBB getExpandedBox(Entity entity) {
