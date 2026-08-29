@@ -6,7 +6,6 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
 import cn.unfair.module.SubModule;
-import cn.unfair.module.modules.combat.velocity.GrimReduceVelocity;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.client.ChatUtil;
@@ -188,15 +187,6 @@ public class BackTrack extends Module {
         return new Vec3(0.0D, 0.0D, 0.0D);
     }
 
-    private static boolean isGrimReduceActive() {
-        Module velocity = Unfair.moduleManager.getModule(Velocity.class);
-        if (!(velocity instanceof Velocity velocityModule) || !velocityModule.isEnabled()) {
-            return false;
-        }
-        SubModule current = velocityModule.getCurrentSubModule();
-        return current instanceof GrimReduceVelocity && current.isEnabled();
-    }
-
     private boolean isClassic() {
         return this.mode.getValue() == 0;
     }
@@ -335,14 +325,6 @@ public class BackTrack extends Module {
         shouldLag = realDistance > clientDistance && realDistance > 2.3D && realDistance < 5.9D;
         this.isBackTracking = shouldLag;
 
-        if (shouldLag) {
-            BackTrackUtil.spoof(this.maxPingSpoof.getValue(), true, !isGrimReduceActive(), true, true, false, false);
-            this.dispatched = false;
-        } else if (!this.dispatched) {
-            BackTrackUtil.disable();
-            BackTrackUtil.dispatch();
-            this.dispatched = true;
-        }
         BackTrackUtil.onPostTick();
     }
 
@@ -432,19 +414,6 @@ public class BackTrack extends Module {
 
         shouldLag = this.onlyWhenNeeded.getValue() ? onlyNeeded : on;
         this.isBackTracking = shouldLag;
-
-        if (shouldLag) {
-            if (this.relagTimer.hasTimeElapsed(this.delayForNextLag.getValue())) {
-                BackTrackUtil.spoof(this.getDelayMs(), true, !isGrimReduceActive(), true, true, false, false);
-                this.dispatched = false;
-            }
-        } else if (!this.dispatched) {
-            BackTrackUtil.disable();
-            BackTrackUtil.dispatch();
-            this.relagTimer.reset();
-            this.dispatched = true;
-            this.nextRand = randomizeAround(this.extraRand.getValue());
-        }
 
         this.attacked = false;
         BackTrackUtil.onPostTick();

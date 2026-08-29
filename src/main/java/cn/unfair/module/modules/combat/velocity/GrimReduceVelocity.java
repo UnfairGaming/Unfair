@@ -1,245 +1,314 @@
 package cn.unfair.module.modules.combat.velocity;
 
 import cn.unfair.Unfair;
-import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
-import cn.unfair.events.*;
+import cn.unfair.events.LoadWorldEvent;
+import cn.unfair.events.PacketEvent;
+import cn.unfair.events.TickEvent;
+import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
-import cn.unfair.module.modules.combat.BackTrack;
 import cn.unfair.module.modules.combat.KillAura;
+import cn.unfair.module.modules.combat.KillAura.AttackData;
 import cn.unfair.module.modules.combat.Velocity;
-import cn.unfair.module.modules.movement.LongJump;
-import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.property.properties.IntProperty;
-import cn.unfair.util.rotation.RayCastUtil;
+import cn.unfair.util.player.PacketUtil;
+import cn.unfair.util.player.PlayerUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.network.play.client.C02PacketUseEntity;
-import net.minecraft.network.play.client.ServerBoundInteractAttack;
-import net.minecraft.network.play.server.S12PacketEntityVelocity;
-import net.minecraft.potion.Potion;
-import net.minecraft.util.BlockPos;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.network.Packet;
+import net.minecraft.network.ThreadQuickExitException;
+import net.minecraft.network.play.server.*;
 
-import static cn.unfair.management.BadPacketManager.bad;
-import static cn.unfair.module.modules.combat.Velocity.isInLiquidOrWeb;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
 
 public class GrimReduceVelocity extends SubModule {
+
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    private static final float ATTACK_REACH = 3.0F;
+    public final IntProperty maxDelayTicks = new IntProperty("Max Delay Ticks", 6, 5, 100);
+    public final IntProperty attack = new IntProperty("Attack", 4, 2, 6);
 
-    public final IntProperty maxAirTicks = new IntProperty("Max Air Ticks", 12, 4, 20);
-    public final IntProperty reach = new IntProperty("Reach", 3, 2, 4);
-
-    private boolean suspending;
-    private int suspendTicks;
-    private boolean knockback;
-    private int lastInteractTick = -1;
-    private boolean jumpFlag = false;
+    private final Deque<Packet<?>> packetQueue = new ConcurrentLinkedDeque<>();
+    private volatile boolean suspending = false;
+    private volatile S12PacketEntityVelocity heldVelocity = null;
+    private int delayTicks = 0;
+    private int attacksRemaining = 0;
+    private boolean attacking = false;
+    private AttackData attackTarget = null;
+    private volatile int teleportTicks = 0;
+    private volatile boolean pendingHitStatus = false;
+    private boolean attackPending = false;
 
     public GrimReduceVelocity() {
         super("GrimReduce");
     }
 
     @EventTarget
-    public void onKnockback(KnockbackEvent event) {
-        if (this.isEnabled() && !event.isCancelled()) {
-            this.jumpFlag = event.getY() > 0.0;
-        }
-    }
-
-    @EventTarget
-    public void onLivingUpdate(LivingUpdateEvent event) {
-        if (this.jumpFlag) {
-            this.jumpFlag = false;
-            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !Velocity.isInLiquidOrWeb()) {
-                mc.thePlayer.movementInput.jump = true;
-            }
-        }
-    }
-
-    @EventTarget
     public void onPacket(PacketEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) return;
-        if (!(event.getPacket() instanceof S12PacketEntityVelocity packet)) return;
-        if (packet.getEntityID() != mc.thePlayer.getEntityId()) return;
-        if (suspending) return;
-        if (packet.getMotionX() == 0 && packet.getMotionY() == 0 && packet.getMotionZ() == 0) return;
-        if (!isPlayerKnockback()) return;
-        if (isBlockedState()) return;
-        if (bad()) return;
-        BackTrack backTrack = (BackTrack) Unfair.moduleManager.getModule(BackTrack.class);
-        if (backTrack != null && backTrack.isEnabled() && BackTrack.shouldLag) return;
+        if (mc.theWorld == null || mc.thePlayer == null) {
+            this.resetAll();
+            return;
+        }
+        if (!this.isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) {
+            return;
+        }
 
-        Stuck stuck = (Stuck) Unfair.moduleManager.modules.get(Stuck.class);
-        if (stuck != null && stuck.isEnabled()) return;
-        LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
-        if (longJump != null && longJump.isEnabled() && longJump.canStartJump()) return;
+        Packet<?> packet = event.getPacket();
 
-        if (!mc.thePlayer.onGround) {
-            Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
-            Unfair.delayManager.delayedPacket.offer(packet);
+        if (packet instanceof S08PacketPlayerPosLook) {
+            this.resetAll();
+            this.teleportTicks = 10;
+            return;
+        }
+
+        if (packet instanceof S19PacketEntityStatus status) {
+            if (status.getEntity(mc.theWorld) == mc.thePlayer && status.getOpCode() == 2) {
+                this.pendingHitStatus = true;
+            }
+            return;
+        }
+
+        if (packet instanceof S12PacketEntityVelocity motion) {
+            if (motion.getEntityID() != mc.thePlayer.getEntityId()) {
+                return;
+            }
+
+            if (this.teleportTicks > 0) {
+                return;
+            }
+
+            boolean hitKnockback = this.pendingHitStatus;
+            this.pendingHitStatus = false;
+
+            if (!this.canProcess()) {
+                this.resetAll();
+                return;
+            }
+
+            if (hitKnockback && motion.getMotionY() > 0) {
+                this.enterSuspension(motion);
+                event.setCancelled(true);
+            }
+            return;
+        }
+
+        if (this.suspending) {
+            if (this.isCriticalPacket(packet)) {
+                if (packet instanceof S01PacketJoinGame || packet instanceof S07PacketRespawn) {
+                    this.resetAll();
+                }
+                return;
+            }
+            this.packetQueue.offer(packet);
             event.setCancelled(true);
-            suspending = true;
-            suspendTicks = 0;
-        } else {
-            knockback = true;
         }
     }
 
+    private void enterSuspension(S12PacketEntityVelocity motion) {
+        if (this.suspending) {
+            this.packetQueue.offer(motion);
+            return;
+        }
+        this.suspending = true;
+        this.delayTicks = 0;
+        this.attacking = false;
+        this.attacksRemaining = 0;
+        this.attackTarget = null;
+        this.heldVelocity = motion;
+        this.packetQueue.clear();
+        this.packetQueue.offer(motion);
+    }
+
+    private boolean isCriticalPacket(Packet<?> packet) {
+        return packet instanceof S00PacketKeepAlive
+                || packet instanceof S01PacketJoinGame
+                || packet instanceof S07PacketRespawn
+                || packet instanceof S08PacketPlayerPosLook
+                || packet instanceof S40PacketDisconnect;
+    }
+
+
     @EventTarget
-    public void onSendPacket(PacketEvent event) {
-        if (event.getType() != EventType.SEND || event.isCancelled()) return;
-        if (event.getPacket() instanceof C02PacketUseEntity || event.getPacket() instanceof ServerBoundInteractAttack) {
-            this.lastInteractTick = mc.thePlayer != null ? mc.thePlayer.ticksExisted : -1;
+    public void onTick(TickEvent event) {
+        if (event.type() != EventType.POST) {
+            return;
+        }
+        if (mc.theWorld == null || mc.thePlayer == null) {
+            this.resetAll();
+            return;
+        }
+        if (this.teleportTicks > 0) {
+            this.teleportTicks--;
+        }
+        if (!this.isEnabled() || (!this.suspending && !this.attacking)) {
+            return;
+        }
+        if (mc.thePlayer.isDead || mc.thePlayer.ridingEntity != null || mc.currentScreen != null) {
+            this.resetAll();
+            return;
+        }
+        this.delayTicks++;
+
+        if (this.suspending && this.delayTicks > this.maxDelayTicks.getValue()) {
+            this.resetAll();
+            return;
+        }
+
+        if (this.attacking) {
+            if (this.attacksRemaining > 0) {
+                this.attackPending = true;
+            }
+            return;
+        }
+
+        if (this.suspending && mc.thePlayer.onGround) {
+            this.suspending = false;
+            if (this.canStartAttackSequence()) {
+                this.attacking = true;
+                this.attacksRemaining = this.attack.getValue();
+                this.attackTarget = KillAura.target;
+            } else {
+                this.release();
+            }
         }
     }
 
     @EventTarget
     public void onUpdate(UpdateEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) {
-            reset();
+        if (event.getType() != EventType.PRE) {
             return;
         }
-        if (!isEnabled() || event.getType() != EventType.PRE) return;
-
-        if (suspending) {
-            suspendTicks++;
-            boolean timeout = suspendTicks >= maxAirTicks.getValue();
-            if (mc.thePlayer.onGround || timeout || isBlockedState()) {
-                boolean grounded = mc.thePlayer.onGround;
-                Entity target = findTarget();
-                boolean canReduce = grounded
-                        && mc.thePlayer.isSprinting()
-                        && isValidTarget(target)
-                        && !isBlockedState()
-                        && !bad()
-                        && mc.thePlayer.ticksExisted != this.lastInteractTick;
-
-                release();
-
-                if (canReduce) {
-                    doReduce(target);
-                } else if (grounded && mc.thePlayer.isSprinting()) {
-                    mc.thePlayer.setSprinting(false);
-                }
-            }
+        if (!this.isEnabled() || mc.thePlayer == null || !this.attackPending) {
             return;
         }
-
-        if (knockback) {
-            knockback = false;
-            if (bad() || isBlockedState()) return;
-            if (!mc.thePlayer.isSprinting()) return;
-            Entity target = findTarget();
-            if (isValidTarget(target)) {
-                doReduce(target);
-            }
+        this.attackPending = false;
+        if (this.attacking && this.attacksRemaining > 0) {
+            this.attacksRemaining--;
+            this.doAttack();
+        }
+        if (this.attacksRemaining <= 0) {
+            this.attacking = false;
+            this.flushQueue();
         }
     }
 
-    @EventTarget
-    public void onMove(MoveInputEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null) return;
-        if (!isEnabled() || !suspending) return;
-        if (isBlockedState()) return;
-        mc.thePlayer.movementInput.moveForward = 1.0F;
-        mc.thePlayer.movementInput.moveStrafe = 0.0F;
+    private boolean canStartAttackSequence() {
+        if (Unfair.playerStateManager.digging || Unfair.playerStateManager.placing) {
+            return false;
+        }
+        if (!mc.thePlayer.isSprinting()) {
+            return false;
+        }
+        return this.hasValidTarget();
+    }
+
+    private boolean hasValidTarget() {
+        AttackData current = KillAura.target;
+        if (current == null || current.getEntity() == null) {
+            return false;
+        }
+        EntityLivingBase entity = current.getEntity();
+        if (entity.isDead || entity.deathTime > 0 || !mc.theWorld.loadedEntityList.contains(entity)) {
+            return false;
+        }
+        double range = 6.0;
+        KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
+        if (killAura != null) {
+            range = killAura.attackRange.getValue().doubleValue() + 1.5;
+        }
+        return RotationUtil.distanceToEntity(entity) <= range;
+    }
+
+    private void doAttack() {
+        if (this.attackTarget == null) {
+            return;
+        }
+        EntityLivingBase entity = this.attackTarget.getEntity();
+        if (entity == null || entity.isDead || mc.thePlayer.getDistanceToEntity(entity) > 6.0F) {
+            return;
+        }
+
+        boolean wasSprinting = mc.thePlayer.isSprinting();
+        mc.thePlayer.setSprinting(false);
+        mc.thePlayer.motionX *= 0.6;
+        mc.thePlayer.motionZ *= 0.6;
+
+        AttackOrder.sendFixedPacketAttack(entity);
+        PlayerUtil.attackEntity(entity);
+        if (wasSprinting) {
+            mc.thePlayer.setSprinting(true);
+        }
+    }
+
+    private void flushQueue() {
+        this.suspending = false;
+        this.attacking = false;
+        this.attacksRemaining = 0;
+        this.attackTarget = null;
+
+        if (mc.getNetHandler() == null) {
+            this.packetQueue.clear();
+            this.heldVelocity = null;
+            return;
+        }
+        Packet<?> packet;
+        while ((packet = this.packetQueue.poll()) != null) {
+            try {
+                PacketUtil.receivePacket(packet);
+            } catch (ThreadQuickExitException ignored) {
+            }
+        }
+        this.heldVelocity = null;
+    }
+
+    private void release() {
+        this.flushQueue();
+    }
+
+    private boolean canProcess() {
+        if (mc.thePlayer.isDead || mc.thePlayer.ridingEntity != null) {
+            return false;
+        }
+        if (mc.currentScreen != null) {
+            return false;
+        }
+        if (Velocity.isInLiquidOrWeb()) {
+            return false;
+        }
+        KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
+        return killAura != null && killAura.isEnabled();
     }
 
     @EventTarget
     public void onLoadWorld(LoadWorldEvent event) {
-        Unfair.delayManager.discardDelayedPackets(DelayModules.VELOCITY);
-        reset();
+        this.resetAll();
     }
 
     @Override
     public void onEnabled() {
-        reset();
+        this.resetAll();
     }
 
     @Override
     public void onDisabled() {
-        release();
-        reset();
+        this.resetAll();
     }
 
-    private void doReduce(Entity target) {
-        if (!(target instanceof EntityPlayer) || isBlockedState()) return;
-        if (mc.thePlayer.getDistanceToEntity(target) > ATTACK_REACH) return;
-        AttackOrder.sendFixedPacketAttackAndSwing(target);
-        mc.thePlayer.motionX *= 0.6D;
-        mc.thePlayer.motionZ *= 0.6D;
-        mc.thePlayer.setSprinting(false);
-    }
-
-    private void release() {
-        if (Unfair.delayManager.getDelayModule() == DelayModules.VELOCITY) {
-            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
-        }
-        suspending = false;
-        suspendTicks = 0;
-    }
-
-    private void reset() {
-        suspending = false;
-        suspendTicks = 0;
-        knockback = false;
-        lastInteractTick = -1;
-    }
-
-    public boolean isSuspending() {
-        return this.suspending;
-    }
-
-    private boolean isPlayerKnockback() {
-        double radius = reach.getValue() + 2.0;
-        double radiusSq = radius * radius;
-        for (EntityPlayer player : mc.theWorld.playerEntities) {
-            if (player == mc.thePlayer || !player.isEntityAlive()) continue;
-            if (mc.thePlayer.getDistanceSqToEntity(player) <= radiusSq) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isBlockedState() {
-        return mc.thePlayer.isOnLadder() || isInLiquidOrWeb() || isOnFireBlock();
-    }
-
-    private boolean isOnFireBlock() {
-        double x = mc.thePlayer.posX;
-        double z = mc.thePlayer.posZ;
-        return mc.theWorld.getBlockState(new BlockPos(x, mc.thePlayer.posY, z)).getBlock() == Blocks.fire
-                || mc.theWorld.getBlockState(new BlockPos(x, mc.thePlayer.posY - 0.2, z)).getBlock() == Blocks.fire;
-    }
-
-    private Entity findTarget() {
-        RayCastUtil.RayCastResult result = RayCastUtil.rayCast(
-                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch),
-                Math.min(this.reach.getValue().floatValue(), ATTACK_REACH));
-        Entity raycastTarget = result != null && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY
-                && result.entityHit instanceof EntityPlayer ? result.entityHit : null;
-
-        KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-        if (raycastTarget != null && killAura != null && killAura.isEnabled()
-                && killAura.getTarget() != null && killAura.getTarget() == raycastTarget) {
-            return killAura.getTarget();
-        }
-        return raycastTarget;
-    }
-
-    private boolean isValidTarget(Entity entity) {
-        return entity instanceof EntityPlayer
-                && entity.isEntityAlive()
-                && entity != mc.thePlayer
-                && mc.thePlayer.getDistanceToEntity(entity) <= ATTACK_REACH;
+    private void resetAll() {
+        this.suspending = false;
+        this.attacking = false;
+        this.attacksRemaining = 0;
+        this.attackPending = false;
+        this.delayTicks = 0;
+        this.heldVelocity = null;
+        this.attackTarget = null;
+        this.pendingHitStatus = false;
+        this.teleportTicks = 0;
+        this.packetQueue.clear();
     }
 }

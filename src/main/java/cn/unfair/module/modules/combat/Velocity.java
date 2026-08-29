@@ -14,9 +14,9 @@ public class Velocity extends ModuleWithModuleSettings {
                 new VanillaVelocity(),
                 new HypixelVelocity(),
                 new ReduceVelocity(),
+                new GrimReduceVelocity(),
                 new DelayVelocity(),
                 new PolarVelocity(),
-                new GrimReduceVelocity(),
                 new LegitVelocity()
         );
     }
@@ -28,9 +28,6 @@ public class Velocity extends ModuleWithModuleSettings {
 
     public boolean isDelayingVelocity() {
         SubModule subModule = getCurrentSubModule();
-        if (subModule instanceof GrimReduceVelocity grimReduce) {
-            return grimReduce.isSuspending();
-        }
         if (subModule instanceof HypixelVelocity hypixel) {
             return hypixel.isDelaying();
         }
