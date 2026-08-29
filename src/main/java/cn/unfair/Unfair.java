@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 public class Unfair {
     public static String clientName = ChatColors.COLOR_CHAR + "z" + "&l[Unfair&l]&r" + ChatColors.COLOR_CHAR + "y ";
-    public static String version = "B25.2";
+    public static String version = "B26";
     public static int skippedPlayerTicks;
     public static BadPacketManager badPacketManager;
     public static RotationManager rotationManager;
