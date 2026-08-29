@@ -77,6 +77,10 @@ public class ColorUtil {
         return ColorUtil.scale(color, factor, color.getAlpha());
     }
 
+    public static int rgb(int red, int green, int blue) {
+        return red << 16 | green << 8 | blue;
+    }
+
     public static Color scale(Color color, float scaleFactor, int alpha) {
         return new Color(Math.clamp((int) ((float) color.getRed() * scaleFactor), 0, 255), Math.clamp((int) ((float) color.getGreen() * scaleFactor), 0, 255), Math.clamp((int) ((float) color.getBlue() * scaleFactor), 0, 255), alpha);
     }

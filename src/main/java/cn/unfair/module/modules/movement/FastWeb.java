@@ -9,6 +9,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.player.MoveUtil;
 import net.minecraft.client.Minecraft;
 
 public class FastWeb extends Module {
@@ -90,9 +91,7 @@ public class FastWeb extends Module {
     }
 
     private void setStrafe(double speed) {
-        double yaw = Math.toRadians(this.getStrafeYaw());
-        mc.thePlayer.motionX = -Math.sin(yaw) * speed;
-        mc.thePlayer.motionZ = Math.cos(yaw) * speed;
+        MoveUtil.setSpeed(speed, this.getStrafeYaw());
     }
 
     private boolean isPlayerMoving() {

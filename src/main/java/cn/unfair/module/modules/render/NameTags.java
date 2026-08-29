@@ -162,7 +162,7 @@ public class NameTags extends Module {
                 continue;
             }
 
-            String teamName = getDisplayName(entity);
+            String teamName = TeamUtil.stripName(entity);
             if (StringUtils.isBlank(EnumChatFormatting.getTextWithoutFormattingCodes(teamName))) {
                 continue;
             }
@@ -574,10 +574,6 @@ public class NameTags extends Module {
             }
         }
         return -1;
-    }
-
-    private String getDisplayName(Entity entity) {
-        return entity.getDisplayName().getFormattedText().replaceAll("\u00a7\\S$", "").replaceAll("(?i)\u00a7r", "\u00a7f").trim();
     }
 
     private String getFirstColorCode(String text) {

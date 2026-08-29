@@ -13,6 +13,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.rotation.RotationUtil;
+import cn.unfair.util.rotation.advanced.AdvancedRotationMath;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.client.TimerUtil;
 import cn.unfair.util.player.SimulatedPlayer;
@@ -52,21 +53,6 @@ public class TickBase extends Module {
         super("TickBase", false);
     }
 
-    private static double getDistanceToEntityBox(Entity entity) {
-        return getCustomDistanceToEntityBox(mc.thePlayer.getPositionEyes(1.0F), entity);
-    }
-
-    private static double getCustomDistanceToEntityBox(Vec3 eyes, Entity entity) {
-        return eyes.distanceTo(RotationUtil.getClosestPointOnBox(eyes, getHitbox(entity)));
-    }
-
-    private static double getCustomDistanceToEntityBox(Vec3 from, Vec3 to) {
-        double xDist = Math.abs(to.xCoord - from.xCoord);
-        double yDist = Math.abs(to.yCoord - from.yCoord);
-        double zDist = Math.abs(to.zCoord - from.zCoord);
-        return MathHelper.sqrt_double(xDist * xDist + yDist * yDist + zDist * zDist);
-    }
-
     private static double getDistToTargetFromMouseOver(Vec3 eyes, Vec3 look, AxisAlignedBB targetBB) {
         Vec3 end = eyes.addVector(look.xCoord * 64.0D, look.yCoord * 64.0D, look.zCoord * 64.0D);
         Vec3 hitVec = null;
@@ -81,17 +67,8 @@ public class TickBase extends Module {
         return hitVec == null ? Double.MAX_VALUE : eyes.distanceTo(hitVec);
     }
 
-    private static AxisAlignedBB getHitbox(Entity entity) {
-        float border = entity.getCollisionBorderSize();
-        return entity.getEntityBoundingBox().expand(border, border, border);
-    }
-
     private static Vec3 getPositionVector(Entity entity) {
         return new Vec3(entity.posX, entity.posY, entity.posZ);
-    }
-
-    private static Vec3 getMoveDeltaVector(Entity entity) {
-        return subtract(getPositionVector(entity), new Vec3(entity.prevPosX, entity.prevPosY, entity.prevPosZ));
     }
 
     private static Vec3 add(Vec3 vec, double x, double y, double z) {
@@ -104,10 +81,6 @@ public class TickBase extends Module {
 
     private static Vec3 subtract(Vec3 a, Vec3 b) {
         return new Vec3(a.xCoord - b.xCoord, a.yCoord - b.yCoord, a.zCoord - b.zCoord);
-    }
-
-    private static Vec3 multiply(Vec3 vec, double factor) {
-        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
     }
 
     private static AxisAlignedBB offset(AxisAlignedBB box, Vec3 vec) {
@@ -209,7 +182,7 @@ public class TickBase extends Module {
     }
 
     private Vec3 getPredictedTargetPos(int tick) {
-        return add(getPositionVector(this.target), multiply(getMoveDeltaVector(this.target), tick));
+        return add(getPositionVector(this.target), AdvancedRotationMath.multiply(AdvancedRotationMath.getMoveDeltaVector(this.target), tick));
     }
 
     private boolean shouldStart() {
@@ -228,7 +201,7 @@ public class TickBase extends Module {
             }
             picked = true;
 
-            AxisAlignedBB entityBoundingBox = offset(getHitbox(this.target), subtract(this.getPredictedTargetPos(this.ticksToSkip), getPositionVector(this.target)));
+            AxisAlignedBB entityBoundingBox = offset(AdvancedRotationMath.getHitbox(this.target), subtract(this.getPredictedTargetPos(this.ticksToSkip), getPositionVector(this.target)));
             double predictedSelfDistance = getDistToTargetFromMouseOver(
                     add(this.selfPrediction.get(predictProcess.tick).position, 0.0D, mc.thePlayer.getEyeHeight(), 0.0D),
                     mc.thePlayer.getLook(1.0F),
@@ -265,22 +238,22 @@ public class TickBase extends Module {
             return false;
         }
 
-        AxisAlignedBB entityBoundingBox = offset(getHitbox(this.target), subtract(this.getPredictedTargetPos(tick + 1), getPositionVector(this.target)));
+        AxisAlignedBB entityBoundingBox = offset(AdvancedRotationMath.getHitbox(this.target), subtract(this.getPredictedTargetPos(tick + 1), getPositionVector(this.target)));
         Vec3 predictedSelfEyes = add(this.selfPrediction.get(tick).position, 0.0D, mc.thePlayer.getEyeHeight(), 0.0D);
         Vec3 predictedTargetEyes = add(this.getPredictedTargetPos(tick + 1), 0.0D, this.target.getEyeHeight(), 0.0D);
 
         double predictedSelfDistanceMouseOver = getDistToTargetFromMouseOver(predictedSelfEyes, mc.thePlayer.getLook(1.0F), entityBoundingBox);
-        double predictedSelfDistanceBHV = getCustomDistanceToEntityBox(predictedSelfEyes, predictedTargetEyes);
+        double predictedSelfDistanceBHV = predictedSelfEyes.distanceTo(predictedTargetEyes);
 
         double predictedSelfDistance = predictedSelfDistanceMouseOver > 8.0D ? predictedSelfDistanceBHV : predictedSelfDistanceMouseOver;
-        double predictedTargetDistance = getCustomDistanceToEntityBox(predictedTargetEyes, mc.thePlayer);
+        double predictedTargetDistance = RotationUtil.distanceToBox(mc.thePlayer, predictedTargetEyes);
 
         return this.target.hurtTime - tick <= 1
                 && predictedSelfDistance < predictedTargetDistance
                 && predictedSelfDistance <= this.tickRange.getValue()
                 && predictedSelfDistance > this.minRange.getValue()
                 && predictedSelfDistance <= this.searchRange.getValue()
-                && getDistanceToEntityBox(this.target) >= this.stopRange.getValue()
+                && RotationUtil.distanceToEntity(this.target) >= this.stopRange.getValue()
                 && mc.thePlayer.canEntityBeSeen(this.target)
                 && !this.selfPrediction.get(tick).isCollidedHorizontally
                 && !mc.thePlayer.isCollidedHorizontally;
@@ -297,8 +270,8 @@ public class TickBase extends Module {
                 .map(EntityLivingBase.class::cast)
                 .filter(this::isValidTarget)
                 .filter(entity -> mc.thePlayer.getDistanceSqToEntity(entity) <= distance * distance)
-                .filter(entity -> getDistanceToEntityBox(entity) <= distance)
-                .min(Comparator.comparingDouble(TickBase::getDistanceToEntityBox))
+                .filter(entity -> RotationUtil.distanceToEntity(entity) <= distance)
+                .min(Comparator.comparingDouble(RotationUtil::distanceToEntity))
                 .orElse(null);
     }
 

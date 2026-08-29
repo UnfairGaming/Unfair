@@ -13,6 +13,8 @@ import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.client.TimerUtil;
 import cn.unfair.util.player.BackTrackUtil;
+import cn.unfair.util.rotation.RotationUtil;
+import cn.unfair.util.rotation.advanced.AdvancedRotationMath;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGameOver;
 import net.minecraft.entity.Entity;
@@ -92,14 +94,7 @@ public class BackTrack extends Module {
     }
 
     private static Vec3 getBestHitVec(Entity entity) {
-        return getClosestPointOnBox(mc.thePlayer.getPositionEyes(1.0F), getHitbox(entity));
-    }
-
-    private static Vec3 getClosestPointOnBox(Vec3 point, AxisAlignedBB box) {
-        double x = MathHelper.clamp_double(point.xCoord, box.minX, box.maxX);
-        double y = MathHelper.clamp_double(point.yCoord, box.minY, box.maxY);
-        double z = MathHelper.clamp_double(point.zCoord, box.minZ, box.maxZ);
-        return new Vec3(x, y, z);
+        return RotationUtil.getClosestPointOnBox(mc.thePlayer.getPositionEyes(1.0F), AdvancedRotationMath.getHitbox(entity));
     }
 
     private static double getDistToTargetFromMouseOver(Vec3 eyes, Vec3 look, Entity target, AxisAlignedBB targetBB) {
@@ -117,25 +112,12 @@ public class BackTrack extends Module {
         return vec33 == null ? Double.MAX_VALUE : eyes.distanceTo(vec33);
     }
 
-    private static AxisAlignedBB getHitbox(Entity entity) {
-        float border = entity.getCollisionBorderSize();
-        return entity.getEntityBoundingBox().expand(border, border, border);
-    }
-
     private static Vec3 getPositionVector(Entity entity) {
         return new Vec3(entity.posX, entity.posY, entity.posZ);
     }
 
     private static Vec3 getServerPositionVector(Entity entity) {
         return new Vec3(entity.serverPosX / 32.0D, entity.serverPosY / 32.0D, entity.serverPosZ / 32.0D);
-    }
-
-    private static Vec3 getPrevPositionVector(Entity entity) {
-        return new Vec3(entity.prevPosX, entity.prevPosY, entity.prevPosZ);
-    }
-
-    private static Vec3 getMoveDeltaVector(Entity entity) {
-        return subtract(getPositionVector(entity), getPrevPositionVector(entity));
     }
 
     private static Vec3 add(Vec3 vec, double x, double y, double z) {
@@ -152,10 +134,6 @@ public class BackTrack extends Module {
 
     private static Vec3 inverse(Vec3 vec) {
         return new Vec3(-vec.xCoord, -vec.yCoord, -vec.zCoord);
-    }
-
-    private static Vec3 multiply(Vec3 vec, double factor) {
-        return new Vec3(vec.xCoord * factor, vec.yCoord * factor, vec.zCoord * factor);
     }
 
     private static AxisAlignedBB offset(AxisAlignedBB box, Vec3 vec) {
@@ -373,16 +351,16 @@ public class BackTrack extends Module {
             this.lastTarget = this.target;
         }
 
-        Vec3 pred = multiply(subtract(getPositionVector(this.target), getPrevPositionVector(this.target)), this.predictionTicks.getValue());
+        Vec3 pred = AdvancedRotationMath.multiply(subtract(getPositionVector(this.target), AdvancedRotationMath.getPrevPositionVector(this.target)), this.predictionTicks.getValue());
         double realDistance = getCustomDistanceToEntityBox(
-                add(add(realPosition, 0.0D, this.target.getEyeHeight(), 0.0D), multiply(getMoveDeltaVector(this.target), this.predictionTicks.getValue())),
+                add(add(realPosition, 0.0D, this.target.getEyeHeight(), 0.0D), AdvancedRotationMath.multiply(AdvancedRotationMath.getMoveDeltaVector(this.target), this.predictionTicks.getValue())),
                 mc.thePlayer
         );
         double clientDistance = getDistToTargetFromMouseOver(
                 mc.thePlayer.getPositionEyes(1.0F),
                 mc.thePlayer.getLook(1.0F),
                 this.target,
-                offset(offset(getHitbox(this.target), inverse(getPositionVector(this.target))), add(getPositionVector(this.target), pred))
+                offset(offset(AdvancedRotationMath.getHitbox(this.target), inverse(getPositionVector(this.target))), add(getPositionVector(this.target), pred))
         );
 
         if (clientDistance > this.attackRange.getValue()) {
@@ -403,7 +381,7 @@ public class BackTrack extends Module {
             }
         }
 
-        boolean distanceCheck = distance(mc.thePlayer, getPositionVector(this.target)) > distance(mc.thePlayer, getPrevPositionVector(this.target));
+        boolean distanceCheck = distance(mc.thePlayer, getPositionVector(this.target)) > distance(mc.thePlayer, AdvancedRotationMath.getPrevPositionVector(this.target));
         boolean extraCheck = distanceCheck || !this.extraCheck.getValue();
         boolean onlyNeeded = extraCheck
                 && (realDistance > this.attackRange.getValue() || this.outOfRange)

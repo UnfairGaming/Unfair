@@ -8,6 +8,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.render.ColorUtil;
 import cn.unfair.util.render.RenderUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -137,9 +138,9 @@ public class FireBallPredict extends Module {
             return 0x00FF00;
         }
         if (distance <= MID_DISTANCE) {
-            return rgb(255, Math.round(255.0F * (float) ((distance - MIN_DISTANCE) / 16.0)), 0);
+            return ColorUtil.rgb(255, Math.round(255.0F * (float) ((distance - MIN_DISTANCE) / 16.0)), 0);
         }
-        return rgb(Math.round(255.0F * (1.0F - (float) ((distance - MID_DISTANCE) / 24.0))), 255, 0);
+        return ColorUtil.rgb(Math.round(255.0F * (1.0F - (float) ((distance - MID_DISTANCE) / 24.0))), 255, 0);
     }
 
     private int adjustColor(int color) {
@@ -210,10 +211,6 @@ public class FireBallPredict extends Module {
             percent = Math.min(100.0, percent * 1.4);
         }
         return Math.max(0, Math.min(base, (int) (base * percent / 100.0)));
-    }
-
-    private static int rgb(int red, int green, int blue) {
-        return red << 16 | green << 8 | blue;
     }
 
     private record Impact(BlockPos pos, int color) {

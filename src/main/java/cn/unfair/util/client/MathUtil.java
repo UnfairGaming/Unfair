@@ -75,6 +75,28 @@ public class MathUtil {
         return Math.min(value, cap);
     }
 
+    public static double clamp01(double value) {
+        return value < 0 ? 0 : value > 1 ? 1 : value;
+    }
+
+    public static double sq(double value) {
+        return value * value;
+    }
+
+    public static int msToTicks(double ms) {
+        if (ms <= 0.0D) {
+            return 0;
+        }
+        return (int) Math.ceil(ms / 50.0D);
+    }
+
+    public static int wrapIndex(int index, int size) {
+        if (index < 0) {
+            return size - 1;
+        }
+        return index >= size ? 0 : index;
+    }
+
     public static int getRandom(int min, int max) {
         if (min == max) {
             return min;

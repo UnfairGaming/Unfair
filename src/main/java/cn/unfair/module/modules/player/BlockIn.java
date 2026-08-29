@@ -11,6 +11,8 @@ import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.client.KeyBindUtil;
+import cn.unfair.util.client.MathUtil;
+import cn.unfair.util.client.RandomUtil;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.util.rotation.RotationUtil;
@@ -119,7 +121,7 @@ public class BlockIn extends Module {
         float[] sm = RotationUtil.smoothRotation(baseYaw, basePitch, aimYaw, aimPitch,
                 speed.getValue(), randomization.getValue());
         double r = REACH;
-        MovingObjectPosition mop = rayCastBlock(r, sm[0], sm[1]);
+        MovingObjectPosition mop = RayCastUtil.rayTraceBlock(r, sm[0], sm[1]);
 
         if (mop != null) {
             BlockPos hitBlock = mop.getBlockPos();
@@ -429,9 +431,9 @@ public class BlockIn extends Module {
         cands.add(new RotationCandidate(0, baseYaw, basePitch));
 
         for (int row = 0; row <= GRID_N; row++) {
-            double v = clamp01(row * GRID_STEP + jitter(jit));
+            double v = MathUtil.clamp01(row * GRID_STEP + RandomUtil.jitter(jit));
             for (int col = 0; col <= GRID_N; col++) {
-                double u = clamp01(col * GRID_STEP + jitter(jit));
+                double u = MathUtil.clamp01(col * GRID_STEP + RandomUtil.jitter(jit));
 
                 float[] rY = RotationUtil.getRotations(
                         bx + u, faceUp ? by + 1 - GRID_INSET : by + GRID_INSET, bz + v,
@@ -460,7 +462,7 @@ public class BlockIn extends Module {
 
         int byY = targetCell.getY();
         for (RotationCandidate c : cands) {
-            MovingObjectPosition mop = rayCastBlock(reachVal, c.yaw, c.pitch);
+            MovingObjectPosition mop = RayCastUtil.rayTraceBlock(reachVal, c.yaw, c.pitch);
             if (mop == null) continue;
             BlockPos hitBlock = mop.getBlockPos();
             EnumFacing face = mop.sideHit;
@@ -500,12 +502,12 @@ public class BlockIn extends Module {
         Vec3 enemyPos = getClosestPlayerPos(100);
         if (enemyPos != null) {
             baseline.sort((a, b) -> {
-                double da = sq(a.getX() + 0.5 - enemyPos.xCoord)
-                        + sq(a.getY() + 0.5 - enemyPos.yCoord)
-                        + sq(a.getZ() + 0.5 - enemyPos.zCoord);
-                double db = sq(b.getX() + 0.5 - enemyPos.xCoord)
-                        + sq(b.getY() + 0.5 - enemyPos.yCoord)
-                        + sq(b.getZ() + 0.5 - enemyPos.zCoord);
+                double da = MathUtil.sq(a.getX() + 0.5 - enemyPos.xCoord)
+                        + MathUtil.sq(a.getY() + 0.5 - enemyPos.yCoord)
+                        + MathUtil.sq(a.getZ() + 0.5 - enemyPos.zCoord);
+                double db = MathUtil.sq(b.getX() + 0.5 - enemyPos.xCoord)
+                        + MathUtil.sq(b.getY() + 0.5 - enemyPos.yCoord)
+                        + MathUtil.sq(b.getZ() + 0.5 - enemyPos.zCoord);
                 return Double.compare(da, db);
             });
             int picked = 0;
@@ -556,7 +558,7 @@ public class BlockIn extends Module {
         float curYaw = RotationState.isActived() ? RotationState.getSmoothedYaw() : mc.thePlayer.rotationYaw;
         float curPitch = RotationState.isActived() ? RotationState.getRotationPitch() : mc.thePlayer.rotationPitch;
 
-        MovingObjectPosition now = rayCastBlock(reachVal, curYaw, curPitch);
+        MovingObjectPosition now = RayCastUtil.rayTraceBlock(reachVal, curYaw, curPitch);
         if (now != null) {
             BlockPos support = now.getBlockPos();
             EnumFacing faceHit = now.sideHit;
@@ -584,10 +586,10 @@ public class BlockIn extends Module {
 
                 for (int row = 0; row <= GRID_N; row++) {
                     boolean ltr = (row & 1) == 0;
-                    double v = clamp01(row * GRID_STEP + jitter(jit));
+                    double v = MathUtil.clamp01(row * GRID_STEP + RandomUtil.jitter(jit));
 
                     for (int col = 0; col <= GRID_N; col++) {
-                        double cu = clamp01(col * GRID_STEP + jitter(jit));
+                        double cu = MathUtil.clamp01(col * GRID_STEP + RandomUtil.jitter(jit));
                         double u = ltr ? cu : 1.0 - cu;
 
                         double px, py, pz;
@@ -625,7 +627,7 @@ public class BlockIn extends Module {
     }
 
     private AimResult tryPlacement(double reachVal, float yaw, float pit, BlockPos expectedSupport, EnumFacing expectedFace, BlockPos goal) {
-        MovingObjectPosition mop = rayCastBlock(reachVal, yaw, pit);
+        MovingObjectPosition mop = RayCastUtil.rayTraceBlock(reachVal, yaw, pit);
         if (mop == null) return null;
         BlockPos hitBlock = mop.getBlockPos();
         EnumFacing faceHit = mop.sideHit;
@@ -648,12 +650,6 @@ public class BlockIn extends Module {
         if (dx == 0 && dz == 0 && dy == 2) return true;
         return (dy == 0 || dy == 1)
                 && ((Math.abs(dx) == 1 && dz == 0) || (Math.abs(dz) == 1 && dx == 0));
-    }
-
-    private static MovingObjectPosition rayCastBlock(double distance, float yaw, float pitch) {
-        MovingObjectPosition mop = RayCastUtil.rayTrace(yaw, pitch, distance, 1.0f);
-        if (mop == null || mop.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) return null;
-        return mop;
     }
 
     private static Vec3 getClosestPlayerPos(double maxRange) {
@@ -704,18 +700,6 @@ public class BlockIn extends Module {
             }
         }
         return false;
-    }
-
-    private static double sq(double v) {
-        return v * v;
-    }
-
-    private static double clamp01(double v) {
-        return v < 0 ? 0 : v > 1 ? 1 : v;
-    }
-
-    private static double jitter(double range) {
-        return range > 0 ? (Math.random() * 2 - 1) * range : 0;
     }
 
     private static class SupportOffset {

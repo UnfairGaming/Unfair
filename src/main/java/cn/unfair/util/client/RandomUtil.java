@@ -22,4 +22,12 @@ public class RandomUtil {
     public static int nextInt(int min, int max) {
         return theRandom.nextInt(max - min) + min;
     }
+
+    public static int nextIntInclusive(int min, int max) {
+        return theRandom.nextInt(max - min + 1) + min;
+    }
+
+    public static double jitter(double range) {
+        return range > 0 ? (Math.random() * 2 - 1) * range : 0;
+    }
 }

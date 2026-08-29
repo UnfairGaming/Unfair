@@ -12,6 +12,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.player.ItemUtil;
 import cn.unfair.util.player.PlayerUtil;
+import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import cn.unfair.util.client.TeamUtil;
 import net.minecraft.client.Minecraft;
@@ -71,13 +72,6 @@ public class Displace extends Module {
 
     public Displace() {
         super("Displace", false);
-    }
-
-    private static int msToTicks(double ms) {
-        if (ms <= 0.0D) {
-            return 0;
-        }
-        return (int) Math.ceil(ms / 50.0D);
     }
 
     @Override
@@ -221,7 +215,7 @@ public class Displace extends Module {
             targetWindowStartTicks.put(targetId, currentTick);
             return true;
         }
-        int delayTicks = msToTicks(delay.getValue());
+        int delayTicks = MathUtil.msToTicks(delay.getValue());
         if (delayTicks <= 0) {
             return true;
         }

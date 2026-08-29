@@ -14,6 +14,7 @@ import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.player.ItemUtil;
 import cn.unfair.util.client.KeyBindUtil;
+import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import cn.unfair.util.client.TeamUtil;
 import net.minecraft.client.Minecraft;
@@ -49,13 +50,6 @@ public class AutoBlock extends Module {
 
     public AutoBlock() {
         super("AutoBlock", false, true);
-    }
-
-    private static int msToTicks(int milliseconds) {
-        if (milliseconds <= 0) {
-            return 0;
-        }
-        return (int) Math.ceil(milliseconds / 50.0D);
     }
 
     @Override
@@ -172,7 +166,7 @@ public class AutoBlock extends Module {
 
         boolean conditionsMet = this.currentTarget != null && this.checkConditions(lmbDown, rmbDown);
         if (this.lagging) {
-            int lagMaxTicks = msToTicks(this.lagMaxDuration.getValue());
+            int lagMaxTicks = MathUtil.msToTicks(this.lagMaxDuration.getValue());
             boolean lagExpired = lagMaxTicks > 0
                     && this.lagStartTick >= 0
                     && currentTick - this.lagStartTick >= lagMaxTicks;
@@ -194,7 +188,7 @@ public class AutoBlock extends Module {
             }
         }
         if (this.blocking) {
-            int maxHoldTicks = msToTicks(this.maxHoldTime.getValue());
+            int maxHoldTicks = MathUtil.msToTicks(this.maxHoldTime.getValue());
             boolean timeExpired = maxHoldTicks > 0
                     && this.blockStartTick >= 0
                     && currentTick - this.blockStartTick >= maxHoldTicks;
@@ -313,7 +307,7 @@ public class AutoBlock extends Module {
             return;
         }
         int lagReferenceTick = this.blockStartTick >= 0 ? this.blockStartTick : currentTick;
-        int lagMaxTicks = msToTicks(this.lagMaxDuration.getValue());
+        int lagMaxTicks = MathUtil.msToTicks(this.lagMaxDuration.getValue());
         if (lagMaxTicks > 0 && currentTick - lagReferenceTick >= lagMaxTicks) {
             return;
         }

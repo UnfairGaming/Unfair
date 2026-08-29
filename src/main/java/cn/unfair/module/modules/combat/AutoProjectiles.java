@@ -253,16 +253,6 @@ public class AutoProjectiles extends Module {
         }
     }
 
-    private float[] getRotationsToPosition(Vec3 position) {
-        double deltaX = position.xCoord - mc.thePlayer.posX;
-        double deltaY = position.yCoord - mc.thePlayer.posY - mc.thePlayer.getEyeHeight();
-        double deltaZ = position.zCoord - mc.thePlayer.posZ;
-        double horizontalDistance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
-        float yaw = (float) (Math.atan2(deltaZ, deltaX) * 180.0 / Math.PI) - 90.0F;
-        float pitch = (float) -(Math.atan2(deltaY, horizontalDistance) * 180.0 / Math.PI);
-        return new float[]{yaw, pitch};
-    }
-
     private void switchToProjectile() {
         int projectileSlot = this.getProjectileSlot();
         if (projectileSlot != -1) {
@@ -347,7 +337,10 @@ public class AutoProjectiles extends Module {
             if (this.throwsRemaining > 0) {
                 Vec3 predictedPos = this.predictPosition(this.target);
                 if (this.rotation.getValue()) {
-                    float[] rotations = this.getRotationsToPosition(predictedPos);
+                    float[] rotations = RotationUtil.getRotations(
+                            predictedPos.xCoord, predictedPos.yCoord, predictedPos.zCoord,
+                            mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ
+                    );
                     event.setRotation(rotations[0], rotations[1], 2);
                     event.setPervRotation(rotations[0], 2);
                     this.hasRotated = true;

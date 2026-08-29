@@ -50,6 +50,15 @@ public class PlayerUtil {
         return mc.currentScreen == null && KeyBindUtil.isKeyDown(mc.gameSettings.keyBindUseItem.getKeyCode());
     }
 
+    public static boolean isInLiquidOrWeb() {
+        return PlayerUtil.mc.thePlayer != null
+                && (mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || mc.thePlayer.getIsInWeb());
+    }
+
+    public static boolean isMoving(EntityLivingBase entity) {
+        return entity.moveForward != 0.0F || entity.moveStrafing != 0.0F;
+    }
+
     public static boolean canFly(float fallThreshold) {
         if (!mc.thePlayer.capabilities.allowFlying && !mc.thePlayer.capabilities.disableDamage) {
             PotionEffect jumpEffect = mc.thePlayer.getActivePotionEffect(Potion.jump);

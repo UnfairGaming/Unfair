@@ -192,7 +192,7 @@ public class AutoRod extends Module {
                 continue;
             }
 
-            double rayDistance = this.getCustomDistanceToEntityBox(mouseOver, entity);
+            double rayDistance = RotationUtil.distanceToBox(entity, mouseOver);
             if (rayDistance < closestRayDistance) {
                 target = entity;
                 closestRayDistance = rayDistance;
@@ -335,15 +335,7 @@ public class AutoRod extends Module {
     }
 
     private double getDistanceToEntityBox(Entity entity) {
-        return this.getCustomDistanceToEntityBox(mc.thePlayer.getPositionEyes(1.0F), entity);
-    }
-
-    private double getCustomDistanceToEntityBox(Vec3 eyes, Entity entity) {
-        return this.distance(eyes, this.getBestHitVec(entity.getEntityBoundingBox().expand(
-                entity.getCollisionBorderSize(),
-                entity.getCollisionBorderSize(),
-                entity.getCollisionBorderSize()
-        ), eyes));
+        return RotationUtil.distanceToEntity(entity);
     }
 
     private double getCustomDistanceToEntityBox(Vec3 eyes, Vec3 entityEyes, Entity entity) {
@@ -355,15 +347,7 @@ public class AutoRod extends Module {
         AxisAlignedBB predictedBox = box.offset(entityEyes.xCoord - entity.getPositionEyes(1.0F).xCoord,
                 entityEyes.yCoord - entity.getPositionEyes(1.0F).yCoord,
                 entityEyes.zCoord - entity.getPositionEyes(1.0F).zCoord);
-        return this.distance(eyes, this.getBestHitVec(predictedBox, eyes));
-    }
-
-    private Vec3 getBestHitVec(AxisAlignedBB boundingBox, Vec3 eyes) {
-        return new Vec3(
-                MathHelper.clamp_double(eyes.xCoord, boundingBox.minX, boundingBox.maxX),
-                MathHelper.clamp_double(eyes.yCoord, boundingBox.minY, boundingBox.maxY),
-                MathHelper.clamp_double(eyes.zCoord, boundingBox.minZ, boundingBox.maxZ)
-        );
+        return eyes.distanceTo(RotationUtil.getClosestPointOnBox(eyes, predictedBox));
     }
 
     private Vec3 getFlatMoveDelta(Entity entity, double multiplier) {
@@ -372,13 +356,6 @@ public class AutoRod extends Module {
                 0.0D,
                 (entity.posZ - entity.prevPosZ) * multiplier
         );
-    }
-
-    private double distance(Vec3 first, Vec3 second) {
-        double x = first.xCoord - second.xCoord;
-        double y = first.yCoord - second.yCoord;
-        double z = first.zCoord - second.zCoord;
-        return Math.sqrt(x * x + y * y + z * z);
     }
 
     @Override

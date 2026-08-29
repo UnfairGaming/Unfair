@@ -16,6 +16,7 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.player.PlayerUtil;
@@ -97,14 +98,6 @@ public class TargetStrafe extends Module {
         );
     }
 
-    private int wrapIndex(int index, int size) {
-        if (index < 0) {
-            return size - 1;
-        } else {
-            return index >= size ? 0 : index;
-        }
-    }
-
     public float getTargetYaw() {
         return this.targetYaw;
     }
@@ -156,13 +149,13 @@ public class TargetStrafe extends Module {
                             this.direction *= -1;
                         }
                         int nextIndex = closestIndex + this.direction;
-                        nextIndex = this.wrapIndex(nextIndex, vpositions.size());
+                        nextIndex = MathUtil.wrapIndex(nextIndex, vpositions.size());
                         double nextX = this.target.posX + (vpositions.get(nextIndex)).x();
                         double nextZ = this.target.posZ + (vpositions.get(nextIndex)).y();
                         if (this.isInWater(nextX, nextZ)) {
                             this.direction *= -1;
                             nextIndex = closestIndex + this.direction;
-                            nextIndex = this.wrapIndex(nextIndex, vpositions.size());
+                            nextIndex = MathUtil.wrapIndex(nextIndex, vpositions.size());
                             nextX = this.target.posX + (vpositions.get(nextIndex)).x();
                             nextZ = this.target.posZ + (vpositions.get(nextIndex)).y();
                         }

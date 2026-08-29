@@ -63,6 +63,11 @@ public final class RayCastUtil {
         return mc.theWorld.rayTraceBlocks(eyePos, targetPos);
     }
 
+    public static MovingObjectPosition rayTraceBlock(double distance, float yaw, float pitch) {
+        MovingObjectPosition result = rayTrace(yaw, pitch, distance, 1.0F);
+        return result != null && result.typeOfHit == MovingObjectType.BLOCK ? result : null;
+    }
+
     public static MovingObjectPosition rayTrace(AxisAlignedBB boundingBox, float yaw, float pitch, double distance) {
         Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0f);
         Vec3 lookVec = mc.thePlayer.getVectorForRotation(pitch, yaw);

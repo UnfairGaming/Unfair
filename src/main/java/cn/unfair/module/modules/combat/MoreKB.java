@@ -9,6 +9,10 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.client.TimerUtil;
+import cn.unfair.util.client.RandomUtil;
+import cn.unfair.util.player.PlayerUtil;
+import cn.unfair.util.rotation.RotationUtil;
+import cn.unfair.util.rotation.advanced.AdvancedRotationMath;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.entity.Entity;
@@ -79,35 +83,8 @@ public class MoreKB extends Module {
         super("MoreKB", false);
     }
 
-    private static int randomInclusive(int min, int max) {
-        return ThreadLocalRandom.current().nextInt(min, max + 1);
-    }
-
-    private static boolean isMoving(EntityLivingBase entity) {
-        return entity.moveForward != 0.0F || entity.moveStrafing != 0.0F;
-    }
-
-    private static AxisAlignedBB getHitBox(Entity entity) {
-        double borderSize = entity.getCollisionBorderSize();
-        return entity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
-    }
-
-    private static double getDistanceToEntityBox(Entity player, Entity target) {
-        return getDistanceToBox(player, getHitBox(target));
-    }
-
-    private static double getDistanceToBox(Entity player, AxisAlignedBB box) {
-        Vec3 eyes = player.getPositionEyes(1.0F);
-        Vec3 nearest = new Vec3(
-                MathHelper.clamp_double(eyes.xCoord, box.minX, box.maxX),
-                MathHelper.clamp_double(eyes.yCoord, box.minY, box.maxY),
-                MathHelper.clamp_double(eyes.zCoord, box.minZ, box.maxZ)
-        );
-        return eyes.distanceTo(nearest);
-    }
-
     private static float getRotationToPlayer(EntityPlayerSP player, EntityLivingBase target) {
-        AxisAlignedBB playerHitBox = getHitBox(player);
+        AxisAlignedBB playerHitBox = AdvancedRotationMath.getHitbox(player);
         double targetX = (playerHitBox.minX + playerHitBox.maxX) * 0.5D;
         double targetZ = (playerHitBox.minZ + playerHitBox.maxZ) * 0.5D;
         Vec3 targetEyes = target.getPositionEyes(1.0F);
@@ -127,7 +104,7 @@ public class MoreKB extends Module {
         }
 
         EntityPlayerSP player = mc.thePlayer;
-        double distance = getDistanceToEntityBox(player, target);
+        double distance = RotationUtil.distanceToBox(target, player.getPositionEyes(1.0F));
         float rotationToPlayer = getRotationToPlayer(player, target);
         float angleDifferenceToPlayer = Math.abs(MathHelper.wrapAngleTo180_float(rotationToPlayer - target.rotationYaw));
 
@@ -139,12 +116,12 @@ public class MoreKB extends Module {
         }
 
         if (this.onlyMove.getValue()
-                && (!isMoving(player)
+                && (!PlayerUtil.isMoving(player)
                 || this.onlyMoveForward.getValue() && player.movementInput.moveStrafe != 0.0F)) {
             return;
         }
 
-        AxisAlignedBB targetHitBox = getHitBox(target);
+        AxisAlignedBB targetHitBox = AdvancedRotationMath.getHitbox(target);
         if (angleDifferenceToPlayer > this.minEnemyRotDiffToIgnore.getValue()
                 && !targetHitBox.isVecInside(player.getPositionEyes(1.0F))) {
             return;
@@ -153,7 +130,7 @@ public class MoreKB extends Module {
         double motionX = target.posX - target.lastTickPosX;
         double motionY = target.posY - target.lastTickPosY;
         double motionZ = target.posZ - target.lastTickPosZ;
-        double distanceBasedOnMotion = getDistanceToBox(player, targetHitBox.offset(motionX, motionY, motionZ));
+        double distanceBasedOnMotion = RotationUtil.getDistanceToBox(targetHitBox.offset(motionX, motionY, motionZ), player.getPositionEyes(1.0F));
 
         if (this.onlyWhenTargetGoesBack.getValue() && distanceBasedOnMotion >= distance) {
             return;
@@ -368,10 +345,10 @@ public class MoreKB extends Module {
     }
 
     private int randomTicksUntilBlock() {
-        return randomInclusive(this.ticksUntilBlockMin.getValue(), this.ticksUntilBlockMax.getValue());
+        return RandomUtil.nextIntInclusive(this.ticksUntilBlockMin.getValue(), this.ticksUntilBlockMax.getValue());
     }
 
     private int randomReSprintTicks() {
-        return randomInclusive(this.reSprintTicksMin.getValue(), this.reSprintTicksMax.getValue());
+        return RandomUtil.nextIntInclusive(this.reSprintTicksMin.getValue(), this.reSprintTicksMax.getValue());
     }
 }

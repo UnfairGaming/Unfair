@@ -673,7 +673,7 @@ public class KillAura extends Module {
     }
 
     private float[] applySensitivityGcd(float originYaw, float originPitch, float targetYaw, float targetPitch) {
-        float gcd = this.getRotationGcd();
+        float gcd = RotationUtil.getRotationGcd();
         if (gcd <= 0.0F || Float.isNaN(gcd) || Float.isInfinite(gcd)) {
             return new float[]{targetYaw, targetPitch};
         }
@@ -683,14 +683,6 @@ public class KillAura extends Module {
         yawDelta -= yawDelta % gcd;
         pitchDelta -= pitchDelta % gcd;
         return new float[]{originYaw + yawDelta, MathHelper.clamp_float(originPitch + pitchDelta, -90.0F, 90.0F)};
-    }
-
-    private float getRotationGcd() {
-        if (mc == null || mc.gameSettings == null) {
-            return 0.03404715F;
-        }
-        float f = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
-        return f * f * f * 8.0F * 0.15F;
     }
 
     private boolean isPreferredPartHittable(String part, AxisAlignedBB box, Vec3 eyes, double pred, boolean outOfRange) {

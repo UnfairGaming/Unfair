@@ -399,6 +399,14 @@ public class RotationUtil {
         return MathHelper.wrapAngleTo180_float((float) (Math.atan2(z2 - z1, x2 - x1) * 180.0 / Math.PI) - 90.0f - RotationUtil.mc.thePlayer.rotationYaw);
     }
 
+    public static float getRotationGcd() {
+        if (RotationUtil.mc == null || RotationUtil.mc.gameSettings == null) {
+            return 0.03404715F;
+        }
+        float sensitivityFactor = RotationUtil.mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+        return sensitivityFactor * sensitivityFactor * sensitivityFactor * 8.0F * 0.15F;
+    }
+
     public static class RotationVec {
         public float x;
         public float y;

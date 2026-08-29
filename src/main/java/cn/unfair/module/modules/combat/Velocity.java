@@ -3,11 +3,9 @@ package cn.unfair.module.modules.combat;
 import cn.unfair.module.ModuleWithModuleSettings;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.velocity.*;
-import net.minecraft.client.Minecraft;
+import cn.unfair.util.player.PlayerUtil;
 
 public class Velocity extends ModuleWithModuleSettings {
-
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     public Velocity() {
         super("Velocity", false, "Mode",
@@ -22,8 +20,7 @@ public class Velocity extends ModuleWithModuleSettings {
     }
 
     public static boolean isInLiquidOrWeb() {
-        return mc.thePlayer != null
-                && (mc.thePlayer.isInWater() || mc.thePlayer.isInLava() || mc.thePlayer.getIsInWeb());
+        return PlayerUtil.isInLiquidOrWeb();
     }
 
     public boolean isDelayingVelocity() {
