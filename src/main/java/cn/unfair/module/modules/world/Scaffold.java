@@ -65,6 +65,7 @@ public class Scaffold extends Module {
     public final BooleanProperty noUptelly = new BooleanProperty("No Up Telly", true, () -> this.mode.getValue() == 0);
     public final BooleanProperty smoothed = new BooleanProperty("Smoothed", true, () -> this.mode.getValue() == 0);
     public final BooleanProperty fixRotation = new BooleanProperty("Fix Rotation", true);
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent"});
     public final BooleanProperty randomSlow = new BooleanProperty("Slow Up Telly", false, () -> this.mode.getValue() == 0);
     public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true);
     public final ModeProperty blockSlotMode = new ModeProperty("Block Slot Mode", 0, new String[]{"Farthest", "Most Blocks"});
@@ -991,7 +992,9 @@ public class Scaffold extends Module {
 
         if (godBridgeApplyServerSide.getValue()) {
             event.setRotation(rot.yaw, rot.pitch, 3);
-            event.setPervRotation(rot.yaw, 3);
+            if (this.moveFix.getValue() == 1) {
+                event.setPervRotation(rot.yaw, 3);
+            }
         } else {
             mc.thePlayer.rotationYaw = rot.yaw;
             mc.thePlayer.rotationPitch = rot.pitch;
@@ -1644,7 +1647,9 @@ public class Scaffold extends Module {
                 rot = new Rotation(rot.yaw, rot.pitch);
             }
             event.setRotation(rot.yaw, rot.pitch, 3);
-            event.setPervRotation(rot.yaw, 3);
+            if (this.moveFix.getValue() == 1) {
+                event.setPervRotation(rot.yaw, 3);
+            }
         } else if (!hasGodBridgeRotation) {
             return;
         }
@@ -1759,7 +1764,8 @@ public class Scaffold extends Module {
         boolean hasMovementInput = this.isGodBridgeMode()
                 ? godBridgeRawForward != 0.0F || godBridgeRawStrafe != 0.0F
                 : MoveUtil.isForwardPressed();
-        if (RotationState.isActived()
+        if (this.moveFix.getValue() == 1
+                && RotationState.isActived()
                 && RotationState.getPriority() == 3.0F
                 && hasMovementInput
                 && (!this.isGodBridgeMode()
