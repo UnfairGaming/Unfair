@@ -1,13 +1,13 @@
 # Unfair
 
-本项目使用 Gradle 构建，编译基线为 Java 25。
+This project is built with Gradle, targeting Java 25.
 
-## 构建
+## Build
 
 Windows:
 
 ```powershell
-.\gradlew.bat clean build
+.gradlew.bat clean build
 ```
 
 Linux/macOS:
@@ -16,45 +16,44 @@ Linux/macOS:
 ./gradlew clean build
 ```
 
-构建产物位于 `build/libs/`。
+The build output is in `build/libs/`.
 
-## 运行
+## Run
 
 ```powershell
-.\gradlew.bat run
+.gradlew.bat run
 ```
 
-## 鸣谢
+## Thanks
 
-bzdhyp / zzz 的深度优化后的 MCP 与 Augustus ClickGui
+Deeply optimized MCP and Augustus ClickGui by bzdhyp / zzz
 
-ViaVerison / ViaBackwards / ViaRewind
+ViaVersion / ViaBackwards / ViaRewind
 
-Leader Lite 的源码 https://github.com/woshijiejue/Leader-Lite
+Source code for Leader Lite: https://github.com/woshijiejue/Leader-Lite
 
-OpenMyau 的源码 https://github.com/60124808866/OpenMyau
+Source code for OpenMyau: https://github.com/60124808866/OpenMyau
 
-Raven BS 的源码 https://codeberg.org/strangerrrrs/raven-bS
+Source code for Raven BS: https://codeberg.org/strangerrrrs/raven-bS
 
-LiquidBounce Legacy 的源码 https://github.com/CCBlueX/LiquidBounce/tree/legacy
+Source code for LiquidBounce Legacy: https://github.com/CCBlueX/LiquidBounce/tree/legacy
 
-Epilogue Client 的源码/资源 https://github.com/qm123pz/Epilogue-Client
+Source code/resources for Epilogue Client: https://github.com/qm123pz/Epilogue-Client
 
-Naven Client的源码
+Source code for Naven Client
 
-Demise Client 的源码/资源
+Source code/resources for Demise Client
 
-Augustus Client 的资源
+Resources for Augustus Client
 
-Falling Star / Un1336 / qm123pz 的开发
+Development by Falling Star / Un1336 / qm123pz
 
-ModernSkidder / 张金辰 的开发
+Development by ModernSkidder / Zhang Jinchen
 
-K0t1yaSanae 的开发
+Development by K0t1yaSanae
 
-GPT 的开发（60%以上）
+GPT development (over 60%)
 
-DeepSeek 的开发
+Development by DeepSeek
 
-Phosphor 的光照系统 https://github.com/momenbasel/Phosphor
-
+Lighting system by Phosphor: https://github.com/momenbasel/Phosphor
