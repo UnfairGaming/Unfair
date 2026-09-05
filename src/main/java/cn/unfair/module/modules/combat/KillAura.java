@@ -74,11 +74,11 @@ public class KillAura extends Module {
     public final IntProperty minCPS = new IntProperty("Min Aps", 14, 1, 20);
     public final IntProperty maxCPS = new IntProperty("Max Aps", 14, 1, 20);
     public final IntProperty switchDelay = new IntProperty("Switch Delay", 150, 0, 1000);
-    public final ModeProperty rotations = new ModeProperty("Rotations", 2, new String[]{"None", "Legit", "Silent", "Simulation"});
-    public final BooleanProperty lockView = new BooleanProperty("Lock View", false, () -> this.rotations.getValue() != 0);
-    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent", "Strict"});
-    public final PercentProperty smoothing = new PercentProperty("Smoothing", 0);
-    public final IntProperty angleStep = new IntProperty("Angle Step", 90, 30, 180);
+    public final ModeProperty rotations = new ModeProperty("Rotations", 2, new String[]{"None", "Legit", "Silent", "Simulation", "Grim"});
+    public final BooleanProperty lockView = new BooleanProperty("Lock View", false, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent", "Strict"}, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
+    public final PercentProperty smoothing = new PercentProperty("Smoothing", 0, () -> this.rotations.getValue() == 2);
+    public final IntProperty angleStep = new IntProperty("Angle Step", 90, 30, 180, () -> this.rotations.getValue() == 2);
     public final IntProperty aimSpeedYaw = new IntProperty("Aim Speed Yaw", 60, 1, 180, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
     public final IntProperty aimSpeedPitch = new IntProperty("Aim Speed Pitch", 60, 1, 180, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
     public final ModeProperty angleLimiter = new ModeProperty("Angle Limiter", 0, new String[]{"Linear", "Accelerated", "Interpolated", "None"}, () -> this.rotations.getValue() == 3);
@@ -168,6 +168,9 @@ public class KillAura extends Module {
     private float[] normalisedRot;
     private double finalXZTrim;
     private double xzRandShrinkThing;
+    private float grimYaw;
+    private float grimPitch;
+    private boolean grimRotating;
 
     public KillAura() {
         super("KillAura", false);
@@ -218,13 +221,20 @@ public class KillAura extends Module {
                 } else {
                     KeepSprint keepSprint = (KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class);
                     keepSprint.beginAuraAttack();
+                    boolean grim = this.rotations.getValue() == 4;
                     AttackEvent event = new AttackEvent(target.getEntity());
                     try {
                         EventManager.call(event);
                         mc.playerController.syncCurrentPlayItem();
+                        if (grim) {
+                            this.sendGrimPosLook(yaw, pitch);
+                        }
                         AttackOrder.sendFixedPacketAttack(target.getEntity());
                         if (mc.playerController.getCurrentGameType() != GameType.SPECTATOR) {
                             PlayerUtil.attackEntity(target.getEntity());
+                        }
+                        if (grim) {
+                            this.restoreGrimPosLook();
                         }
                     } finally {
                         keepSprint.endAuraAttack();
@@ -246,6 +256,35 @@ public class KillAura extends Module {
         } else {
             mc.thePlayer.swingItem();
         }
+    }
+
+    private void sendGrimPosLook(float yaw, float pitch) {
+        if (mc.thePlayer == null) {
+            return;
+        }
+        float sendYaw = mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float(yaw - mc.thePlayer.rotationYaw);
+        PacketUtil.sendPacketNoEvent(new C03PacketPlayer.C06PacketPlayerPosLook(
+                mc.thePlayer.posX,
+                mc.thePlayer.getEntityBoundingBox().minY,
+                mc.thePlayer.posZ,
+                sendYaw,
+                MathHelper.clamp_float(pitch, -90.0F, 90.0F),
+                mc.thePlayer.onGround
+        ));
+    }
+
+    private void restoreGrimPosLook() {
+        if (mc.thePlayer == null) {
+            return;
+        }
+        PacketUtil.sendPacketNoEvent(new C03PacketPlayer.C06PacketPlayerPosLook(
+                mc.thePlayer.posX,
+                mc.thePlayer.getEntityBoundingBox().minY,
+                mc.thePlayer.posZ,
+                mc.thePlayer.rotationYaw + RandomUtil.nextFloat(-0.02F, 0.02F),
+                MathHelper.clamp_float(mc.thePlayer.rotationPitch, -90.0F, 90.0F),
+                mc.thePlayer.onGround
+        ));
     }
 
     private void sendUseItem() {
@@ -895,6 +934,7 @@ public class KillAura extends Module {
             if (attack) {
                 boolean swap = false;
                 boolean blocked = false;
+                this.grimRotating = false;
                 if (block) {
                     switch (this.autoBlock.getValue()) {
                         case 0:
@@ -1100,6 +1140,25 @@ public class KillAura extends Module {
                         if (this.moveFix.getValue() != 0 || this.lockView.getValue()) {
                             event.setPervRotation(event.getNewYaw(), 1);
                         }
+                    } else if (this.rotations.getValue() == 4) {
+                        AxisAlignedBB targetBox = target.getBox();
+                        Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
+                        double preferredY = this.getPreferredAimY(target.getEntity(), targetBox);
+                        Vec3 aimPoint = RotationUtil.getBestAimPoint(
+                                target.getEntity(), targetBox, eyes, preferredY,
+                                this.swingRange.getValue(), 1.0D, 0.0D,
+                                this.throughWalls.getValue(), true
+                        );
+                        if (aimPoint == null) {
+                            aimPoint = RotationUtil.getAimPoint(targetBox, eyes, preferredY, 1.0D, 0.0D);
+                        }
+                        currentAimVec = aimPoint;
+                        float[] grimRot = RotationUtil.getRotationsToPoint(
+                                aimPoint, eyes, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, 0.0F
+                        );
+                        this.grimYaw = grimRot[0];
+                        this.grimPitch = grimRot[1];
+                        this.grimRotating = true;
                     }
                     if (attack
                             && this.isWithinAttackCooldown()
@@ -1108,7 +1167,11 @@ public class KillAura extends Module {
                         attack = false;
                     }
                     if (attack) {
-                        attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
+                        if (this.rotations.getValue() == 4 && this.grimRotating) {
+                            attacked = this.performAttack(this.grimYaw, this.grimPitch);
+                        } else {
+                            attacked = this.performAttack(event.getNewYaw(), event.getNewPitch());
+                        }
                     }
                 } else if (this.rotations.getValue() == 2 || this.rotations.getValue() == 3) {
                     this.returnToMouseRotation(event);

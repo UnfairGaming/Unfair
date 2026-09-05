@@ -30,6 +30,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0APacketAnimation;
+import net.minecraft.network.play.client.C03PacketPlayer.C06PacketPlayerPosLook;
 import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import org.apache.commons.lang3.RandomUtils;
@@ -57,7 +58,7 @@ public class Scaffold extends Module {
             net.minecraft.init.Blocks.noteblock, net.minecraft.init.Blocks.dropper, net.minecraft.init.Blocks.tnt,
             net.minecraft.init.Blocks.redstone_torch, net.minecraft.init.Blocks.daylight_detector
     );
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge", "Legit"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge", "Legit", "Grim"});
     public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
     public final IntProperty placeTick = new IntProperty("Place Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
     public final IntProperty rotTick = new IntProperty("Rotation Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
@@ -66,9 +67,9 @@ public class Scaffold extends Module {
     public final BooleanProperty noUptelly = new BooleanProperty("No Up Telly", true, () -> this.mode.getValue() == 0);
     public final BooleanProperty smoothed = new BooleanProperty("Smoothed", true, () -> this.mode.getValue() == 0);
     public final BooleanProperty fixRotation = new BooleanProperty("Fix Rotation", true);
-    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent"});
+    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent"}, () -> !this.isGrimMode());
     public final BooleanProperty randomSlow = new BooleanProperty("Slow Up Telly", false, () -> this.mode.getValue() == 0);
-    public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true);
+    public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true, () -> !this.isGrimMode());
     public final ModeProperty blockSlotMode = new ModeProperty("Block Slot Mode", 0, new String[]{"Farthest", "Most Blocks"});
     public final ModeProperty jumpMode = new ModeProperty("Jump Mode", 1, new String[]{"Parkour", "Normal", "None"}, () -> this.mode.getValue() == 0);
     public final BooleanProperty godBridgeJump = new BooleanProperty("Auto Jump", true, this::isGodBridgeMode);
@@ -224,6 +225,10 @@ public class Scaffold extends Module {
 
     private boolean isLegitMode() {
         return this.mode.getValue() == 3;
+    }
+
+    private boolean isGrimMode() {
+        return this.mode.getValue() == 4;
     }
 
     private Rotation limitLegitPitch(Rotation rotation) {
@@ -1474,6 +1479,10 @@ public class Scaffold extends Module {
         Vec3 hitVec = mop.hitVec;
         boolean offhand = this.blockSlot != null && this.blockSlot.offhand();
         boolean placed;
+        boolean grim = this.isGrimMode();
+        if (grim) {
+            this.sendGrimPosLook(rot.yaw, rot.pitch);
+        }
         if (offhand) {
             placed = ModernOffhandInteraction.sendUseItemOnBlock(
                     mc.thePlayer, blockData.blockPos(), blockData.facing(), hitVec
@@ -1501,6 +1510,38 @@ public class Scaffold extends Module {
                 bridgePlaceCount++;
             }
         }
+        if (grim) {
+            this.restoreGrimPosLook();
+        }
+    }
+
+    private void sendGrimPosLook(float yaw, float pitch) {
+        if (mc.thePlayer == null) {
+            return;
+        }
+        float sendYaw = mc.thePlayer.rotationYaw + MathHelper.wrapAngleTo180_float(yaw - mc.thePlayer.rotationYaw);
+        PacketUtil.sendPacketNoEvent(new C06PacketPlayerPosLook(
+                mc.thePlayer.posX,
+                mc.thePlayer.getEntityBoundingBox().minY,
+                mc.thePlayer.posZ,
+                sendYaw,
+                MathHelper.clamp_float(pitch, -90.0F, 90.0F),
+                mc.thePlayer.onGround
+        ));
+    }
+
+    private void restoreGrimPosLook() {
+        if (mc.thePlayer == null) {
+            return;
+        }
+        PacketUtil.sendPacketNoEvent(new C06PacketPlayerPosLook(
+                mc.thePlayer.posX,
+                mc.thePlayer.getEntityBoundingBox().minY,
+                mc.thePlayer.posZ,
+                mc.thePlayer.rotationYaw + RandomUtil.nextFloat(-0.02F, 0.02F),
+                MathHelper.clamp_float(mc.thePlayer.rotationPitch, -90.0F, 90.0F),
+                mc.thePlayer.onGround
+        ));
     }
 
     private void rotationAbuse(float step, float targetYaw) {
@@ -1663,16 +1704,18 @@ public class Scaffold extends Module {
             if (fixRotation.getValue()) {
                 rot = new Rotation(rot.yaw, rot.pitch);
             }
-            event.setRotation(rot.yaw, rot.pitch, 3);
-            if (this.moveFix.getValue() == 1) {
-                event.setPervRotation(rot.yaw, 3);
+            if (!this.isGrimMode()) {
+                event.setRotation(rot.yaw, rot.pitch, 3);
+                if (this.moveFix.getValue() == 1) {
+                    event.setPervRotation(rot.yaw, 3);
+                }
             }
         } else if (!hasGodBridgeRotation) {
             return;
         }
 
         if (!this.isGodBridgeMode()) {
-            if (abuseRotation.getValue()) {
+            if (abuseRotation.getValue() && !this.isGrimMode()) {
                 rotationAbuse(30f, rot.yaw);
             }
             place();
