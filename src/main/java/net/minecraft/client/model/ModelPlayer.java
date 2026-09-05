@@ -1,7 +1,10 @@
 package net.minecraft.client.model;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.modules.render.Skeleton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 
 public class ModelPlayer extends ModelBiped {
     public ModelRenderer bipedLeftArmwear;
@@ -115,6 +118,9 @@ public class ModelPlayer extends ModelBiped {
         copyModelAngles(this.bipedLeftArm, this.bipedLeftArmwear);
         copyModelAngles(this.bipedRightArm, this.bipedRightArmwear);
         copyModelAngles(this.bipedBody, this.bipedBodyWear);
+        if (entityIn instanceof EntityPlayer && ((Skeleton) Unfair.moduleManager.modules.get(Skeleton.class)).isEnabled()) {
+            Skeleton.updateModel((EntityPlayer) entityIn, this);
+        }
     }
 
     public void renderRightArm() {
@@ -146,5 +152,9 @@ public class ModelPlayer extends ModelBiped {
         } else {
             this.bipedRightArm.postRender(scale);
         }
+    }
+
+    public boolean isSmallArms() {
+        return this.smallArms;
     }
 }
