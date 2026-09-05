@@ -35,12 +35,17 @@ import de.florianmichael.vialoadingbase.util.JLoggerToLog4j;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ViaLoadingBase {
@@ -80,8 +85,33 @@ public class ViaLoadingBase {
         this.managerBuilderConsumer = managerBuilderConsumer;
         this.onProtocolReload = onProtocolReload;
 
+        extractBundledConfig("viaversion.yml");
+        extractBundledConfig("viabackwards.yml");
+        extractBundledConfig("viarewind.yml");
+
         instance = this;
         initPlatform();
+    }
+
+    private void extractBundledConfig(String name) {
+        InputStream in = ViaLoadingBase.class.getResourceAsStream("/assets/minecraft/via/vialoadingbase/" + name);
+        if (in == null) {
+            return;
+        }
+        try {
+            File target = new File(this.runDirectory, name);
+            if (!target.getParentFile().exists()) {
+                target.getParentFile().mkdirs();
+            }
+            Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            ViaLoadingBase.LOGGER.log(Level.WARNING, "Unable to extract bundled config " + name, e);
+        } finally {
+            try {
+                in.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     public ProtocolVersion getTargetVersion() {
