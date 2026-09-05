@@ -9,6 +9,7 @@ import cn.unfair.events.TickEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.ui.clickgui.augustus.AugustusClickGui;
 import cn.unfair.util.client.KeyBindUtil;
@@ -18,6 +19,8 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0DPacketCloseWindow;
 import net.minecraft.network.play.client.C0EPacketClickWindow;
 import net.minecraft.network.play.client.C16PacketClientStatus;
@@ -28,12 +31,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class InvWalk extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Vanilla", "Legit", "Hypixel"});
+    public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Vanilla", "Legit", "Hypixel", "Legit+"});
     public final BooleanProperty guiEnabled = new BooleanProperty("Click Gui", true);
+    public final IntProperty openDelay = new IntProperty("Open Delay", 0, 0, 20, ()-> this.mode.getValue() == 3);
+    public final IntProperty closeDelay = new IntProperty("Close Delay", 2, 0, 20, ()-> this.mode.getValue() == 3);
+
     private final Queue<C0EPacketClickWindow> clickQueue = new ConcurrentLinkedQueue<>();
     private boolean keysPressed = false;
     private C16PacketClientStatus pendingStatus = null;
     private int delayTicks = 0;
+    private int openDelayTicks = -1;
+    private int closeDelayTicks = -1;
 
     public InvWalk() {
         super("InvWalk", false);
@@ -65,14 +73,31 @@ public class InvWalk extends Module {
         if (mc.currentScreen instanceof GuiContainerCreative) return false;
 
         switch (this.mode.getValue()) {
-            case 1: // Vanilla
+            case 1: // Legit
                 if (!(mc.currentScreen instanceof GuiInventory)) return false;
                 return this.pendingStatus != null && this.clickQueue.isEmpty();
-            case 2: // Legit
+            case 2: // Hypixel
                 return this.clickQueue.isEmpty();
-            default: // Hypixel
+            case 3: // Legit+
+                if (!(mc.currentScreen instanceof GuiInventory)) return false;
+                return this.closeDelayTicks == -1 && this.clickQueue.isEmpty();
+            default: // Vanilla
                 return true;
         }
+    }
+
+    private boolean temporaryStackIsEmpty() {
+        if (mc.thePlayer.inventory.getItemStack() != null) return false;
+        if (mc.thePlayer.inventoryContainer instanceof ContainerPlayer) {
+            ContainerPlayer containerPlayer = (ContainerPlayer) mc.thePlayer.inventoryContainer;
+            for (int i = 0; i < containerPlayer.craftMatrix.getSizeInventory(); i++) {
+                ItemStack stack = containerPlayer.craftMatrix.getStackInSlot(i);
+                if (stack != null) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @EventTarget(Priority.LOWEST)
@@ -82,8 +107,21 @@ public class InvWalk extends Module {
             return;
         }
         if (event.type() == EventType.PRE) {
+            if (this.openDelayTicks >= 0) {
+                this.openDelayTicks--;
+                return;
+            }
             while (!this.clickQueue.isEmpty()) {
                 PacketUtil.sendPacketNoEvent(this.clickQueue.poll());
+            }
+            if (this.closeDelayTicks > 0) {
+                if (this.temporaryStackIsEmpty()) {
+                    this.closeDelayTicks--;
+                }
+            } else if (this.closeDelayTicks == 0) {
+                if (mc.currentScreen instanceof GuiInventory)
+                    PacketUtil.sendPacketNoEvent(new C0DPacketCloseWindow(0));
+                this.closeDelayTicks = -1;
             }
         }
     }
@@ -121,17 +159,45 @@ public class InvWalk extends Module {
         if (!this.isEnabled() || event.getType() != EventType.SEND) return;
 
         if (event.getPacket() instanceof C16PacketClientStatus packet) {
-            if (this.mode.getValue() == 1) {
+            if (this.mode.getValue() == 1 || this.mode.getValue() == 3) {
                 if (packet.getStatus() == EnumState.OPEN_INVENTORY_ACHIEVEMENT) {
                     event.setCancelled(true);
-                    this.pendingStatus = packet;
+                    if (this.mode.getValue() == 1) {
+                        this.pendingStatus = packet;
+                    }
                 }
             }
         } else if (!(event.getPacket() instanceof C0EPacketClickWindow packet)) {
             if (event.getPacket() instanceof C0DPacketCloseWindow packet) {
-                if (this.pendingStatus != null && packet.getWindowId() == 0) {
-                    this.pendingStatus = null;
-                    event.setCancelled(true);
+                if (this.mode.getValue() == 3) {
+                    if (packet.getWindowId() == 0) {
+                        if (!this.clickQueue.isEmpty()) {
+                            this.clickQueue.clear();
+                        }
+                        if (this.openDelayTicks >= 0) {
+                            this.openDelayTicks = -1;
+                        }
+                        if (this.closeDelayTicks >= 0) {
+                            this.closeDelayTicks = -1;
+                        } else {
+                            event.setCancelled(true);
+                        }
+                    } else {
+                        if (!this.clickQueue.isEmpty()) {
+                            this.clickQueue.clear();
+                        }
+                        if (this.openDelayTicks >= 0) {
+                            this.openDelayTicks = -1;
+                        }
+                        if (this.closeDelayTicks >= 0) {
+                            this.closeDelayTicks = -1;
+                        }
+                    }
+                } else {
+                    if (this.pendingStatus != null && packet.getWindowId() == 0) {
+                        this.pendingStatus = null;
+                        event.setCancelled(true);
+                    }
                 }
             }
         } else {
@@ -160,6 +226,24 @@ public class InvWalk extends Module {
                         this.clickQueue.offer(packet);
                         this.delayTicks = 8;
                     }
+                    break;
+                case 3:
+                    if (packet.getWindowId() == 0) {
+                        if ((packet.getMode() == 3 || packet.getMode() == 4) && packet.getSlotId() == -999) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                        KeyBinding.unPressAllKeys();
+                        this.keysPressed = false;
+                        event.setCancelled(true);
+                        this.clickQueue.offer(packet);
+                        if (this.closeDelayTicks < 0 && this.openDelayTicks < 0) {
+                            this.pendingStatus = new C16PacketClientStatus(EnumState.OPEN_INVENTORY_ACHIEVEMENT);
+                            this.openDelayTicks = this.openDelay.getValue();
+                        }
+                        this.closeDelayTicks = this.closeDelay.getValue();
+                    }
+                    break;
             }
             if (this.pendingStatus != null) {
                 PacketUtil.sendPacketNoEvent(this.pendingStatus);
@@ -180,6 +264,8 @@ public class InvWalk extends Module {
         this.keysPressed = false;
         this.clickQueue.clear();
         this.delayTicks = 0;
+        this.openDelayTicks = -1;
+        this.closeDelayTicks = -1;
         if (this.pendingStatus != null) {
             PacketUtil.sendPacketNoEvent(this.pendingStatus);
             this.pendingStatus = null;
