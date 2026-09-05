@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.potion.Potion;
@@ -49,6 +50,11 @@ public class Health extends Module {
                 height + 25 + guiOffset,
                 color.getRGB());
 
+        // 重置 GL 颜色与混合状态，避免文字颜色污染心图标，与原版血条渲染一致
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.enableAlpha();
         mc.getTextureManager().bindTexture(GuiIngame.icons);
         int lastHealth = mc.ingameGUI.lastPlayerHealth;
         int currentHealth = MathHelper.ceiling_float_int(health);
