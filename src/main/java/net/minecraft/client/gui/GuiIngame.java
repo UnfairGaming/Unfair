@@ -70,7 +70,7 @@ public class GuiIngame extends Gui {
      */
     public float prevVignetteBrightness = 1.0F;
     @Getter
-    private int updateCounter;
+    public int updateCounter;
     /**
      * The string specifying which record music is playing
      */
@@ -118,7 +118,7 @@ public class GuiIngame extends Gui {
      */
     private int titleFadeOut;
     private int playerHealth = 0;
-    private int lastPlayerHealth = 0;
+    public int lastPlayerHealth = 0;
 
     /**
      * The last recorded system time
@@ -128,7 +128,7 @@ public class GuiIngame extends Gui {
     /**
      * Used with updateCounter to make the heart bar flash
      */
-    private long healthUpdateCounter = 0L;
+    public long healthUpdateCounter = 0L;
 
     public GuiIngame(Minecraft mcIn) {
         this.mc = mcIn;
