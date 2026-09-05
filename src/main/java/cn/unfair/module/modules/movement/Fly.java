@@ -8,17 +8,23 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.client.KeyBindUtil;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.player.PacketUtil;
 import cn.unfair.util.client.TeamUtil;
+import cn.unfair.util.via.ViaProtocol;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C0BPacketEntityAction;
+import net.minecraft.network.play.client.C13PacketPlayerAbilities;
+import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.network.play.server.S32PacketConfirmTransaction;
+import net.minecraft.network.play.server.S39PacketPlayerAbilities;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -26,15 +32,19 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class Fly extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final long POLAR_PICKUP_FREEZE_MS = 1000L;
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Vanilla", "Polar"});
-    public final FloatProperty hSpeed = new FloatProperty("Horizontal Speed", 5.0F, 0.0F, 10.0F);
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Vanilla", "Polar", "Heypixel"});
+    public final FloatProperty hSpeed = new FloatProperty("Horizontal Speed", 100.0F, 0.0F, 100.0F);
     public final FloatProperty vSpeed = new FloatProperty("Vertical Speed", 3.0F, 0.0F, 10.0F);
     private final Deque<Packet<?>> polarS32Packets = new ConcurrentLinkedDeque<>();
+    private final Deque<Packet<?>> heypixelPacketQueue = new ConcurrentLinkedDeque<>();
     private double verticalMotion = 0.0;
     private Entity polarBoat = null;
     private boolean polarAttackedBoat = false;
     private boolean polarMovementCheckDisabled = false;
     private long polarPickupFreezeUntil = 0L;
+    private boolean heypixelDelay = false;
+    private boolean heypixelEnabledWhileFlying = false;
+    private boolean heypixelFlagged = false;
 
     public Fly() {
         super("Fly", false);
@@ -110,6 +120,83 @@ public class Fly extends Module {
         mc.thePlayer.motionZ = 0.0D;
     }
 
+    private void resetHeypixel() {
+        this.heypixelDelay = false;
+        this.heypixelFlagged = false;
+        this.heypixelPacketQueue.clear();
+    }
+
+    private void flushHeypixelPackets() {
+        Packet<?> packet;
+        while ((packet = this.heypixelPacketQueue.poll()) != null) {
+            PacketUtil.receivePacketNoEvent(packet);
+        }
+    }
+
+    private void checkHeypixelAutoDisable() {
+        if (mc.thePlayer == null || mc.theWorld == null) {
+            return;
+        }
+
+        if (this.heypixelFlagged) {
+            return;
+        }
+
+        if (ViaProtocol.olderThan(ProtocolVersion.v1_16_4)) {
+            this.setEnabled(false);
+            ChatUtil.dbg("&cHeypixel: server version is below 1.16.5, disabling Fly.");
+            return;
+        }
+
+        if (!this.heypixelEnabledWhileFlying && !mc.thePlayer.capabilities.isFlying) {
+            this.setEnabled(false);
+            ChatUtil.dbg("&cHeypixel: player is not flying, disabling Fly.");
+        }
+    }
+
+    private void handleHeypixelPacket(PacketEvent event) {
+        if (event.getType() != EventType.RECEIVE || mc.thePlayer == null) {
+            return;
+        }
+
+        Packet<?> packet = event.getPacket();
+
+        if (mc.thePlayer.ticksExisted < 20) {
+            this.heypixelPacketQueue.clear();
+            return;
+        }
+
+        if (packet instanceof S08PacketPlayerPosLook) {
+            if (mc.thePlayer.capabilities.isFlying && !this.heypixelDelay) {
+                this.heypixelDelay = true;
+            } else if (this.heypixelDelay) {
+                if (!this.heypixelFlagged) {
+                    this.heypixelFlagged = true;
+                    ChatUtil.dbg("&cHeypixel: flagged, queued teleport to bypass BadPacketsN.");
+                }
+                this.heypixelPacketQueue.offer(packet);
+            }
+        }
+
+        if (packet instanceof S39PacketPlayerAbilities) {
+            S39PacketPlayerAbilities abilities = (S39PacketPlayerAbilities) packet;
+            if (abilities.isFlying() && !this.heypixelDelay) {
+                this.heypixelDelay = true;
+            }
+        }
+
+        if (this.heypixelDelay && packet instanceof S32PacketConfirmTransaction) {
+            this.heypixelPacketQueue.offer(packet);
+            event.setCancelled(true);
+        }
+    }
+
+    private void handleHeypixelSendPacket(PacketEvent event) {
+        if (this.heypixelDelay && event.getPacket() instanceof C13PacketPlayerAbilities) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventTarget
     public void onStrafe(StrafeEvent event) {
         if (this.isEnabled() && this.mode.getValue() == 1 && this.isPolarPickupFreezing()) {
@@ -132,6 +219,10 @@ public class Fly extends Module {
     @EventTarget
     public void onUpdate(UpdateEvent event) {
         if (this.isEnabled() && event.getType() == EventType.PRE) {
+            if (this.mode.getValue() == 2) {
+                this.checkHeypixelAutoDisable();
+                return;
+            }
             this.updatePolarState();
             if (this.mode.getValue() == 1 && this.isPolarPickupFreezing()) {
                 this.verticalMotion = 0.0D;
@@ -161,6 +252,15 @@ public class Fly extends Module {
             return;
         }
 
+        if (this.isEnabled() && this.mode.getValue() == 2) {
+            if (event.getType() == EventType.SEND) {
+                this.handleHeypixelSendPacket(event);
+            } else {
+                this.handleHeypixelPacket(event);
+            }
+            return;
+        }
+
         if (this.isEnabled()
                 && this.mode.getValue() == 1
                 && this.polarAttackedBoat
@@ -174,12 +274,17 @@ public class Fly extends Module {
     @Override
     public void onEnabled() {
         this.resetPolar();
+        this.resetHeypixel();
+        this.heypixelEnabledWhileFlying = mc.thePlayer != null && mc.thePlayer.capabilities.isFlying;
+        this.heypixelDelay = this.heypixelEnabledWhileFlying;
     }
 
     @Override
     public void onDisabled() {
         this.flushPolarPackets();
+        this.flushHeypixelPackets();
         this.resetPolar();
+        this.resetHeypixel();
         if (mc.thePlayer != null) {
             mc.thePlayer.motionY = 0.0;
         }

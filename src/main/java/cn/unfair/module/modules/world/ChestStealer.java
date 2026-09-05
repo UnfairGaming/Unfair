@@ -10,6 +10,7 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.util.client.ChatUtil;
+import cn.unfair.util.player.ClickUtil;
 import cn.unfair.util.player.ItemUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiChest;
@@ -36,6 +37,10 @@ public class ChestStealer extends Module {
     public final BooleanProperty nameCheck = new BooleanProperty("Name Check", true);
     public final BooleanProperty skipTrash = new BooleanProperty("Skip Trash", true);
     public final BooleanProperty keepProjectiles = new BooleanProperty("Keep Projectiles", true);
+
+    public final BooleanProperty antiCheatAddition = new BooleanProperty("AntiCheatAddition", false, () -> this.mode.getValue() == 1);
+    public final ModeProperty preClick = new ModeProperty("Pre Click", 0, new String[]{"MIDDLE", "NOTHING"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
+    public final ModeProperty transfer = new ModeProperty("Transfer", 0, new String[]{"NUMBER_KEY", "HOTBAR_SWAP"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
 
     private int clickDelay = 0;
     private int oDelay = 0;
@@ -70,9 +75,6 @@ public class ChestStealer extends Module {
         mc.playerController.windowClick(windowId, slotId, 1, 4, mc.thePlayer);
     }
 
-    // Performs the per-slot interaction for Normal/Drop modes. In Normal mode
-    // this shift-clicks the stack into the player's inventory; in Drop mode it
-    // drops the stack out of the chest instead.
     private void interactSlot(int windowId, int slotId) {
         if (this.mode.getValue() == 2) {
             this.dropStack(windowId, slotId);
@@ -99,9 +101,39 @@ public class ChestStealer extends Module {
         List<Integer> slots = this.collectInstantSlots(container, inventory);
         for (int slot : slots) {
             if (container.getSlot(slot).getHasStack()) {
-                this.shiftClick(container.windowId, slot);
+                if (this.antiCheatAddition.getValue()) {
+                    this.transferSlotAnticheat(container, slot);
+                } else {
+                    this.shiftClick(container.windowId, slot);
+                }
             }
         }
+    }
+
+    private int getEmptyHotbarSlot() {
+        for (int i = 0; i < 9; i++) {
+            if (mc.thePlayer.inventory.getStackInSlot(i) == null) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void transferSlotAnticheat(Container container, int slot) {
+        int windowId = container.windowId;
+        if (this.preClick.getValue() == 0) {
+            ClickUtil.middleClick(windowId, slot);
+        }
+        int hotbarIndex;
+        if (this.transfer.getValue() == 0) {
+            hotbarIndex = this.getEmptyHotbarSlot();
+            if (hotbarIndex == -1) {
+                hotbarIndex = mc.thePlayer.inventory.currentItem;
+            }
+        } else {
+            hotbarIndex = mc.thePlayer.inventory.currentItem;
+        }
+        ClickUtil.swapWithHotbar(windowId, slot, hotbarIndex);
     }
 
     @EventTarget
@@ -321,6 +353,13 @@ public class ChestStealer extends Module {
             case "Max Delay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.minDelay.setValue(this.maxDelay.getValue());
+                }
+                break;
+            case "Mode":
+            case "AntiCheatAddition":
+                if (this.mode.getValue() != 1 && this.antiCheatAddition.getValue()) {
+                    this.antiCheatAddition.setValue(false);
+                    ChatUtil.sendFormatted(String.format("%s%s: &cAntiCheatAddition only works in Instant mode, disabled.&r", Unfair.clientName, this.getName()));
                 }
                 break;
         }
