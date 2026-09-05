@@ -38,9 +38,9 @@ public class ChestStealer extends Module {
     public final BooleanProperty skipTrash = new BooleanProperty("Skip Trash", true);
     public final BooleanProperty keepProjectiles = new BooleanProperty("Keep Projectiles", true);
 
-    public final BooleanProperty antiCheatAddition = new BooleanProperty("AntiCheatAddition", false, () -> this.mode.getValue() == 1);
-    public final ModeProperty preClick = new ModeProperty("Pre Click", 0, new String[]{"MIDDLE", "NOTHING"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
-    public final ModeProperty transfer = new ModeProperty("Transfer", 0, new String[]{"NUMBER_KEY", "HOTBAR_SWAP"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
+    public final BooleanProperty antiCheatAddition = new BooleanProperty("Anti Cheat Addition", false, () -> this.mode.getValue() == 1);
+    public final ModeProperty preClick = new ModeProperty("Pre Click", 0, new String[]{"Middle", "None"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
+    public final ModeProperty transfer = new ModeProperty("Transfer", 0, new String[]{"Number", "Hotbar Swap"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
 
     private int clickDelay = 0;
     private int oDelay = 0;
