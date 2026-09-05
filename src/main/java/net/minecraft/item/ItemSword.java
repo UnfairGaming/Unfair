@@ -1,5 +1,6 @@
 package net.minecraft.item;
 
+import cn.unfair.util.via.ViaProtocol;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
 import net.minecraft.block.ModernBlock;
@@ -75,7 +76,8 @@ public class ItemSword extends Item {
      * returns the action that specifies what animation to play when the items is being used
      */
     public EnumAction getItemUseAction(ItemStack stack) {
-        return EnumAction.BLOCK;
+        // 1.9+ 无剑格挡机制，禁用 BLOCK 动作使格挡动画与减伤失效
+        return ViaProtocol.newerThanOrEqualTo1_9() ? EnumAction.NONE : EnumAction.BLOCK;
     }
 
     /**
@@ -89,7 +91,10 @@ public class ItemSword extends Item {
      * Called whenever this item is equipped and the right mouse button is pressed. Args: itemStack, world, entityPlayer
      */
     public ItemStack onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn) {
-        playerIn.setItemInUse(itemStackIn, this.getMaxItemUseDuration(itemStackIn));
+        // 1.9+ 右键持剑不再进入格挡使用状态
+        if (!ViaProtocol.newerThanOrEqualTo1_9()) {
+            playerIn.setItemInUse(itemStackIn, this.getMaxItemUseDuration(itemStackIn));
+        }
         return itemStackIn;
     }
 

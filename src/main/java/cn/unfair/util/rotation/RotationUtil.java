@@ -326,17 +326,16 @@ public class RotationUtil {
         if (speed <= 0) {
             return new float[]{baseYaw, MathHelper.clamp_float(basePitch, -90.0F, 90.0F)};
         }
-        if (speed >= 30) {
-            return new float[]{MathHelper.wrapAngleTo180_float(targetYaw), MathHelper.clamp_float(targetPitch, -90.0F, 90.0F)};
-        }
+        // yaw 始终以 baseYaw 为基准累加，不做 [-180,180) 归一化，否则会产生 ±360 跳变
         float deltaYaw = MathHelper.wrapAngleTo180_float(targetYaw - baseYaw);
-        float deltaPitch = targetPitch - basePitch;
+        float deltaPitch = MathHelper.clamp_float(targetPitch, -90.0F, 90.0F) - basePitch;
         float magnitude = MathHelper.sqrt_float(deltaYaw * deltaYaw + deltaPitch * deltaPitch);
-        if (magnitude < 0.001F) {
-            return new float[]{MathHelper.wrapAngleTo180_float(targetYaw), MathHelper.clamp_float(targetPitch, -90.0F, 90.0F)};
+        if (speed >= 30 || magnitude < 0.001F) {
+            return new float[]{baseYaw + deltaYaw, MathHelper.clamp_float(basePitch + deltaPitch, -90.0F, 90.0F)};
         }
         float t = speed / 30.0F;
-        float stepSize = t * t * 180.0F;
+        // 步长随 speed 线性增长并封顶，避免高 speed 下单 tick 大幅度甩头
+        float stepSize = 2.0F + t * 38.0F;
         float randomRange = 0.6F * (randomization / 100.0F);
         float multiplier = randomRange <= 0.001F ? 1.0F : (1.0F - randomRange * 0.5F + (float) Math.random() * randomRange);
         stepSize *= multiplier;
@@ -348,7 +347,7 @@ public class RotationUtil {
         float stepLength = Math.min(stepSize, magnitude);
         float scale = stepLength / magnitude;
         return new float[]{
-                MathHelper.wrapAngleTo180_float(baseYaw + deltaYaw * scale),
+                baseYaw + deltaYaw * scale,
                 MathHelper.clamp_float(basePitch + deltaPitch * scale, -90.0F, 90.0F)
         };
     }

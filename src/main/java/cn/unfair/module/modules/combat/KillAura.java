@@ -1103,6 +1103,7 @@ public class KillAura extends Module {
                     }
                     if (attack
                             && this.isWithinAttackCooldown()
+                            && KillAura.target.getEntity() instanceof EntityPlayer
                             && ((KeepSprint) Unfair.moduleManager.modules.get(KeepSprint.class)).prepareAttack()) {
                         attack = false;
                     }

@@ -18,6 +18,7 @@ import cn.unfair.util.rotation.RotationUtil;
 import de.florianmichael.viamcp.fixes.AttackOrder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class KeepSprint extends Module {
@@ -37,6 +38,9 @@ public class KeepSprint extends Module {
     }
 
     public boolean shouldKeepSprint() {
+        if (this.isUniversal()) {
+            return this.lastTarget instanceof EntityPlayer;
+        }
         if (!this.isBasic()) {
             return true;
         }
@@ -111,7 +115,9 @@ public class KeepSprint extends Module {
 
     private boolean hasAttackTarget() {
         KillAura killAura = (KillAura) cn.unfair.Unfair.moduleManager.modules.get(KillAura.class);
-        return killAura.isEnabled() && KillAura.target != null || this.attackPending > 0;
+        return killAura.isEnabled() && KillAura.target != null
+                && KillAura.target.getEntity() instanceof EntityPlayer
+                || this.attackPending > 0 && this.lastTarget instanceof EntityPlayer;
     }
 
     private boolean usesAuraAutoBlockTiming() {
@@ -154,7 +160,7 @@ public class KeepSprint extends Module {
                 AttackOrder.sendFixedPacketAttack(event.getTarget());
             }
             event.setCancelled(true);
-        } else if (this.isUniversal() && this.prepareAttack()) {
+        } else if (this.isUniversal() && event.getTarget() instanceof EntityPlayer && this.prepareAttack()) {
             event.setCancelled(true);
         }
     }

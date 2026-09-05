@@ -88,7 +88,6 @@ public class PostProcessingRenderer {
                     bloomBuffer = cn.unfair.util.shader.PostProcessing.beginBloom();
                     if (bloomBuffer != null) {
                         EventManager.call(post);
-                        mc.getFramebuffer().forceBind(true);
                         cn.unfair.util.shader.PostProcessing.endBloom(bloomBuffer, pp.bloomIterations.getValue(), pp.bloomOffset.getValue(), pp.getBloomColor(System.currentTimeMillis()));
                     }
                 } finally {

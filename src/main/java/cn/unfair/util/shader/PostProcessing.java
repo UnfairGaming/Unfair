@@ -53,7 +53,6 @@ public class PostProcessing {
 
     public static void endBloom(Framebuffer bloomBuffer, int iterations, float offset, Color color) {
         if (bloomBuffer == null) return;
-        mc.getFramebuffer().forceBind(true);
         BloomShader.renderBloom(bloomBuffer.framebufferTexture, iterations, Math.max(1.0F, offset), color);
     }
 
@@ -67,6 +66,7 @@ public class PostProcessing {
             tex = BlurShader.render(tex, radius, left, top, right - left, bottom - top, width, height);
         }
 
+        mc.getFramebuffer().forceBind(true);
         GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         GlStateManager.bindTexture(tex);

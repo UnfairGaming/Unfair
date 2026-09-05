@@ -132,8 +132,6 @@ public class BlurShader {
         ShaderUtil.drawQuads();
         s.unload();
 
-        mc.getFramebuffer().forceBind(true);
-        GlStateManager.bindTexture(0);
         return pass2.framebufferTexture;
     }
 

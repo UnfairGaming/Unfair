@@ -1,5 +1,7 @@
 package net.minecraft.client.renderer.entity;
 
+import cn.unfair.util.via.ViaProtocol;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelPlayer;
@@ -8,6 +10,7 @@ import net.minecraft.client.renderer.entity.layers.*;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
@@ -82,6 +85,13 @@ public class RenderPlayer extends RendererLivingEntity<AbstractClientPlayer> {
 
                 if (clientPlayer.getItemInUseCount() > 0 && clientPlayer.getItemInUse() == itemstack) {
                     EnumAction enumaction = itemstack.getItemUseAction();
+                    // 1.9+ 上模块伪造的剑格挡仍渲染第三人称格挡动作
+                    if (enumaction == EnumAction.NONE
+                            && clientPlayer == Minecraft.getMinecraft().thePlayer
+                            && ViaProtocol.newerThanOrEqualTo1_9()
+                            && itemstack.getItem() instanceof ItemSword) {
+                        enumaction = EnumAction.BLOCK;
+                    }
 
                     if (enumaction == EnumAction.BLOCK) {
                         modelplayer.heldItemRight = 3;

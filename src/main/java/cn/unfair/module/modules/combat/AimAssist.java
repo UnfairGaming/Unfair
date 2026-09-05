@@ -31,6 +31,7 @@ import java.util.List;
 public class AimAssist extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int ROTATION_PRIORITY = 0;
+    private static final double TARGET_SWITCH_MARGIN = 12.0D;
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Silent"});
     public final IntProperty speed = new IntProperty("Speed", 10, 1, 30);
@@ -124,20 +125,21 @@ public class AimAssist extends Module {
             return;
         }
         this.controllingAim = false;
-        this.target = null;
         if (!this.isReady() || this.hasAuraTarget()) {
+            this.target = null;
             return;
         }
 
         EntityPlayer target = this.getTarget(mc.thePlayer.rotationYaw);
         if (target == null) {
+            this.target = null;
             return;
         }
         float[] rotations = this.getRotations(target, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch);
         if (rotations != null) {
             this.target = target;
-            mc.thePlayer.rotationYaw = rotations[0];
-            mc.thePlayer.rotationPitch = rotations[1];
+            // 交由 RotationManager 按渲染帧平滑施加，避免直接写 rotationYaw 导致相机抽搐
+            Unfair.rotationManager.setRotation(rotations[0], rotations[1], ROTATION_PRIORITY, false);
             this.controllingAim = true;
         }
     }
@@ -273,28 +275,26 @@ public class AimAssist extends Module {
         List<EntityPlayer> candidates = new ArrayList<>();
 
         for (EntityPlayer player : mc.theWorld.playerEntities) {
-            if (player == mc.thePlayer || player.deathTime != 0 || player.isDead) {
-                continue;
-            }
-            if (TeamUtil.isFriend(player)) {
-                continue;
-            }
-            if (TeamUtil.shouldBlockTarget(player)) {
-                continue;
-            }
-            if (!this.invisibles.getValue() && player.isInvisible()) {
-                continue;
-            }
-            if (this.distanceSquaredToBox(player) > rangeSquared) {
-                continue;
-            }
-            if (this.fov.getValue() != 360 && !this.isInFov(viewYaw, player)) {
+            if (!this.isValidTarget(player, viewYaw, rangeSquared)) {
                 continue;
             }
             candidates.add(player);
         }
 
         candidates.sort(this.getTargetComparator().thenComparingDouble(mc.thePlayer::getDistanceSqToEntity));
+        EntityPlayer best = candidates.isEmpty() ? null : candidates.get(0);
+
+        // 锁定当前目标：仍有效时不因排序抖动来回切换，避免移动中镜头抽搐
+        if (best != null && this.target != null && this.target != best
+                && this.isValidTarget(this.target, viewYaw, rangeSquared)
+                && (this.throughWalls.getValue() && this.throughEntities.getValue()
+                || this.findValidAimPoint(this.target) != null)) {
+            if (this.sort.getValue() != 1
+                    || this.getAngleDifference(best) + TARGET_SWITCH_MARGIN >= this.getAngleDifference(this.target)) {
+                return this.target;
+            }
+        }
+
         if (!this.throughWalls.getValue() || !this.throughEntities.getValue()) {
             for (EntityPlayer candidate : candidates) {
                 if (this.findValidAimPoint(candidate) != null) {
@@ -303,7 +303,21 @@ public class AimAssist extends Module {
             }
             return null;
         }
-        return candidates.isEmpty() ? null : candidates.get(0);
+        return best;
+    }
+
+    private boolean isValidTarget(EntityPlayer player, float viewYaw, double rangeSquared) {
+        if (player == mc.thePlayer || player.deathTime != 0 || player.isDead) {
+            return false;
+        }
+        if (TeamUtil.isFriend(player) || TeamUtil.shouldBlockTarget(player)) {
+            return false;
+        }
+        if (!this.invisibles.getValue() && player.isInvisible()) {
+            return false;
+        }
+        return this.distanceSquaredToBox(player) <= rangeSquared
+                && (this.fov.getValue() == 360 || this.isInFov(viewYaw, player));
     }
 
     private Comparator<EntityPlayer> getTargetComparator() {

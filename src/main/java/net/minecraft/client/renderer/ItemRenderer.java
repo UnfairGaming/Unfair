@@ -5,6 +5,7 @@ import cn.unfair.events.RenderItemEvent;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.via.ViaBackwardsItemModels;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -389,6 +390,12 @@ public class ItemRenderer {
                         && activeStack != null
                         && activeStack != offhandStack
                         && (activeStack == renderedStack || ItemStack.areItemStacksEqual(activeStack, renderedStack));
+                // 1.9+ 剑被模块强制进入使用状态时仍按格挡渲染
+                if (useItem && enumaction == EnumAction.NONE
+                        && ViaProtocol.newerThanOrEqualTo1_9()
+                        && renderedStack.getItem() instanceof ItemSword) {
+                    enumaction = EnumAction.BLOCK;
+                }
                 boolean usingDifferentItem = abstractclientplayer.getItemInUseCount() > 0
                         && activeStack != null
                         && !useItem;
