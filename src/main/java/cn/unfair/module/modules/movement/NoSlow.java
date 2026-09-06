@@ -41,13 +41,13 @@ public class NoSlow extends Module {
     public final PercentProperty swordMotion = new PercentProperty("Sword Motion", 100, () -> this.swordMode.getValue() != 0);
     public final BooleanProperty swordSprint = new BooleanProperty("Sword Sprint", true, () -> this.swordMode.getValue() != 0);
     public final ModeProperty foodMode = new ModeProperty("Food Mode", 0, new String[]{"None", "Vanilla", "Float", "GrimAC", "Grim 1/3"});
-    public final PercentProperty foodMotion = new PercentProperty("Food Motion", 100, () -> this.foodMode.getValue() != 0);
-    public final BooleanProperty foodSprint = new BooleanProperty("Food Sprint", true, () -> this.foodMode.getValue() != 0);
+    public final PercentProperty foodMotion = new PercentProperty("Food Motion", 100, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 4);
+    public final BooleanProperty foodSprint = new BooleanProperty("Food Sprint", true, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 4);
     public final BooleanProperty c0fDelayKnockback = new BooleanProperty("C0f Delay Knockback", true, () -> this.foodMode.getValue() == 3);
     public final BooleanProperty c0fDelayInteract = new BooleanProperty("C0f Delay Interact", true, () -> this.foodMode.getValue() == 3);
-    public final ModeProperty bowMode = new ModeProperty("Bow Mode", 0, new String[]{"None", "Vanilla", "Float"});
-    public final PercentProperty bowMotion = new PercentProperty("Bow Motion", 100, () -> this.bowMode.getValue() != 0);
-    public final BooleanProperty bowSprint = new BooleanProperty("Bow Sprint", true, () -> this.bowMode.getValue() != 0);
+    public final ModeProperty bowMode = new ModeProperty("Bow Mode", 0, new String[]{"None", "Vanilla", "Float", "Grim 1/3"});
+    public final PercentProperty bowMotion = new PercentProperty("Bow Motion", 100, () -> this.bowMode.getValue() != 0 && this.bowMode.getValue() != 3);
+    public final BooleanProperty bowSprint = new BooleanProperty("Bow Sprint", true, () -> this.bowMode.getValue() != 0 && this.bowMode.getValue() != 3);
     private final LinkedBlockingQueue<Packet<?>> c0fPackets = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedVelocity = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedInteraction = new LinkedBlockingQueue<>();
@@ -66,6 +66,27 @@ public class NoSlow extends Module {
 
     private boolean isFoodGrim13() {
         return this.foodMode.getValue() == 4;
+    }
+
+    public boolean isFoodGrim13Active() {
+        return this.isFoodGrim13()
+                && mc.thePlayer != null
+                && mc.thePlayer.isUsingItem()
+                && ItemUtil.isEating()
+                && mc.thePlayer.getItemInUseCount() % 3 == 0
+                && mc.thePlayer.getItemInUseCount() <= 30;
+    }
+
+    private boolean isBowGrim13() {
+        return this.bowMode.getValue() == 3;
+    }
+
+    public boolean isBowGrim13Active() {
+        return this.isBowGrim13()
+                && mc.thePlayer != null
+                && mc.thePlayer.isUsingItem()
+                && ItemUtil.isUsingBow()
+                && mc.thePlayer.getItemInUseCount() % 3 == 0;
     }
 
     @Override
@@ -87,11 +108,14 @@ public class NoSlow extends Module {
     public boolean isFoodActive() {
         return this.foodMode.getValue() != 0
                 && !this.isFoodC0F()
+                && !this.isFoodGrim13()
                 && ItemUtil.isEating();
     }
 
     public boolean isBowActive() {
-        return this.bowMode.getValue() != 0 && ItemUtil.isUsingBow();
+        return this.bowMode.getValue() != 0
+                && this.bowMode.getValue() != 3
+                && ItemUtil.isUsingBow();
     }
 
     public boolean isFloatMode() {
@@ -138,14 +162,11 @@ public class NoSlow extends Module {
             return;
         }
 
-        if (this.isEnabled() && this.isFoodGrim13() && ItemUtil.isEating() && mc.thePlayer.isUsingItem()) {
-            if (mc.thePlayer.getItemInUseCount() % 3 == 0) {
-                if (this.foodSprint.getValue() && this.shouldForceSprint()) {
-                    mc.thePlayer.setSprinting(true);
-                }
-                float multiplier = 5.0F * (float) this.foodMotion.getValue() / 100.0F;
-                mc.thePlayer.movementInput.moveForward *= multiplier;
-                mc.thePlayer.movementInput.moveStrafe *= multiplier;
+        if (this.isEnabled() && (this.isFoodGrim13Active() || this.isBowGrim13Active())) {
+            // Grim 1/3: the slowdown is only skipped on every third tick (gated in
+            // EntityPlayerSP#isUsingItemForSlowdown); here we just restore sprint.
+            if (!mc.thePlayer.isSprinting()) {
+                mc.thePlayer.setSprinting(true);
             }
             return;
         }

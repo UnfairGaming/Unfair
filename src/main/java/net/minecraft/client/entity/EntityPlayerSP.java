@@ -1256,7 +1256,7 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
                     return true;
                 }
 
-                if (noSlow.isAnyActive()) {
+                if (noSlow.isAnyActive() || noSlow.isFoodGrim13Active() || noSlow.isBowGrim13Active()) {
                     return false;
                 }
             }
