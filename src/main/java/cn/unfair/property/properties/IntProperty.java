@@ -38,7 +38,7 @@ public class IntProperty extends Property<Integer> {
 
     @Override
     public boolean read(JsonObject jsonObject) {
-        return this.setValue(jsonObject.get(this.getName()).getAsNumber().intValue());
+        return this.setValueUnchecked(jsonObject.get(this.getName()).getAsNumber().intValue());
     }
 
     @Override

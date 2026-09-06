@@ -36,7 +36,7 @@ public class FloatProperty extends Property<Float> {
 
     @Override
     public boolean read(JsonObject jsonObject) {
-        return this.setValue(jsonObject.get(this.getName()).getAsNumber().floatValue());
+        return this.setValueUnchecked(jsonObject.get(this.getName()).getAsNumber().floatValue());
     }
 
     @Override
