@@ -125,6 +125,14 @@ public abstract class Property<T> {
         }
     }
 
+    public boolean setValueUnchecked(T object) {
+        this.value = object;
+        if (this.owner != null) {
+            this.owner.verifyValue(this.name);
+        }
+        return true;
+    }
+
     public void parseString() {
     }
 
