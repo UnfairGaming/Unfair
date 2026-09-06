@@ -18,15 +18,18 @@ import cn.unfair.util.client.ServerUtil;
 import cn.unfair.util.client.TimerUtil;
 import cn.unfair.util.player.PacketUtil;
 import cn.unfair.util.player.PlayerUtil;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.client.C03PacketPlayer;
+import net.minecraft.network.play.client.ServerBoundPlayerCommand;
 import net.minecraft.network.play.server.S08PacketPlayerPosLook;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.BlockPos;
 
 public class NoFall extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Packet", "Blink", "NoGround", "Spoof", "Heypixel"});
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Packet", "Blink", "NoGround", "Spoof", "Heypixel", "Elytra"});
     public final FloatProperty distance = new FloatProperty("Distance", 3.0F, 0.0F, 20.0F);
     public final IntProperty delay = new IntProperty("Delay", 0, 0, 10000);
     private final TimerUtil packetDelayTimer = new TimerUtil();
@@ -37,6 +40,8 @@ public class NoFall extends Module {
     private boolean heypixelShouldHandleFall = false;
     private boolean heypixelShouldSendLagPacket = false;
     private boolean heypixelShouldJump = false;
+    private boolean elytraSent = false;
+    private boolean elytraShouldRaiseY = false;
 
     public NoFall() {
         super("NoFall", false);
@@ -45,6 +50,8 @@ public class NoFall extends Module {
     @Override
     public void onEnabled() {
         this.heypixelResetState();
+        this.elytraSent = false;
+        this.elytraShouldRaiseY = false;
     }
 
     private boolean heypixelShouldBlockJump() {
@@ -62,6 +69,14 @@ public class NoFall extends Module {
         return this.scoreboardResetTimer.hasTimeElapsed(3000) && this.packetDelayTimer.hasTimeElapsed(this.delay.getValue().longValue());
     }
 
+    private boolean isElytraAboutToLand() {
+        BlockPos below = new BlockPos(
+                (int) Math.floor(mc.thePlayer.posX),
+                (int) Math.floor(mc.thePlayer.posY) - 1,
+                (int) Math.floor(mc.thePlayer.posZ));
+        return !mc.theWorld.getBlockState(below).getBlock().getMaterial().isReplaceable();
+    }
+
     @EventTarget(Priority.HIGH)
     public void onPacket(PacketEvent event) {
         if (event.getType() == EventType.RECEIVE && event.getPacket() instanceof S08PacketPlayerPosLook) {
@@ -69,6 +84,8 @@ public class NoFall extends Module {
                 if (this.heypixelShouldHandleFall) {
                     this.heypixelLagged = true;
                 }
+            } else if (this.mode.getValue() == 5 && this.elytraSent) {
+                this.elytraShouldRaiseY = true;
             } else {
                 this.onDisabled();
             }
@@ -158,6 +175,24 @@ public class NoFall extends Module {
                             event.setCancelled(true);
                         }
                         break;
+                    case 5:
+                        if (packet.isOnGround()) {
+                            this.elytraSent = false;
+                            this.elytraShouldRaiseY = false;
+                        } else if (!this.elytraSent
+                                && ViaProtocol.newerThanOrEqualTo1_9()
+                                && this.isElytraAboutToLand()) {
+                            AxisAlignedBB elytraAabb = mc.thePlayer.getEntityBoundingBox().expand(2.0, 0.0, 2.0);
+                            if (PlayerUtil.canFly(this.distance.getValue())
+                                    && !PlayerUtil.checkInWater(elytraAabb)
+                                    && this.canTrigger()) {
+                                this.packetDelayTimer.reset();
+                                PacketUtil.sendPacketNoEvent(new ServerBoundPlayerCommand(
+                                        mc.thePlayer.getEntityId(), ServerBoundPlayerCommand.Action.START_FALL_FLYING));
+                                this.elytraSent = true;
+                            }
+                        }
+                        break;
                 }
             }
         }
@@ -175,6 +210,13 @@ public class NoFall extends Module {
             if (this.mode.getValue() == 0 && this.slowFalling) {
                 PacketUtil.sendPacketNoEvent(new C03PacketPlayer(true));
                 mc.thePlayer.fallDistance = 0.0F;
+            }
+            if (this.mode.getValue() == 5 && this.elytraShouldRaiseY) {
+                PacketUtil.sendPacketNoEvent(new C03PacketPlayer.C04PacketPlayerPosition(
+                        mc.thePlayer.posX, mc.thePlayer.posY + 1.0E-9D, mc.thePlayer.posZ, false));
+                mc.thePlayer.fallDistance = 0.0F;
+                this.elytraSent = false;
+                this.elytraShouldRaiseY = false;
             }
         } else if (event.type() == EventType.POST && this.mode.getValue() == 4) {
             if (mc.isSingleplayer()) {
@@ -212,6 +254,8 @@ public class NoFall extends Module {
         this.lastOnGround = false;
         Unfair.blinkManager.setBlinkState(false, BlinkModules.NO_FALL);
         this.heypixelResetState();
+        this.elytraSent = false;
+        this.elytraShouldRaiseY = false;
         if (this.slowFalling) {
             this.slowFalling = false;
             mc.timer.timerSpeed = 1.0F;
