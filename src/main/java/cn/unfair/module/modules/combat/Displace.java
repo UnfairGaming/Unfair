@@ -161,7 +161,6 @@ public class Displace extends Module {
         }
         boolean hasKBEnchant = EnchantmentHelper.getKnockbackModifier(mc.thePlayer) > 0;
 
-        // 只要锁定目标就计算方向并显示箭头；active 只决定是否执行位移动作
         dynamicVoidYaw = isDynamicAngle()
                 ? findDynamicVoidYaw(target)
                 : this.findVoid.getValue() ? findStaticVoidYaw(target) : null;
@@ -183,7 +182,6 @@ public class Displace extends Module {
         hasKB = hasKBEnchant;
         displaceThisTick = !displaceThisTick;
         if (displaceThisTick && !shouldDisplaceInCurrentWindow(target, tickCounter)) {
-            // 延迟窗口：跳过本次位移动作，但箭头继续显示方向
             displaceThisTick = false;
             compensateNextTick = false;
             wasDisplacingLastTick = false;
@@ -203,8 +201,6 @@ public class Displace extends Module {
             return;
         }
 
-        // 每个生命周期执行前，用服务器真实 rotation（lastReportedYaw/lastReportedPitch）做一次 rayTrace：
-        // 射线必须命中目标才允许继续位移，否则跳过本次生命周期（箭头仍显示方向）
         if (!serverRotationSeesTarget(target, event.getYaw(), event.getPitch())) {
             displaceThisTick = false;
             compensateNextTick = false;
