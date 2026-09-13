@@ -189,7 +189,7 @@ public class SliderComponent extends Component {
         float t = MathHelper.clamp_float((val - min) / (max - min), 0.0F, 1.0F);
         float targetLen = t * TRACK_WIDTH;
 
-        RenderUtil.drawRoundedGradientOutlinedRectangle(trackX, trackY, trackX + TRACK_WIDTH, trackY + trackH, 2.0F, 0, new Color(34, 34, 34).getRGB(), new Color(34, 34, 34).getRGB());
+        RenderUtil.drawRoundedGradientOutline(trackX + 1.0F, trackY + 1.0F, 98.0F, trackH - 2.0F, 2.0F, 1.0F, new Color(34, 34, 34).getRGB(), new Color(34, 34, 34).getRGB());
         drawProgress(trackX, trackY, trackH, targetLen);
         drawValue(trackX, trackY);
     }

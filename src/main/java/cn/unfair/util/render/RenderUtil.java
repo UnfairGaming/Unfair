@@ -1835,7 +1835,7 @@ public class RenderUtil {
         drawRoundedGradientOutline(startX, startY, endX - startX, endY - startY, cornerRadius, outlineWidth, outlineColor1, outlineColor2);
     }
 
-    private static void drawRoundedGradientOutline(float x, float y, float width, float height, float radius, float thickness, int color1, int color2) {
+    public static void drawRoundedGradientOutline(float x, float y, float width, float height, float radius, float thickness, int color1, int color2) {
         if (width <= 0.0F || height <= 0.0F || thickness <= 0.0F) {
             return;
         }
