@@ -254,7 +254,7 @@ public class AugustusClickGui extends GuiScreen {
             this.posX = (screenWidth - this.guiWidth) * 0.5F;
             this.posY = (screenHeight - this.guiHeight) * 0.5F;
             this.positionInitialized = true;
-        } else if (screenChanged) {
+        } else if (screenChanged && this.lastScreenWidth > 0) {
             this.posX = centerXRatio * screenWidth - this.guiWidth * 0.5F;
             this.posY = centerYRatio * screenHeight - this.guiHeight * 0.5F;
         }
