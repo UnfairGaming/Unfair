@@ -10,6 +10,7 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.combat.KillAura.AttackData;
+import cn.unfair.module.modules.player.Reach;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.player.PacketUtil;
 import cn.unfair.util.player.PlayerUtil;
@@ -215,12 +216,7 @@ public class GrimReduceVelocity extends SubModule {
         if (entity.isDead || entity.deathTime > 0 || !mc.theWorld.loadedEntityList.contains(entity)) {
             return false;
         }
-        double range = 6.0;
-        KillAura killAura = (KillAura) Unfair.moduleManager.modules.get(KillAura.class);
-        if (killAura != null) {
-            range = killAura.attackRange.getValue().doubleValue() + 1.5;
-        }
-        return RotationUtil.distanceToEntity(entity) <= range;
+        return RotationUtil.distanceToEntity(entity) <= getAttackRange();
     }
 
     private void doAttack() {
@@ -228,7 +224,7 @@ public class GrimReduceVelocity extends SubModule {
             return;
         }
         EntityLivingBase entity = this.attackTarget.getEntity();
-        if (entity == null || entity.isDead || mc.thePlayer.getDistanceToEntity(entity) > 6.0F) {
+        if (entity == null || entity.isDead || !isInAttackRange(entity)) {
             return;
         }
 
@@ -242,6 +238,15 @@ public class GrimReduceVelocity extends SubModule {
         if (wasSprinting) {
             mc.thePlayer.setSprinting(true);
         }
+    }
+
+    private boolean isInAttackRange(EntityLivingBase entity) {
+        return RotationUtil.distanceToEntity(entity) <= getAttackRange();
+    }
+
+    private double getAttackRange() {
+        Reach reach = (Reach) Unfair.moduleManager.getModule(Reach.class);
+        return reach != null && reach.isEnabled() ? reach.range.getValue() : 3.0D;
     }
 
     private void flushQueue() {

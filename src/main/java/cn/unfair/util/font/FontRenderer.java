@@ -48,6 +48,7 @@ public class FontRenderer {
     private final Font font;
     private final float size;
     private final Map<Integer, FontAtlas> atlases = new HashMap<>();
+    private final Map<Integer, FontAtlas> boldAtlases = new HashMap<>();
     private final Map<Integer, FontAtlas> harmonyRegularAtlases = new HashMap<>();
     private final Map<Integer, FontAtlas> harmonyMediumAtlases = new HashMap<>();
     private final Map<String, Integer> stringWidthCache = new LinkedHashMap<>(256, 0.75F, true) {
@@ -183,7 +184,7 @@ public class FontRenderer {
     }
 
     public final int getHeight() {
-        FontAtlas atlas = getAtlas(getScaleFactor());
+        FontAtlas atlas = getAtlas(getScaleFactor(), false);
         return Math.round(atlas.fontHeight / (float) atlas.scaleFactor);
     }
 
@@ -192,7 +193,7 @@ public class FontRenderer {
             mc.fontRendererObj.drawString(String.valueOf(chr), x, y + 1.0F, -1, false);
             return mc.fontRendererObj.getStringWidth(String.valueOf(chr));
         }
-        return getAtlasForChar(chr, getScaleFactor()).drawChar(chr, x, y);
+        return getAtlasForChar(chr, getScaleFactor(), false).drawChar(chr, x, y);
     }
 
     public int drawString(String str, float x, float y, int color) {
@@ -238,6 +239,7 @@ public class FontRenderer {
         FontAtlas activeAtlas = null;
         int activeRegion = -1;
         boolean drawing = false;
+        boolean bold = false;
         int length = str.length();
         for (int i = 0; i < length; i++) {
             char chr = str.charAt(i);
@@ -248,16 +250,22 @@ public class FontRenderer {
                     activeAtlas = null;
                     activeRegion = -1;
                 }
-                color = "0123456789abcdef".indexOf(str.charAt(++i));
-                if (color != -1) {
+                char formatChar = str.charAt(++i);
+                int formatIndex = "0123456789abcdef".indexOf(formatChar);
+                if (formatIndex != -1) {
+                    bold = false;
                     if (darken) {
-                        color |= 0x10;
+                        formatIndex |= 0x10;
                     }
-                    color = colorCode[color];
+                    color = colorCode[formatIndex];
                     r = (color >> 16 & 0xFF) / 255f;
                     g = (color >> 8 & 0xFF) / 255f;
                     b = (color & 0xFF) / 255f;
                     GlStateManager.color(r, g, b, a);
+                } else if (formatChar == 'l' || formatChar == 'L') {
+                    bold = true;
+                } else if (formatChar == 'r' || formatChar == 'R') {
+                    bold = false;
                 }
                 continue;
             }
@@ -271,6 +279,9 @@ public class FontRenderer {
                 }
                 int codePointLength = Character.charCount(str.codePointAt(i));
                 String fallbackText = str.substring(i, i + codePointLength);
+                if (bold) {
+                    fallbackText = "\u00A7l" + fallbackText;
+                }
                 glPopMatrix();
                 mc.fontRendererObj.drawString(fallbackText, (x + offset) / (float) scaleFactor, (y + 1.0F * scaleFactor) / (float) scaleFactor, getVanillaColor(color, a), false);
                 offset += mc.fontRendererObj.getStringWidth(fallbackText) * scaleFactor;
@@ -290,7 +301,7 @@ public class FontRenderer {
                 continue;
             }
 
-            FontAtlas charAtlas = getAtlasForChar(chr, scaleFactor);
+            FontAtlas charAtlas = getAtlasForChar(chr, scaleFactor, bold);
             int region = chr >> 8;
             if (!drawing) {
                 activeAtlas = charAtlas;
@@ -362,7 +373,7 @@ public class FontRenderer {
         }
 
         int scaleFactor = getScaleFactor();
-        return getAtlas(scaleFactor).getStringVisualCenterOffset(text) / (float) scaleFactor;
+        return getAtlas(scaleFactor, false).getStringVisualCenterOffset(text) / (float) scaleFactor;
     }
 
     private int getStringWidth(String text, int scaleFactor) {
@@ -387,19 +398,33 @@ public class FontRenderer {
         int width = 0;
         int size = text.length();
         int i = 0;
+        boolean bold = false;
         while (i < size) {
             char chr = text.charAt(i);
             if (isFormattingPrefix(chr)) {
+                if (i + 1 < size) {
+                    char formatChar = text.charAt(i + 1);
+                    if (formatChar == 'l' || formatChar == 'L') {
+                        bold = true;
+                    } else if (formatChar == 'r' || formatChar == 'R'
+                            || "0123456789abcdef".indexOf(formatChar) != -1) {
+                        bold = false;
+                    }
+                }
                 ++i;
             } else if (shouldUseMinecraftFallback(text, i)) {
                 int codePointLength = Character.charCount(text.codePointAt(i));
-                width += mc.fontRendererObj.getStringWidth(text.substring(i, i + codePointLength)) * scaleFactor;
+                String fallbackText = text.substring(i, i + codePointLength);
+                if (bold) {
+                    fallbackText = "\u00A7l" + fallbackText;
+                }
+                width += mc.fontRendererObj.getStringWidth(fallbackText) * scaleFactor;
                 if (codePointLength > 1) {
                     ++i;
                 }
             } else if (shouldSkipEmoji(text, i)) {
             } else {
-                width += getAtlasForChar(chr, scaleFactor).getOrGenerateCharWidthMap(chr >> 8)[chr & 0xFF];
+                width += getAtlasForChar(chr, scaleFactor, bold).getOrGenerateCharWidthMap(chr >> 8)[chr & 0xFF];
             }
             ++i;
         }
@@ -504,27 +529,29 @@ public class FontRenderer {
         return stringbuilder.toString();
     }
 
-    private FontAtlas getAtlas(int scaleFactor) {
+    private FontAtlas getAtlas(int scaleFactor, boolean bold) {
         scaleFactor = Math.max(1, scaleFactor);
-        FontAtlas atlas = this.atlases.get(scaleFactor);
+        Map<Integer, FontAtlas> atlasMap = bold ? this.boldAtlases : this.atlases;
+        FontAtlas atlas = atlasMap.get(scaleFactor);
         if (atlas == null) {
-            atlas = new FontAtlas(this.font, scaleFactor);
-            this.atlases.put(scaleFactor, atlas);
+            atlas = new FontAtlas(this.font, scaleFactor, bold);
+            atlasMap.put(scaleFactor, atlas);
         }
         return atlas;
     }
 
-    private FontAtlas getAtlasForChar(char chr, int scaleFactor) {
+    private FontAtlas getAtlasForChar(char chr, int scaleFactor, boolean bold) {
         if (!shouldUseHarmonyFallback(chr)) {
-            return this.getAtlas(scaleFactor);
+            return this.getAtlas(scaleFactor, bold);
         }
 
         scaleFactor = Math.max(1, scaleFactor);
-        Map<Integer, FontAtlas> atlasMap = this.useMediumHarmonyFallback() ? this.harmonyMediumAtlases : this.harmonyRegularAtlases;
+        boolean useMedium = this.useMediumHarmonyFallback() || bold;
+        Map<Integer, FontAtlas> atlasMap = useMedium ? this.harmonyMediumAtlases : this.harmonyRegularAtlases;
         FontAtlas atlas = atlasMap.get(scaleFactor);
         if (atlas == null) {
-            Font fallbackFont = this.useMediumHarmonyFallback() ? getHarmonyMediumFont() : getHarmonyRegularFont();
-            atlas = new FontAtlas(fallbackFont, scaleFactor);
+            Font fallbackFont = useMedium ? getHarmonyMediumFont() : getHarmonyRegularFont();
+            atlas = new FontAtlas(fallbackFont, scaleFactor, false);
             atlasMap.put(scaleFactor, atlas);
         }
         return atlas;
@@ -559,6 +586,9 @@ public class FontRenderer {
         for (FontAtlas atlas : this.atlases.values()) {
             atlas.delete();
         }
+        for (FontAtlas atlas : this.boldAtlases.values()) {
+            atlas.delete();
+        }
         for (FontAtlas atlas : this.harmonyRegularAtlases.values()) {
             atlas.delete();
         }
@@ -587,8 +617,12 @@ public class FontRenderer {
         private int[] atlasPixels;
 
         private FontAtlas(Font sourceFont, int scaleFactor) {
+            this(sourceFont, scaleFactor, false);
+        }
+
+        private FontAtlas(Font sourceFont, int scaleFactor, boolean bold) {
             this.scaleFactor = scaleFactor;
-            this.scaledFont = sourceFont.deriveFont(Font.PLAIN, size * scaleFactor / LEGACY_DISPLAY_SCALE);
+            this.scaledFont = sourceFont.deriveFont(bold ? Font.BOLD : Font.PLAIN, size * scaleFactor / LEGACY_DISPLAY_SCALE);
             Arrays.fill(this.textures, -1);
             this.fontWidth = Math.max(1, (int) Math.ceil(this.scaledFont.getSize2D() * 1.5F));
             this.fontHeight = Math.max(1, (int) Math.ceil(this.scaledFont.getSize2D() * 1.25F));
@@ -698,9 +732,19 @@ public class FontRenderer {
             float right = -Float.MAX_VALUE;
             int size = text.length();
             int i = 0;
+            boolean bold = false;
             while (i < size) {
                 char chr = text.charAt(i);
                 if (isFormattingPrefix(chr)) {
+                    if (i + 1 < size) {
+                        char formatChar = text.charAt(i + 1);
+                        if (formatChar == 'l' || formatChar == 'L') {
+                            bold = true;
+                        } else if (formatChar == 'r' || formatChar == 'R'
+                                || "0123456789abcdef".indexOf(formatChar) != -1) {
+                            bold = false;
+                        }
+                    }
                     ++i;
                     ++i;
                     continue;
@@ -708,7 +752,11 @@ public class FontRenderer {
 
                 if (shouldUseMinecraftFallback(text, i)) {
                     int codePointLength = Character.charCount(text.codePointAt(i));
-                    int advance = mc.fontRendererObj.getStringWidth(text.substring(i, i + codePointLength)) * this.scaleFactor;
+                    String fallbackText = text.substring(i, i + codePointLength);
+                    if (bold) {
+                        fallbackText = "\u00A7l" + fallbackText;
+                    }
+                    int advance = mc.fontRendererObj.getStringWidth(fallbackText) * this.scaleFactor;
                     left = Math.min(left, penX);
                     right = Math.max(right, penX + advance);
                     penX += advance;
@@ -723,7 +771,7 @@ public class FontRenderer {
                     continue;
                 }
 
-                FontAtlas charAtlas = getAtlasForChar(chr, this.scaleFactor);
+                FontAtlas charAtlas = getAtlasForChar(chr, this.scaleFactor, bold);
                 int region = chr >> 8;
                 int id = chr & 0xFF;
                 int advance = charAtlas.getOrGenerateCharWidthMap(region)[id];

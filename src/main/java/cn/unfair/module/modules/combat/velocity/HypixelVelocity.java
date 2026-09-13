@@ -11,6 +11,7 @@ import cn.unfair.module.modules.combat.AutoBlock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
+import cn.unfair.module.modules.player.Reach;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.player.MoveUtil;
@@ -168,12 +169,16 @@ public class HypixelVelocity extends SubModule {
         }
 
         Entity target = findTarget();
-        if (!(target instanceof EntityPlayer)) {
+        if (!(target instanceof EntityPlayer player)) {
+            knockback = false;
+            return;
+        }
+        if (!isInAttackRange(player)) {
             knockback = false;
             return;
         }
 
-        AttackOrder.sendFixedPacketAttackAndSwing(target);
+        AttackOrder.sendFixedPacketAttackAndSwing(player);
         mc.thePlayer.motionX *= 0.6D;
         mc.thePlayer.motionZ *= 0.6D;
         mc.thePlayer.setSprinting(false);
@@ -190,13 +195,22 @@ public class HypixelVelocity extends SubModule {
         }
 
         RayCastUtil.RayCastResult result = RayCastUtil.rayCast(
-                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0F);
+                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), getAttackRange());
         if (result != null
                 && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY
                 && result.entityHit instanceof EntityPlayer) {
             return result.entityHit;
         }
         return null;
+    }
+
+    private boolean isInAttackRange(EntityPlayer target) {
+        return RotationUtil.distanceToEntity(target) <= getAttackRange();
+    }
+
+    private double getAttackRange() {
+        Reach reach = (Reach) Unfair.moduleManager.getModule(Reach.class);
+        return reach != null && reach.isEnabled() ? reach.range.getValue() : 3.0D;
     }
 
     private void reset() {
