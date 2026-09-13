@@ -57,8 +57,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
             RenderUtil.drawRoundedRectangle(
                     RenderUtil.scaleAround(x, centerX, scale),
                     RenderUtil.scaleAround(y, centerY, scale),
-                    RenderUtil.scaleAround(x + width, centerX, scale),
-                    RenderUtil.scaleAround(y + height, centerY, scale),
+                    width * scale,
+                    height * scale,
                     7.0F * scale,
                     new Color(15, 15, 18, backgroundAlpha).getRGB()
             );
@@ -66,8 +66,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
         RenderUtil.drawRoundedRectangle(
                 RenderUtil.scaleAround(x + 38.5F, centerX, scale),
                 RenderUtil.scaleAround(y + 28.0F, centerY, scale),
-                RenderUtil.scaleAround(x + 38.5F + space, centerX, scale),
-                RenderUtil.scaleAround(y + 32.0F, centerY, scale),
+                space * scale,
+                4.0F * scale,
                 2.0F * scale,
                 new Color(0, 0, 0, (int) (150.0F * progress)).getRGB()
         );
@@ -75,8 +75,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
             RenderUtil.drawRoundedGradientRect(
                     RenderUtil.scaleAround(x + 38.5F, centerX, scale),
                     RenderUtil.scaleAround(y + 28.0F, centerY, scale),
-                    RenderUtil.scaleAround(x + 38.5F + space * ratio, centerX, scale),
-                    RenderUtil.scaleAround(y + 32.0F, centerY, scale),
+                    space * ratio * scale,
+                    4.0F * scale,
                     2.0F * scale,
                     RenderUtil.mergeAlpha(colors[0], fadeAlpha), RenderUtil.mergeAlpha(colors[0], fadeAlpha),
                     RenderUtil.mergeAlpha(colors[1], fadeAlpha), RenderUtil.mergeAlpha(colors[1], fadeAlpha)
@@ -86,8 +86,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
             RenderUtil.drawRoundedGradientRect(
                     RenderUtil.scaleAround(x + 38.5F, centerX, scale),
                     RenderUtil.scaleAround(y + 28.0F, centerY, scale),
-                    RenderUtil.scaleAround(x + 38.5F + space * absorptionRatio, centerX, scale),
-                    RenderUtil.scaleAround(y + 32.0F, centerY, scale),
+                    space * absorptionRatio * scale,
+                    4.0F * scale,
                     2.0F * scale,
                     new Color(255, 210, 55, fadeAlpha).getRGB(), new Color(255, 210, 55, fadeAlpha).getRGB(),
                     new Color(255, 235, 110, fadeAlpha).getRGB(), new Color(255, 235, 110, fadeAlpha).getRGB()
@@ -122,8 +122,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
         RenderUtil.drawRoundedRectangle(
                 headX,
                 headY,
-                headX + headSize,
-                headY + headSize,
+                headSize,
+                headSize,
                 headRadius,
                 playerHp >= targetHealth ? new Color(0, 0, 0, 0).getRGB() : new Color(255, 0, 0, (int) (85.0F * progress)).getRGB());
         if (AndroidUtil.isAndroid()) {
@@ -164,8 +164,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
         RenderUtil.drawRoundedRectangle(
                 RenderUtil.scaleAround(x, centerX, scale),
                 RenderUtil.scaleAround(y, centerY, scale),
-                RenderUtil.scaleAround(x + size[0], centerX, scale),
-                RenderUtil.scaleAround(y + size[1], centerY, scale),
+                size[0] * scale,
+                size[1] * scale,
                 7.0F * scale,
                 RenderUtil.mergeAlpha(color, (color >> 24 & 255) * fadeAlpha / 255)
         );

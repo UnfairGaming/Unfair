@@ -119,11 +119,11 @@ public class PotionEffects extends Module {
         HUD hud = (HUD) Unfair.moduleManager.modules.get(HUD.class);
         Float radius = hud.roundRadius.getValue() * hud.scale.getValue();
         if (mask) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, color);
+            RenderUtil.drawRoundedRectangle(left, top, right - left, bottom - top, radius, color);
             return;
         }
         if (this.background.getValue() > 0) {
-            RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, new Color(0, 0, 0, this.background.getValue()).getRGB());
+            RenderUtil.drawRoundedRectangle(left, top, right - left, bottom - top, radius, new Color(0, 0, 0, this.background.getValue()).getRGB());
         }
         float rowY = y;
         for (PotionEffect effect : effects) {

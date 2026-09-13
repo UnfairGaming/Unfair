@@ -487,8 +487,10 @@ public class RenderUtil {
         }
     }
 
-    public static void drawRect(double left, double top, double right, double bottom, int color) {
-        float f3 = (color >> 24 & 255) / 255.0F;
+    public static void drawRect(double x, double y, double width, double height, int color) {
+        double right = x + width;
+        double bottom = y + height;
+        float f3 = alphaToUnit((color >> 24) & 0xFF);
         float f = (color >> 16 & 255) / 255.0F;
         float f1 = (color >> 8 & 255) / 255.0F;
         float f2 = (color & 255) / 255.0F;
@@ -500,17 +502,17 @@ public class RenderUtil {
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.color(f, f1, f2, f3);
         worldrenderer.begin(7, DefaultVertexFormats.POSITION);
-        worldrenderer.pos(left, bottom, 0.0D).endVertex();
+        worldrenderer.pos(x, bottom, 0.0D).endVertex();
         worldrenderer.pos(right, bottom, 0.0D).endVertex();
-        worldrenderer.pos(right, top, 0.0D).endVertex();
-        worldrenderer.pos(left, top, 0.0D).endVertex();
+        worldrenderer.pos(right, y, 0.0D).endVertex();
+        worldrenderer.pos(x, y, 0.0D).endVertex();
         tessellator.draw();
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
     }
 
-    public static void drawRect3D(float x1, float y1, float x2, float y2, int color) {
+    public static void drawRect3D(float x, float y, float width, float height, int color) {
         if (color == 0) {
             return;
         }
@@ -519,10 +521,10 @@ public class RenderUtil {
         GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT, GL11.GL_NICEST);
         GL11.glBegin(GL11.GL_POLYGON);
         for (int i = 0; i < 2; ++i) {
-            GL11.glVertex2f(x1, y1);
-            GL11.glVertex2f(x1, y2);
-            GL11.glVertex2f(x2, y2);
-            GL11.glVertex2f(x2, y1);
+            GL11.glVertex2f(x, y);
+            GL11.glVertex2f(x, y + height);
+            GL11.glVertex2f(x + width, y + height);
+            GL11.glVertex2f(x + width, y);
         }
         GL11.glEnd();
         GL11.glDisable(GL11.GL_POLYGON_SMOOTH);
@@ -600,23 +602,25 @@ public class RenderUtil {
         tessellator.draw();
     }
 
-    public static void drawOutlineRect(float x1, float y1, float x2, float y2, float lineWidth, int backgroundColor, int lineColor) {
-        RenderUtil.drawRect(0.0f, 0.0f, x2, 27.0f, backgroundColor);
+    public static void drawOutlineRect(float x, float y, float width, float height, float lineWidth, int backgroundColor, int lineColor) {
+        RenderUtil.drawRect(x, y, width, height, backgroundColor);
         if (lineColor == 0) {
             return;
         }
+        float x2 = x + width;
+        float y2 = y + height;
         RenderUtil.setColor(lineColor);
         GL11.glLineWidth(lineWidth);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
         GL11.glBegin(GL11.GL_LINES);
-        GL11.glVertex2f(x1, y1);
-        GL11.glVertex2f(x1, y2);
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x, y2);
         GL11.glVertex2f(x2, y2);
-        GL11.glVertex2f(x2, y1);
-        GL11.glVertex2f(x1, y1);
-        GL11.glVertex2f(x2, y1);
-        GL11.glVertex2f(x1, y2);
+        GL11.glVertex2f(x2, y);
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x2, y);
+        GL11.glVertex2f(x, y2);
         GL11.glVertex2f(x2, y2);
         GL11.glEnd();
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
@@ -624,27 +628,29 @@ public class RenderUtil {
         GlStateManager.resetColor();
     }
 
-    public static void drawESPBox2D(float left, float top, float right, float bottom, float lineWidth, int color) {
+    public static void drawESPBox2D(float x, float y, float width, float height, float lineWidth, int color) {
         if (color == 0) {
             return;
         }
+        float right = x + width;
+        float bottom = y + height;
         RenderUtil.setColor(color);
         GL11.glLineWidth(lineWidth);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
         GL11.glBegin(GL11.GL_LINES);
 
-        GL11.glVertex2f(left, top);
-        GL11.glVertex2f(left, bottom);
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x, bottom);
 
-        GL11.glVertex2f(left, bottom);
+        GL11.glVertex2f(x, bottom);
         GL11.glVertex2f(right, bottom);
 
         GL11.glVertex2f(right, bottom);
-        GL11.glVertex2f(right, top);
+        GL11.glVertex2f(right, y);
 
-        GL11.glVertex2f(right, top);
-        GL11.glVertex2f(left, top);
+        GL11.glVertex2f(right, y);
+        GL11.glVertex2f(x, y);
         GL11.glEnd();
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
         GL11.glLineWidth(2.0f);
@@ -1298,23 +1304,23 @@ public class RenderUtil {
         float width = (float) (26.6 * entity.width / 2.0);
         float height = 12.0F;
         GlStateManager.color(red, green, blue);
-        draw3DRect(width, height - 1.0F, width - 4.0F, height);
-        draw3DRect(-width, height - 1.0F, -width + 4.0F, height);
-        draw3DRect(-width, height, -width + 1.0F, height - 4.0F);
-        draw3DRect(width, height, width - 1.0F, height - 4.0F);
-        draw3DRect(width, -height, width - 4.0F, -height + 1.0F);
-        draw3DRect(-width, -height, -width + 4.0F, -height + 1.0F);
-        draw3DRect(-width, -height + 1.0F, -width + 1.0F, -height + 4.0F);
-        draw3DRect(width, -height + 1.0F, width - 1.0F, -height + 4.0F);
+        draw3DRect(width, height - 1.0F, -4.0F, 1.0F);
+        draw3DRect(-width, height - 1.0F, 4.0F, 1.0F);
+        draw3DRect(-width, height, 1.0F, -4.0F);
+        draw3DRect(width, height, -1.0F, -4.0F);
+        draw3DRect(width, -height, -4.0F, 1.0F);
+        draw3DRect(-width, -height, 4.0F, 1.0F);
+        draw3DRect(-width, -height + 1.0F, 1.0F, 3.0F);
+        draw3DRect(width, -height + 1.0F, -1.0F, 3.0F);
         GlStateManager.color(0.0F, 0.0F, 0.0F);
-        draw3DRect(width, height, width - 4.0F, height + 0.2F);
-        draw3DRect(-width, height, -width + 4.0F, height + 0.2F);
-        draw3DRect(-width - 0.2F, height + 0.2F, -width, height - 4.0F);
-        draw3DRect(width + 0.2F, height + 0.2F, width, height - 4.0F);
-        draw3DRect(width + 0.2F, -height, width - 4.0F, -height - 0.2F);
-        draw3DRect(-width - 0.2F, -height, -width + 4.0F, -height - 0.2F);
-        draw3DRect(-width - 0.2F, -height, -width, -height + 4.0F);
-        draw3DRect(width + 0.2F, -height, width, -height + 4.0F);
+        draw3DRect(width, height, -4.0F, 0.2F);
+        draw3DRect(-width, height, 4.0F, 0.2F);
+        draw3DRect(-width - 0.2F, height + 0.2F, 0.2F, -4.2F);
+        draw3DRect(width + 0.2F, height + 0.2F, -0.2F, -4.2F);
+        draw3DRect(width + 0.2F, -height, -4.2F, -0.2F);
+        draw3DRect(-width - 0.2F, -height, 4.2F, -0.2F);
+        draw3DRect(-width - 0.2F, -height, 0.2F, 4.0F);
+        draw3DRect(width + 0.2F, -height, -0.2F, 4.0F);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.popMatrix();
     }
@@ -1330,19 +1336,21 @@ public class RenderUtil {
         GlStateManager.color(red, green, blue);
         float width = (float) (23.3 * entity.width / 2.0);
         float height = 12.0F;
-        draw3DRect(width, height, -width, height + 0.4F);
-        draw3DRect(width, -height, -width, -height + 0.4F);
-        draw3DRect(width, -height + 0.4F, width - 0.4F, height + 0.4F);
-        draw3DRect(-width, -height + 0.4F, -width + 0.4F, height + 0.4F);
+        draw3DRect(width, height, -width * 2.0F, 0.4F);
+        draw3DRect(width, -height, -width * 2.0F, 0.4F);
+        draw3DRect(width, -height + 0.4F, -0.4F, height * 2.0F);
+        draw3DRect(-width, -height + 0.4F, 0.4F, height * 2.0F);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.popMatrix();
     }
 
-    public static void draw3DRect(float x1, float y1, float x2, float y2) {
+    public static void draw3DRect(float x, float y, float width, float height) {
+        float x2 = x + width;
+        float y2 = y + height;
         GL11.glBegin(GL11.GL_POLYGON);
-        GL11.glVertex2f(x2, y1);
-        GL11.glVertex2f(x1, y1);
-        GL11.glVertex2f(x1, y2);
+        GL11.glVertex2f(x2, y);
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x, y2);
         GL11.glVertex2f(x2, y2);
         GL11.glEnd();
     }
@@ -1476,7 +1484,7 @@ public class RenderUtil {
         }
 
         GlStateManager.enableBlend();
-        GlStateManager.color(color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F, color.getAlpha() / 255.0F);
+        GlStateManager.color(color.getRed() / 255.0F, color.getGreen() / 255.0F, color.getBlue() / 255.0F, alphaToUnit(color.getAlpha()));
         mc.getTextureManager().bindTexture(skin);
         Gui.drawScaledCustomSizeModalRect((int) x, (int) y, 8.0F, 8.0F, 8, 8, (int) size, (int) size, 64.0F, 64.0F);
         Gui.drawScaledCustomSizeModalRect((int) x, (int) y, 40.0F, 8.0F, 8, 8, (int) size, (int) size, 64.0F, 64.0F);
@@ -1529,7 +1537,7 @@ public class RenderUtil {
                 color.getRed() / 255.0F,
                 color.getGreen() / 255.0F,
                 color.getBlue() / 255.0F,
-                color.getAlpha() / 255.0F
+                alphaToUnit(color.getAlpha())
         );
 
         drawTexturedQuads(x, y, size, size, 8.0F / 64.0F, 8.0F / 64.0F, 16.0F / 64.0F, 16.0F / 64.0F);
@@ -1571,9 +1579,9 @@ public class RenderUtil {
     }
 
     public static void drawSkeetRect(float x, float y, float width, float height) {
-        drawRect(x, y, x + width, y + height, SKEET_OUTER_COLOR);
-        drawRect(x + 1.0F, y + 1.0F, x + width - 1.0F, y + height - 1.0F, SKEET_MIDDLE_COLOR);
-        drawRect(x + 2.0F, y + 2.0F, x + width - 2.0F, y + height - 2.0F, SKEET_INNER_COLOR);
+        drawRect(x, y, width, height, SKEET_OUTER_COLOR);
+        drawRect(x + 1.0F, y + 1.0F, width - 2.0F, height - 2.0F, SKEET_MIDDLE_COLOR);
+        drawRect(x + 2.0F, y + 2.0F, width - 4.0F, height - 4.0F, SKEET_INNER_COLOR);
     }
 
     public static void drawRoundedRect(float x, float y, float width, float height, float radius, boolean blur, Color color) {
@@ -1590,7 +1598,7 @@ public class RenderUtil {
                 color.getRed() / 255.0F,
                 color.getGreen() / 255.0F,
                 color.getBlue() / 255.0F,
-                color.getAlpha() / 255.0F
+                alphaToUnit(color.getAlpha())
         );
     }
 
@@ -1608,7 +1616,7 @@ public class RenderUtil {
                 (color >> 16 & 255) / 255.0F,
                 (color >> 8 & 255) / 255.0F,
                 (color & 255) / 255.0F,
-                (color >> 24 & 255) / 255.0F
+                alphaToUnit((color >> 24) & 0xFF)
         );
     }
 
@@ -1667,7 +1675,7 @@ public class RenderUtil {
         multiRadiusShader.setUniformf("radiusBottomLeft", radiusBottomLeft * sf);
         multiRadiusShader.setUniformf("radiusBottomRight", radiusBottomRight * sf);
 
-        float alpha = (color >> 24 & 255) / 255.0F;
+        float alpha = alphaToUnit((color >> 24) & 0xFF);
         float red = (color >> 16 & 255) / 255.0F;
         float green = (color >> 8 & 255) / 255.0F;
         float blue = (color & 255) / 255.0F;
@@ -1679,20 +1687,18 @@ public class RenderUtil {
         GlStateManager.disableBlend();
     }
 
-    public static void drawRoundedRectangle(float x, float y, float x2, float y2, float radius, final int color) {
-        if (x2 <= x || y2 <= y) {
+    public static void drawRoundedRectangle(float x, float y, float width, float height, float radius, final int color) {
+        if (width <= 0 || height <= 0) {
             return;
         }
-        drawRoundedRect(x, y, x2 - x, y2 - y, radius, false, color);
+        drawRoundedRect(x, y, width, height, radius, false, color);
     }
 
-    public static void drawRoundedGradientRect(float x, float y, float x2, float y2, float radius, final int n6, final int n7, final int n8, final int n9) {
-        if (x2 <= x || y2 <= y) {
+    public static void drawRoundedGradientRect(float x, float y, float width, float height, float radius, final int n6, final int n7, final int n8, final int n9) {
+        if (width <= 0 || height <= 0) {
             return;
         }
 
-        float width = x2 - x;
-        float height = y2 - y;
         radius = Math.min(radius, Math.min(width, height) / 2.0F);
 
         GlStateManager.resetColor();
@@ -1754,12 +1760,14 @@ public class RenderUtil {
         GlStateManager.disableBlend();
     }
 
-    public static void drawGradientRect(int left, int top, float right, int bottom, int startColor, int endColor) {
-        float startAlpha = (startColor >> 24 & 255) / 255.0F;
+    public static void drawGradientRect(float x, float y, float width, float height, int startColor, int endColor) {
+        float right = x + width;
+        float bottom = y + height;
+        float startAlpha = alphaToUnit((startColor >> 24) & 0xFF);
         float startRed = (startColor >> 16 & 255) / 255.0F;
         float startGreen = (startColor >> 8 & 255) / 255.0F;
         float startBlue = (startColor & 255) / 255.0F;
-        float endAlpha = (endColor >> 24 & 255) / 255.0F;
+        float endAlpha = alphaToUnit((endColor >> 24) & 0xFF);
         float endRed = (endColor >> 16 & 255) / 255.0F;
         float endGreen = (endColor >> 8 & 255) / 255.0F;
         float endBlue = (endColor & 255) / 255.0F;
@@ -1771,9 +1779,9 @@ public class RenderUtil {
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
         worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        worldrenderer.pos(right, top, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        worldrenderer.pos(left, top, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        worldrenderer.pos(left, bottom, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
+        worldrenderer.pos(right, y, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        worldrenderer.pos(x, y, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        worldrenderer.pos(x, bottom, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
         worldrenderer.pos(right, bottom, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
         tessellator.draw();
         GL11.glShadeModel(GL11.GL_FLAT);
@@ -1782,12 +1790,14 @@ public class RenderUtil {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
 
-    public static void drawGradientSideways(double left, double top, double right, double bottom, int startColor, int endColor) {
-        float startAlpha = (startColor >> 24 & 255) / 255.0F;
+    public static void drawGradientSideways(double x, double y, double width, double height, int startColor, int endColor) {
+        double right = x + width;
+        double bottom = y + height;
+        float startAlpha = alphaToUnit((startColor >> 24) & 0xFF);
         float startRed = (startColor >> 16 & 255) / 255.0F;
         float startGreen = (startColor >> 8 & 255) / 255.0F;
         float startBlue = (startColor & 255) / 255.0F;
-        float endAlpha = (endColor >> 24 & 255) / 255.0F;
+        float endAlpha = alphaToUnit((endColor >> 24) & 0xFF);
         float endRed = (endColor >> 16 & 255) / 255.0F;
         float endGreen = (endColor >> 8 & 255) / 255.0F;
         float endBlue = (endColor & 255) / 255.0F;
@@ -1799,10 +1809,10 @@ public class RenderUtil {
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldRenderer = tessellator.getWorldRenderer();
         worldRenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        worldRenderer.pos(left, top, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
-        worldRenderer.pos(left, bottom, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        worldRenderer.pos(x, y, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
+        worldRenderer.pos(x, bottom, 0.0D).color(startRed, startGreen, startBlue, startAlpha).endVertex();
         worldRenderer.pos(right, bottom, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
-        worldRenderer.pos(right, top, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
+        worldRenderer.pos(right, y, 0.0D).color(endRed, endGreen, endBlue, endAlpha).endVertex();
         tessellator.draw();
         GL11.glShadeModel(GL11.GL_FLAT);
         GL11.glDisable(GL11.GL_BLEND);
@@ -1811,28 +1821,28 @@ public class RenderUtil {
     }
 
     public static void glColor(final int n) {
-        GL11.glColor4f((float) (n >> 16 & 0xFF) / 255.0f, (float) (n >> 8 & 0xFF) / 255.0f, (float) (n & 0xFF) / 255.0f, (float) (n >> 24 & 0xFF) / 255.0f);
+        GL11.glColor4f((float) (n >> 16 & 0xFF) / 255.0f, (float) (n >> 8 & 0xFF) / 255.0f, (float) (n & 0xFF) / 255.0f, alphaToUnit((n >> 24) & 0xFF));
     }
 
     public static void drawRoundedGradientOutlinedRectangle(
-            float startX,
-            float startY,
-            float endX,
-            float endY,
+            float x,
+            float y,
+            float width,
+            float height,
             final float cornerRadius,
             final int fillColor,
             final int outlineColor1,
             final int outlineColor2) {
-        if (endX <= startX || endY <= startY) {
+        if (width <= 0 || height <= 0) {
             return;
         }
 
         float outlineWidth = 1.5F;
         if (((fillColor >> 24) & 0xFF) > 0) {
-            drawRoundedRectangle(startX, startY, endX, endY, cornerRadius, fillColor);
+            drawRoundedRectangle(x, y, width, height, cornerRadius, fillColor);
         }
 
-        drawRoundedGradientOutline(startX, startY, endX - startX, endY - startY, cornerRadius, outlineWidth, outlineColor1, outlineColor2);
+        drawRoundedGradientOutline(x, y, width, height, cornerRadius, outlineWidth, outlineColor1, outlineColor2);
     }
 
     public static void drawRoundedGradientOutline(float x, float y, float width, float height, float radius, float thickness, int color1, int color2) {
@@ -1924,18 +1934,18 @@ public class RenderUtil {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
-    public static void drawRoundedRectWithCorners(double x, double y, double x1, double y1, int color, double radius,
+    public static void drawRoundedRectWithCorners(float x, float y, float width, float height, int color, float radius,
                                                   boolean leftTop, boolean rightTop, boolean leftBot, boolean rightBot) {
-        if (x1 <= x || y1 <= y) {
+        if (width <= 0 || height <= 0) {
             return;
         }
 
-        float cornerRadius = (float) Math.max(0.0, radius);
+        float cornerRadius = Math.max(0.0F, radius);
         drawRoundedRect(
-                (float) x,
-                (float) y,
-                (float) (x1 - x),
-                (float) (y1 - y),
+                x,
+                y,
+                width,
+                height,
                 leftTop ? cornerRadius : 0.0F,
                 rightTop ? cornerRadius : 0.0F,
                 leftBot ? cornerRadius : 0.0F,
@@ -1944,9 +1954,9 @@ public class RenderUtil {
         );
     }
 
-    public static void drawRoundedRectMaskWithCorners(double x, double y, double x1, double y1, int color, double radius,
+    public static void drawRoundedRectMaskWithCorners(float x, float y, float width, float height, int color, float radius,
                                                       boolean leftTop, boolean rightTop, boolean leftBot, boolean rightBot) {
-        drawRoundedRectWithCorners(x, y, x1, y1, color, radius, leftTop, rightTop, leftBot, rightBot);
+        drawRoundedRectWithCorners(x, y, width, height, color, radius, leftTop, rightTop, leftBot, rightBot);
     }
 
     public static void fillCircle(double x, double y, double radius, int segments, int color) {
@@ -2017,7 +2027,7 @@ public class RenderUtil {
                 (color >> 16 & 255) / 255.0F,
                 (color >> 8 & 255) / 255.0F,
                 (color & 255) / 255.0F,
-                (color >> 24 & 255) / 255.0F
+                alphaToUnit((color >> 24) & 0xFF)
         );
     }
 

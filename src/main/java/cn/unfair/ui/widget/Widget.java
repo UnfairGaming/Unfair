@@ -171,19 +171,19 @@ public abstract class Widget {
         float line = 1.0F;
         float corner = Math.min(10.0F, Math.min(width, height) / 3.0F);
 
-        RenderUtil.drawRect(left + 1.0F, top + 1.0F, right - 1.0F, bottom - 1.0F, fillColor);
-        RenderUtil.drawRect(left, top, right, top + line, lineColor);
-        RenderUtil.drawRect(left, bottom - line, right, bottom, lineColor);
-        RenderUtil.drawRect(left, top, left + line, bottom, lineColor);
-        RenderUtil.drawRect(right - line, top, right, bottom, lineColor);
+        RenderUtil.drawRect(left + 1.0F, top + 1.0F, right - left - 2.0F, bottom - top - 2.0F, fillColor);
+        RenderUtil.drawRect(left, top, right - left, line, lineColor);
+        RenderUtil.drawRect(left, bottom - line, right - left, line, lineColor);
+        RenderUtil.drawRect(left, top, line, bottom - top, lineColor);
+        RenderUtil.drawRect(right - line, top, line, bottom - top, lineColor);
 
-        RenderUtil.drawRect(left - 1.0F, top - 1.0F, left + corner, top + 1.0F, cornerColor);
-        RenderUtil.drawRect(left - 1.0F, top - 1.0F, left + 1.0F, top + corner, cornerColor);
-        RenderUtil.drawRect(right - corner, top - 1.0F, right + 1.0F, top + 1.0F, cornerColor);
-        RenderUtil.drawRect(right - 1.0F, top - 1.0F, right + 1.0F, top + corner, cornerColor);
-        RenderUtil.drawRect(left - 1.0F, bottom - 1.0F, left + corner, bottom + 1.0F, cornerColor);
-        RenderUtil.drawRect(left - 1.0F, bottom - corner, left + 1.0F, bottom + 1.0F, cornerColor);
-        RenderUtil.drawRect(right - corner, bottom - 1.0F, right + 1.0F, bottom + 1.0F, cornerColor);
-        RenderUtil.drawRect(right - 1.0F, bottom - corner, right + 1.0F, bottom + 1.0F, cornerColor);
+        RenderUtil.drawRect(left - 1.0F, top - 1.0F, corner + 1.0F, 2.0F, cornerColor);
+        RenderUtil.drawRect(left - 1.0F, top - 1.0F, 2.0F, corner + 1.0F, cornerColor);
+        RenderUtil.drawRect(right - corner, top - 1.0F, corner + 1.0F, 2.0F, cornerColor);
+        RenderUtil.drawRect(right - 1.0F, top - 1.0F, 2.0F, corner + 1.0F, cornerColor);
+        RenderUtil.drawRect(left - 1.0F, bottom - 1.0F, corner + 1.0F, 2.0F, cornerColor);
+        RenderUtil.drawRect(left - 1.0F, bottom - corner, 2.0F, corner + 1.0F, cornerColor);
+        RenderUtil.drawRect(right - corner, bottom - 1.0F, corner + 1.0F, 2.0F, cornerColor);
+        RenderUtil.drawRect(right - 1.0F, bottom - corner, 2.0F, corner + 1.0F, cornerColor);
     }
 }

@@ -55,8 +55,8 @@ public class TextComponent extends Component {
         float boxH = getBoxHeight();
         float boxY = getBoxY();
 
-        RenderUtil.drawRect(boxX - 1.0F, boxY, boxX + boxW + 1.0F, boxY + boxH, new Color(34, 34, 34).getRGB());
-        RenderUtil.drawRect(boxX, boxY + 1.0F, boxX + boxW, boxY + boxH - 1.0F, new Color(45, 45, 45, 200).getRGB());
+        RenderUtil.drawRect(boxX - 1.0F, boxY, boxW + 2.0F, boxH, new Color(34, 34, 34).getRGB());
+        RenderUtil.drawRect(boxX, boxY + 1.0F, boxW, boxH - 2.0F, new Color(45, 45, 45, 200).getRGB());
 
         GuiTextField tf = getTextField(boxW, boxH);
         tf.xPosition = (int) (boxX + 3.0F);

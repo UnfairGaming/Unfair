@@ -33,16 +33,16 @@ public class ExhibitionTargetHUD extends TargetHUDMode {
         RenderUtil.drawSkeetRect(0.0F, -2.0F, width, 42.0F);
         Fonts.exhi.get(18.0F).drawStringWithShadow(data.entity().getName(), 42.3F, 0.3F, -1);
 
-        RenderUtil.drawRect(42.5F, 10.3F, 103.0F, 13.5F, healthColor.darker().darker().getRGB());
-        RenderUtil.drawRect(42.5F, 10.3F, 42.5F + 60.5F * ratio, 13.5F, healthColor.getRGB());
+        RenderUtil.drawRect(42.5F, 10.3F, 60.5F, 3.2F, healthColor.darker().darker().getRGB());
+        RenderUtil.drawRect(42.5F, 10.3F, 60.5F * ratio, 3.2F, healthColor.getRGB());
         if (data.absorption() > 0.0F) {
-            RenderUtil.drawRect(97.5F - data.absorption(), 10.3F, 103.5F, 13.5F, new Color(137, 112, 9).getRGB());
+            RenderUtil.drawRect(97.5F - data.absorption(), 10.3F, 6.0F + data.absorption(), 3.2F, new Color(137, 112, 9).getRGB());
         }
-        RenderUtil.drawRect(42.0F, 9.8F, 104.0F, 10.3F, Color.BLACK.getRGB());
-        RenderUtil.drawRect(42.0F, 13.5F, 104.0F, 14.0F, Color.BLACK.getRGB());
+        RenderUtil.drawRect(42.0F, 9.8F, 62.0F, 0.5F, Color.BLACK.getRGB());
+        RenderUtil.drawRect(42.0F, 13.5F, 62.0F, 0.5F, Color.BLACK.getRGB());
         for (int i = 1; i < 10; ++i) {
             float lineX = 43.5F + 60.0F / 8.5F * i;
-            RenderUtil.drawRect(lineX, 9.8F, lineX + 0.5F, 14.0F, Color.BLACK.getRGB());
+            RenderUtil.drawRect(lineX, 9.8F, 0.5F, 4.2F, Color.BLACK.getRGB());
         }
 
         GlStateManager.scale(0.5F, 0.5F, 0.5F);

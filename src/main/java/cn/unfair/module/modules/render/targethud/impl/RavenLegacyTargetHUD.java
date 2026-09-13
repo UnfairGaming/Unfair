@@ -33,7 +33,7 @@ public class RavenLegacyTargetHUD extends TargetHUDMode {
                 ? 0.0D
                 : Math.max(0.0D, Math.min(1.0D, TargetHUD.finiteHealth(data.targetHealth()) / Math.max(TargetHUD.finiteHealth(data.maxHealth()), 1.0F)));
 
-        RenderUtil.drawRoundedGradientOutlinedRectangle(bounds.left(), bounds.top(), bounds.right(), bounds.bottom(), 10.0F,
+        RenderUtil.drawRoundedGradientOutlinedRectangle(bounds.left(), bounds.top(), bounds.width(), bounds.height(), 10.0F,
                 RenderUtil.mergeAlpha(Color.black.getRGB(), trackAlpha),
                 RenderUtil.mergeAlpha(gradientLeft, alpha),
                 RenderUtil.mergeAlpha(gradientRight, alpha));
@@ -41,14 +41,14 @@ public class RavenLegacyTargetHUD extends TargetHUDMode {
         int barLeft = bounds.left() + 6;
         int barRight = bounds.right() - 6;
         int barTop = bounds.contentBottom();
-        RenderUtil.drawRoundedRectangle(barLeft, barTop, barRight, barTop + 5.0F, 2.0F,
+        RenderUtil.drawRoundedRectangle(barLeft, barTop, barRight - barLeft, 5.0F, 2.0F,
                 RenderUtil.mergeAlpha(Color.black.getRGB(), trackAlpha));
 
         int mergedGradientLeft = RenderUtil.mergeAlpha(gradientLeft, barAlpha);
         int mergedGradientRight = RenderUtil.mergeAlpha(gradientRight, barAlpha);
         float healthBar = (float) (barRight + (barLeft - barRight) * (1.0D - healthRatio));
         float lastHealthBar = targetHUD.updateRavenHealthBar(healthBar, barLeft, barRight);
-        RenderUtil.drawRoundedGradientRect(barLeft, barTop, lastHealthBar, barTop + 5.0F, 2.0F,
+        RenderUtil.drawRoundedGradientRect(barLeft, barTop, lastHealthBar - barLeft, 5.0F, 2.0F,
                 mergedGradientLeft, mergedGradientLeft, mergedGradientRight, mergedGradientRight);
         this.renderText(playerInfo, bounds, alpha);
     }

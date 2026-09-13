@@ -48,12 +48,12 @@ public final class MainMenuStyle {
 
     public static void drawButton(float x, float y, float w, float h, float radius, boolean hovered) {
         resetGuiState();
-        RenderUtil.drawRoundedRectangle(x, y, x + w, y + h, radius, hovered ? BUTTON_HOVER_COLOR : BUTTON_COLOR);
+        RenderUtil.drawRoundedRectangle(x, y, w, h, radius, hovered ? BUTTON_HOVER_COLOR : BUTTON_COLOR);
     }
 
     public static void drawButtonMask(float x, float y, float w, float h, float radius) {
         resetGuiState();
-        RenderUtil.drawRoundedRectangle(x, y, x + w, y + h, radius, BUTTON_MASK_COLOR);
+        RenderUtil.drawRoundedRectangle(x, y, w, h, radius, BUTTON_MASK_COLOR);
     }
 
     public static void drawCenteredString(FontRenderer font, String text, float centerX, float y, int color) {

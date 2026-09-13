@@ -53,8 +53,8 @@ public class MyauTargetHUD extends TargetHUDMode {
         int backgroundColor = new Color(0.0F, 0.0F, 0.0F, this.background.getValue() / 100.0F).getRGB();
         int outlineColor = this.outline.getValue() ? targetColor.getRGB() : new Color(0, 0, 0, 0).getRGB();
         RenderUtil.drawOutlineRect(0.0F, 0.0F, barTotalWidth, 27.0F, 1.5F, backgroundColor, outlineColor);
-        RenderUtil.drawRect(headIconOffset + 2.0F, 22.0F, barTotalWidth - 2.0F, 25.0F, ColorUtil.darker(healthBarColor, 0.2F).getRGB());
-        RenderUtil.drawRect(headIconOffset + 2.0F, 22.0F, headIconOffset + 2.0F + lerpedHealthRatio * (barTotalWidth - 2.0F - headIconOffset - 2.0F), 25.0F, healthBarColor.getRGB());
+        RenderUtil.drawRect(headIconOffset + 2.0F, 22.0F, barTotalWidth - headIconOffset - 4.0F, 3.0F, ColorUtil.darker(healthBarColor, 0.2F).getRGB());
+        RenderUtil.drawRect(headIconOffset + 2.0F, 22.0F, lerpedHealthRatio * (barTotalWidth - headIconOffset - 4.0F), 3.0F, healthBarColor.getRGB());
         RenderUtil.disableRenderState();
         GlStateManager.disableDepth();
         GlStateManager.enableBlend();

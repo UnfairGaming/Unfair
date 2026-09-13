@@ -367,8 +367,8 @@ public class HUD extends Module {
                 RenderUtil.drawOutlineRect(
                         2.0F,
                         (float) (mc.currentScreen.height - 14),
-                        (float) (mc.currentScreen.width - 2),
-                        (float) (mc.currentScreen.height - 2),
+                        (float) (mc.currentScreen.width - 4),
+                        12.0F,
                         1.5F,
                         0,
                         getColor(System.currentTimeMillis()).getRGB()
@@ -720,7 +720,7 @@ public class HUD extends Module {
         if (shouldDrawBar) {
             barY -= heightPadding;
             barY2 += heightPadding;
-            RenderUtil.drawRect(barX, barY, barX2, barY2, barColor);
+            RenderUtil.drawRect(barX, barY, barX2 - barX, barY2 - barY, barColor);
         }
     }
 

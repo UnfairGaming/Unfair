@@ -197,8 +197,8 @@ public class Blink extends Module {
         float x = sr.getScaledWidth() / 2.0F - 50.0F;
         float y = sr.getScaledHeight() / 2.0F + 15.0F;
         this.progress = AnimationUtil.lerp(this.progress, this.progressTarget, 0.2F);
-        RenderUtil.drawRoundedRectangle(x, y, x + 100.0F, y + 5.0F, 2.0F, NAVEN_PROGRESS_BACKGROUND);
-        RenderUtil.drawRoundedRectangle(x, y, x + this.progress, y + 5.0F, 2.0F, NAVEN_PROGRESS_COLOR);
+        RenderUtil.drawRoundedRectangle(x, y, 100.0F, 5.0F, 2.0F, NAVEN_PROGRESS_BACKGROUND);
+        RenderUtil.drawRoundedRectangle(x, y, this.progress, 5.0F, 2.0F, NAVEN_PROGRESS_COLOR);
     }
 
     private void createFakePlayer() {

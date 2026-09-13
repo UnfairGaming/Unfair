@@ -198,7 +198,7 @@ public class SliderComponent extends Component {
         float left = trackX + 2.0F;
         float right = trackX + progressWidth - 2.0F;
         if (right > left) {
-            RenderUtil.drawRect(left, trackY + 2.0F, right, trackY + trackH - 2.0F, gui.getAccent().getRGB());
+            RenderUtil.drawRect(left, trackY + 2.0F, Math.max(0.0F, right - left), trackH - 4.0F, gui.getAccent().getRGB());
         }
     }
 

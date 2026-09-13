@@ -343,8 +343,8 @@ public class AugustusClickGui extends GuiScreen {
             titleFont.drawString("CLICKGUI", posX + 5, posY + (15.0F - titleFont.getHeight()) / 2.0F, new Color(200, 200, 200).getRGB(), false);
             drawWindowControls(mouseX, mouseY, posX, posY, guiWidth, 15.0F);
 
-            RenderUtil.drawRect(posX + 90, posY + 0.5f, posX + 91, posY + guiHeight, new Color(34, 34, 34).getRGB());
-            RenderUtil.drawRect(posX + 90, posY + 40, posX + guiWidth, posY + 41, new Color(34, 34, 34).getRGB());
+            RenderUtil.drawRect(posX + 90, posY + 0.5f, 1.0f, guiHeight - 0.5f, new Color(34, 34, 34).getRGB());
+            RenderUtil.drawRect(posX + 90, posY + 40, guiWidth - 90, 1.0f, new Color(34, 34, 34).getRGB());
 
             renderCategories(mouseX, mouseY);
             renderModuleList(mouseX, mouseY);
@@ -431,7 +431,7 @@ public class AugustusClickGui extends GuiScreen {
         if (hovered && action == WindowAction.CLOSE) {
             RenderUtil.drawRoundedRect(x, y, w, h, 0, 6, 0, 0, new Color(220, 45, 45, 180).getRGB());
         } else if (hovered) {
-            RenderUtil.drawRect(x, y, x + w, y + h, new Color(255, 255, 255, 30).getRGB());
+            RenderUtil.drawRect(x, y, w, h, new Color(255, 255, 255, 30).getRGB());
         }
         int color = hovered ? new Color(255, 255, 255).getRGB() : new Color(150, 150, 150).getRGB();
         float cx = x + w / 2.0F;
@@ -553,7 +553,7 @@ public class AugustusClickGui extends GuiScreen {
             if (c == selectedCategory) {
                 float lineW = fw(display.toUpperCase(Locale.ROOT));
                 float lineY = y + fh() + 1.0F;
-                RenderUtil.drawRect(x, lineY, x + lineW, lineY + 1.0F, new Color(200, 200, 200).getRGB());
+                RenderUtil.drawRect(x, lineY, lineW, 1.0F, new Color(200, 200, 200).getRGB());
             }
 
             x += fw(display.toUpperCase(Locale.ROOT)) + 16.0F;
@@ -957,7 +957,7 @@ public class AugustusClickGui extends GuiScreen {
         float contentY = configPosY + titleBarHeight + 8;
         float contentHeight = configHeight - titleBarHeight - 16;
 
-        RenderUtil.drawRect(configPosX + 8, contentY, configPosX + leftPanelWidth, contentY + contentHeight, new Color(30, 30, 30, 150).getRGB());
+        RenderUtil.drawRect(configPosX + 8, contentY, leftPanelWidth - 8, contentHeight, new Color(30, 30, 30, 150).getRGB());
 
         normalFont.drawString("Available Configs:", configPosX + 12, contentY + 4, new Color(180, 180, 180).getRGB(), false);
 
@@ -971,9 +971,9 @@ public class AugustusClickGui extends GuiScreen {
 
             if (selected) {
                 Color selectedColor = new Color(getAccent().getRed(), getAccent().getGreen(), getAccent().getBlue(), 50);
-                RenderUtil.drawRect(configPosX + 12, itemY, configPosX + 12 + leftPanelWidth - 16, itemY + itemHeight, selectedColor.getRGB());
+                RenderUtil.drawRect(configPosX + 12, itemY, leftPanelWidth - 16, itemHeight, selectedColor.getRGB());
             } else if (hovered) {
-                RenderUtil.drawRect(configPosX + 12, itemY, configPosX + 12 + leftPanelWidth - 16, itemY + itemHeight, new Color(45, 45, 45, 100).getRGB());
+                RenderUtil.drawRect(configPosX + 12, itemY, leftPanelWidth - 16, itemHeight, new Color(45, 45, 45, 100).getRGB());
             }
 
             int textColor = selected ? Color.WHITE.getRGB() : (hovered ? getAccent().getRGB() : new Color(180, 180, 180).getRGB());
@@ -1011,7 +1011,7 @@ public class AugustusClickGui extends GuiScreen {
 
             if (System.currentTimeMillis() % 1000 < 500) {
                 float cursorX = buttonX + 4 + fw(newConfigName);
-                RenderUtil.drawRect(cursorX, inputY + 3, cursorX + 1, inputY + buttonHeight - 3, new Color(200, 200, 200).getRGB());
+                RenderUtil.drawRect(cursorX, inputY + 3, 1.0F, buttonHeight - 6, new Color(200, 200, 200).getRGB());
             }
 
             float confirmY = inputY + buttonHeight + 4;
@@ -1032,7 +1032,7 @@ public class AugustusClickGui extends GuiScreen {
         }
 
         float resizeSize = 8;
-        RenderUtil.drawRect(configPosX + configWidth - resizeSize, configPosY + configHeight - resizeSize, configPosX + configWidth, configPosY + configHeight, new Color(60, 60, 60, 100).getRGB());
+        RenderUtil.drawRect(configPosX + configWidth - resizeSize, configPosY + configHeight - resizeSize, resizeSize, resizeSize, new Color(60, 60, 60, 100).getRGB());
     }
 
     private boolean configMouseClicked(int mouseX, int mouseY, int mouseButton) {

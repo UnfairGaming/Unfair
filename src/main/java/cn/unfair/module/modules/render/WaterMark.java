@@ -122,7 +122,7 @@ public class WaterMark extends Module {
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, color);
+        RenderUtil.drawRoundedRectangle(left, top, right - left, bottom - top, radius, color);
     }
 
     private void drawBackgroundMask(float left, float top, float right, float bottom, int color) {
@@ -132,7 +132,7 @@ public class WaterMark extends Module {
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        RenderUtil.drawRoundedRectangle(left, top, right, bottom, radius, color);
+        RenderUtil.drawRoundedRectangle(left, top, right - left, bottom - top, radius, color);
     }
 
     public float[] getWidgetSize() {
@@ -268,8 +268,8 @@ public class WaterMark extends Module {
         RenderUtil.drawRect(
                 x,
                 y + 1.5F * scaleValue,
-                x + Math.max(1.0F, scaleValue),
-                y + this.getFontHeight() - 1.5F * scaleValue,
+                Math.max(1.0F, scaleValue),
+                this.getFontHeight() - 3.0F * scaleValue,
                 ColorUtil.darker(new Color(color, true), 0.65F).getRGB()
         );
     }

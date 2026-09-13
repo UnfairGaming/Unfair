@@ -405,33 +405,33 @@ public class ESP extends Module {
 
             if (outline.getValue()) {
                 if (boxMode.getValue() == 0) {
-                    RenderUtil.drawRect(posX - 1.0, posY, posX + 0.5, endPosY + 0.5, black);
-                    RenderUtil.drawRect(posX - 1.0, posY - 0.5, endPosX + 0.5, posY + 0.5 + 0.5, black);
-                    RenderUtil.drawRect(endPosX - 0.5 - 0.5, posY, endPosX + 0.5, endPosY + 0.5, black);
-                    RenderUtil.drawRect(posX - 1.0, endPosY - 0.5 - 0.5, endPosX + 0.5, endPosY + 0.5, black);
-                    RenderUtil.drawRect(posX - 0.5, posY, posX + 0.5 - 0.5, endPosY, color);
-                    RenderUtil.drawRect(posX, endPosY - 0.5, endPosX, endPosY, color);
-                    RenderUtil.drawRect(posX - 0.5, posY, endPosX, posY + 0.5, color);
-                    RenderUtil.drawRect(endPosX - 0.5, posY, endPosX, endPosY, color);
+                    RenderUtil.drawRect(posX - 1.0, posY, 1.5, endPosY - posY + 0.5, black);
+                    RenderUtil.drawRect(posX - 1.0, posY - 0.5, endPosX - posX + 1.5, 1.5, black);
+                    RenderUtil.drawRect(endPosX - 1.0, posY, 1.5, endPosY - posY + 0.5, black);
+                    RenderUtil.drawRect(posX - 1.0, endPosY - 1.0, endPosX - posX + 1.5, 1.5, black);
+                    RenderUtil.drawRect(posX - 0.5, posY, 0.5, endPosY - posY, color);
+                    RenderUtil.drawRect(posX, endPosY - 0.5, endPosX - posX, 0.5, color);
+                    RenderUtil.drawRect(posX - 0.5, posY, endPosX - posX + 0.5, 0.5, color);
+                    RenderUtil.drawRect(endPosX - 0.5, posY, 0.5, endPosY - posY, color);
                 } else {
                     double lineW = (endPosX - posX) / 3.0;
                     double lineH = (endPosY - posY) / 4.0;
-                    RenderUtil.drawRect(posX + 0.5, posY, posX - 1.0, posY + lineH + 0.5, black);
-                    RenderUtil.drawRect(posX - 1.0, endPosY, posX + 0.5, endPosY - lineH - 0.5, black);
-                    RenderUtil.drawRect(posX - 1.0, posY - 0.5, posX + lineW + 0.5, posY + 1.0, black);
-                    RenderUtil.drawRect(endPosX - lineW - 0.5, posY - 0.5, endPosX, posY + 1.0, black);
-                    RenderUtil.drawRect(endPosX - 1.0, posY, endPosX + 0.5, posY + lineH + 0.5, black);
-                    RenderUtil.drawRect(endPosX - 1.0, endPosY, endPosX + 0.5, endPosY - lineH - 0.5, black);
-                    RenderUtil.drawRect(posX - 1.0, endPosY - 1.0, posX + lineW + 0.5, endPosY + 0.5, black);
-                    RenderUtil.drawRect(endPosX - lineW - 0.5, endPosY - 1.0, endPosX + 0.5, endPosY + 0.5, black);
-                    RenderUtil.drawRect(posX, posY, posX - 0.5, posY + lineH, color);
-                    RenderUtil.drawRect(posX, endPosY, posX - 0.5, endPosY - lineH, color);
-                    RenderUtil.drawRect(posX - 0.5, posY, posX + lineW, posY + 0.5, color);
-                    RenderUtil.drawRect(endPosX - lineW, posY, endPosX, posY + 0.5, color);
-                    RenderUtil.drawRect(endPosX - 0.5, posY, endPosX, posY + lineH, color);
-                    RenderUtil.drawRect(endPosX - 0.5, endPosY, endPosX, endPosY - lineH, color);
-                    RenderUtil.drawRect(posX, endPosY - 0.5, posX + lineW, endPosY, color);
-                    RenderUtil.drawRect(endPosX - lineW, endPosY - 0.5, endPosX - 0.5, endPosY, color);
+                    RenderUtil.drawRect(posX + 0.5, posY, -1.5, lineH + 0.5, black);
+                    RenderUtil.drawRect(posX - 1.0, endPosY, 1.5, -lineH - 0.5, black);
+                    RenderUtil.drawRect(posX - 1.0, posY - 0.5, lineW + 1.5, 1.5, black);
+                    RenderUtil.drawRect(endPosX - lineW - 0.5, posY - 0.5, lineW + 0.5, 1.5, black);
+                    RenderUtil.drawRect(endPosX - 1.0, posY, 1.5, lineH + 0.5, black);
+                    RenderUtil.drawRect(endPosX - 1.0, endPosY, 1.5, -lineH - 0.5, black);
+                    RenderUtil.drawRect(posX - 1.0, endPosY - 1.0, lineW + 1.5, 1.5, black);
+                    RenderUtil.drawRect(endPosX - lineW - 0.5, endPosY - 1.0, lineW + 1.0, 1.5, black);
+                    RenderUtil.drawRect(posX, posY, -0.5, lineH, color);
+                    RenderUtil.drawRect(posX, endPosY, -0.5, -lineH, color);
+                    RenderUtil.drawRect(posX - 0.5, posY, lineW + 0.5, 0.5, color);
+                    RenderUtil.drawRect(endPosX - lineW, posY, lineW, 0.5, color);
+                    RenderUtil.drawRect(endPosX - 0.5, posY, 0.5, lineH, color);
+                    RenderUtil.drawRect(endPosX - 0.5, endPosY, 0.5, -lineH, color);
+                    RenderUtil.drawRect(posX, endPosY - 0.5, lineW, 0.5, color);
+                    RenderUtil.drawRect(endPosX - lineW, endPosY - 0.5, lineW - 0.5, 0.5, color);
                 }
             }
 
@@ -457,7 +457,7 @@ public class ESP extends Module {
                     double healthBarRight = posX - 2.0;
                     double healthFillLeft = posX - 4.0;
                     double healthFillRight = posX - 3.0;
-                    RenderUtil.drawRect(healthBarLeft, posY - 0.5, healthBarRight, endPosY + 0.5, background);
+                    RenderUtil.drawRect(healthBarLeft, posY - 0.5, healthBarRight - healthBarLeft, endPosY - posY + 1.0, background);
                     int healthColor = ColorUtil.getHealthBlend(hp / maxHp).getRGB();
 
                     if (hpBarMode.getValue() == 0 && height >= 60) {
@@ -465,13 +465,13 @@ public class ESP extends Module {
                             double reratio = MathHelper.clamp_double(hp - k * (maxHp / 10.0), 0.0, maxHp / 10.0) / (maxHp / 10.0);
                             double hei = (height / 10.0 - 0.5) * reratio;
                             double segmentBottom = endPosY - (height + 0.5) / 10.0 * k;
-                            RenderUtil.drawRect(healthFillLeft, segmentBottom - hei, healthFillRight, segmentBottom, healthColor);
+                            RenderUtil.drawRect(healthFillLeft, segmentBottom - hei, healthFillRight - healthFillLeft, hei, healthColor);
                         }
                     } else {
-                        RenderUtil.drawRect(healthFillLeft, endPosY - hpHeight, healthFillRight, endPosY, healthColor);
+                        RenderUtil.drawRect(healthFillLeft, endPosY - hpHeight, healthFillRight - healthFillLeft, hpHeight, healthColor);
                         float absAmount = living.getAbsorptionAmount();
                         if (absorption.getValue() && absAmount > 0) {
-                            RenderUtil.drawRect(healthFillLeft, endPosY - (height / 6.0) * (absAmount / 2.0), healthFillRight, endPosY, new Color(255, 215, 0, 100).getRGB());
+                            RenderUtil.drawRect(healthFillLeft, endPosY - (height / 6.0) * (absAmount / 2.0), healthFillRight - healthFillLeft, (height / 6.0) * (absAmount / 2.0), new Color(255, 215, 0, 100).getRGB());
                         }
                     }
 
@@ -489,16 +489,16 @@ public class ESP extends Module {
                             if (armorStack != null && armorStack.getItem() != null) {
                                 double durabilityFactor = 1.0 - ((double) armorStack.getItemDamage() / armorStack.getMaxDamage());
                                 double theHeight = constHeight + 0.25;
-                                RenderUtil.drawRect(endPosX + 1.5, endPosY + 0.5 - theHeight * m, endPosX + 3.5, endPosY + 0.5 - theHeight * (m - 1), background);
-                                RenderUtil.drawRect(endPosX + 2.0, endPosY + 0.5 - theHeight * (m - 1) - 0.25, endPosX + 3.0, endPosY + 0.5 - theHeight * (m - 1) - 0.25 - (constHeight - 0.25) * durabilityFactor, new Color(0, 255, 255).getRGB());
+                                RenderUtil.drawRect(endPosX + 1.5, endPosY + 0.5 - theHeight * m, 2.0, theHeight, background);
+                                RenderUtil.drawRect(endPosX + 2.0, endPosY + 0.5 - theHeight * (m - 1) - 0.25 - (constHeight - 0.25) * durabilityFactor, 1.0, (constHeight - 0.25) * durabilityFactor, new Color(0, 255, 255).getRGB());
                             }
                         }
                     } else {
                         float armorVal = living.getTotalArmorValue();
                         if (armorVal > 0) {
                             double armorHeight = height * (armorVal / 20.0);
-                            RenderUtil.drawRect(endPosX + 1.5, posY - 0.5, endPosX + 3.5, endPosY + 0.5, background);
-                            RenderUtil.drawRect(endPosX + 2.0, endPosY, endPosX + 3.0, endPosY - armorHeight, new Color(0, 255, 255).getRGB());
+                            RenderUtil.drawRect(endPosX + 1.5, posY - 0.5, 2.0, endPosY - posY + 1.0, background);
+                            RenderUtil.drawRect(endPosX + 2.0, endPosY - armorHeight, 1.0, armorHeight, new Color(0, 255, 255).getRGB());
                         }
                     }
                 }
@@ -525,7 +525,7 @@ public class ESP extends Module {
                     double textY = posY - 1.0 - (mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue());
                     if (tagsBGValue.getValue()) {
                         float textW = mc.fontRendererObj.getStringWidth(entName) * fontScaleValue.getValue();
-                        RenderUtil.drawRect(textX - textW / 2f - 2f, textY - 2f, textX + textW / 2f + 2f, textY + mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue(), 0x80000000);
+                        RenderUtil.drawRect(textX - textW / 2f - 2f, textY - 2f, textW + 4f, mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue() + 2f, 0x80000000);
                     }
                     drawScaledCenteredString(entName, textX, textY, fontScaleValue.getValue(), -1);
                 }
@@ -538,7 +538,7 @@ public class ESP extends Module {
                         double textY = endPosY + 1.0;
                         if (tagsBGValue.getValue()) {
                             float textW = mc.fontRendererObj.getStringWidth(itemName) * fontScaleValue.getValue();
-                            RenderUtil.drawRect(textX - textW / 2f - 2f, textY - 2f, textX + textW / 2f + 2f, textY + mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue(), 0x80000000);
+                            RenderUtil.drawRect(textX - textW / 2f - 2f, textY - 2f, textW + 4f, mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue() + 2f, 0x80000000);
                         }
                         drawScaledCenteredString(itemName, textX, textY, fontScaleValue.getValue(), -1);
                     }
@@ -552,8 +552,8 @@ public class ESP extends Module {
                     double curD = maxD - stack.getItemDamage();
                     double per = curD / maxD;
                     double h = endPosY - posY;
-                    RenderUtil.drawRect(endPosX + 1.5, posY - 0.5, endPosX + 3.5, endPosY + 0.5, background);
-                    RenderUtil.drawRect(endPosX + 2.0, endPosY, endPosX + 3.0, endPosY - (h * per), new Color(0, 255, 255).getRGB());
+                    RenderUtil.drawRect(endPosX + 1.5, posY - 0.5, 2.0, endPosY - posY + 1.0, background);
+                    RenderUtil.drawRect(endPosX + 2.0, endPosY - (h * per), 1.0, h * per, new Color(0, 255, 255).getRGB());
                     if (armorNumber.getValue()) {
                         drawScaledString(String.valueOf((int) curD), endPosX + 4.0, endPosY - (h * per) - (mc.fontRendererObj.FONT_HEIGHT / 2f * fontScaleValue.getValue()), fontScaleValue.getValue(), -1);
                     }
@@ -564,7 +564,7 @@ public class ESP extends Module {
                     double textY = endPosY + 1.0;
                     if (tagsBGValue.getValue()) {
                         float textW = mc.fontRendererObj.getStringWidth(entName) * fontScaleValue.getValue();
-                        RenderUtil.drawRect(textX - textW / 2f - 2f, textY - 2f, textX + textW / 2f + 2f, textY + mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue(), 0x80000000);
+                        RenderUtil.drawRect(textX - textW / 2f - 2f, textY - 2f, textW + 4f, mc.fontRendererObj.FONT_HEIGHT * fontScaleValue.getValue() + 2f, 0x80000000);
                     }
                     drawScaledCenteredString(entName, textX, textY, fontScaleValue.getValue(), -1);
                 }
@@ -663,9 +663,9 @@ public class ESP extends Module {
                         float percent = Math.clamp(heal / player.getMaxHealth(), 0.0F, 1.0F);
                         Color healthColor = ColorUtil.getHealthBlend(percent);
                         float height = player.height + 0.2F;
-                        RenderUtil.drawRect3D(0.57250005F, -0.027500002F, 0.7275F, height + 0.027500002F, Color.black.getRGB());
-                        RenderUtil.drawRect3D(0.6F, 0.0F, 0.70000005F, height, Color.darkGray.getRGB());
-                        RenderUtil.drawRect3D(0.6F, 0.0F, 0.70000005F, height * percent, healthColor.getRGB());
+                        RenderUtil.drawRect3D(0.57250005F, -0.027500002F, 0.15499995F, height + 0.055000004F, Color.black.getRGB());
+                        RenderUtil.drawRect3D(0.6F, 0.0F, 0.10000005F, height, Color.darkGray.getRGB());
+                        RenderUtil.drawRect3D(0.6F, 0.0F, 0.10000005F, height * percent, healthColor.getRGB());
                         GlStateManager.popMatrix();
                     }
                 }

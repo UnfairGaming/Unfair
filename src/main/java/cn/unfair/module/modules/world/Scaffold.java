@@ -586,7 +586,7 @@ public class Scaffold extends Module {
         GlStateManager.translate(-centerX, -centerY, 0.0F);
         RenderUtil.enableRenderState();
         RenderUtil.drawRoundedRectangle(
-                layout.left(), layout.top(), layout.left() + layout.width(), layout.top() + layout.height(), 7.0F, color
+                layout.left(), layout.top(), layout.width(), layout.height(), 7.0F, color
         );
         RenderUtil.disableRenderState();
         GlStateManager.popMatrix();

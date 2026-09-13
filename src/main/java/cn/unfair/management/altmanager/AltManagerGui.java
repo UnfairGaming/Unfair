@@ -665,14 +665,14 @@ public class AltManagerGui extends GuiScreen {
     }
 
     private void drawFlatRect(float x, float y, float w, float h, int color) {
-        RenderUtil.drawRect(x, y, x + w, y + h, color);
+        RenderUtil.drawRect(x, y, w, h, color);
     }
 
     private void drawBorder(float x, float y, float w, float h, int color) {
-        RenderUtil.drawRect(x, y, x + w, y + 1.0F, color);
-        RenderUtil.drawRect(x, y + h - 1.0F, x + w, y + h, color);
-        RenderUtil.drawRect(x, y, x + 1.0F, y + h, color);
-        RenderUtil.drawRect(x + w - 1.0F, y, x + w, y + h, color);
+        RenderUtil.drawRect(x, y, w, 1.0F, color);
+        RenderUtil.drawRect(x, y + h - 1.0F, w, 1.0F, color);
+        RenderUtil.drawRect(x, y, 1.0F, h, color);
+        RenderUtil.drawRect(x + w - 1.0F, y, 1.0F, h, color);
     }
 
     private int withAlpha(int color, int alpha) {

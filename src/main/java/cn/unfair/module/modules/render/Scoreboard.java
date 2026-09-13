@@ -168,7 +168,7 @@ public class Scoreboard extends Module {
         if (((color >> 24) & 0xFF) <= 0) {
             return;
         }
-        RenderUtil.drawRoundedRectangle(x, y, x + this.cachedWidth, y + this.cachedHeight, radius, color);
+        RenderUtil.drawRoundedRectangle(x, y, this.cachedWidth, this.cachedHeight, radius, color);
     }
 
     private int getBackgroundColor() {

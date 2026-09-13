@@ -38,14 +38,14 @@ public class RavenModernTargetHUD extends TargetHUDMode {
         if (this.background.getValue() > 0) {
             int backgroundAlpha = Math.min(alpha, (int) (this.background.getValue() / 100.0F * 255.0F));
             RenderUtil.enableRenderState();
-            RenderUtil.drawRoundedRectangle(bounds.left(), bounds.top(), bounds.right(), bounds.bottom(), 8.0F, new Color(0, 0, 0, backgroundAlpha).getRGB());
+            RenderUtil.drawRoundedRectangle(bounds.left(), bounds.top(), bounds.width(), bounds.height(), 8.0F, new Color(0, 0, 0, backgroundAlpha).getRGB());
             RenderUtil.disableRenderState();
         }
 
         int barLeft = bounds.left() + 6;
         int barRight = bounds.right() - 6;
         int barTop = bounds.contentBottom();
-        RenderUtil.drawRoundedRectangle(barLeft, barTop, barRight, barTop + 5.0F, 2.0F,
+        RenderUtil.drawRoundedRectangle(barLeft, barTop, barRight - barLeft, 5.0F, 2.0F,
                 RenderUtil.mergeAlpha(Color.black.getRGB(), trackAlpha));
 
         int mergedGradientLeft = RenderUtil.mergeAlpha(gradientLeft, barAlpha);
@@ -53,9 +53,9 @@ public class RavenModernTargetHUD extends TargetHUDMode {
         float healthBar = (float) (barRight + (barLeft - barRight) * (1.0D - healthRatio));
         float lastHealthBar = targetHUD.updateRavenHealthBar(healthBar, barLeft, barRight);
 
-        RenderUtil.drawRoundedRectangle(barLeft, barTop, lastHealthBar, barTop + 5.0F, 2.0F,
+        RenderUtil.drawRoundedRectangle(barLeft, barTop, lastHealthBar - barLeft, 5.0F, 2.0F,
                 RenderUtil.darkenColor(mergedGradientRight, 50));
-        RenderUtil.drawRoundedGradientRect(barLeft, barTop, healthBar, barTop + 5.0F, 2.0F,
+        RenderUtil.drawRoundedGradientRect(barLeft, barTop, healthBar - barLeft, 5.0F, 2.0F,
                 mergedGradientLeft, mergedGradientLeft, mergedGradientRight, mergedGradientRight);
         this.renderText(playerInfo, bounds, alpha);
     }
@@ -80,7 +80,7 @@ public class RavenModernTargetHUD extends TargetHUDMode {
         String playerInfo = targetHUD.buildModernPlayerInfo(data.entity(), data.targetHealth(), data.playerHealth(), this.indicator.getValue());
         TargetHUD.TargetHudBounds bounds = targetHUD.getModernBounds(playerInfo, x, y);
         RenderUtil.enableRenderState();
-        RenderUtil.drawRoundedRectangle(bounds.left(), bounds.top(), bounds.right(), bounds.bottom(), 8.0F, color);
+        RenderUtil.drawRoundedRectangle(bounds.left(), bounds.top(), bounds.width(), bounds.height(), 8.0F, color);
         RenderUtil.disableRenderState();
     }
 

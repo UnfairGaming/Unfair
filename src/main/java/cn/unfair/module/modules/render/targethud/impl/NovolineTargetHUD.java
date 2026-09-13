@@ -22,11 +22,11 @@ public class NovolineTargetHUD extends TargetHUDMode {
         float space = width - height - 4.5F;
         int accent = targetHUD.getRavenGradientColors()[0];
 
-        RenderUtil.drawRect(x - 1.0F, y - 1.0F, x + width + 1.0F, y + height + 1.0F, new Color(29, 29, 29, 255).getRGB());
-        RenderUtil.drawRect(x, y, x + width, y + height, new Color(40, 40, 40, 255).getRGB());
+        RenderUtil.drawRect(x - 1.0F, y - 1.0F, width + 2.0F, height + 2.0F, new Color(29, 29, 29, 255).getRGB());
+        RenderUtil.drawRect(x, y, width, height, new Color(40, 40, 40, 255).getRGB());
         RenderUtil.renderPlayerHead(data.entity(), x + 0.5F, y + 0.5F, height - 1.0F);
-        RenderUtil.drawRect(x + 2.0F + height, y + height - 19.5F, x + 2.0F + height + space, y + height - 8.7F, new Color(0, 0, 0, 50).getRGB());
-        RenderUtil.drawRect(x + 2.0F + height, y + height - 19.5F, x + 2.0F + height + space * ratio, y + height - 8.7F, accent);
+        RenderUtil.drawRect(x + 2.0F + height, y + height - 19.5F, space, 10.8F, new Color(0, 0, 0, 50).getRGB());
+        RenderUtil.drawRect(x + 2.0F + height, y + height - 19.5F, space * ratio, 10.8F, accent);
 
         String text = new DecimalFormat("0.0").format(ratio * 100.0F).replace(",", ".") + "%";
         TargetHUD.mc.fontRendererObj.drawStringWithShadow(text, x + 39.0F + space / 2.0F - TargetHUD.mc.fontRendererObj.getStringWidth(text) / 2.0F, y + 19.0F, -1);
