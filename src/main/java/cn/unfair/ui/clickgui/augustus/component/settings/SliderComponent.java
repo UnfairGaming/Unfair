@@ -244,6 +244,7 @@ public class SliderComponent extends Component {
                     return;
                 }
                 lastTextClickTime = now;
+                return;
             }
             dragging = true;
             setValueFromPercent(getPercent(mouseX, trackX, TRACK_WIDTH));

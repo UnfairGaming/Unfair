@@ -70,7 +70,7 @@ public class AltManagerGui extends GuiScreen {
 
     private static void loadAlts() {
         if (altFile == null) {
-            altFile = new File(mc.mcDataDir, "unfair_alts.txt");
+            altFile = new File("./config/Unfair/Alt/", "unfair_alts.txt");
         }
         alts.clear();
         if (!altFile.exists()) {
@@ -96,7 +96,7 @@ public class AltManagerGui extends GuiScreen {
 
     private static void saveAlts() {
         if (altFile == null) {
-            altFile = new File(mc.mcDataDir, "unfair_alts.txt");
+            altFile = new File("./config/Unfair/Alt/", "unfair_alts.txt");
         }
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(altFile))) {
