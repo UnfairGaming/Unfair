@@ -30,7 +30,7 @@ public class GrimReduceVelocity extends SubModule {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final IntProperty maxDelayTicks = new IntProperty("Max Delay Ticks", 6, 5, 100);
+    public final IntProperty maxDelayTicks = new IntProperty("MaxDelayTicks", 6, 5, 100);
     public final IntProperty attack = new IntProperty("Attack", 4, 2, 6);
 
     private final Deque<Packet<?>> packetQueue = new ConcurrentLinkedDeque<>();

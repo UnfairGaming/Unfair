@@ -31,37 +31,37 @@ import java.util.function.ToDoubleFunction;
 public class InvManager extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int OFFHAND_TARGET_SLOT = 9;
-    public final IntProperty openDelay = new IntProperty("Open Delay", 0, 0, 20);
+    public final IntProperty openDelay = new IntProperty("OpenDelay", 0, 0, 20);
     public final ModeProperty mode = new ModeProperty("Mode", 1, new String[]{"Normal", "Instant"});
-    public final IntProperty minDelay = new IntProperty("Min Delay", 0, 0, 20, () -> this.mode.getValue() == 0);
-    public final IntProperty maxDelay = new IntProperty("Max Delay", 0, 0, 20, () -> this.mode.getValue() == 0);
-    public final BooleanProperty autoArmor = new BooleanProperty("Auto Armor", true);
-    public final BooleanProperty dropTrash = new BooleanProperty("Drop Trash", true);
-    public final IntProperty dropDelay = new IntProperty("Drop Delay", 0, 0, 20);
+    public final IntProperty minDelay = new IntProperty("MinDelay", 0, 0, 20, () -> this.mode.getValue() == 0);
+    public final IntProperty maxDelay = new IntProperty("MaxDelay", 0, 0, 20, () -> this.mode.getValue() == 0);
+    public final BooleanProperty autoArmor = new BooleanProperty("AutoArmor", true);
+    public final BooleanProperty dropTrash = new BooleanProperty("DropTrash", true);
+    public final IntProperty dropDelay = new IntProperty("DropDelay", 0, 0, 20);
     public final BooleanProperty sword = new BooleanProperty("Sword", true);
-    public final IntProperty swordSlot = new IntProperty("Sword Slot", 1, 1, 10, this.sword::getValue);
+    public final IntProperty swordSlot = new IntProperty("SwordSlot", 1, 1, 10, this.sword::getValue);
     public final BooleanProperty pickaxe = new BooleanProperty("Pickaxe", true);
-    public final IntProperty pickaxeSlot = new IntProperty("Pickaxe Slot", 9, 1, 10, this.pickaxe::getValue);
+    public final IntProperty pickaxeSlot = new IntProperty("PickaxeSlot", 9, 1, 10, this.pickaxe::getValue);
     public final BooleanProperty shovel = new BooleanProperty("Shovel", false);
-    public final IntProperty shovelSlot = new IntProperty("Shovel Slot", 7, 1, 10, this.shovel::getValue);
+    public final IntProperty shovelSlot = new IntProperty("ShovelSlot", 7, 1, 10, this.shovel::getValue);
     public final BooleanProperty axe = new BooleanProperty("Axe", true);
-    public final IntProperty axeSlot = new IntProperty("Axe Slot", 8, 1, 10, this.axe::getValue);
-    public final BooleanProperty blocksEnabled = new BooleanProperty("Blocks Enabled", true);
-    public final IntProperty blocksSlot = new IntProperty("Blocks Slot", 2, 1, 10, this.blocksEnabled::getValue);
-    public final IntProperty blocks = new IntProperty("Blocks Amount", 128, 64, 2304);
+    public final IntProperty axeSlot = new IntProperty("AxeSlot", 8, 1, 10, this.axe::getValue);
+    public final BooleanProperty blocksEnabled = new BooleanProperty("BlocksEnabled", true);
+    public final IntProperty blocksSlot = new IntProperty("BlocksSlot", 2, 1, 10, this.blocksEnabled::getValue);
+    public final IntProperty blocks = new IntProperty("BlocksAmount", 128, 64, 2304);
     public final BooleanProperty throwsEnabled = new BooleanProperty("Throws", true);
-    public final IntProperty throwsSlot = new IntProperty("Throws Slot", 3, 1, 10, this.throwsEnabled::getValue);
-    public final IntProperty throwsAmount = new IntProperty("Throws Amount", 64, 16, 320);
+    public final IntProperty throwsSlot = new IntProperty("ThrowsSlot", 3, 1, 10, this.throwsEnabled::getValue);
+    public final IntProperty throwsAmount = new IntProperty("ThrowsAmount", 64, 16, 320);
     public final BooleanProperty pearl = new BooleanProperty("Pearl", false);
-    public final IntProperty pearlSlot = new IntProperty("Pearl Slot", 6, 1, 10, this.pearl::getValue);
+    public final IntProperty pearlSlot = new IntProperty("PearlSlot", 6, 1, 10, this.pearl::getValue);
     public final BooleanProperty gapple = new BooleanProperty("Gapple", true);
-    public final IntProperty gappleSlot = new IntProperty("Gapple Slot", 5, 1, 10, this.gapple::getValue);
-    public final BooleanProperty fishingRod = new BooleanProperty("Fishing Rod", true);
-    public final IntProperty fishingRodSlot = new IntProperty("Fishing Rod Slot", 4, 1, 10, this.fishingRod::getValue);
+    public final IntProperty gappleSlot = new IntProperty("GappleSlot", 5, 1, 10, this.gapple::getValue);
+    public final BooleanProperty fishingRod = new BooleanProperty("FishingRod", true);
+    public final IntProperty fishingRodSlot = new IntProperty("FishingRodSlot", 4, 1, 10, this.fishingRod::getValue);
     public final BooleanProperty bow = new BooleanProperty("Bow", false);
-    public final IntProperty bowSlot = new IntProperty("Bow Slot", 6, 1, 10, this.bow::getValue);
-    public final BooleanProperty waterBucket = new BooleanProperty("Water Bucket", false);
-    public final IntProperty waterBucketSlot = new IntProperty("Water Bucket Slot", 5, 1, 10, this.waterBucket::getValue);
+    public final IntProperty bowSlot = new IntProperty("BowSlot", 6, 1, 10, this.bow::getValue);
+    public final BooleanProperty waterBucket = new BooleanProperty("WaterBucket", false);
+    public final IntProperty waterBucketSlot = new IntProperty("WaterBucketSlot", 5, 1, 10, this.waterBucket::getValue);
 
     private int actionDelay = 0;
     private int oDelay = 0;
@@ -768,12 +768,12 @@ public class InvManager extends Module {
     @Override
     public void verifyValue(String string) {
         switch (string) {
-            case "Min Delay":
+            case "MinDelay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.maxDelay.setValue(this.minDelay.getValue());
                 }
                 break;
-            case "Max Delay":
+            case "MaxDelay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.minDelay.setValue(this.maxDelay.getValue());
                 }

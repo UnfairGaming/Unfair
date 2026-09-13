@@ -14,7 +14,7 @@ public class ThrowPearl extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final BooleanProperty swing = new BooleanProperty("Swing", true);
-    public final BooleanProperty restore = new BooleanProperty("Restore Slot", true);
+    public final BooleanProperty restore = new BooleanProperty("RestoreSlot", true);
 
     private int stage = 0;
     private int originalSlot = -1;

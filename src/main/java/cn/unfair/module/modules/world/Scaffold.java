@@ -59,84 +59,84 @@ public class Scaffold extends Module {
             net.minecraft.init.Blocks.redstone_torch, net.minecraft.init.Blocks.daylight_detector
     );
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Telly", "Normal", "GodBridge", "Legit", "Grim"});
-    public final BooleanProperty alwaysUpdateRot = new BooleanProperty("Always Update Rotation", false);
-    public final IntProperty placeTick = new IntProperty("Place Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
-    public final IntProperty rotTick = new IntProperty("Rotation Tick", 1, 1, 5, () -> this.mode.getValue() == 0);
-    public final BooleanProperty itemSpoof = new BooleanProperty("Spoof Item", true);
-    public final BooleanProperty noSwing = new BooleanProperty("No Swing", false);
-    public final BooleanProperty noUptelly = new BooleanProperty("No Up Telly", true, () -> this.mode.getValue() == 0);
+    public final BooleanProperty alwaysUpdateRot = new BooleanProperty("AlwaysUpdateRotation", false);
+    public final IntProperty placeTick = new IntProperty("PlaceTick", 1, 1, 5, () -> this.mode.getValue() == 0);
+    public final IntProperty rotTick = new IntProperty("RotationTick", 1, 1, 5, () -> this.mode.getValue() == 0);
+    public final BooleanProperty itemSpoof = new BooleanProperty("SpoofItem", true);
+    public final BooleanProperty noSwing = new BooleanProperty("NoSwing", false);
+    public final BooleanProperty noUptelly = new BooleanProperty("NoUpTelly", true, () -> this.mode.getValue() == 0);
     public final BooleanProperty smoothed = new BooleanProperty("Smoothed", true, () -> this.mode.getValue() == 0);
-    public final BooleanProperty fixRotation = new BooleanProperty("Fix Rotation", true);
-    public final ModeProperty moveFix = new ModeProperty("Move Fix", 1, new String[]{"None", "Silent"}, () -> !this.isGrimMode());
-    public final BooleanProperty randomSlow = new BooleanProperty("Slow Up Telly", false, () -> this.mode.getValue() == 0);
-    public final BooleanProperty abuseRotation = new BooleanProperty("Abuse Rotation", true, () -> !this.isGrimMode());
-    public final ModeProperty blockSlotMode = new ModeProperty("Block Slot Mode", 0, new String[]{"Farthest", "Most Blocks"});
-    public final ModeProperty jumpMode = new ModeProperty("Jump Mode", 1, new String[]{"Parkour", "Normal", "None"}, () -> this.mode.getValue() == 0);
-    public final BooleanProperty godBridgeJump = new BooleanProperty("Auto Jump", true, this::isGodBridgeMode);
-    public final IntProperty godBridgeJumpMin = new IntProperty("Jump Min", 4, 1, 8,
+    public final BooleanProperty fixRotation = new BooleanProperty("FixRotation", true);
+    public final ModeProperty moveFix = new ModeProperty("MoveFix", 1, new String[]{"None", "Silent"}, () -> !this.isGrimMode());
+    public final BooleanProperty randomSlow = new BooleanProperty("SlowUpTelly", false, () -> this.mode.getValue() == 0);
+    public final BooleanProperty abuseRotation = new BooleanProperty("AbuseRotation", true, () -> !this.isGrimMode());
+    public final ModeProperty blockSlotMode = new ModeProperty("BlockSlotMode", 0, new String[]{"Farthest", "Most Blocks"});
+    public final ModeProperty jumpMode = new ModeProperty("JumpMode", 1, new String[]{"Parkour", "Normal", "None"}, () -> this.mode.getValue() == 0);
+    public final BooleanProperty godBridgeJump = new BooleanProperty("AutoJump", true, this::isGodBridgeMode);
+    public final IntProperty godBridgeJumpMin = new IntProperty("JumpMin", 4, 1, 8,
             () -> this.isGodBridgeMode() && !godBridgeJump.getValue());
-    public final IntProperty godBridgeJumpMax = new IntProperty("Jump Max", 4, 1, 8,
+    public final IntProperty godBridgeJumpMax = new IntProperty("JumpMax", 4, 1, 8,
             () -> this.isGodBridgeMode() && !godBridgeJump.getValue());
     public final ModeProperty godBridgeRotations = new ModeProperty("Rotations", 1,
             new String[]{"Off", "Normal", "Stabilized", "ReverseYaw", "GodBridge"},
             this::isGodBridgeMode);
-    public final BooleanProperty godBridgeApplyServerSide = new BooleanProperty("Apply Server Side", true,
+    public final BooleanProperty godBridgeApplyServerSide = new BooleanProperty("ApplyServerSide", true,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final BooleanProperty godBridgeKeepRotation = new BooleanProperty("Keep Rotation", true,
+    public final BooleanProperty godBridgeKeepRotation = new BooleanProperty("KeepRotation", true,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
-    public final IntProperty godBridgeResetTicks = new IntProperty("Reset Ticks", 1, 1, 20,
+    public final IntProperty godBridgeResetTicks = new IntProperty("ResetTicks", 1, 1, 20,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
-    public final FloatProperty godBridgeAngleResetDifference = new FloatProperty("Angle Reset Difference", 5.0F, 0.0F, 180.0F,
+    public final FloatProperty godBridgeAngleResetDifference = new FloatProperty("AngleResetDifference", 5.0F, 0.0F, 180.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && godBridgeApplyServerSide.getValue());
     public final BooleanProperty godBridgeLegitimize = new BooleanProperty("Legitimize", false,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeHorizontalSpeedMin = new FloatProperty("Horizontal Speed Min", 180.0F, 1.0F, 180.0F,
+    public final FloatProperty godBridgeHorizontalSpeedMin = new FloatProperty("HorizontalSpeedMin", 180.0F, 1.0F, 180.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeHorizontalSpeedMax = new FloatProperty("Horizontal Speed Max", 180.0F, 1.0F, 180.0F,
+    public final FloatProperty godBridgeHorizontalSpeedMax = new FloatProperty("HorizontalSpeedMax", 180.0F, 1.0F, 180.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeVerticalSpeedMin = new FloatProperty("Vertical Speed Min", 180.0F, 1.0F, 180.0F,
+    public final FloatProperty godBridgeVerticalSpeedMin = new FloatProperty("VerticalSpeedMin", 180.0F, 1.0F, 180.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeVerticalSpeedMax = new FloatProperty("Vertical Speed Max", 180.0F, 1.0F, 180.0F,
+    public final FloatProperty godBridgeVerticalSpeedMax = new FloatProperty("VerticalSpeedMax", 180.0F, 1.0F, 180.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final FloatProperty godBridgeMinRotationDifference = new FloatProperty("Min Rotation Difference", 2.0F, 0.0F, 4.0F,
+    public final FloatProperty godBridgeMinRotationDifference = new FloatProperty("MinRotationDifference", 2.0F, 0.0F, 4.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final ModeProperty godBridgeMinRotationTiming = new ModeProperty("Min Rotation Timing", 0,
+    public final ModeProperty godBridgeMinRotationTiming = new ModeProperty("MinRotationTiming", 0,
             new String[]{"OnStart", "OnSlowDown", "Always"},
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final BooleanProperty godBridgeWaitForRotations = new BooleanProperty("Wait For Rotations", false,
+    public final BooleanProperty godBridgeWaitForRotations = new BooleanProperty("WaitForRotations", false,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
-    public final BooleanProperty godBridgeOptimizedPitch = new BooleanProperty("Optimized Pitch", false,
+    public final BooleanProperty godBridgeOptimizedPitch = new BooleanProperty("OptimizedPitch", false,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0);
     public final FloatProperty godBridgePitch = new FloatProperty("Pitch", 73.5F, 0.0F, 90.0F,
             () -> this.isGodBridgeMode() && godBridgeRotations.getValue() != 0 && !godBridgeOptimizedPitch.getValue());
-    public final BooleanProperty godBridgeAllowClutching = new BooleanProperty("Allow Clutching", true,
+    public final BooleanProperty godBridgeAllowClutching = new BooleanProperty("AllowClutching", true,
             this::isGodBridgeMode);
-    public final IntProperty godBridgeHorizontalClutch = new IntProperty("Horizontal Clutch", 3, 1, 5,
+    public final IntProperty godBridgeHorizontalClutch = new IntProperty("HorizontalClutch", 3, 1, 5,
             () -> this.isGodBridgeMode() && godBridgeAllowClutching.getValue());
-    public final IntProperty godBridgeVerticalClutch = new IntProperty("Vertical Clutch", 2, 1, 3,
+    public final IntProperty godBridgeVerticalClutch = new IntProperty("VerticalClutch", 2, 1, 3,
             () -> this.isGodBridgeMode() && godBridgeAllowClutching.getValue());
-    public final FloatProperty godBridgeSpeedModifier = new FloatProperty("Speed Modifier", 1.0F, 0.0F, 2.0F,
+    public final FloatProperty godBridgeSpeedModifier = new FloatProperty("SpeedModifier", 1.0F, 0.0F, 2.0F,
             this::isGodBridgeMode);
-    public final BooleanProperty godBridgeTrackCps = new BooleanProperty("Track CPS", false,
+    public final BooleanProperty godBridgeTrackCps = new BooleanProperty("TrackCPS", false,
             this::isGodBridgeMode);
-    public final BooleanProperty godBridgeExtraClicks = new BooleanProperty("Extra Clicks", false, this::isGodBridgeMode);
-    public final BooleanProperty godBridgeDoubleClick = new BooleanProperty("Double Click", false,
+    public final BooleanProperty godBridgeExtraClicks = new BooleanProperty("ExtraClicks", false, this::isGodBridgeMode);
+    public final BooleanProperty godBridgeDoubleClick = new BooleanProperty("DoubleClick", false,
             () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
-    public final IntProperty godBridgeExtraClickMinCps = new IntProperty("Extra Min CPS", 3, 0, 50,
+    public final IntProperty godBridgeExtraClickMinCps = new IntProperty("ExtraMinCPS", 3, 0, 50,
             () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
-    public final IntProperty godBridgeExtraClickMaxCps = new IntProperty("Extra Max CPS", 7, 0, 50,
+    public final IntProperty godBridgeExtraClickMaxCps = new IntProperty("ExtraMaxCPS", 7, 0, 50,
             () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
-    public final ModeProperty godBridgePlacementAttempt = new ModeProperty("Placement Attempt", 0,
+    public final ModeProperty godBridgePlacementAttempt = new ModeProperty("PlacementAttempt", 0,
             new String[]{"Fail", "Independent"}, () -> this.isGodBridgeMode() && godBridgeExtraClicks.getValue());
-    public final IntProperty sneakMinDelay = new IntProperty("Sneak Min Delay", 2, 0, 10, this::isLegitMode);
-    public final IntProperty sneakMaxDelay = new IntProperty("Sneak Max Delay", 3, 0, 10, this::isLegitMode);
-    public final FloatProperty safeDistance = new FloatProperty("Clutch Safe Distance", 4.5F, 1.0F, 5.0F);
+    public final IntProperty sneakMinDelay = new IntProperty("SneakMinDelay", 2, 0, 10, this::isLegitMode);
+    public final IntProperty sneakMaxDelay = new IntProperty("SneakMaxDelay", 3, 0, 10, this::isLegitMode);
+    public final FloatProperty safeDistance = new FloatProperty("ClutchSafeDistance", 4.5F, 1.0F, 5.0F);
     public final BooleanProperty mark = new BooleanProperty("Mark", true);
-    public final BooleanProperty duplicateRotPlace = new BooleanProperty("Duplicate Rot Place", true);
-    public final BooleanProperty interactItem = new BooleanProperty("Interact Item Before Place", false);
-    public final BooleanProperty blockCount = new BooleanProperty("Block Count", true);
-    public final IntProperty blockCountOffset = new IntProperty("Block Count Y Offset", 0, 0, 200);
-    public final PercentProperty blockCountOpacity = new PercentProperty("Block Count Opacity", 70, this.blockCount::getValue);
+    public final BooleanProperty duplicateRotPlace = new BooleanProperty("DuplicateRotPlace", true);
+    public final BooleanProperty interactItem = new BooleanProperty("InteractItemBeforePlace", false);
+    public final BooleanProperty blockCount = new BooleanProperty("BlockCount", true);
+    public final IntProperty blockCountOffset = new IntProperty("BlockCountYOffset", 0, 0, 200);
+    public final PercentProperty blockCountOpacity = new PercentProperty("BlockCountOpacity", 70, this.blockCount::getValue);
     private final Deque<Long> godBridgeRightClicks = new ArrayDeque<>();
     private final TimerUtil blockCountTransitionTimer = new TimerUtil();
     private final TimerUtil blockCountPopTimer = new TimerUtil();

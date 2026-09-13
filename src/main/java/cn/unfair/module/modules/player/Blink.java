@@ -39,12 +39,12 @@ public class Blink extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Default", "Pulse", "Naven"});
     public final IntProperty ticks = new IntProperty("Ticks", 20, 0, 1200);
-    public final IntProperty releaseOnDamage = new IntProperty("Release Ticks on Damage", 20, 0, 50, () -> mode.getValue() == 2);
-    public final FloatProperty releaseSpeed = new FloatProperty("Release Speed (Tick)", 10.0F, 3.0F, 20.0F, () -> mode.getValue() == 2);
-    public final IntProperty maxTicks = new IntProperty("Max Ticks", 200, 10, 500, () -> mode.getValue() == 2);
-    public final FloatProperty playerDistance = new FloatProperty("Player Distance", 4.0F, 3.0F, 10.0F, () -> mode.getValue() == 2);
-    public final FloatProperty tntDistance = new FloatProperty("TNT Distance", 5.0F, 3.0F, 10.0F, () -> mode.getValue() == 2);
-    public final FloatProperty fakePlayerHitBoxes = new FloatProperty("Fake Player HitBoxes", 0.2F, 0.0F, 3.0F, () -> mode.getValue() == 2);
+    public final IntProperty releaseOnDamage = new IntProperty("ReleaseTicksonDamage", 20, 0, 50, () -> mode.getValue() == 2);
+    public final FloatProperty releaseSpeed = new FloatProperty("ReleaseSpeed(Tick)", 10.0F, 3.0F, 20.0F, () -> mode.getValue() == 2);
+    public final IntProperty maxTicks = new IntProperty("MaxTicks", 200, 10, 500, () -> mode.getValue() == 2);
+    public final FloatProperty playerDistance = new FloatProperty("PlayerDistance", 4.0F, 3.0F, 10.0F, () -> mode.getValue() == 2);
+    public final FloatProperty tntDistance = new FloatProperty("TNTDistance", 5.0F, 3.0F, 10.0F, () -> mode.getValue() == 2);
+    public final FloatProperty fakePlayerHitBoxes = new FloatProperty("FakePlayerHitBoxes", 0.2F, 0.0F, 3.0F, () -> mode.getValue() == 2);
 
     private boolean disabling = false;
     private EntityOtherPlayerMP fakePlayer;

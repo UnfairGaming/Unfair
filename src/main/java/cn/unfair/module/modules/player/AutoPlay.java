@@ -18,14 +18,14 @@ public class AutoPlay extends Module {
             "Mode", 0, new String[]{"Paper", "Hypixel"}
     );
     public final ModeProperty hypixelMode = new ModeProperty(
-            "Hypixel Mode", 0, new String[]{"Skywars", "Bedwars"}, () -> this.mode.getValue() == 1
+            "HypixelMode", 0, new String[]{"Skywars", "Bedwars"}, () -> this.mode.getValue() == 1
     );
     public final ModeProperty skywarsMode = new ModeProperty(
-            "Skywars Mode", 0, new String[]{"SoloNormal", "SoloInsane"},
+            "SkywarsMode", 0, new String[]{"SoloNormal", "SoloInsane"},
             () -> this.mode.getValue() == 1 && this.hypixelMode.getValue() == 0
     );
     public final ModeProperty bedwarsMode = new ModeProperty(
-            "Bedwars Mode", 0, new String[]{"Solo", "Double", "Trio", "Quad"},
+            "BedwarsMode", 0, new String[]{"Solo", "Double", "Trio", "Quad"},
             () -> this.mode.getValue() == 1 && this.hypixelMode.getValue() == 1
     );
     public final IntProperty delay = new IntProperty("Delay", 50, 0, 200);

@@ -27,28 +27,28 @@ public class Animations extends Module {
     private static final double PI2 = Math.PI * 2.0D;
     private static final float HALF_TURN = 180.0F;
 
-    public final ModeProperty blockAnimation = new ModeProperty("Block Animation", 0, new String[]{
+    public final ModeProperty blockAnimation = new ModeProperty("BlockAnimation", 0, new String[]{
             "None", "1.7", "Sunny", "Lucid", "Astro", "Smooth", "Spin", "Leaked", "Old",
             "Exhibition", "ExhibitionOld", "ExhibitionNew", "Swong", "Stella", "Flup", "Noov",
             "Komorebi", "Rhys", "Swing", "?", "Stab", "Beta", "Dortware", "Avatar", "Tap"
     });
-    public final ModeProperty swingAnimation = new ModeProperty("Swing Animation", 0, new String[]{"None", "Punch", "Shove", "Smooth", "1.9+"});
-    public final BooleanProperty onlyWhenBlocking = new BooleanProperty("Update Position Only When Blocking", true);
-    public final FloatProperty swingSpeed = new FloatProperty("Swing Speed", 1.0F, -200.0F, 50.0F);
+    public final ModeProperty swingAnimation = new ModeProperty("SwingAnimation", 0, new String[]{"None", "Punch", "Shove", "Smooth", "1.9+"});
+    public final BooleanProperty onlyWhenBlocking = new BooleanProperty("UpdatePositionOnlyWhenBlocking", true);
+    public final FloatProperty swingSpeed = new FloatProperty("SwingSpeed", 1.0F, -200.0F, 50.0F);
     public final FloatProperty x = new FloatProperty("X", 0.0F, -2.0F, 2.0F);
     public final FloatProperty y = new FloatProperty("Y", 0.0F, -2.0F, 2.0F);
     public final FloatProperty z = new FloatProperty("Z", 0.0F, -2.0F, 2.0F);
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.1F, 2.0F);
-    public final BooleanProperty alwaysShow = new BooleanProperty("Always Show", false);
-    public final BooleanProperty oldBlockHit = new BooleanProperty("1.7 Blockhit", true);
-    public final BooleanProperty oldRod = new BooleanProperty("1.7 Rod", true);
-    public final BooleanProperty oldBow = new BooleanProperty("1.7 Bow", true);
-    public final BooleanProperty oldDamage = new BooleanProperty("1.7 Damage", true);
-    public final BooleanProperty oldHearts = new BooleanProperty("1.7 Hearts", true);
-    public final BooleanProperty oldSneak = new BooleanProperty("1.7 Sneak", true);
-    public final BooleanProperty oldBlockBreak = new BooleanProperty("1.7 Blockbreak", true);
-    public final BooleanProperty oldDebug = new BooleanProperty("1.7 Debug Menu", true);
-    public final BooleanProperty oldEat = new BooleanProperty("1.7 Eat", true);
+    public final BooleanProperty alwaysShow = new BooleanProperty("AlwaysShow", false);
+    public final BooleanProperty oldBlockHit = new BooleanProperty("1.7Blockhit", true);
+    public final BooleanProperty oldRod = new BooleanProperty("1.7Rod", true);
+    public final BooleanProperty oldBow = new BooleanProperty("1.7Bow", true);
+    public final BooleanProperty oldDamage = new BooleanProperty("1.7Damage", true);
+    public final BooleanProperty oldHearts = new BooleanProperty("1.7Hearts", true);
+    public final BooleanProperty oldSneak = new BooleanProperty("1.7Sneak", true);
+    public final BooleanProperty oldBlockBreak = new BooleanProperty("1.7Blockbreak", true);
+    public final BooleanProperty oldDebug = new BooleanProperty("1.7DebugMenu", true);
+    public final BooleanProperty oldEat = new BooleanProperty("1.7Eat", true);
     private boolean sentStartDestroyBlock;
 
     public Animations() {

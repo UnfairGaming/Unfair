@@ -20,7 +20,7 @@ public class AutoHeal extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final PercentProperty health = new PercentProperty("Health", 35);
     public final IntProperty delay = new IntProperty("Delay", 4000, 0, 5000);
-    public final BooleanProperty regenCheck = new BooleanProperty("Regen Check", false);
+    public final BooleanProperty regenCheck = new BooleanProperty("RegenCheck", false);
     private final TimerUtil timer = new TimerUtil();
     private boolean shouldHeal = false;
     private int prevSlot = -1;

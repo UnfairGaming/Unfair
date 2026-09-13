@@ -19,9 +19,9 @@ public class VanillaVelocity extends SubModule {
     public final PercentProperty chance = new PercentProperty("Chance", 100);
     public final PercentProperty horizontal = new PercentProperty("Horizontal", 100);
     public final PercentProperty vertical = new PercentProperty("Vertical", 100);
-    public final PercentProperty explosionHorizontal = new PercentProperty("Explosions Horizontal", 100);
-    public final PercentProperty explosionVertical = new PercentProperty("Explosions Vertical", 100);
-    public final BooleanProperty fakeCheck = new BooleanProperty("Fake Check", true);
+    public final PercentProperty explosionHorizontal = new PercentProperty("ExplosionsHorizontal", 100);
+    public final PercentProperty explosionVertical = new PercentProperty("ExplosionsVertical", 100);
+    public final BooleanProperty fakeCheck = new BooleanProperty("FakeCheck", true);
 
     private int chanceCounter = 0;
     private boolean pendingExplosion = false;

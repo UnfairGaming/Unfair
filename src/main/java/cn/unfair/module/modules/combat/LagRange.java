@@ -38,9 +38,9 @@ public class LagRange extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final IntProperty delay = new IntProperty("Delay", 150, 0, 1000);
     public final FloatProperty range = new FloatProperty("Range", 10.0F, 3.0F, 100.0F);
-    public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", true);
-    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
-    public final ModeProperty showPosition = new ModeProperty("Show Position", 0, new String[]{"None", "Default", "Hud"});
+    public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", true);
+    public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
+    public final ModeProperty showPosition = new ModeProperty("ShowPosition", 0, new String[]{"None", "Default", "Hud"});
     private int tickIndex = -1;
     private long delayCounter = 0L;
     private boolean hasTarget = false;

@@ -69,17 +69,17 @@ public class Displace extends Module {
         }
     }
 
-    public final ModeProperty dynamicAngle = new ModeProperty("Dynamic Angle", 1, new String[]{"Static", "Dynamic"});
-    public final FloatProperty yawOffset = new FloatProperty("Yaw Offset", 90.0F, 0.0F, 180.0F, () -> dynamicAngle.getValue() == 0);
+    public final ModeProperty dynamicAngle = new ModeProperty("DynamicAngle", 1, new String[]{"Static", "Dynamic"});
+    public final FloatProperty yawOffset = new FloatProperty("YawOffset", 90.0F, 0.0F, 180.0F, () -> dynamicAngle.getValue() == 0);
     public final FloatProperty delay = new FloatProperty("Delay", 500.0F, 0.0F, 1000.0F);
     public final ModeProperty direction = new ModeProperty("Direction", 0, new String[]{"Left", "Right"}, () -> dynamicAngle.getValue() == 0);
-    public final BooleanProperty showDirection = new BooleanProperty("Show Direction", true);
-    public final BooleanProperty findVoid = new BooleanProperty("Find Void", false, () -> dynamicAngle.getValue() == 0);
+    public final BooleanProperty showDirection = new BooleanProperty("ShowDirection", true);
+    public final BooleanProperty findVoid = new BooleanProperty("FindVoid", false, () -> dynamicAngle.getValue() == 0);
     public final BooleanProperty blink = new BooleanProperty("Blink", false);
-    public final BooleanProperty hasKnockback = new BooleanProperty("Has Knockback", false);
-    public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", false);
-    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
+    public final BooleanProperty hasKnockback = new BooleanProperty("HasKnockback", false);
+    public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", false);
+    public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("InventoryCheck", true);
 
     private final Map<Integer, Integer> targetWindowStartTicks = new HashMap<>();
     private boolean active;

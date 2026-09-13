@@ -43,8 +43,8 @@ public class ChestESP extends Module {
     public final ColorProperty color = new ColorProperty("Color", new Color(255, 170, 0).getRGB());
     public final PercentProperty opacity = new PercentProperty("Opacity", 100, () -> this.mode.getValue() == 0);
     public final BooleanProperty tracers = new BooleanProperty("Tracers", false);
-    public final FloatProperty glowExposure = new FloatProperty("Glow Exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == 1);
-    public final IntProperty glowRadius = new IntProperty("Glow Radius", 5, 2, 30, () -> this.mode.getValue() == 1);
+    public final FloatProperty glowExposure = new FloatProperty("GlowExposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == 1);
+    public final IntProperty glowRadius = new IntProperty("GlowRadius", 5, 2, 30, () -> this.mode.getValue() == 1);
     private final List<BlockPos> openedChests = new CopyOnWriteArrayList<>();
     private GlowESPBlurShader blurShader;
     private boolean glowAvailable;

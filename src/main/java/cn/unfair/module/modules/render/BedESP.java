@@ -42,7 +42,7 @@ public class BedESP extends Module {
 
     public BedESP() {
         super("BedESP", false, true);
-        this.customColor = new ColorProperty("Custom Color", (int) 8085714755840333141L, () -> this.color.getValue() == 0);
+        this.customColor = new ColorProperty("CustomColor", (int) 8085714755840333141L, () -> this.color.getValue() == 0);
         this.opacity = new PercentProperty("Opacity", 25);
         this.outline = new BooleanProperty("Outline", false);
         this.obsidian = new BooleanProperty("Obsidian", true);

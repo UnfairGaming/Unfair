@@ -25,8 +25,8 @@ public class KeepSprint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Basic", "OldPrediction", "Universal"});
     public final PercentProperty slowdown = new PercentProperty("Slowdown", 0, this::isBasic);
-    public final BooleanProperty groundOnly = new BooleanProperty("Ground Only", false, this::isBasic);
-    public final BooleanProperty reachOnly = new BooleanProperty("Reach Only", false, this::isBasic);
+    public final BooleanProperty groundOnly = new BooleanProperty("GroundOnly", false, this::isBasic);
+    public final BooleanProperty reachOnly = new BooleanProperty("ReachOnly", false, this::isBasic);
     private int attackPending;
     private int velocityTicks;
     private boolean sprintCancelled;

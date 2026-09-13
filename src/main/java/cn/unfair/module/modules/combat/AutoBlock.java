@@ -28,15 +28,15 @@ public class AutoBlock extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final FloatProperty range = new FloatProperty("Range", 4.0F, 2.0F, 6.0F);
-    public final IntProperty maxHurtTime = new IntProperty("Maximum Hurt Time", 200, 1, 500);
-    public final IntProperty maxHoldTime = new IntProperty("Maximum Hold Time", 150, 1, 500);
-    public final PercentProperty lagChance = new PercentProperty("Lag Chance", 100);
-    public final IntProperty lagMaxDuration = new IntProperty("Lag Max Duration", 200, 50, 500);
-    public final BooleanProperty preventDelayAttacks = new BooleanProperty("Prevent Delaying Attacks", true);
-    public final BooleanProperty blockAgainImmediately = new BooleanProperty("Block Again Immediately", true);
-    public final BooleanProperty forceBlockAnimation = new BooleanProperty("Force Block Animation", true);
-    public final BooleanProperty requireLmb = new BooleanProperty("Require Left Mouse", true);
-    public final BooleanProperty requireRmb = new BooleanProperty("Require Right Mouse", false);
+    public final IntProperty maxHurtTime = new IntProperty("MaximumHurtTime", 200, 1, 500);
+    public final IntProperty maxHoldTime = new IntProperty("MaximumHoldTime", 150, 1, 500);
+    public final PercentProperty lagChance = new PercentProperty("LagChance", 100);
+    public final IntProperty lagMaxDuration = new IntProperty("LagMaxDuration", 200, 50, 500);
+    public final BooleanProperty preventDelayAttacks = new BooleanProperty("PreventDelayingAttacks", true);
+    public final BooleanProperty blockAgainImmediately = new BooleanProperty("BlockAgainImmediately", true);
+    public final BooleanProperty forceBlockAnimation = new BooleanProperty("ForceBlockAnimation", true);
+    public final BooleanProperty requireLmb = new BooleanProperty("RequireLeftMouse", true);
+    public final BooleanProperty requireRmb = new BooleanProperty("RequireRightMouse", false);
     public final BooleanProperty onlyWhenDamaged = new BooleanProperty("Damaged", false);
 
     private boolean blocking;

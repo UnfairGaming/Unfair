@@ -29,11 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BedWars extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    public final BooleanProperty diamondArmor = new BooleanProperty("Diamond Armor", true);
+    public final BooleanProperty diamondArmor = new BooleanProperty("DiamondArmor", true);
     public final BooleanProperty fireball = new BooleanProperty("Fireball", false);
-    public final BooleanProperty enderPearl = new BooleanProperty("Ender Pearl", true);
+    public final BooleanProperty enderPearl = new BooleanProperty("EnderPearl", true);
     public final BooleanProperty obsidian = new BooleanProperty("Obsidian", true);
-    public final BooleanProperty shouldPing = new BooleanProperty("Should Ping", true);
+    public final BooleanProperty shouldPing = new BooleanProperty("ShouldPing", true);
 
     private final List<String> armoredPlayers = new ArrayList<>();
     private final Map<String, String> lastHeldItems = new ConcurrentHashMap<>();

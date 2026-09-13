@@ -6,7 +6,7 @@ import cn.unfair.property.properties.TextProperty;
 
 public class ClientSpoofer extends Module {
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Lunar", "Feather", "Custom"});
-    public final TextProperty customName = new TextProperty("Custom Name", "A client", () -> this.mode.getValue() == 2);
+    public final TextProperty customName = new TextProperty("CustomName", "A client", () -> this.mode.getValue() == 2);
 
     public ClientSpoofer() {
         super("ClientSpoofer", false);
@@ -21,7 +21,7 @@ public class ClientSpoofer extends Module {
             case 2:
                 return this.customName.getValue();
             default:
-                return "";
+                return "vanilla";
         }
     }
 }

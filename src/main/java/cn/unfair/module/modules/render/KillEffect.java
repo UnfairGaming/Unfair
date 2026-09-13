@@ -18,7 +18,7 @@ public class KillEffect extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final BooleanProperty lightning = new BooleanProperty("Lightning", true);
-    public final BooleanProperty blood = new BooleanProperty("Blood Explosion", true);
+    public final BooleanProperty blood = new BooleanProperty("BloodExplosion", true);
     public final BooleanProperty explosion = new BooleanProperty("Explosion", true);
 
     private EntityLivingBase target;

@@ -17,12 +17,12 @@ import net.minecraft.client.Minecraft;
 public class SafeWalk extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final FloatProperty motion = new FloatProperty("Motion", 1.0F, 0.5F, 1.0F);
-    public final FloatProperty speedMotion = new FloatProperty("Speed Motion", 1.0F, 0.5F, 1.5F);
+    public final FloatProperty speedMotion = new FloatProperty("SpeedMotion", 1.0F, 0.5F, 1.5F);
     public final BooleanProperty air = new BooleanProperty("Air", false);
-    public final BooleanProperty directionCheck = new BooleanProperty("Direction Check", true);
-    public final BooleanProperty pitCheck = new BooleanProperty("Pitch Check", true);
-    public final BooleanProperty requirePress = new BooleanProperty("Require Press", false);
-    public final BooleanProperty blocksOnly = new BooleanProperty("Blocks Only", true);
+    public final BooleanProperty directionCheck = new BooleanProperty("DirectionCheck", true);
+    public final BooleanProperty pitCheck = new BooleanProperty("PitchCheck", true);
+    public final BooleanProperty requirePress = new BooleanProperty("RequirePress", false);
+    public final BooleanProperty blocksOnly = new BooleanProperty("BlocksOnly", true);
 
     public SafeWalk() {
         super("SafeWalk", false);

@@ -85,22 +85,22 @@ public class BedTracker extends Module {
         this.lastMarcoTime = -1L;
         this.waiting = false;
         this.alerts = new BooleanProperty("Alerts", true);
-        this.alertRange = new IntProperty("Alerts Range", 48, 8, 128, this.alerts::getValue);
-        this.alertOnPearl = new BooleanProperty("Alerts On Pearl", true);
-        this.alertSound = new ModeProperty("Alerts Sound", 1, new String[]{"None", "Meow", "Anvil"}, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
-        this.alertFrequency = new IntProperty("Alerts Frequency", 5, 1, 30, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
+        this.alertRange = new IntProperty("AlertsRange", 48, 8, 128, this.alerts::getValue);
+        this.alertOnPearl = new BooleanProperty("AlertsOnPearl", true);
+        this.alertSound = new ModeProperty("AlertsSound", 1, new String[]{"None", "Meow", "Anvil"}, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
+        this.alertFrequency = new IntProperty("AlertsFrequency", 5, 1, 30, () -> this.alerts.getValue() || this.alertOnPearl.getValue());
         this.marco = new BooleanProperty("Macro", false);
-        this.marcoRange = new IntProperty("Macro Range", 24, 8, 128, this.marco::getValue);
-        this.marcoOnPreal = new BooleanProperty("Macro On Pearl", false);
-        this.marcoText = new TextProperty("Macro Text", "/lobby", () -> this.marco.getValue() || this.marcoOnPreal.getValue());
-        this.marcoDelay = new IntProperty("Macro Delay", 1, 1, 10, () -> this.marco.getValue() || this.marcoOnPreal.getValue());
+        this.marcoRange = new IntProperty("MacroRange", 24, 8, 128, this.marco::getValue);
+        this.marcoOnPreal = new BooleanProperty("MacroOnPearl", false);
+        this.marcoText = new TextProperty("MacroText", "/lobby", () -> this.marco.getValue() || this.marcoOnPreal.getValue());
+        this.marcoDelay = new IntProperty("MacroDelay", 1, 1, 10, () -> this.marco.getValue() || this.marcoOnPreal.getValue());
         this.hud = new BooleanProperty("Hud", true);
-        this.hudPosX = new ModeProperty("Hud Position X", 0, new String[]{"Left", "Middle", "Right"}, this.hud::getValue);
-        this.hudPosY = new ModeProperty("Hud Position Y", 0, new String[]{"Top", "Middle", "Bottom"}, this.hud::getValue);
-        this.hudOffX = new IntProperty("Hud Offset X", 2, 0, 255, this.hud::getValue);
-        this.hudOffY = new IntProperty("Hud Offset Y", 2, 0, 255, this.hud::getValue);
-        this.hudScale = new FloatProperty("Hud Scale", 1.0F, 0.5F, 1.5F, this.hud::getValue);
-        this.hudShadow = new BooleanProperty("Hud Shadow", true, this.hud::getValue);
+        this.hudPosX = new ModeProperty("HudPositionX", 0, new String[]{"Left", "Middle", "Right"}, this.hud::getValue);
+        this.hudPosY = new ModeProperty("HudPositionY", 0, new String[]{"Top", "Middle", "Bottom"}, this.hud::getValue);
+        this.hudOffX = new IntProperty("HudOffsetX", 2, 0, 255, this.hud::getValue);
+        this.hudOffY = new IntProperty("HudOffsetY", 2, 0, 255, this.hud::getValue);
+        this.hudScale = new FloatProperty("HudScale", 1.0F, 0.5F, 1.5F, this.hud::getValue);
+        this.hudShadow = new BooleanProperty("HudShadow", true, this.hud::getValue);
     }
 
     private void playAlertSound() {

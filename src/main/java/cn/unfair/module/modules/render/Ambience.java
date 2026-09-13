@@ -19,13 +19,13 @@ public class Ambience extends Module {
 
     public final ModeProperty timeMode = new ModeProperty("Mode", 2, new String[]{"None", "Normal", "Custom", "Day", "Dusk", "Night", "Dynamic"});
     public final IntProperty customWorldTime = new IntProperty("Time", 6, 0, 24, () -> this.timeMode.getValue() == 2);
-    public final IntProperty changeWorldTimeSpeed = new IntProperty("Time Speed", 150, 10, 500, () -> this.timeMode.getValue() == 1);
-    public final IntProperty dynamicSpeed = new IntProperty("Dynamic Speed", 20, 1, 50, () -> this.timeMode.getValue() == 6);
+    public final IntProperty changeWorldTimeSpeed = new IntProperty("TimeSpeed", 150, 10, 500, () -> this.timeMode.getValue() == 1);
+    public final IntProperty dynamicSpeed = new IntProperty("DynamicSpeed", 20, 1, 50, () -> this.timeMode.getValue() == 6);
 
-    public final ModeProperty weatherMode = new ModeProperty("Weather Mode", 0, new String[]{"None", "Sun", "Rain", "Thunder"});
-    public final FloatProperty weatherStrength = new FloatProperty("Weather Strength", 1.0F, 0.0F, 1.0F, () -> this.weatherMode.getValue() != 0);
+    public final ModeProperty weatherMode = new ModeProperty("WeatherMode", 0, new String[]{"None", "Sun", "Rain", "Thunder"});
+    public final FloatProperty weatherStrength = new FloatProperty("WeatherStrength", 1.0F, 0.0F, 1.0F, () -> this.weatherMode.getValue() != 0);
 
-    public final BooleanProperty worldColor = new BooleanProperty("World Color", false);
+    public final BooleanProperty worldColor = new BooleanProperty("WorldColor", false);
     public final ColorProperty color = new ColorProperty("Color", new Color(0, 90, 255).getRGB(), this.worldColor::getValue);
 
     private long time;

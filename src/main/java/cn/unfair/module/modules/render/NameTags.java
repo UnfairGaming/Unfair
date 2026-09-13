@@ -58,13 +58,13 @@ public class NameTags extends Module {
     private static final String[] MISC_ENCHANT_ABBR = {"K"};
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.1F, 2.0F);
     public final ModeProperty font = new ModeProperty("Font", 0, new String[]{"Minecraft", "Inter", "Tahoma", "Comfortaa"});
-    public final BooleanProperty autoScale = new BooleanProperty("Auto Scale", false);
+    public final BooleanProperty autoScale = new BooleanProperty("AutoScale", false);
     public final BooleanProperty background = new BooleanProperty("Background", true);
-    public final BooleanProperty onlyRenderName = new BooleanProperty("Only Render Name", false);
-    public final PercentProperty backgroundOpacity = new PercentProperty("Background Opacity", 50);
-    public final BooleanProperty backgroundBorder = new BooleanProperty("Background Border", false);
+    public final BooleanProperty onlyRenderName = new BooleanProperty("OnlyRenderName", false);
+    public final PercentProperty backgroundOpacity = new PercentProperty("BackgroundOpacity", 50);
+    public final BooleanProperty backgroundBorder = new BooleanProperty("BackgroundBorder", false);
     public final ModeProperty healthMode = new ModeProperty("Health", 0, new String[]{"None", "Hearts", "Health", "Tab"});
-    public final BooleanProperty heartSymbol = new BooleanProperty("Heart Symbol", true);
+    public final BooleanProperty heartSymbol = new BooleanProperty("HeartSymbol", true);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", false);
     public final ModeProperty distanceMode = new ModeProperty("Distance", 0, new String[]{"None", "Default", "Vape"});
     public final BooleanProperty invisibles = new BooleanProperty("Invisibles", true);
@@ -82,8 +82,8 @@ public class NameTags extends Module {
     public final BooleanProperty blazes = new BooleanProperty("Blazes", false);
     public final BooleanProperty animals = new BooleanProperty("Animals", false);
     public final BooleanProperty bots = new BooleanProperty("Bots", false);
-    public final ColorProperty friendColor = new ColorProperty("Friend Color", 0x55FFFF);
-    public final ColorProperty enemyColor = new ColorProperty("Enemy Color", 0xFF5555);
+    public final ColorProperty friendColor = new ColorProperty("FriendColor", 0x55FFFF);
+    public final ColorProperty enemyColor = new ColorProperty("EnemyColor", 0xFF5555);
     private final List<NametagRenderState> renderStates = new ArrayList<>();
     private int renderStateCount;
 

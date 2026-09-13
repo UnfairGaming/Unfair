@@ -29,14 +29,14 @@ public class HUD extends Module {
             "Color", 3, new String[]{"Rainbow", "Chroma", "Astolfo", "Custom", "Fade", "Breath"}
     );
     public static final ModeProperty colorApplicationMode = new ModeProperty(
-            "Color Apply", 0, new String[]{"Normal", "Horizontal", "Vertical", "Diagonal", "Reverse Diagonal", "Radial"}
+            "ColorApply", 0, new String[]{"Normal", "Horizontal", "Vertical", "Diagonal", "Reverse Diagonal", "Radial"}
     );
-    public static final FloatProperty colorSpeed = new FloatProperty("Color Speed", 1.0F, 0.5F, 1.5F);
-    public static final PercentProperty colorSaturation = new PercentProperty("Color Saturation", 50);
-    public static final PercentProperty colorBrightness = new PercentProperty("Color Brightness", 100);
-    public static final ColorProperty custom1 = new ColorProperty("Custom Color 1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 3 || colorMode.getValue() == 4 || colorMode.getValue() == 5);
-    public static final ColorProperty custom2 = new ColorProperty("Custom Color 2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 4 || colorMode.getValue() == 5);
-    public static final ColorProperty custom3 = new ColorProperty("Custom Color 3", Color.WHITE.getRGB(), () -> colorMode.getValue() == 5);
+    public static final FloatProperty colorSpeed = new FloatProperty("ColorSpeed", 1.0F, 0.5F, 1.5F);
+    public static final PercentProperty colorSaturation = new PercentProperty("ColorSaturation", 50);
+    public static final PercentProperty colorBrightness = new PercentProperty("ColorBrightness", 100);
+    public static final ColorProperty custom1 = new ColorProperty("CustomColor1", Color.WHITE.getRGB(), () -> colorMode.getValue() == 3 || colorMode.getValue() == 4 || colorMode.getValue() == 5);
+    public static final ColorProperty custom2 = new ColorProperty("CustomColor2", Color.WHITE.getRGB(), () -> colorMode.getValue() == 4 || colorMode.getValue() == 5);
+    public static final ColorProperty custom3 = new ColorProperty("CustomColor3", Color.WHITE.getRGB(), () -> colorMode.getValue() == 5);
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final float ANIMATION_DURATION = 200.0F;
     private static final float HUD_FONT_SIZE = 16.0F;
@@ -44,18 +44,18 @@ public class HUD extends Module {
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
     public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
     public final PercentProperty background = new PercentProperty("Background", 50);
-    public final FloatProperty bgWidthPadding = new FloatProperty("BG Width Padding", 0.0F, -10.0F, 20.0F);
-    public final FloatProperty bgHeightPadding = new FloatProperty("BG Height Padding", 0.0F, -10.0F, 20.0F);
-    public final FloatProperty roundRadius = new FloatProperty("Round Radius", 2.5F, 0.0F, 10.0F);
+    public final FloatProperty bgWidthPadding = new FloatProperty("BGWidthPadding", 0.0F, -10.0F, 20.0F);
+    public final FloatProperty bgHeightPadding = new FloatProperty("BGHeightPadding", 0.0F, -10.0F, 20.0F);
+    public final FloatProperty roundRadius = new FloatProperty("RoundRadius", 2.5F, 0.0F, 10.0F);
     public final BooleanProperty showBar = new BooleanProperty("Bar", true);
-    public final ModeProperty barPos = new ModeProperty("Bar Mode", 0, new String[]{"Left", "Right", "Top"}, this.showBar::getValue);
+    public final ModeProperty barPos = new ModeProperty("BarMode", 0, new String[]{"Left", "Right", "Top"}, this.showBar::getValue);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
     public final BooleanProperty suffixes = new BooleanProperty("Suffixes", true);
-    public final BooleanProperty lowerCase = new BooleanProperty("Lower Case", false);
-    public final BooleanProperty chatOutline = new BooleanProperty("Chat Outline", true);
-    public final BooleanProperty blinkTimer = new BooleanProperty("Blink Timer", true);
-    public final BooleanProperty toggleSound = new BooleanProperty("Toggle Sounds", true);
-    public final BooleanProperty toggleAlerts = new BooleanProperty("Toggle Alerts", false);
+    public final BooleanProperty lowerCase = new BooleanProperty("LowerCase", false);
+    public final BooleanProperty chatOutline = new BooleanProperty("ChatOutline", true);
+    public final BooleanProperty blinkTimer = new BooleanProperty("BlinkTimer", true);
+    public final BooleanProperty toggleSound = new BooleanProperty("ToggleSounds", true);
+    public final BooleanProperty toggleAlerts = new BooleanProperty("ToggleAlerts", false);
 
     private final Set<Module> fadingOutModules = new HashSet<>();
     private final Map<Module, HudAnimation> animationMap = new HashMap<>();

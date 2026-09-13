@@ -26,12 +26,12 @@ public class PotionEffects extends Module {
 
     public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
     public final FloatProperty scale = new FloatProperty("Scale", 1.0F, 0.5F, 1.5F);
-    public final BooleanProperty showName = new BooleanProperty("Show Name", true);
+    public final BooleanProperty showName = new BooleanProperty("ShowName", true);
     public final BooleanProperty blink = new BooleanProperty("Blink", true);
-    public final IntProperty blinkSeconds = new IntProperty("Blink Seconds", 10, 2, 20, this.blink::getValue);
+    public final IntProperty blinkSeconds = new IntProperty("BlinkSeconds", 10, 2, 20, this.blink::getValue);
     public final PercentProperty background = new PercentProperty("Background", 50);
-    public final ColorProperty nameColor = new ColorProperty("Name Color", Color.WHITE.getRGB());
-    public final ColorProperty durationColor = new ColorProperty("Duration Color", Color.WHITE.getRGB());
+    public final ColorProperty nameColor = new ColorProperty("NameColor", Color.WHITE.getRGB());
+    public final ColorProperty durationColor = new ColorProperty("DurationColor", Color.WHITE.getRGB());
     private float widgetWidth = MIN_WIDGET_WIDTH;
     private int ticks;
 

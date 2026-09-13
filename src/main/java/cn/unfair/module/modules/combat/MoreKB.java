@@ -35,40 +35,40 @@ public class MoreKB extends Module {
     );
     public final IntProperty chance = new IntProperty("Chance", 100, 0, 100);
     public final IntProperty delay = new IntProperty("Delay", 0, 0, 500);
-    public final IntProperty hurtTime = new IntProperty("Hurt Time", 10, 0, 10);
+    public final IntProperty hurtTime = new IntProperty("HurtTime", 10, 0, 10);
 
     public final IntProperty ticksUntilBlockMin = new IntProperty(
-            "Ticks Until Block Min", 0, 0, 5, () -> this.mode.getValue() == 0
+            "TicksUntilBlockMin", 0, 0, 5, () -> this.mode.getValue() == 0
     );
     public final IntProperty ticksUntilBlockMax = new IntProperty(
-            "Ticks Until Block Max", 2, 0, 5, () -> this.mode.getValue() == 0
+            "TicksUntilBlockMax", 2, 0, 5, () -> this.mode.getValue() == 0
     );
     private int blockInputTicks = this.randomTicksUntilBlock();
     public final IntProperty reSprintTicksMin = new IntProperty(
-            "Re Sprint Ticks Min", 1, 1, 5, () -> this.mode.getValue() == 0
+            "ReSprintTicksMin", 1, 1, 5, () -> this.mode.getValue() == 0
     );
     public final IntProperty reSprintTicksMax = new IntProperty(
-            "Re Sprint Ticks Max", 2, 1, 5, () -> this.mode.getValue() == 0
+            "ReSprintTicksMax", 2, 1, 5, () -> this.mode.getValue() == 0
     );
     private int allowInputTicks = this.randomReSprintTicks();
     public final IntProperty targetDistance = new IntProperty(
-            "Target Distance", 3, 1, 5, () -> this.mode.getValue() == 0
+            "TargetDistance", 3, 1, 5, () -> this.mode.getValue() == 0
     );
     public final IntProperty pressBackTicks = new IntProperty(
-            "Press Back Ticks", 1, 1, 5, () -> this.mode.getValue() == 2
+            "PressBackTicks", 1, 1, 5, () -> this.mode.getValue() == 2
     );
     public final IntProperty releaseBackTicks = new IntProperty(
-            "Release Back Ticks", 2, 1, 5, () -> this.mode.getValue() == 2
+            "ReleaseBackTicks", 2, 1, 5, () -> this.mode.getValue() == 2
     );
     public final FloatProperty minEnemyRotDiffToIgnore = new FloatProperty(
-            "Min Rotation Diff From Enemy To Ignore", 180.0F, 0.0F, 180.0F
+            "MinRotationDiffFromEnemyToIgnore", 180.0F, 0.0F, 180.0F
     );
-    public final BooleanProperty onlyGround = new BooleanProperty("Only Ground", false);
-    public final BooleanProperty onlyMove = new BooleanProperty("Only Move", true);
+    public final BooleanProperty onlyGround = new BooleanProperty("OnlyGround", false);
+    public final BooleanProperty onlyMove = new BooleanProperty("OnlyMove", true);
     public final BooleanProperty onlyMoveForward = new BooleanProperty(
-            "Only Move Forward", true, this.onlyMove::getValue
+            "OnlyMoveForward", true, this.onlyMove::getValue
     );
-    public final BooleanProperty onlyWhenTargetGoesBack = new BooleanProperty("Only When Target Goes Back", false);
+    public final BooleanProperty onlyWhenTargetGoesBack = new BooleanProperty("OnlyWhenTargetGoesBack", false);
     private final TimerUtil timer = new TimerUtil();
     private int ticks;
     private int forceSprintState;

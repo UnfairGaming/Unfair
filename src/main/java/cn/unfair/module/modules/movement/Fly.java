@@ -33,8 +33,8 @@ public class Fly extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final long POLAR_PICKUP_FREEZE_MS = 1000L;
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Vanilla", "Polar", "Heypixel"});
-    public final FloatProperty hSpeed = new FloatProperty("Horizontal Speed", 100.0F, 0.0F, 100.0F);
-    public final FloatProperty vSpeed = new FloatProperty("Vertical Speed", 3.0F, 0.0F, 10.0F);
+    public final FloatProperty hSpeed = new FloatProperty("HorizontalSpeed", 100.0F, 0.0F, 100.0F);
+    public final FloatProperty vSpeed = new FloatProperty("VerticalSpeed", 3.0F, 0.0F, 10.0F);
     private final Deque<Packet<?>> polarS32Packets = new ConcurrentLinkedDeque<>();
     private final Deque<Packet<?>> heypixelPacketQueue = new ConcurrentLinkedDeque<>();
     private double verticalMotion = 0.0;

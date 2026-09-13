@@ -11,7 +11,7 @@ import org.lwjgl.input.Keyboard;
 public class ClickGui extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Augustus"});
-    public final PercentProperty backgroundOpacity = new PercentProperty("Background Opacity", 70);
+    public final PercentProperty backgroundOpacity = new PercentProperty("BackgroundOpacity", 70);
     private AugustusClickGui augustusClickGui;
 
     public ClickGui() {

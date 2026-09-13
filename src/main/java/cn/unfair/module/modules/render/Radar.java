@@ -22,17 +22,17 @@ public class Radar extends Module {
 
     public final ModeProperty font = new ModeProperty("Font", 0, getFontModes());
     public final ModeProperty colorMode = new ModeProperty("Color", 0, new String[]{"Default", "Teams", "Hud"});
-    public final IntProperty radarRadius = new IntProperty("Radar Radius", 55, 10, 200);
-    public final FloatProperty dotRadius = new FloatProperty("Dot Radius", 1.5F, 0.1F, 5.0F);
+    public final IntProperty radarRadius = new IntProperty("RadarRadius", 55, 10, 200);
+    public final FloatProperty dotRadius = new FloatProperty("DotRadius", 1.5F, 0.1F, 5.0F);
     public final BooleanProperty background = new BooleanProperty("Background", true);
     public final BooleanProperty showPlayers = new BooleanProperty("Players", true);
     public final BooleanProperty showFriends = new BooleanProperty("Friends", true);
     public final BooleanProperty showEnemies = new BooleanProperty("Enemies", true);
     public final BooleanProperty showBots = new BooleanProperty("Bots", false);
-    public final BooleanProperty showPVP = new BooleanProperty("Show Pvp", false);
-    public final ColorProperty fillColor = new ColorProperty("Fill Color", Color.GRAY.getRGB(), this.background::getValue);
-    public final ColorProperty outlineColor = new ColorProperty("Outline Color", Color.DARK_GRAY.getRGB());
-    public final ColorProperty crossColor = new ColorProperty("Cross Color", Color.LIGHT_GRAY.getRGB());
+    public final BooleanProperty showPVP = new BooleanProperty("ShowPvp", false);
+    public final ColorProperty fillColor = new ColorProperty("FillColor", Color.GRAY.getRGB(), this.background::getValue);
+    public final ColorProperty outlineColor = new ColorProperty("OutlineColor", Color.DARK_GRAY.getRGB());
+    public final ColorProperty crossColor = new ColorProperty("CrossColor", Color.LIGHT_GRAY.getRGB());
 
     public Radar() {
         super("Radar", false, true);

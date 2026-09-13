@@ -21,13 +21,13 @@ import java.util.Objects;
 
 public class AutoClicker extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty minCPS = new IntProperty("Min Cps", 8, 1, 20);
-    public final IntProperty maxCPS = new IntProperty("Max Cps", 12, 1, 20);
-    public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", true);
-    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
-    public final BooleanProperty breakBlocks = new BooleanProperty("Break Blocks", true);
-    public final BooleanProperty invClick = new BooleanProperty("Inv Click", false);
-    public final IntProperty invCps = new IntProperty("Inv Cps", 1, 1, 20, this.invClick::getValue);
+    public final IntProperty minCPS = new IntProperty("MinCps", 8, 1, 20);
+    public final IntProperty maxCPS = new IntProperty("MaxCps", 12, 1, 20);
+    public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", true);
+    public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty breakBlocks = new BooleanProperty("BreakBlocks", true);
+    public final BooleanProperty invClick = new BooleanProperty("InvClick", false);
+    public final IntProperty invCps = new IntProperty("InvCps", 1, 1, 20, this.invClick::getValue);
     private final DelayGenerator delayGenerator = new DelayGenerator();
     private boolean clickPending = false;
     private long clickDelay = 0L;

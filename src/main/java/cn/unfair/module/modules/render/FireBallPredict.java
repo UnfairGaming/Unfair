@@ -32,10 +32,10 @@ public class FireBallPredict extends Module {
     private static final double MID_DISTANCE = 24.0;
     private static final double MAX_DISTANCE = 48.0;
     private static final int ORANGE = 0xFFB000;
-    public final FloatProperty predictRange = new FloatProperty("Predict Range", 100.0F, 16.0F, 200.0F);
-    public final FloatProperty renderRadius = new FloatProperty("Render Radius", 2.0F, 1.0F, 2.0F);
-    public final BooleanProperty realFireballs = new BooleanProperty("Real Fireballs", true);
-    public final BooleanProperty heldFireCharges = new BooleanProperty("Held Fire Charges", true);
+    public final FloatProperty predictRange = new FloatProperty("PredictRange", 100.0F, 16.0F, 200.0F);
+    public final FloatProperty renderRadius = new FloatProperty("RenderRadius", 2.0F, 1.0F, 2.0F);
+    public final BooleanProperty realFireballs = new BooleanProperty("RealFireballs", true);
+    public final BooleanProperty heldFireCharges = new BooleanProperty("HeldFireCharges", true);
     public final PercentProperty opacity = new PercentProperty("Opacity", 50);
     private BlockPos target;
     private int impactColor;

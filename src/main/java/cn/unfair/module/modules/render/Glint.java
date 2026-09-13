@@ -24,9 +24,9 @@ public final class Glint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final int GL_TEXTURE = 5890;
     private static final int GL_MODELVIEW = 5888;
-    private final BooleanProperty glintWeapons = new BooleanProperty("Glint Weapons", true);
-    private final IntProperty hueMin = new IntProperty("Hue Min", 0, 0, 360);
-    private final IntProperty hueMax = new IntProperty("Hue Max", 360, 0, 360);
+    private final BooleanProperty glintWeapons = new BooleanProperty("GlintWeapons", true);
+    private final IntProperty hueMin = new IntProperty("HueMin", 0, 0, 360);
+    private final IntProperty hueMax = new IntProperty("HueMax", 360, 0, 360);
     private final IntProperty layers = new IntProperty("Layers", 4, 1, 8);
 
     public Glint() {

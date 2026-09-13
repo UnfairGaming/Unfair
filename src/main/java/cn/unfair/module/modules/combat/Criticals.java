@@ -14,9 +14,9 @@ public class Criticals extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"StopSprint"});
-    public final BooleanProperty controlSprintKey = new BooleanProperty("Control Sprint Key", true);
-    public final IntProperty hurtTimeMin = new IntProperty("Hurt Time Min", 0, 0, 10);
-    public final IntProperty hurtTimeMax = new IntProperty("Hurt Time Max", 2, 0, 10);
+    public final BooleanProperty controlSprintKey = new BooleanProperty("ControlSprintKey", true);
+    public final IntProperty hurtTimeMin = new IntProperty("HurtTimeMin", 0, 0, 10);
+    public final IntProperty hurtTimeMax = new IntProperty("HurtTimeMax", 2, 0, 10);
 
     public Criticals() {
         super("Criticals", false);

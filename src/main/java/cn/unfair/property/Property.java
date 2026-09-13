@@ -35,6 +35,18 @@ public abstract class Property<T> {
             return "";
         }
 
+        boolean hasSeparator = false;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (Character.isWhitespace(c) || c == '_' || c == '-') {
+                hasSeparator = true;
+                break;
+            }
+        }
+        if (!hasSeparator) {
+            return value;
+        }
+
         String normalized = value.replace('_', ' ').replace('-', ' ');
         StringBuilder builder = new StringBuilder(normalized.length());
         boolean upperNext = true;

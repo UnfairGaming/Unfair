@@ -30,8 +30,8 @@ public class ItemESP extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final PercentProperty opacity = new PercentProperty("Opacity", 25);
     public final BooleanProperty outline = new BooleanProperty("Outline", false);
-    public final BooleanProperty itemCount = new BooleanProperty("Item Count", true);
-    public final BooleanProperty autoScale = new BooleanProperty("Auto Scale", true);
+    public final BooleanProperty itemCount = new BooleanProperty("ItemCount", true);
+    public final BooleanProperty autoScale = new BooleanProperty("AutoScale", true);
     public final BooleanProperty emeralds = new BooleanProperty("Emeralds", true);
     public final BooleanProperty diamonds = new BooleanProperty("Diamonds", true);
     public final BooleanProperty goldd = new BooleanProperty("Gold", true);

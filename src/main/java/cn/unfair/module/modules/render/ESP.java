@@ -57,37 +57,37 @@ public class ESP extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 2, new String[]{"None", "2D", "3D", "Glow", "Fakecorner", "Fake2D"});
     public final ModeProperty color = new ModeProperty("Color", 2, new String[]{"Default", "Teams", "Hud"});
-    public final ModeProperty healthBar = new ModeProperty("Health Bar", 0, new String[]{"None", "2D", "Raven"}, () -> mode.getValue() != MODE_2D);
+    public final ModeProperty healthBar = new ModeProperty("HealthBar", 0, new String[]{"None", "2D", "Raven"}, () -> mode.getValue() != MODE_2D);
     public final ModeProperty health = new ModeProperty("Health", 0, new String[]{"Entity", "Tab"});
 
     private final BooleanProperty outline = new BooleanProperty("Outline", true, () -> mode.getValue() == MODE_2D);
-    private final ModeProperty boxMode = new ModeProperty("Box Mode", 0, new String[]{"Box", "Corners"}, () -> mode.getValue() == MODE_2D);
+    private final ModeProperty boxMode = new ModeProperty("BoxMode", 0, new String[]{"Box", "Corners"}, () -> mode.getValue() == MODE_2D);
 
-    private final BooleanProperty healthBar2D = new BooleanProperty("2D Health Bar", true, () -> mode.getValue() == MODE_2D);
-    private final ModeProperty hpBarMode = new ModeProperty("Health Bar Mode", 0, new String[]{"Dot", "Line"}, () -> mode.getValue() == MODE_2D && healthBar2D.getValue());
-    private final BooleanProperty absorption = new BooleanProperty("Render Absorption", true, () -> mode.getValue() == MODE_2D && healthBar2D.getValue() && hpBarMode.getValue() == 1);
-    private final BooleanProperty healthNumber = new BooleanProperty("Health Number", true, () -> mode.getValue() == MODE_2D && healthBar2D.getValue());
-    private final ModeProperty hpMode = new ModeProperty("HP Mode", 0, new String[]{"Health", "Percent"}, () -> mode.getValue() == MODE_2D && healthBar2D.getValue() && healthNumber.getValue());
+    private final BooleanProperty healthBar2D = new BooleanProperty("2DHealthBar", true, () -> mode.getValue() == MODE_2D);
+    private final ModeProperty hpBarMode = new ModeProperty("HealthBarMode", 0, new String[]{"Dot", "Line"}, () -> mode.getValue() == MODE_2D && healthBar2D.getValue());
+    private final BooleanProperty absorption = new BooleanProperty("RenderAbsorption", true, () -> mode.getValue() == MODE_2D && healthBar2D.getValue() && hpBarMode.getValue() == 1);
+    private final BooleanProperty healthNumber = new BooleanProperty("HealthNumber", true, () -> mode.getValue() == MODE_2D && healthBar2D.getValue());
+    private final ModeProperty hpMode = new ModeProperty("HPMode", 0, new String[]{"Health", "Percent"}, () -> mode.getValue() == MODE_2D && healthBar2D.getValue() && healthNumber.getValue());
 
-    private final BooleanProperty armorBar = new BooleanProperty("Armor Bar", true, () -> mode.getValue() == MODE_2D);
-    private final ModeProperty armorBarMode = new ModeProperty("Armor Bar Mode", 0, new String[]{"Total", "Items"}, () -> mode.getValue() == MODE_2D && armorBar.getValue());
-    private final BooleanProperty armorNumber = new BooleanProperty("Item Armor Number", true, () -> mode.getValue() == MODE_2D && armorBar.getValue());
-    private final BooleanProperty armorItems = new BooleanProperty("Armor Items", true, () -> mode.getValue() == MODE_2D);
-    private final BooleanProperty armorDur = new BooleanProperty("Armor Durability", true, () -> mode.getValue() == MODE_2D && armorItems.getValue());
+    private final BooleanProperty armorBar = new BooleanProperty("ArmorBar", true, () -> mode.getValue() == MODE_2D);
+    private final ModeProperty armorBarMode = new ModeProperty("ArmorBarMode", 0, new String[]{"Total", "Items"}, () -> mode.getValue() == MODE_2D && armorBar.getValue());
+    private final BooleanProperty armorNumber = new BooleanProperty("ItemArmorNumber", true, () -> mode.getValue() == MODE_2D && armorBar.getValue());
+    private final BooleanProperty armorItems = new BooleanProperty("ArmorItems", true, () -> mode.getValue() == MODE_2D);
+    private final BooleanProperty armorDur = new BooleanProperty("ArmorDurability", true, () -> mode.getValue() == MODE_2D && armorItems.getValue());
 
     private final BooleanProperty tagsValue = new BooleanProperty("Tags", true, () -> mode.getValue() == MODE_2D);
-    private final BooleanProperty tagsBGValue = new BooleanProperty("Tags Background", false, () -> mode.getValue() == MODE_2D && tagsValue.getValue());
-    private final BooleanProperty itemTagsValue = new BooleanProperty("Item Tags", true, () -> mode.getValue() == MODE_2D);
-    private final FloatProperty fontScaleValue = new FloatProperty("Font Scale", 0.5f, 0.1f, 1.0f, () -> mode.getValue() == MODE_2D);
+    private final BooleanProperty tagsBGValue = new BooleanProperty("TagsBackground", false, () -> mode.getValue() == MODE_2D && tagsValue.getValue());
+    private final BooleanProperty itemTagsValue = new BooleanProperty("ItemTags", true, () -> mode.getValue() == MODE_2D);
+    private final FloatProperty fontScaleValue = new FloatProperty("FontScale", 0.5f, 0.1f, 1.0f, () -> mode.getValue() == MODE_2D);
 
-    private final BooleanProperty droppedItems = new BooleanProperty("Dropped Items", false, () -> mode.getValue() == MODE_2D);
+    private final BooleanProperty droppedItems = new BooleanProperty("DroppedItems", false, () -> mode.getValue() == MODE_2D);
 
     private final IntProperty colorRedValue = new IntProperty("Red", 255, 0, 255, () -> mode.getValue() == MODE_2D);
     private final IntProperty colorGreenValue = new IntProperty("Green", 255, 0, 255, () -> mode.getValue() == MODE_2D);
     private final IntProperty colorBlueValue = new IntProperty("Blue", 255, 0, 255, () -> mode.getValue() == MODE_2D);
 
-    public final FloatProperty glowExposure = new FloatProperty("Glow Exposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
-    public final IntProperty glowRadius = new IntProperty("Glow Radius", 5, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
+    public final FloatProperty glowExposure = new FloatProperty("GlowExposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == MODE_GLOW);
+    public final IntProperty glowRadius = new IntProperty("GlowRadius", 5, 2, 30, () -> this.mode.getValue() == MODE_GLOW);
     public final BooleanProperty players = new BooleanProperty("Players", true);
     public final BooleanProperty friends = new BooleanProperty("Friends", true);
     public final BooleanProperty enemies = new BooleanProperty("Enemies", true);

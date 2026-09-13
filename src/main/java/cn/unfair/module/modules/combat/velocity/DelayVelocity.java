@@ -18,7 +18,7 @@ import cn.unfair.util.player.PlayerUtil;
 
 public class DelayVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delayTicks = new IntProperty("Delay Ticks", 2, 1, 5);
+    public final IntProperty delayTicks = new IntProperty("DelayTicks", 2, 1, 5);
     private boolean delayActive = false;
     private boolean delayFlag = false;
 

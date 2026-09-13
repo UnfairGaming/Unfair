@@ -29,9 +29,9 @@ public class LongJump extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Fireball", "FireballManual", "FireballHigh", "FireballFlat"});
     public final FloatProperty motion = new FloatProperty("Motion", 1.0F, 1.0F, 20.0F);
-    public final FloatProperty speedMotion = new FloatProperty("Speed Motion", 1.0F, 1.0F, 20.0F);
+    public final FloatProperty speedMotion = new FloatProperty("SpeedMotion", 1.0F, 1.0F, 20.0F);
     public final PercentProperty strafe = new PercentProperty("Strafe", 0);
-    public final BooleanProperty inventoryCheck = new BooleanProperty("Inventory Check", true);
+    public final BooleanProperty inventoryCheck = new BooleanProperty("InventoryCheck", true);
     private final TimerUtil fireballTimer = new TimerUtil();
     private final TimerUtil jumpTimer = new TimerUtil();
     @Getter

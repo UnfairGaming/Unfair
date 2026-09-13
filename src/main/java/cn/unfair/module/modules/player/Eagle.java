@@ -22,12 +22,12 @@ import java.util.Objects;
 
 public class Eagle extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty minDelay = new IntProperty("Min Delay", 2, 0, 10);
-    public final IntProperty maxDelay = new IntProperty("Max Delay", 3, 0, 10);
-    public final BooleanProperty directionCheck = new BooleanProperty("Direction Check", true);
-    public final BooleanProperty pitchCheck = new BooleanProperty("Pitch Check", true);
-    public final BooleanProperty blocksOnly = new BooleanProperty("Blocks Only", true);
-    public final BooleanProperty sneakOnly = new BooleanProperty("Sneaking Only", false);
+    public final IntProperty minDelay = new IntProperty("MinDelay", 2, 0, 10);
+    public final IntProperty maxDelay = new IntProperty("MaxDelay", 3, 0, 10);
+    public final BooleanProperty directionCheck = new BooleanProperty("DirectionCheck", true);
+    public final BooleanProperty pitchCheck = new BooleanProperty("PitchCheck", true);
+    public final BooleanProperty blocksOnly = new BooleanProperty("BlocksOnly", true);
+    public final BooleanProperty sneakOnly = new BooleanProperty("SneakingOnly", false);
     private int sneakDelay = 0;
 
     public Eagle() {
@@ -106,12 +106,12 @@ public class Eagle extends Module {
     @Override
     public void verifyValue(String name) {
         switch (name) {
-            case "Min Delay":
+            case "MinDelay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.maxDelay.setValue(this.minDelay.getValue());
                 }
                 break;
-            case "Max Delay":
+            case "MaxDelay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.minDelay.setValue(this.maxDelay.getValue());
                 }

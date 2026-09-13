@@ -30,16 +30,16 @@ public class ChestStealer extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Instant", "Drop"});
 
-    public final IntProperty minDelay = new IntProperty("Min Delay", 1, 0, 20, () -> this.mode.getValue() != 1);
-    public final IntProperty maxDelay = new IntProperty("Max Delay", 2, 0, 20, () -> this.mode.getValue() != 1);
-    public final IntProperty openDelay = new IntProperty("Open Delay", 1, 0, 20);
-    public final BooleanProperty autoClose = new BooleanProperty("Auto Close", true);
-    public final BooleanProperty nameCheck = new BooleanProperty("Name Check", true);
-    public final BooleanProperty skipTrash = new BooleanProperty("Skip Trash", true);
-    public final BooleanProperty keepProjectiles = new BooleanProperty("Keep Projectiles", true);
+    public final IntProperty minDelay = new IntProperty("MinDelay", 1, 0, 20, () -> this.mode.getValue() != 1);
+    public final IntProperty maxDelay = new IntProperty("MaxDelay", 2, 0, 20, () -> this.mode.getValue() != 1);
+    public final IntProperty openDelay = new IntProperty("OpenDelay", 1, 0, 20);
+    public final BooleanProperty autoClose = new BooleanProperty("AutoClose", true);
+    public final BooleanProperty nameCheck = new BooleanProperty("NameCheck", true);
+    public final BooleanProperty skipTrash = new BooleanProperty("SkipTrash", true);
+    public final BooleanProperty keepProjectiles = new BooleanProperty("KeepProjectiles", true);
 
-    public final BooleanProperty antiCheatAddition = new BooleanProperty("Anti Cheat Addition", false, () -> this.mode.getValue() == 1);
-    public final ModeProperty preClick = new ModeProperty("Pre Click", 0, new String[]{"Middle", "None"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
+    public final BooleanProperty antiCheatAddition = new BooleanProperty("AntiCheatAddition", false, () -> this.mode.getValue() == 1);
+    public final ModeProperty preClick = new ModeProperty("PreClick", 0, new String[]{"Middle", "None"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
     public final ModeProperty transfer = new ModeProperty("Transfer", 0, new String[]{"Number", "Hotbar Swap"}, () -> this.mode.getValue() == 1 && this.antiCheatAddition.getValue());
 
     private int clickDelay = 0;
@@ -345,12 +345,12 @@ public class ChestStealer extends Module {
     @Override
     public void verifyValue(String mode) {
         switch (mode) {
-            case "Min Delay":
+            case "MinDelay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.maxDelay.setValue(this.minDelay.getValue());
                 }
                 break;
-            case "Max Delay":
+            case "MaxDelay":
                 if (this.minDelay.getValue() > this.maxDelay.getValue()) {
                     this.minDelay.setValue(this.maxDelay.getValue());
                 }

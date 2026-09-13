@@ -21,7 +21,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class ReduceVelocity extends SubModule {
-    public static final BooleanProperty attack = new BooleanProperty("Attack Before Reduce", true);
+    public static final BooleanProperty attack = new BooleanProperty("AttackBeforeReduce", true);
     private static final Minecraft mc = Minecraft.getMinecraft();
     public boolean knockback = false;
 

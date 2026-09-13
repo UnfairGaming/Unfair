@@ -53,9 +53,9 @@ public class BlockIn extends Module {
 
     public final IntProperty speed = new IntProperty("Speed", 10, 1, 30);
     public final IntProperty randomization = new IntProperty("Randomization", 10, 0, 100);
-    public final IntProperty rotationTol = new IntProperty("Rotation Tolerance", 25, 20, 100);
-    public final BooleanProperty itemSpoof = new BooleanProperty("Item Spoof", true);
-    public final BooleanProperty showProgress = new BooleanProperty("Show Progress", true);
+    public final IntProperty rotationTol = new IntProperty("RotationTolerance", 25, 20, 100);
+    public final BooleanProperty itemSpoof = new BooleanProperty("ItemSpoof", true);
+    public final BooleanProperty showProgress = new BooleanProperty("ShowProgress", true);
 
     private boolean placing;
     private boolean slotWasSwapped;

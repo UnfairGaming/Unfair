@@ -34,13 +34,13 @@ public class TickBase extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
     public final IntProperty delay = new IntProperty("Delay", 50, 0, 1000);
-    public final FloatProperty tickRange = new FloatProperty("Tick Range", 3.0F, 0.1F, 8.0F);
-    public final FloatProperty minRange = new FloatProperty("Min Range", 2.5F, 0.1F, 8.0F);
-    public final FloatProperty stopRange = new FloatProperty("Stop Range", 2.5F, 0.1F, 8.0F);
-    public final FloatProperty searchRange = new FloatProperty("Search Range", 7.0F, 0.1F, 15.0F);
-    public final IntProperty maxTicks = new IntProperty("Max Ticks", 4, 1, 20);
-    public final BooleanProperty prioritiseCrits = new BooleanProperty("Prioritise Crits", false);
-    public final BooleanProperty chatDebug = new BooleanProperty("Chat Debug", false);
+    public final FloatProperty tickRange = new FloatProperty("TickRange", 3.0F, 0.1F, 8.0F);
+    public final FloatProperty minRange = new FloatProperty("MinRange", 2.5F, 0.1F, 8.0F);
+    public final FloatProperty stopRange = new FloatProperty("StopRange", 2.5F, 0.1F, 8.0F);
+    public final FloatProperty searchRange = new FloatProperty("SearchRange", 7.0F, 0.1F, 15.0F);
+    public final IntProperty maxTicks = new IntProperty("MaxTicks", 4, 1, 20);
+    public final BooleanProperty prioritiseCrits = new BooleanProperty("PrioritiseCrits", false);
+    public final BooleanProperty chatDebug = new BooleanProperty("ChatDebug", false);
 
     private final TimerUtil timer = new TimerUtil();
     private final List<PredictProcess> selfPrediction = new ArrayList<>();

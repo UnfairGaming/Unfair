@@ -35,27 +35,27 @@ public class AimAssist extends Module {
 
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Silent"});
     public final IntProperty speed = new IntProperty("Speed", 10, 1, 30);
-    public final PercentProperty horizontalMultipoint = new PercentProperty("Horizontal Multipoint", 0);
-    public final PercentProperty verticalMultipoint = new PercentProperty("Vertical Multipoint", 0);
+    public final PercentProperty horizontalMultipoint = new PercentProperty("HorizontalMultipoint", 0);
+    public final PercentProperty verticalMultipoint = new PercentProperty("VerticalMultipoint", 0);
     public final PercentProperty randomization = new PercentProperty("Randomization", 50);
     public final IntProperty fov = new IntProperty("Fov", 90, 15, 360);
     public final FloatProperty range = new FloatProperty("Range", 4.5F, 0.0F, 5.0F);
     public final ModeProperty sort = new ModeProperty(
             "Sort", 1, new String[]{"Health", "Angle", "Hurt Time", "Distance"}
     );
-    public final BooleanProperty throughWalls = new BooleanProperty("Through Walls", true);
-    public final BooleanProperty throughEntities = new BooleanProperty("Through Entities", true);
+    public final BooleanProperty throughWalls = new BooleanProperty("ThroughWalls", true);
+    public final BooleanProperty throughEntities = new BooleanProperty("ThroughEntities", true);
     public final BooleanProperty invisibles = new BooleanProperty("Invisibles", false);
-    public final BooleanProperty clickAim = new BooleanProperty("Click Aim", true);
-    public final BooleanProperty stopWhenBreaking = new BooleanProperty("Stop When Breaking", false);
+    public final BooleanProperty clickAim = new BooleanProperty("ClickAim", true);
+    public final BooleanProperty stopWhenBreaking = new BooleanProperty("StopWhenBreaking", false);
     public final BooleanProperty keepMoveDirection = new BooleanProperty(
-            "Keep Move Direction", true, () -> this.mode.getValue() == 1
+            "KeepMoveDirection", true, () -> this.mode.getValue() == 1
     );
     public final IntProperty hoverDelay = new IntProperty(
-            "Hover Delay", 100, 0, 500, this.stopWhenBreaking::getValue
+            "HoverDelay", 100, 0, 500, this.stopWhenBreaking::getValue
     );
-    public final BooleanProperty weaponsOnly = new BooleanProperty("Weapons Only", false);
-    public final BooleanProperty allowTools = new BooleanProperty("Allow Tools", false, this.weaponsOnly::getValue);
+    public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", false);
+    public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
 
     private long miningStartTime = -1L;
     private boolean controllingAim;

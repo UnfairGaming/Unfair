@@ -80,12 +80,12 @@ public class HitParticles extends Module {
             ARGS_NONE, ARGS_NONE, ARGS_NONE, ARGS_NONE, ARGS_NONE, ARGS_NONE
     };
 
-    private final BooleanProperty onMelee = new BooleanProperty("Melee Hits", true);
-    private final ModeProperty meleeParticle = new ModeProperty("Melee Particle", 4, PARTICLE_NAMES);
-    private final IntProperty meleeMultiplier = new IntProperty("Melee Multiplier", 1, 1, 8);
-    private final BooleanProperty onRanged = new BooleanProperty("Arrow Hits", true);
-    private final ModeProperty rangedParticle = new ModeProperty("Ranged Particle", 4, PARTICLE_NAMES);
-    private final IntProperty rangedMultiplier = new IntProperty("Ranged Multiplier", 1, 1, 8);
+    private final BooleanProperty onMelee = new BooleanProperty("MeleeHits", true);
+    private final ModeProperty meleeParticle = new ModeProperty("MeleeParticle", 4, PARTICLE_NAMES);
+    private final IntProperty meleeMultiplier = new IntProperty("MeleeMultiplier", 1, 1, 8);
+    private final BooleanProperty onRanged = new BooleanProperty("ArrowHits", true);
+    private final ModeProperty rangedParticle = new ModeProperty("RangedParticle", 4, PARTICLE_NAMES);
+    private final IntProperty rangedMultiplier = new IntProperty("RangedMultiplier", 1, 1, 8);
 
     private final Map<Integer, Integer> rangedSpawnForArrow = new HashMap<>();
 

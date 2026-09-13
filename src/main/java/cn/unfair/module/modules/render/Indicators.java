@@ -27,7 +27,7 @@ public class Indicators extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final FloatProperty scale = new FloatProperty("Scale", 1.0f, 0.5f, 1.5f);
     public final FloatProperty offset = new FloatProperty("Offset", 50.0f, 0.0f, 255.0f);
-    public final BooleanProperty directionCheck = new BooleanProperty("Direction Check", true);
+    public final BooleanProperty directionCheck = new BooleanProperty("DirectionCheck", true);
     public final BooleanProperty fireballs = new BooleanProperty("Fireballs", true);
     public final BooleanProperty pearls = new BooleanProperty("Pearls", true);
     public final BooleanProperty arrows = new BooleanProperty("Arrows", true);

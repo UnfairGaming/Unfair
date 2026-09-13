@@ -14,8 +14,8 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 public class AutoTool extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final IntProperty switchDelay = new IntProperty("Delay", 0, 0, 5);
-    public final BooleanProperty switchBack = new BooleanProperty("Switch Back", true);
-    public final BooleanProperty sneakOnly = new BooleanProperty("Sneak Only", true);
+    public final BooleanProperty switchBack = new BooleanProperty("SwitchBack", true);
+    public final BooleanProperty sneakOnly = new BooleanProperty("SneakOnly", true);
     private int currentToolSlot = -1;
     private int previousSlot = -1;
     private int tickDelayCounter = 0;

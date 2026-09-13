@@ -42,9 +42,9 @@ public class TargetHUD extends ModuleWithModuleSettings {
     public final TimerUtil lastAttackTimer = new TimerUtil();
     public final TimerUtil animTimer = new TimerUtil();
     public final ModeProperty health = new ModeProperty("Health", 0, new String[]{"Entity", "Tab"});
-    public final BooleanProperty kaOnly = new BooleanProperty("Ka Only", true);
-    public final BooleanProperty chatPreview = new BooleanProperty("Chat Preview", false);
-    public final BooleanProperty followPlayer = new BooleanProperty("Follow Player", false);
+    public final BooleanProperty kaOnly = new BooleanProperty("KaOnly", true);
+    public final BooleanProperty chatPreview = new BooleanProperty("ChatPreview", false);
+    public final BooleanProperty followPlayer = new BooleanProperty("FollowPlayer", false);
     public EntityLivingBase lastTarget = null;
     public EntityLivingBase target = null;
     public ResourceLocation headTexture = null;

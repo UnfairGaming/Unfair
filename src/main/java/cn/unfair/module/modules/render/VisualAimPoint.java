@@ -21,10 +21,10 @@ import net.minecraft.util.Vec3;
 public class VisualAimPoint extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Dot", "Box"});
-    public final BooleanProperty onlySilent = new BooleanProperty("Only Silent", false);
-    public final BooleanProperty notOnMiss = new BooleanProperty("Not On Miss", false);
+    public final BooleanProperty onlySilent = new BooleanProperty("OnlySilent", false);
+    public final BooleanProperty notOnMiss = new BooleanProperty("NotOnMiss", false);
     public final FloatProperty size = new FloatProperty("Size", 0.1F, 0.05F, 0.2F);
-    public final BooleanProperty customColor = new BooleanProperty("Custom Color", false);
+    public final BooleanProperty customColor = new BooleanProperty("CustomColor", false);
     public final ColorProperty color = new ColorProperty("Color", 0xFFFFFF, this.customColor::getValue);
     private Vec3 pos;
     private Vec3 lastPos;
