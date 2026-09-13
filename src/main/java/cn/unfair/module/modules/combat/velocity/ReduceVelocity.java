@@ -9,6 +9,7 @@ import cn.unfair.events.UpdateEvent;
 import cn.unfair.management.BadPacketManager;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.combat.KillAura;
+import cn.unfair.module.modules.player.Reach;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.player.PlayerUtil;
@@ -83,7 +84,7 @@ public class ReduceVelocity extends SubModule {
         }
 
         RayCastUtil.RayCastResult result = RayCastUtil.rayCast(
-                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 3.0F);
+                new RotationUtil.RotationVec(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), getAttackRange());
         if (result != null
                 && result.typeOfHit == RayCastUtil.RayCastResult.Type.ENTITY
                 && result.entityHit instanceof EntityPlayer player
@@ -94,12 +95,21 @@ public class ReduceVelocity extends SubModule {
     }
 
     private void reduce(EntityPlayer target) {
-        if (attack.getValue()) {
+        if (attack.getValue() && isInAttackRange(target)) {
             AttackOrder.sendFixedPacketAttackAndSwing(target);
         }
 
         mc.thePlayer.motionX *= 0.6D;
         mc.thePlayer.motionZ *= 0.6D;
         mc.thePlayer.setSprinting(false);
+    }
+
+    private boolean isInAttackRange(EntityPlayer target) {
+        return RotationUtil.distanceToEntity(target) <= getAttackRange();
+    }
+
+    private double getAttackRange() {
+        Reach reach = (Reach) Unfair.moduleManager.getModule(Reach.class);
+        return reach != null && reach.isEnabled() ? reach.range.getValue() : 3.0D;
     }
 }
