@@ -79,6 +79,24 @@ public class BlinkManager {
         return this.blinkedPackets.stream().filter(packet -> packet instanceof C03PacketPlayer).count();
     }
 
+    /**
+     * Releases queued packets until one movement packet has been sent (inclusive),
+     * sending every non-movement packet that comes before it along the way.
+     *
+     * @return the released movement packet, or {@code null} if the queue held no
+     *         movement packet.
+     */
+    public C03PacketPlayer releaseTick() {
+        while (!this.blinkedPackets.isEmpty()) {
+            Packet<?> packet = this.blinkedPackets.poll();
+            PacketUtil.sendPacketNoEvent(packet);
+            if (packet instanceof C03PacketPlayer) {
+                return (C03PacketPlayer) packet;
+            }
+        }
+        return null;
+    }
+
     public boolean isBlinking() {
         return blinking;
     }
