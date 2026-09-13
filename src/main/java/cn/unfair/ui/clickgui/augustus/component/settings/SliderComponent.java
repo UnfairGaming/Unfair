@@ -241,12 +241,12 @@ public class SliderComponent extends Component {
                 long now = Minecraft.getSystemTime();
                 if (now - lastTextClickTime < DOUBLE_CLICK_INTERVAL) {
                     enterEditing();
+                    return;
                 }
                 lastTextClickTime = now;
-            } else {
-                dragging = true;
-                setValueFromPercent(getPercent(mouseX, trackX, TRACK_WIDTH));
             }
+            dragging = true;
+            setValueFromPercent(getPercent(mouseX, trackX, TRACK_WIDTH));
         }
     }
 

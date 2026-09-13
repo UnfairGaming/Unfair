@@ -17,7 +17,7 @@ public class WidgetConfig {
     private final File file;
 
     public WidgetConfig(String name) {
-        this.file = new File("./config/Unfair/", name + ".json");
+        this.file = new File("./config/Unfair/Widget/", name + ".json");
     }
 
     public void load() {

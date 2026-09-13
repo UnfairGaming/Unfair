@@ -60,7 +60,7 @@ public class AugustusClickGui extends GuiScreen {
     private static FontRenderer CACHED_NORMAL_FONT;
     private static int CACHED_SCALE = -1;
 
-    private final File configFile = new File("./config/Unfair/", "augustus-clickgui.json");
+    private final File configFile = new File("./config/Unfair/ClickGui", "augustus-clickgui.json");
     private final Map<Category, CategoryPanel> categoryPanels = new HashMap<>();
     private final List<Component> settingComponents = new ArrayList<>();
 
@@ -95,7 +95,7 @@ public class AugustusClickGui extends GuiScreen {
     private boolean configResizing = false;
     private float configDragX, configDragY;
     private float configPosX = -1, configPosY = -1;
-    private float configWidth = 300, configHeight = 250;
+    private float configWidth = 300, configHeight = 220;
     private String selectedConfig = null;
     private boolean creatingNewConfig = false;
     private String newConfigName = "";
@@ -360,15 +360,20 @@ public class AugustusClickGui extends GuiScreen {
         float totalWidth = ICON_SIZE * 2 + ICON_SEPARATOR;
         float iconHeight = ICON_SIZE + 6;
         float iconX = (super.width - totalWidth) / 2;
-        float bgX = iconX - 4;
         float bgY = 0;
-        float bgWidth = totalWidth + 8;
         float iconY = bgY + 3;
-
-        RenderUtil.drawRoundedRect(bgX, bgY, bgWidth, iconHeight, 0, 0, 3, 3, new Color(34, 34, 34, 220).getRGB());
+        float bgX = iconX - 4;
+        float halfW = (totalWidth + 8) / 2.0F;
+        float rightX = bgX + halfW;
 
         boolean settingHovered = isHovered(mouseX, mouseY, iconX, iconY, ICON_SIZE, ICON_SIZE);
         boolean configHovered = isHovered(mouseX, mouseY, iconX + ICON_SIZE + ICON_SEPARATOR, iconY, ICON_SIZE, ICON_SIZE);
+
+        int settingBg = settingHovered ? new Color(220, 45, 45).getRGB() : new Color(34, 34, 34, 220).getRGB();
+        int configBg = configHovered ? new Color(220, 45, 45).getRGB() : new Color(34, 34, 34, 220).getRGB();
+
+        RenderUtil.drawRoundedRect(bgX, bgY, halfW, iconHeight, 0, 0, 3, 0, settingBg);
+        RenderUtil.drawRoundedRect(rightX, bgY, halfW, iconHeight, 0, 0, 0, 3, configBg);
 
         int settingColor = new Color(200, 200, 200).getRGB();
         if (isGuiOpen) {
@@ -538,7 +543,7 @@ public class AugustusClickGui extends GuiScreen {
             this.configPosX = this.configRestoreX;
             this.configPosY = this.configRestoreY;
             this.configWidth = Math.max(300.0F, this.configRestoreW);
-            this.configHeight = Math.max(250.0F, this.configRestoreH);
+            this.configHeight = Math.max(220.0F, this.configRestoreH);
             this.configMaximized = false;
         }
     }
@@ -857,6 +862,9 @@ public class AugustusClickGui extends GuiScreen {
         }
         try (FileReader reader = new FileReader(configFile)) {
             JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            if (json.has("open")) {
+                this.isGuiOpen = json.get("open").getAsBoolean();
+            }
             if (json.has("x")) {
                 this.posX = json.get("x").getAsFloat();
             }
@@ -875,6 +883,21 @@ public class AugustusClickGui extends GuiScreen {
                 } catch (IllegalArgumentException ignored) {
                 }
             }
+            if (json.has("configOpen")) {
+                this.configOpen = json.get("configOpen").getAsBoolean();
+            }
+            if (json.has("configX")) {
+                this.configPosX = json.get("configX").getAsFloat();
+            }
+            if (json.has("configY")) {
+                this.configPosY = json.get("configY").getAsFloat();
+            }
+            if (json.has("configWidth")) {
+                this.configWidth = Math.max(300.0F, json.get("configWidth").getAsFloat());
+            }
+            if (json.has("configHeight")) {
+                this.configHeight = Math.max(220.0F, json.get("configHeight").getAsFloat());
+            }
             this.positionInitialized = json.has("x") && json.has("y");
         } catch (Exception e) {
             e.printStackTrace();
@@ -892,11 +915,17 @@ public class AugustusClickGui extends GuiScreen {
             float saveY = this.guiMaximized ? this.guiRestoreY : this.posY;
             float saveW = this.guiMaximized ? this.guiRestoreW : this.guiWidth;
             float saveH = this.guiMaximized ? this.guiRestoreH : this.guiHeight;
+            json.addProperty("open", this.isGuiOpen);
             json.addProperty("x", saveX);
             json.addProperty("y", saveY);
             json.addProperty("width", saveW);
             json.addProperty("height", saveH);
             json.addProperty("category", this.selectedCategory.name());
+            json.addProperty("configOpen", this.configOpen);
+            json.addProperty("configX", this.configPosX);
+            json.addProperty("configY", this.configPosY);
+            json.addProperty("configWidth", this.configWidth);
+            json.addProperty("configHeight", this.configHeight);
             try (FileWriter writer = new FileWriter(configFile)) {
                 GSON.toJson(json, writer);
             }
@@ -942,97 +971,92 @@ public class AugustusClickGui extends GuiScreen {
             configPosY = mouseY - configDragY;
         } else if (configResizing) {
             configWidth = Math.max(300, mouseX - configPosX);
-            configHeight = Math.max(250, mouseY - configPosY);
+            configHeight = Math.max(220, mouseY - configPosY);
         }
 
         float titleBarHeight = CONFIG_TITLE_BAR_HEIGHT;
         RenderUtil.drawRoundedRect(configPosX, configPosY + titleBarHeight, configWidth, configHeight - titleBarHeight, 0f, 0f, 6f, 6f, new Color(40, 39, 39, getBackgroundAlpha()).getRGB());
         RenderUtil.drawRoundedRect(configPosX, configPosY, configWidth, titleBarHeight, 6f, 6f, 0f, 0f, new Color(34, 34, 34).getRGB());
 
-        titleFont.drawString("CONFIG", configPosX + 5, configPosY + (titleBarHeight - titleFont.getHeight()) / 2.0F, new Color(200, 200, 200).getRGB(), false);
+        titleFont.drawString("CONFIGS", configPosX + 5, configPosY + (titleBarHeight - titleFont.getHeight()) / 2.0F, new Color(200, 200, 200).getRGB(), false);
         drawWindowControls(mouseX, mouseY, configPosX, configPosY, configWidth, titleBarHeight);
 
-        float leftPanelWidth = configWidth * 0.55f;
-        float rightPanelWidth = configWidth * 0.45f;
+        float halfWidth = configWidth / 2.0F;
         float contentY = configPosY + titleBarHeight + 8;
-        float contentHeight = configHeight - titleBarHeight - 16;
+        float rowGap = fh() + 3.0F;
+        float margin = 12.0F;
+        float innerW = halfWidth - margin * 2.0F;
+        int dividerColor = new Color(34, 34, 34).getRGB();
 
-        RenderUtil.drawRect(configPosX + 8, contentY, leftPanelWidth - 8, contentHeight, new Color(30, 30, 30, 150).getRGB());
+        RenderUtil.drawRect(configPosX + halfWidth, configPosY + titleBarHeight, 1.0F, configHeight - titleBarHeight, dividerColor);
 
-        normalFont.drawString("Available Configs:", configPosX + 12, contentY + 4, new Color(180, 180, 180).getRGB(), false);
+        String header = "Available Configs";
+        float dividerY = contentY + fh() + rowGap;
+        float headerY = (configPosY + titleBarHeight + dividerY) / 2.0F - fh() / 2.0F;
+        normalFont.drawString(header, configPosX + (halfWidth - fw(header)) / 2.0F, headerY, new Color(180, 180, 180).getRGB(), false);
+
+        RenderUtil.drawRect(configPosX, dividerY, halfWidth, 1.0F, dividerColor);
 
         List<String> configs = getAvailableConfigs();
-        float itemY = contentY + 20;
-        float itemHeight = 18;
+        float itemHeight = fh() + 2.0F;
+        float itemY = dividerY + 3.0F;
 
         for (String config : configs) {
-            boolean hovered = isHovered(mouseX, mouseY, configPosX + 12, itemY, leftPanelWidth - 16, itemHeight);
+            boolean hovered = isHovered(mouseX, mouseY, configPosX, itemY, halfWidth, itemHeight);
             boolean selected = config.equals(selectedConfig);
 
-            if (selected) {
-                Color selectedColor = new Color(getAccent().getRed(), getAccent().getGreen(), getAccent().getBlue(), 50);
-                RenderUtil.drawRect(configPosX + 12, itemY, leftPanelWidth - 16, itemHeight, selectedColor.getRGB());
-            } else if (hovered) {
-                RenderUtil.drawRect(configPosX + 12, itemY, leftPanelWidth - 16, itemHeight, new Color(45, 45, 45, 100).getRGB());
-            }
-
             int textColor = selected ? Color.WHITE.getRGB() : (hovered ? getAccent().getRGB() : new Color(180, 180, 180).getRGB());
-            normalFont.drawString(config, configPosX + 16, itemY + 5, textColor, false);
-            itemY += itemHeight + 2;
+            normalFont.drawString(config, configPosX + (halfWidth - fw(config)) / 2.0F, itemY + (itemHeight - fh()) / 2.0F, textColor, false);
+            itemY += itemHeight + 3.0F;
         }
 
-        float buttonX = configPosX + leftPanelWidth + 8;
-        float buttonY = contentY + 8;
-        float buttonWidth = rightPanelWidth - 16;
-        float buttonHeight = 22;
+        float buttonH = 20.0F;
+        float buttonGap = rowGap - 10.0F;
+        String[] topButtons = {"Create", "Load", "Folder", "Refresh"};
+        float btnX = configPosX + halfWidth + margin;
+        float btnY = contentY;
 
-        String[] buttons = {"Load", "Save", "Create", "Delete", "Folder"};
-        for (String button : buttons) {
-            boolean buttonHovered = isHovered(mouseX, mouseY, buttonX, buttonY, buttonWidth, buttonHeight);
-
-            Color buttonColor = buttonHovered ? new Color(60, 60, 60, 180) : new Color(40, 40, 40, 150);
-            RenderUtil.drawRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 2, 2, 2, 2, buttonColor.getRGB());
-
+        for (String button : topButtons) {
+            boolean buttonHovered = isHovered(mouseX, mouseY, btnX, btnY, innerW, buttonH);
             int textColor = buttonHovered ? getAccent().getRGB() : new Color(200, 200, 200).getRGB();
-            float textX = buttonX + buttonWidth / 2 - fw(button) / 2;
-            normalFont.drawString(button, textX, buttonY + 6, textColor, false);
-
-            buttonY += buttonHeight + 6;
+            normalFont.drawString(button, btnX + (innerW - fw(button)) / 2.0F, btnY + (buttonH - fh()) / 2.0F, textColor, false);
+            btnY += buttonH + buttonGap;
         }
+
+        float deleteY = configPosY + configHeight - buttonH - 3.0F;
+        boolean deleteHovered = isHovered(mouseX, mouseY, btnX, deleteY, innerW, buttonH);
+        int deleteColor = deleteHovered ? new Color(220, 45, 45).getRGB() : new Color(180, 180, 180).getRGB();
+        normalFont.drawString("Delete", btnX + (innerW - fw("Delete")) / 2.0F, deleteY + (buttonH - fh()) / 2.0F, deleteColor, false);
 
         if (creatingNewConfig) {
-            float inputY = buttonY + 8;
-            RenderUtil.drawRoundedRect(buttonX, inputY, buttonWidth, buttonHeight, 2, 2, 2, 2, new Color(30, 30, 30, 200).getRGB());
-            RenderUtil.drawRoundedRect(buttonX + 1, inputY + 1, buttonWidth - 2, buttonHeight - 2, 1, 1, 1, 1, new Color(20, 20, 20, 150).getRGB());
+            float inputY = btnY + 3.0F;
+            RenderUtil.drawRect(btnX, inputY, innerW, buttonH, new Color(30, 30, 30, 200).getRGB());
 
             String displayText = newConfigName.isEmpty() ? "Enter name..." : newConfigName;
             int inputTextColor = newConfigName.isEmpty() ? new Color(120, 120, 120).getRGB() : new Color(200, 200, 200).getRGB();
-            normalFont.drawString(displayText, buttonX + 4, inputY + 6, inputTextColor, false);
+            normalFont.drawString(displayText, btnX + 4, inputY + (buttonH - fh()) / 2.0F, inputTextColor, false);
 
             if (System.currentTimeMillis() % 1000 < 500) {
-                float cursorX = buttonX + 4 + fw(newConfigName);
-                RenderUtil.drawRect(cursorX, inputY + 3, 1.0F, buttonHeight - 6, new Color(200, 200, 200).getRGB());
+                float cursorX = btnX + 4 + fw(newConfigName);
+                RenderUtil.drawRect(cursorX, inputY + 3, 1.0F, buttonH - 6, new Color(200, 200, 200).getRGB());
             }
 
-            float confirmY = inputY + buttonHeight + 4;
-            boolean confirmHovered = isHovered(mouseX, mouseY, buttonX, confirmY, buttonWidth / 2 - 2, 18);
-            boolean cancelHovered = isHovered(mouseX, mouseY, buttonX + buttonWidth / 2 + 2, confirmY, buttonWidth / 2 - 2, 18);
+            float confirmY = inputY + buttonH + 4;
+            boolean confirmHovered = isHovered(mouseX, mouseY, btnX, confirmY, innerW / 2 - 2, 18);
+            boolean cancelHovered = isHovered(mouseX, mouseY, btnX + innerW / 2 + 2, confirmY, innerW / 2 - 2, 18);
 
             Color confirmColor = confirmHovered ? new Color(0, 120, 0, 180) : new Color(0, 80, 0, 150);
             Color cancelColor = cancelHovered ? new Color(120, 0, 0, 180) : new Color(80, 0, 0, 150);
 
-            RenderUtil.drawRoundedRect(buttonX, confirmY, buttonWidth / 2 - 2, 18, 1, 1, 1, 1, confirmColor.getRGB());
-            RenderUtil.drawRoundedRect(buttonX + buttonWidth / 2 + 2, confirmY, buttonWidth / 2 - 2, 18, 1, 1, 1, 1, cancelColor.getRGB());
+            RenderUtil.drawRoundedRect(btnX, confirmY, innerW / 2 - 2, 18, 1, 1, 1, 1, confirmColor.getRGB());
+            RenderUtil.drawRoundedRect(btnX + innerW / 2 + 2, confirmY, innerW / 2 - 2, 18, 1, 1, 1, 1, cancelColor.getRGB());
 
-            float confirmTextX = buttonX + (buttonWidth / 2 - 2) / 2 - fw("Create") / 2;
-            float cancelTextX = buttonX + buttonWidth / 2 + 2 + (buttonWidth / 2 - 2) / 2 - fw("Cancel") / 2;
+            float confirmTextX = btnX + (innerW / 2 - 2) / 2 - fw("Create") / 2;
+            float cancelTextX = btnX + innerW / 2 + 2 + (innerW / 2 - 2) / 2 - fw("Cancel") / 2;
 
             normalFont.drawString("Create", confirmTextX, confirmY + 5, Color.WHITE.getRGB(), false);
             normalFont.drawString("Cancel", cancelTextX, confirmY + 5, Color.WHITE.getRGB(), false);
         }
-
-        float resizeSize = 8;
-        RenderUtil.drawRect(configPosX + configWidth - resizeSize, configPosY + configHeight - resizeSize, resizeSize, resizeSize, new Color(60, 60, 60, 100).getRGB());
     }
 
     private boolean configMouseClicked(int mouseX, int mouseY, int mouseButton) {
@@ -1065,39 +1089,50 @@ public class AugustusClickGui extends GuiScreen {
             return true;
         }
 
-        float leftPanelWidth = configWidth * 0.55f;
+        float halfWidth = configWidth / 2.0F;
         float contentY = configPosY + titleBarHeight + 8;
+        float rowGap = fh() + 3.0F;
+        float margin = 12.0F;
+        float innerW = halfWidth - margin * 2.0F;
+
         List<String> configs = getAvailableConfigs();
-        float itemY = contentY + 20;
-        float itemHeight = 18;
+        float itemHeight = fh() + 2.0F;
+        float dividerY = contentY + fh() + rowGap;
+        float itemY = dividerY + 3.0F;
 
         for (String config : configs) {
-            if (isHovered(mouseX, mouseY, configPosX + 12, itemY, leftPanelWidth - 16, itemHeight)) {
+            if (isHovered(mouseX, mouseY, configPosX, itemY, halfWidth, itemHeight)) {
                 selectedConfig = config;
                 return true;
             }
-            itemY += itemHeight + 2;
+            itemY += itemHeight + 3.0F;
         }
 
-        float buttonX = configPosX + leftPanelWidth + 8;
-        float buttonY = contentY + 8;
-        float buttonWidth = (configWidth * 0.45f) - 16;
-        float buttonHeight = 22;
+        float buttonH = 20.0F;
+        float buttonGap = rowGap - 10.0F;
+        String[] topButtons = {"Create", "Load", "Folder", "Refresh"};
+        float btnX = configPosX + halfWidth + margin;
+        float btnY = contentY;
 
-        String[] buttons = {"Load", "Save", "Create", "Delete", "Folder"};
-        for (String button : buttons) {
-            if (isHovered(mouseX, mouseY, buttonX, buttonY, buttonWidth, buttonHeight)) {
+        for (String button : topButtons) {
+            if (isHovered(mouseX, mouseY, btnX, btnY, innerW, buttonH)) {
                 handleConfigAction(button);
                 return true;
             }
-            buttonY += buttonHeight + 6;
+            btnY += buttonH + buttonGap;
+        }
+
+        float deleteY = configPosY + configHeight - buttonH - 3.0F;
+        if (isHovered(mouseX, mouseY, btnX, deleteY, innerW, buttonH)) {
+            handleConfigAction("Delete");
+            return true;
         }
 
         if (creatingNewConfig) {
-            float inputY = buttonY + 8;
-            float confirmY = inputY + buttonHeight + 4;
+            float inputY = btnY + 3.0F;
+            float confirmY = inputY + buttonH + 4;
 
-            if (isHovered(mouseX, mouseY, buttonX, confirmY, buttonWidth / 2 - 2, 18)) {
+            if (isHovered(mouseX, mouseY, btnX, confirmY, innerW / 2 - 2, 18)) {
                 if (!newConfigName.trim().isEmpty()) {
                     Config config = new Config(newConfigName.trim(), true);
                     config.save();
@@ -1106,7 +1141,7 @@ public class AugustusClickGui extends GuiScreen {
                 creatingNewConfig = false;
                 newConfigName = "";
                 return true;
-            } else if (isHovered(mouseX, mouseY, buttonX + buttonWidth / 2 + 2, confirmY, buttonWidth / 2 - 2, 18)) {
+            } else if (isHovered(mouseX, mouseY, btnX + innerW / 2 + 2, confirmY, innerW / 2 - 2, 18)) {
                 creatingNewConfig = false;
                 newConfigName = "";
                 return true;
@@ -1122,9 +1157,9 @@ public class AugustusClickGui extends GuiScreen {
                     new Config(selectedConfig, false).load();
                 }
                 break;
-            case "Save":
-                if (selectedConfig != null) {
-                    new Config(selectedConfig, false).save();
+            case "Refresh":
+                if (selectedConfig != null && !getAvailableConfigs().contains(selectedConfig)) {
+                    selectedConfig = null;
                 }
                 break;
             case "Create":
@@ -1182,7 +1217,10 @@ public class AugustusClickGui extends GuiScreen {
         float totalWidth = ICON_SIZE * 2 + ICON_SEPARATOR;
         float iconHeight = ICON_SIZE + 6;
         float iconX = (super.width - totalWidth) / 2;
-        RenderUtil.drawRoundedRect(iconX - 4, 0, totalWidth + 8, iconHeight, 0, 0, 3, 3, color);
+        float bgX = iconX - 4;
+        float halfW = (totalWidth + 8) / 2.0F;
+        RenderUtil.drawRoundedRect(bgX, 0, halfW, iconHeight, 0, 0, 3, 0, color);
+        RenderUtil.drawRoundedRect(bgX + halfW, 0, halfW, iconHeight, 0, 0, 0, 3, color);
 
         if (isGuiOpen) {
             RenderUtil.drawRoundedRect(posX, posY + 15.0F, guiWidth, guiHeight - 15.0F, 0.0F, 0.0F, 6.0F, 6.0F, color);
