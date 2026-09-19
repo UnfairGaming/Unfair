@@ -7,7 +7,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.client.TeamUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -639,7 +639,7 @@ public class NameTags extends Module {
         }
     }
 
-    private FontRenderer getFontRenderer() {
+    private CustomFontRenderer getFontRenderer() {
         return switch (font.getValue()) {
             case 1 -> Fonts.interRegular.get(18.0F);
             case 2 -> Fonts.tahoma.get(18.0F);

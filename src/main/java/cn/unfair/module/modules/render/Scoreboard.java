@@ -6,7 +6,7 @@ import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.ModeProperty;
 import cn.unfair.property.properties.PercentProperty;
 import cn.unfair.util.render.RenderUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -194,8 +194,8 @@ public class Scoreboard extends Module {
             return Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue);
         }
 
-        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
-        return fontRenderer == null ? Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue) : fontRenderer.getHeight();
+        CustomFontRenderer customFontRenderer = this.getCustomFont(scaleValue);
+        return customFontRenderer == null ? Math.round(mc.fontRendererObj.FONT_HEIGHT * scaleValue) : customFontRenderer.getHeight();
     }
 
     private int getStringWidth(String text) {
@@ -204,8 +204,8 @@ public class Scoreboard extends Module {
             return Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue);
         }
 
-        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
-        return fontRenderer == null ? Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue) : fontRenderer.getStringWidth(text);
+        CustomFontRenderer customFontRenderer = this.getCustomFont(scaleValue);
+        return customFontRenderer == null ? Math.round(mc.fontRendererObj.getStringWidth(text) * scaleValue) : customFontRenderer.getStringWidth(text);
     }
 
     private void drawString(String text, float x, float y, int color) {
@@ -221,17 +221,17 @@ public class Scoreboard extends Module {
             return;
         }
 
-        FontRenderer fontRenderer = this.getCustomFont(scaleValue);
-        if (fontRenderer == null) {
+        CustomFontRenderer customFontRenderer = this.getCustomFont(scaleValue);
+        if (customFontRenderer == null) {
             GlStateManager.pushMatrix();
             GlStateManager.translate(x, y, 0.0F);
             GlStateManager.scale(scaleValue, scaleValue, 1.0F);
             mc.fontRendererObj.drawString(text, 0.0F, 0.0F, color, shouldShadow);
             GlStateManager.popMatrix();
         } else if (shouldShadow) {
-            fontRenderer.drawStringWithShadow(text, x, y, color);
+            customFontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
-            fontRenderer.drawString(text, x, y, color);
+            customFontRenderer.drawString(text, x, y, color);
         }
     }
 
@@ -239,7 +239,7 @@ public class Scoreboard extends Module {
         return this.font.getValue() == 0;
     }
 
-    private FontRenderer getCustomFont(float scaleValue) {
+    private CustomFontRenderer getCustomFont(float scaleValue) {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
         if (fontIndex < 0 || fontIndex >= fonts.length) {

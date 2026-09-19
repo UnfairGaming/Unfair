@@ -9,7 +9,7 @@ import cn.unfair.events.Render2DEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.render.ColorUtil;
 import cn.unfair.util.render.RenderUtil;
@@ -210,7 +210,7 @@ public class HUD extends Module {
         return this.font.getValue() == 0;
     }
 
-    private FontRenderer getCustomFont() {
+    private CustomFontRenderer getCustomFont() {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
         if (fontIndex < 0 || fontIndex >= fonts.length) {
@@ -224,8 +224,8 @@ public class HUD extends Module {
         if (this.useMinecraftFont()) {
             return (int) (mc.fontRendererObj.getStringWidth(text) * scale);
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? (int) (mc.fontRendererObj.getStringWidth(text) * scale) : fontRenderer.getStringWidth(text);
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        return customFontRenderer == null ? (int) (mc.fontRendererObj.getStringWidth(text) * scale) : customFontRenderer.getStringWidth(text);
     }
 
     private float getExactTextWidth(String text) {
@@ -233,8 +233,8 @@ public class HUD extends Module {
         if (this.useMinecraftFont()) {
             return mc.fontRendererObj.getStringWidth(text) * scale;
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) * scale : fontRenderer.getExactStringWidth(text);
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        return customFontRenderer == null ? mc.fontRendererObj.getStringWidth(text) * scale : customFontRenderer.getExactStringWidth(text);
     }
 
     private float getTextHeight() {
@@ -242,8 +242,8 @@ public class HUD extends Module {
         if (this.useMinecraftFont()) {
             return (mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scale;
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? (mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scale : fontRenderer.getHeight();
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        return customFontRenderer == null ? (mc.fontRendererObj.FONT_HEIGHT - 1.0F) * scale : customFontRenderer.getHeight();
     }
 
     private void drawHudString(String text, float x, float y, int color, boolean shadow, boolean alignTop) {
@@ -262,15 +262,15 @@ public class HUD extends Module {
             return;
         }
 
-        FontRenderer fontRenderer = this.getCustomFont();
-        if (fontRenderer == null) {
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        if (customFontRenderer == null) {
             mc.fontRendererObj.drawString(text, x, renderY, color, shadow);
             return;
         }
         if (shadow) {
-            fontRenderer.drawStringWithShadow(text, x, y, color);
+            customFontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
-            fontRenderer.drawString(text, x, renderY, color);
+            customFontRenderer.drawString(text, x, renderY, color);
         }
     }
 

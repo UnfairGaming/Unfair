@@ -11,7 +11,7 @@ import cn.unfair.util.animation.normal.easing.EaseBackIn;
 import cn.unfair.util.animation.normal.easing.EaseOutQuad;
 import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.client.RandomUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.player.*;
 import cn.unfair.util.rotation.RayCastUtil;
@@ -551,7 +551,7 @@ public class Scaffold extends Module {
         int count = Math.max(0, Math.round(blockCountDisplay));
         String label = "Amount:";
         String amount = String.valueOf(count);
-        FontRenderer font = Fonts.interMedium.get(16.0F);
+        CustomFontRenderer font = Fonts.interMedium.get(16.0F);
         float labelWidth = font.getStringWidth(label);
         float amountWidth = font.getStringWidth(amount);
         float textWidth = labelWidth + BLOCK_COUNT_TEXT_GAP + amountWidth;
@@ -2006,7 +2006,7 @@ public class Scaffold extends Module {
             int count,
             String label,
             String amount,
-            FontRenderer font,
+            CustomFontRenderer font,
             float labelWidth,
             float iconX,
             float iconY,

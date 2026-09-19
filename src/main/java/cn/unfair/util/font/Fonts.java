@@ -24,14 +24,14 @@ public enum Fonts {
     esp("esp"); // Got this specifically for the shit font that Augustus uses.
 
     private final String file;
-    private final Map<Float, FontRenderer> fontMap = new HashMap<>();
+    private final Map<Float, CustomFontRenderer> fontMap = new HashMap<>();
     private Font baseFont;
 
     Fonts(String file) {
         this.file = file;
     }
 
-    public FontRenderer get(float size) {
+    public CustomFontRenderer get(float size) {
         return this.fontMap.computeIfAbsent(size, font -> {
             try {
                 return create(this.file, size);
@@ -41,8 +41,8 @@ public enum Fonts {
         });
     }
 
-    public FontRenderer create(String file, float size) {
-        return new FontRenderer(this.getBaseFont(file).deriveFont(Font.PLAIN, size));
+    public CustomFontRenderer create(String file, float size) {
+        return new CustomFontRenderer(this.getBaseFont(file).deriveFont(Font.PLAIN, size));
     }
 
     private Font getBaseFont(String file) {

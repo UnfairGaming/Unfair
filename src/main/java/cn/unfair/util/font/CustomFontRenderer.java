@@ -17,7 +17,7 @@ import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class FontRenderer {
+public class CustomFontRenderer {
     private static final int GLYPH_PADDING = 1;
     private static final float LEGACY_DISPLAY_SCALE = 2.0F;
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -58,7 +58,7 @@ public class FontRenderer {
         }
     };
 
-    public FontRenderer(Font font) {
+    public CustomFontRenderer(Font font) {
         this.font = font;
         this.size = font.getSize2D();
     }
@@ -143,7 +143,7 @@ public class FontRenderer {
 
     private static Font loadFont(String file) {
         try (InputStream in = Objects.requireNonNull(
-                FontRenderer.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
+                CustomFontRenderer.class.getResourceAsStream("/assets/minecraft/unfair/font/" + file + ".ttf"), "Font resource is null"
         )) {
             return Font.createFont(0, in);
         } catch (Exception ex) {

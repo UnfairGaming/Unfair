@@ -1,10 +1,11 @@
 package net.minecraft.client.gui;
 
+import cn.unfair.Unfair;
 import cn.unfair.management.altmanager.AltManagerGui;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.ui.mainmenu.SilentMenuButton;
 import cn.unfair.util.client.AndroidUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
@@ -66,9 +67,9 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
      * The Object object utilized as a thread lock when performing non thread-safe operations
      */
     private final Object threadLock = new Object();
-    private final FontRenderer titleFont = Fonts.urbanist.get(38.0F);
-    private final FontRenderer splashFont = Fonts.interRegular.get(19.0F);
-    private final FontRenderer buttonFont = Fonts.interRegular.get(16.0F);
+    private final CustomFontRenderer titleFont = Fonts.urbanist.get(38.0F);
+    private final CustomFontRenderer splashFont = Fonts.interRegular.get(19.0F);
+    private final CustomFontRenderer buttonFont = Fonts.interRegular.get(16.0F);
     private final float[] animatedX = new float[6];
     private final float[] animatedY = new float[6];
     private final float[] animatedW = new float[6];
@@ -421,22 +422,19 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         this.layoutButtons();
         MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
 
-        float titleY = this.height / 2.0F - (this.buttonList.size() * BUTTON_HEIGHT) / 2.0F;
+        float titleY = this.height * 0.13F;
         if (AndroidUtil.isAndroid()) {
             MainMenuStyle.drawCenteredString(this.titleFont, "安卓用户专属Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
         } else {
             MainMenuStyle.drawCenteredString(this.titleFont, "Unfair", this.width / 2.0F, titleY, MainMenuStyle.WHITE_208);
         }
-        this.drawMenuButtons(mouseX, mouseY);
+        MainMenuStyle.drawCenteredString(this.splashFont, this.splashText, this.width / 2.0F, titleY + this.titleFont.getHeight() + 10.0F, MainMenuStyle.WHITE_170);
 
-        float splashY = this.height / 2.0F
-                + (BUTTON_HEIGHT + BUTTON_GAP) * (this.buttonList.size() + 1)
-                - (this.buttonList.size() * BUTTON_HEIGHT) / 2.0F
-                + this.titleFont.getHeight();
-        MainMenuStyle.drawCenteredString(this.splashFont, this.splashText, this.width / 2.0F, splashY, MainMenuStyle.WHITE_208);
+        this.drawMenuButtons(mouseX, mouseY);
 
         String account = this.mc.getSession() == null ? "Unknown" : this.mc.getSession().getUsername();
         this.buttonFont.drawString(account, 10.0F, this.height - 18.0F, MainMenuStyle.WHITE_170);
+        this.buttonFont.drawString(Unfair.version, this.width - 10.0F - this.buttonFont.getStringWidth(Unfair.version), this.height - 18.0F, MainMenuStyle.WHITE_170);
     }
 
     /**
@@ -461,7 +459,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
 
         for (GuiButton button : this.buttonList) {
             button.xPosition = Math.round(this.width / 2.0F - buttonWidth / 2.0F);
-            button.yPosition = Math.round(this.height / 2.0F + count - (this.buttonList.size() * buttonHeight) / 2.0F + this.titleFont.getHeight() + 2.0F);
+            button.yPosition = Math.round(this.height * 0.55F + count - (this.buttonList.size() * buttonHeight) / 2.0F);
             button.width = Math.round(buttonWidth);
             button.height = Math.round(buttonHeight);
             count += buttonHeight + BUTTON_GAP;

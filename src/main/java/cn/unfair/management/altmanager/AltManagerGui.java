@@ -3,7 +3,7 @@ package cn.unfair.management.altmanager;
 import cn.unfair.management.altmanager.microsoft.MicrosoftOAuthTranslation;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.util.render.RenderUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -32,10 +32,10 @@ public class AltManagerGui extends GuiScreen {
     public static String status = "§aIdle";
     private static File altFile;
     private final List<Button> buttons = new ArrayList<>();
-    private final FontRenderer font14 = Fonts.interRegular.get(14.0F);
-    private final FontRenderer font18 = Fonts.interRegular.get(18.0F);
-    private final FontRenderer font20 = Fonts.interRegular.get(20.0F);
-    private final FontRenderer font22 = Fonts.interMedium.get(22.0F);
+    private final CustomFontRenderer font14 = Fonts.interRegular.get(14.0F);
+    private final CustomFontRenderer font18 = Fonts.interRegular.get(18.0F);
+    private final CustomFontRenderer font20 = Fonts.interRegular.get(20.0F);
+    private final CustomFontRenderer font22 = Fonts.interMedium.get(22.0F);
     private final GuiScreen parentScreen;
     private GuiTextField crackedField;
     private GuiTextField tokenField;
@@ -658,7 +658,7 @@ public class AltManagerGui extends GuiScreen {
         return Math.round(pixels / Math.max(1, uiScale));
     }
 
-    private float centerTextY(float height, FontRenderer font) {
+    private float centerTextY(float height, CustomFontRenderer font) {
         return (height - font.getHeight()) * 0.5F + u(1.0F);
     }
 

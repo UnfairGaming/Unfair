@@ -6,7 +6,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.client.TeamUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -225,7 +225,7 @@ public class Radar extends Module {
         return this.font.getValue() == 0;
     }
 
-    private FontRenderer getCustomFont() {
+    private CustomFontRenderer getCustomFont() {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
         if (fontIndex < 0 || fontIndex >= fonts.length) {
@@ -238,16 +238,16 @@ public class Radar extends Module {
         if (this.useMinecraftFont()) {
             return mc.fontRendererObj.getStringWidth(text);
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : fontRenderer.getStringWidth(text);
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        return customFontRenderer == null ? mc.fontRendererObj.getStringWidth(text) : customFontRenderer.getStringWidth(text);
     }
 
     private int getFontHeight() {
         if (this.useMinecraftFont()) {
             return mc.fontRendererObj.FONT_HEIGHT;
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        return fontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT : fontRenderer.getHeight();
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        return customFontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT : customFontRenderer.getHeight();
     }
 
     private void drawString(String text, float x, float y, int color, boolean shadow) {
@@ -255,13 +255,13 @@ public class Radar extends Module {
             mc.fontRendererObj.drawString(text, x, y, color, shadow);
             return;
         }
-        FontRenderer fontRenderer = this.getCustomFont();
-        if (fontRenderer == null) {
+        CustomFontRenderer customFontRenderer = this.getCustomFont();
+        if (customFontRenderer == null) {
             mc.fontRendererObj.drawString(text, x, y, color, shadow);
         } else if (shadow) {
-            fontRenderer.drawStringWithShadow(text, x, y, color);
+            customFontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
-            fontRenderer.drawString(text, x, y, color);
+            customFontRenderer.drawString(text, x, y, color);
         }
     }
 

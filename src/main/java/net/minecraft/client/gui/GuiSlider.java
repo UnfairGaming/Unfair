@@ -76,8 +76,14 @@ public class GuiSlider extends GuiButton {
 
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             int handleX = this.xPosition + (int) (this.sliderPosition * (float) (this.width - 8));
-            float radius = GuiButton.getButtonRadius() * 0.4F;
-            RenderUtil.drawRoundedRectangle(handleX, this.yPosition + 1, 5, this.height - 2, radius, 0xF2FFFFFF);
+            if (GuiButton.isCustomButtonEnabled()) {
+                float radius = GuiButton.getButtonRadius() * 0.4F;
+                RenderUtil.drawRoundedRectangle(handleX, this.yPosition + 1, 5, this.height - 2, radius, 0xF2FFFFFF);
+            } else {
+                mc.getTextureManager().bindTexture(GuiButton.buttonTextures);
+                this.drawTexturedModalRect(handleX, this.yPosition, 0, 66, 4, 20);
+                this.drawTexturedModalRect(handleX + 4, this.yPosition, 196, 66, 4, 20);
+            }
         }
     }
 

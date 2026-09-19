@@ -14,7 +14,7 @@ import cn.unfair.ui.clickgui.augustus.component.Component;
 import cn.unfair.ui.clickgui.augustus.component.settings.*;
 import cn.unfair.ui.clickgui.augustus.component.settings.TextComponent;
 import cn.unfair.ui.clickgui.augustus.panel.CategoryPanel;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.shader.ShaderElement;
@@ -55,8 +55,8 @@ public class AugustusClickGui extends GuiScreen {
     private static final float ICON_SEPARATOR = 8.0F;
     private static final float CONFIG_TITLE_BAR_HEIGHT = 15.0F;
     private static final float WINDOW_BUTTON_WIDTH = 20.0F;
-    private static FontRenderer CACHED_TITLE_FONT;
-    private static FontRenderer CACHED_NORMAL_FONT;
+    private static CustomFontRenderer CACHED_TITLE_FONT;
+    private static CustomFontRenderer CACHED_NORMAL_FONT;
     private static int CACHED_SCALE = -1;
 
     private final File configFile = new File("./config/Unfair/ClickGui", "augustus-clickgui.json");
@@ -85,9 +85,9 @@ public class AugustusClickGui extends GuiScreen {
     @Getter
     private Module selectedModule = null;
     @Getter
-    private FontRenderer titleFont;
+    private CustomFontRenderer titleFont;
     @Getter
-    private FontRenderer normalFont;
+    private CustomFontRenderer normalFont;
 
     private boolean configOpen = false;
     private boolean configDragging = false;

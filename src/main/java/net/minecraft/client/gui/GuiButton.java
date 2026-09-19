@@ -5,13 +5,14 @@ import cn.unfair.module.modules.render.HUD;
 import cn.unfair.module.modules.render.Interface;
 import cn.unfair.module.modules.render.PostProcessing;
 import cn.unfair.util.animation.simple.SimpleAnimation;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.shader.ShaderElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 
 import java.awt.*;
@@ -149,7 +150,7 @@ public class GuiButton extends Gui {
             ShaderElement.addBloomTask(() -> RenderUtil.drawRoundedRectangle(x, y, width, height, radius, 0xFFFFFFFF));
         }
 
-        FontRenderer font = Fonts.interMedium.get(16.0F);
+        CustomFontRenderer font = Fonts.interMedium.get(16.0F);
         String content = text == null ? "" : text;
         float textX = x + width / 2.0F - font.getStringWidth(content) / 2.0F;
         float textY = y + font.getMiddleOfBox(height);
@@ -176,10 +177,10 @@ public class GuiButton extends Gui {
 
     protected static boolean isCustomButtonEnabled() {
         if (Unfair.moduleManager == null) {
-            return true;
+            return false;
         }
         Interface iface = (Interface) Unfair.moduleManager.getModule(Interface.class);
-        return iface == null || iface.customButton.getValue();
+        return iface != null && iface.isEnabled() && iface.customButton.getValue();
     }
 
     protected static boolean isBlurEnabled() {

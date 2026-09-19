@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.render.RenderUtil;
-import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -155,7 +155,7 @@ public class PotionEffects extends Module {
         return this.font.getValue() == 0;
     }
 
-    private FontRenderer getCustomFont(float scale) {
+    private CustomFontRenderer getCustomFont(float scale) {
         int fontIndex = this.font.getValue() - 1;
         Fonts[] fonts = Fonts.values();
         if (fontIndex < 0 || fontIndex >= fonts.length) {
@@ -169,8 +169,8 @@ public class PotionEffects extends Module {
         if (this.useMinecraftFont()) {
             return (int) (mc.fontRendererObj.getStringWidth(text) * scale);
         }
-        FontRenderer fontRenderer = this.getCustomFont(scale);
-        return fontRenderer == null ? (int) (mc.fontRendererObj.getStringWidth(text) * scale) : fontRenderer.getStringWidth(text);
+        CustomFontRenderer customFontRenderer = this.getCustomFont(scale);
+        return customFontRenderer == null ? (int) (mc.fontRendererObj.getStringWidth(text) * scale) : customFontRenderer.getStringWidth(text);
     }
 
     private float getFontHeight() {
@@ -178,8 +178,8 @@ public class PotionEffects extends Module {
         if (this.useMinecraftFont()) {
             return mc.fontRendererObj.FONT_HEIGHT * scale;
         }
-        FontRenderer fontRenderer = this.getCustomFont(scale);
-        return fontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT * scale : fontRenderer.getHeight();
+        CustomFontRenderer customFontRenderer = this.getCustomFont(scale);
+        return customFontRenderer == null ? mc.fontRendererObj.FONT_HEIGHT * scale : customFontRenderer.getHeight();
     }
 
     private void drawString(String text, float x, float y, int color, float scale) {
@@ -197,13 +197,13 @@ public class PotionEffects extends Module {
             GlStateManager.popMatrix();
             return;
         }
-        FontRenderer fontRenderer = this.getCustomFont(scale);
-        if (fontRenderer == null) {
+        CustomFontRenderer customFontRenderer = this.getCustomFont(scale);
+        if (customFontRenderer == null) {
             mc.fontRendererObj.drawString(text, x, y, color, shouldShadow);
         } else if (shouldShadow) {
-            fontRenderer.drawStringWithShadow(text, x, y, color);
+            customFontRenderer.drawStringWithShadow(text, x, y, color);
         } else {
-            fontRenderer.drawString(text, x, y, color);
+            customFontRenderer.drawString(text, x, y, color);
         }
     }
 
