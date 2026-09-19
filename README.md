@@ -46,7 +46,7 @@ Source code/resources for Demise Client
 
 Resources for Augustus Client
 
-Development by Falling Star / Un1336 / qm123pz
+Development by Falling Star / Un1336 / qm123pz / yourusername
 
 Development by ModernSkidder / Zhang Jinchen
 
