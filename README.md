@@ -52,8 +52,8 @@ Development by ModernSkidder / Zhang Jinchen
 
 Development by K0t1yaSanae
 
-GPT development (over 60%)
+GPT development (over 30%)
 
-Development by DeepSeek
+Development by DeepSeek (over 40%)
 
 Lighting system by Phosphor: https://github.com/momenbasel/Phosphor
