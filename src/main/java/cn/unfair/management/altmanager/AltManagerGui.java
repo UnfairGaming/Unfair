@@ -5,6 +5,7 @@ import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
+import cn.unfair.util.shader.PostProcessingRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -175,10 +176,14 @@ public class AltManagerGui extends GuiScreen {
         this.mouseY = mouseY;
         MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
         drawBackgroundTint();
+        PostProcessingRenderer.captureBlurSource();
         drawHeader();
         drawList();
-        drawToolbar();
+        drawToolbarBackgrounds();
         drawDialog();
+        PostProcessingRenderer.flushPostProcessing();
+        drawToolbarTexts();
+        drawDialogButtonsText();
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
@@ -236,10 +241,17 @@ public class AltManagerGui extends GuiScreen {
         }
     }
 
-    private void drawToolbar() {
+    private void drawToolbarBackgrounds() {
         for (Button button : buttons) {
             boolean hovered = button.contains(mouseX, mouseY);
-            GuiButton.drawCustomButton(button.x, button.y, button.w, button.h, true, hovered, button.text);
+            GuiButton.drawMenuButtonBackground(button, button.x, button.y, button.w, button.h, true, hovered);
+        }
+    }
+
+    private void drawToolbarTexts() {
+        for (Button button : buttons) {
+            boolean hovered = button.contains(mouseX, mouseY);
+            GuiButton.drawMenuButtonText(button, button.x, button.y, button.w, button.h, true, hovered, button.text);
         }
     }
 
@@ -275,13 +287,27 @@ public class AltManagerGui extends GuiScreen {
                     oauthStatus.toLowerCase(Locale.ROOT).contains("fail") ? new Color(255, 85, 85).getRGB() : new Color(235, 245, 245).getRGB());
         }
 
-        drawDialogButton(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), "Login");
-        drawDialogButton(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), "Cancel");
+        drawDialogButtonBackground(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F));
+        drawDialogButtonBackground(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F));
     }
 
-    private void drawDialogButton(float x, float y, float w, float h, String text) {
+    private void drawDialogButtonBackground(float x, float y, float w, float h) {
         boolean hovered = inside(mouseX, mouseY, x, y, w, h);
-        GuiButton.drawCustomButton(x, y, w, h, true, hovered, text);
+        GuiButton.drawMenuButtonBackground(null, x, y, w, h, true, hovered);
+    }
+
+    private void drawDialogButtonsText() {
+        if (dialog == Dialog.NONE) {
+            return;
+        }
+        float dialogW = u(340.0F);
+        float dialogH = u(210.0F);
+        float x = this.width * 0.5F - dialogW * 0.5F;
+        float y = this.height * 0.5F - dialogH * 0.5F;
+        boolean hovered1 = inside(mouseX, mouseY, x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F));
+        GuiButton.drawMenuButtonText(null, x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), true, hovered1, "Login");
+        boolean hovered2 = inside(mouseX, mouseY, x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F));
+        GuiButton.drawMenuButtonText(null, x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), true, hovered2, "Cancel");
     }
 
     @Override

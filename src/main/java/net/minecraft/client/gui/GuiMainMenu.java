@@ -7,6 +7,7 @@ import cn.unfair.ui.mainmenu.SilentMenuButton;
 import cn.unfair.util.client.AndroidUtil;
 import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
+import cn.unfair.util.shader.PostProcessingRenderer;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -421,6 +422,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         this.removeExternalButtons();
         this.layoutButtons();
         MainMenuStyle.drawBackground(this.width, this.height, partialTicks);
+        PostProcessingRenderer.captureBlurSource();
 
         float titleY = this.height * 0.13F;
         if (AndroidUtil.isAndroid()) {
@@ -477,13 +479,22 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         for (int i = 0; i < this.buttonList.size() && i < this.animatedX.length; i++) {
             GuiButton button = this.buttonList.get(i);
             boolean hovered = button.enabled && this.inside(mouseX, mouseY, button.xPosition, button.yPosition, button.width, button.height);
-            this.updateButtonAnimation(i, button, hovered);
+            this.updateButtonAnimation(i, button);
 
-            GuiButton.drawCustomButton(this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], button.enabled, hovered, button.displayString);
+            GuiButton.drawMenuButtonBackground(button, this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], button.enabled, hovered);
+        }
+
+        PostProcessingRenderer.flushPostProcessing();
+
+        for (int i = 0; i < this.buttonList.size() && i < this.animatedX.length; i++) {
+            GuiButton button = this.buttonList.get(i);
+            boolean hovered = button.enabled && this.inside(mouseX, mouseY, button.xPosition, button.yPosition, button.width, button.height);
+
+            GuiButton.drawMenuButtonText(button, this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], button.enabled, hovered, button.displayString);
         }
     }
 
-    private void updateButtonAnimation(int index, GuiButton button, boolean hovered) {
+    private void updateButtonAnimation(int index, GuiButton button) {
         if (this.animatedW[index] <= 0.0F || this.animatedH[index] <= 0.0F) {
             this.animatedX[index] = button.xPosition;
             this.animatedY[index] = button.yPosition;
@@ -491,14 +502,10 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
             this.animatedH[index] = button.height;
         }
 
-        float targetX = hovered ? button.xPosition + 1.5F : button.xPosition;
-        float targetY = hovered ? button.yPosition + 1.5F : button.yPosition;
-        float targetW = hovered ? button.width - 3.0F : button.width;
-        float targetH = hovered ? button.height - 3.0F : button.height;
-        this.animatedX[index] = this.interpolate(this.animatedX[index], targetX, 0.15F);
-        this.animatedY[index] = this.interpolate(this.animatedY[index], targetY, 0.15F);
-        this.animatedW[index] = this.interpolate(this.animatedW[index], targetW, 0.15F);
-        this.animatedH[index] = this.interpolate(this.animatedH[index], targetH, 0.15F);
+        this.animatedX[index] = this.interpolate(this.animatedX[index], button.xPosition, 0.15F);
+        this.animatedY[index] = this.interpolate(this.animatedY[index], button.yPosition, 0.15F);
+        this.animatedW[index] = this.interpolate(this.animatedW[index], button.width, 0.15F);
+        this.animatedH[index] = this.interpolate(this.animatedH[index], button.height, 0.15F);
     }
 
     private void resetButtonAnimation() {

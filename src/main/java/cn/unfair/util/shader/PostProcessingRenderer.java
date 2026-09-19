@@ -9,31 +9,76 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.shader.Framebuffer;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
 
 import java.awt.*;
 
 public class PostProcessingRenderer {
+    private static final String BLIT_FRAG = "#version 120\n" +
+            "uniform sampler2D tex;\n" +
+            "void main() {\n" +
+            "    gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n" +
+            "}";
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static Framebuffer stencilFramebuffer = new Framebuffer(1, 1, false);
     private static Framebuffer bloomFramebuffer = new Framebuffer(1, 1, false);
+    private static Framebuffer blurSourceFramebuffer;
+    private static boolean blurSourceActive;
+    private static ShaderUtil blitShader;
 
     public static void render2D(float partialTicks) {
+        flushPostProcessing();
+    }
+
+    public static void captureBlurSource() {
+        if (AndroidUtil.isAndroid()) {
+            return;
+        }
+        blurSourceFramebuffer = RenderUtil.createFrameBuffer(blurSourceFramebuffer);
+        blurSourceFramebuffer.forceBind(true);
+        blurSourceFramebuffer.framebufferClearNoBinding();
+        if (blitShader == null) {
+            blitShader = new ShaderUtil(BLIT_FRAG, true);
+        }
+        blitShader.init();
+        GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
+        RenderUtil.bindTexture(mc.getFramebuffer().framebufferTexture);
+        blitShader.setUniformi("tex", 0);
+        ShaderUtil.drawQuads();
+        blitShader.unload();
+        RenderUtil.bindTexture(0);
+        mc.getFramebuffer().forceBind(true);
+        blurSourceActive = true;
+    }
+
+    public static void flushPostProcessing() {
         if (AndroidUtil.isAndroid() || Unfair.moduleManager == null) {
             ShaderElement.getTasks().clear();
             ShaderElement.getBloomTasks().clear();
+            ShaderElement.getPostBlurTasks().clear();
+            blurSourceActive = false;
             return;
         }
         PostProcessing pp = (PostProcessing) Unfair.moduleManager.getModule(PostProcessing.class);
         if (pp == null || !pp.isEnabled()) {
             ShaderElement.getTasks().clear();
             ShaderElement.getBloomTasks().clear();
+            ShaderElement.getPostBlurTasks().clear();
+            blurSourceActive = false;
             return;
         }
 
         if (pp.blur.getValue() && !ShaderElement.getTasks().isEmpty()) {
             drawBlur(pp.blurIterations.getValue(), pp.blurOffset.getValue());
+            blurSourceActive = false;
+            for (Runnable runnable : ShaderElement.getPostBlurTasks()) {
+                runnable.run();
+            }
+            ShaderElement.getPostBlurTasks().clear();
         } else {
             ShaderElement.getTasks().clear();
+            ShaderElement.getPostBlurTasks().clear();
+            blurSourceActive = false;
         }
 
         if (pp.bloom.getValue() && !ShaderElement.getBloomTasks().isEmpty()) {
@@ -63,7 +108,10 @@ public class PostProcessingRenderer {
         }
         ShaderElement.getTasks().clear();
         stencilFramebuffer.unbindFramebuffer();
-        KawaseBlur.renderBlur(stencilFramebuffer.framebufferTexture, iterations, (int) offset);
+        int sourceTexture = blurSourceActive
+                ? blurSourceFramebuffer.framebufferTexture
+                : mc.getFramebuffer().framebufferTexture;
+        KawaseBlur.renderBlur(stencilFramebuffer.framebufferTexture, sourceTexture, iterations, (int) offset);
     }
 
     private static void drawBloom(int iterations, float offset, Color color) {

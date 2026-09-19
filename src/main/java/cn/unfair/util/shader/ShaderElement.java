@@ -19,6 +19,7 @@ public class ShaderElement {
     private static final WorldRenderer worldrenderer = tessellator.getWorldRenderer();
     private static final ArrayList<Runnable> tasks = new ArrayList<>();
     private static final ArrayList<Runnable> bloomTasks = new ArrayList<>();
+    private static final ArrayList<Runnable> postBlurTasks = new ArrayList<>();
 
     public static ArrayList<Runnable> getTasks() {
         return tasks;
@@ -34,6 +35,14 @@ public class ShaderElement {
 
     public static void addBloomTask(Runnable context) {
         bloomTasks.add(context);
+    }
+
+    public static ArrayList<Runnable> getPostBlurTasks() {
+        return postBlurTasks;
+    }
+
+    public static void addPostBlurTask(Runnable context) {
+        postBlurTasks.add(context);
     }
 
     public static void setupUniforms(float offset) {

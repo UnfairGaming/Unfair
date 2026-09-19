@@ -135,9 +135,10 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
     // private static final ResourceLocation locationMojangPng = ResourceLocation.of("textures/gui/title/mojang.png");
     public static final boolean isRunningOnMac = Util.getOSType() == Util.EnumOS.OSX;
     private static final Logger logger = LogManager.getLogger();
-    private static final ResourceLocation UNFAIR_SPLASH_TEXTURE = ResourceLocation.of("unfair/image/splash.png");
-    private static final int UNFAIR_SPLASH_BACKGROUND = 0xFFA3A5A2;
-    private static final int UNFAIR_SPLASH_SIZE = 250;
+    private static final ResourceLocation UNFAIR_SPLASH_TEXTURE = ResourceLocation.of("unfair/image/start.png");
+    private static final int UNFAIR_SPLASH_BACKGROUND = 0xFF000000;
+    private static final int UNFAIR_SPLASH_WIDTH = 800;
+    private static final int UNFAIR_SPLASH_HEIGHT = 600;
     private static final List<DisplayMode> macDisplayModes = Lists.newArrayList(new DisplayMode(2560, 1600), new DisplayMode(2880, 1800));
     /**
      * A 10MiB preallocation to ensure the heap is reasonably sized.
@@ -861,12 +862,15 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        float splashScale = Math.min(scaledresolution.getScaledWidth() / (float) UNFAIR_SPLASH_WIDTH, scaledresolution.getScaledHeight() / (float) UNFAIR_SPLASH_HEIGHT);
+        float splashWidth = UNFAIR_SPLASH_WIDTH * splashScale;
+        float splashHeight = UNFAIR_SPLASH_HEIGHT * splashScale;
         RenderUtil.drawImage(
                 UNFAIR_SPLASH_TEXTURE,
-                (scaledresolution.getScaledWidth() - UNFAIR_SPLASH_SIZE) / 2.0F,
-                (scaledresolution.getScaledHeight() - UNFAIR_SPLASH_SIZE) / 2.0F,
-                UNFAIR_SPLASH_SIZE,
-                UNFAIR_SPLASH_SIZE,
+                (scaledresolution.getScaledWidth() - splashWidth) / 2.0F,
+                (scaledresolution.getScaledHeight() - splashHeight) / 2.0F,
+                splashWidth,
+                splashHeight,
                 -1
         );
         GlStateManager.disableBlend();

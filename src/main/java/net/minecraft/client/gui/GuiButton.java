@@ -52,6 +52,7 @@ public class GuiButton extends Gui {
     protected boolean hovered;
 
     private static final WeakHashMap<GuiButton, SimpleAnimation> hoverAnimations = new WeakHashMap<>();
+    private static final WeakHashMap<Object, SimpleAnimation> menuHoverAnimations = new WeakHashMap<>();
 
     public GuiButton(int buttonId, int x, int y, String buttonText) {
         this(buttonId, x, y, 200, 20, buttonText);
@@ -150,12 +151,69 @@ public class GuiButton extends Gui {
             ShaderElement.addBloomTask(() -> RenderUtil.drawRoundedRectangle(x, y, width, height, radius, 0xFFFFFFFF));
         }
 
-        CustomFontRenderer font = Fonts.interMedium.get(16.0F);
+        GuiButton.drawButtonText(x, y, width, height, enabled, hovered, text);
+    }
+
+    public static void drawMenuButtonBackground(Object key, float x, float y, float width, float height, boolean enabled, boolean hovered) {
+        float scale = 1.0F;
+        if (key != null) {
+            SimpleAnimation animation = menuHoverAnimations.computeIfAbsent(key, ignored -> new SimpleAnimation(1.0F));
+            animation.setAnimation(hovered && enabled ? 0.96F : 1.0F, 12.0F);
+            scale = animation.getValue();
+        }
+        float centerX = x + width / 2.0F;
+        float centerY = y + height / 2.0F;
+        float bx = RenderUtil.scaleAround(x, centerX, scale);
+        float by = RenderUtil.scaleAround(y, centerY, scale);
+        float bw = width * scale;
+        float bh = height * scale;
+
+        int backgroundAlpha = GuiButton.getButtonAlpha();
+        int backgroundColor = enabled
+                ? new Color(0, 0, 0, backgroundAlpha).getRGB()
+                : new Color(0, 0, 0, backgroundAlpha * 2 / 3).getRGB();
+
+        RenderUtil.drawRoundedRectangle(bx, by, bw, bh, 4.0F, backgroundColor);
+
+        if (GuiButton.isBlurEnabled()) {
+            ShaderElement.addBlurTask(() -> RenderUtil.drawRoundedRectangle(bx, by, bw, bh, 4.0F, 0xFF000000));
+            ShaderElement.addPostBlurTask(() -> RenderUtil.drawRoundedRectangle(bx, by, bw, bh, 4.0F, backgroundColor));
+        }
+        if (GuiButton.isBloomEnabled()) {
+            ShaderElement.addBloomTask(() -> RenderUtil.drawRoundedRectangle(bx, by, bw, bh, 4.0F, 0xFFFFFFFF));
+        }
+    }
+
+    public static void drawMenuButtonText(Object key, float x, float y, float width, float height, boolean enabled, boolean hovered, String text) {
+        float scale = 1.0F;
+        if (key != null) {
+            SimpleAnimation animation = menuHoverAnimations.computeIfAbsent(key, ignored -> new SimpleAnimation(1.0F));
+            animation.setAnimation(hovered && enabled ? 0.96F : 1.0F, 12.0F);
+            scale = animation.getValue();
+        }
+        float centerX = x + width / 2.0F;
+        float centerY = y + height / 2.0F;
+        float bx = RenderUtil.scaleAround(x, centerX, scale);
+        float by = RenderUtil.scaleAround(y, centerY, scale);
+        float bw = width * scale;
+        float bh = height * scale;
+        GuiButton.drawButtonText(bx, by, bw, bh, enabled, hovered, text);
+    }
+
+    private static void drawButtonText(float x, float y, float width, float height, boolean enabled, boolean hovered, String text) {
         String content = text == null ? "" : text;
-        float textX = x + width / 2.0F - font.getStringWidth(content) / 2.0F;
-        float textY = y + font.getMiddleOfBox(height);
         int textColor = enabled ? (hovered ? 0xE6FFFFFF : 0xC8FFFFFF) : 0x59FFFFFF;
-        font.drawStringWithShadow(content, textX, textY, textColor);
+        if (GuiButton.isCustomFontEnabled()) {
+            CustomFontRenderer font = Fonts.interMedium.get(16.0F);
+            float textX = x + width / 2.0F - font.getStringWidth(content) / 2.0F;
+            float textY = y + font.getMiddleOfBox(height);
+            font.drawStringWithShadow(content, textX, textY, textColor);
+        } else {
+            net.minecraft.client.gui.FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
+            float textX = x + width / 2.0F - fontRenderer.getStringWidth(content) / 2.0F;
+            float textY = y + (height - fontRenderer.FONT_HEIGHT) / 2.0F;
+            fontRenderer.drawStringWithShadow(content, textX, textY, textColor);
+        }
     }
 
     private static HUD getHud() {
@@ -181,6 +239,14 @@ public class GuiButton extends Gui {
         }
         Interface iface = (Interface) Unfair.moduleManager.getModule(Interface.class);
         return iface != null && iface.isEnabled() && iface.customButton.getValue();
+    }
+
+    protected static boolean isCustomFontEnabled() {
+        if (Unfair.moduleManager == null) {
+            return false;
+        }
+        Interface iface = (Interface) Unfair.moduleManager.getModule(Interface.class);
+        return iface != null && iface.isEnabled() && iface.customButton.getValue() && iface.customFont.getValue();
     }
 
     protected static boolean isBlurEnabled() {

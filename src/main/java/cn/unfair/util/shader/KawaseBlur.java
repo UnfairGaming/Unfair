@@ -69,6 +69,10 @@ public class KawaseBlur {
     }
 
     public static void renderBlur(int maskTexture, int iterations, int offset) {
+        renderBlur(maskTexture, mc.getFramebuffer().framebufferTexture, iterations, offset);
+    }
+
+    public static void renderBlur(int maskTexture, int sourceTexture, int iterations, int offset) {
         int downWidth = Math.max(1, mc.displayWidth / 2);
         int downHeight = Math.max(1, mc.displayHeight / 2);
         downFbo = ensureFramebuffer(downFbo, downWidth, downHeight);
@@ -87,7 +91,7 @@ public class KawaseBlur {
         downFbo.framebufferClearNoBinding();
         downShader.init();
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
-        RenderUtil.bindTexture(mc.getFramebuffer().framebufferTexture);
+        RenderUtil.bindTexture(sourceTexture);
         downShader.setUniformi("inTexture", 0);
         ShaderUtil.drawQuads();
         downShader.unload();
