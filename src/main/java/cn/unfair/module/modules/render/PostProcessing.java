@@ -8,8 +8,8 @@ import java.awt.*;
 
 public class PostProcessing extends Module {
     public final BooleanProperty blur = new BooleanProperty("Blur", true);
-    public final IntProperty blurIterations = new IntProperty("BlurIterations", 2, 1, 10);
-    public final FloatProperty blurOffset = new FloatProperty("BlurOffset", 5.0F, 1.0F, 10.0F);
+    public final IntProperty blurIterations = new IntProperty("BlurIterations", 2, 1, 20);
+    public final FloatProperty blurOffset = new FloatProperty("BlurOffset", 5.0F, 1.0F, 20.0F);
 
     public final BooleanProperty bloom = new BooleanProperty("Bloom", true);
     public final ModeProperty bloomColorMode = new ModeProperty(
