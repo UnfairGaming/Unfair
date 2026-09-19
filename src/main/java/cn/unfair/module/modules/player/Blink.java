@@ -12,8 +12,8 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.animation.simple.SimpleAnimation;
 import cn.unfair.util.client.TeamUtil;
-import cn.unfair.util.render.AnimationUtil;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import net.minecraft.client.Minecraft;
@@ -52,6 +52,7 @@ public class Blink extends Module {
     private int releasedTicks = 0;
     private float progress = 0.0F;
     private float progressTarget = 0.0F;
+    private final SimpleAnimation progressAnimation = new SimpleAnimation();
 
     public Blink() {
         super("Blink", false);
@@ -68,6 +69,7 @@ public class Blink extends Module {
         this.releasedTicks = 0;
         this.progress = 0.0F;
         this.progressTarget = 0.0F;
+        this.progressAnimation.setValue(0.0F);
         Unfair.blinkManager.setBlinkState(false, Unfair.blinkManager.getBlinkingModule());
         Unfair.blinkManager.setBlinkState(true, BlinkModules.BLINK);
         if (this.isNaven()) {
@@ -196,7 +198,8 @@ public class Blink extends Module {
         ScaledResolution sr = new ScaledResolution(mc);
         float x = sr.getScaledWidth() / 2.0F - 50.0F;
         float y = sr.getScaledHeight() / 2.0F + 15.0F;
-        this.progress = AnimationUtil.lerp(this.progress, this.progressTarget, 0.2F);
+        this.progressAnimation.setAnimation(this.progressTarget, 19.0F);
+        this.progress = this.progressAnimation.getValue();
         RenderUtil.drawRoundedRectangle(x, y, 100.0F, 5.0F, 2.0F, NAVEN_PROGRESS_BACKGROUND);
         RenderUtil.drawRoundedRectangle(x, y, this.progress, 5.0F, 2.0F, NAVEN_PROGRESS_COLOR);
     }

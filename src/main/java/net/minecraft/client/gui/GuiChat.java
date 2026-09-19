@@ -381,7 +381,12 @@ public class GuiChat extends GuiScreen {
      * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        drawRect(2, this.height - 14, this.width - 2, this.height - 2, Integer.MIN_VALUE);
+        cn.unfair.module.modules.render.Chat customChat = cn.unfair.module.modules.render.Chat.getModule();
+        if (customChat != null && customChat.shouldRenderChat()) {
+            customChat.drawInputBackground(2, this.height - 14, this.width - 4, 12);
+        } else {
+            drawRect(2, this.height - 14, this.width - 2, this.height - 2, Integer.MIN_VALUE);
+        }
         this.inputField.drawTextBox();
         if (this.searchFocused) {
             this.searchField.drawTextBox();

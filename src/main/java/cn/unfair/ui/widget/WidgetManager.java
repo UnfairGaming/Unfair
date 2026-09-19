@@ -1,11 +1,9 @@
 package cn.unfair.ui.widget;
 
 import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
 import cn.unfair.events.ChatGUIEvent;
-import cn.unfair.events.RenderBloomEvent;
-import cn.unfair.events.RenderBlurEvent;
 import cn.unfair.events.Render2DEvent;
+import cn.unfair.util.shader.ShaderElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
@@ -16,8 +14,6 @@ import java.util.List;
 public class WidgetManager {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final List<Widget> widgets = new ArrayList<>();
-    private final List<Widget> blurMaskWidgets = new ArrayList<>();
-    private final List<Widget> bloomMaskWidgets = new ArrayList<>();
 
     public void register(Widget widget) {
         this.widgets.add(widget);
@@ -44,6 +40,18 @@ public class WidgetManager {
             }
             widget.updatePos(sr);
             widget.render(event.partialTicks());
+            if (widget.shouldRenderBlurMask()) {
+                ShaderElement.addBlurTask(() -> {
+                    widget.updatePos(sr);
+                    widget.renderBlurMask(event.partialTicks());
+                });
+            }
+            if (widget.shouldRenderBloomMask()) {
+                ShaderElement.addBloomTask(() -> {
+                    widget.updatePos(sr);
+                    widget.renderBloomMask(event.partialTicks());
+                });
+            }
         }
     }
 
@@ -74,64 +82,18 @@ public class WidgetManager {
                 draggingWidget = widget;
             }
             widget.updatePos(sr);
-        }
-    }
-
-    @EventTarget
-    public void onRenderBlur(RenderBlurEvent event) {
-        if (event.getType() == EventType.PRE) {
-            this.blurMaskWidgets.clear();
-        }
-        if (mc.gameSettings.showDebugInfo) {
-            return;
-        }
-        if (event.getType() == EventType.PRE) {
-            for (Widget widget : this.widgets) {
-                if (widget.shouldRenderBlurMask()) {
-                    this.blurMaskWidgets.add(widget);
-                }
+            if (widget.shouldRenderBlurMask()) {
+                ShaderElement.addBlurTask(() -> {
+                    widget.updatePos(sr);
+                    widget.renderBlurMask(event.partialTicks());
+                });
             }
-            if (!this.blurMaskWidgets.isEmpty()) {
-                event.setCancelled(true);
+            if (widget.shouldRenderBloomMask()) {
+                ShaderElement.addBloomTask(() -> {
+                    widget.updatePos(sr);
+                    widget.renderBloomMask(event.partialTicks());
+                });
             }
-            return;
-        }
-        if (event.getType() != EventType.POST) {
-            return;
-        }
-        ScaledResolution sr = new ScaledResolution(mc);
-        for (Widget widget : this.blurMaskWidgets) {
-            widget.updatePos(sr);
-            widget.renderBlurMask(event.getPartialTicks());
-        }
-    }
-
-    @EventTarget
-    public void onRenderBloom(RenderBloomEvent event) {
-        if (event.getType() == EventType.PRE) {
-            this.bloomMaskWidgets.clear();
-        }
-        if (mc.gameSettings.showDebugInfo) {
-            return;
-        }
-        if (event.getType() == EventType.PRE) {
-            for (Widget widget : this.widgets) {
-                if (widget.shouldRenderBloomMask()) {
-                    this.bloomMaskWidgets.add(widget);
-                }
-            }
-            if (!this.bloomMaskWidgets.isEmpty()) {
-                event.setCancelled(true);
-            }
-            return;
-        }
-        if (event.getType() != EventType.POST) {
-            return;
-        }
-        ScaledResolution sr = new ScaledResolution(mc);
-        for (Widget widget : this.bloomMaskWidgets) {
-            widget.updatePos(sr);
-            widget.renderBloomMask(event.getPartialTicks());
         }
     }
 }

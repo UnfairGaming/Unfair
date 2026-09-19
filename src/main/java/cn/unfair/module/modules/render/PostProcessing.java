@@ -22,7 +22,7 @@ public class PostProcessing extends Module {
     public final ColorProperty bloomCustom2 = new ColorProperty("BloomColor2", Color.BLUE.getRGB(), () -> this.bloomColorMode.getValue() == 4 || this.bloomColorMode.getValue() == 5);
     public final ColorProperty bloomCustom3 = new ColorProperty("BloomColor3", Color.WHITE.getRGB(), () -> this.bloomColorMode.getValue() == 5);
     public final IntProperty bloomIterations = new IntProperty("BloomIterations", 2, 1, 10);
-    public final FloatProperty bloomOffset = new FloatProperty("BloomOffset", 2.0F, 1.0F, 10.0F);
+    public final FloatProperty bloomOffset = new FloatProperty("BloomOffset", 2.0F, 0.1F, 10.0F);
 
     public PostProcessing() {
         super("PostProcessing", false, true);

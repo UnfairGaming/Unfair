@@ -64,6 +64,42 @@ public class GuiNewChat extends Gui {
 
                 float f1 = this.getChatScale();
                 int l = MathHelper.ceiling_float_int((float) this.getChatWidth() / f1);
+
+                cn.unfair.module.modules.render.Chat customChat = cn.unfair.module.modules.render.Chat.getModule();
+                boolean customRendering = customChat != null && customChat.shouldRenderChat();
+                float animOffset = customRendering ? customChat.getRenderOffset() : 0.0F;
+
+                int visibleLines = 0;
+                if (customRendering) {
+                    for (int i1 = 0; i1 + this.scrollPos < linesToRender.size() && i1 < i; ++i1) {
+                        ChatLine chatline = linesToRender.get(i1 + this.scrollPos);
+                        if (chatline == null) {
+                            continue;
+                        }
+                        int j1 = updateCounter - chatline.getUpdatedCounter();
+                        if (j1 >= 200 && !flag) {
+                            continue;
+                        }
+                        double d0 = (double) j1 / 200.0D;
+                        d0 = 1.0D - d0;
+                        d0 = d0 * 10.0D;
+                        d0 = MathHelper.clamp_double(d0, 0.0D, 1.0D);
+                        d0 = d0 * d0;
+                        int l1 = (int) (255.0D * d0);
+                        if (flag) {
+                            l1 = 255;
+                        }
+                        if (l1 > 3) {
+                            visibleLines++;
+                        }
+                    }
+                    customChat.setVisibleLines(visibleLines);
+                    if (visibleLines > 0) {
+                        float bgHeight = visibleLines * 9.0F * f1;
+                        customChat.drawChatBackgroundScreen(2.0F, (float) (new ScaledResolution(this.mc).getScaledHeight() - 48) + 20.0F - bgHeight, (l + 4) * f1, bgHeight);
+                    }
+                }
+
                 GlStateManager.pushMatrix();
                 GlStateManager.translate(2.0F, 20.0F, 0.0F);
                 GlStateManager.scale(f1, f1, 1.0F);
@@ -90,12 +126,14 @@ public class GuiNewChat extends Gui {
 
                             if (l1 > 3) {
                                 int i2 = 0;
-                                int j2 = -i1 * 9;
-                                int backgroundAlpha = (int) ((float) l1 * backgroundOpacity) / 2;
-                                drawRect(i2, j2 - 9, i2 + l + 4, j2, backgroundAlpha << 24);
+                                int j2 = -i1 * 9 + Math.round(animOffset);
+                                if (!customRendering) {
+                                    int backgroundAlpha = (int) ((float) l1 * backgroundOpacity) / 2;
+                                    drawRect(i2, j2 - 9, i2 + l + 4, j2, backgroundAlpha << 24);
+                                }
                                 String s = chatline.getChatComponent().getFormattedText();
                                 GlStateManager.enableBlend();
-                                this.mc.fontRendererObj.drawStringWithShadow(s, (float) i2, (float) (j2 - 8), 16777215 + (l1 << 24));
+                                this.mc.fontRendererObj.drawString(s, (float) i2, (float) (j2 - 8), 16777215 + (l1 << 24), !customRendering || customChat.useShadow());
                                 GlStateManager.disableAlpha();
                                 GlStateManager.disableBlend();
                             }
@@ -120,6 +158,11 @@ public class GuiNewChat extends Gui {
                 }
 
                 GlStateManager.popMatrix();
+            } else {
+                cn.unfair.module.modules.render.Chat customChat = cn.unfair.module.modules.render.Chat.getModule();
+                if (customChat != null && customChat.shouldRenderChat()) {
+                    customChat.setVisibleLines(0);
+                }
             }
         }
         }
@@ -436,5 +479,9 @@ public class GuiNewChat extends Gui {
 
     public int getLineCount() {
         return this.getChatHeight() / 9;
+    }
+
+    public int getScrollPos() {
+        return this.scrollPos;
     }
 }

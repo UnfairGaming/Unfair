@@ -10,13 +10,13 @@ import cn.unfair.module.Module;
 import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
+import cn.unfair.util.animation.normal.easing.EaseInOutQuad;
 import cn.unfair.util.client.KeyBindUtil;
 import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.client.RandomUtil;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.util.rotation.RotationUtil;
-import cn.unfair.util.render.AnimationUtil;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.world.BlockUtil;
 import net.minecraft.block.Block;
@@ -72,7 +72,7 @@ public class BlockIn extends Module {
     private float circleProgress;
     private float animStartProgress;
     private float animTargetProgress;
-    private long animStartTime;
+    private final EaseInOutQuad circleAnimation = new EaseInOutQuad(50, 1);
 
     private boolean lastTargetAdjacent;
     private int lastSlot = -1;
@@ -165,7 +165,7 @@ public class BlockIn extends Module {
             if (fillCount != lastFillCount) {
                 animStartProgress = circleProgress;
                 animTargetProgress = Math.max(0f, Math.min(1f, fillCount / 9f));
-                animStartTime = System.currentTimeMillis();
+                circleAnimation.reset();
                 lastFillCount = fillCount;
             }
         }
@@ -213,12 +213,10 @@ public class BlockIn extends Module {
         if (!this.isEnabled() || event.type() != EventType.PRE) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        long elapsed = System.currentTimeMillis() - animStartTime;
-        if (elapsed < 50L) {
-            float t = (float) elapsed / 50f;
-            circleProgress = AnimationUtil.lerp(animStartProgress, animTargetProgress, AnimationUtil.quadInOutEasing(t));
-        } else {
+        if (circleAnimation.isDone()) {
             circleProgress = animTargetProgress;
+        } else {
+            circleProgress = MathUtil.interpolate(animStartProgress, animTargetProgress, circleAnimation.getValueFloat());
         }
     }
 

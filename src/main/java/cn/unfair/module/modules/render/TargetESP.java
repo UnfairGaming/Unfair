@@ -9,10 +9,11 @@ import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.ModeProperty;
+import cn.unfair.util.animation.normal.Direction;
+import cn.unfair.util.animation.normal.easing.EaseLiner;
 import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.client.TimerUtil;
-import cn.unfair.util.render.AnimationUtil;
 import cn.unfair.util.render.ColorUtil;
 import cn.unfair.util.render.ProjectionUtil;
 import cn.unfair.util.render.RenderUtil;
@@ -56,8 +57,10 @@ public class TargetESP extends Module {
     private long lastHurtTime = 0;
     private EntityLivingBase target;
     private long lastTime = System.currentTimeMillis();
-    private long alphaStartTime = 0L;
+    private final EaseLiner fadeInAnimation = new EaseLiner(200, 1);
+    private final EaseLiner fadeOutAnimation = new EaseLiner(200, 1);
     private boolean hasFullyFadedIn = false;
+    private boolean fadeOutStarted = false;
 
     public TargetESP() {
         super("TargetESP", false, true);
@@ -78,10 +81,11 @@ public class TargetESP extends Module {
     @Override
     public void onEnabled() {
         target = null;
-        alphaStartTime = AnimationUtil.start();
+        this.resetFadeAnimations();
         displayTimer.reset();
         lastTime = System.currentTimeMillis();
         hasFullyFadedIn = false;
+        fadeOutStarted = false;
         prevCircleStep = 0;
         circleStep = 0;
     }
@@ -89,7 +93,6 @@ public class TargetESP extends Module {
     @Override
     public void onDisabled() {
         target = null;
-        alphaStartTime = 0L;
     }
 
     private void setTarget(EntityLivingBase newTarget) {
@@ -100,10 +103,17 @@ public class TargetESP extends Module {
         if (target != newTarget) {
             target = newTarget;
             lastTime = System.currentTimeMillis();
-            alphaStartTime = AnimationUtil.start();
+            this.resetFadeAnimations();
             hasFullyFadedIn = false;
+            fadeOutStarted = false;
         }
         displayTimer.reset();
+    }
+
+    private void resetFadeAnimations() {
+        fadeInAnimation.reset();
+        fadeOutAnimation.setDirection(Direction.BACKWARDS);
+        fadeOutAnimation.reset();
     }
 
     private EntityLivingBase getKillAuraTarget() {
@@ -191,16 +201,24 @@ public class TargetESP extends Module {
         long displayElapsed = displayTimer.getElapsedTime();
 
         if (!hasFullyFadedIn) {
-            if (!AnimationUtil.finished(alphaStartTime, 200.0F)) {
-                return AnimationUtil.progress(alphaStartTime, 200.0F, mc.timer.renderPartialTicks, 0);
-            } else {
+            float alpha = fadeInAnimation.getValueFloat();
+            if (alpha >= 1.0F) {
                 hasFullyFadedIn = true;
                 return 1.0f;
             }
+            return alpha;
         } else {
             if (displayElapsed > 800) {
-                return 1.0F - AnimationUtil.progress(System.currentTimeMillis() - (displayElapsed - 800L), 200.0F, mc.timer.renderPartialTicks, 0);
+                if (!fadeOutStarted) {
+                    fadeOutStarted = true;
+                    fadeOutAnimation.reset();
+                }
+                return fadeOutAnimation.getValueFloat();
             } else {
+                if (fadeOutStarted) {
+                    fadeOutStarted = false;
+                    fadeOutAnimation.reset();
+                }
                 return 1.0f;
             }
         }

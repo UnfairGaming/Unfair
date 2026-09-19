@@ -4,12 +4,15 @@ import cn.unfair.module.modules.render.TargetHUD;
 import cn.unfair.module.modules.render.targethud.TargetHUDMode;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.PercentProperty;
+import cn.unfair.util.animation.normal.Direction;
+import cn.unfair.util.animation.normal.easing.EaseBackIn;
+import cn.unfair.util.animation.normal.easing.EaseOutQuad;
 import cn.unfair.util.client.AndroidUtil;
-import cn.unfair.util.render.AnimationUtil;
 import cn.unfair.util.client.MathUtil;
-import cn.unfair.util.render.RenderUtil;
+import cn.unfair.util.client.TimerUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
+import cn.unfair.util.render.RenderUtil;
 import net.minecraft.util.MathHelper;
 
 import java.awt.*;
@@ -19,6 +22,10 @@ import java.math.RoundingMode;
 public class UnfairTargetHUD extends TargetHUDMode {
     public final PercentProperty background = new PercentProperty("Background", 65);
     public final BooleanProperty animations = new BooleanProperty("Animations", true);
+    private final EaseBackIn popAnimation = new EaseBackIn(400, 1, 1.70158F);
+    private final EaseOutQuad hurtAnimation = new EaseOutQuad(500, 1);
+    private TimerUtil lastFadeTimer;
+    private int lastHurtTicks = -1;
 
     public UnfairTargetHUD() {
         super("Unfair");
@@ -32,8 +39,9 @@ public class UnfairTargetHUD extends TargetHUDMode {
         if (fadeAlpha <= 0) {
             return;
         }
+        this.updatePopAnimation(targetHUD);
         float progress = fadeAlpha / 255.0F;
-        float scale = AnimationUtil.popScale(progress);
+        float scale = 0.82F + this.popAnimation.getValueFloat() * 0.18F;
         float centerX = x + width / 2.0F;
         float centerY = y + height / 2.0F;
 
@@ -47,10 +55,7 @@ public class UnfairTargetHUD extends TargetHUDMode {
         float absorptionRatio = MathHelper.clamp_float(absorption / maxHealth, 0.0F, 1.0F);
         float space = width - 43.0F;
         int[] colors = targetHUD.getRavenGradientColors();
-        float partialTicks = TargetHUD.mc.timer.renderPartialTicks;
-        float hurtProgress = data.entity().hurtTime == 0
-                ? 0.0F
-                : MathHelper.clamp_float((data.entity().hurtTime - partialTicks) / 10.0F, 0.0F, 1.0F);
+        this.updateHurtAnimation(data.entity().hurtTime);
 
         if (this.background.getValue() > 0) {
             int backgroundAlpha = (int) (this.background.getValue() / 100.0F * fadeAlpha);
@@ -109,8 +114,9 @@ public class UnfairTargetHUD extends TargetHUDMode {
         infoFont.drawStringWithShadow(diff, x + 115.0F - infoFont.getStringWidth(diff), y + 17.0F, RenderUtil.mergeAlpha(Color.LIGHT_GRAY.getRGB(), fadeAlpha));
         net.minecraft.client.renderer.GlStateManager.popMatrix();
 
-        float headHurtScale = 1.0F - 0.15F * AnimationUtil.easeOutQuad(hurtProgress);
-        int greenBlue = (int) (255.0F * (1.0F - 0.75F * hurtProgress));
+        float hurtValue = this.hurtAnimation.getValueFloat();
+        float headHurtScale = 1.0F - 0.15F * hurtValue;
+        int greenBlue = (int) (255.0F * (1.0F - 0.75F * hurtValue));
         Color headColor = new Color(255, MathHelper.clamp_int(greenBlue, 0, 255), MathHelper.clamp_int(greenBlue, 0, 255), fadeAlpha);
         float baseHeadX = RenderUtil.scaleAround(x + 2.5F, centerX, scale);
         float baseHeadY = RenderUtil.scaleAround(y + 2.5F, centerY, scale);
@@ -157,7 +163,8 @@ public class UnfairTargetHUD extends TargetHUDMode {
         if (fadeAlpha <= 0) {
             return;
         }
-        float scale = AnimationUtil.popScale(fadeAlpha / 255.0F);
+        this.updatePopAnimation(targetHUD);
+        float scale = 0.82F + this.popAnimation.getValueFloat() * 0.18F;
         float centerX = x + size[0] / 2.0F;
         float centerY = y + size[1] / 2.0F;
         RenderUtil.enableRenderState();
@@ -170,6 +177,29 @@ public class UnfairTargetHUD extends TargetHUDMode {
                 RenderUtil.mergeAlpha(color, (color >> 24 & 255) * fadeAlpha / 255)
         );
         RenderUtil.disableRenderState();
+    }
+
+    private void updatePopAnimation(TargetHUD targetHUD) {
+        if (targetHUD.fadeTimer != null && targetHUD.fadeTimer != this.lastFadeTimer) {
+            this.lastFadeTimer = targetHUD.fadeTimer;
+            this.popAnimation.setDirection(targetHUD.fadingIn ? Direction.FORWARDS : Direction.BACKWARDS);
+            this.popAnimation.reset();
+        }
+    }
+
+    private void updateHurtAnimation(int hurtTicks) {
+        if (hurtTicks > 0 && lastHurtTicks <= 0) {
+            hurtAnimation.setEndPoint(1);
+            hurtAnimation.setDirection(Direction.BACKWARDS);
+            hurtAnimation.reset();
+        } else if (hurtTicks >= 10 && lastHurtTicks > 0 && lastHurtTicks < 10) {
+            hurtAnimation.setEndPoint(1);
+            hurtAnimation.setDirection(Direction.BACKWARDS);
+            hurtAnimation.reset();
+        } else if (hurtTicks == 0 && lastHurtTicks > 0) {
+            hurtAnimation.setValue(0);
+        }
+        lastHurtTicks = hurtTicks;
     }
 
     private float getAnimatedHealth(TargetHUD targetHUD, float fallbackHealth) {

@@ -9,7 +9,7 @@ import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.client.AndroidUtil;
 import cn.unfair.util.render.RenderUtil;
-import cn.unfair.util.shader.GlowESPBlurShader;
+import cn.unfair.util.shader.GlowShader;
 import cn.unfair.util.shader.ShaderUtil;
 import lombok.Getter;
 import net.minecraft.block.BlockChest;
@@ -46,7 +46,7 @@ public class ChestESP extends Module {
     public final FloatProperty glowExposure = new FloatProperty("GlowExposure", 2.0F, 0.5F, 3.5F, () -> this.mode.getValue() == 1);
     public final IntProperty glowRadius = new IntProperty("GlowRadius", 5, 2, 30, () -> this.mode.getValue() == 1);
     private final List<BlockPos> openedChests = new CopyOnWriteArrayList<>();
-    private GlowESPBlurShader blurShader;
+    private GlowShader blurShader;
     private boolean glowAvailable;
     @Getter
     private boolean renderingGlowChests = false;
@@ -61,7 +61,7 @@ public class ChestESP extends Module {
                 this.glowAvailable = false;
                 return;
             }
-            this.blurShader = new GlowESPBlurShader();
+            this.blurShader = new GlowShader();
             this.glowAvailable = true;
         } catch (RuntimeException exception) {
             this.glowAvailable = false;
@@ -195,6 +195,7 @@ public class ChestESP extends Module {
             this.glowFrameBuffer.bindFramebuffer(true);
             this.blurShader.use();
             this.blurShader.setup(2.0F, 0.0F, radius, this.glowExposure.getValue(), color);
+            GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
             RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
             ShaderUtil.drawQuads();
             this.blurShader.stop();
@@ -205,9 +206,9 @@ public class ChestESP extends Module {
             this.blurShader.use();
             this.blurShader.setup(0.0F, 2.0F, radius, this.glowExposure.getValue(), color, true);
             RenderUtil.bindTexture(this.glowFrameBuffer.framebufferTexture);
-            GL13.glActiveTexture(GL13.GL_TEXTURE16);
+            GlStateManager.setActiveTexture(GL13.GL_TEXTURE16);
             RenderUtil.bindTexture(this.framebuffer.framebufferTexture);
-            GL13.glActiveTexture(GL13.GL_TEXTURE0);
+            GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
             ShaderUtil.drawQuads();
             this.blurShader.stop();
         } finally {

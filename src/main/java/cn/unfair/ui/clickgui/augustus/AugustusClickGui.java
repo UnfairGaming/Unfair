@@ -3,9 +3,7 @@ package cn.unfair.ui.clickgui.augustus;
 import cn.unfair.Unfair;
 import cn.unfair.config.Config;
 import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.RenderBloomEvent;
-import cn.unfair.events.RenderBlurEvent;
+import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.Category;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.ClickGui;
@@ -19,6 +17,7 @@ import cn.unfair.ui.clickgui.augustus.panel.CategoryPanel;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.render.RenderUtil;
+import cn.unfair.util.shader.ShaderElement;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -1186,31 +1185,12 @@ public class AugustusClickGui extends GuiScreen {
     }
 
     @EventTarget
-    public void onRenderBlur(RenderBlurEvent event) {
+    public void onRender2D(Render2DEvent event) {
         if (mc.currentScreen != this) {
             return;
         }
-        if (event.getType() == EventType.PRE) {
-            event.setCancelled(true);
-            return;
-        }
-        if (event.getType() == EventType.POST) {
-            renderPostProcessMask(0xFFFFFFFF);
-        }
-    }
-
-    @EventTarget
-    public void onRenderBloom(RenderBloomEvent event) {
-        if (mc.currentScreen != this) {
-            return;
-        }
-        if (event.getType() == EventType.PRE) {
-            event.setCancelled(true);
-            return;
-        }
-        if (event.getType() == EventType.POST) {
-            renderPostProcessMask(0xFFFFFFFF);
-        }
+        ShaderElement.addBlurTask(() -> this.renderPostProcessMask(0xFFFFFFFF));
+        ShaderElement.addBloomTask(() -> this.renderPostProcessMask(0xFFFFFFFF));
     }
 
     private void renderPostProcessMask(int color) {

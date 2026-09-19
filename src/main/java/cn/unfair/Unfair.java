@@ -33,6 +33,7 @@ public class Unfair {
     public static PlayerStateManager playerStateManager;
     public static FriendManager friendManager;
     public static TargetManager targetManager;
+    public static BotManager botManager;
     public static PropertyManager propertyManager;
     public static ModuleManager moduleManager;
     public static CommandManager commandManager;
@@ -56,16 +57,18 @@ public class Unfair {
         playerStateManager = new PlayerStateManager();
         friendManager = new FriendManager();
         targetManager = new TargetManager();
+        botManager = new BotManager();
         propertyManager = new PropertyManager();
         moduleManager = new ModuleManager();
         commandManager = new CommandManager();
         widgetManager = new WidgetManager();
-        widgetConfig = new WidgetConfig("widgets");
+        widgetConfig = new WidgetConfig();
         EventManager.register(rotationManager);
         EventManager.register(floatManager);
         EventManager.register(blinkManager);
         EventManager.register(delayManager);
         EventManager.register(lagManager);
+        EventManager.register(botManager);
         EventManager.register(moduleManager);
         EventManager.register(commandManager);
         EventManager.register(new AdvancedJitterHandler());

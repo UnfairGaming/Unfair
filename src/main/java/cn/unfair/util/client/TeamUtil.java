@@ -60,24 +60,10 @@ public class TeamUtil {
     }
 
     public static boolean isBot(EntityPlayer player) {
-        if (player == TeamUtil.mc.thePlayer) {
+        if (player == TeamUtil.mc.thePlayer || Unfair.botManager == null) {
             return false;
         }
-        NetworkPlayerInfo playerInfo = mc.getNetHandler().getPlayerInfo(player.getName());
-        if (playerInfo == null) {
-            return true;
-        }
-        if (!ServerUtil.isHypixel()) return false;
-        if (player.getName().startsWith("§k")) {
-            return player.isInvisible();
-        }
-        if (playerInfo.getResponseTime() < 1) {
-            return true;
-        }
-        ScorePlayerTeam playerTeam = playerInfo.getPlayerTeam();
-        if (playerTeam == null) return false;
-        if (!playerTeam.getTeamName().isEmpty()) return false;
-        return playerTeam.getColorPrefix().equals("§c");
+        return Unfair.botManager.contains(player);
     }
 
     public static boolean isSameTeam(EntityPlayer player) {
@@ -124,7 +110,7 @@ public class TeamUtil {
 
     public static boolean shouldBlockRenderBot(EntityPlayer player) {
         AntiBot antiBot = getModule(AntiBot.class);
-        return antiBot != null && antiBot.isEnabled() && antiBot.render.getValue() && isBot(player);
+        return antiBot != null && antiBot.isEnabled() && isBot(player);
     }
 
     public static boolean shouldBlockRenderTeam(EntityPlayer player) {

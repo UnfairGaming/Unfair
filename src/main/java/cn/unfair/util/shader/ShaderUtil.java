@@ -78,6 +78,98 @@ public class ShaderUtil {
             "    vec3 colored = result.rgb / max(result.a, 0.0001) * color;\n" +
             "    gl_FragColor = vec4(colored, finalAlpha);\n" +
             "}";
+    private static final String KAWASE_DOWN = "#version 120\n" +
+            "uniform sampler2D inTexture;\n" +
+            "uniform vec2 offset, halfpixel, iResolution;\n" +
+            "void main() {\n" +
+            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
+            "    vec4 sum = texture2D(inTexture, gl_TexCoord[0].st) * 4.0;\n" +
+            "    sum += texture2D(inTexture, uv - halfpixel.xy * offset);\n" +
+            "    sum += texture2D(inTexture, uv + halfpixel.xy * offset);\n" +
+            "    sum += texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    sum += texture2D(inTexture, uv - vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    gl_FragColor = vec4(sum.rgb * .125, 1.0);\n" +
+            "}";
+    private static final String KAWASE_UP = "#version 120\n" +
+            "uniform sampler2D inTexture, textureToCheck;\n" +
+            "uniform vec2 halfpixel, offset, iResolution;\n" +
+            "uniform int check;\n" +
+            "void main() {\n" +
+            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
+            "    vec4 sum = texture2D(inTexture, uv + vec2(-halfpixel.x * 2.0, 0.0) * offset);\n" +
+            "    sum += texture2D(inTexture, uv + vec2(-halfpixel.x, halfpixel.y) * offset) * 2.0;\n" +
+            "    sum += texture2D(inTexture, uv + vec2(0.0, halfpixel.y * 2.0) * offset);\n" +
+            "    sum += texture2D(inTexture, uv + vec2(halfpixel.x, halfpixel.y) * offset) * 2.0;\n" +
+            "    sum += texture2D(inTexture, uv + vec2(halfpixel.x * 2.0, 0.0) * offset);\n" +
+            "    sum += texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset) * 2.0;\n" +
+            "    sum += texture2D(inTexture, uv + vec2(0.0, -halfpixel.y * 2.0) * offset);\n" +
+            "    sum += texture2D(inTexture, uv + vec2(-halfpixel.x, -halfpixel.y) * offset) * 2.0;\n" +
+            "    gl_FragColor = vec4(sum.rgb / 12.0, mix(1.0, texture2D(textureToCheck, gl_TexCoord[0].st).a, check));\n" +
+            "}";
+    private static final String GLOW = "#version 120\n" +
+            "uniform sampler2D textureIn, textureToCheck;\n" +
+            "uniform vec2 texelSize, direction;\n" +
+            "uniform vec3 color;\n" +
+            "uniform bool avoidTexture;\n" +
+            "uniform float exposure, radius;\n" +
+            "uniform float weights[256];\n" +
+            "\n" +
+            "#define offset direction * texelSize\n" +
+            "\n" +
+            "void main() {\n" +
+            "    if (direction.y == 1 && avoidTexture) {\n" +
+            "        if (texture2D(textureToCheck, gl_TexCoord[0].st).a != 0.0) discard;\n" +
+            "    }\n" +
+            "    vec4 innerColor = texture2D(textureIn, gl_TexCoord[0].st);\n" +
+            "    innerColor.rgb *= innerColor.a;\n" +
+            "    innerColor *= weights[0];\n" +
+            "    for (float r = 1.0; r <= radius; r++) {\n" +
+            "        vec4 colorCurrent1 = texture2D(textureIn, gl_TexCoord[0].st + offset * r);\n" +
+            "        vec4 colorCurrent2 = texture2D(textureIn, gl_TexCoord[0].st - offset * r);\n" +
+            "\n" +
+            "        colorCurrent1.rgb *= colorCurrent1.a;\n" +
+            "        colorCurrent2.rgb *= colorCurrent2.a;\n" +
+            "\n" +
+            "        innerColor += (colorCurrent1 + colorCurrent2) * weights[int(r)];\n" +
+            "    }\n" +
+            "\n" +
+            "    gl_FragColor = vec4(innerColor.rgb / innerColor.a, mix(innerColor.a, 1.0 - exp(-innerColor.a * exposure), step(0.0, direction.y)));\n" +
+            "}";
+    private static final String KAWASE_UP_GLOW = "#version 120\n" +
+            "uniform sampler2D inTexture, textureToCheck;\n" +
+            "uniform vec2 halfpixel, offset, iResolution;\n" +
+            "uniform bool check;\n" +
+            "uniform float lastPass;\n" +
+            "uniform float exposure;\n" +
+            "void main() {\n" +
+            "    if(check && texture2D(textureToCheck, gl_TexCoord[0].st).a != 0.0) discard;\n" +
+            "    vec2 uv = vec2(gl_FragCoord.xy / iResolution);\n" +
+            "    vec4 sum = texture2D(inTexture, uv + vec2(-halfpixel.x * 2.0, 0.0) * offset);\n" +
+            "    sum.rgb *= sum.a;\n" +
+            "    vec4 smpl1 =  texture2D(inTexture, uv + vec2(-halfpixel.x, halfpixel.y) * offset);\n" +
+            "    smpl1.rgb *= smpl1.a;\n" +
+            "    sum += smpl1 * 2.0;\n" +
+            "    vec4 smp2 = texture2D(inTexture, uv + vec2(0.0, halfpixel.y * 2.0) * offset);\n" +
+            "    smp2.rgb *= smp2.a;\n" +
+            "    sum += smp2;\n" +
+            "    vec4 smp3 = texture2D(inTexture, uv + vec2(halfpixel.x, halfpixel.y) * offset);\n" +
+            "    smp3.rgb *= smp3.a;\n" +
+            "    sum += smp3 * 2.0;\n" +
+            "    vec4 smp4 = texture2D(inTexture, uv + vec2(halfpixel.x * 2.0, 0.0) * offset);\n" +
+            "    smp4.rgb *= smp4.a;\n" +
+            "    sum += smp4;\n" +
+            "    vec4 smp5 = texture2D(inTexture, uv + vec2(halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    smp5.rgb *= smp5.a;\n" +
+            "    sum += smp5 * 2.0;\n" +
+            "    vec4 smp6 = texture2D(inTexture, uv + vec2(0.0, -halfpixel.y * 2.0) * offset);\n" +
+            "    smp6.rgb *= smp6.a;\n" +
+            "    sum += smp6;\n" +
+            "    vec4 smp7 = texture2D(inTexture, uv + vec2(-halfpixel.x, -halfpixel.y) * offset);\n" +
+            "    smp7.rgb *= smp7.a;\n" +
+            "    sum += smp7 * 2.0;\n" +
+            "    vec4 result = sum / 12.0;\n" +
+            "    gl_FragColor = vec4(result.rgb / result.a, mix(result.a, 1.0 - exp(-result.a * exposure), step(0.0, lastPass)));\n" +
+            "}";
     private static int cachedDisplayWidth = -1;
     private static int cachedDisplayHeight = -1;
     private static int cachedGuiScale = -1;
@@ -220,10 +312,18 @@ public class ShaderUtil {
 
     private String loadFragment(String name) {
         switch (name) {
+            case "kawaseDown":
+                return KAWASE_DOWN;
+            case "kawaseUp":
+                return KAWASE_UP;
             case "kawaseDownBloom":
                 return KAWASE_DOWN_BLOOM;
             case "kawaseUpBloom":
                 return KAWASE_UP_BLOOM;
+            case "glow":
+                return GLOW;
+            case "kawaseUpGlow":
+                return KAWASE_UP_GLOW;
             default:
                 return name.trim().startsWith("#version") || !name.contains(":") ? name : loadResource(name);
         }

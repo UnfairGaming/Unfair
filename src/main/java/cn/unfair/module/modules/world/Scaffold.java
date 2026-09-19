@@ -6,16 +6,18 @@ import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.*;
+import cn.unfair.util.animation.normal.Direction;
+import cn.unfair.util.animation.normal.easing.EaseBackIn;
+import cn.unfair.util.animation.normal.easing.EaseOutQuad;
 import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.client.RandomUtil;
-import cn.unfair.util.client.TimerUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import cn.unfair.util.player.*;
 import cn.unfair.util.rotation.RayCastUtil;
-import cn.unfair.util.render.AnimationUtil;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.rotation.RotationUtil;
+import cn.unfair.util.shader.ShaderElement;
 import cn.unfair.util.via.ModernOffhandInteraction;
 import cn.unfair.util.world.BlockUtil;
 import net.minecraft.block.*;
@@ -138,8 +140,9 @@ public class Scaffold extends Module {
     public final IntProperty blockCountOffset = new IntProperty("BlockCountYOffset", 0, 0, 200);
     public final PercentProperty blockCountOpacity = new PercentProperty("BlockCountOpacity", 70, this.blockCount::getValue);
     private final Deque<Long> godBridgeRightClicks = new ArrayDeque<>();
-    private final TimerUtil blockCountTransitionTimer = new TimerUtil();
-    private final TimerUtil blockCountPopTimer = new TimerUtil();
+    private final EaseOutQuad blockCountAnimation = new EaseOutQuad((int) BLOCK_COUNT_ANIMATION_MS, 1);
+    private final EaseOutQuad blockCountAlphaAnimation = new EaseOutQuad((int) BLOCK_COUNT_POP_MS, 1);
+    private final EaseBackIn blockCountPopAnimation = new EaseBackIn((int) BLOCK_COUNT_POP_MS, 1, 1.70158F);
     private SlotData slot;
     private SlotData blockSlot;
     private int oldSlot;
@@ -327,8 +330,9 @@ public class Scaffold extends Module {
         this.oldSlot = mc.thePlayer.inventory.currentItem;
         this.blockSlot = null;
         blockCountAnimationInitialized = false;
-        blockCountTransitionTimer.setTime();
-        blockCountPopTimer.setTime();
+        blockCountAnimation.reset();
+        blockCountAlphaAnimation.reset();
+        blockCountPopAnimation.reset();
         blockCountDisplay = 0.0F;
         blockCountTransitionStart = 0.0F;
         blockCountTarget = 0;
@@ -487,20 +491,21 @@ public class Scaffold extends Module {
         if (shouldRender && !blockCountVisible) {
             blockCountVisible = true;
             blockCountHiding = false;
-            blockCountPopTimer.reset();
+            this.resetBlockCountPop();
             blockCountAnimationInitialized = false;
         } else if (shouldRender && blockCountHiding) {
             blockCountHiding = false;
-            blockCountPopTimer.reset();
+            this.resetBlockCountPop();
         } else if (!shouldRender && blockCountVisible && !blockCountHiding) {
             blockCountHiding = true;
-            blockCountPopTimer.reset();
+            blockCountAlphaAnimation.setDirection(Direction.BACKWARDS);
+            blockCountPopAnimation.setDirection(Direction.BACKWARDS);
         }
         if (mc.thePlayer == null || !blockCountVisible) {
             return false;
         }
 
-        if (blockCountHiding && blockCountPopTimer.getElapsedTime() >= BLOCK_COUNT_POP_MS) {
+        if (blockCountHiding && blockCountAlphaAnimation.isDone()) {
             blockCountVisible = false;
             blockCountHiding = false;
             blockCountAnimationInitialized = false;
@@ -512,30 +517,29 @@ public class Scaffold extends Module {
             blockCountDisplay = newCount;
             blockCountTransitionStart = newCount;
             blockCountTarget = newCount;
-            blockCountTransitionTimer.reset();
+            blockCountAnimation.reset();
             blockCountAnimationInitialized = true;
         } else if (newCount != blockCountTarget) {
             blockCountTransitionStart = blockCountDisplay;
             blockCountTarget = newCount;
-            blockCountTransitionTimer.reset();
+            blockCountAnimation.reset();
         }
 
-        float countProgress = Math.clamp(
-                blockCountTransitionTimer.getElapsedTime() / BLOCK_COUNT_ANIMATION_MS, 0.0F, 1.0F
-        );
         blockCountDisplay = MathUtil.interpolate(
-                blockCountTransitionStart, blockCountTarget, AnimationUtil.easeOutQuad(countProgress)
+                blockCountTransitionStart, blockCountTarget, blockCountAnimation.getValueFloat()
         );
         return this.getBlockCountAlpha() > 0;
     }
 
-    private float getBlockCountEntryProgress() {
-        float progress = Math.clamp(blockCountPopTimer.getElapsedTime() / BLOCK_COUNT_POP_MS, 0.0F, 1.0F);
-        return blockCountHiding ? 1.0F - progress : progress;
+    private void resetBlockCountPop() {
+        blockCountAlphaAnimation.reset();
+        blockCountAlphaAnimation.setDirection(Direction.FORWARDS);
+        blockCountPopAnimation.reset();
+        blockCountPopAnimation.setDirection(Direction.FORWARDS);
     }
 
     private int getBlockCountAlpha() {
-        return Math.clamp((int) (AnimationUtil.easeOutQuad(this.getBlockCountEntryProgress()) * 255.0F), 0, 255);
+        return Math.clamp((int) (blockCountAlphaAnimation.getValueFloat() * 255.0F), 0, 255);
     }
 
     private boolean shouldRenderBlockCountFrame() {
@@ -563,7 +567,7 @@ public class Scaffold extends Module {
                 top,
                 width,
                 height,
-                AnimationUtil.popScale(this.getBlockCountEntryProgress()),
+                0.82F + this.blockCountPopAnimation.getValueFloat() * 0.18F,
                 this.getBlockCountAlpha(),
                 count,
                 label,
@@ -1918,31 +1922,10 @@ public class Scaffold extends Module {
         GlStateManager.disableBlend();
         GlStateManager.enableDepth();
         GlStateManager.popMatrix();
-    }
 
-    @EventTarget
-    public void onRenderBlur(RenderBlurEvent event) {
-        if (event.getType() == EventType.PRE) {
-            if (this.updateBlockCountAnimation()) {
-                event.setCancelled(true);
-            }
-            return;
-        }
-        if (event.getType() == EventType.POST) {
-            this.renderBlockCountMask(0xFF000000);
-        }
-    }
-
-    @EventTarget
-    public void onRenderBloom(RenderBloomEvent event) {
-        if (event.getType() == EventType.PRE) {
-            if (this.updateBlockCountAnimation()) {
-                event.setCancelled(true);
-            }
-            return;
-        }
-        if (event.getType() == EventType.POST) {
-            this.renderBlockCountMask(0xFFFFFFFF);
+        if (this.shouldRenderBlockCountFrame()) {
+            ShaderElement.addBlurTask(() -> this.renderBlockCountMask(0xFF000000));
+            ShaderElement.addBloomTask(() -> this.renderBlockCountMask(0xFFFFFFFF));
         }
     }
 

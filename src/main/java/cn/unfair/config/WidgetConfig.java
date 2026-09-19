@@ -16,8 +16,8 @@ public class WidgetConfig {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final File file;
 
-    public WidgetConfig(String name) {
-        this.file = new File("./config/Unfair/Widget/", name + ".json");
+    public WidgetConfig() {
+        this.file = new File("./config/Unfair/Widget/", "Widget.json");
     }
 
     public void load() {
