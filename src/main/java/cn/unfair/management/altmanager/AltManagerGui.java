@@ -6,6 +6,7 @@ import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.font.FontRenderer;
 import cn.unfair.util.font.Fonts;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -28,7 +29,6 @@ public class AltManagerGui extends GuiScreen {
     private static final int PANEL = new Color(34, 34, 34).getRGB();
     private static final int LIGHT = new Color(254, 254, 254).getRGB();
     private static final int MUTED = new Color(153, 153, 153).getRGB();
-    private static final float BUTTON_RADIUS = 7.0F;
     public static String status = "§aIdle";
     private static File altFile;
     private final List<Button> buttons = new ArrayList<>();
@@ -239,8 +239,7 @@ public class AltManagerGui extends GuiScreen {
     private void drawToolbar() {
         for (Button button : buttons) {
             boolean hovered = button.contains(mouseX, mouseY);
-            MainMenuStyle.drawButton(button.x, button.y, button.w, button.h, BUTTON_RADIUS, hovered);
-            MainMenuStyle.drawCenteredInBox(font18, button.text, button.x, button.y, button.w, button.h, LIGHT);
+            GuiButton.drawCustomButton(button.x, button.y, button.w, button.h, true, hovered, button.text);
         }
     }
 
@@ -282,8 +281,7 @@ public class AltManagerGui extends GuiScreen {
 
     private void drawDialogButton(float x, float y, float w, float h, String text) {
         boolean hovered = inside(mouseX, mouseY, x, y, w, h);
-        MainMenuStyle.drawButton(x, y, w, h, BUTTON_RADIUS, hovered);
-        MainMenuStyle.drawCenteredInBox(font18, text, x, y, w, h, LIGHT);
+        GuiButton.drawCustomButton(x, y, w, h, true, hovered, text);
     }
 
     @Override

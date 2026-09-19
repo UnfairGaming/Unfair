@@ -1,10 +1,21 @@
 package net.minecraft.client.gui;
 
+import cn.unfair.Unfair;
+import cn.unfair.module.modules.render.HUD;
+import cn.unfair.module.modules.render.Interface;
+import cn.unfair.module.modules.render.PostProcessing;
+import cn.unfair.util.animation.simple.SimpleAnimation;
+import cn.unfair.util.font.FontRenderer;
+import cn.unfair.util.font.Fonts;
+import cn.unfair.util.render.RenderUtil;
+import cn.unfair.util.shader.ShaderElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+
+import java.awt.*;
+import java.util.WeakHashMap;
 
 public class GuiButton extends Gui {
     protected static final ResourceLocation buttonTextures = ResourceLocation.of("textures/gui/widgets.png");
@@ -38,6 +49,8 @@ public class GuiButton extends Gui {
      */
     protected int height;
     protected boolean hovered;
+
+    private static final WeakHashMap<GuiButton, SimpleAnimation> hoverAnimations = new WeakHashMap<>();
 
     public GuiButton(int buttonId, int x, int y, String buttonText) {
         this(buttonId, x, y, 200, 20, buttonText);
@@ -77,27 +90,112 @@ public class GuiButton extends Gui {
      */
     public void drawButton(Minecraft mc, int mouseX, int mouseY) {
         if (this.visible) {
-            FontRenderer fontrenderer = mc.fontRendererObj;
-            mc.getTextureManager().bindTexture(buttonTextures);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
             this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
-            int i = this.getHoverState(this.hovered);
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.blendFunc(770, 771);
-            this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height);
-            this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-            this.mouseDragged(mc, mouseX, mouseY);
-            int j = 14737632;
 
-            if (!this.enabled) {
-                j = 10526880;
-            } else if (this.hovered) {
-                j = 16777120;
+            if (GuiButton.isCustomButtonEnabled()) {
+                float hoverScale = this.getHoverScale();
+                float centerX = this.xPosition + this.width / 2.0F;
+                float centerY = this.yPosition + this.height / 2.0F;
+                float x = RenderUtil.scaleAround(this.xPosition, centerX, hoverScale);
+                float y = RenderUtil.scaleAround(this.yPosition, centerY, hoverScale);
+                float w = this.width * hoverScale;
+                float h = this.height * hoverScale;
+                GuiButton.drawCustomButton(x, y, w, h, this.enabled, this.hovered, this.displayString);
+            } else {
+                FontRenderer fontrenderer = mc.fontRendererObj;
+                mc.getTextureManager().bindTexture(buttonTextures);
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                int i = this.getHoverState(this.hovered);
+                GlStateManager.enableBlend();
+                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+                GlStateManager.blendFunc(770, 771);
+                this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height);
+                this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+                int j = 14737632;
+
+                if (!this.enabled) {
+                    j = 10526880;
+                } else if (this.hovered) {
+                    j = 16777120;
+                }
+
+                this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);
             }
 
-            this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);
+            this.mouseDragged(mc, mouseX, mouseY);
         }
+    }
+
+    private float getHoverScale() {
+        SimpleAnimation animation = hoverAnimations.computeIfAbsent(this, ignored -> new SimpleAnimation(1.0F));
+        animation.setAnimation(this.hovered && this.enabled ? 0.96F : 1.0F, 12.0F);
+        return animation.getValue();
+    }
+
+    public static void drawCustomButton(float x, float y, float width, float height, boolean enabled, boolean hovered, String text) {
+        Color hudColor = HUD.getColor(System.currentTimeMillis());
+        int backgroundAlpha = GuiButton.getButtonAlpha();
+        int backgroundColor = enabled
+                ? new Color(hudColor.getRed(), hudColor.getGreen(), hudColor.getBlue(), backgroundAlpha).getRGB()
+                : new Color(hudColor.getRed(), hudColor.getGreen(), hudColor.getBlue(), backgroundAlpha * 2 / 3).getRGB();
+        float radius = GuiButton.getButtonRadius();
+
+        RenderUtil.drawRoundedRectangle(x, y, width, height, radius, backgroundColor);
+
+        if (GuiButton.isBlurEnabled()) {
+            ShaderElement.addBlurTask(() -> RenderUtil.drawRoundedRectangle(x, y, width, height, radius, 0xFF000000));
+        }
+        if (GuiButton.isBloomEnabled()) {
+            ShaderElement.addBloomTask(() -> RenderUtil.drawRoundedRectangle(x, y, width, height, radius, 0xFFFFFFFF));
+        }
+
+        FontRenderer font = Fonts.interMedium.get(16.0F);
+        String content = text == null ? "" : text;
+        float textX = x + width / 2.0F - font.getStringWidth(content) / 2.0F;
+        float textY = y + font.getMiddleOfBox(height);
+        int textColor = enabled ? (hovered ? 0xE6FFFFFF : 0xC8FFFFFF) : 0x59FFFFFF;
+        font.drawStringWithShadow(content, textX, textY, textColor);
+    }
+
+    private static HUD getHud() {
+        if (Unfair.moduleManager == null) {
+            return null;
+        }
+        return (HUD) Unfair.moduleManager.getModule(HUD.class);
+    }
+
+    protected static float getButtonRadius() {
+        HUD hud = GuiButton.getHud();
+        return hud != null ? hud.roundRadius.getValue() : 2.5F;
+    }
+
+    protected static int getButtonAlpha() {
+        HUD hud = GuiButton.getHud();
+        return hud != null ? hud.background.getValue() * 255 / 100 : 127;
+    }
+
+    protected static boolean isCustomButtonEnabled() {
+        if (Unfair.moduleManager == null) {
+            return true;
+        }
+        Interface iface = (Interface) Unfair.moduleManager.getModule(Interface.class);
+        return iface == null || iface.customButton.getValue();
+    }
+
+    protected static boolean isBlurEnabled() {
+        return GuiButton.postProcessingEnabled(false);
+    }
+
+    protected static boolean isBloomEnabled() {
+        return GuiButton.postProcessingEnabled(true);
+    }
+
+    private static boolean postProcessingEnabled(boolean bloom) {
+        if (Unfair.moduleManager == null) {
+            return false;
+        }
+        PostProcessing pp = (PostProcessing) Unfair.moduleManager.getModule(PostProcessing.class);
+        return pp != null && pp.isEnabled() && (bloom ? pp.bloom.getValue() : pp.blur.getValue());
     }
 
     /**

@@ -41,7 +41,6 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
     private static final int BUTTON_WIDTH = 120;
     private static final int BUTTON_HEIGHT = 23;
     private static final int BUTTON_GAP = 6;
-    private static final int BUTTON_RADIUS = 7;
     private static final String[] CUSTOM_SPLASHES = {
             "Math.random() bypass",
             "Math.abs() bypass",
@@ -482,8 +481,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
             boolean hovered = button.enabled && this.inside(mouseX, mouseY, button.xPosition, button.yPosition, button.width, button.height);
             this.updateButtonAnimation(i, button, hovered);
 
-            MainMenuStyle.drawButton(this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], BUTTON_RADIUS, hovered);
-            MainMenuStyle.drawCenteredInBox(this.buttonFont, button.displayString, button.xPosition, button.yPosition, button.width, button.height, -1);
+            GuiButton.drawCustomButton(this.animatedX[i], this.animatedY[i], this.animatedW[i], this.animatedH[i], button.enabled, hovered, button.displayString);
         }
     }
 
