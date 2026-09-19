@@ -6,6 +6,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.RenderItemEvent;
 import cn.unfair.events.SwingAnimationEvent;
+import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
@@ -26,6 +27,10 @@ public class Animations extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final double PI2 = Math.PI * 2.0D;
     private static final float HALF_TURN = 180.0F;
+    private static final float CROUCH_START_HEIGHT = 1.62F;
+    private static final float CROUCH_END_HEIGHT = 1.54F;
+    private static float eyeHeight = CROUCH_START_HEIGHT;
+    private static float lastEyeHeight = CROUCH_START_HEIGHT;
 
     public final ModeProperty blockAnimation = new ModeProperty("BlockAnimation", 0, new String[]{
             "None", "1.7", "Sunny", "Lucid", "Astro", "Smooth", "Spin", "Leaked", "Old",
@@ -49,6 +54,7 @@ public class Animations extends Module {
     public final BooleanProperty oldBlockBreak = new BooleanProperty("1.7Blockbreak", true);
     public final BooleanProperty oldDebug = new BooleanProperty("1.7DebugMenu", true);
     public final BooleanProperty oldEat = new BooleanProperty("1.7Eat", true);
+    public final BooleanProperty smoothCrouch = new BooleanProperty("SmoothCrouch", true);
     private boolean sentStartDestroyBlock;
 
     public Animations() {
@@ -111,11 +117,44 @@ public class Animations extends Module {
     @Override
     public void onEnabled() {
         this.sentStartDestroyBlock = false;
+        eyeHeight = CROUCH_START_HEIGHT;
+        lastEyeHeight = CROUCH_START_HEIGHT;
     }
 
     @Override
     public void onDisabled() {
         this.sentStartDestroyBlock = false;
+        eyeHeight = CROUCH_START_HEIGHT;
+        lastEyeHeight = CROUCH_START_HEIGHT;
+    }
+
+    /**
+     * Smooth crouch animation (ported from FPSMaster): eases the client eye height
+     * between standing (1.62) and sneaking (1.54) instead of snapping instantly.
+     */
+    @EventTarget
+    public void onTick(TickEvent event) {
+        if (!this.isEnabled() || event.type() != EventType.PRE || mc.thePlayer == null) {
+            return;
+        }
+        lastEyeHeight = eyeHeight;
+        if (mc.thePlayer.isSneaking()) {
+            eyeHeight = CROUCH_END_HEIGHT;
+        } else if (!this.smoothCrouch.getValue()) {
+            eyeHeight = CROUCH_START_HEIGHT;
+        } else if (eyeHeight < CROUCH_START_HEIGHT) {
+            float delta = CROUCH_START_HEIGHT - eyeHeight;
+            delta *= 0.4F;
+            eyeHeight = CROUCH_START_HEIGHT - delta;
+        }
+    }
+
+    public static float getClientEyeHeight(float partialTicks) {
+        Animations animations = instance();
+        if (animations == null || !animations.isEnabled() || !animations.smoothCrouch.getValue()) {
+            return mc.thePlayer != null ? mc.thePlayer.getEyeHeight() : CROUCH_START_HEIGHT;
+        }
+        return lastEyeHeight + (eyeHeight - lastEyeHeight) * partialTicks;
     }
 
     @EventTarget
