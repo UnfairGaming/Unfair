@@ -72,6 +72,23 @@ public class BlockUtil {
         return !(block instanceof BlockTNT);
     }
 
+    /**
+     * Whether a block in the world can serve as physical support: the player can stand
+     * on it and blocks can be placed against its faces. Unlike {@link #isSolid(Block)},
+     * stairs, slabs and falling blocks (sand/gravel) count as support even though they
+     * should not be selected as bridge items.
+     */
+    public static boolean isWorldSolid(BlockPos blockPos) {
+        return isWorldSolid(BlockUtil.mc.theWorld.getBlockState(blockPos).getBlock());
+    }
+
+    public static boolean isWorldSolid(Block block) {
+        if (block instanceof BlockStairs || block instanceof BlockSlab || block instanceof BlockFalling) {
+            return true;
+        }
+        return isSolid(block);
+    }
+
     public static Vec3 getHitVec(BlockPos blockPos, EnumFacing enumFacing, float yaw, float pitch) {
         MovingObjectPosition movingObjectPosition = RayCastUtil.rayTrace(yaw, pitch, BlockUtil.mc.playerController.getBlockReachDistance(), 1.0f);
         if (movingObjectPosition != null) {

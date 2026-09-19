@@ -883,7 +883,7 @@ public class Scaffold extends Module {
             return false;
         }
         return !BlockUtil.isReplaceable(pos)
-                && BlockUtil.isSolid(block)
+                && BlockUtil.isWorldSolid(block)
                 && !BlockUtil.isInteractable(pos);
     }
 
@@ -897,7 +897,7 @@ public class Scaffold extends Module {
                 || block.getCollisionBoundingBox(mc.theWorld, pos, state) == null
                 || block instanceof BlockContainer
                 || block instanceof BlockWorkbench
-                || !BlockUtil.isSolid(block)) {
+                || !BlockUtil.isWorldSolid(block)) {
             return false;
         }
         for (Entity entity : mc.theWorld.loadedEntityList) {
@@ -1622,7 +1622,10 @@ public class Scaffold extends Module {
 
         if (mc.thePlayer.onGround) {
             bridgeJumping = false;
-            posY = MathHelper.floor_double(mc.thePlayer.posY - 1);
+            // Ground level = the block whose top face supports the feet. Using the bounding box
+            // bottom keeps this correct when standing on half-blocks/stairs (feet at x.5 heights)
+            // instead of assuming feet always sit at an integer height.
+            posY = MathHelper.floor_double(mc.thePlayer.getEntityBoundingBox().minY - 0.001D);
         }
         if (mc.gameSettings.keyBindJump.isKeyDown() || bridgeJumping) {
             posY = mc.thePlayer.getPosition().getY() - 1;
@@ -1651,7 +1654,7 @@ public class Scaffold extends Module {
             fallingPlayer.calculate(1);
             BlockData placement = getBlockData(new BlockPos(
                     MathHelper.floor_double(mc.thePlayer.posX),
-                    mc.thePlayer.getPosition().getY() - 1,
+                    (int) posY,
                     MathHelper.floor_double(mc.thePlayer.posZ)
             ));
             if (placement != null) {
@@ -1676,7 +1679,7 @@ public class Scaffold extends Module {
                 );
                 if (blockData.blockPos().getY() > fallingPlayer.getY() && !box.isVecInside(new Vec3(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ))) {
                     canPlace = true;
-                    posY = mc.thePlayer.getPosition().getY() - 1;
+                    posY = MathHelper.floor_double(mc.thePlayer.getEntityBoundingBox().minY - 0.001D);
                     blockData = getBlockData(new BlockPos(
                             MathHelper.floor_double(mc.thePlayer.posX),
                             MathHelper.floor_double(posY),
