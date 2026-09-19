@@ -448,6 +448,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 this.mc.thePlayer.setItemInUse(this.mc.thePlayer.inventory.getCurrentItem());
                 this.mc.thePlayer.setItemInUseCount(69000);
             } else if (autoblock != null && autoblock.isEnabled() && autoblock.forceBlockAnimation.getValue()
+                    && autoblock.hasTarget()
                     && (Mouse.isButtonDown(0) || killAuraAttacking)) {
                 ItemStack currentItem = this.mc.thePlayer.inventory.getCurrentItem();
                 if (currentItem != null && currentItem.getItem() instanceof ItemSword) {

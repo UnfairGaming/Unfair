@@ -112,6 +112,7 @@ public class AutoBlock extends Module {
             return;
         }
         if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            this.currentTarget = null;
             return;
         }
         if (!this.isReady()) {
@@ -223,20 +224,7 @@ public class AutoBlock extends Module {
                 && this.isValidTarget(player, maxDistanceSquared)) {
             return player;
         }
-
-        EntityPlayer closest = null;
-        double closestDistanceSquared = Double.MAX_VALUE;
-        for (Entity entity : mc.theWorld.loadedEntityList) {
-            if (!(entity instanceof EntityPlayer player) || !this.isValidTarget(player, maxDistanceSquared)) {
-                continue;
-            }
-            double distanceSquared = this.getDistanceSquaredToBox(player);
-            if (distanceSquared < closestDistanceSquared) {
-                closestDistanceSquared = distanceSquared;
-                closest = player;
-            }
-        }
-        return closest;
+        return null;
     }
 
     private boolean isValidTarget(EntityPlayer player, double maxDistanceSquared) {
@@ -328,6 +316,13 @@ public class AutoBlock extends Module {
 
     public boolean isActive() {
         return this.isEnabled() && (this.blocking || this.lagging);
+    }
+
+    /**
+     * Whether AutoBlock currently has a valid player target in range.
+     */
+    public boolean hasTarget() {
+        return this.currentTarget != null;
     }
 
     private void resetState(boolean releaseUseKey) {
