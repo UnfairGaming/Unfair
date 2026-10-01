@@ -13,7 +13,6 @@ import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
-import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.player.ItemUtil;
 import cn.unfair.util.render.RenderUtil;
@@ -41,8 +40,6 @@ public class LagRange extends Module {
     public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", true);
     public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
     public final ModeProperty showPosition = new ModeProperty("ShowPosition", 0, new String[]{"None", "Default", "Hud"});
-    private int tickIndex = -1;
-    private long delayCounter = 0L;
     private boolean hasTarget = false;
     private Vec3 lastPosition = null;
     private Vec3 currentPosition = null;
@@ -104,36 +101,24 @@ public class LagRange extends Module {
                                 .filter(this::isValidTarget)
                                 .collect(Collectors.toList());
                         if (players.isEmpty()) {
-                            this.tickIndex = -1;
-                        } else {
-                            double height = mc.thePlayer.getEyeHeight();
-                            Vec3 eyePosition = Unfair.lagManager.getLastPosition().addVector(0.0, height, 0.0);
-                            Vec3 targetEyePosition = new Vec3(mc.thePlayer.lastTickPosX, mc.thePlayer.lastTickPosY + height, mc.thePlayer.lastTickPosZ);
-                            Vec3 playerEyePosition = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + height, mc.thePlayer.posZ);
-                            for (EntityPlayer player : players) {
-                                double distance = RotationUtil.distanceToBox(player, playerEyePosition);
-                                if (!(distance > (double) this.range.getValue())) {
-                                    double targetDist = RotationUtil.distanceToBox(player, targetEyePosition);
-                                    double eyeDist = RotationUtil.distanceToBox(player, eyePosition);
-                                    if (distance < targetDist || distance < eyeDist) {
-                                        if (this.tickIndex < 0) {
-                                            this.tickIndex = 0;
-                                            for (this.delayCounter = this.delayCounter + (long) this.delay.getValue();
-                                                 this.delayCounter > 0L;
-                                                 this.delayCounter = this.delayCounter - 50
-                                            ) {
-                                                this.tickIndex++;
-                                            }
-                                        }
-                                        Unfair.lagManager.setDelay(this.tickIndex);
-                                        this.hasTarget = true;
-                                        return;
-                                    }
+                            return;
+                        }
+                        double height = mc.thePlayer.getEyeHeight();
+                        Vec3 eyePosition = Unfair.lagManager.getLastPosition().addVector(0.0, height, 0.0);
+                        Vec3 targetEyePosition = new Vec3(mc.thePlayer.lastTickPosX, mc.thePlayer.lastTickPosY + height, mc.thePlayer.lastTickPosZ);
+                        Vec3 playerEyePosition = new Vec3(mc.thePlayer.posX, mc.thePlayer.posY + height, mc.thePlayer.posZ);
+                        for (EntityPlayer player : players) {
+                            double distance = RotationUtil.distanceToBox(player, playerEyePosition);
+                            if (!(distance > (double) this.range.getValue())) {
+                                double targetDist = RotationUtil.distanceToBox(player, targetEyePosition);
+                                double eyeDist = RotationUtil.distanceToBox(player, eyePosition);
+                                if (distance < targetDist || distance < eyeDist) {
+                                    Unfair.lagManager.setDelay(this.delay.getValue());
+                                    this.hasTarget = true;
+                                    return;
                                 }
                             }
                         }
-                    } else {
-                        this.tickIndex = -1;
                     }
                     break;
                 case POST:
@@ -153,7 +138,6 @@ public class LagRange extends Module {
         if (this.isEnabled()) {
             if (this.shouldResetOnPacket(event.getPacket())) {
                 Unfair.lagManager.setDelay(0);
-                this.tickIndex = -1;
             }
         }
     }
@@ -201,19 +185,8 @@ public class LagRange extends Module {
     }
 
     @Override
-    public void onEnabled() {
-        BackTrack backTrack = (BackTrack) Unfair.moduleManager.modules.get(BackTrack.class);
-        if (backTrack.isEnabled()) {
-            this.setEnabled(false);
-            ChatUtil.dbg("Disabled LagRange because BackTrack is Enabled");
-        }
-    }
-
-    @Override
     public void onDisabled() {
         Unfair.lagManager.setDelay(0);
-        this.tickIndex = -1;
-        this.delayCounter = 0L;
         this.hasTarget = false;
         this.lastPosition = null;
         this.currentPosition = null;

@@ -23,13 +23,19 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class LagManager {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final Deque<LagPacket> packetQueue;
-    private int tickDelay;
+    public final Deque<LagPacket> incomingQueue;
+    private int lagRangeDelay;
+    private boolean backTrackLagging;
+    private int backTrackDelay;
     private boolean flushing;
     private Vec3 lastPosition;
 
     public LagManager() {
         this.packetQueue = new ConcurrentLinkedDeque<>();
-        this.tickDelay = 0;
+        this.incomingQueue = new ConcurrentLinkedDeque<>();
+        this.lagRangeDelay = 0;
+        this.backTrackLagging = false;
+        this.backTrackDelay = 0;
         this.flushing = false;
         this.lastPosition = new Vec3(0.0, 0.0, 0.0);
     }
@@ -38,15 +44,25 @@ public class LagManager {
         return mc.thePlayer != null && mc.theWorld != null && mc.getNetHandler() != null;
     }
 
+    private boolean isDue(LagPacket lagPacket, long now) {
+        if (this.lagRangeDelay > 0 && now - lagPacket.millis < this.lagRangeDelay) {
+            return false;
+        }
+        return !(this.backTrackLagging && this.backTrackDelay > 0 && now - lagPacket.millis < this.backTrackDelay);
+    }
+
     private void flushQueue() {
         if (!this.isInWorld()) {
             this.packetQueue.clear();
         } else {
-            for (this.flushing = true; !this.packetQueue.isEmpty(); this.packetQueue.poll()) {
-                LagPacket lagPacket = this.packetQueue.peek();
-                if (this.tickDelay > 0 && lagPacket.delay <= this.tickDelay) {
+            this.flushing = true;
+            long now = System.currentTimeMillis();
+            LagPacket lagPacket;
+            while ((lagPacket = this.packetQueue.peek()) != null) {
+                if (!this.isDue(lagPacket, now)) {
                     break;
                 }
+                this.packetQueue.poll();
                 PacketUtil.sendPacketNoEvent(lagPacket.packet);
                 if (lagPacket.packet instanceof C03PacketPlayer c03) {
                     if (c03.isMoving()) {
@@ -58,8 +74,29 @@ public class LagManager {
         }
     }
 
-    private void incrementDelays() {
-        this.packetQueue.forEach(z -> z.delay++);
+    private void flushIncomingQueue() {
+        if (!this.isInWorld()) {
+            this.incomingQueue.clear();
+        } else {
+            long now = System.currentTimeMillis();
+            LagPacket lagPacket;
+            while ((lagPacket = this.incomingQueue.peek()) != null) {
+                if (this.backTrackLagging && this.backTrackDelay > 0 && now - lagPacket.millis < this.backTrackDelay) {
+                    break;
+                }
+                this.incomingQueue.poll();
+                PacketUtil.receivePacketNoEvent(lagPacket.packet);
+            }
+        }
+    }
+
+    private void reset() {
+        this.setDelay(0);
+        this.backTrackLagging = false;
+        this.backTrackDelay = 0;
+        this.packetQueue.clear();
+        this.incomingQueue.clear();
+        this.flushing = false;
     }
 
     public boolean handlePacket(Packet<?> packet) {
@@ -70,7 +107,7 @@ public class LagManager {
         this.flushQueue();
         if (packet instanceof C00PacketKeepAlive || packet instanceof C01PacketChatMessage) {
             return false;
-        } else if ((long) this.tickDelay > 0L) {
+        } else if (this.lagRangeDelay > 0 || (this.backTrackLagging && this.backTrackDelay > 0)) {
             this.packetQueue.offer(new LagPacket(packet));
             return true;
         } else {
@@ -83,8 +120,30 @@ public class LagManager {
         }
     }
 
+    public boolean handleIncomingPacket(Packet<?> packet) {
+        if (!this.isInWorld()) {
+            this.incomingQueue.clear();
+            return false;
+        }
+        if (!this.backTrackLagging || this.backTrackDelay <= 0) {
+            return false;
+        }
+        this.incomingQueue.offer(new LagPacket(packet, true));
+        return true;
+    }
+
     public void setDelay(int delay) {
-        this.tickDelay = delay;
+        this.lagRangeDelay = Math.max(0, delay);
+    }
+
+    public void setBackTrackState(boolean lagging, int delayMs) {
+        boolean wasLagging = this.backTrackLagging;
+        this.backTrackLagging = lagging;
+        this.backTrackDelay = Math.max(0, delayMs);
+        if (wasLagging && !lagging) {
+            this.flushQueue();
+            this.flushIncomingQueue();
+        }
     }
 
     public Vec3 getLastPosition() {
@@ -97,18 +156,23 @@ public class LagManager {
 
     @EventTarget
     public void onTick(TickEvent event) {
-        if (event.type() == EventType.POST) {
+        if (event.type() == EventType.PRE) {
             if (!this.isInWorld()) {
-                this.setDelay(0);
-                this.packetQueue.clear();
-                this.flushing = false;
+                this.reset();
+            } else {
+                this.flushQueue();
+                this.flushIncomingQueue();
+            }
+        } else if (event.type() == EventType.POST) {
+            if (!this.isInWorld()) {
+                this.reset();
                 return;
             }
             if (mc.thePlayer.isDead) {
-                this.setDelay(0);
+                this.reset();
             }
-            this.incrementDelays();
             this.flushQueue();
+            this.flushIncomingQueue();
         }
     }
 
@@ -125,11 +189,16 @@ public class LagManager {
 
     public static class LagPacket {
         public final Packet<?> packet;
-        public int delay;
+        public final boolean incoming;
+        public final long millis = System.currentTimeMillis();
 
         public LagPacket(Packet<?> packet) {
+            this(packet, false);
+        }
+
+        public LagPacket(Packet<?> packet, boolean incoming) {
             this.packet = packet;
-            this.delay = 0;
+            this.incoming = incoming;
         }
     }
 }

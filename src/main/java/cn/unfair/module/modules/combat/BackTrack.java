@@ -8,11 +8,9 @@ import cn.unfair.module.Module;
 import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
-import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.render.RenderUtil;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.client.TimerUtil;
-import cn.unfair.util.player.BackTrackUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import cn.unfair.util.rotation.advanced.AdvancedRotationMath;
 import net.minecraft.client.Minecraft;
@@ -179,11 +177,6 @@ public class BackTrack extends Module {
 
     @Override
     public void onEnabled() {
-        LagRange lagRange = (LagRange) Unfair.moduleManager.modules.get(LagRange.class);
-        if (lagRange.isEnabled()) {
-            lagRange.setEnabled(false);
-            ChatUtil.dbg("Disabled LagRange because BackTrack is Enabled");
-        }
         this.activeMode = this.mode.getValue();
         realPosition = zeroVec();
         realLastPos = zeroVec();
@@ -196,8 +189,7 @@ public class BackTrack extends Module {
 
     @Override
     public void onDisabled() {
-        BackTrackUtil.disable();
-        BackTrackUtil.dispatch();
+        Unfair.lagManager.setBackTrackState(false, 0);
         shouldLag = false;
         realPosition = null;
         realLastPos = null;
@@ -221,9 +213,7 @@ public class BackTrack extends Module {
         }
 
         this.checkModeChange();
-        if (event.type() == EventType.PRE) {
-            BackTrackUtil.onPreTick();
-        } else if (event.type() == EventType.POST) {
+        if (event.type() == EventType.POST) {
             if (this.target != null && realPosition != null) {
                 this.lastRenderPos = this.currentRenderPos;
                 this.currentRenderPos = realPosition;
@@ -251,13 +241,12 @@ public class BackTrack extends Module {
     private void runLegitReach() {
         if (mc.thePlayer == null || mc.theWorld == null) {
             this.resetTargetState();
-            BackTrackUtil.onPostTick();
+            Unfair.lagManager.setBackTrackState(false, 0);
             return;
         }
 
         if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
             this.stopLaggingForRespawn();
-            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -270,14 +259,13 @@ public class BackTrack extends Module {
         }
         if (this.isVelocityDelaying()) {
             this.pauseForVelocityDelay();
-            BackTrackUtil.onPostTick();
             return;
         }
 
         EntityLivingBase newTarget = this.getTarget(9.0D);
         if (newTarget == null) {
             this.resetTargetState();
-            BackTrackUtil.onPostTick();
+            Unfair.lagManager.setBackTrackState(false, 0);
             return;
         }
 
@@ -294,7 +282,7 @@ public class BackTrack extends Module {
         if (!mc.thePlayer.isSwingInProgress && (killAura == null || !killAura.isEnabled())) {
             shouldLag = false;
             this.isBackTracking = false;
-            BackTrackUtil.onPostTick();
+            Unfair.lagManager.setBackTrackState(false, 0);
             return;
         }
 
@@ -303,19 +291,18 @@ public class BackTrack extends Module {
         shouldLag = realDistance > clientDistance && realDistance > 2.3D && realDistance < 5.9D;
         this.isBackTracking = shouldLag;
 
-        BackTrackUtil.onPostTick();
+        Unfair.lagManager.setBackTrackState(false, 0);
     }
 
     private void runBackTrack() {
         if (mc.thePlayer == null || mc.theWorld == null) {
             this.isBackTracking = false;
-            BackTrackUtil.onPostTick();
+            Unfair.lagManager.setBackTrackState(false, 0);
             return;
         }
 
         if (mc.thePlayer.isDead || mc.currentScreen instanceof GuiGameOver) {
             this.stopLaggingForRespawn();
-            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -328,7 +315,6 @@ public class BackTrack extends Module {
         }
         if (this.isVelocityDelaying()) {
             this.pauseForVelocityDelay();
-            BackTrackUtil.onPostTick();
             return;
         }
 
@@ -340,7 +326,7 @@ public class BackTrack extends Module {
         if (this.target == null) {
             this.lastTarget = null;
             this.isBackTracking = false;
-            BackTrackUtil.onPostTick();
+            Unfair.lagManager.setBackTrackState(false, 0);
             return;
         }
         if (this.target != this.lastTarget || realPosition == null || realLastPos == null) {
@@ -394,7 +380,7 @@ public class BackTrack extends Module {
         this.isBackTracking = shouldLag;
 
         this.attacked = false;
-        BackTrackUtil.onPostTick();
+        Unfair.lagManager.setBackTrackState(this.isBackTracking, this.getDelayMs());
     }
 
     @EventTarget
@@ -445,7 +431,9 @@ public class BackTrack extends Module {
                     }
                 }
             }
-            BackTrackUtil.onPacket(event, false);
+            if (Unfair.lagManager.handleIncomingPacket(event.getPacket())) {
+                event.setCancelled(true);
+            }
         } else if (event.getType() == EventType.SEND) {
             if (this.isClassic()
                     && packet instanceof C02PacketUseEntity
@@ -455,7 +443,6 @@ public class BackTrack extends Module {
                     && this.onlyWhenNeeded.getValue()) {
                 this.attackTimer.reset();
             }
-            BackTrackUtil.onPacket(event, true);
         }
     }
 
@@ -603,8 +590,7 @@ public class BackTrack extends Module {
             return;
         }
 
-        BackTrackUtil.disable();
-        BackTrackUtil.dispatch();
+        Unfair.lagManager.setBackTrackState(false, 0);
         this.activeMode = this.mode.getValue();
         this.resetTargetState();
         realPosition = zeroVec();
@@ -620,8 +606,7 @@ public class BackTrack extends Module {
 
     private void pauseForVelocityDelay() {
         if (this.isBackTracking || shouldLag || !this.dispatched) {
-            BackTrackUtil.disable();
-            BackTrackUtil.dispatch();
+            Unfair.lagManager.setBackTrackState(false, 0);
             this.dispatched = true;
         }
         shouldLag = false;
@@ -642,8 +627,7 @@ public class BackTrack extends Module {
     }
 
     private void stopLaggingForRespawn() {
-        BackTrackUtil.disable();
-        BackTrackUtil.dispatch();
+        Unfair.lagManager.setBackTrackState(false, 0);
         this.dispatched = true;
         this.resetTargetState();
     }
