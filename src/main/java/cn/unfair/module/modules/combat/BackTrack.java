@@ -5,7 +5,6 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.*;
 import cn.unfair.module.Module;
-import cn.unfair.module.SubModule;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.render.RenderUtil;
@@ -25,13 +24,11 @@ import net.minecraft.network.play.client.C16PacketClientStatus;
 import net.minecraft.network.play.server.S14PacketEntity;
 import net.minecraft.network.play.server.S18PacketEntityTeleport;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 
 import java.awt.*;
 import java.util.Comparator;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class BackTrack extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -50,8 +47,6 @@ public class BackTrack extends Module {
     public final BooleanProperty extraCheck = new BooleanProperty("ExtraCheck", true, this::isClassic);
     public final IntProperty ms = new IntProperty("DelayMs", 50, 0, 1000, this::isClassic);
     public final BooleanProperty extraMS = new BooleanProperty("ExtraMs", false, this::isClassic);
-    public final IntProperty extraRand = new IntProperty("ExtraRand", 50, 0, 500, this::isClassic);
-    public final IntProperty delayForNextLag = new IntProperty("DelayForNextLag", 0, 0, 1000, this::isClassic);
     public final IntProperty maxPingSpoof = new IntProperty("MaxPingSpoof", 1000, 50, 2000, this::isLegitReach);
     public final BooleanProperty renderRealLocation = new BooleanProperty("RenderRealLocation", true, this::isLegitReach);
     public final ModeProperty esp = new ModeProperty("RenderMode", 1, new String[]{"FakePlayer", "Box", "None"}, this::isClassic);
@@ -61,7 +56,6 @@ public class BackTrack extends Module {
     public final BooleanProperty players = new BooleanProperty("Players", true);
     public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
     public final BooleanProperty animals = new BooleanProperty("Animals", false);
-    private final TimerUtil relagTimer = new TimerUtil();
     private final TimerUtil attackTimer = new TimerUtil();
     public boolean isBackTracking;
     private Vec3 lastRenderPos;
@@ -72,7 +66,6 @@ public class BackTrack extends Module {
     private boolean outOfRange;
     private boolean attacked;
     private boolean velocityDelayWasActive;
-    private int nextRand;
     private int activeMode;
 
     public BackTrack() {
@@ -145,20 +138,6 @@ public class BackTrack extends Module {
         return Math.sqrt(x * x + y * y + z * z);
     }
 
-    private static int randomizeAround(int value) {
-        return (int) randomizeDouble(-value, value);
-    }
-
-    private static double randomizeDouble(double min, double max) {
-        if (min == max) {
-            return min;
-        }
-        if (Math.abs(min) < 1.0D || Math.abs(max) < 1.0D) {
-            return Math.random() * (max - min) + min;
-        }
-        return ThreadLocalRandom.current().nextDouble(min, max + 1.0D);
-    }
-
     private static Vec3 zeroVec() {
         return new Vec3(0.0D, 0.0D, 0.0D);
     }
@@ -172,7 +151,7 @@ public class BackTrack extends Module {
     }
 
     private int getDelayMs() {
-        return Math.max(0, this.ms.getValue() + this.nextRand);
+        return Math.max(0, this.ms.getValue());
     }
 
     @Override
