@@ -13,8 +13,6 @@ import java.util.ArrayList;
 
 public class ShaderElement {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public static ShaderUtil kawaseDown = new ShaderUtil("kawaseDown");
-    public static ShaderUtil kawaseUp = new ShaderUtil("kawaseUp");
     private static final Tessellator tessellator = Tessellator.getInstance();
     private static final WorldRenderer worldrenderer = tessellator.getWorldRenderer();
     private static final ArrayList<Runnable> tasks = new ArrayList<>();
@@ -45,9 +43,13 @@ public class ShaderElement {
         postBlurTasks.add(context);
     }
 
+    /**
+     * Kept for API compatibility; the legacy kawase shaders were eagerly compiled in
+     * the static initializer, which crashed startup on Android (the GLES/Vulkan shader
+     * translator rejects the GLSL 1.20 {@code texture2D} builtin). They were unused,
+     * so the fields were removed and this is now a no-op.
+     */
     public static void setupUniforms(float offset) {
-        kawaseDown.setUniformf("offset", offset, offset);
-        kawaseUp.setUniformf("offset", offset, offset);
     }
 
     public static void drawRect(double x, double y, double width, double height, int color) {
