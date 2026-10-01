@@ -49,6 +49,7 @@ public class HUD extends Module {
     public final FloatProperty roundRadius = new FloatProperty("RoundRadius", 2.5F, 0.0F, 10.0F);
     public final BooleanProperty showBar = new BooleanProperty("Bar", true);
     public final ModeProperty barPos = new ModeProperty("BarMode", 0, new String[]{"Left", "Right", "Top"}, this.showBar::getValue);
+    public final FloatProperty barWidth = new FloatProperty("BarWidth", 1.0F, 0.5F, 5.0F, () -> this.showBar.getValue() && this.barPos.getValue() != 2);
     public final BooleanProperty shadow = new BooleanProperty("Shadow", true);
     public final BooleanProperty suffixes = new BooleanProperty("Suffixes", true);
     public final BooleanProperty lowerCase = new BooleanProperty("LowerCase", false);
@@ -405,7 +406,7 @@ public class HUD extends Module {
             String[] moduleSuffix = this.getModuleSuffix(module);
             maxWidth = Math.max(maxWidth, (float) (this.calculateStringWidth(moduleName, moduleSuffix) - (this.shadow.getValue() ? 0 : 1)));
         }
-        float barExtra = this.showBar.getValue() && this.barPos.getValue() != 2 ? 3.0F * scale : 0.0F;
+        float barExtra = this.showBar.getValue() && this.barPos.getValue() != 2 ? (2.0F + this.barWidth.getValue()) * scale : 0.0F;
         float width = (maxWidth + 2.0F * scale + barExtra);
         float height = (renderList.size() * this.getEntryHeight() + 2.0F * scale);
         return new float[]{width, height};
@@ -660,6 +661,24 @@ public class HUD extends Module {
             }
         }
 
+        if (this.showBar.getValue()) {
+            if (barPos.getValue() == 0) {
+                radiusTL = 0;
+                radiusBL = 0;
+            } else if (barPos.getValue() == 1) {
+                radiusTR = 0;
+                radiusBR = 0;
+            } else if (offset == 0L) {
+                if (alignTop) {
+                    radiusTL = 0;
+                    radiusTR = 0;
+                } else {
+                    radiusBL = 0;
+                    radiusBR = 0;
+                }
+            }
+        }
+
         return new HudEntry(left, top, right, bottom, radiusTL, radiusTR, radiusBL, radiusBR);
     }
 
@@ -678,24 +697,24 @@ public class HUD extends Module {
 
         if (barPos.getValue() == 0) {
             if (alignLeft) {
-                barX = currentX - 2.0F * scale;
+                barX = currentX - (1.0F + this.barWidth.getValue()) * scale;
                 barX2 = currentX - scale;
             } else {
-                barX = currentX - totalWidth - 2.0F * scale;
+                barX = currentX - totalWidth - (1.0F + this.barWidth.getValue()) * scale;
                 barX2 = currentX - totalWidth - scale;
             }
-            barY = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : scale);
-            barY2 = currentY + height + (alignTop ? scale : (offset == 0L ? scale : 0.0F));
+            barY = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : (this.shadow.getValue() ? scale : 0.0F));
+            barY2 = currentY + height + (alignTop ? (this.shadow.getValue() ? scale : 0.0F) : (offset == 0L ? scale : 0.0F));
         } else if (barPos.getValue() == 1) {
             if (alignLeft) {
                 barX = currentX + totalWidth + scale;
-                barX2 = currentX + totalWidth + 2.0F * scale;
+                barX2 = currentX + totalWidth + (1.0F + this.barWidth.getValue()) * scale;
             } else {
                 barX = currentX + scale;
-                barX2 = currentX + 2.0F * scale;
+                barX2 = currentX + (1.0F + this.barWidth.getValue()) * scale;
             }
-            barY = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : scale);
-            barY2 = currentY + height + (alignTop ? scale : (offset == 0L ? scale : 0.0F));
+            barY = currentY - (alignTop ? (offset == 0L ? scale : 0.0F) : (this.shadow.getValue() ? scale : 0.0F));
+            barY2 = currentY + height + (alignTop ? (this.shadow.getValue() ? scale : 0.0F) : (offset == 0L ? scale : 0.0F));
         } else {
             if (offset == 0L) {
                 if (alignLeft) {
