@@ -1,7 +1,5 @@
 package cn.unfair.module.modules.movement;
 
-import cn.unfair.Unfair;
-import cn.unfair.enums.FloatModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
@@ -40,18 +38,17 @@ public class NoSlow extends Module {
     public final ModeProperty swordMode = new ModeProperty("SwordMode", 1, new String[]{"None", "Vanilla"});
     public final PercentProperty swordMotion = new PercentProperty("SwordMotion", 100, () -> this.swordMode.getValue() != 0);
     public final BooleanProperty swordSprint = new BooleanProperty("SwordSprint", true, () -> this.swordMode.getValue() != 0);
-    public final ModeProperty foodMode = new ModeProperty("FoodMode", 0, new String[]{"None", "Vanilla", "Float", "GrimAC", "Grim 1/3"});
-    public final PercentProperty foodMotion = new PercentProperty("FoodMotion", 100, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 4);
-    public final BooleanProperty foodSprint = new BooleanProperty("FoodSprint", true, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 4);
-    public final BooleanProperty c0fDelayKnockback = new BooleanProperty("C0fDelayKnockback", true, () -> this.foodMode.getValue() == 3);
-    public final BooleanProperty c0fDelayInteract = new BooleanProperty("C0fDelayInteract", true, () -> this.foodMode.getValue() == 3);
-    public final ModeProperty bowMode = new ModeProperty("BowMode", 0, new String[]{"None", "Vanilla", "Float", "Grim 1/3"});
-    public final PercentProperty bowMotion = new PercentProperty("BowMotion", 100, () -> this.bowMode.getValue() != 0 && this.bowMode.getValue() != 3);
-    public final BooleanProperty bowSprint = new BooleanProperty("BowSprint", true, () -> this.bowMode.getValue() != 0 && this.bowMode.getValue() != 3);
+    public final ModeProperty foodMode = new ModeProperty("FoodMode", 0, new String[]{"None", "Vanilla", "GrimAC", "Grim 1/3"});
+    public final PercentProperty foodMotion = new PercentProperty("FoodMotion", 100, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 3);
+    public final BooleanProperty foodSprint = new BooleanProperty("FoodSprint", true, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 3);
+    public final BooleanProperty c0fDelayKnockback = new BooleanProperty("C0fDelayKnockback", true, () -> this.foodMode.getValue() == 2);
+    public final BooleanProperty c0fDelayInteract = new BooleanProperty("C0fDelayInteract", true, () -> this.foodMode.getValue() == 2);
+    public final ModeProperty bowMode = new ModeProperty("BowMode", 0, new String[]{"None", "Vanilla", "Grim 1/3"});
+    public final PercentProperty bowMotion = new PercentProperty("BowMotion", 100, () -> this.bowMode.getValue() != 0 && this.bowMode.getValue() != 2);
+    public final BooleanProperty bowSprint = new BooleanProperty("BowSprint", true, () -> this.bowMode.getValue() != 0 && this.bowMode.getValue() != 2);
     private final LinkedBlockingQueue<Packet<?>> c0fPackets = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedVelocity = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<Packet<?>> c0fDelayedInteraction = new LinkedBlockingQueue<>();
-    private int lastSlot = -1;
     private C0FStep c0fStep = C0FStep.NONE;
     private int c0fNoUsingItemTicks = 0;
     private int c0fSwapSlowdownTicks = 0;
@@ -61,11 +58,11 @@ public class NoSlow extends Module {
     }
 
     private boolean isFoodC0F() {
-        return this.foodMode.getValue() == 3;
+        return this.foodMode.getValue() == 2;
     }
 
     private boolean isFoodGrim13() {
-        return this.foodMode.getValue() == 4;
+        return this.foodMode.getValue() == 3;
     }
 
     public boolean isFoodGrim13Active() {
@@ -78,7 +75,7 @@ public class NoSlow extends Module {
     }
 
     private boolean isBowGrim13() {
-        return this.bowMode.getValue() == 3;
+        return this.bowMode.getValue() == 2;
     }
 
     public boolean isBowGrim13Active() {
@@ -114,13 +111,8 @@ public class NoSlow extends Module {
 
     public boolean isBowActive() {
         return this.bowMode.getValue() != 0
-                && this.bowMode.getValue() != 3
+                && this.bowMode.getValue() != 2
                 && ItemUtil.isUsingBow();
-    }
-
-    public boolean isFloatMode() {
-        return this.foodMode.getValue() == 2 && ItemUtil.isEating()
-                || this.bowMode.getValue() == 2 && ItemUtil.isUsingBow();
     }
 
     public boolean isC0FActive() {
@@ -163,8 +155,6 @@ public class NoSlow extends Module {
         }
 
         if (this.isEnabled() && (this.isFoodGrim13Active() || this.isBowGrim13Active())) {
-            // Grim 1/3: the slowdown is only skipped on every third tick (gated in
-            // EntityPlayerSP#isUsingItemForSlowdown); here we just restore sprint.
             if (!mc.thePlayer.isSprinting()) {
                 mc.thePlayer.setSprinting(true);
             }
@@ -200,16 +190,6 @@ public class NoSlow extends Module {
     @EventTarget(Priority.LOW)
     public void onPlayerUpdate(PlayerUpdateEvent event) {
         this.handleC0FTick();
-        if (this.isEnabled() && this.isFloatMode()) {
-            int item = mc.thePlayer.inventory.currentItem;
-            if (this.lastSlot != item && PlayerUtil.isUsingItem()) {
-                this.lastSlot = item;
-                Unfair.floatManager.setFloatState(true, FloatModules.NO_SLOW);
-            }
-        } else {
-            this.lastSlot = -1;
-            Unfair.floatManager.setFloatState(false, FloatModules.NO_SLOW);
-        }
     }
 
     @EventTarget
@@ -233,10 +213,6 @@ public class NoSlow extends Module {
                         }
                 }
             }
-            if (this.isFloatMode() && !Unfair.floatManager.isPredicted() && mc.thePlayer.onGround) {
-                event.setCancelled(true);
-                mc.thePlayer.motionY = 0.42F;
-            }
         }
     }
 
@@ -252,8 +228,6 @@ public class NoSlow extends Module {
 
         boolean usingFood = ItemUtil.isEating() && mc.thePlayer.isUsingItem();
 
-        // Only force-release the use key while the C0F eating flow is actually engaged.
-        // Releasing it while idle would cancel bow draws, sword blocks and shield blocks.
         boolean shouldReleaseUseKey = this.c0fStep == C0FStep.CANCEL_C0F
                 || this.c0fStep == C0FStep.SWAP_HANDS
                 || this.c0fStep == C0FStep.NONE && usingFood;

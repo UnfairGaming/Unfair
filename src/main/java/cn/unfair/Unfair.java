@@ -26,7 +26,6 @@ public class Unfair {
     public static int skippedPlayerTicks;
     public static BadPacketManager badPacketManager;
     public static RotationManager rotationManager;
-    public static FloatManager floatManager;
     public static BlinkManager blinkManager;
     public static DelayManager delayManager;
     public static LagManager lagManager;
@@ -50,7 +49,6 @@ public class Unfair {
 
         badPacketManager = new BadPacketManager();
         rotationManager = new RotationManager();
-        floatManager = new FloatManager();
         blinkManager = new BlinkManager();
         delayManager = new DelayManager();
         lagManager = new LagManager();
@@ -64,7 +62,6 @@ public class Unfair {
         widgetManager = new WidgetManager();
         widgetConfig = new WidgetConfig();
         EventManager.register(rotationManager);
-        EventManager.register(floatManager);
         EventManager.register(blinkManager);
         EventManager.register(delayManager);
         EventManager.register(lagManager);
