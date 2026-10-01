@@ -5,7 +5,7 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.property.properties.BooleanProperty;
-import cn.unfair.property.properties.IntProperty;
+import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.util.rotation.RayCastUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
@@ -17,7 +17,7 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 
 public class FastPlace extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delay = new IntProperty("Delay", 1, 1, 3);
+    public final FloatProperty delay = new FloatProperty("Delay", 1.0F, 1.0F, 3.0F);
     public final BooleanProperty blocksOnly = new BooleanProperty("BlocksOnly", true);
     public final BooleanProperty placeFix = new BooleanProperty("PlaceFix", true);
     private long delayMS = 0L;
