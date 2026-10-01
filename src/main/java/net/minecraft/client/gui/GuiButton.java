@@ -135,11 +135,11 @@ public class GuiButton extends Gui {
     }
 
     public static void drawCustomButton(float x, float y, float width, float height, boolean enabled, boolean hovered, String text) {
-        Color hudColor = HUD.getColor(System.currentTimeMillis());
+        Color buttonColor = GuiButton.getButtonColor();
         int backgroundAlpha = GuiButton.getButtonAlpha();
         int backgroundColor = enabled
-                ? new Color(hudColor.getRed(), hudColor.getGreen(), hudColor.getBlue(), backgroundAlpha).getRGB()
-                : new Color(hudColor.getRed(), hudColor.getGreen(), hudColor.getBlue(), backgroundAlpha * 2 / 3).getRGB();
+                ? new Color(buttonColor.getRed(), buttonColor.getGreen(), buttonColor.getBlue(), backgroundAlpha).getRGB()
+                : new Color(buttonColor.getRed(), buttonColor.getGreen(), buttonColor.getBlue(), backgroundAlpha * 2 / 3).getRGB();
         float radius = GuiButton.getButtonRadius();
 
         RenderUtil.drawRoundedRectangle(x, y, width, height, radius, backgroundColor);
@@ -169,9 +169,10 @@ public class GuiButton extends Gui {
         float bh = height * scale;
 
         int backgroundAlpha = GuiButton.getButtonAlpha();
+        Color baseColor = GuiButton.isCustomButtonEnabled() ? GuiButton.getButtonColor() : Color.BLACK;
         int backgroundColor = enabled
-                ? new Color(0, 0, 0, backgroundAlpha).getRGB()
-                : new Color(0, 0, 0, backgroundAlpha * 2 / 3).getRGB();
+                ? new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), backgroundAlpha).getRGB()
+                : new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), backgroundAlpha * 2 / 3).getRGB();
 
         RenderUtil.drawRoundedRectangle(bx, by, bw, bh, 4.0F, backgroundColor);
 
@@ -221,6 +222,16 @@ public class GuiButton extends Gui {
             return null;
         }
         return (HUD) Unfair.moduleManager.getModule(HUD.class);
+    }
+
+    private static Color getButtonColor() {
+        if (Unfair.moduleManager != null) {
+            Interface iface = (Interface) Unfair.moduleManager.getModule(Interface.class);
+            if (iface != null && iface.isEnabled()) {
+                return iface.getButtonColor(System.currentTimeMillis());
+            }
+        }
+        return HUD.getColor(System.currentTimeMillis());
     }
 
     protected static float getButtonRadius() {
