@@ -42,7 +42,7 @@ public class LagRange extends Module {
     public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", true);
     public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
     public final ModeProperty esp = new ModeProperty("RenderMode", 3, new String[]{"FakePlayer", "Box", "OnlineBox", "None"});
-    public final ModeProperty boxColor = new ModeProperty("BoxColor", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.esp.getValue() == 1 || this.esp.getValue() == 2);
+    public final ModeProperty boxColor = new ModeProperty("BoxColor", 1, new String[]{"Default", "Hud", "Custom"}, () -> this.esp.getValue() == 1 || this.esp.getValue() == 2);
     public final ColorProperty boxCustomColor = new ColorProperty("BoxCustomColor", new Color(0, 0, 0).getRGB(), () -> (this.esp.getValue() == 1 || this.esp.getValue() == 2) && this.boxColor.getValue() == 2);
     public final FloatProperty outlineWidth = new FloatProperty("OutlineWidth", 1.0F, 0.0F, 5.0F, () -> this.esp.getValue() == 2);
     private boolean hasTarget = false;

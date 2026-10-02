@@ -50,7 +50,7 @@ public class BackTrack extends Module {
     public final IntProperty maxPingSpoof = new IntProperty("MaxPingSpoof", 1000, 50, 2000, this::isLegitReach);
     public final BooleanProperty renderRealLocation = new BooleanProperty("RenderRealLocation", true, this::isLegitReach);
     public final ModeProperty esp = new ModeProperty("RenderMode", 1, new String[]{"FakePlayer", "Box", "OnlineBox", "None"}, this::isClassic);
-    public final ModeProperty boxColor = new ModeProperty("BoxColor", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && (this.esp.getValue() == 1 || this.esp.getValue() == 2));
+    public final ModeProperty boxColor = new ModeProperty("BoxColor", 1, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && (this.esp.getValue() == 1 || this.esp.getValue() == 2));
     public final ColorProperty boxCustomColor = new ColorProperty("BoxCustomColor", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && (this.esp.getValue() == 1 || this.esp.getValue() == 2) && this.boxColor.getValue() == 2);
     public final FloatProperty outlineWidth = new FloatProperty("OutlineWidth", 1.0F, 0.0F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 2);
     public final BooleanProperty players = new BooleanProperty("Players", true);
