@@ -5,11 +5,13 @@ import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.Render3DEvent;
+import cn.unfair.events.RenderEntityEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.ColorProperty;
 import cn.unfair.property.properties.FloatProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.property.properties.ModeProperty;
@@ -39,7 +41,10 @@ public class LagRange extends Module {
     public final FloatProperty range = new FloatProperty("Range", 10.0F, 3.0F, 100.0F);
     public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", true);
     public final BooleanProperty allowTools = new BooleanProperty("AllowTools", false, this.weaponsOnly::getValue);
-    public final ModeProperty showPosition = new ModeProperty("ShowPosition", 0, new String[]{"None", "Default", "Hud"});
+    public final ModeProperty esp = new ModeProperty("RenderMode", 3, new String[]{"FakePlayer", "Box", "OnlineBox", "None"});
+    public final ModeProperty boxColor = new ModeProperty("BoxColor", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.esp.getValue() == 1 || this.esp.getValue() == 2);
+    public final ColorProperty boxCustomColor = new ColorProperty("BoxCustomColor", new Color(0, 0, 0).getRGB(), () -> (this.esp.getValue() == 1 || this.esp.getValue() == 2) && this.boxColor.getValue() == 2);
+    public final FloatProperty outlineWidth = new FloatProperty("OutlineWidth", 1.0F, 0.0F, 5.0F, () -> this.esp.getValue() == 2);
     private boolean hasTarget = false;
     private Vec3 lastPosition = null;
     private Vec3 currentPosition = null;
@@ -144,43 +149,79 @@ public class LagRange extends Module {
 
     @EventTarget(Priority.HIGH)
     public void onRender3D(Render3DEvent event) {
-        if (this.isEnabled()) {
-            if (this.showPosition.getValue() != 0
-                    && mc.gameSettings.thirdPersonView != 0
-                    && this.hasTarget
-                    && this.lastPosition != null
-                    && this.currentPosition != null) {
-                Color color = new Color(-1);
-                switch (this.showPosition.getValue()) {
-                    case 1:
-                        color = TeamUtil.getTeamColor(mc.thePlayer, 1.0F);
-                        break;
-                    case 2:
-                        Unfair.moduleManager.modules.get(HUD.class);
-                        color = HUD.getColor(System.currentTimeMillis());
-                }
-                double x = RenderUtil.lerpDouble(this.currentPosition.xCoord, this.lastPosition.xCoord, event.partialTicks());
-                double y = RenderUtil.lerpDouble(this.currentPosition.yCoord, this.lastPosition.yCoord, event.partialTicks());
-                double z = RenderUtil.lerpDouble(this.currentPosition.zCoord, this.lastPosition.zCoord, event.partialTicks());
-                float size = mc.thePlayer.getCollisionBorderSize();
-                AxisAlignedBB aabb = new AxisAlignedBB(
-                        x - (double) mc.thePlayer.width / 2.0,
-                        y,
-                        z - (double) mc.thePlayer.width / 2.0,
-                        x + (double) mc.thePlayer.width / 2.0,
-                        y + (double) mc.thePlayer.height,
-                        z + (double) mc.thePlayer.width / 2.0
-                )
-                        .expand(size, size, size)
-                        .offset(
-                                -mc.getRenderManager().getRenderPosX(),
-                                -mc.getRenderManager().getRenderPosY(),
-                                -mc.getRenderManager().getRenderPosZ()
-                        );
-                RenderUtil.enableRenderState();
-                RenderUtil.drawFilledBox(aabb, color.getRed(), color.getGreen(), color.getBlue());
-                RenderUtil.disableRenderState();
-            }
+        if (!this.isEnabled() || !this.hasTarget || (this.esp.getValue() != 1 && this.esp.getValue() != 2)) {
+            return;
+        }
+
+        if (mc.gameSettings.thirdPersonView == 0) {
+            return;
+        }
+
+        AxisAlignedBB bb = this.getRenderBox(event.partialTicks());
+        Color color = this.getBoxColor();
+        RenderUtil.enableRenderState();
+        RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue());
+        if (this.esp.getValue() == 2) {
+            RenderUtil.drawBoundingBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 255, this.outlineWidth.getValue());
+        }
+        RenderUtil.disableRenderState();
+    }
+
+    @EventTarget
+    public void onRenderEntity(RenderEntityEvent event) {
+        if (!this.isEnabled() || this.esp.getValue() != 0 || !this.hasTarget || mc.gameSettings.thirdPersonView == 0) {
+            return;
+        }
+
+        float partialTicks = mc.timer.renderPartialTicks;
+        Vec3 renderPosition = this.getRenderPosition(partialTicks).addVector(
+                -mc.getRenderManager().getRenderPosX(),
+                -mc.getRenderManager().getRenderPosY(),
+                -mc.getRenderManager().getRenderPosZ()
+        );
+
+        mc.getRenderManager().doRenderEntity(mc.thePlayer, renderPosition.xCoord, renderPosition.yCoord, renderPosition.zCoord, mc.thePlayer.rotationYawHead, partialTicks, true);
+    }
+
+    private Vec3 getRenderPosition(float partialTicks) {
+        if (this.currentPosition == null || this.lastPosition == null) {
+            return this.currentPosition != null ? this.currentPosition : Unfair.lagManager.getLastPosition();
+        }
+        return new Vec3(
+                RenderUtil.lerpDouble(this.currentPosition.xCoord, this.lastPosition.xCoord, partialTicks),
+                RenderUtil.lerpDouble(this.currentPosition.yCoord, this.lastPosition.yCoord, partialTicks),
+                RenderUtil.lerpDouble(this.currentPosition.zCoord, this.lastPosition.zCoord, partialTicks)
+        );
+    }
+
+    private AxisAlignedBB getRenderBox(float partialTicks) {
+        Vec3 position = this.getRenderPosition(partialTicks);
+        float size = mc.thePlayer.getCollisionBorderSize();
+        return new AxisAlignedBB(
+                position.xCoord - (double) mc.thePlayer.width / 2.0D,
+                position.yCoord,
+                position.zCoord - (double) mc.thePlayer.width / 2.0D,
+                position.xCoord + (double) mc.thePlayer.width / 2.0D,
+                position.yCoord + (double) mc.thePlayer.height,
+                position.zCoord + (double) mc.thePlayer.width / 2.0D
+        )
+                .expand(size, size, size)
+                .offset(
+                        -mc.getRenderManager().getRenderPosX(),
+                        -mc.getRenderManager().getRenderPosY(),
+                        -mc.getRenderManager().getRenderPosZ()
+                );
+    }
+
+    private Color getBoxColor() {
+        switch (this.boxColor.getValue()) {
+            case 1:
+                Unfair.moduleManager.modules.get(HUD.class);
+                return HUD.getColor(System.currentTimeMillis());
+            case 2:
+                return new Color(this.boxCustomColor.getValue());
+            default:
+                return TeamUtil.getTeamColor(mc.thePlayer, 1.0F);
         }
     }
 

@@ -49,10 +49,10 @@ public class BackTrack extends Module {
     public final BooleanProperty extraMS = new BooleanProperty("ExtraMs", false, this::isClassic);
     public final IntProperty maxPingSpoof = new IntProperty("MaxPingSpoof", 1000, 50, 2000, this::isLegitReach);
     public final BooleanProperty renderRealLocation = new BooleanProperty("RenderRealLocation", true, this::isLegitReach);
-    public final ModeProperty esp = new ModeProperty("RenderMode", 1, new String[]{"FakePlayer", "Box", "None"}, this::isClassic);
-    public final ModeProperty boxColor = new ModeProperty("BoxColor", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && this.esp.getValue() == 1);
-    public final ColorProperty boxCustomColor = new ColorProperty("BoxCustomColor", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && this.esp.getValue() == 1 && this.boxColor.getValue() == 2);
-    public final FloatProperty outlineWidth = new FloatProperty("OutlineWidth", 1.0F, 0.0F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 1);
+    public final ModeProperty esp = new ModeProperty("RenderMode", 1, new String[]{"FakePlayer", "Box", "OnlineBox", "None"}, this::isClassic);
+    public final ModeProperty boxColor = new ModeProperty("BoxColor", 0, new String[]{"Default", "Hud", "Custom"}, () -> this.isClassic() && (this.esp.getValue() == 1 || this.esp.getValue() == 2));
+    public final ColorProperty boxCustomColor = new ColorProperty("BoxCustomColor", new Color(0, 0, 0).getRGB(), () -> this.isClassic() && (this.esp.getValue() == 1 || this.esp.getValue() == 2) && this.boxColor.getValue() == 2);
+    public final FloatProperty outlineWidth = new FloatProperty("OutlineWidth", 1.0F, 0.0F, 5.0F, () -> this.isClassic() && this.esp.getValue() == 2);
     public final BooleanProperty players = new BooleanProperty("Players", true);
     public final BooleanProperty mobs = new BooleanProperty("Mobs", false);
     public final BooleanProperty animals = new BooleanProperty("Animals", false);
@@ -435,7 +435,7 @@ public class BackTrack extends Module {
             this.renderLegitReachPosition(event.partialTicks());
             return;
         }
-        if (!shouldLag || this.esp.getValue() != 1) {
+        if (!shouldLag || (this.esp.getValue() != 1 && this.esp.getValue() != 2)) {
             return;
         }
 
@@ -443,7 +443,9 @@ public class BackTrack extends Module {
         Color color = this.getBoxColor();
         RenderUtil.enableRenderState();
         RenderUtil.drawFilledBox(bb, color.getRed(), color.getGreen(), color.getBlue());
-        RenderUtil.drawBoundingBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 255, this.outlineWidth.getValue());
+        if (this.esp.getValue() == 2) {
+            RenderUtil.drawBoundingBox(bb, color.getRed(), color.getGreen(), color.getBlue(), 255, this.outlineWidth.getValue());
+        }
         RenderUtil.disableRenderState();
     }
 
