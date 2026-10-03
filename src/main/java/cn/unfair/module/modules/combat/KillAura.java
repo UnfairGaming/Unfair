@@ -1108,17 +1108,7 @@ public class KillAura extends Module {
                         float smoothFactor = (float) this.smoothing.getValue() / 100.0F;
                         AxisAlignedBB targetBox = target.getBox();
                         Vec3 eyes = mc.thePlayer.getPositionEyes(1.0F);
-                        double preferredY = this.getPreferredAimY(target.getEntity(), targetBox);
-                        Vec3 aimPoint = RotationUtil.getBestAimPoint(
-                                target.getEntity(), targetBox, eyes, preferredY,
-                                this.swingRange.getValue(), 1.0D, 0.0D,
-                                this.throughWalls.getValue(), true
-                        );
-                        if (aimPoint == null) {
-                            aimPoint = RotationUtil.getAimPoint(
-                                    targetBox, eyes, preferredY, 1.0D, 0.0D
-                            );
-                        }
+                        Vec3 aimPoint = RotationUtil.getClosestPointOnBox(eyes, targetBox);
                         currentAimVec = aimPoint;
                         float[] targetRotations = RotationUtil.getRotationsToPoint(
                                 aimPoint, eyes, event.getYaw(), event.getPitch(), randomOffset, smoothFactor
