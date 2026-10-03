@@ -1598,6 +1598,9 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
 
     @Override
     public void handleKeepAlive(S00PacketKeepAlive packetIn) {
+        if (ViaProtocol.newerThanOrEqualTo1_21_2()) {
+            PacketThreadUtil.checkThreadAndEnqueue(packetIn, this, this.gameController);
+        }
         this.addToSendQueue(new C00PacketKeepAlive(packetIn.func_149134_c()));
     }
 
