@@ -87,7 +87,7 @@ public class AutoBlock extends Module {
         if (!this.isEnabled() || event.getType() != EventType.SEND || event.isCancelled()) {
             return;
         }
-        if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+        if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             return;
         }
         if (this.isBedNukerActive()) {
@@ -111,7 +111,7 @@ public class AutoBlock extends Module {
         if (!this.isEnabled() || event.type() != EventType.PRE) {
             return;
         }
-        if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+        if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             this.currentTarget = null;
             return;
         }

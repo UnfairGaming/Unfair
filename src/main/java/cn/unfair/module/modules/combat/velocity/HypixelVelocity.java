@@ -13,6 +13,7 @@ import cn.unfair.module.modules.movement.LongJump;
 import cn.unfair.module.modules.movement.Stuck;
 import cn.unfair.module.modules.player.Reach;
 import cn.unfair.property.properties.BooleanProperty;
+import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.client.ChatUtil;
 import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.player.PlayerUtil;
@@ -31,6 +32,7 @@ public class HypixelVelocity extends SubModule {
     public final BooleanProperty jump = new BooleanProperty("Jump", true);
     public final BooleanProperty reduce = new BooleanProperty("Reduce", true);
     public final BooleanProperty delay = new BooleanProperty("Delay", true);
+    public final IntProperty delayTicks = new IntProperty("DelayTicks", 2, 1, 5, delay::getValue);
     private boolean delayFlag;
     private boolean knockback;
     private boolean jumpFlag;
@@ -149,7 +151,7 @@ public class HypixelVelocity extends SubModule {
     private boolean shouldReleaseDelay() {
         return canDelay()
                 || isBlockedState()
-                || Unfair.delayManager.getDelay() >= 3;
+                || Unfair.delayManager.getDelay() >= delayTicks.getValue();
     }
 
     private boolean canStartLongJump() {
