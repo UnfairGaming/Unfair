@@ -128,12 +128,18 @@ public class LagRange extends Module {
                     break;
                 case POST:
                     Vec3 savedPosition = Unfair.lagManager.getLastPosition();
-                    if (this.currentPosition == null) {
-                        this.lastPosition = savedPosition;
+                    if (this.hasTarget && savedPosition != null) {
+                        Vec3 snappedPosition = new Vec3(savedPosition.xCoord, savedPosition.yCoord, savedPosition.zCoord);
+                        if (this.currentPosition == null) {
+                            this.lastPosition = snappedPosition;
+                        } else {
+                            this.lastPosition = this.currentPosition;
+                        }
+                        this.currentPosition = snappedPosition;
                     } else {
-                        this.lastPosition = this.currentPosition;
+                        this.lastPosition = null;
+                        this.currentPosition = null;
                     }
-                    this.currentPosition = savedPosition;
             }
         }
     }
