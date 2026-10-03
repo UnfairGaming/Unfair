@@ -1636,17 +1636,9 @@ public abstract class EntityLivingBase extends Entity {
                     this.moveFlyingWithStrafeEvent(strafe, forward, 0.02F);
                     this.moveEntity(this.motionX, this.motionY, this.motionZ);
                     this.motionX *= 0.5D;
+                    this.motionY *= 0.5D;
                     this.motionZ *= 0.5D;
-                    boolean isNewLava = ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_13);
-                    if (!isNewLava) {
-                        this.motionY *= 0.5D;
-                    } else if (this.jumpVelocityInLava == null || this.jumpVelocityInLava <= 0.4D) {
-                        this.motionY *= 0.5D;
-                    }
-
-                    if (!isNewLava) {
-                        this.motionY -= 0.02D;
-                    }
+                    this.motionY -= 0.02D;
 
                     if (this.isCollidedHorizontally && this.isOffsetPositionInLiquid(this.motionX, this.motionY + 0.6000000238418579D - this.posY + d1, this.motionZ)) {
                         this.motionY = 0.3D;
@@ -1855,7 +1847,7 @@ public abstract class EntityLivingBase extends Entity {
         moveFlyingWithStrafeEvent(strafe, forward, 0.02F);
         player.moveEntity(player.motionX, player.motionY, player.motionZ);
 
-        if (physics.getModernLavaHeight() <= 0.4D) {
+        if (ViaProtocol.newerThanOrEqualTo1_16() && physics.getModernLavaHeight() <= 0.4D) {
             player.motionX *= 0.5D;
             player.motionY *= 0.800000011920929D;
             player.motionZ *= 0.5D;

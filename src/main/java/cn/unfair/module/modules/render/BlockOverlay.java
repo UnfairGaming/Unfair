@@ -2,7 +2,9 @@ package cn.unfair.module.modules.render;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.Render3DEvent;
+import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
+import cn.unfair.util.rotation.RayCastUtil;
 import cn.unfair.property.properties.*;
 import cn.unfair.util.render.ColorUtil;
 import cn.unfair.util.render.RenderUtil;
@@ -89,16 +91,23 @@ public class BlockOverlay extends Module {
         if (renderMode != 2 && renderMode != 3) {
             return;
         }
-        Block block = this.getFocusedBlock();
+        MovingObjectPosition mouseOver;
+        if (RotationState.isActived()) {
+            double reach = mc.playerController.getBlockReachDistance();
+            mouseOver = RayCastUtil.rayTrace(RotationState.getRotationYawHead(), RotationState.getRotationPitch(), reach, event.partialTicks());
+        } else {
+            mouseOver = mc.objectMouseOver;
+        }
+        Block block = this.getFocusedBlock(mouseOver);
         if (block == null) {
             return;
         }
         if (mc.playerController.getCurrentGameType().isAdventure()
                 && !this.persistence.getValue()
-                && !this.canRenderBlockOverlay()) {
+                && !this.canRenderBlockOverlay(mouseOver)) {
             return;
         }
-        this.renderBlockOverlay(block, entity, event.partialTicks());
+        this.renderBlockOverlay(block, entity, event.partialTicks(), mouseOver);
     }
 
     public boolean shouldCancelVanillaSelectionBox() {
@@ -106,7 +115,7 @@ public class BlockOverlay extends Module {
         return this.isEnabled() && (renderMode == 0 || renderMode == 2 || renderMode == 3);
     }
 
-    private void renderBlockOverlay(Block block, Entity entity, float partialTicks) {
+    private void renderBlockOverlay(Block block, Entity entity, float partialTicks, MovingObjectPosition mouseOver) {
         double entityX = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
         double entityY = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
         double entityZ = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
@@ -116,7 +125,6 @@ public class BlockOverlay extends Module {
         int overlayEndColor = this.getOverlayEndColor();
         int outlineStartColor = this.getOutlineStartColor();
         int outlineEndColor = this.getOutlineEndColor();
-        MovingObjectPosition mouseOver = mc.objectMouseOver;
         if (mouseOver == null || mouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             return;
         }
@@ -154,8 +162,7 @@ public class BlockOverlay extends Module {
         }
     }
 
-    private Block getFocusedBlock() {
-        MovingObjectPosition mouseOver = mc.objectMouseOver;
+    private Block getFocusedBlock(MovingObjectPosition mouseOver) {
         if (mouseOver == null || mouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
             return null;
         }
@@ -177,13 +184,13 @@ public class BlockOverlay extends Module {
         return block;
     }
 
-    private boolean canRenderBlockOverlay() {
+    private boolean canRenderBlockOverlay(MovingObjectPosition mouseOver) {
         Entity entity = mc.getRenderViewEntity();
         boolean flag = entity instanceof EntityPlayer;
         if (flag && !((EntityPlayer) entity).capabilities.allowEdit) {
             ItemStack heldItem = ((EntityPlayer) entity).getCurrentEquippedItem();
-            if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                BlockPos blockPos = mc.objectMouseOver.getBlockPos();
+            if (mouseOver != null && mouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                BlockPos blockPos = mouseOver.getBlockPos();
                 Block block = mc.theWorld.getBlockState(blockPos).getBlock();
                 if (mc.playerController.isSpectator()) {
                     flag = block.hasTileEntity() && mc.theWorld.getTileEntity(blockPos) instanceof net.minecraft.inventory.IInventory;

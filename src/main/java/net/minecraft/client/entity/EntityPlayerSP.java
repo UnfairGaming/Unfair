@@ -324,12 +324,10 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
                 ++this.positionUpdateTicks;
             }
 
-            boolean flag2 = ViaProtocol.newerThanOrEqualTo1_18()
-                    ? d0 * d0 + d1 * d1 + d2 * d2 > (2.0E-4D * 2.0E-4D) || this.positionUpdateTicks >= 20
-                    : d0 * d0 + d1 * d1 + d2 * d2 > 9.0E-4D || this.positionUpdateTicks >= 20;
-            if (this.isModernTarget()) {
-                flag2 = d0 * d0 + d1 * d1 + d2 * d2 > 4.0E-8D || this.positionUpdateTicks >= 20;
-            }
+            // Grim isPointThree(): 0.03 squared for pre-1.18.2, 0.0002 squared from 1.18.2
+            boolean flag2 = d0 * d0 + d1 * d1 + d2 * d2
+                    > (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_18_2) ? 4.0E-8D : 9.0E-4D)
+                    || this.positionUpdateTicks >= 20;
             boolean flag3 = d3 != 0.0D || d4 != 0.0D;
 
             if (this.ridingEntity == null) {
@@ -1001,7 +999,10 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
         }
         this.movementInputAdjustedThisTick = true;
 
-        if (ViaProtocol.newerThanOrEqualTo1_14() && input.sneak && !this.slowMovementFromPreviousPose) {
+        // Grim PlayerBaseTick: 1.14-1.14.4 accidentally keeps sneak slowing movement at all times
+        boolean sneakAlwaysSlows = ViaProtocol.newerThanOrEqualTo1_14()
+                && ViaProtocol.olderThanOrEqualTo(ProtocolVersion.v1_14_4);
+        if (ViaProtocol.newerThanOrEqualTo1_14() && !sneakAlwaysSlows && input.sneak && !this.slowMovementFromPreviousPose) {
             input.moveStrafe /= 0.3F;
             input.moveForward /= 0.3F;
         } else if (ViaProtocol.newerThanOrEqualTo1_14() && !input.sneak && this.slowMovementFromPreviousPose) {

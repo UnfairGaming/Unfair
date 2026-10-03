@@ -1935,9 +1935,7 @@ public abstract class World implements IBlockAccess, ILightingEngineProvider {
                 entityIn.motionZ += vec3.zCoord;
             }
 
-            if (materialIn == Material.water) {
-                entityIn.jumpVelocityInLava = maxLiquidHeight;
-            } else if (materialIn == Material.lava) {
+            if (materialIn == Material.lava) {
                 entityIn.liquidDetectionFlag = maxLiquidHeight;
             }
 

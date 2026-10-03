@@ -219,7 +219,6 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Which dimension the player is in (-1 = the Nether, 0 = normal world)
      */
     public int dimension;
-    public Double jumpVelocityInLava;
     public Double liquidDetectionFlag;
     protected boolean isInWeb;
     protected Random rand;
@@ -727,7 +726,6 @@ public abstract class Entity implements ICommandSender, Cullable {
         }
 
         this.spawnRunningParticles();
-        this.jumpVelocityInLava = null;
         this.liquidDetectionFlag = null;
         this.handleWaterMovement();
 
