@@ -1496,7 +1496,11 @@ public abstract class EntityLivingBase extends Entity {
                 && isOnHoneyBlock((EntityPlayerSP) this)) {
             baseJumpMotion *= 0.5F;
         }
-        this.motionY = baseJumpMotion;
+        if (this instanceof EntityPlayerSP && ViaProtocol.newerThanOrEqualTo1_21_2()) {
+            this.motionY = Math.max(baseJumpMotion, this.motionY);
+        } else {
+            this.motionY = baseJumpMotion;
+        }
 
         if (this.isPotionActive(Potion.jump)) {
             this.motionY += (float) (this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F;

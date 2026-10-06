@@ -236,6 +236,10 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
                         mc.gameSettings.keyBindSprint.isKeyDown());
 
                 if (!this.lastState.equals(newState) && ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                    System.out.println("[DBG-IN] tick=" + this.ticksExisted + " moveForward=" + mc.thePlayer.movementInput.moveForward
+                            + " moveStrafe=" + mc.thePlayer.movementInput.moveStrafe + " jump=" + mc.thePlayer.movementInput.jump
+                            + " sneak=" + mc.thePlayer.movementInput.sneak + " isSprinting=" + mc.thePlayer.isSprinting()
+                            + " byte=" + Integer.toHexString(newState.toByte()));
                     UserConnection connection = Via.getManager().getConnectionManager().getConnections().iterator().next();
                     PacketWrapper wrapper = PacketWrapper.create(ServerboundPackets1_21_2.PLAYER_INPUT, connection);
                     wrapper.write(Types.BYTE, newState.toByte());
@@ -277,36 +281,15 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      * called every tick when the player is on foot. Performs all the things that normally happen during movement.
      */
     public void onUpdateWalkingPlayer() {
-        boolean flag = this.isSprinting() && this.shouldReportSprintingToServer();
+        boolean sprinting = this.isSprinting() && this.shouldReportSprintingToServer();
+        boolean sneaking = this.isSneaking();
 
-        if (flag != this.serverSprintState) {
-            if (ViaProtocol.newerThanOrEqualTo1_19()) {
-                this.sendQueue.addToSendQueue(new ServerBoundPlayerCommand(this.getEntityId(), flag ? ServerBoundPlayerCommand.Action.START_SPRINTING : ServerBoundPlayerCommand.Action.STOP_SPRINTING));
-            } else {
-                if (flag) {
-                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SPRINTING));
-                } else {
-                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SPRINTING));
-                }
-            }
-
-            this.serverSprintState = flag;
-        }
-
-        boolean flag1 = this.isSneaking();
-
-        if (flag1 != this.serverSneakState) {
-            if (ViaProtocol.newerThanOrEqualTo1_19()) {
-                this.sendQueue.addToSendQueue(new ServerBoundPlayerCommand(this.mc.thePlayer.getEntityId(), flag1 ? ServerBoundPlayerCommand.Action.PRESS_SHIFT_KEY : ServerBoundPlayerCommand.Action.RELEASE_SHIFT_KEY));
-            } else {
-                if (flag1) {
-                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SNEAKING));
-                } else {
-                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SNEAKING));
-                }
-            }
-
-            this.serverSneakState = flag1;
+        if (ViaProtocol.newerThanOrEqualTo1_21_2()) {
+            this.updateServerSneakState(sneaking);
+            this.updateServerSprintState(sprinting);
+        } else {
+            this.updateServerSprintState(sprinting);
+            this.updateServerSneakState(sneaking);
         }
 
         if (this.isCurrentViewEntity()) {
@@ -364,6 +347,46 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
             mc.thePlayer.rotationYawHead = yaw;
             mc.thePlayer.rotationPitchHead = pitch;
         }
+    }
+
+    private void updateServerSprintState(boolean sprinting) {
+        if (sprinting != this.serverSprintState) {
+            if (ViaProtocol.newerThanOrEqualTo1_19()) {
+                this.sendQueue.addToSendQueue(new ServerBoundPlayerCommand(this.getEntityId(), sprinting ? ServerBoundPlayerCommand.Action.START_SPRINTING : ServerBoundPlayerCommand.Action.STOP_SPRINTING));
+            } else {
+                if (sprinting) {
+                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SPRINTING));
+                } else {
+                    this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SPRINTING));
+                }
+            }
+
+            this.serverSprintState = sprinting;
+        }
+    }
+
+    private void updateServerSneakState(boolean sneaking) {
+        if (sneaking == this.serverSneakState) {
+            return;
+        }
+
+        // 1.21.6+ carries sneaking via the PLAYER_INPUT shift bit instead of entity actions
+        if (ViaLoadingBase.getInstance().getTargetVersion().newerThanOrEqualTo(ProtocolVersion.v1_21_6)) {
+            this.serverSneakState = sneaking;
+            return;
+        }
+
+        if (ViaProtocol.newerThanOrEqualTo1_19()) {
+            this.sendQueue.addToSendQueue(new ServerBoundPlayerCommand(this.getEntityId(), sneaking ? ServerBoundPlayerCommand.Action.PRESS_SHIFT_KEY : ServerBoundPlayerCommand.Action.RELEASE_SHIFT_KEY));
+        } else {
+            if (sneaking) {
+                this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.START_SNEAKING));
+            } else {
+                this.sendQueue.addToSendQueue(new C0BPacketEntityAction(this, C0BPacketEntityAction.Action.STOP_SNEAKING));
+            }
+        }
+
+        this.serverSneakState = sneaking;
     }
 
     private boolean shouldReportSprintingToServer() {

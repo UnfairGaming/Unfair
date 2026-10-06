@@ -5,6 +5,7 @@ import cn.unfair.event.EventManager;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.util.player.PacketUtil;
+import cn.unfair.util.via.ViaProtocol;
 import cn.unfair.util.via.ViaVersionFix;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -12,11 +13,14 @@ import com.viaversion.viabackwards.protocol.v1_19to1_18_2.Protocol1_19To1_18_2;
 import com.viaversion.viabackwards.protocol.v1_20_2to1_20.Protocol1_20_2To1_20;
 import com.viaversion.viabackwards.protocol.v1_20_5to1_20_3.Protocol1_20_5To1_20_3;
 import com.viaversion.viabackwards.protocol.v1_20to1_19_4.Protocol1_20To1_19_4;
+import com.viaversion.viabackwards.protocol.v1_21to1_20_5.Protocol1_21To1_20_5;
 import com.viaversion.viabackwards.protocol.v1_21_2to1_21.Protocol1_21_2To1_21;
+import com.viaversion.viabackwards.protocol.v1_21_9to1_21_7.Protocol1_21_9To1_21_7;
 import com.viaversion.viarewind.protocol.v1_9to1_8.Protocol1_9To1_8;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.minecraft.BlockPosition;
+import com.viaversion.viaversion.api.protocol.Protocol;
 import com.viaversion.viaversion.api.protocol.packet.PacketWrapper;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.api.type.Types;
@@ -27,6 +31,7 @@ import com.viaversion.viaversion.protocols.v1_19_3to1_19_4.packet.ServerboundPac
 import com.viaversion.viaversion.protocols.v1_20_3to1_20_5.packet.ServerboundPackets1_20_5;
 import com.viaversion.viaversion.protocols.v1_20to1_20_2.packet.ServerboundPackets1_20_2;
 import com.viaversion.viaversion.protocols.v1_21to1_21_2.packet.ServerboundPackets1_21_2;
+import com.viaversion.viaversion.protocols.v1_21_5to1_21_6.packet.ServerboundPackets1_21_6;
 import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ServerboundPackets1_9;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.vialoadingbase.netty.event.CompressionReorderEvent;
@@ -47,6 +52,8 @@ import io.netty.handler.timeout.TimeoutException;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.network.play.client.*;
 import net.minecraft.util.*;
 import org.apache.commons.lang3.ArrayUtils;
@@ -330,6 +337,48 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
      * packet, otherwise it will add a task for the channel eventloop thread to do that.
      */
     private void dispatchPacket(Packet<?> inPacket, GenericFutureListener<? extends Future<? super Void>>[] futureListeners) {
+                // 1.21.9+ servers: emit MOVE_PLAYER in the classic absolute format at the 1.21.7/1.21.9 protocol level,
+        // bypassing ViaBackwards' 1_21_9 movement packet rewrite (written for a relative rotation format that does
+        // not match the actual absolute packet). 1.21.2-1.21.8 keep the Via translation (those layers are clean).
+        if (inPacket instanceof C03PacketPlayer c03 && ViaProtocol.newerThanOrEqualTo(ProtocolVersion.v1_21_9)) {
+            System.out.println("[DBG-C03] tick=" + Minecraft.getMinecraft().thePlayer.ticksExisted
+                    + " moving=" + c03.isMoving() + " rot=" + c03.getRotating()
+                    + " pos=(" + c03.getPositionX() + "," + c03.getPositionY() + "," + c03.getPositionZ() + ")"
+                    + " yaw=" + c03.getYaw() + " pitch=" + c03.getPitch() + " onGround=" + c03.isOnGround()
+                    + " motion=(" + Minecraft.getMinecraft().thePlayer.motionX + "," + Minecraft.getMinecraft().thePlayer.motionY + "," + Minecraft.getMinecraft().thePlayer.motionZ + ")"
+                    + " speed=" + Minecraft.getMinecraft().thePlayer.getAIMoveSpeed());
+            UserConnection viaConnection = ViaVersionFix.connection();
+            if (viaConnection != null) {
+                try {
+                    PacketWrapper move;
+                    if (c03.isMoving() && c03.getRotating()) {
+                        move = PacketWrapper.create(ServerboundPackets1_21_6.MOVE_PLAYER_POS_ROT, null, viaConnection);
+                        move.write(Types.DOUBLE, c03.getPositionX());
+                        move.write(Types.DOUBLE, c03.getPositionY());
+                        move.write(Types.DOUBLE, c03.getPositionZ());
+                        move.write(Types.FLOAT, c03.getYaw());
+                        move.write(Types.FLOAT, c03.getPitch());
+                    } else if (c03.isMoving()) {
+                        move = PacketWrapper.create(ServerboundPackets1_21_6.MOVE_PLAYER_POS, null, viaConnection);
+                        move.write(Types.DOUBLE, c03.getPositionX());
+                        move.write(Types.DOUBLE, c03.getPositionY());
+                        move.write(Types.DOUBLE, c03.getPositionZ());
+                    } else if (c03.getRotating()) {
+                        move = PacketWrapper.create(ServerboundPackets1_21_6.MOVE_PLAYER_ROT, null, viaConnection);
+                        move.write(Types.FLOAT, c03.getYaw());
+                        move.write(Types.FLOAT, c03.getPitch());
+                    } else {
+                        move = PacketWrapper.create(ServerboundPackets1_21_6.MOVE_PLAYER_STATUS_ONLY, null, viaConnection);
+                    }
+                    move.write(Types.UNSIGNED_BYTE, (short) (c03.isOnGround() ? 1 : 0));
+                    move.sendToServer(Protocol1_21_9To1_21_7.class);
+                    return;
+                } catch (Exception ignored) {
+                    // Via pipeline not ready - fall back to the 1.8 packet
+                }
+            }
+        }
+
         EnumConnectionState enumconnectionstate = EnumConnectionState.getFromPacket(inPacket);
         EnumConnectionState enumconnectionstate1 = this.channel.attr(attrKeyConnectionState).get();
 
@@ -492,7 +541,26 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                             }
                         } else if (packet instanceof ServerBoundUseItem useItem) {
                             ProtocolVersion target = ViaLoadingBase.getInstance().getTargetVersion();
-                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_5)) {
+                            if (target.newerThanOrEqualTo(ProtocolVersion.v1_21_2)) {
+                                // 1.21.2+ USE_ITEM carries the rotation the same tick's flying packet reports;
+                                // ViaBackwards would fill it from the previous flying packet (stale) -> BadPacketsJ
+                                PacketWrapper use = PacketWrapper.create(ServerboundPackets1_21_2.USE_ITEM, null, connection);
+                                EntityPlayerSP self = Minecraft.getMinecraft().thePlayer;
+                                use.write(Types.VAR_INT, useItem.getHand().ordinal());
+                                use.write(Types.VAR_INT, ViaVersionFix.sequence(connection));
+                                use.write(Types.FLOAT, self != null ? self.rotationYaw : 0.0F);
+                                use.write(Types.FLOAT, self != null ? self.rotationPitch : 0.0F);
+                                use.sendToServer(Protocol1_21_2To1_21.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_21)) {
+                                // 1.21-1.21.1: same packet IDs as 1.20.5, USE_ITEM payload gains the rotation floats
+                                PacketWrapper use = PacketWrapper.create(ServerboundPackets1_20_5.USE_ITEM, null, connection);
+                                EntityPlayerSP self = Minecraft.getMinecraft().thePlayer;
+                                use.write(Types.VAR_INT, useItem.getHand().ordinal());
+                                use.write(Types.VAR_INT, ViaVersionFix.sequence(connection));
+                                use.write(Types.FLOAT, self != null ? self.rotationYaw : 0.0F);
+                                use.write(Types.FLOAT, self != null ? self.rotationPitch : 0.0F);
+                                use.sendToServer(Protocol1_21To1_20_5.class);
+                            } else if (target.newerThanOrEqualTo(ProtocolVersion.v1_20_5)) {
                                 PacketWrapper use = PacketWrapper.create(ServerboundPackets1_20_5.USE_ITEM, null, connection);
                                 use.write(Types.VAR_INT, useItem.getHand().ordinal());
                                 use.write(Types.VAR_INT, ViaVersionFix.sequence(connection));

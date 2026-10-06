@@ -65,6 +65,9 @@ public class AutoBlock extends Module {
 
     @EventTarget(Priority.HIGHEST)
     public void onRightClickMouse(RightClickMouseEvent event) {
+        if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            return;
+        }
         if (this.shouldBlockVanillaUse()
                 || this.isEnabled()
                 && this.isReady()
