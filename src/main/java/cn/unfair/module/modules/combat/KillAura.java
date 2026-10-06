@@ -81,7 +81,21 @@ public class KillAura extends Module {
     public final IntProperty angleStep = new IntProperty("AngleStep", 90, 30, 180, () -> this.rotations.getValue() == 2);
     public final IntProperty aimSpeedYaw = new IntProperty("AimSpeedYaw", 60, 1, 180, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
     public final IntProperty aimSpeedPitch = new IntProperty("AimSpeedPitch", 60, 1, 180, () -> this.rotations.getValue() == 2 || this.rotations.getValue() == 3);
-    public final ModeProperty angleLimiter = new ModeProperty("AngleLimiter", 0, new String[]{"Linear", "Accelerated", "Interpolated", "None"}, () -> this.rotations.getValue() == 3);
+    public final PercentProperty humanSpeed = new PercentProperty("HumanSpeed", 100, 50, 200, () -> this.rotations.getValue() == 3);
+    public final PercentProperty humanOvershoot = new PercentProperty("HumanOvershoot", 100, () -> this.rotations.getValue() == 3);
+    public final PercentProperty humanTremor = new PercentProperty("HumanTremor", 100, () -> this.rotations.getValue() == 3);
+    public final ModeProperty overshootMode = new ModeProperty("OvershootMode", 0, new String[]{"Always", "HurtTime"}, () -> this.rotations.getValue() == 3);
+    public final IntProperty overshootChance = new IntProperty("OvershootChance", 100, 0, 100, () -> this.rotations.getValue() == 3);
+    public final IntProperty overshootDuration = new IntProperty("OvershootDuration", 4, 1, 20, () -> this.rotations.getValue() == 3);
+    public final IntProperty overshootCooldown = new IntProperty("OvershootCooldown", 10, 0, 40, () -> this.rotations.getValue() == 3);
+    public final IntProperty overshootSweepMax = new IntProperty("OvershootSweepMax", 6, 1, 12, () -> this.rotations.getValue() == 3);
+    public final FloatProperty minOvershootAngle = new FloatProperty("MinOvershootAngle", 0.3F, 0.0F, 15.0F, () -> this.rotations.getValue() == 3);
+    public final FloatProperty maxOvershootAngle = new FloatProperty("MaxOvershootAngle", 1.0F, 0.0F, 15.0F, () -> this.rotations.getValue() == 3);
+    public final PercentProperty minPlanOvershootChance = new PercentProperty("MinPlanOvershootChance", 5, () -> this.rotations.getValue() == 3);
+    public final PercentProperty maxPlanOvershootChance = new PercentProperty("MaxPlanOvershootChance", 55, () -> this.rotations.getValue() == 3);
+    public final FloatProperty minPlanOvershootAmount = new FloatProperty("MinPlanOvershootAmount", 0.5F, 0.0F, 10.0F, () -> this.rotations.getValue() == 3);
+    public final FloatProperty maxPlanOvershootAmount = new FloatProperty("MaxPlanOvershootAmount", 4.5F, 0.0F, 10.0F, () -> this.rotations.getValue() == 3);
+    public final FloatProperty pullbackThreshold = new FloatProperty("PullbackThreshold", 1.0F, 0.0F, 10.0F, () -> this.rotations.getValue() == 3);
     public final IntProperty maxDeltaHistorySize = new IntProperty("MaxDeltaHistorySize", 20, 0, 20, () -> this.rotations.getValue() == 3);
     public final ModeProperty averageYawLimiterMode = new ModeProperty("AverageYawLimiterMode", 2, new String[]{"Ncp", "Custom", "None"}, () -> this.rotations.getValue() == 3 && this.maxDeltaHistorySize.getValue() > 0);
     public final IntProperty maxAverageYawDelta = new IntProperty("MaxAverageYawDelta", 90, 1, 180, () -> this.rotations.getValue() == 3 && this.averageYawLimiterMode.getValue() == 1 && this.maxDeltaHistorySize.getValue() > 0);
@@ -148,6 +162,7 @@ public class KillAura extends Module {
     private final TimerUtil timer = new TimerUtil();
     private final DelayGenerator delayGenerator = new DelayGenerator();
     private final AdvancedRotationLimiter advancedLimiter = new AdvancedRotationLimiter();
+    private final HumanMouseEngine humanMouseEngine = new HumanMouseEngine();
     public boolean attackDisabled = false;
     private int switchTick = 0;
     private boolean hitRegistered = false;
@@ -171,6 +186,14 @@ public class KillAura extends Module {
     private float grimYaw;
     private float grimPitch;
     private boolean grimRotating;
+    private boolean hurtExitActive;
+    private float hurtExitYaw;
+    private float hurtExitPitch;
+    private int hurtExitTicks = 0;
+    private int hurtExitCooldown = 0;
+    private float swingYawSign = 1.0F;
+    private float swingPitchSign;
+    private EntityLivingBase hurtExitEntity;
 
     public KillAura() {
         super("KillAura", false);
@@ -693,19 +716,79 @@ public class KillAura extends Module {
             rot[1] += jitterOffset[1];
         }
 
-        float[] limited = this.advancedLimiter.limit(
+        float approachYaw = MathHelper.wrapAngleTo180_float(rot[0] - this.serverYaw);
+        float approachPitch = rot[1] - this.serverPitch;
+        if (Math.abs(approachYaw) > 0.05F) {
+            this.swingYawSign = Math.signum(approachYaw);
+        }
+        if (Math.abs(approachPitch) > 0.05F) {
+            this.swingPitchSign = Math.signum(approachPitch);
+        }
+
+        if (this.hurtExitEntity != entity) {
+            this.hurtExitEntity = entity;
+            this.hurtExitActive = false;
+            this.hurtExitCooldown = 0;
+        }
+        boolean hurt = entity.hurtTime > 0;
+        boolean alwaysOvershoot = this.overshootMode.getValue() == 0;
+        if (this.hurtExitActive) {
+            if (alwaysOvershoot) {
+                this.hurtExitTicks--;
+                if (this.hurtExitTicks <= 0) {
+                    this.hurtExitActive = false;
+                    this.hurtExitCooldown = this.overshootCooldown.getValue();
+                }
+            } else if (!hurt) {
+                this.hurtExitActive = false;
+            }
+        } else if (this.hurtExitCooldown > 0) {
+            this.hurtExitCooldown--;
+        }
+        if (!this.hurtExitActive
+                && this.hurtExitCooldown <= 0
+                && (alwaysOvershoot || hurt)
+                && RandomUtil.nextIntInclusive(1, 100) <= this.overshootChance.getValue()) {
+            this.hurtExitActive = true;
+            this.hurtExitTicks = this.overshootDuration.getValue();
+            float[] hurtExit = this.computeHurtExit(rot, eyes, RandomUtil.nextFloat(this.minOvershootAngle.getValue(), this.maxOvershootAngle.getValue()));
+            this.hurtExitYaw = hurtExit[0];
+            this.hurtExitPitch = hurtExit[1];
+        }
+        if (this.hurtExitActive) {
+            rot = new float[]{this.hurtExitYaw, this.hurtExitPitch};
+        }
+
+        this.humanMouseEngine.configureOvershoot(
+                this.minPlanOvershootChance.getValue() / 100.0F,
+                this.maxPlanOvershootChance.getValue() / 100.0F,
+                this.minPlanOvershootAmount.getValue() / 100.0F,
+                this.maxPlanOvershootAmount.getValue() / 100.0F,
+                this.pullbackThreshold.getValue()
+        );
+
+        float[] stepped = this.humanMouseEngine.step(
                 this.serverYaw,
                 this.serverPitch,
                 rot[0],
                 rot[1],
-                this.angleLimiter.getModeString(),
+                this.humanSpeed.getValue() / 100.0F,
+                this.humanOvershoot.getValue() / 100.0F,
+                this.humanTremor.getValue() / 100.0F,
+                this.aimSpeedYaw.getValue(),
+                this.aimSpeedPitch.getValue()
+        );
+
+        float[] limited = this.advancedLimiter.limit(
+                this.serverYaw,
+                this.serverPitch,
+                stepped[0],
+                stepped[1],
                 this.maxDeltaHistorySize.getValue(),
                 this.averageYawLimiterMode.getModeString(),
                 this.maxAverageYawDelta.getValue(),
                 this.minYawMultiplierOnLimit.getValue() / 100.0F,
-                this.maxYawMultiplierOnLimit.getValue() / 100.0F,
-                this.aimSpeedYaw.getValue(),
-                this.aimSpeedPitch.getValue()
+                this.maxYawMultiplierOnLimit.getValue() / 100.0F
         );
 
         return this.applySensitivityGcd(this.serverYaw, this.serverPitch, limited[0], limited[1]);
@@ -722,6 +805,37 @@ public class KillAura extends Module {
         yawDelta -= yawDelta % gcd;
         pitchDelta -= pitchDelta % gcd;
         return new float[]{originYaw + yawDelta, MathHelper.clamp_float(originPitch + pitchDelta, -90.0F, 90.0F)};
+    }
+
+    private float[] computeHurtExit(float[] rot, Vec3 eyes, float extra) {
+        AxisAlignedBB box = target.getBox();
+        double boxDist = eyes.distanceTo(AdvancedRotationMath.getCenter(box));
+        double stepDeg = Math.toDegrees(Math.atan2(0.45D, Math.max(1.0D, boxDist)));
+        float yawSign = this.swingYawSign == 0.0F ? 1.0F : this.swingYawSign;
+        float pitchSign = this.swingPitchSign;
+        double rayDist = this.swingRange.getValue() + 2.0D;
+
+        // 顺势甩出 hitbox：沿击打方向递增角度直到射线脱离盒子
+        int sweepMax = this.overshootSweepMax.getValue();
+        float found = (float) (stepDeg * sweepMax);
+        for (int i = 1; i <= sweepMax; i++) {
+            float exitAngle = (float) (stepDeg * i);
+            if (RayCastUtil.rayTrace(
+                    box,
+                    rot[0] + yawSign * exitAngle,
+                    MathHelper.clamp_float(rot[1] + pitchSign * exitAngle, -90.0F, 90.0F),
+                    rayDist
+            ) == null) {
+                found = exitAngle;
+                break;
+            }
+        }
+
+        float exitAngle = found + extra;
+        return new float[]{
+                rot[0] + yawSign * exitAngle,
+                MathHelper.clamp_float(rot[1] + pitchSign * exitAngle, -90.0F, 90.0F)
+        };
     }
 
     private boolean isPreferredPartHittable(String part, AxisAlignedBB box, Vec3 eyes, double pred, boolean outOfRange) {
@@ -833,6 +947,7 @@ public class KillAura extends Module {
         this.serverYaw = mc.thePlayer.rotationYaw;
         this.serverPitch = mc.thePlayer.rotationPitch;
         this.advancedLimiter.reset(this.serverYaw, this.serverPitch);
+        this.humanMouseEngine.reset(this.serverYaw, this.serverPitch);
         this.normalisedRot = null;
     }
 
@@ -1414,8 +1529,13 @@ public class KillAura extends Module {
         this.serverYaw = mc.thePlayer != null ? mc.thePlayer.rotationYaw : 0.0F;
         this.serverPitch = mc.thePlayer != null ? mc.thePlayer.rotationPitch : 0.0F;
         this.advancedLimiter.reset(this.serverYaw, this.serverPitch);
+        this.humanMouseEngine.reset(this.serverYaw, this.serverPitch);
         this.offsetVec = new Vec3(0.0D, 0.0D, 0.0D);
         this.normalisedRot = null;
+        this.hurtExitActive = false;
+        this.hurtExitTicks = 0;
+        this.hurtExitCooldown = 0;
+        this.hurtExitEntity = null;
         currentAimVec = null;
         AdvancedPredictionEngine.reset();
         AdvancedPointFinder.hitboxPoints.clear();
@@ -1455,9 +1575,34 @@ public class KillAura extends Module {
                 if (this.minCPS.getValue() > this.maxCPS.getValue()) {
                     this.maxCPS.setValue(this.minCPS.getValue());
                 }
-            } else {
-                if (this.maxCPS.getName().equals(mode) && this.minCPS.getValue() > this.maxCPS.getValue()) {
+            } else if (this.maxCPS.getName().equals(mode)) {
+                if (this.minCPS.getValue() > this.maxCPS.getValue()) {
                     this.minCPS.setValue(this.maxCPS.getValue());
+                }
+            } else if (this.minOvershootAngle.getName().equals(mode)) {
+                if (this.minOvershootAngle.getValue() > this.maxOvershootAngle.getValue()) {
+                    this.maxOvershootAngle.setValue(this.minOvershootAngle.getValue());
+                }
+            } else if (this.maxOvershootAngle.getName().equals(mode)) {
+                if (this.minOvershootAngle.getValue() > this.maxOvershootAngle.getValue()) {
+                    this.minOvershootAngle.setValue(this.maxOvershootAngle.getValue());
+                }
+            } else if (this.minPlanOvershootChance.getName().equals(mode)) {
+                if (this.minPlanOvershootChance.getValue() > this.maxPlanOvershootChance.getValue()) {
+                    this.maxPlanOvershootChance.setValue(this.minPlanOvershootChance.getValue());
+                }
+            } else if (this.maxPlanOvershootChance.getName().equals(mode)) {
+                if (this.minPlanOvershootChance.getValue() > this.maxPlanOvershootChance.getValue()) {
+                    this.minPlanOvershootChance.setValue(this.maxPlanOvershootChance.getValue());
+                }
+            } else if (this.minPlanOvershootAmount.getName().equals(mode)) {
+                if (this.minPlanOvershootAmount.getValue() > this.maxPlanOvershootAmount.getValue()) {
+                    this.maxPlanOvershootAmount.setValue(this.minPlanOvershootAmount.getValue());
+                }
+            } else {
+                if (this.maxPlanOvershootAmount.getName().equals(mode)
+                        && this.minPlanOvershootAmount.getValue() > this.maxPlanOvershootAmount.getValue()) {
+                    this.minPlanOvershootAmount.setValue(this.maxPlanOvershootAmount.getValue());
                 }
             }
         } else {

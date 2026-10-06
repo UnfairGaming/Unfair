@@ -15,15 +15,18 @@ import cn.unfair.util.player.MoveUtil;
 import cn.unfair.util.player.PacketUtil;
 import cn.unfair.util.rotation.RotationUtil;
 import cn.unfair.util.client.TeamUtil;
+import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemEgg;
 import net.minecraft.item.ItemSnowball;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 
 import java.util.ArrayList;
@@ -33,6 +36,11 @@ import static cn.unfair.management.BadPacketManager.bad;
 
 public class AutoProjectiles extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final double THROW_SPEED = 1.5;
+    private static final double THROW_DRAG = 0.99;
+    private static final double GRAVITY_TERM = 3.0;
+    private static final double DRAG_SCALE = 100.0;
+    private static final double AIM_HEIGHT = 1.4;
     public final FloatProperty minRange = new FloatProperty("MinRange", 3.0f, 2.0f, 6.0f);
     public final FloatProperty maxRange = new FloatProperty("MaxRange", 8.0f, 3.0f, 15.0f);
     public final BooleanProperty smartDelay = new BooleanProperty("SmartDelay", true);
@@ -47,7 +55,8 @@ public class AutoProjectiles extends Module {
     private int throwState = 0;
     private int throwsRemaining = 0;
     private boolean hasRotated = false;
-    private SmartPredictor smartPredictor = new SmartPredictor();
+    private final TargetTracker targetTracker = new TargetTracker();
+    private double smoothedPing = -1.0;
 
     public AutoProjectiles() {
         super("AutoProjectiles", false);
@@ -132,7 +141,7 @@ public class AutoProjectiles extends Module {
 
         EntityLivingBase newTarget = targets.get(0);
         if (this.target != newTarget) {
-            this.smartPredictor = new SmartPredictor();
+            this.targetTracker.reset();
         }
 
         return newTarget;
@@ -164,71 +173,96 @@ public class AutoProjectiles extends Module {
         return -1;
     }
 
-    private Vec3 predictPosition(EntityLivingBase target) {
-        long currentTime = System.currentTimeMillis();
-        smartPredictor.addPosition(new Vec3(target.posX, target.posY, target.posZ), currentTime);
-
-        if (!this.prediction.getValue()) {
-            return new Vec3(target.posX, target.posY + target.getEyeHeight(), target.posZ);
+    private double getPingMillis() {
+        NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID());
+        if (info == null) {
+            return Math.max(0.0, this.smoothedPing);
         }
-
-        double rawPing = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID()).getResponseTime();
-        double networkDelay = rawPing / 1000.0;
-
-        double clientProcessingDelay = 0.02;
-        double serverProcessingDelay = 0.01;
-        double packetDelay = networkDelay * 0.5;
-
-        double distance = mc.thePlayer.getDistanceToEntity(target);
-        final double PROJECTILE_SPEED = 20.0;
-        final double GRAVITY = 0.03;
-
-        double horizontalDistance = Math.sqrt(
-                Math.pow(target.posX - mc.thePlayer.posX, 2) +
-                        Math.pow(target.posZ - mc.thePlayer.posZ, 2)
-        );
-        double verticalDistance = (target.posY + target.getEyeHeight()) - (mc.thePlayer.posY + mc.thePlayer.getEyeHeight());
-
-        double horizontalTime = horizontalDistance / PROJECTILE_SPEED;
-        double verticalTime = calculateVerticalFlightTime(verticalDistance, PROJECTILE_SPEED, GRAVITY);
-        double actualFlightTime = Math.max(horizontalTime, verticalTime);
-
-        double totalDelayCompensation = networkDelay + clientProcessingDelay + serverProcessingDelay + packetDelay;
-
-        if (rawPing > 100) {
-            totalDelayCompensation += (rawPing - 100) / 1000.0 * 0.8;
-        }
-
-        double basePredictionTime = actualFlightTime + totalDelayCompensation;
-
-        Vec3 velocity = smartPredictor.getCurrentVelocity();
-        double targetSpeed = Math.sqrt(velocity.xCoord * velocity.xCoord + velocity.zCoord * velocity.zCoord);
-
-        if (targetSpeed > 0.2) {
-            basePredictionTime += targetSpeed * 0.1;
-        }
-
-        double distanceFactor = Math.min(1.2, distance / 10.0);
-        double finalPredictionTime = basePredictionTime * distanceFactor;
-
-        Vec3 predictedPos = smartPredictor.predictNextPosition(finalPredictionTime);
-
-        return new Vec3(predictedPos.xCoord, predictedPos.yCoord + target.getEyeHeight(), predictedPos.zCoord);
+        double raw = MathHelper.clamp_double(info.getResponseTime(), 0.0, 1000.0);
+        this.smoothedPing = this.smoothedPing < 0.0 ? raw : this.smoothedPing + (raw - this.smoothedPing) * 0.5;
+        return this.smoothedPing;
     }
 
-    private double calculateVerticalFlightTime(double verticalDistance, double initialSpeed, double gravity) {
-
-        double verticalComponent = initialSpeed * 0.2;
-
-        if (verticalDistance >= 0) {
-            double discriminant = verticalComponent * verticalComponent + 2 * gravity * verticalDistance;
-            if (discriminant < 0) return 0;
-            return (verticalComponent + Math.sqrt(discriminant)) / gravity;
-        } else {
-            double discriminant = verticalComponent * verticalComponent - 2 * gravity * verticalDistance;
-            if (discriminant < 0) return 0;
-            return (Math.sqrt(discriminant) - verticalComponent) / gravity;
+    private float[] computeAim(EntityLivingBase target) {
+        // 提前量 = 目标观察滞后 + 指令到达(合计一个 ping) + 状态机 1 tick + 服务器 tick 对齐半 tick
+        double leadSeconds = this.getPingMillis() / 1000.0 + 0.075;
+        double flightTicks = 6.0;
+        float[] result = null;
+        for (int i = 0; i < 3; i++) {
+            Vec3 predicted = this.prediction.getValue()
+                    ? this.targetTracker.predict(target, leadSeconds + flightTicks * 0.05)
+                    : new Vec3(target.posX, target.posY, target.posZ);
+            Vec3 aim = new Vec3(predicted.xCoord, predicted.yCoord + AIM_HEIGHT, predicted.zCoord);
+            double[] sol = this.solveAim(aim);
+            if (sol == null) {
+                return null;
+            }
+            result = new float[]{(float) sol[0], (float) sol[1]};
+            flightTicks = sol[2];
         }
+        return result;
+    }
+
+    private double[] solveAim(Vec3 aim) {
+        double sx = mc.thePlayer.posX;
+        double sy = mc.thePlayer.posY + mc.thePlayer.getEyeHeight() - 0.1;
+        double sz = mc.thePlayer.posZ;
+        double dx = aim.xCoord - sx;
+        double dz = aim.zCoord - sz;
+        float yaw = (float) (Math.atan2(dz, dx) * 180.0 / Math.PI) - 90.0F;
+        if (!ViaProtocol.newerThan1_8()) {
+            // 原版 1.8 服务器 spawn 点带朝向的水平偏移
+            double yawRad = Math.toRadians(yaw);
+            sx -= Math.cos(yawRad) * 0.16;
+            sz -= Math.sin(yawRad) * 0.16;
+            dx = aim.xCoord - sx;
+            dz = aim.zCoord - sz;
+        }
+        double dh = Math.sqrt(dx * dx + dz * dz);
+        double dy = aim.yCoord - sy;
+        double[] sol = this.solveThrowPitch(dh, dy);
+        if (sol == null) {
+            return null;
+        }
+        return new double[]{yaw, sol[0], sol[1]};
+    }
+
+    private double[] solveThrowPitch(double dh, double dy) {
+        // 原版每 tick: pos += v; v *= 0.99; vy -= 0.03 的闭合解:
+        // x(t) = 100*vx*(1-0.99^t), y(t) = 100*(vy+3)*(1-0.99^t) - 3t
+        // 反解所需初速模方 h(t), 二分求 h(t) = 1.5^2 的最小 t (低弹道)
+        final double speedSq = THROW_SPEED * THROW_SPEED;
+        double tLo = 0.0;
+        double tHi = -1.0;
+        for (double t = 0.25; t <= 80.0; t += 0.5) {
+            if (this.requiredSpeedSq(dh, dy, t) <= speedSq) {
+                tHi = t;
+                break;
+            }
+            tLo = t;
+        }
+        if (tHi < 0.0) {
+            return null;
+        }
+        for (int i = 0; i < 24; i++) {
+            double mid = (tLo + tHi) * 0.5;
+            if (this.requiredSpeedSq(dh, dy, mid) <= speedSq) {
+                tHi = mid;
+            } else {
+                tLo = mid;
+            }
+        }
+        double den = DRAG_SCALE * (1.0 - Math.pow(THROW_DRAG, tHi));
+        double vy = (dy + GRAVITY_TERM * tHi) / den - GRAVITY_TERM;
+        double pitch = -Math.toDegrees(Math.asin(MathHelper.clamp_double(vy / THROW_SPEED, -1.0, 1.0)));
+        return new double[]{pitch, tHi};
+    }
+
+    private double requiredSpeedSq(double dh, double dy, double t) {
+        double den = DRAG_SCALE * (1.0 - Math.pow(THROW_DRAG, t));
+        double vh = dh / den;
+        double vy = (dy + GRAVITY_TERM * t) / den - GRAVITY_TERM;
+        return vh * vh + vy * vy;
     }
 
     private long calculateSmartDelay() {
@@ -304,12 +338,16 @@ public class AutoProjectiles extends Module {
             return;
         }
 
+        if (this.target != null) {
+            this.targetTracker.sample(this.target.posX, this.target.posY, this.target.posZ, System.currentTimeMillis());
+        }
+
         if (this.throwState == 0) {
-            if (System.currentTimeMillis() - this.lastThrowTime < this.getThrowDelay() * 50L) {
-                return;
-            }
             this.target = this.getTarget();
             if (this.target == null) {
+                return;
+            }
+            if (System.currentTimeMillis() - this.lastThrowTime < this.getThrowDelay() * 50L) {
                 return;
             }
 
@@ -335,14 +373,17 @@ public class AutoProjectiles extends Module {
             this.throwState = 2;
         } else if (this.throwState == 2) {
             if (this.throwsRemaining > 0) {
-                Vec3 predictedPos = this.predictPosition(this.target);
                 if (this.rotation.getValue()) {
-                    float[] rotations = RotationUtil.getRotations(
-                            predictedPos.xCoord, predictedPos.yCoord, predictedPos.zCoord,
-                            mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ
-                    );
-                    event.setRotation(rotations[0], rotations[1], 2);
-                    event.setPervRotation(rotations[0], 2);
+                    float[] aim = this.computeAim(this.target);
+                    if (aim == null) {
+                        Vec3 center = new Vec3(this.target.posX, this.target.posY + AIM_HEIGHT, this.target.posZ);
+                        aim = RotationUtil.getRotations(
+                                center.xCoord, center.yCoord, center.zCoord,
+                                mc.thePlayer.posX, mc.thePlayer.posY + mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ
+                        );
+                    }
+                    event.setRotation(aim[0], aim[1], 2);
+                    event.setPervRotation(aim[0], 2);
                     this.hasRotated = true;
                 } else {
                     this.hasRotated = false;
@@ -391,6 +432,8 @@ public class AutoProjectiles extends Module {
         this.throwState = 0;
         this.throwsRemaining = 0;
         this.hasRotated = false;
+        this.targetTracker.reset();
+        this.smoothedPing = -1.0;
     }
 
     @Override
@@ -421,217 +464,74 @@ public class AutoProjectiles extends Module {
         }
     }
 
-    private static class SmartPredictor {
-        private final Vec3[] positions = new Vec3[20];
-        private final long[] timestamps = new long[20];
-        private final double[] movementPatterns = new double[4];
-        private int index = 0;
-        private double strafeFrequency = 0.0;
-        private double jumpFrequency = 0.0;
-        private long lastDirectionChange = 0L;
-        private Vec3 lastDirection = new Vec3(0, 0, 0);
-        private boolean isStrafing = false;
-        private boolean isJumping = false;
+    private static class TargetTracker {
+        private static final int CAPACITY = 12;
+        private final double[] xs = new double[CAPACITY];
+        private final double[] ys = new double[CAPACITY];
+        private final double[] zs = new double[CAPACITY];
+        private final long[] ts = new long[CAPACITY];
+        private int head = 0;
+        private int count = 0;
+        private double velX = 0.0;
+        private double velY = 0.0;
+        private double velZ = 0.0;
+        private boolean hasVelocity = false;
 
-        public void addPosition(Vec3 pos, long time) {
-            positions[index] = pos;
-            timestamps[index] = time;
-
-            if (index > 0) {
-                analyzeMovementPattern();
-            }
-
-            index = (index + 1) % positions.length;
+        public void reset() {
+            this.head = 0;
+            this.count = 0;
+            this.velX = 0.0;
+            this.velY = 0.0;
+            this.velZ = 0.0;
+            this.hasVelocity = false;
         }
 
-        private void analyzeMovementPattern() {
-            if (index < 2) return;
-
-            int currentIdx = index;
-            int prevIdx = (index - 1 + positions.length) % positions.length;
-
-            Vec3 currentPos = positions[currentIdx];
-            Vec3 prevPos = positions[prevIdx];
-
-            if (currentPos == null || prevPos == null) return;
-
-            Vec3 movement = new Vec3(
-                    currentPos.xCoord - prevPos.xCoord,
-                    currentPos.yCoord - prevPos.yCoord,
-                    currentPos.zCoord - prevPos.zCoord
-            );
-
-            if (Math.abs(movement.xCoord) > 0.01) {
-                if (movement.xCoord > 0) movementPatterns[0] += 0.1;
-                else movementPatterns[1] += 0.1;
-            }
-
-            if (Math.abs(movement.zCoord) > 0.01) {
-                if (movement.zCoord > 0) movementPatterns[2] += 0.1;
-                else movementPatterns[3] += 0.1;
-            }
-
-            for (int i = 0; i < movementPatterns.length; i++) {
-                movementPatterns[i] *= 0.95;
-            }
-
-            Vec3 currentDirection = normalizeMovement(movement);
-            if (lastDirection.lengthVector() > 0) {
-                double dotProduct = lastDirection.xCoord * currentDirection.xCoord +
-                        lastDirection.zCoord * currentDirection.zCoord;
-                if (dotProduct < 0.3) {
-                    lastDirectionChange = timestamps[currentIdx];
-                    strafeFrequency = Math.min(1.0, strafeFrequency + 0.2);
-                    isStrafing = true;
+        public void sample(double x, double y, double z, long now) {
+            if (this.count > 0) {
+                int newest = (this.head - 1 + CAPACITY) % CAPACITY;
+                if (this.ts[newest] >= now) {
+                    return;
                 }
             }
-            lastDirection = currentDirection;
-
-            if (movement.yCoord > 0.1) {
-                jumpFrequency = Math.min(1.0, jumpFrequency + 0.15);
-                isJumping = true;
-            } else {
-                jumpFrequency *= 0.9;
-                isJumping = false;
-            }
-
-            if (System.currentTimeMillis() - lastDirectionChange > 500) {
-                isStrafing = false;
-                strafeFrequency *= 0.8;
-            }
-        }
-
-        private Vec3 normalizeMovement(Vec3 movement) {
-            double length = Math.sqrt(movement.xCoord * movement.xCoord + movement.zCoord * movement.zCoord);
-            if (length < 0.001) return new Vec3(0, 0, 0);
-            return new Vec3(movement.xCoord / length, 0, movement.zCoord / length);
-        }
-
-        public Vec3 predictNextPosition(double predictionTime) {
-            if (index < 3) return positions[(index - 1 + positions.length) % positions.length];
-
-            Vec3 currentPos = positions[(index - 1 + positions.length) % positions.length];
-            Vec3 velocity = getCurrentVelocity();
-            Vec3 acceleration = getCurrentAcceleration();
-
-            Vec3 basePredict = new Vec3(
-                    currentPos.xCoord + velocity.xCoord * predictionTime + 0.5 * acceleration.xCoord * predictionTime * predictionTime,
-                    currentPos.yCoord + velocity.yCoord * predictionTime + 0.5 * acceleration.yCoord * predictionTime * predictionTime,
-                    currentPos.zCoord + velocity.zCoord * predictionTime + 0.5 * acceleration.zCoord * predictionTime * predictionTime
-            );
-
-            Vec3 behaviorPredict = predictBehaviorChange(currentPos, velocity, predictionTime);
-
-            double baseWeight = Math.max(0.3, 1.0 - strafeFrequency);
-            double behaviorWeight = strafeFrequency;
-
-            return new Vec3(
-                    basePredict.xCoord * baseWeight + behaviorPredict.xCoord * behaviorWeight,
-                    basePredict.yCoord * baseWeight + behaviorPredict.yCoord * behaviorWeight,
-                    basePredict.zCoord * baseWeight + behaviorPredict.zCoord * behaviorWeight
-            );
-        }
-
-        private Vec3 predictBehaviorChange(Vec3 currentPos, Vec3 velocity, double predictionTime) {
-            Vec3 predicted = currentPos;
-            double reactionTime = 0.3;
-            if (isStrafing && predictionTime > reactionTime) {
-                double timeSinceLastChange = (System.currentTimeMillis() - lastDirectionChange) / 1000.0;
-                if (timeSinceLastChange > 0.8 && Math.random() < strafeFrequency) {
-                    Vec3 oppositeVel = new Vec3(-velocity.xCoord * 0.8, velocity.yCoord, -velocity.zCoord * 0.8);
-                    predicted = new Vec3(
-                            currentPos.xCoord + oppositeVel.xCoord * (predictionTime - reactionTime),
-                            currentPos.yCoord + oppositeVel.yCoord * (predictionTime - reactionTime),
-                            currentPos.zCoord + oppositeVel.zCoord * (predictionTime - reactionTime)
-                    );
-                } else {
-                    Vec3 continuedVel = new Vec3(velocity.xCoord * 0.9, velocity.yCoord, velocity.zCoord * 0.9);
-                    predicted = new Vec3(
-                            currentPos.xCoord + continuedVel.xCoord * predictionTime,
-                            currentPos.yCoord + continuedVel.yCoord * predictionTime,
-                            currentPos.zCoord + continuedVel.zCoord * predictionTime
-                    );
-                }
-            } else {
-                double totalPattern = movementPatterns[0] + movementPatterns[1] + movementPatterns[2] + movementPatterns[3];
-                if (totalPattern > 0) {
-                    double xTendency = (movementPatterns[0] - movementPatterns[1]) / totalPattern;
-                    double zTendency = (movementPatterns[2] - movementPatterns[3]) / totalPattern;
-
-                    Vec3 tendencyVel = new Vec3(
-                            velocity.xCoord + xTendency * 0.5,
-                            velocity.yCoord + (isJumping ? jumpFrequency * 0.3 : 0),
-                            velocity.zCoord + zTendency * 0.5
-                    );
-
-                    predicted = new Vec3(
-                            currentPos.xCoord + tendencyVel.xCoord * predictionTime,
-                            currentPos.yCoord + tendencyVel.yCoord * predictionTime,
-                            currentPos.zCoord + tendencyVel.zCoord * predictionTime
-                    );
+            this.xs[this.head] = x;
+            this.ys[this.head] = y;
+            this.zs[this.head] = z;
+            this.ts[this.head] = now;
+            this.head = (this.head + 1) % CAPACITY;
+            this.count = Math.min(this.count + 1, CAPACITY);
+            if (this.count >= 2) {
+                int newest = (this.head - 1 + CAPACITY) % CAPACITY;
+                int oldest = (newest - Math.min(this.count - 1, 4) + CAPACITY) % CAPACITY;
+                double dt = (this.ts[newest] - this.ts[oldest]) / 1000.0;
+                if (dt >= 0.05) {
+                    double nvx = (this.xs[newest] - this.xs[oldest]) / dt;
+                    double nvy = (this.ys[newest] - this.ys[oldest]) / dt;
+                    double nvz = (this.zs[newest] - this.zs[oldest]) / dt;
+                    double w = this.hasVelocity ? 0.6 : 1.0;
+                    this.velX += (nvx - this.velX) * w;
+                    this.velY += (nvy - this.velY) * w;
+                    this.velZ += (nvz - this.velZ) * w;
+                    this.hasVelocity = true;
                 }
             }
-
-            return predicted;
         }
 
-        private Vec3 getCurrentVelocity() {
-            if (index < 2) return new Vec3(0, 0, 0);
-
-            int currentIdx = (index - 1 + positions.length) % positions.length;
-            int prevIdx = (index - 2 + positions.length) % positions.length;
-
-            if (positions[currentIdx] == null || positions[prevIdx] == null) {
-                return new Vec3(0, 0, 0);
+        public Vec3 predict(EntityLivingBase target, double seconds) {
+            double px = target.posX + this.velX * seconds;
+            double pz = target.posZ + this.velZ * seconds;
+            double py = target.posY;
+            if (this.hasVelocity && Math.abs(this.velY) >= 0.5) {
+                // 垂直按原版实体物理外推: pos += vy; vy = (vy - 0.08) * 0.98
+                double vy = this.velY * 0.05;
+                int full = (int) Math.floor(seconds / 0.05);
+                for (int i = 0; i < full; i++) {
+                    py += vy;
+                    vy = (vy - 0.08) * 0.98;
+                }
+                py += vy * (seconds / 0.05 - full);
+                py = MathHelper.clamp_double(py, target.posY - 3.0, target.posY + 3.0);
             }
-
-            long timeDiff = timestamps[currentIdx] - timestamps[prevIdx];
-            if (timeDiff <= 0) return new Vec3(0, 0, 0);
-
-            double deltaX = positions[currentIdx].xCoord - positions[prevIdx].xCoord;
-            double deltaY = positions[currentIdx].yCoord - positions[prevIdx].yCoord;
-            double deltaZ = positions[currentIdx].zCoord - positions[prevIdx].zCoord;
-
-            double timeInSeconds = timeDiff / 1000.0;
-            return new Vec3(deltaX / timeInSeconds, deltaY / timeInSeconds, deltaZ / timeInSeconds);
-        }
-
-        private Vec3 getCurrentAcceleration() {
-            if (index < 3) return new Vec3(0, 0, 0);
-
-            Vec3 vel1 = getVelocityBetween((index - 1 + positions.length) % positions.length,
-                    (index - 2 + positions.length) % positions.length);
-            Vec3 vel2 = getVelocityBetween((index - 2 + positions.length) % positions.length,
-                    (index - 3 + positions.length) % positions.length);
-
-            int currentIdx = (index - 1 + positions.length) % positions.length;
-            int prevIdx = (index - 2 + positions.length) % positions.length;
-
-            long timeDiff = timestamps[currentIdx] - timestamps[prevIdx];
-            if (timeDiff <= 0) return new Vec3(0, 0, 0);
-
-            double timeInSeconds = timeDiff / 1000.0;
-            return new Vec3(
-                    (vel1.xCoord - vel2.xCoord) / timeInSeconds,
-                    (vel1.yCoord - vel2.yCoord) / timeInSeconds,
-                    (vel1.zCoord - vel2.zCoord) / timeInSeconds
-            );
-        }
-
-        private Vec3 getVelocityBetween(int idx1, int idx2) {
-            if (positions[idx1] == null || positions[idx2] == null) {
-                return new Vec3(0, 0, 0);
-            }
-
-            long timeDiff = timestamps[idx1] - timestamps[idx2];
-            if (timeDiff <= 0) return new Vec3(0, 0, 0);
-
-            double deltaX = positions[idx1].xCoord - positions[idx2].xCoord;
-            double deltaY = positions[idx1].yCoord - positions[idx2].yCoord;
-            double deltaZ = positions[idx1].zCoord - positions[idx2].zCoord;
-
-            double timeInSeconds = timeDiff / 1000.0;
-            return new Vec3(deltaX / timeInSeconds, deltaY / timeInSeconds, deltaZ / timeInSeconds);
+            return new Vec3(px, py, pz);
         }
     }
 }
