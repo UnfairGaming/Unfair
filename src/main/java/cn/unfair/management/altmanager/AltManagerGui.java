@@ -182,6 +182,7 @@ public class AltManagerGui extends GuiScreen {
         drawToolbarBackgrounds();
         drawDialog();
         PostProcessingRenderer.flushPostProcessing();
+        PostProcessingRenderer.renderBloom();
         drawToolbarTexts();
         drawDialogButtonsText();
         super.drawScreen(mouseX, mouseY, partialTicks);

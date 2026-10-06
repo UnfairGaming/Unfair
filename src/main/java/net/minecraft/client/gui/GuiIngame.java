@@ -318,6 +318,7 @@ public class GuiIngame extends Gui {
 
         PostProcessingRenderer.render2D(partialTicks);
         EventManager.call(new Render2DEvent(partialTicks));
+        PostProcessingRenderer.renderBloom();
 
         Scoreboard scoreboard = this.mc.theWorld.getScoreboard();
         ScoreObjective scoreobjective = null;

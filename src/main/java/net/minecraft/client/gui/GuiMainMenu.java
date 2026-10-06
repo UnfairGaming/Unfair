@@ -485,6 +485,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         }
 
         PostProcessingRenderer.flushPostProcessing();
+        PostProcessingRenderer.renderBloom();
 
         for (int i = 0; i < this.buttonList.size() && i < this.animatedX.length; i++) {
             GuiButton button = this.buttonList.get(i);

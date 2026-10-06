@@ -80,8 +80,19 @@ public class PostProcessingRenderer {
             ShaderElement.getPostBlurTasks().clear();
             blurSourceActive = false;
         }
+    }
 
-        if (pp.bloom.getValue() && !ShaderElement.getBloomTasks().isEmpty()) {
+    public static void renderBloom() {
+        if (AndroidUtil.isAndroid() || Unfair.moduleManager == null) {
+            ShaderElement.getBloomTasks().clear();
+            return;
+        }
+        PostProcessing pp = (PostProcessing) Unfair.moduleManager.getModule(PostProcessing.class);
+        if (pp == null || !pp.isEnabled() || !pp.bloom.getValue()) {
+            ShaderElement.getBloomTasks().clear();
+            return;
+        }
+        if (!ShaderElement.getBloomTasks().isEmpty()) {
             drawBloom(pp.bloomIterations.getValue(), pp.bloomOffset.getValue(), pp.getBloomColor(System.currentTimeMillis()));
         } else {
             ShaderElement.getBloomTasks().clear();
