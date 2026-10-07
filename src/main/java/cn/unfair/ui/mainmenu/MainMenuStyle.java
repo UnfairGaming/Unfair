@@ -21,7 +21,6 @@ public final class MainMenuStyle {
     private static final int BACKGROUND_REFRESH_INTERVAL = 3;
     public static final int WHITE_208 = new Color(255, 255, 255, 208).getRGB();
     public static final int WHITE_170 = new Color(255, 255, 255, 170).getRGB();
-    private static final int ANDROID_BACKGROUND_COLOR = 0xFFA3A5A2;
     private static ShaderUtil backgroundShader;
     private static ShaderUtil blitShader;
     private static Framebuffer backgroundFbo;
@@ -34,7 +33,7 @@ public final class MainMenuStyle {
         GlStateManager.clearColor(0.0F, 0.0F, 0.0F, 1.0F);
         GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         if (AndroidUtil.isAndroid()) {
-            RenderUtil.drawRect(0.0D, 0.0D, width, height, ANDROID_BACKGROUND_COLOR);
+            RenderUtil.drawRect(0.0D, 0.0D, width, height, Color.BLACK.getRGB());
             return;
         }
 
