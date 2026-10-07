@@ -298,8 +298,7 @@ this.registerBlock(Blocks.campfire, "campfire");
 
 参考：
 
-- `src/main/java/cn/unfair/util/via/DirtPathBlockTracker.java`
-- `src/main/java/cn/unfair/util/via/CampfireBlockTracker.java`
+- `src/main/java/cn/unfair/util/via/ModernBlockStateTracker.java`（草径与营火的放置/remap 方法已合并于此，见 `placeDirtPath`、`remapDirtPath`、`placeCampfire`、`remapCampfire`）
 - `src/main/java/cn/unfair/util/via/RespawnAnchorBlockTracker.java`
 
 推荐流程：

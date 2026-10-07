@@ -1,6 +1,6 @@
 package net.minecraft.block;
 
-import cn.unfair.util.via.CampfireBlockTracker;
+import cn.unfair.util.via.ModernBlockStateTracker;
 import cn.unfair.util.via.ViaProtocol;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import net.minecraft.block.material.Material;
@@ -136,6 +136,6 @@ public class BlockCampfire extends ModernBlockDirectional {
     }
 
     public void onModernStateApplied(BlockPos pos, IBlockState state) {
-        CampfireBlockTracker.mark(pos, state);
+        ModernBlockStateTracker.markCampfire(pos, state);
     }
 }

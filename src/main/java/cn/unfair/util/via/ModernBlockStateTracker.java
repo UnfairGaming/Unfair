@@ -45,10 +45,17 @@ import com.viaversion.viaversion.protocols.v1_8to1_9.packet.ClientboundPackets1_
 import com.viaversion.viaversion.protocols.v1_9_1to1_9_3.packet.ClientboundPackets1_9_3;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockCampfire;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.block.ModernBlock;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
 import java.io.DataInputStream;
@@ -56,6 +63,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
@@ -67,6 +75,8 @@ public final class ModernBlockStateTracker {
     private static final ConcurrentMap<Long, ConcurrentMap<Integer, IBlockState[]>> EXTENDED_SECTIONS = Maps.newConcurrentMap();
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, NativeState>> NATIVE_STATES = Maps.newConcurrentMap();
     private static final ConcurrentMap<Long, ConcurrentMap<BlockPos, IBlockState>> PREDICTED_STATES = Maps.newConcurrentMap();
+    private static final ConcurrentMap<BlockPos, IBlockState> CAMPFIRE_STATES = Maps.newConcurrentMap();
+    private static final Set<BlockPos> DIRT_PATH_POSITIONS = ConcurrentHashMap.newKeySet();
     private static List<ModernBlock> modernBlocks = Collections.emptyList();
     private static List<String> blockStates1_13 = Collections.emptyList();
     private static boolean installationScheduled;
@@ -437,7 +447,8 @@ public final class ModernBlockStateTracker {
         EXTENDED_SECTIONS.clear();
         NATIVE_STATES.clear();
         PREDICTED_STATES.clear();
-        CampfireBlockTracker.clear();
+        CAMPFIRE_STATES.clear();
+        DIRT_PATH_POSITIONS.clear();
         ModernWorldHeight.reset();
     }
 
@@ -446,7 +457,8 @@ public final class ModernBlockStateTracker {
         EXTENDED_SECTIONS.remove(chunkKey(chunkX, chunkZ));
         NATIVE_STATES.remove(chunkKey(chunkX, chunkZ));
         PREDICTED_STATES.remove(chunkKey(chunkX, chunkZ));
-        CampfireBlockTracker.clearChunk(chunkX, chunkZ);
+        CAMPFIRE_STATES.keySet().removeIf(pos -> pos.getX() >> 4 == chunkX && pos.getZ() >> 4 == chunkZ);
+        DIRT_PATH_POSITIONS.removeIf(pos -> pos.getX() >> 4 == chunkX && pos.getZ() >> 4 == chunkZ);
     }
 
     private static void loadBlockStates1_13() {
@@ -954,6 +966,130 @@ public final class ModernBlockStateTracker {
         if (states.isEmpty()) {
             chunks.remove(key, states);
         }
+    }
+
+    public static boolean isCampfireItem(ItemStack stack) {
+        String model = ViaBackwardsItemModels.getModelName(stack);
+        return "campfire".equals(model) || "soul_campfire".equals(model);
+    }
+
+    public static boolean placeCampfire(ItemStack stack, EntityPlayer player, World world, BlockPos hitPos, EnumFacing side) {
+        BlockPos placePos = hitPos;
+        Block clicked = world.getBlockState(hitPos).getBlock();
+
+        if (!clicked.isReplaceable(world, hitPos)) {
+            placePos = hitPos.offset(side);
+        }
+
+        String model = ViaBackwardsItemModels.getModelName(stack);
+        boolean soul = "soul_campfire".equals(model);
+        Block block = soul ? Blocks.soul_campfire : Blocks.campfire;
+
+        if (stack == null || stack.stackSize == 0 || !player.canPlayerEdit(placePos, side, stack)
+                || !world.canBlockBePlaced(block, placePos, false, side, null, stack)) {
+            return false;
+        }
+
+        IBlockState state = block.getDefaultState()
+                .withProperty(BlockCampfire.FACING, player.getHorizontalFacing())
+                .withProperty(BlockCampfire.LIT, Boolean.TRUE);
+        markCampfire(placePos, state);
+
+        if (world.setBlockState(placePos, state, 3)) {
+            world.checkLight(placePos);
+            world.markBlockRangeForRenderUpdate(placePos.add(-1, -1, -1), placePos.add(1, 1, 1));
+            world.playSoundEffect((float) placePos.getX() + 0.5F, (float) placePos.getY() + 0.5F, (float) placePos.getZ() + 0.5F,
+                    block.stepSound.getPlaceSound(),
+                    (block.stepSound.getVolume() + 1.0F) / 2.0F,
+                    block.stepSound.getFrequency() * 0.8F);
+
+            if (!player.capabilities.isCreativeMode) {
+                --stack.stackSize;
+            }
+        }
+
+        return true;
+    }
+
+    public static void markCampfire(BlockPos pos, IBlockState state) {
+        if (pos != null && state != null) {
+            CAMPFIRE_STATES.put(pos, state);
+        }
+    }
+
+    public static IBlockState remapCampfire(BlockPos pos, IBlockState state) {
+        if (pos == null || state == null) {
+            return state;
+        }
+
+        IBlockState campfireState = CAMPFIRE_STATES.get(pos);
+        if (campfireState == null) {
+            return state;
+        }
+
+        Block block = state.getBlock();
+        if (block == Blocks.fire) {
+            return campfireState.withProperty(BlockCampfire.LIT, Boolean.TRUE);
+        }
+        if (block instanceof BlockSlab) {
+            return campfireState.withProperty(BlockCampfire.LIT, Boolean.FALSE);
+        }
+        if (block != Blocks.campfire && block != Blocks.soul_campfire) {
+            CAMPFIRE_STATES.remove(pos);
+        }
+
+        return state;
+    }
+
+    public static boolean isDirtPathItem(ItemStack stack) {
+        String model = ViaBackwardsItemModels.getModelName(stack);
+        return "dirt_path".equals(model) || "grass_path".equals(model);
+    }
+
+    public static boolean placeDirtPath(ItemStack stack, EntityPlayer player, World world, BlockPos hitPos, EnumFacing side) {
+        BlockPos placePos = hitPos;
+        Block clicked = world.getBlockState(hitPos).getBlock();
+
+        if (!clicked.isReplaceable(world, hitPos)) {
+            placePos = hitPos.offset(side);
+        }
+
+        if (stack == null || stack.stackSize == 0 || !player.canPlayerEdit(placePos, side, stack)
+                || !world.canBlockBePlaced(Blocks.dirt_path, placePos, false, side, null, stack)) {
+            return false;
+        }
+
+        markDirtPath(placePos);
+        if (world.setBlockState(placePos, Blocks.dirt_path.getDefaultState(), 3)) {
+            world.checkLight(placePos);
+            world.markBlockRangeForRenderUpdate(placePos.add(-1, -1, -1), placePos.add(1, 1, 1));
+            world.playSoundEffect((float) placePos.getX() + 0.5F, (float) placePos.getY() + 0.5F, (float) placePos.getZ() + 0.5F,
+                    Blocks.dirt_path.stepSound.getPlaceSound(),
+                    (Blocks.dirt_path.stepSound.getVolume() + 1.0F) / 2.0F,
+                    Blocks.dirt_path.stepSound.getFrequency() * 0.8F);
+
+            if (!player.capabilities.isCreativeMode) {
+                --stack.stackSize;
+            }
+        }
+
+        return true;
+    }
+
+    public static void markDirtPath(BlockPos pos) {
+        if (pos != null) {
+            DIRT_PATH_POSITIONS.add(pos);
+        }
+    }
+
+    public static IBlockState remapDirtPath(BlockPos pos, IBlockState state) {
+        if (pos != null && state != null && DIRT_PATH_POSITIONS.contains(pos) && state.getBlock() == Blocks.grass) {
+            return Blocks.dirt_path.getDefaultState();
+        }
+        if (pos != null && state != null && state.getBlock() != Blocks.dirt_path && state.getBlock() != Blocks.grass) {
+            DIRT_PATH_POSITIONS.remove(pos);
+        }
+        return state;
     }
 
     private static ModernState decode(int stateId, ProtocolVersion sourceVersion) {

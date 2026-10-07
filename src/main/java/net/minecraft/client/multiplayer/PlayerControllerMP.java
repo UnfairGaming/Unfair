@@ -471,8 +471,8 @@ public class PlayerControllerMP {
             if (!flag && this.currentGameType != WorldSettings.GameType.SPECTATOR
                     && (this.resolveModernBlock(heldStack) != null
                     || (heldStack != null && ("respawn_anchor".equals(ViaBackwardsItemModels.getModelName(heldStack))
-                    || DirtPathBlockTracker.isDirtPathItem(heldStack)
-                    || CampfireBlockTracker.isCampfireItem(heldStack))))) {
+                    || ModernBlockStateTracker.isDirtPathItem(heldStack)
+                    || ModernBlockStateTracker.isCampfireItem(heldStack))))) {
                 this.swingPlacedBlock(player);
             }
 
@@ -482,13 +482,13 @@ public class PlayerControllerMP {
                             || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 
-                if (heldStack != null && DirtPathBlockTracker.isDirtPathItem(heldStack)) {
-                    return DirtPathBlockTracker.place(heldStack, player, worldIn, hitPos, side)
+                if (heldStack != null && ModernBlockStateTracker.isDirtPathItem(heldStack)) {
+                    return ModernBlockStateTracker.placeDirtPath(heldStack, player, worldIn, hitPos, side)
                             || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 
-                if (heldStack != null && CampfireBlockTracker.isCampfireItem(heldStack)) {
-                    return CampfireBlockTracker.place(heldStack, player, worldIn, hitPos, side)
+                if (heldStack != null && ModernBlockStateTracker.isCampfireItem(heldStack)) {
+                    return ModernBlockStateTracker.placeCampfire(heldStack, player, worldIn, hitPos, side)
                             || this.tryOffhandUseOnBlock(player, hitPos, side, hitVec);
                 }
 

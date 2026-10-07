@@ -1,6 +1,6 @@
 package net.minecraft.block;
 
-import cn.unfair.util.via.DirtPathBlockTracker;
+import cn.unfair.util.via.ModernBlockStateTracker;
 import cn.unfair.util.via.ViaProtocol;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -100,6 +100,6 @@ public class BlockDirtPath extends ModernBlock {
     }
 
     public void onModernStateApplied(BlockPos pos, IBlockState state) {
-        DirtPathBlockTracker.mark(pos);
+        ModernBlockStateTracker.markDirtPath(pos);
     }
 }

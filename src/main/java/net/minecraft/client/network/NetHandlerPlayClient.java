@@ -599,8 +599,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
             BlockPos pos = s22packetmultiblockchange$blockupdatedata.getPos();
             IBlockState state = ModernBlockStateTracker.remap(pos,
                     RespawnAnchorBlockTracker.remap(pos,
-                            CampfireBlockTracker.remap(pos,
-                                    DirtPathBlockTracker.remap(pos, s22packetmultiblockchange$blockupdatedata.getBlockState()))));
+                            ModernBlockStateTracker.remapCampfire(pos,
+                                    ModernBlockStateTracker.remapDirtPath(pos, s22packetmultiblockchange$blockupdatedata.getBlockState()))));
             this.clientWorldController.invalidateRegionAndSetBlock(pos, state);
             // The previous state may have been a locally restored modern block.
             // Refresh even when the server replaces it with air or a legacy block.
@@ -655,8 +655,8 @@ public class NetHandlerPlayClient implements INetHandlerPlayClient {
         BlockPos pos = packetIn.getBlockPosition();
         IBlockState state = ModernBlockStateTracker.remap(pos,
                 RespawnAnchorBlockTracker.remap(pos,
-                        CampfireBlockTracker.remap(pos,
-                                DirtPathBlockTracker.remap(pos, packetIn.getBlockState()))));
+                        ModernBlockStateTracker.remapCampfire(pos,
+                                ModernBlockStateTracker.remapDirtPath(pos, packetIn.getBlockState()))));
         this.clientWorldController.invalidateRegionAndSetBlock(pos, state);
         this.clientWorldController.markBlockForUpdate(pos);
     }
