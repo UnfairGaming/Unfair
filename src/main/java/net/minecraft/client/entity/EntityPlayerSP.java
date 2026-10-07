@@ -110,6 +110,10 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
      */
     private boolean serverSprintState;
     /**
+     * the last onGround state sent to the server via a status-only packet
+     */
+    private boolean lastServerOnGround;
+    /**
      * Reset to 0 every time position is sent to the server, used to send periodic updates every 20 ticks even when the
      * player is not moving.
      */
@@ -321,7 +325,12 @@ public class EntityPlayerSP extends AbstractClientPlayer implements ModernPlayer
                 } else if (flag3) {
                     this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(yaw, pitch, this.onGround));
                 } else {
-                    this.sendQueue.addToSendQueue(new C03PacketPlayer(this.onGround));
+                    // 1.21.2+: 原版仅在 onGround/horizontalCollision 变化时发送状态包, 否则不发移动包
+                    // (idle tick 由 CLIENT_TICK_END 标记, 与 Grim 的 1.21.2+ end-tick 模型对齐)
+                    if (!ViaProtocol.newerThanOrEqualTo1_21_2() || this.onGround != this.lastServerOnGround) {
+                        this.sendQueue.addToSendQueue(new C03PacketPlayer(this.onGround));
+                        this.lastServerOnGround = this.onGround;
+                    }
                 }
             } else {
                 this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(this.motionX, -999.0D, this.motionZ, yaw, pitch, this.onGround));
