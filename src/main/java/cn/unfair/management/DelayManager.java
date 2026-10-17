@@ -1,10 +1,14 @@
 package cn.unfair.management;
 
+import cn.unfair.Unfair;
 import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.TickEvent;
+import cn.unfair.module.SubModule;
+import cn.unfair.module.modules.combat.Velocity;
+import cn.unfair.module.modules.combat.velocity.B4Mode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.Packet;
@@ -51,6 +55,19 @@ public class DelayManager {
                 Entity entity = s19.getEntity(mc.theWorld);
                 if (entity != null && (!entity.equals(mc.thePlayer) || s19.getOpCode() != 2)) {
                     return false;
+                }
+            }
+            if (this.delayModule == DelayModules.VELOCITY && Unfair.moduleManager != null) {
+                Velocity velocity = (Velocity) Unfair.moduleManager.getModule(Velocity.class);
+                SubModule subModule = velocity == null ? null : velocity.getCurrentSubModule();
+                if (subModule instanceof B4Mode b4 && b4.isDelaying()) {
+                    B4Mode.DelayedPacketAction action = b4.handleDelayedPacket(packet);
+                    if (action == B4Mode.DelayedPacketAction.PROCESS_NOW) {
+                        return false;
+                    }
+                    if (action == B4Mode.DelayedPacketAction.DROP) {
+                        return true;
+                    }
                 }
             }
             this.queueDelayedPacket(packet);
