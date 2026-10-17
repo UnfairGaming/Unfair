@@ -24,18 +24,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
-import net.minecraft.potion.Potion;
 
 public class HypixelVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
     public final BooleanProperty debug = new BooleanProperty("Debug", false);
-    public final BooleanProperty jump = new BooleanProperty("Jump", true);
     public final BooleanProperty reduce = new BooleanProperty("Reduce", true);
     public final BooleanProperty delay = new BooleanProperty("Delay", true);
     public final IntProperty delayTicks = new IntProperty("DelayTicks", 2, 1, 5, delay::getValue);
     private boolean delayFlag;
     private boolean knockback;
-    private boolean jumpFlag;
 
     public HypixelVelocity() {
         super("Hypixel");
@@ -66,7 +63,6 @@ public class HypixelVelocity extends SubModule {
     public void onKnockback(KnockbackEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null || !isEnabled()) return;
         if (!event.isCancelled()) {
-            this.jumpFlag = this.jump.getValue() && event.getY() > 0.0;
         } else {
             knockback = false;
             return;
@@ -99,21 +95,6 @@ public class HypixelVelocity extends SubModule {
             reduceVelocity();
         } else if (!this.reduce.getValue()) {
             knockback = false;
-        }
-    }
-
-    @EventTarget
-    public void onLivingUpdate(LivingUpdateEvent event) {
-        if (this.jump.getValue() && this.jumpFlag) {
-            this.jumpFlag = false;
-            if (mc.thePlayer.onGround && mc.thePlayer.isSprinting() && !mc.thePlayer.isPotionActive(Potion.jump) && !PlayerUtil.isInLiquidOrWeb()) {
-                mc.thePlayer.movementInput.jump = true;
-                if (debug.getValue()) {
-                    ChatUtil.dbg("Jump");
-                }
-            }
-        } else if (!this.jump.getValue()) {
-            this.jumpFlag = false;
         }
     }
 
@@ -218,6 +199,5 @@ public class HypixelVelocity extends SubModule {
     private void reset() {
         delayFlag = false;
         knockback = false;
-        jumpFlag = false;
     }
 }

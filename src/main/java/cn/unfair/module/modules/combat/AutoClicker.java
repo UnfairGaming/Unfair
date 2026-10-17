@@ -21,6 +21,7 @@ import java.util.Objects;
 
 public class AutoClicker extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static AutoClicker instance;
     public final IntProperty minCPS = new IntProperty("MinCps", 8, 1, 20);
     public final IntProperty maxCPS = new IntProperty("MaxCps", 12, 1, 20);
     public final BooleanProperty weaponsOnly = new BooleanProperty("WeaponsOnly", true);
@@ -37,6 +38,11 @@ public class AutoClicker extends Module {
 
     public AutoClicker() {
         super("AutoClicker", false);
+        instance = this;
+    }
+
+    public static boolean clicking() {
+        return instance != null && (instance.clickPending || instance.clickDelay > 0L);
     }
 
     private long getNextClickDelay() {

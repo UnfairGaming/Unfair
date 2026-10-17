@@ -13,8 +13,7 @@ public class Velocity extends ModuleWithModuleSettings {
                 new ReduceVelocity(),
                 new GrimReduceVelocity(),
                 new DelayVelocity(),
-                new PolarVelocity(),
-                new LegitVelocity()
+                new PolarVelocity()
         );
     }
 

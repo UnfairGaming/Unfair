@@ -68,6 +68,10 @@ public class AimAssist extends Module {
         super("AimAssist", false);
     }
 
+    public EntityPlayer getCurrentTarget() {
+        return this.target;
+    }
+
     @Override
     public void onDisabled() {
         this.miningStartTime = -1L;

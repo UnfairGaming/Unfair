@@ -30,6 +30,8 @@ Deeply optimized MCP and Augustus ClickGui by bzdhyp / zzz
 
 ViaVersion / ViaBackwards / ViaRewind
 
+Source code for RavenB4
+
 Source code for Leader Lite: https://github.com/woshijiejue/Leader-Lite
 
 Source code for OpenMyau: https://github.com/60124808866/OpenMyau
@@ -54,6 +56,6 @@ Development by K0t1yaSanae
 
 GPT development (over 30%)
 
-Development by DeepSeek (over 40%)
+Development by DeepSeek (over 50%)
 
 Lighting system by Phosphor: https://github.com/momenbasel/Phosphor
