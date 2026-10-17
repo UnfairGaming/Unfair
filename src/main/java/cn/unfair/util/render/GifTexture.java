@@ -4,6 +4,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -21,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GifTexture {
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final ExecutorService LOADER = Executors.newSingleThreadExecutor(task -> {
         Thread thread = new Thread(task, "Unfair-Gif");
         thread.setDaemon(true);
@@ -28,12 +31,13 @@ public class GifTexture {
     });
     private static final String DIRECTORY = "/assets/minecraft/unfair/pet/";
     private static final String META_FORMAT = "javax_imageio_gif_image_1.0";
-    private static final int CELL_LIMIT = 256;
+    private static final int CELL_LIMIT = 128;
 
     private final String name;
     private final String resource;
     private volatile Sheet pending;
-    private boolean loading;
+    private volatile boolean loading;
+    private volatile boolean loadFailed;
     private int texture = -1;
     private float[] frames;
     private long[] timeline;
@@ -53,6 +57,17 @@ public class GifTexture {
         return this.aspect;
     }
 
+    public float getFittedWidth(float maxWidth, float maxHeight) {
+        float aspect = this.aspect > 0.0F ? this.aspect : 1.0F;
+        return Math.min(maxWidth, maxHeight * aspect);
+    }
+
+    public float getFittedHeight(float maxWidth, float maxHeight) {
+        float aspect = this.aspect > 0.0F ? this.aspect : 1.0F;
+        float width = this.getFittedWidth(maxWidth, maxHeight);
+        return Math.min(maxHeight, width / aspect);
+    }
+
     public boolean isReady() {
         return this.texture != -1;
     }
@@ -63,10 +78,15 @@ public class GifTexture {
         }
         Sheet sheet = this.pending;
         if (sheet == null) {
-            if (!this.loading) {
+            if (!this.loading && !this.loadFailed) {
                 this.loading = true;
                 int maximum = limit();
-                LOADER.execute(() -> this.pending = read(this.resource, maximum));
+                LOADER.execute(() -> {
+                    Sheet loaded = read(this.resource, maximum);
+                    this.pending = loaded;
+                    this.loadFailed = loaded == null;
+                    this.loading = false;
+                });
             }
             return;
         }
@@ -108,6 +128,12 @@ public class GifTexture {
         GL11.glEnd();
         GlStateManager.bindTexture(0);
         GlStateManager.disableBlend();
+    }
+
+    public void drawFitted(float centerX, float centerY, float maxWidth, float maxHeight, long time) {
+        float width = this.getFittedWidth(maxWidth, maxHeight);
+        float height = this.getFittedHeight(maxWidth, maxHeight);
+        this.draw(centerX - width * 0.5F, centerY - height * 0.5F, width, height, time);
     }
 
     private static int limit() {
@@ -162,100 +188,122 @@ public class GifTexture {
             if (input == null) {
                 return null;
             }
-            ImageInputStream stream = ImageIO.createImageInputStream(input);
-            Iterator<ImageReader> readers = ImageIO.getImageReaders(stream);
-            if (!readers.hasNext()) {
-                return null;
-            }
-
-            ImageReader reader = readers.next();
-            reader.setInput(stream, false, false);
-            int count = reader.getNumImages(true);
-            if (count <= 0) {
-                return null;
-            }
-
-            int sourceWidth = reader.getWidth(0);
-            int sourceHeight = reader.getHeight(0);
-            int columns = Math.max(1, (int) Math.ceil(Math.sqrt(count)));
-            int rows = (count + columns - 1) / columns;
-            int cell = Math.max(1, Math.min(CELL_LIMIT, Math.min(maximum / columns, maximum / rows)));
-            float scale = (float) cell / Math.max(sourceWidth, sourceHeight);
-            int frameWidth = Math.max(1, Math.round(sourceWidth * scale));
-            int frameHeight = Math.max(1, Math.round(sourceHeight * scale));
-            int sheetWidth = columns * frameWidth;
-            int sheetHeight = rows * frameHeight;
-
-            BufferedImage sheetImage = new BufferedImage(sheetWidth, sheetHeight, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D sheetGraphics = sheetImage.createGraphics();
-            sheetGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-
-            BufferedImage canvas = new BufferedImage(sourceWidth, sourceHeight, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D canvasGraphics = canvas.createGraphics();
-
-            long[] timeline = new long[count];
-            long elapsed = 0L;
-            int previousX = 0;
-            int previousY = 0;
-            int previousWidth = 0;
-            int previousHeight = 0;
-            boolean clear = false;
-
-            for (int i = 0; i < count; i++) {
-                IIOMetadataNode root = metadata(reader, i);
-                IIOMetadataNode descriptor = child(root, "ImageDescriptor");
-                IIOMetadataNode control = child(root, "GraphicControlExtension");
-
-                int left = attribute(descriptor, "imageLeftPosition");
-                int top = attribute(descriptor, "imageTopPosition");
-                int delay = Math.max(2, attribute(control, "delayTime"));
-                String disposal = control == null ? "none" : control.getAttribute("disposalMethod");
-                BufferedImage frame = reader.read(i);
-
-                if (clear) {
-                    canvasGraphics.setComposite(AlphaComposite.Clear);
-                    canvasGraphics.fillRect(previousX, previousY, previousWidth, previousHeight);
+            try (ImageInputStream stream = ImageIO.createImageInputStream(input)) {
+                Iterator<ImageReader> readers = ImageIO.getImageReaders(stream);
+                if (!readers.hasNext()) {
+                    LOGGER.warn("No GIF reader found for {}", resource);
+                    return null;
                 }
-                canvasGraphics.setComposite(AlphaComposite.SrcOver);
-                canvasGraphics.drawImage(frame, left, top, null);
 
-                clear = "restoreToBackgroundColor".equals(disposal);
-                previousX = left;
-                previousY = top;
-                previousWidth = frame.getWidth();
-                previousHeight = frame.getHeight();
+                ImageReader reader = readers.next();
+                try {
+                    reader.setInput(stream, false, false);
+                    int count = reader.getNumImages(true);
+                    if (count <= 0) {
+                        LOGGER.warn("GIF contains no frames: {}", resource);
+                        return null;
+                    }
 
-                int column = i % columns;
-                int row = i / columns;
-                sheetGraphics.drawImage(canvas, column * frameWidth, row * frameHeight,
-                        frameWidth, frameHeight, null);
+                    int sourceWidth = reader.getWidth(0);
+                    int sourceHeight = reader.getHeight(0);
+                    int columns = Math.max(1, (int) Math.ceil(Math.sqrt(count)));
+                    int rows = (count + columns - 1) / columns;
+                    int cell = Math.max(1, Math.min(CELL_LIMIT, Math.min(maximum / columns, maximum / rows)));
+                    float scale = (float) cell / Math.max(sourceWidth, sourceHeight);
+                    int frameWidth = Math.max(1, Math.round(sourceWidth * scale));
+                    int frameHeight = Math.max(1, Math.round(sourceHeight * scale));
+                    int sheetWidth = columns * frameWidth;
+                    int sheetHeight = rows * frameHeight;
 
-                elapsed += delay * 10L;
-                timeline[i] = elapsed;
+                    BufferedImage sheetImage = new BufferedImage(sheetWidth, sheetHeight, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D sheetGraphics = sheetImage.createGraphics();
+                    sheetGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+                    BufferedImage canvas = new BufferedImage(sourceWidth, sourceHeight, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D canvasGraphics = canvas.createGraphics();
+
+                    long[] timeline = new long[count];
+                    long elapsed = 0L;
+                    int previousX = 0;
+                    int previousY = 0;
+                    int previousWidth = 0;
+                    int previousHeight = 0;
+                    String previousDisposal = "none";
+                    BufferedImage restoreCanvas = null;
+
+                    for (int i = 0; i < count; i++) {
+                        IIOMetadataNode root = metadata(reader, i);
+                        IIOMetadataNode descriptor = child(root, "ImageDescriptor");
+                        IIOMetadataNode control = child(root, "GraphicControlExtension");
+
+                        int left = attribute(descriptor, "imageLeftPosition");
+                        int top = attribute(descriptor, "imageTopPosition");
+                        int delay = Math.max(2, attribute(control, "delayTime"));
+                        String disposal = control == null ? "none" : control.getAttribute("disposalMethod");
+
+                        if ("restoreToPrevious".equals(previousDisposal) && restoreCanvas != null) {
+                            canvasGraphics.setComposite(AlphaComposite.Src);
+                            canvasGraphics.drawImage(restoreCanvas, 0, 0, null);
+                        } else if ("restoreToBackgroundColor".equals(previousDisposal)) {
+                            canvasGraphics.setComposite(AlphaComposite.Clear);
+                            canvasGraphics.fillRect(previousX, previousY, previousWidth, previousHeight);
+                        }
+
+                        BufferedImage frame = reader.read(i);
+                        restoreCanvas = "restoreToPrevious".equals(disposal)
+                                ? copy(canvas) : null;
+                        canvasGraphics.setComposite(AlphaComposite.SrcOver);
+                        canvasGraphics.drawImage(frame, left, top, null);
+
+                        previousDisposal = disposal;
+                        previousX = left;
+                        previousY = top;
+                        previousWidth = frame.getWidth();
+                        previousHeight = frame.getHeight();
+
+                        int column = i % columns;
+                        int row = i / columns;
+                        sheetGraphics.drawImage(canvas, column * frameWidth, row * frameHeight,
+                                frameWidth, frameHeight, null);
+
+                        elapsed += delay * 10L;
+                        timeline[i] = elapsed;
+                    }
+
+                    canvasGraphics.dispose();
+                    sheetGraphics.dispose();
+
+                    int[] pixels = new int[sheetWidth * sheetHeight];
+                    sheetImage.getRGB(0, 0, sheetWidth, sheetHeight, pixels, 0, sheetWidth);
+
+                    Sheet sheet = new Sheet();
+                    sheet.pixels = pixels;
+                    sheet.width = sheetWidth;
+                    sheet.height = sheetHeight;
+                    sheet.columns = columns;
+                    sheet.frameWidth = frameWidth;
+                    sheet.frameHeight = frameHeight;
+                    sheet.timeline = timeline;
+                    sheet.duration = Math.max(1L, elapsed);
+                    sheet.aspect = (float) sourceWidth / (float) sourceHeight;
+                    return sheet;
+                } finally {
+                    reader.dispose();
+                }
             }
-
-            canvasGraphics.dispose();
-            sheetGraphics.dispose();
-            reader.dispose();
-            stream.close();
-
-            int[] pixels = new int[sheetWidth * sheetHeight];
-            sheetImage.getRGB(0, 0, sheetWidth, sheetHeight, pixels, 0, sheetWidth);
-
-            Sheet sheet = new Sheet();
-            sheet.pixels = pixels;
-            sheet.width = sheetWidth;
-            sheet.height = sheetHeight;
-            sheet.columns = columns;
-            sheet.frameWidth = frameWidth;
-            sheet.frameHeight = frameHeight;
-            sheet.timeline = timeline;
-            sheet.duration = Math.max(1L, elapsed);
-            sheet.aspect = (float) sourceWidth / (float) sourceHeight;
-            return sheet;
         } catch (Exception exception) {
+            LOGGER.error("Unable to read GIF animation {}", resource, exception);
             return null;
         }
+    }
+
+    private static BufferedImage copy(BufferedImage source) {
+        BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = result.createGraphics();
+        graphics.setComposite(AlphaComposite.Src);
+        graphics.drawImage(source, 0, 0, null);
+        graphics.dispose();
+        return result;
     }
 
     private static IIOMetadataNode metadata(ImageReader reader, int index) throws Exception {
