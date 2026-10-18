@@ -1,92 +1,55 @@
 package cn.unfair.module.modules.movement;
 
-import cn.unfair.Unfair;
-import cn.unfair.enums.BlinkModules;
-import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
-import cn.unfair.event.types.EventType;
-import cn.unfair.events.*;
+import cn.unfair.events.LivingUpdateEvent;
+import cn.unfair.events.MoveInputEvent;
+import cn.unfair.events.StrafeEvent;
 import cn.unfair.module.Module;
+import cn.unfair.property.properties.FloatProperty;
+import cn.unfair.property.properties.ModeProperty;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.network.play.server.S12PacketEntityVelocity;
 
 public class Stuck extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    private double savedMotionX;
-    private double savedMotionY;
-    private double savedMotionZ;
-    private int tick;
-    private boolean using = false;
+
+    public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Pulse", "Normal"});
+    public final FloatProperty pulseDelay = new FloatProperty("PulseDelay", 20.0F, 0.0F, 200.0F);
+
+    private int pulseTimer;
+    private boolean passMovement;
 
     public Stuck() {
         super("Stuck", false, false);
     }
 
-    @Override
-    public void onEnabled() {
-        if (mc.thePlayer != null) {
-            tick = 0;
-            using = true;
-            savedMotionX = mc.thePlayer.motionX;
-            savedMotionY = mc.thePlayer.motionY;
-            savedMotionZ = mc.thePlayer.motionZ;
-        }
-    }
-
-    @EventTarget(1)
-    public void onPacket(PacketEvent event) {
-        if (this.isEnabled() && event.getType() == EventType.RECEIVE) {
-            if (event.getPacket() instanceof S12PacketEntityVelocity s12PacketEntityVelocity) {
-                if (s12PacketEntityVelocity.getEntityID() == mc.thePlayer.getEntityId()) {
-                    Unfair.delayManager.setDelayState(true, DelayModules.VELOCITY);
-                    tick = 10;
-                    Unfair.delayManager.delayedPacket.offer(s12PacketEntityVelocity);
-                    event.setCancelled(true);
-                }
-            }
-        }
-    }
-
-    @EventTarget
-    public void onTick(TickEvent event) {
-        if (using && event.type() == EventType.PRE) {
-            if (tick == 10) {
-                this.setEnabled(false);
-                using = true;
-            }
-            if (tick == 11) {
-                this.setEnabled(true);
-                tick = 0;
-            }
-            tick++;
-        }
-    }
-
-    @EventTarget
-    public void onUpdate(UpdateEvent event) {
-        if (this.isEnabled()) {
-            Unfair.blinkManager.setBlinkState(true, BlinkModules.BLINK);
-            KeyBinding.unPressAllKeys();
-            mc.thePlayer.motionX = 0.0;
-            mc.thePlayer.motionZ = 0.0;
-            mc.thePlayer.motionY = 0.0;
-        }
-    }
-
     @EventTarget
     public void onMoveInput(MoveInputEvent event) {
-        if (this.isEnabled()) {
-            mc.thePlayer.movementInput.moveForward = 0.0f;
-            mc.thePlayer.movementInput.moveStrafe = 0.0f;
-            mc.thePlayer.movementInput.jump = false;
-            mc.thePlayer.movementInput.sneak = false;
+        if (!this.isEnabled() || mc.thePlayer == null) {
+            return;
         }
+        mc.thePlayer.movementInput.moveForward = 0.0F;
+        mc.thePlayer.movementInput.moveStrafe = 0.0F;
+        mc.thePlayer.movementInput.jump = false;
+        mc.thePlayer.movementInput.sneak = false;
     }
 
     @EventTarget
     public void onLivingUpdate(LivingUpdateEvent event) {
-        if (this.isEnabled()) {
+        if (!this.isEnabled() || mc.thePlayer == null) {
+            return;
+        }
+        this.passMovement = false;
+        mc.thePlayer.setSprinting(false);
+        if (this.pulseTimer > 0) {
+            this.pulseTimer -= 50;
+        }
+        if (mc.thePlayer.hurtTime != 0) {
+            this.passMovement = true;
+        } else if (this.mode.getValue() == 0 && this.pulseTimer <= 0) {
+            this.pulseTimer = this.pulseTimer + (int) (this.pulseDelay.getValue() * 50.0F);
+            this.passMovement = true;
+        }
+        if (!this.passMovement) {
             mc.thePlayer.motionX = 0.0;
             mc.thePlayer.motionY = 0.0;
             mc.thePlayer.motionZ = 0.0;
@@ -95,22 +58,23 @@ public class Stuck extends Module {
 
     @EventTarget
     public void onStrafe(StrafeEvent event) {
-        if (this.isEnabled()) {
-            event.setForward(0.0f);
-            event.setStrafe(0.0f);
+        if (this.isEnabled() && !this.passMovement) {
+            event.setForward(0.0F);
+            event.setStrafe(0.0F);
         }
     }
 
     @Override
     public void onDisabled() {
+        this.passMovement = false;
+        this.pulseTimer = 0;
         if (mc.thePlayer != null) {
-            using = false;
-            Unfair.blinkManager.setBlinkState(false, BlinkModules.BLINK);
-            mc.thePlayer.motionX = savedMotionX;
-            mc.thePlayer.motionZ = savedMotionZ;
-            mc.thePlayer.motionY = savedMotionY;
-            Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
-            mc.timer.timerSpeed = 1.0F;
+            mc.thePlayer.setSprinting(false);
         }
+    }
+
+    @Override
+    public String[] getSuffix() {
+        return new String[]{this.mode.getModeString()};
     }
 }

@@ -71,6 +71,10 @@ public class BedTracker extends Module {
     private long lastMarcoTime;
     private boolean waiting;
 
+    public BlockPos getBedPos() {
+        return this.bedPos;
+    }
+
     public BedTracker() {
         super("BedTracker", false, true);
         this.executor = Executors.newScheduledThreadPool(1);

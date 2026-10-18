@@ -7,7 +7,6 @@ import cn.unfair.event.types.EventType;
 import cn.unfair.event.types.Priority;
 import cn.unfair.events.LeftClickMouseEvent;
 import cn.unfair.events.PacketEvent;
-import cn.unfair.events.RightClickMouseEvent;
 import cn.unfair.events.TickEvent;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.world.BedNuker;
@@ -20,26 +19,18 @@ import cn.unfair.util.client.MathUtil;
 import cn.unfair.util.client.TeamUtil;
 import cn.unfair.util.player.ItemUtil;
 import cn.unfair.util.rotation.RotationUtil;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.BlockDoor;
-import net.minecraft.block.BlockFence;
-import net.minecraft.block.BlockFenceGate;
-import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.client.C02PacketUseEntity;
 import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement;
 import net.minecraft.network.play.server.S12PacketEntityVelocity;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -55,7 +46,6 @@ public class AutoBlock extends Module {
     public final FloatProperty range = new FloatProperty("Range", 4.0F, 2.0F, 6.0F);
     public final PercentProperty lagChance = new PercentProperty("LagChance", 100);
     public final IntProperty lagDuration = new IntProperty("LagDuration", 200, 50, 500);
-    public final BooleanProperty disableBlockOutOfRange = new BooleanProperty("DisableBlockOutOfRange", false);
     public final BooleanProperty disableWhileChasing = new BooleanProperty("DisableWhileChasing", false);
     public final BooleanProperty forceBlockAnimation = new BooleanProperty("ForceBlockAnimation", true);
     public final BooleanProperty ignoreMobs = new BooleanProperty("IgnoreMobs", false);
@@ -102,16 +92,6 @@ public class AutoBlock extends Module {
     @Override
     public void onDisabled() {
         this.onEnabled();
-    }
-
-    @EventTarget(Priority.HIGHEST)
-    public void onRightClick(RightClickMouseEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null) {
-            return;
-        }
-        if (disableBlockOutOfRange.getValue() && canBlock() && !lookingAtInteractable() && !lookingAtBot()) {
-            event.setCancelled(true);
-        }
     }
 
     @EventTarget
@@ -387,34 +367,6 @@ public class AutoBlock extends Module {
             return entity instanceof EntityPlayer || isMob(entity);
         }
         return true;
-    }
-
-    private boolean lookingAtInteractable() {
-        if (mc.objectMouseOver != null && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            BlockPos pos = mc.objectMouseOver.getBlockPos();
-            return pos != null && isInteractable(mc.theWorld.getBlockState(pos).getBlock());
-        }
-        return false;
-    }
-
-    private boolean lookingAtBot() {
-        return mc.objectMouseOver != null
-                && mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY
-                && Unfair.botManager.contains(mc.objectMouseOver.entityHit);
-    }
-
-    private static boolean isInteractable(Block block) {
-        if (block instanceof BlockContainer || block == Blocks.crafting_table || block == Blocks.anvil
-                || block == Blocks.bed || block == Blocks.lever) {
-            return true;
-        }
-        if (block instanceof BlockTrapDoor || block instanceof BlockFence || block instanceof BlockFenceGate) {
-            return true;
-        }
-        if (!(block instanceof BlockDoor)) {
-            return false;
-        }
-        return block != Blocks.iron_door;
     }
 
     private static boolean isSword(ItemStack stack) {
