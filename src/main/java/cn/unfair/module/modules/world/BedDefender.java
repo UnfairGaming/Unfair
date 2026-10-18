@@ -90,8 +90,8 @@ public class BedDefender extends Module {
             if (in == null) {
                 return out;
             }
-            JsonObject root = new JsonParser()
-                    .parse(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+            JsonObject root = JsonParser
+                    .parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
             for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
                 List<Step> steps = new ArrayList<Step>();
                 JsonArray array = entry.getValue().getAsJsonArray();
