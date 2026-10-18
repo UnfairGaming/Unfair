@@ -31,7 +31,15 @@ public class GifTexture {
     });
     private static final String DIRECTORY = "/assets/minecraft/unfair/pet/";
     private static final String META_FORMAT = "javax_imageio_gif_image_1.0";
-    private static final int CELL_LIMIT = 128;
+    /*
+     * The old decoder sized every frame from the complete atlas. A 96-frame
+     * GIF therefore became a 12x12 texture per frame before it was drawn at
+     * HUD size, which made the result visibly blurry. Keep each source frame
+     * at a useful resolution and only reduce it when the complete atlas would
+     * exceed the GPU limit.
+     */
+    private static final int MAX_FRAME_SIZE = 256;
+    private static final int MAX_SHEET_SIZE = 4096;
 
     private final String name;
     private final String resource;
@@ -138,7 +146,7 @@ public class GifTexture {
 
     private static int limit() {
         int maximum = GL11.glGetInteger(GL11.GL_MAX_TEXTURE_SIZE);
-        return maximum <= 0 ? CELL_LIMIT : Math.min(CELL_LIMIT, maximum);
+        return maximum <= 0 ? MAX_SHEET_SIZE : Math.min(MAX_SHEET_SIZE, maximum);
     }
 
     private void upload(Sheet sheet) {
@@ -208,10 +216,12 @@ public class GifTexture {
                     int sourceHeight = reader.getHeight(0);
                     int columns = Math.max(1, (int) Math.ceil(Math.sqrt(count)));
                     int rows = (count + columns - 1) / columns;
-                    int cell = Math.max(1, Math.min(CELL_LIMIT, Math.min(maximum / columns, maximum / rows)));
-                    float scale = (float) cell / Math.max(sourceWidth, sourceHeight);
-                    int frameWidth = Math.max(1, Math.round(sourceWidth * scale));
-                    int frameHeight = Math.max(1, Math.round(sourceHeight * scale));
+                    float scale = Math.min(1.0F,
+                            (float) MAX_FRAME_SIZE / Math.max(sourceWidth, sourceHeight));
+                    scale = Math.min(scale, (float) maximum / (columns * (float) sourceWidth));
+                    scale = Math.min(scale, (float) maximum / (rows * (float) sourceHeight));
+                    int frameWidth = Math.max(1, (int) Math.floor(sourceWidth * scale));
+                    int frameHeight = Math.max(1, (int) Math.floor(sourceHeight * scale));
                     int sheetWidth = columns * frameWidth;
                     int sheetHeight = rows * frameHeight;
 

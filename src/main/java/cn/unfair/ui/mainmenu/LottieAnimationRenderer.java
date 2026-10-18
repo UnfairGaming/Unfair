@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Renders the shape, trim-path, and stroke animation used by the hello Lottie asset. */
 public final class LottieAnimationRenderer {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ResourceLocation ANIMATION = ResourceLocation.of("unfair/lottie/hello.json");
@@ -118,6 +117,10 @@ public final class LottieAnimationRenderer {
     }
 
     public void draw(float centerX, float centerY, float availableSize) {
+        this.draw(centerX, centerY, availableSize, 1.0F);
+    }
+
+    public void draw(float centerX, float centerY, float availableSize, float opacityMultiplier) {
         if (this.layer == null || this.pathProperty == null || this.trimStart == null || this.trimEnd == null) {
             return;
         }
@@ -131,7 +134,8 @@ public final class LottieAnimationRenderer {
         float start = scalarAt(this.trimStart, frame, 0.0F) / 100.0F;
         float end = scalarAt(this.trimEnd, frame, 100.0F) / 100.0F;
         float width = scalarAt(this.strokeWidth, frame, 8.0F);
-        float opacity = scalarAt(this.strokeOpacity, frame, 100.0F) / 100.0F;
+        float opacity = scalarAt(this.strokeOpacity, frame, 100.0F) / 100.0F
+                * clamp(opacityMultiplier, 0.0F, 1.0F);
         if (opacity <= 0.0F || start == end) {
             return;
         }

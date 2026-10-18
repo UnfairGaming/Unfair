@@ -4,6 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.management.altmanager.AltManagerGui;
 import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.ui.mainmenu.SilentMenuButton;
+import cn.unfair.ui.mainmenu.WelcomeTransition;
 import cn.unfair.util.client.AndroidUtil;
 import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
@@ -437,12 +438,16 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback {
         String account = this.mc.getSession() == null ? "Unknown" : this.mc.getSession().getUsername();
         this.buttonFont.drawString(account, 10.0F, this.height - 18.0F, MainMenuStyle.WHITE_170);
         this.buttonFont.drawString(Unfair.version, this.width - 10.0F - this.buttonFont.getStringWidth(Unfair.version), this.height - 18.0F, MainMenuStyle.WHITE_170);
+        WelcomeTransition.draw(this.width, this.height);
     }
 
     /**
      * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
      */
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        if (WelcomeTransition.isActive()) {
+            return;
+        }
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
         synchronized (this.threadLock) {

@@ -13,5 +13,9 @@ public final class HudWidgets {
         Unfair.widgetManager.register(new ScoreboardWidget());
         Unfair.widgetManager.register(new PotionEffectsWidget());
         Unfair.widgetManager.register(new RadarWidget());
+        Unfair.widgetManager.register(new GifWidget("Deobf", 0.05F, 0.12F));
+        Unfair.widgetManager.register(new GifWidget("Fucker", 0.83F, 0.12F));
+        Unfair.widgetManager.register(new GifWidget("MonsterCat", 0.05F, 0.72F));
+        Unfair.widgetManager.register(new GifWidget("Pig", 0.83F, 0.72F));
     }
 }
