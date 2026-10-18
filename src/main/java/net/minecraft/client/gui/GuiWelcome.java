@@ -5,7 +5,6 @@ import cn.unfair.ui.mainmenu.MainMenuStyle;
 import cn.unfair.ui.mainmenu.WelcomeTransition;
 import cn.unfair.util.font.CustomFontRenderer;
 import cn.unfair.util.font.Fonts;
-import cn.unfair.util.render.RenderUtil;
 
 import java.io.IOException;
 
@@ -27,8 +26,6 @@ public class GuiWelcome extends GuiScreen {
         this.animation.draw(this.width * 0.5F, this.height * 0.47F, animationSize);
         float promptY = this.height - this.promptFont.getHeight() - 44.0F;
         float promptWidth = this.promptFont.getStringWidth(PROMPT);
-        RenderUtil.drawRect(this.width * 0.5D - promptWidth * 0.5D - 10.0D, promptY - 6.0D,
-                promptWidth + 20.0D, this.promptFont.getHeight() + 12.0D, 0x56000000);
         this.promptFont.drawString(PROMPT, this.width * 0.5F - promptWidth * 0.5F, promptY, MainMenuStyle.WHITE_208);
     }
 
