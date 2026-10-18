@@ -44,7 +44,7 @@ public class AimAssist extends Module {
     public final PercentProperty horizontalHitbox = new PercentProperty("HorizontalHitbox", 0, () -> this.mode.getValue() == MODE_LOCK_ON);
     public final PercentProperty verticalHitbox = new PercentProperty("VerticalHitbox", 100, () -> this.mode.getValue() == MODE_LOCK_ON);
     public final ModeProperty modeTarget = new ModeProperty("ModeTarget", 0, new String[]{"Single", "Switch"}, () -> this.mode.getValue() == MODE_LOCK_ON);
-    public final ModeProperty sortBy = new ModeProperty("SortBy", 0, new String[]{"Distance", "Health", "Hurt time", "Aim angle"}, () -> this.mode.getValue() == MODE_LOCK_ON && this.modeTarget.getValue() == 1);
+    public final ModeProperty sortBy = new ModeProperty("SortBy", 0, new String[]{"Distance", "Health", "Hurttime", "Fov"}, () -> this.mode.getValue() == MODE_LOCK_ON && this.modeTarget.getValue() == 1);
     public final BooleanProperty allowExceedFov = new BooleanProperty("AllowExceedFov", true, () -> this.mode.getValue() == MODE_LOCK_ON && this.modeTarget.getValue() == 0);
     public final FloatProperty rangeMin = new FloatProperty("RangeMin", 1.0F, 0.0F, 10.0F, () -> this.mode.getValue() == MODE_LOCK_ON);
     public final FloatProperty rangeMax = new FloatProperty("RangeMax", 4.0F, 0.0F, 10.0F, () -> this.mode.getValue() == MODE_LOCK_ON);
