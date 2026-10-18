@@ -133,7 +133,9 @@ public class BedDefender extends Module {
     private float serverYaw;
     private float serverPitch;
     private int swapTicks;
-    private int aimTicks;
+    private int serverAimTicks;
+    private boolean placedThisTick;
+    private boolean clickUsedThisTick;
 
     private boolean sneaking;
     private int sneakRemaining;
@@ -166,7 +168,9 @@ public class BedDefender extends Module {
         this.lockedDirection = null;
         this.renderTarget = null;
         this.swapTicks = 0;
-        this.aimTicks = this.delayAfterAim.getValue();
+        this.serverAimTicks = 0;
+        this.placedThisTick = false;
+        this.clickUsedThisTick = false;
         this.serverYaw = mc.thePlayer.rotationYaw;
         this.serverPitch = mc.thePlayer.rotationPitch;
         this.slotCache.clear();
@@ -187,6 +191,9 @@ public class BedDefender extends Module {
         if (!this.isEnabled() || event.getType() != EventType.PRE || mc.thePlayer == null) {
             return;
         }
+        this.placedThisTick = false;
+        this.clickUsedThisTick = false;
+        this.serverAimTicks++;
         this.releaseSneak();
         float[] rotation = this.plan();
         if (rotation != null) {
@@ -212,40 +219,65 @@ public class BedDefender extends Module {
         if (!this.started && !this.begin()) {
             return null;
         }
-        this.stepIndex = -1;
-        for (int i = 0; i < this.steps.size(); i++) {
-            if (this.isAir(this.targetOf(i))) {
-                this.stepIndex = i;
-                break;
-            }
-        }
-        if (this.stepIndex < 0) {
+        int index = this.firstAirIndex();
+        if (index < 0) {
             this.setEnabled(false);
             return null;
         }
-
-        BlockPos target = this.targetOf(this.stepIndex);
-        this.renderTarget = target;
+        BlockPos target = this.aimAt(index);
 
         if (this.retryTicks > 0) {
             this.retryTicks--;
-            float[] held = this.attemptPlace(this.retryYaw, this.retryPitch, target);
+            float[] held = this.attemptPlace(this.retryYaw, this.retryPitch, target, false);
             if (held != null) {
-                return held;
+                return this.followUp(held);
             }
         }
 
-        float[] held = this.attemptPlace(this.serverYaw, this.serverPitch, target);
-        if (held != null) {
-            return held;
-        }
-        for (float[] aim : this.candidateAims(target)) {
-            float[] result = this.attemptPlace(aim[0], aim[1], target);
-            if (result != null) {
-                return result;
+        float[] held = this.attemptPlace(this.serverYaw, this.serverPitch, target, false);
+        if (held == null) {
+            for (float[] aim : this.candidateAims(target)) {
+                held = this.attemptPlace(aim[0], aim[1], target, false);
+                if (held != null) {
+                    break;
+                }
             }
         }
-        return null;
+        return held == null ? null : this.followUp(held);
+    }
+
+    private float[] followUp(float[] held) {
+        if (!this.placedThisTick) {
+            return held;
+        }
+        int index = this.firstAirIndex();
+        if (index < 0) {
+            return held;
+        }
+        BlockPos target = this.aimAt(index);
+        for (float[] aim : this.candidateAims(target)) {
+            float[] prepared = this.attemptPlace(aim[0], aim[1], target, true);
+            if (prepared != null) {
+                return prepared;
+            }
+        }
+        return held;
+    }
+
+    private BlockPos aimAt(int index) {
+        this.stepIndex = index;
+        BlockPos target = this.targetOf(index);
+        this.renderTarget = target;
+        return target;
+    }
+
+    private int firstAirIndex() {
+        for (int i = 0; i < this.steps.size(); i++) {
+            if (this.isAir(this.targetOf(i))) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private boolean begin() {
@@ -350,7 +382,7 @@ public class BedDefender extends Module {
         }
     }
 
-    private float[] attemptPlace(float yaw, float pitch, BlockPos target) {
+    private float[] attemptPlace(float yaw, float pitch, BlockPos target, boolean aimOnly) {
         if (this.stepIndex >= this.steps.size()) {
             return null;
         }
@@ -389,13 +421,19 @@ public class BedDefender extends Module {
         if (this.swapTicks-- > 0) {
             return new float[]{yaw, pitch};
         }
-        if (!this.sneaking && supportBlock instanceof BlockBed) {
-            KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
-            this.sneaking = true;
+        if (supportBlock instanceof BlockBed) {
+            if (!this.sneaking) {
+                KeyBindUtil.setKeyBindState(mc.gameSettings.keyBindSneak.getKeyCode(), true);
+                this.sneaking = true;
+                this.sneakRemaining = this.sneakHoldTicks.getValue();
+                return new float[]{yaw, pitch};
+            }
             this.sneakRemaining = this.sneakHoldTicks.getValue();
+        }
+        if (aimOnly || this.clickUsedThisTick) {
             return new float[]{yaw, pitch};
         }
-        if (this.aimTicks-- > 0
+        if (this.serverAimTicks < this.delayAfterAim.getValue()
                 || Math.abs(MathHelper.wrapAngleTo180_float(yaw - this.serverYaw)) > SETTLE_ANGLE
                 || Math.abs(pitch - this.serverPitch) > SETTLE_ANGLE) {
             return new float[]{yaw, pitch};
@@ -427,6 +465,7 @@ public class BedDefender extends Module {
         float savedPitch = mc.thePlayer.rotationPitch;
         mc.thePlayer.rotationYaw = yaw;
         mc.thePlayer.rotationPitch = pitch;
+        this.clickUsedThisTick = true;
         boolean placed;
         try {
             placed = mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, held,
@@ -435,14 +474,14 @@ public class BedDefender extends Module {
             mc.thePlayer.rotationYaw = savedYaw;
             mc.thePlayer.rotationPitch = savedPitch;
         }
-        this.aimTicks = this.delayAfterAim.getValue();
         if (placed) {
+            this.placedThisTick = true;
             mc.thePlayer.swingItem();
             this.retryTicks = 0;
         } else {
             this.retryYaw = yaw;
             this.retryPitch = pitch;
-            this.retryTicks = 3;
+            this.retryTicks = 1;
         }
         return new float[]{yaw, pitch};
     }
@@ -455,6 +494,10 @@ public class BedDefender extends Module {
         if (event.getPacket() instanceof C03PacketPlayer) {
             C03PacketPlayer packet = (C03PacketPlayer) event.getPacket();
             if (packet.getRotating()) {
+                if (Math.abs(MathHelper.wrapAngleTo180_float(packet.getYaw() - this.serverYaw)) > 0.001F
+                        || Math.abs(packet.getPitch() - this.serverPitch) > 0.001F) {
+                    this.serverAimTicks = 0;
+                }
                 this.serverYaw = packet.getYaw();
                 this.serverPitch = packet.getPitch();
             }

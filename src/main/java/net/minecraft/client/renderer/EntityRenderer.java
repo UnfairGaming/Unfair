@@ -8,7 +8,7 @@ import cn.unfair.events.Render3DEvent;
 import cn.unfair.module.modules.combat.AutoBlock;
 import cn.unfair.module.modules.combat.KillAura;
 import cn.unfair.module.modules.exploit.GhostHand;
-import cn.unfair.module.modules.player.BlockIn;
+import cn.unfair.module.modules.world.BlockIn;
 import cn.unfair.module.modules.render.*;
 import cn.unfair.module.modules.world.Scaffold;
 import com.google.common.base.Predicates;

@@ -4,7 +4,7 @@ import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.Render2DEvent;
 import cn.unfair.module.modules.misc.NickHider;
-import cn.unfair.module.modules.player.BlockIn;
+import cn.unfair.module.modules.world.BlockIn;
 import cn.unfair.module.modules.render.Animations;
 import cn.unfair.module.modules.world.Scaffold;
 import cn.unfair.util.shader.PostProcessingRenderer;

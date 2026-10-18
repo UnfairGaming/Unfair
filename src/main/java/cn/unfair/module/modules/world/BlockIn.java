@@ -1,4 +1,4 @@
-package cn.unfair.module.modules.player;
+package cn.unfair.module.modules.world;
 
 import cn.unfair.Unfair;
 import cn.unfair.event.EventTarget;
@@ -7,7 +7,6 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.property.properties.BooleanProperty;
 import cn.unfair.property.properties.IntProperty;
 import cn.unfair.util.animation.normal.easing.EaseInOutQuad;

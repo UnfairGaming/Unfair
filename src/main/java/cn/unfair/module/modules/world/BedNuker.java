@@ -9,7 +9,6 @@ import cn.unfair.event.types.Priority;
 import cn.unfair.events.*;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
-import cn.unfair.module.modules.player.BlockIn;
 import cn.unfair.module.modules.render.BedESP;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.property.properties.BooleanProperty;

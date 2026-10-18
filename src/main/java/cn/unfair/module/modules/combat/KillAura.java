@@ -11,7 +11,7 @@ import cn.unfair.management.AutoBlockController;
 import cn.unfair.management.RotationState;
 import cn.unfair.module.Module;
 import cn.unfair.module.modules.player.AutoHeal;
-import cn.unfair.module.modules.player.BlockIn;
+import cn.unfair.module.modules.world.BlockIn;
 import cn.unfair.module.modules.render.HUD;
 import cn.unfair.module.modules.world.BedNuker;
 import cn.unfair.module.modules.world.Scaffold;
