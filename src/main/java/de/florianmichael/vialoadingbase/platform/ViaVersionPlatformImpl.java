@@ -22,11 +22,14 @@ import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.ViaAPI;
 import com.viaversion.viaversion.api.configuration.ViaVersionConfig;
 import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.scheduler.Task;
+import com.viaversion.viaversion.api.scheduler.TaskStatus;
 import com.viaversion.viaversion.api.platform.UnsupportedSoftware;
 import com.viaversion.viaversion.api.platform.ViaPlatform;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import com.viaversion.viaversion.libs.gson.JsonObject;
 import com.viaversion.viaversion.util.VersionInfo;
+import com.viaversion.viabackwards.protocol.v1_21_2to1_21.task.PlayerPacketsTickTask;
 import de.florianmichael.vialoadingbase.ViaLoadingBase;
 import de.florianmichael.vialoadingbase.platform.viaversion.VLBViaAPIWrapper;
 import de.florianmichael.vialoadingbase.platform.viaversion.VLBViaConfig;
@@ -81,6 +84,19 @@ public class ViaVersionPlatformImpl implements ViaPlatform<UserConnection> {
 
     @Override
     public VLBTask runRepeatingSync(Runnable runnable, long ticks) {
+        if (runnable instanceof PlayerPacketsTickTask) {
+            // The client sends exact input and tick-end packets in its tick order.
+            return new VLBTask(new Task() {
+                @Override
+                public TaskStatus status() {
+                    return TaskStatus.STOPPED;
+                }
+
+                @Override
+                public void cancel() {
+                }
+            });
+        }
         return this.runRepeatingAsync(runnable, ticks);
     }
 
