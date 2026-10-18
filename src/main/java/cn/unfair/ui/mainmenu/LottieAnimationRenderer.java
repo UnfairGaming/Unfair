@@ -20,6 +20,9 @@ import java.util.List;
 public final class LottieAnimationRenderer {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ResourceLocation ANIMATION = ResourceLocation.of("unfair/lottie/hello.json");
+    private static final float TARGET_CHORD_PIXELS = 2.0F;
+    private static final int MIN_CURVE_STEPS = 14;
+    private static final int MAX_CURVE_STEPS = 128;
     private final JsonObject layer;
     private final JsonObject groupTransform;
     private final JsonObject pathProperty;
@@ -140,15 +143,15 @@ public final class LottieAnimationRenderer {
             return;
         }
 
-        List<Point> points = this.transformedPoints(shape);
+        float scale = availableSize / Math.max(this.compositionWidth, this.compositionHeight);
+        ScaledResolution resolution = new ScaledResolution(Minecraft.getMinecraft());
+        float pixelScale = scale * resolution.getScaleFactor();
+
+        List<Point> points = this.transformedPoints(shape, pixelScale);
         List<List<Point>> trimmed = trim(points, start, end);
         if (trimmed.isEmpty()) {
             return;
         }
-
-        float scale = availableSize / Math.max(this.compositionWidth, this.compositionHeight);
-        ScaledResolution resolution = new ScaledResolution(Minecraft.getMinecraft());
-        float pixelScale = scale * resolution.getScaleFactor();
 
         float lineWidth = Math.max(1.0F, width * pixelScale);
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_POINT_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
@@ -186,7 +189,7 @@ public final class LottieAnimationRenderer {
         GL11.glPopAttrib();
     }
 
-    private List<Point> transformedPoints(ShapeData shape) {
+    private List<Point> transformedPoints(ShapeData shape, float pixelScale) {
         List<Point> points = new ArrayList<>();
         float[] groupPosition = vector(this.groupTransform, "p", new float[]{0.0F, 0.0F});
         float[] groupAnchor = vector(this.groupTransform, "a", new float[]{0.0F, 0.0F});
@@ -197,6 +200,7 @@ public final class LottieAnimationRenderer {
         float[] layerAnchor = vector(this.layer.getAsJsonObject("ks"), "a", new float[]{0.0F, 0.0F});
         float[] layerScale = vector(this.layer.getAsJsonObject("ks"), "s", new float[]{100.0F, 100.0F});
         float layerRotation = scalarProperty(this.layer.getAsJsonObject("ks"), "r", 0.0F);
+        float unitScale = (groupScale[0] + groupScale[1] + layerScale[0] + layerScale[1]) * 0.25F / 100.0F;
 
         int segmentCount = shape.closed ? shape.vertices.length : shape.vertices.length - 1;
         for (int segment = 0; segment < segmentCount; segment++) {
@@ -205,7 +209,7 @@ public final class LottieAnimationRenderer {
             Point to = shape.vertices[next];
             Point control1 = new Point(from.x + shape.outTangents[segment].x, from.y + shape.outTangents[segment].y);
             Point control2 = new Point(to.x + shape.inTangents[next].x, to.y + shape.inTangents[next].y);
-            int steps = 14;
+            int steps = curveSteps(from, control1, control2, to, unitScale, pixelScale);
             for (int step = segment == 0 ? 0 : 1; step <= steps; step++) {
                 float t = step / (float) steps;
                 Point point = cubic(from, control1, control2, to, t);
@@ -215,6 +219,15 @@ public final class LottieAnimationRenderer {
             }
         }
         return points;
+    }
+
+    private static int curveSteps(Point from, Point control1, Point control2, Point to, float unitScale, float pixelScale) {
+        float polygon = distance(from, control1) + distance(control1, control2) + distance(control2, to);
+        int steps = (int) Math.ceil((double) (polygon * unitScale * pixelScale / TARGET_CHORD_PIXELS));
+        if (steps < MIN_CURVE_STEPS) {
+            return MIN_CURVE_STEPS;
+        }
+        return Math.min(steps, MAX_CURVE_STEPS);
     }
 
     private static Point transform(Point point, float[] position, float[] anchor, float[] scale, float rotation) {
