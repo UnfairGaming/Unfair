@@ -5,7 +5,6 @@ import cn.unfair.enums.DelayModules;
 import cn.unfair.event.EventTarget;
 import cn.unfair.event.types.EventType;
 import cn.unfair.events.LoadWorldEvent;
-import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.PacketEvent;
 import cn.unfair.events.UpdateEvent;
 import cn.unfair.module.SubModule;
@@ -44,7 +43,7 @@ public class GrimReduceVelocity extends SubModule {
         if (!isEnabled() || event.getType() != EventType.RECEIVE || event.isCancelled()) return;
         if (!(event.getPacket() instanceof S12PacketEntityVelocity packet)) return;
         if (packet.getEntityID() != mc.thePlayer.getEntityId()) return;
-        if (suspending || !canStartReduce()) return;
+        if (suspending || !canStartReduce() || !isOnlyForwardInput()) return;
 
         if (mc.thePlayer.onGround) {
             knockback = true;
@@ -66,34 +65,32 @@ public class GrimReduceVelocity extends SubModule {
         if (!isEnabled() || event.getType() != EventType.PRE) return;
 
         if (suspending) {
+            // Do not simulate a forced W input while the server velocity is held.
+            // If the player changes direction, apply the packet immediately and
+            // skip the reduction so client and server continue from the same state.
+            if (!isOnlyForwardInput()) {
+                release();
+                return;
+            }
+
             if (++suspendTicks >= maxAirTicks.getValue() || mc.thePlayer.onGround) {
-                Entity target = findTarget();
                 boolean canReduce = mc.thePlayer.onGround
+                        && isOnlyForwardInput()
                         && mc.thePlayer.isSprinting()
-                        && isValidTarget(target)
                         && !bad();
+                Entity target = canReduce ? findTarget() : null;
 
                 release();
 
-                if (canReduce) {
+                if (canReduce && isValidTarget(target)) {
                     doReduce(target);
-                } else if (mc.thePlayer.onGround && mc.thePlayer.isSprinting()
-                        && (target == null || target instanceof EntityPlayer)) {
-                    mc.thePlayer.setSprinting(false);
                 }
             }
         } else if (knockback) {
             knockback = false;
-            if (bad() || isInLiquidOrWeb() || !mc.thePlayer.isSprinting()) return;
+            if (bad() || isInLiquidOrWeb() || !isOnlyForwardInput() || !mc.thePlayer.isSprinting()) return;
             reduceIfPossible(findTarget());
         }
-    }
-
-    @EventTarget
-    public void onMove(MoveInputEvent event) {
-        if (mc.theWorld == null || mc.thePlayer == null || !isEnabled() || !suspending) return;
-        mc.thePlayer.movementInput.moveForward = 1.0F;
-        mc.thePlayer.movementInput.moveStrafe = 0.0F;
     }
 
     @EventTarget
@@ -119,6 +116,13 @@ public class GrimReduceVelocity extends SubModule {
 
         LongJump longJump = (LongJump) Unfair.moduleManager.modules.get(LongJump.class);
         return longJump == null || !longJump.isEnabled() || !longJump.canStartJump();
+    }
+
+    private boolean isOnlyForwardInput() {
+        return mc.gameSettings.keyBindForward.isKeyDown()
+                && !mc.gameSettings.keyBindBack.isKeyDown()
+                && !mc.gameSettings.keyBindLeft.isKeyDown()
+                && !mc.gameSettings.keyBindRight.isKeyDown();
     }
 
     private void reduceIfPossible(Entity target) {

@@ -68,6 +68,7 @@ public class NoSlow extends Module {
     public boolean isFoodGrim13Active() {
         return this.isFoodGrim13()
                 && mc.thePlayer != null
+                && this.hasForwardInput()
                 && mc.thePlayer.isUsingItem()
                 && ItemUtil.isEating()
                 && mc.thePlayer.getItemInUseCount() % 3 == 0
@@ -81,9 +82,15 @@ public class NoSlow extends Module {
     public boolean isBowGrim13Active() {
         return this.isBowGrim13()
                 && mc.thePlayer != null
+                && this.hasForwardInput()
                 && mc.thePlayer.isUsingItem()
                 && ItemUtil.isUsingBow()
                 && mc.thePlayer.getItemInUseCount() % 3 == 0;
+    }
+
+    private boolean hasForwardInput() {
+        return mc.gameSettings.keyBindForward.isKeyDown()
+                && !mc.gameSettings.keyBindBack.isKeyDown();
     }
 
     @Override
