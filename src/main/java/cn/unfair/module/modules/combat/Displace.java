@@ -221,11 +221,6 @@ public class Displace extends Module {
     }
 
     @EventTarget
-    public void onLoadWorld(LoadWorldEvent event) {
-        this.setEnabled(false);
-    }
-
-    @EventTarget
     public void onRender3D(Render3DEvent event) {
         if (!this.isEnabled() || mc.thePlayer == null || mc.theWorld == null || !renderArrow.getValue() || !arrow) {
             return;
