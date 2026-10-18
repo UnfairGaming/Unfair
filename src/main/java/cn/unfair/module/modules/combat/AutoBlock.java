@@ -134,7 +134,7 @@ public class AutoBlock extends Module {
             releaseAll();
             return;
         }
-        hasTarget = enemyInRange();
+        hasTarget = hasValidTarget();
         if (flush) {
             flush = false;
             if (lagging) {
@@ -253,9 +253,11 @@ public class AutoBlock extends Module {
 
     private boolean canBlock() {
         KillAura killAura = (KillAura) Unfair.moduleManager.getModule(KillAura.class);
-        return isReady()
-                && (KillAura.target == null || killAura.autoBlock.getValue() == 0)
-                && ItemUtil.isHoldingSword();
+        boolean killAuraBlocks = KillAura.target != null
+                && killAura != null
+                && killAura.autoBlock.getValue() != 0
+                && killAura.autoBlock.getValue() != 3;
+        return isReady() && !killAuraBlocks && ItemUtil.isHoldingSword();
     }
 
     private boolean conditions() {
@@ -269,6 +271,21 @@ public class AutoBlock extends Module {
             return false;
         }
         return enemyInRange();
+    }
+
+    private boolean hasValidTarget() {
+        if (mc.objectMouseOver == null || mc.objectMouseOver.typeOfHit != MovingObjectPosition.MovingObjectType.ENTITY) {
+            return false;
+        }
+        if (!(mc.objectMouseOver.entityHit instanceof EntityPlayer player)) {
+            return false;
+        }
+        return player != mc.thePlayer
+                && !player.isDead
+                && player.deathTime == 0
+                && !TeamUtil.isFriend(player)
+                && !TeamUtil.shouldBlockTarget(player)
+                && mc.thePlayer.getDistanceSqToEntity(player) <= (double) (range.getValue() * range.getValue());
     }
 
     private boolean enemyInRange() {
