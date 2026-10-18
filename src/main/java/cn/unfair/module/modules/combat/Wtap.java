@@ -23,7 +23,7 @@ public class Wtap extends Module {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private static final double REACH = 3.0D;
     private static final double NEAR = 2.3D;
-    private static final double FAR = 3.8D;
+    private static final double FAR = 3.6D;
     private static final double KB_SPEED = 0.45D;
     private static final double CLOSE_THRESHOLD = 0.05D;
     public final ModeProperty mode = new ModeProperty("Mode", 0, new String[]{"Normal", "Smart"});
