@@ -3,6 +3,7 @@ package net.minecraft.entity;
 import cn.unfair.Unfair;
 import cn.unfair.event.EventManager;
 import cn.unfair.events.KnockbackEvent;
+import cn.unfair.events.MoveEntityEvent;
 import cn.unfair.events.SafeWalkEvent;
 import cn.unfair.events.StuckInBlockEvent;
 import cn.unfair.module.modules.movement.FastWeb;
@@ -831,6 +832,14 @@ public abstract class Entity implements ICommandSender, Cullable {
      * Tries to moves the entity by the passed in displacement. Args: x, y, z
      */
     public void moveEntity(double x, double y, double z) {
+        if (this instanceof EntityPlayerSP) {
+            MoveEntityEvent moveEntityEvent = new MoveEntityEvent();
+            EventManager.call(moveEntityEvent);
+            if (moveEntityEvent.isCancelled()) {
+                return;
+            }
+        }
+
         if (this.hasStuckSpeedMultiplier) {
             x *= this.stuckSpeedX;
             y *= this.stuckSpeedY;

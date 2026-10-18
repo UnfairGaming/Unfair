@@ -2,6 +2,7 @@ package cn.unfair.module.modules.movement;
 
 import cn.unfair.event.EventTarget;
 import cn.unfair.events.LivingUpdateEvent;
+import cn.unfair.events.MoveEntityEvent;
 import cn.unfair.events.MoveInputEvent;
 import cn.unfair.events.StrafeEvent;
 import cn.unfair.module.Module;
@@ -49,10 +50,12 @@ public class Stuck extends Module {
             this.pulseTimer = this.pulseTimer + (int) (this.pulseDelay.getValue() * 50.0F);
             this.passMovement = true;
         }
-        if (!this.passMovement) {
-            mc.thePlayer.motionX = 0.0;
-            mc.thePlayer.motionY = 0.0;
-            mc.thePlayer.motionZ = 0.0;
+    }
+
+    @EventTarget
+    public void onMoveEntity(MoveEntityEvent event) {
+        if (this.isEnabled() && !this.passMovement) {
+            event.setCancelled(true);
         }
     }
 

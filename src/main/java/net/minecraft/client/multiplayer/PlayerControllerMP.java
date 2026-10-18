@@ -5,6 +5,7 @@ import cn.unfair.events.AttackEvent;
 import cn.unfair.events.CancelUseEvent;
 import cn.unfair.events.UseItemEvent;
 import cn.unfair.events.WindowClickEvent;
+import cn.unfair.management.AutoBlockController;
 import cn.unfair.util.via.*;
 import com.viaversion.viabackwards.protocol.v1_19_1to1_19.Protocol1_19_1To1_19;
 import com.viaversion.viabackwards.protocol.v1_19_3to1_19_1.Protocol1_19_3To1_19_1;
@@ -917,11 +918,13 @@ public class PlayerControllerMP {
     }
 
     public void onStoppedUsingItem(EntityPlayer playerIn) {
-        CancelUseEvent event = new CancelUseEvent();
-        EventManager.call(event);
+        if (!AutoBlockController.isVanillaReleaseAllowed()) {
+            CancelUseEvent event = new CancelUseEvent();
+            EventManager.call(event);
 
-        if (event.isCancelled()) {
-            return;
+            if (event.isCancelled()) {
+                return;
+            }
         }
 
         this.syncCurrentPlayItem();

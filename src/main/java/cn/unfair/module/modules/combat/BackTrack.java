@@ -86,7 +86,7 @@ public class BackTrack extends Module {
     public final FloatProperty b4RangeMin = new FloatProperty("DistanceMin", 3.0F, 1.0F, 8.0F, this::isB4);
     public final FloatProperty b4RangeMax = new FloatProperty("DistanceMax", 6.0F, 1.0F, 8.0F, this::isB4);
     public final FloatProperty cooldown = new FloatProperty("Cooldown", 0.0F, 0.0F, 10.0F, this::isB4);
-    public final FloatProperty fov = new FloatProperty("FOV", 360.0F, 1.0F, 360.0F, this::isB4);
+    public final FloatProperty fov = new FloatProperty("Fov", 360.0F, 1.0F, 360.0F, this::isB4);
     public final BooleanProperty disableAdventure = new BooleanProperty("DisableAdventure", false, this::isB4);
     public final BooleanProperty disableWhileChasing = new BooleanProperty("DisableWhileChasing", false, this::isB4);
     public final BooleanProperty flushOnDamage = new BooleanProperty("FlushOnDamage", true, this::isB4);

@@ -111,18 +111,18 @@ public class BedDefender extends Module {
         return out;
     }
 
-    public final ModeProperty defense = new ModeProperty("defense",
+    public final ModeProperty defense = new ModeProperty("Defense",
             Math.min(2, Math.max(0, PATTERN_NAMES.length - 1)),
-            PATTERN_NAMES.length == 0 ? new String[]{"NONE"} : PATTERN_NAMES);
-    public final BooleanProperty onlyTopBeds = new BooleanProperty("only-top-beds", true);
-    public final BooleanProperty bedwarsOnly = new BooleanProperty("bedwars-only", true);
-    public final BooleanProperty entityCheck = new BooleanProperty("entity-check", true);
-    public final IntProperty delayAfterSwap = new IntProperty("delay-after-swap", 0, 0, 10);
-    public final IntProperty delayAfterAim = new IntProperty("delay-after-aim", 1, 0, 10);
-    public final IntProperty sneakHoldTicks = new IntProperty("sneak-hold-ticks", 5, 0, 20);
-    public final IntProperty fov = new IntProperty("fov", 180, 0, 180);
+            PATTERN_NAMES.length == 0 ? new String[]{"None"} : PATTERN_NAMES);
+    public final BooleanProperty onlyTopBeds = new BooleanProperty("OnlyTopBeds", true);
+    public final BooleanProperty bedwarsOnly = new BooleanProperty("BedwarsOnly", true);
+    public final BooleanProperty entityCheck = new BooleanProperty("EntityCheck", true);
+    public final IntProperty delayAfterSwap = new IntProperty("DelayAfterSwap", 0, 0, 10);
+    public final IntProperty delayAfterAim = new IntProperty("DelayAfterAim", 1, 0, 10);
+    public final IntProperty sneakHoldTicks = new IntProperty("SneakHoldTicks", 5, 0, 20);
+    public final IntProperty fov = new IntProperty("Fov", 180, 0, 180);
     public final ModeProperty moveFix =
-            new ModeProperty("move-fix", 1, new String[]{"NONE", "SILENT"});
+            new ModeProperty("MoveFix", 1, new String[]{"None", "Silent"});
 
     private List<Step> steps = Collections.emptyList();
     private int stepIndex;
@@ -146,7 +146,7 @@ public class BedDefender extends Module {
     private final Map<String, Integer> slotCache = new HashMap<String, Integer>();
 
     public BedDefender() {
-        super("Bed Defender", false);
+        super("BedDefender", false);
     }
 
     @Override
