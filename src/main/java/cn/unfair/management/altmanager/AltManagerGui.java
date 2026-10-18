@@ -180,10 +180,12 @@ public class AltManagerGui extends GuiScreen {
         drawHeader();
         drawList();
         drawToolbarBackgrounds();
-        drawDialog();
         PostProcessingRenderer.flushPostProcessing();
         PostProcessingRenderer.renderBloom();
         drawToolbarTexts();
+        drawDialogDim();
+        drawDialogPanel();
+        drawDialogButtonsBackground();
         drawDialogButtonsText();
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
@@ -256,7 +258,14 @@ public class AltManagerGui extends GuiScreen {
         }
     }
 
-    private void drawDialog() {
+    private void drawDialogDim() {
+        if (dialog == Dialog.NONE) {
+            return;
+        }
+        drawFlatRect(0.0F, 0.0F, this.width, this.height, withAlpha(DARK, 120));
+    }
+
+    private void drawDialogPanel() {
         if (dialog == Dialog.NONE) {
             return;
         }
@@ -265,7 +274,6 @@ public class AltManagerGui extends GuiScreen {
         float dialogH = u(210.0F);
         float x = this.width * 0.5F - dialogW * 0.5F;
         float y = this.height * 0.5F - dialogH * 0.5F;
-        drawFlatRect(0.0F, 0.0F, this.width, this.height, withAlpha(DARK, 120));
         drawFlatRect(x + u(4.0F), y + u(4.0F), dialogW, dialogH, withAlpha(DARK, 90));
         drawFlatRect(x, y, dialogW, dialogH, withAlpha(PANEL, 245));
         drawBorder(x, y, dialogW, dialogH, withAlpha(LIGHT, 48));
@@ -287,14 +295,19 @@ public class AltManagerGui extends GuiScreen {
             font14.drawCenteredString(oauthStatus, x + dialogW * 0.5F, y + u(113.0F),
                     oauthStatus.toLowerCase(Locale.ROOT).contains("fail") ? new Color(255, 85, 85).getRGB() : new Color(235, 245, 245).getRGB());
         }
-
-        drawDialogButtonBackground(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F));
-        drawDialogButtonBackground(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F));
     }
 
-    private void drawDialogButtonBackground(float x, float y, float w, float h) {
-        boolean hovered = inside(mouseX, mouseY, x, y, w, h);
-        GuiButton.drawMenuButtonBackground(null, x, y, w, h, true, hovered);
+    private void drawDialogButtonsBackground() {
+        if (dialog == Dialog.NONE) {
+            return;
+        }
+
+        float dialogW = u(340.0F);
+        float dialogH = u(210.0F);
+        float x = this.width * 0.5F - dialogW * 0.5F;
+        float y = this.height * 0.5F - dialogH * 0.5F;
+        GuiButton.drawMenuButtonPlainBackground(x + u(38.0F), y + u(146.0F), u(122.0F), u(36.0F), true);
+        GuiButton.drawMenuButtonPlainBackground(x + u(180.0F), y + u(146.0F), u(122.0F), u(36.0F), true);
     }
 
     private void drawDialogButtonsText() {

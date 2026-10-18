@@ -34,12 +34,20 @@ public class PostProcessingRenderer {
         if (AndroidUtil.isAndroid()) {
             return;
         }
+        // 屏幕后处理自成一次：丢弃 HUD/组件在本帧更早注册、尚未 flush 的任务
+        ShaderElement.getTasks().clear();
+        ShaderElement.getBloomTasks().clear();
+        ShaderElement.getPostBlurTasks().clear();
         blurSourceFramebuffer = RenderUtil.createFrameBuffer(blurSourceFramebuffer);
         blurSourceFramebuffer.forceBind(true);
         blurSourceFramebuffer.framebufferClearNoBinding();
         if (blitShader == null) {
             blitShader = new ShaderUtil(BLIT_FRAG, true);
         }
+        boolean blendWasEnabled = GL11.glIsEnabled(GL11.GL_BLEND);
+        GlStateManager.resetColor();
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
         blitShader.init();
         GlStateManager.setActiveTexture(GL13.GL_TEXTURE0);
         RenderUtil.bindTexture(mc.getFramebuffer().framebufferTexture);
@@ -47,6 +55,9 @@ public class PostProcessingRenderer {
         ShaderUtil.drawQuads();
         blitShader.unload();
         RenderUtil.bindTexture(0);
+        if (blendWasEnabled) {
+            GlStateManager.enableBlend();
+        }
         mc.getFramebuffer().forceBind(true);
         blurSourceActive = true;
     }

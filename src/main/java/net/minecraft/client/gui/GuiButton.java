@@ -185,12 +185,20 @@ public class GuiButton extends Gui {
         }
     }
 
+    public static void drawMenuButtonPlainBackground(float x, float y, float width, float height, boolean enabled) {
+        int backgroundAlpha = GuiButton.getButtonAlpha();
+        Color baseColor = GuiButton.isCustomButtonEnabled() ? GuiButton.getButtonColor() : Color.BLACK;
+        int backgroundColor = enabled
+                ? new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), backgroundAlpha).getRGB()
+                : new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), backgroundAlpha * 2 / 3).getRGB();
+        RenderUtil.drawRoundedRectangle(x, y, width, height, 4.0F, backgroundColor);
+    }
+
     public static void drawMenuButtonText(Object key, float x, float y, float width, float height, boolean enabled, boolean hovered, String text) {
         float scale = 1.0F;
         if (key != null) {
-            SimpleAnimation animation = menuHoverAnimations.computeIfAbsent(key, ignored -> new SimpleAnimation(1.0F));
-            animation.setAnimation(hovered && enabled ? 0.96F : 1.0F, 12.0F);
-            scale = animation.getValue();
+            SimpleAnimation animation = menuHoverAnimations.get(key);
+            scale = animation != null ? animation.getValue() : 1.0F;
         }
         float centerX = x + width / 2.0F;
         float centerY = y + height / 2.0F;

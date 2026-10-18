@@ -1,8 +1,11 @@
 package cn.unfair.management.altmanager.microsoft;
 
+import cn.unfair.management.altmanager.AltManagerGui;
+import cn.unfair.util.client.AndroidUtil;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import net.minecraft.client.gui.GuiScreen;
 
 import java.awt.*;
 import java.io.*;
@@ -25,6 +28,11 @@ public class MicrosoftOAuthTranslation {
     private static Consumer<String> callback;
 
     static void browse(String url) {
+        if (AndroidUtil.isAndroid()) {
+            GuiScreen.setClipboardString(url);
+            AltManagerGui.status = "§6Login link copied, paste it in your browser";
+            return;
+        }
         try {
             if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported()) {
                 System.err.println("Cannot open browser in headless environment: " + url);
