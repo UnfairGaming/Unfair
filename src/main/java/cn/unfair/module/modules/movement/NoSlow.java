@@ -38,9 +38,9 @@ public class NoSlow extends Module {
     public final ModeProperty swordMode = new ModeProperty("SwordMode", 1, new String[]{"None", "Vanilla"});
     public final PercentProperty swordMotion = new PercentProperty("SwordMotion", 100, () -> this.swordMode.getValue() != 0);
     public final BooleanProperty swordSprint = new BooleanProperty("SwordSprint", true, () -> this.swordMode.getValue() != 0);
-    public final ModeProperty foodMode = new ModeProperty("FoodMode", 0, new String[]{"None", "Vanilla", "GrimAC", "Grim 1/3"});
-    public final PercentProperty foodMotion = new PercentProperty("FoodMotion", 100, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 3);
-    public final BooleanProperty foodSprint = new BooleanProperty("FoodSprint", true, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 3);
+    public final ModeProperty foodMode = new ModeProperty("FoodMode", 0, new String[]{"None", "Vanilla", "GrimAC", "Grim 1/3", "Grim 75%"});
+    public final PercentProperty foodMotion = new PercentProperty("FoodMotion", 100, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 3 && this.foodMode.getValue() != 4);
+    public final BooleanProperty foodSprint = new BooleanProperty("FoodSprint", true, () -> this.foodMode.getValue() != 0 && this.foodMode.getValue() != 3 && this.foodMode.getValue() != 4);
     public final BooleanProperty c0fDelayKnockback = new BooleanProperty("C0fDelayKnockback", true, () -> this.foodMode.getValue() == 2);
     public final BooleanProperty c0fDelayInteract = new BooleanProperty("C0fDelayInteract", true, () -> this.foodMode.getValue() == 2);
     public final ModeProperty bowMode = new ModeProperty("BowMode", 0, new String[]{"None", "Vanilla", "Grim 1/3"});
@@ -88,9 +88,27 @@ public class NoSlow extends Module {
                 && mc.thePlayer.getItemInUseCount() % 3 == 0;
     }
 
+    public boolean isGrim75Active() {
+        return this.foodMode.getValue() == 4
+                && mc.thePlayer != null
+                && this.hasForwardInput()
+                && ItemUtil.isEating()
+                && this.isGrim75Tick();
+    }
+
+    private boolean isGrim75Tick() {
+        if (mc.thePlayer == null || !mc.thePlayer.isUsingItem()) {
+            return false;
+        }
+
+        int remainingTicks = mc.thePlayer.getItemInUseCount();
+        return remainingTicks % 2 != 0 && remainingTicks <= 30;
+    }
+
     private boolean hasForwardInput() {
         return mc.gameSettings.keyBindForward.isKeyDown()
-                && !mc.gameSettings.keyBindBack.isKeyDown();
+                && !mc.gameSettings.keyBindBack.isKeyDown()
+                && mc.thePlayer.movementInput.moveForward > 0.0F;
     }
 
     @Override
@@ -113,12 +131,14 @@ public class NoSlow extends Module {
         return this.foodMode.getValue() != 0
                 && !this.isFoodC0F()
                 && !this.isFoodGrim13()
+                && this.foodMode.getValue() != 4
                 && ItemUtil.isEating();
     }
 
     public boolean isBowActive() {
         return this.bowMode.getValue() != 0
                 && this.bowMode.getValue() != 2
+                && this.bowMode.getValue() != 3
                 && ItemUtil.isUsingBow();
     }
 
@@ -132,7 +152,7 @@ public class NoSlow extends Module {
 
     public boolean isAnyActive() {
         return this.isC0FActive()
-                || mc.thePlayer.isUsingItem() && (this.isSwordActive() || this.isFoodActive() || this.isBowActive());
+                || mc.thePlayer.isUsingItem() && (this.isSwordActive() || this.isFoodActive() || this.isBowActive() || this.isGrim75Active());
     }
 
     public boolean canSprint() {
@@ -161,7 +181,7 @@ public class NoSlow extends Module {
             return;
         }
 
-        if (this.isEnabled() && (this.isFoodGrim13Active() || this.isBowGrim13Active())) {
+        if (this.isEnabled() && (this.isFoodGrim13Active() || this.isBowGrim13Active() || this.isGrim75Active())) {
             if (!mc.thePlayer.isSprinting()) {
                 mc.thePlayer.setSprinting(true);
             }
