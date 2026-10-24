@@ -22,7 +22,7 @@ public class Gif extends Module {
     private final Map<String, GifTexture> textures = new LinkedHashMap<>();
 
     public Gif() {
-        super("Gif", false);
+        super("Gif", false, true);
         for (String name : GIF_NAMES) {
             this.textures.put(name, new GifTexture(name));
         }

@@ -18,7 +18,7 @@ import cn.unfair.util.player.PlayerUtil;
 
 public class DelayVelocity extends SubModule {
     private static final Minecraft mc = Minecraft.getMinecraft();
-    public final IntProperty delayTicks = new IntProperty("DelayTicks", 2, 1, 5);
+    public final IntProperty delayMs = new IntProperty("DelayMs", 100, 0, 1000);
     private boolean delayActive = false;
     private boolean delayFlag = false;
 
@@ -67,7 +67,7 @@ public class DelayVelocity extends SubModule {
                     && (
                     this.canDelay()
                             || PlayerUtil.isInLiquidOrWeb()
-                            || Unfair.delayManager.getDelay() >= (long) this.delayTicks.getValue()
+                            || Unfair.delayManager.getDelayMs() >= (long) this.delayMs.getValue()
             )) {
                 Unfair.delayManager.setDelayState(false, DelayModules.VELOCITY);
                 this.delayFlag = false;

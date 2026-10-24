@@ -30,7 +30,7 @@ public class HypixelVelocity extends SubModule {
     public final BooleanProperty debug = new BooleanProperty("Debug", false);
     public final BooleanProperty reduce = new BooleanProperty("Reduce", true);
     public final BooleanProperty delay = new BooleanProperty("Delay", true);
-    public final IntProperty delayTicks = new IntProperty("DelayTicks", 2, 1, 5, delay::getValue);
+    public final IntProperty delayMs = new IntProperty("DelayMs", 100, 0, 1000, delay::getValue);
     private boolean delayFlag;
     private boolean knockback;
 
@@ -132,7 +132,7 @@ public class HypixelVelocity extends SubModule {
     private boolean shouldReleaseDelay() {
         return canDelay()
                 || isBlockedState()
-                || Unfair.delayManager.getDelay() >= delayTicks.getValue();
+                || Unfair.delayManager.getDelayMs() >= delayMs.getValue();
     }
 
     private boolean canStartLongJump() {

@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class DelayManager {
     public static Minecraft mc = Minecraft.getMinecraft();
     public DelayModules delayModule = DelayModules.NONE;
-    public long delay = 0L;
+    private long delayStartNanos = 0L;
     public Deque<Packet<INetHandlerPlayClient>> delayedPacket = new ConcurrentLinkedDeque<>();
 
     private boolean isInWorld() {
@@ -65,9 +65,10 @@ public class DelayManager {
 
     public boolean setDelayState(boolean state, DelayModules delayModule) {
         if (state) {
-            this.delay = 0;
+            this.delayStartNanos = System.nanoTime();
             this.delayModule = delayModule;
         } else {
+            this.delayStartNanos = 0L;
             this.delayModule = DelayModules.NONE;
             if (!this.isInWorld()) {
                 this.delayedPacket.clear();
@@ -93,7 +94,7 @@ public class DelayManager {
             return false;
         }
         this.delayModule = DelayModules.NONE;
-        this.delay = 0L;
+        this.delayStartNanos = 0L;
         this.delayedPacket.clear();
         return true;
     }
@@ -103,11 +104,14 @@ public class DelayManager {
     }
 
     public void delay(DelayModules modules) {
+        if (this.delayModule != modules) {
+            this.delayStartNanos = System.nanoTime();
+        }
         this.delayModule = modules;
     }
 
-    public long getDelay() {
-        return this.delay;
+    public long getDelayMs() {
+        return this.delayStartNanos == 0L ? 0L : (System.nanoTime() - this.delayStartNanos) / 1_000_000L;
     }
 
     @EventTarget
@@ -126,15 +130,12 @@ public class DelayManager {
         if (event.type() == EventType.POST) {
             if (!this.isInWorld()) {
                 this.delayModule = DelayModules.NONE;
-                this.delay = 0L;
+                this.delayStartNanos = 0L;
                 this.delayedPacket.clear();
                 return;
             }
             if (mc.thePlayer.isDead) {
                 this.setDelayState(false, this.delayModule);
-            }
-            if (this.delayModule != DelayModules.NONE) {
-                this.delay++;
             }
         }
     }
