@@ -13,8 +13,7 @@ public class Velocity extends ModuleWithModuleSettings {
                 new ReduceVelocity(),
                 new GrimReduceVelocity(),
                 new DelayVelocity(),
-                new PolarVelocity(),
-                new B4Mode()
+                new PolarVelocity()
         );
     }
 
@@ -22,9 +21,6 @@ public class Velocity extends ModuleWithModuleSettings {
         SubModule subModule = getCurrentSubModule();
         if (subModule instanceof HypixelVelocity hypixel) {
             return hypixel.isDelaying();
-        }
-        if (subModule instanceof B4Mode b4) {
-            return b4.isDelaying();
         }
         return false;
     }
