@@ -983,14 +983,10 @@ public class Scaffold extends Module {
                 }
             }
         }
-        if (lastRotation != null && blockData != null && didHitBlockFace(mc.thePlayer, lastRotation.yaw, lastRotation.pitch, blockData.blockPos(), blockData.facing())) {
+        if (!alwaysUpdateRot.getValue() && offGroundTicks >= rotTick.getValue()
+                && lastRotation != null && blockData != null
+                && didHitBlockFace(mc.thePlayer, lastRotation.yaw, lastRotation.pitch, blockData.blockPos(), blockData.facing())) {
             return lastRotation;
-        }
-        if (blockData != null && !alwaysUpdateRot.getValue() && offGroundTicks >= rotTick.getValue()) {
-            if (!didHitBlockFace(mc.thePlayer, rotation.yaw, rotation.pitch, blockData.blockPos(), blockData.facing()) && offGroundTicks >= rotTick.getValue()) {
-                lastRotation.yaw += (float) Math.random();
-                return lastRotation;
-            }
         }
         lastRotation = rotation;
         return rotation;
