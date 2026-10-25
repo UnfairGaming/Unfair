@@ -2500,10 +2500,7 @@ public class EntityRenderer implements IResourceManagerReloadListener {
             this.mc.gameSettings.ofLazyChunkLoading = false;
             RenderGlobal renderglobal = Config.getRenderGlobal();
             int j = renderglobal.getCountLoadedChunks();
-            long k = System.currentTimeMillis();
-            Config.dbg("Loading visible chunks");
             long l = System.currentTimeMillis() + 5000L;
-            int i1 = 0;
             boolean flag1 = false;
 
             while (true) {
@@ -2517,13 +2514,9 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                         flag1 = true;
                     }
 
-                    i1 = i1 + renderglobal.getCountChunksToUpdate();
-
                     while (!renderglobal.hasNoChunkUpdates()) {
                         renderglobal.updateChunks(System.nanoTime() + 1000000000L);
                     }
-
-                    i1 = i1 - renderglobal.getCountChunksToUpdate();
 
                     if (!flag1) {
                         break;
@@ -2536,7 +2529,6 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 }
 
                 if (System.currentTimeMillis() > l) {
-                    Config.log("Chunks loaded: " + i1);
                     l = System.currentTimeMillis() + 5000L;
                 }
 
@@ -2545,8 +2537,6 @@ public class EntityRenderer implements IResourceManagerReloadListener {
                 }
             }
 
-            Config.log("Chunks loaded: " + i1);
-            Config.log("Finished loading visible chunks");
             RenderChunk.renderChunksUpdated = 0;
         } finally {
             this.mc.gameSettings.ofChunkUpdates = i;

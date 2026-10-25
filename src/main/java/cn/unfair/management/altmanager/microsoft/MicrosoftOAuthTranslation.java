@@ -35,19 +35,15 @@ public class MicrosoftOAuthTranslation {
         }
         try {
             if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported()) {
-                System.err.println("Cannot open browser in headless environment: " + url);
                 return;
             }
-            System.out.println("Opening browser to: " + url);
             Desktop.getDesktop().browse(new URI(url));
         } catch (IOException | URISyntaxException | HeadlessException e) {
-            System.err.println("Failed to open browser: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public static void getRefreshToken(Consumer<String> callback) {
-        System.out.println("Starting OAuth flow...");
         MicrosoftOAuthTranslation.callback = callback;
 
         if (!startServer()) {
@@ -63,17 +59,14 @@ public class MicrosoftOAuthTranslation {
     }
 
     public static LoginData login(String refreshToken) {
-        System.out.println("Logging in with refresh token...");
 
         if (refreshToken == null || refreshToken.isEmpty()) {
-            System.err.println("No refresh token provided");
             LoginData result = new LoginData();
             result.errorMessage = "No refresh token provided";
             return result;
         }
 
         try {
-            System.out.println("Refreshing access token...");
             String tokenRequest = "client_id=" + CLIENT_ID +
                     "&client_secret=" + URLEncoder.encode(CLIENT_SECRET, StandardCharsets.UTF_8) +
                     "&refresh_token=" + URLEncoder.encode(refreshToken, StandardCharsets.UTF_8) +
@@ -83,7 +76,6 @@ public class MicrosoftOAuthTranslation {
             String tokenResponse = postExternal("https://login.live.com/oauth20_token.srf", tokenRequest, false);
 
             if (tokenResponse == null) {
-                System.err.println("Failed to refresh access token - null response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Failed to refresh access token";
                 return result;
@@ -92,12 +84,10 @@ public class MicrosoftOAuthTranslation {
             AuthTokenResponse res = gson.fromJson(tokenResponse, AuthTokenResponse.class);
             if (res == null || res.access_token == null) {
                 if (res != null && res.error != null) {
-                    System.err.println("Token error: " + res.error + " - " + res.error_description);
                     LoginData result = new LoginData();
                     result.errorMessage = "Microsoft auth error: " + res.error_description;
                     return result;
                 }
-                System.err.println("Invalid token response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid token response from Microsoft";
                 return result;
@@ -106,13 +96,11 @@ public class MicrosoftOAuthTranslation {
             String accessToken = res.access_token;
             String newRefreshToken = res.refresh_token != null ? res.refresh_token : refreshToken;
 
-            System.out.println("Got access token, proceeding to XBL...");
 
             String xblPayload = "{\"Properties\":{\"AuthMethod\":\"RPS\",\"SiteName\":\"user.auth.xboxlive.com\",\"RpsTicket\":\"d=" + accessToken + "\"},\"RelyingParty\":\"http://auth.xboxlive.com\",\"TokenType\":\"JWT\"}";
             String xblResponse = postExternal("https://user.auth.xboxlive.com/user/authenticate", xblPayload, true);
 
             if (xblResponse == null) {
-                System.err.println("XBL authentication failed - null response");
                 LoginData result = new LoginData();
                 result.errorMessage = "XBL authentication failed";
                 return result;
@@ -121,19 +109,16 @@ public class MicrosoftOAuthTranslation {
             XblXstsResponse xblRes = gson.fromJson(xblResponse, XblXstsResponse.class);
             if (xblRes == null || xblRes.Token == null || xblRes.DisplayClaims == null ||
                     xblRes.DisplayClaims.xui == null || xblRes.DisplayClaims.xui.length == 0) {
-                System.err.println("Invalid XBL response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid XBL response";
                 return result;
             }
 
-            System.out.println("XBL successful, proceeding to XSTS...");
 
             String xstsPayload = "{\"Properties\":{\"SandboxId\":\"RETAIL\",\"UserTokens\":[\"" + xblRes.Token + "\"]},\"RelyingParty\":\"rp://api.minecraftservices.com/\",\"TokenType\":\"JWT\"}";
             String xstsResponse = postExternal("https://xsts.auth.xboxlive.com/xsts/authorize", xstsPayload, true);
 
             if (xstsResponse == null) {
-                System.err.println("XSTS authentication failed - null response");
                 LoginData result = new LoginData();
                 result.errorMessage = "XSTS authentication failed";
                 return result;
@@ -141,20 +126,16 @@ public class MicrosoftOAuthTranslation {
 
             XblXstsResponse xstsRes = gson.fromJson(xstsResponse, XblXstsResponse.class);
             if (xstsRes == null || xstsRes.Token == null) {
-                System.err.println("Invalid XSTS response");
                 if (xstsResponse.contains("XErr")) {
                     if (xstsResponse.contains("2148916233")) {
-                        System.err.println("No Xbox account associated with Microsoft account");
                         LoginData result = new LoginData();
                         result.errorMessage = "No Xbox account found. Please create one at https://www.xbox.com";
                         return result;
                     } else if (xstsResponse.contains("2148916235")) {
-                        System.err.println("Xbox Live is banned in country");
                         LoginData result = new LoginData();
                         result.errorMessage = "Xbox Live is not available in your country";
                         return result;
                     } else if (xstsResponse.contains("2148916238")) {
-                        System.err.println("Adult verification required");
                         LoginData result = new LoginData();
                         result.errorMessage = "Adult verification required. Please complete at https://xbox.com";
                         return result;
@@ -165,14 +146,12 @@ public class MicrosoftOAuthTranslation {
                 return result;
             }
 
-            System.out.println("XSTS successful, proceeding to Minecraft...");
 
             String uhs = xblRes.DisplayClaims.xui[0].uhs;
             String mcPayload = "{\"identityToken\":\"XBL3.0 x=" + uhs + ";" + xstsRes.Token + "\"}";
             String mcResponse = postExternal("https://api.minecraftservices.com/authentication/login_with_xbox", mcPayload, true);
 
             if (mcResponse == null) {
-                System.err.println("Minecraft authentication failed - null response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Minecraft authentication failed";
                 return result;
@@ -180,17 +159,14 @@ public class MicrosoftOAuthTranslation {
 
             McResponse mcRes = gson.fromJson(mcResponse, McResponse.class);
             if (mcRes == null || mcRes.access_token == null) {
-                System.err.println("Invalid Minecraft response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid Minecraft response";
                 return result;
             }
 
-            System.out.println("Minecraft auth successful, checking ownership...");
 
             String ownershipResponse = getBearerResponse("https://api.minecraftservices.com/entitlements/mcstore", mcRes.access_token);
             if (ownershipResponse == null) {
-                System.err.println("Ownership check failed - null response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Ownership check failed";
                 return result;
@@ -198,17 +174,14 @@ public class MicrosoftOAuthTranslation {
 
             GameOwnershipResponse gameOwnershipRes = gson.fromJson(ownershipResponse, GameOwnershipResponse.class);
             if (gameOwnershipRes == null || !gameOwnershipRes.hasGameOwnership()) {
-                System.err.println("No game ownership found");
                 LoginData result = new LoginData();
                 result.errorMessage = "No Minecraft license found on this account";
                 return result;
             }
 
-            System.out.println("Ownership verified, getting profile...");
 
             String profileResponse = getBearerResponse("https://api.minecraftservices.com/minecraft/profile", mcRes.access_token);
             if (profileResponse == null) {
-                System.err.println("Profile retrieval failed - null response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Profile retrieval failed";
                 return result;
@@ -216,17 +189,14 @@ public class MicrosoftOAuthTranslation {
 
             ProfileResponse profileRes = gson.fromJson(profileResponse, ProfileResponse.class);
             if (profileRes == null || profileRes.id == null || profileRes.name == null) {
-                System.err.println("Invalid profile response");
                 LoginData result = new LoginData();
                 result.errorMessage = "Invalid profile response";
                 return result;
             }
 
-            System.out.println("Login successful for: " + profileRes.name);
             return new LoginData(mcRes.access_token, newRefreshToken, profileRes.id, profileRes.name);
 
         } catch (Exception e) {
-            System.err.println("Unexpected error during login: " + e.getMessage());
             e.printStackTrace();
             LoginData result = new LoginData();
             result.errorMessage = "Unexpected error: " + e.getMessage();
@@ -235,7 +205,6 @@ public class MicrosoftOAuthTranslation {
     }
 
     public static LoginData loginWithCredentials(String email, String password) {
-        System.out.println("Logging in with credentials...");
         try {
             String tokenRequest = "client_id=" + CLIENT_ID +
                     "&client_secret=" + URLEncoder.encode(CLIENT_SECRET, StandardCharsets.UTF_8) +
@@ -282,14 +251,11 @@ public class MicrosoftOAuthTranslation {
             server = new SimpleHttpServer(PORT);
             boolean started = server.start();
             if (started) {
-                System.out.println("Local server started on port " + PORT);
                 return true;
             } else {
-                System.err.println("Failed to start local server on port " + PORT);
                 return false;
             }
         } catch (Exception e) {
-            System.err.println("Error starting server: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -300,11 +266,9 @@ public class MicrosoftOAuthTranslation {
 
         server.stop();
         server = null;
-        System.out.println("Local server stopped");
     }
 
     private static void handleCode(String code) {
-        System.out.println("Exchanging code for token...");
 
         try {
             String tokenRequest = "client_id=" + CLIENT_ID +
@@ -316,24 +280,17 @@ public class MicrosoftOAuthTranslation {
             String response = postExternal("https://login.live.com/oauth20_token.srf", tokenRequest, false);
 
             if (response == null) {
-                System.err.println("Failed to exchange code for token - null response");
                 if (callback != null) callback.accept(null);
                 return;
             }
 
             AuthTokenResponse res = gson.fromJson(response, AuthTokenResponse.class);
             if (res == null || res.refresh_token == null) {
-                if (res != null && res.error != null) {
-                    System.err.println("Token exchange error: " + res.error + " - " + res.error_description);
-                }
-                System.err.println("Invalid token exchange response");
                 if (callback != null) callback.accept(null);
             } else {
-                System.out.println("Successfully obtained refresh token");
                 if (callback != null) callback.accept(res.refresh_token);
             }
         } catch (Exception e) {
-            System.err.println("Error in handleCode: " + e.getMessage());
             e.printStackTrace();
             if (callback != null) callback.accept(null);
         }
@@ -354,18 +311,15 @@ public class MicrosoftOAuthTranslation {
             byte[] out = post.getBytes(StandardCharsets.UTF_8);
             connection.setFixedLengthStreamingMode(out.length);
 
-            System.out.println("Sending POST to: " + url);
             try (OutputStream os = connection.getOutputStream()) {
                 os.write(out);
             }
 
             int responseCode = connection.getResponseCode();
-            System.out.println("Response code: " + responseCode);
 
             InputStream stream = responseCode < 400 ? connection.getInputStream() : connection.getErrorStream();
 
             if (stream == null) {
-                System.err.println("No response stream");
                 return null;
             }
 
@@ -376,13 +330,9 @@ public class MicrosoftOAuthTranslation {
                     response.append(line);
                 }
                 String responseBody = response.toString();
-                if (responseCode >= 400) {
-                    System.err.println("HTTP Error " + responseCode);
-                }
                 return responseBody;
             }
         } catch (Exception e) {
-            System.err.println("HTTP POST error for " + url + ": " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -398,12 +348,10 @@ public class MicrosoftOAuthTranslation {
             connection.addRequestProperty("Accept", "application/json");
 
             int responseCode = connection.getResponseCode();
-            System.out.println("Bearer request to " + url + " - Response: " + responseCode);
 
             InputStream stream = responseCode == 200 ? connection.getInputStream() : connection.getErrorStream();
 
             if (stream == null) {
-                System.err.println("No response stream for bearer request");
                 return null;
             }
 
@@ -414,13 +362,9 @@ public class MicrosoftOAuthTranslation {
                     response.append(line);
                 }
                 String responseBody = response.toString();
-                if (responseCode != 200) {
-                    System.err.println("Bearer request failed with HTTP " + responseCode);
-                }
                 return responseBody;
             }
         } catch (Exception e) {
-            System.err.println("Bearer request error for " + url + ": " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -461,13 +405,10 @@ public class MicrosoftOAuthTranslation {
                 serverSocket = new ServerSocket(port, 1, InetAddress.getByName("localhost"));
                 running = true;
                 executor.execute(this::run);
-                System.out.println("Server socket created successfully");
                 return true;
             } catch (BindException e) {
-                System.err.println("Port " + port + " is already in use: " + e.getMessage());
                 return false;
             } catch (IOException e) {
-                System.err.println("Failed to start server on port " + port + ": " + e.getMessage());
                 return false;
             }
         }
@@ -477,24 +418,17 @@ public class MicrosoftOAuthTranslation {
             try {
                 if (serverSocket != null && !serverSocket.isClosed()) {
                     serverSocket.close();
-                    System.out.println("Server socket closed");
                 }
             } catch (IOException e) {
-                System.err.println("Error closing server: " + e.getMessage());
             }
         }
 
         private void run() {
-            System.out.println("Server listening on port " + port);
             while (running) {
                 try {
                     Socket clientSocket = serverSocket.accept();
-                    System.out.println("Received connection from: " + clientSocket.getInetAddress());
                     executor.execute(() -> handleClient(clientSocket));
                 } catch (IOException e) {
-                    if (running) {
-                        System.err.println("Server error: " + e.getMessage());
-                    }
                 }
             }
         }
@@ -505,11 +439,9 @@ public class MicrosoftOAuthTranslation {
 
                 String requestLine = in.readLine();
                 if (requestLine == null) {
-                    System.out.println("Empty request");
                     return;
                 }
 
-                System.out.println("Request: " + requestLine);
 
                 String line;
                 while ((line = in.readLine()) != null && !line.isEmpty()) {
@@ -517,7 +449,6 @@ public class MicrosoftOAuthTranslation {
 
                 String[] requestParts = requestLine.split(" ");
                 if (requestParts.length < 2) {
-                    System.out.println("Invalid request format");
                     return;
                 }
 
@@ -529,7 +460,6 @@ public class MicrosoftOAuthTranslation {
                     int queryStart = path.indexOf('?');
                     if (queryStart != -1) {
                         String query = path.substring(queryStart + 1);
-                        System.out.println("Query string: " + query);
                         for (String param : query.split("&")) {
                             String[] pair = param.split("=");
                             if (pair.length == 2) {
@@ -545,15 +475,12 @@ public class MicrosoftOAuthTranslation {
                     String responseHtml;
 
                     if (code != null && !code.isEmpty()) {
-                        System.out.println("Received auth code: " + code);
                         handleCode(code);
                         responseHtml = "<html><body style='font-family: Arial, sans-serif; text-align: center; padding: 50px;'><h1 style='color: green;'>Authentication Successful!</h1><p>You may now close this page and return to the game.</p><script>setTimeout(function() { window.close(); }, 2000);</script></body></html>";
                     } else if (error != null) {
-                        System.out.println("Received error: " + error + " - " + params.get("error_description"));
                         responseHtml = "<html><body style='font-family: Arial, sans-serif; text-align: center; padding: 50px;'><h1 style='color: red;'>Authentication Failed</h1><p>Error: " + error + "</p><p>Please try again.</p></body></html>";
                         if (callback != null) callback.accept(null);
                     } else {
-                        System.out.println("No auth code or error received");
                         responseHtml = "<html><body style='font-family: Arial, sans-serif; text-align: center; padding: 50px;'><h1 style='color: orange;'>Authentication Incomplete</h1><p>No authentication code received. Please try again.</p></body></html>";
                     }
 
@@ -565,7 +492,6 @@ public class MicrosoftOAuthTranslation {
 
                     out.write(response.getBytes(StandardCharsets.UTF_8));
                     out.flush();
-                    System.out.println("Response sent to browser");
 
                     executor.execute(() -> {
                         try {
@@ -578,12 +504,10 @@ public class MicrosoftOAuthTranslation {
                 }
 
             } catch (IOException e) {
-                System.err.println("Error handling client: " + e.getMessage());
             } finally {
                 try {
                     clientSocket.close();
                 } catch (IOException e) {
-                    System.err.println("Error closing client socket: " + e.getMessage());
                 }
             }
         }

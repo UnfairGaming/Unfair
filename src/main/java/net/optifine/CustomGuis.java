@@ -242,7 +242,6 @@ public class CustomGuis
         for (int i = 0; i < astring.length; ++i)
         {
             String s = astring[i];
-            Config.dbg("CustomGuis: " + s);
 
             try
             {

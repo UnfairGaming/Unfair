@@ -2421,7 +2421,6 @@ public class GameSettings implements ModernOffhandKeyBinding {
                         this.ofKeyBindZoom.setKeyCode(Integer.parseInt(astring[1]));
                     }
                 } catch (Exception exception) {
-                    Config.dbg("Skipping bad option: " + s);
                     exception.printStackTrace();
                 }
             }

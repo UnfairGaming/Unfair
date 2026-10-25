@@ -120,7 +120,6 @@ public class BlockAliases
                 Properties properties = new PropertiesOrdered();
                 properties.load(in);
                 in.close();
-                Config.dbg("[Shaders] Parsing block mappings: " + path);
                 ConnectedParser connectedparser = new ConnectedParser("Shaders");
 
                 for (Object o : properties.keySet())

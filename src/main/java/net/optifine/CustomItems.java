@@ -99,7 +99,6 @@ public class CustomItems
                 return;
             }
 
-            Config.dbg("CustomItems: Loading " + fileName);
             Properties properties = new PropertiesOrdered();
             properties.load(inputstream);
             inputstream.close();
@@ -134,7 +133,6 @@ public class CustomItems
         for (int i = 0; i < astring.length; ++i)
         {
             String s = astring[i];
-            Config.dbg("CustomItems: " + s);
 
             try
             {

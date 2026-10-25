@@ -37,7 +37,6 @@ public class PlayerConfigurationReceiver implements IFileDownloadListener
             }
             catch (Exception exception1)
             {
-                Config.dbg("Error parsing configuration: " + url + ", " + exception1.getClass().getName() + ": " + exception1.getMessage());
             }
         }
     }

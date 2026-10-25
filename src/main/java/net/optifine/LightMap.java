@@ -138,11 +138,6 @@ public class LightMap
         }
     }
 
-    private static void dbg(String str)
-    {
-        Config.dbg("CustomColors: " + str);
-    }
-
     private static void warn(String str)
     {
         Config.warn("CustomColors: " + str);

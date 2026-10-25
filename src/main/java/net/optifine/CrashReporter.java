@@ -64,7 +64,6 @@ public class CrashReporter
         }
         catch (Exception exception)
         {
-            Config.dbg(exception.getClass().getName() + ": " + exception.getMessage());
         }
     }
 

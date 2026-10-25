@@ -111,11 +111,9 @@ public class BetterGrass
 
             if (flag)
             {
-                Config.dbg("BetterGrass: Parsing default configuration " + s);
             }
             else
             {
-                Config.dbg("BetterGrass: Parsing configuration " + s);
             }
 
             Properties properties = new PropertiesOrdered();

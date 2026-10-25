@@ -133,7 +133,6 @@ public class EmissiveTextures
                     return;
                 }
 
-                dbg("Loading " + s);
                 Properties properties = new PropertiesOrdered();
                 properties.load(inputstream);
                 inputstream.close();
@@ -155,11 +154,6 @@ public class EmissiveTextures
                 ioexception.printStackTrace();
             }
         }
-    }
-
-    private static void dbg(String str)
-    {
-        Config.dbg("EmissiveTextures: " + str);
     }
 
     private static void warn(String str)

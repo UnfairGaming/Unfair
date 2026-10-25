@@ -46,11 +46,6 @@ public class CacheObjectArray
         long i1 = testNewObj(i, j);
         long j1 = testCloneObj(i, j);
         long k1 = testNewObjDyn(IBlockState.class, i, j);
-        Config.dbg("New: " + k);
-        Config.dbg("Clone: " + l);
-        Config.dbg("NewObj: " + i1);
-        Config.dbg("CloneObj: " + j1);
-        Config.dbg("NewObjDyn: " + k1);
     }
 
     private static long testClone(int size, int count)

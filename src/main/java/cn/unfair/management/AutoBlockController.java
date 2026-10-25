@@ -152,6 +152,10 @@ public final class AutoBlockController {
             reset();
             return;
         }
+        if (ab3AttackPending) {
+            ab3AttackPending = false;
+            ab3ReblockPending = true;
+        }
         if (ab3ReblockPending) {
             stopAB34Blink();
             if (isAB34BlinkQueued()) return;

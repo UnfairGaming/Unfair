@@ -143,7 +143,6 @@ public class ShaderPackParser
         }
         catch (IOException ioexception)
         {
-            Config.dbg(ioexception.getClass().getName() + ": " + ioexception.getMessage());
             return new String[0];
         }
     }

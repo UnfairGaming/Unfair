@@ -119,7 +119,6 @@ public class OpenGlHelper {
             }
 
             String s = "VboRegions not supported, missing: " + Config.listToString(list);
-            Config.dbg(s);
             logText = logText + s + "\n";
         }
 

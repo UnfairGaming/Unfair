@@ -118,7 +118,6 @@ public class TextureAnimations
             for (int i = 0; i < astring.length; ++i)
             {
                 String s = astring[i];
-                Config.dbg("Texture animation: " + s);
 
                 try
                 {
@@ -135,7 +134,6 @@ public class TextureAnimations
 
                         if (Config.getDefiningResourcePack(resourcelocation1) != rp)
                         {
-                            Config.dbg("Skipped: " + s + ", target texture not loaded from same resource pack");
                         }
                         else
                         {

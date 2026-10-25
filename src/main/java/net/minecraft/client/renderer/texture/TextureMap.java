@@ -109,7 +109,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
 
         if (this.mipmapLevels >= 4) {
             this.mipmapLevels = this.detectMaxMipmapLevel(this.mapRegisteredSprites, resourceManager);
-            Config.log("Mipmap levels: " + this.mipmapLevels);
         }
 
         this.initMissingImage();
@@ -118,7 +117,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
     }
 
     public void loadTextureAtlas(IResourceManager resourceManager) {
-        Config.dbg("Multitexture: " + Config.isMultiTexture());
 
         if (Config.isMultiTexture()) {
             for (TextureAtlasSprite textureatlassprite : this.mapUploadedSprites.values()) {
@@ -137,8 +135,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
         int j = this.getMinSpriteSize();
         this.iconGridSize = j;
         int k = 1 << this.mipmapLevels;
-        int l = 0;
-        int i1 = 0;
         Iterator<Entry<String, TextureAtlasSprite>> iterator = this.mapRegisteredSprites.entrySet().iterator();
 
         while (true) {
@@ -156,11 +152,9 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                             i = Math.min(i, Math.min(textureatlassprite3.getIconWidth(), textureatlassprite3.getIconHeight()));
                             stitcher.addSprite(textureatlassprite3);
                             Config.detail("Custom loader (skipped): " + textureatlassprite3);
-                            ++i1;
                         }
 
                         Config.detail("Custom loader: " + textureatlassprite3);
-                        ++l;
                         continue;
                     }
 
@@ -180,12 +174,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                             int i4 = this.mipmapLevels > 0 ? TextureUtils.scaleToGrid(k3, j) : TextureUtils.scaleToMin(k3, j);
 
                             if (i4 != k3) {
-                                if (!TextureUtils.isPowerOfTwo(k3)) {
-                                    Config.log("Scaled non power of 2: " + textureatlassprite3.getIconName() + ", " + k3 + " -> " + i4);
-                                } else {
-                                    Config.log("Scaled too small texture: " + textureatlassprite3.getIconName() + ", " + k3 + " -> " + i4);
-                                }
-
                                 abufferedimage[0] = TextureUtils.scaleImage(abufferedimage[0], i4);
                             }
                         }
@@ -242,14 +230,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                 }
             }
 
-            if (l > 0) {
-                Config.dbg("Custom loader sprites: " + l);
-            }
-
-            if (i1 > 0) {
-                Config.dbg("Custom loader sprites (skipped): " + i1);
-            }
-
             int j2 = Math.min(i, k);
             int k2 = MathHelper.calculateLogBaseTwo(j2);
 
@@ -286,7 +266,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
 
             stitcher.doStitch();
 
-            logger.info("Created: {}x{} {}-atlas", stitcher.getCurrentWidth(), stitcher.getCurrentHeight(), this.basePath);
 
             if (Config.isShaders()) {
                 ShadersTex.allocateTextureMap(this.getGlTextureId(), this.mipmapLevels, stitcher.getCurrentWidth(), stitcher.getCurrentHeight(), stitcher, this);
@@ -325,7 +304,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                 textureatlassprite4.copyFrom(this.missingImage);
             }
 
-            Config.log("Animated sprites: " + this.listAnimatedSprites.size());
 
             if (Config.isMultiTexture()) {
                 int l2 = stitcher.getCurrentWidth();
@@ -359,7 +337,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
                         try {
                             TextureUtil.uploadTextureMipmap(textureatlassprite6.getFrameTextureData(0), textureatlassprite6.getIconWidth(), textureatlassprite6.getIconHeight(), textureatlassprite6.getOriginX(), textureatlassprite6.getOriginY(), flag1, flag);
                         } catch (Exception exception) {
-                            Config.dbg("Error uploading sprite single: " + textureatlassprite6 + ", parent: " + textureatlassprite5);
                             exception.printStackTrace();
                         }
                     }
@@ -371,7 +348,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
             this.updateIconGrid(stitcher.getCurrentWidth(), stitcher.getCurrentHeight());
 
             if (Config.equals(System.getProperty("saveTextureMap"), "true")) {
-                Config.dbg("Exporting texture map: " + this.basePath);
                 TextureUtils.saveGlTexture("debug/" + this.basePath.replaceAll("/", "_"), this.getGlTextureId(), this.mipmapLevels, stitcher.getCurrentWidth(), stitcher.getCurrentHeight());
             }
 
@@ -595,10 +571,6 @@ public class TextureMap extends AbstractTexture implements ITickableTextureObjec
         }
 
         i = MathHelper.roundUpToPowerOfTwo(i);
-
-        if (i > 16) {
-            Config.log("Sprite size: " + i);
-        }
 
         int j = MathHelper.calculateLogBaseTwo(i);
 

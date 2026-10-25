@@ -225,7 +225,6 @@ public class CustomColormap implements CustomColors.IColorizer
 
             if (!flag || !flag1)
             {
-                dbg("Non-standard palette size: " + i + "x" + j + ", should be: " + this.width + "x" + this.height + ", path: " + s);
             }
 
             this.width = i;
@@ -244,11 +243,6 @@ public class CustomColormap implements CustomColors.IColorizer
         {
             ioexception.printStackTrace();
         }
-    }
-
-    private static void dbg(String str)
-    {
-        Config.dbg("CustomColors: " + str);
     }
 
     private static void warn(String str)

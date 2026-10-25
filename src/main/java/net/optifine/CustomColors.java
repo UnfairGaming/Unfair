@@ -262,7 +262,6 @@ public class CustomColors
                     }
                     else
                     {
-                        dbg("" + key + "=" + s);
                         return s;
                     }
                 }
@@ -396,7 +395,6 @@ public class CustomColors
                 return;
             }
 
-            dbg("Loading " + fileName);
             Properties properties = new PropertiesOrdered();
             properties.load(inputstream);
             inputstream.close();
@@ -463,7 +461,6 @@ public class CustomColors
         {
             String s6 = astring[j];
             String s3 = props.getProperty(s6);
-            dbg("Block palette: " + s6 + " = " + s3);
             String s4 = s6.substring(s.length());
             String s5 = TextureUtils.getBasePath(fileName);
             s4 = TextureUtils.fixResourcePath(s4, s5);
@@ -515,7 +512,6 @@ public class CustomColors
         for (int i = 0; i < astring.length; ++i)
         {
             String s = astring[i];
-            dbg("Block colormap: " + s);
 
             try
             {
@@ -667,7 +663,6 @@ public class CustomColors
             }
             else
             {
-                dbg(name + " = " + s);
                 return i;
             }
         }
@@ -744,7 +739,6 @@ public class CustomColors
             }
             else
             {
-                dbg("Colormap " + pathImage);
                 Properties properties = new PropertiesOrdered();
                 String s = StrUtils.replaceSuffix(pathImage, ".png", ".properties");
                 ResourceLocation resourcelocation1 = ResourceLocation.of(s);
@@ -754,7 +748,6 @@ public class CustomColors
                     InputStream inputstream = Config.getResourceStream(resourcelocation1);
                     properties.load(inputstream);
                     inputstream.close();
-                    dbg("Colormap properties: " + s);
                 }
                 else
                 {
@@ -1391,7 +1384,6 @@ public class CustomColors
         }
         else
         {
-            dbg(logName + " colors: " + i);
             int[] aint = new int[list.size()];
 
             for (int l = 0; l < aint.length; ++l)
@@ -1486,7 +1478,6 @@ public class CustomColors
         }
         else
         {
-            dbg(logName + " colors: " + k);
             return afloat1;
         }
     }
@@ -1553,7 +1544,6 @@ public class CustomColors
         }
         else
         {
-            dbg(logName + " colors: " + i);
             return aint;
         }
     }
@@ -1610,7 +1600,6 @@ public class CustomColors
         }
         else
         {
-            dbg(logName + " colors: " + i);
             return aint;
         }
     }
@@ -1649,7 +1638,6 @@ public class CustomColors
         }
         else
         {
-            dbg(logName + " colors: " + i);
             return aint;
         }
     }
@@ -1747,11 +1735,6 @@ public class CustomColors
                 Minecraft.getMinecraft().getTextureManager().reloadBannerTextures();
             }
         }
-    }
-
-    private static void dbg(String str)
-    {
-        Config.dbg("CustomColors: " + str);
     }
 
     private static void warn(String str)

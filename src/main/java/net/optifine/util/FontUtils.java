@@ -28,7 +28,6 @@ public class FontUtils {
                     return properties;
                 }
 
-                Config.log("Loading " + s2);
                 properties.load(inputstream);
                 inputstream.close();
             } catch (FileNotFoundException var7) {

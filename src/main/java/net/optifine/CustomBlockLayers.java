@@ -75,7 +75,6 @@ public class CustomBlockLayers
 
     private static void readLayers(String pathProps, Properties props, List<EnumWorldBlockLayer> list)
     {
-        Config.dbg("CustomBlockLayers: " + pathProps);
         readLayer("solid", EnumWorldBlockLayer.SOLID, props, list);
         readLayer("cutout", EnumWorldBlockLayer.CUTOUT, props, list);
         readLayer("cutout_mipped", EnumWorldBlockLayer.CUTOUT_MIPPED, props, list);

@@ -59,7 +59,6 @@ public class Platform {
         if (this.load.getAsBoolean()) {
             try {
                 this.executor.run();
-                logger.info("Loaded Platform " + this.name);
                 COUNT++;
             } catch (Throwable t) {
                 logger.severe("An error occurred while loading Platform " + this.name + ":");

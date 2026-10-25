@@ -21,7 +21,6 @@ public class VersionCheckThread extends Thread
 
         try
         {
-            Config.dbg("Checking for new version");
             URL url = new URL("http://optifine.net/version/1.8.9/HD_U.txt");
             httpurlconnection = (HttpURLConnection)url.openConnection();
 
@@ -51,7 +50,6 @@ public class VersionCheckThread extends Thread
                 if (astring.length >= 1)
                 {
                     String s1 = astring[0].trim();
-                    Config.dbg("Version found: " + s1);
 
                     if (Config.compareRelease(s1, "M6_pre2") <= 0)
                     {
@@ -72,7 +70,6 @@ public class VersionCheckThread extends Thread
         }
         catch (Exception exception)
         {
-            Config.dbg(exception.getClass().getName() + ": " + exception.getMessage());
         }
     }
 }

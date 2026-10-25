@@ -86,7 +86,6 @@ public class CustomPanorama
             }
             else
             {
-                Config.dbg("CustomPanorama: " + s);
             }
 
             ResourceLocation resourcelocation = ResourceLocation.of(s + "/background.properties");
@@ -99,7 +98,6 @@ public class CustomPanorama
                 {
                     Properties properties = new PropertiesOrdered();
                     properties.load(inputstream);
-                    Config.dbg("CustomPanorama: " + resourcelocation.getResourcePath());
                     aproperties[i] = properties;
                     inputstream.close();
                 }

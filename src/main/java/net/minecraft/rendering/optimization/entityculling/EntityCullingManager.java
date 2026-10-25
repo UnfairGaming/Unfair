@@ -9,7 +9,6 @@ import java.util.HashSet;
 
 public class EntityCullingManager {
 
-    private static final Logger LOGGER = LogManager.getLogger();
     public static EntityCullingManager instance = new EntityCullingManager();
     public static boolean enabled = true;
     public OcclusionCullingInstance culling;
@@ -21,7 +20,6 @@ public class EntityCullingManager {
     public int skippedEntities = 0;
 
     public void onInitialize() {
-        LOGGER.debug("[*] Initializing Entity Culling!");
         instance = this;
         culling = new OcclusionCullingInstance(128, new Provider());
         cullTask = new CullTask(culling, new HashSet<>(Collections.singletonList("tile.beacon")));

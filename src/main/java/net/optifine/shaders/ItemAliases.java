@@ -101,7 +101,6 @@ public class ItemAliases
                 Properties properties = new PropertiesOrdered();
                 properties.load(in);
                 in.close();
-                Config.dbg("[Shaders] Parsing item mappings: " + path);
                 ConnectedParser connectedparser = new ConnectedParser("Shaders");
 
                 for (Object o : properties.keySet())

@@ -489,7 +489,6 @@ public class Shaders {
     }
 
     public static void loadConfig() {
-        SMCLog.info("Load shaders configuration.");
 
         try {
             if (!shaderPacksDir.exists()) {
@@ -748,7 +747,6 @@ public class Shaders {
         if (shaderPackLoaded) {
             SMCLog.info("Loaded shaderpack: " + getShaderPackName());
         } else {
-            SMCLog.info("No shaderpack loaded.");
             shaderPack = new ShaderPackNone();
         }
 
@@ -829,7 +827,6 @@ public class Shaders {
 
         if (!shaderPackDimensions.isEmpty()) {
             Integer[] ainteger = shaderPackDimensions.toArray(new Integer[0]);
-            Config.dbg("[Shaders] Worlds: " + Config.arrayToString(ainteger));
         }
     }
 
@@ -1638,10 +1635,6 @@ public class Shaders {
         glVersionString = GL11.glGetString(GL11.GL_VERSION);
         glVendorString = GL11.glGetString(GL11.GL_VENDOR);
         glRendererString = GL11.glGetString(GL11.GL_RENDERER);
-        SMCLog.info("Opengl Version: " + (capabilities.OpenGL20 ? " 2.0 " : " - ") + (capabilities.OpenGL21 ? " 2.1 " : " - ") + (capabilities.OpenGL30 ? " 3.0 " : " - ") + (capabilities.OpenGL32 ? " 3.2 " : " - ") + (capabilities.OpenGL40 ? " 4.0 " : " - "));
-        SMCLog.info("GL_MAX_DRAW_BUFFERS: " + GL11.glGetInteger(GL20.GL_MAX_DRAW_BUFFERS));
-        SMCLog.info("GL_MAX_COLOR_ATTACHMENTS_EXT: " + GL11.glGetInteger(36063));
-        SMCLog.info("GL_MAX_TEXTURE_IMAGE_UNITS: " + GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS));
         hasGlGenMipmap = capabilities.OpenGL30;
         loadConfig();
     }
@@ -1737,9 +1730,6 @@ public class Shaders {
 
         if (!isShaderPackInitialized) {
             checkGLError("Shaders.init pre");
-
-            if (getShaderPackName() != null) {
-            }
 
             if (!capabilities.OpenGL20) {
                 printChatAndLogError("No OpenGL 2.0");
@@ -1913,9 +1903,6 @@ public class Shaders {
             isShaderPackInitialized = true;
             loadEntityDataMap();
             resetDisplayLists();
-
-            if (!flag) {
-            }
 
             checkGLError("Shaders.init");
         }
@@ -4312,9 +4299,6 @@ public class Shaders {
 
     public static void endWater() {
         if (isRenderingWorld) {
-            if (isShadowPass) {
-            }
-
             useProgram(lightmapEnabled ? ProgramTexturedLit : ProgramTextured);
         }
     }

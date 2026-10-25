@@ -54,7 +54,6 @@ public class CustomEntityModels
                 for (int i = 0; i < aresourcelocation.length; ++i)
                 {
                     ResourceLocation resourcelocation = aresourcelocation[i];
-                    Config.dbg("CustomEntityModel: " + resourcelocation.getResourcePath());
                     IEntityRenderer ientityrenderer = parseEntityRender(resourcelocation);
 
                     if (ientityrenderer != null)

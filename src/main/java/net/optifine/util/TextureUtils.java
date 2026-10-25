@@ -212,7 +212,6 @@ public class TextureUtils {
 
     public static void resourcesReloaded(IResourceManager rm) {
         if (getTextureMapBlocks() != null) {
-            Config.dbg("*** Reloading custom textures ***");
             CustomSky.reset();
             TextureAnimations.reset();
             update();
@@ -428,20 +427,6 @@ public class TextureUtils {
         }
     }
 
-    public static void dbgMipmaps(TextureAtlasSprite textureatlassprite) {
-        int[][] aint = textureatlassprite.getFrameTextureData(0);
-
-        for (int i = 0; i < aint.length; ++i) {
-            int[] aint1 = aint[i];
-
-            if (aint1 == null) {
-                Config.dbg(i + ": " + aint1);
-            } else {
-                Config.dbg(i + ": " + aint1.length);
-            }
-        }
-    }
-
     public static void saveGlTexture(String name, int textureId, int mipmapLevels, int width, int height) {
         bindTexture(textureId);
         GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
@@ -472,7 +457,6 @@ public class TextureUtils {
 
             try {
                 ImageIO.write(bufferedimage, "png", file4);
-                Config.dbg("Exported: " + file4);
             } catch (Exception exception) {
                 Config.warn("Error writing: " + file4);
                 Config.warn(exception.getClass().getName() + ": " + exception.getMessage());

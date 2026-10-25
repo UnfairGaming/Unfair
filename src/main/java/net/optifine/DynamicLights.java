@@ -124,12 +124,10 @@ public class DynamicLights
 
         if (!mapEntityLightLevels.isEmpty())
         {
-            Config.dbg("DynamicLights entities: " + mapEntityLightLevels.size());
         }
 
         if (!mapItemLightLevels.isEmpty())
         {
-            Config.dbg("DynamicLights items: " + mapItemLightLevels.size());
         }
     }
 
@@ -142,7 +140,6 @@ public class DynamicLights
                 Properties properties = new PropertiesOrdered();
                 properties.load(in);
                 in.close();
-                Config.dbg("DynamicLights: Parsing " + path);
                 ConnectedParser connectedparser = new ConnectedParser("DynamicLights");
                 loadModLightLevels(properties.getProperty("entities"), mapEntityLightLevels, new EntityClassLocator(), connectedparser, path, modId);
                 loadModLightLevels(properties.getProperty("items"), mapItemLightLevels, new ItemLocator(), connectedparser, path, modId);

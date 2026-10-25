@@ -89,7 +89,6 @@ public class SmartLeaves
 
         if (!list.isEmpty())
         {
-            Config.dbg("Enable face culling: " + Config.arrayToString(list.toArray()));
         }
     }
 

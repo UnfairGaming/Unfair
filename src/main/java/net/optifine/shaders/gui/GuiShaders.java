@@ -188,7 +188,6 @@ public class GuiShaders extends GuiScreenOF {
                             }
 
                             if (flag) {
-                                Config.dbg("Opening via system class!");
                                 Sys.openURL("file://" + Shaders.shaderPacksDir.getAbsolutePath());
                             }
 

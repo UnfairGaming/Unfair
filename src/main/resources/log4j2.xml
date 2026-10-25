@@ -3,10 +3,12 @@
 
     <Appenders>
         <Console name="SysOut" target="SYSTEM_OUT" follow="true">
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="[%style{%d{HH:mm:ss}}{bright blue}] [%style{%t}{magenta}/%highlight{%level}{FATAL=bright red bold, ERROR=bright red, WARN=bright yellow, INFO=bright green, DEBUG=bright cyan, TRACE=white}]: %style{%msg}{white}%n" />
         </Console>
 
         <Queue name="ServerGuiConsole">
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
             <PatternLayout pattern="[%d{HH:mm:ss}] [%c{1}/%level]: %msg%n"/>
         </Queue>
 

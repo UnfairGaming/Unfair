@@ -1,7 +1,5 @@
 package net.minecraft.client.resources;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -28,7 +26,6 @@ import java.util.Set;
 
 public class SimpleReloadableResourceManager implements IReloadableResourceManager {
     private static final Logger logger = LogManager.getLogger();
-    private static final Joiner joinerResourcePacks = Joiner.on(", ");
     private final Map<String, FallbackResourceManager> domainResourceManagers = Maps.newHashMap();
     private final List<IResourceManagerReloadListener> reloadListeners = Lists.newArrayList();
     private final Set<String> setResourceDomains = Sets.newLinkedHashSet();
@@ -83,7 +80,6 @@ public class SimpleReloadableResourceManager implements IReloadableResourceManag
 
     public void reloadResources(List<IResourcePack> resourcesPacksList) {
         this.clearResources();
-        logger.info("Reloading ResourceManager: {}", joinerResourcePacks.join(Iterables.transform(resourcesPacksList, IResourcePack::getPackName)));
 
         for (IResourcePack iresourcepack : resourcesPacksList) {
             this.reloadResourcePack(iresourcepack);

@@ -168,7 +168,6 @@ public class ResUtils {
                 Properties properties = new PropertiesOrdered();
                 properties.load(inputstream);
                 inputstream.close();
-                Config.dbg("" + module + ": Loading " + path);
                 return properties;
             }
         } catch (FileNotFoundException var5) {

@@ -736,11 +736,6 @@ public class ConnectedParser
         }
     }
 
-    public void dbg(String str)
-    {
-        Config.dbg("" + this.context + ": " + str);
-    }
-
     public void warn(String str)
     {
         Config.warn("" + this.context + ": " + str);

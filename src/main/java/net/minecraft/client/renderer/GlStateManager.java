@@ -704,21 +704,6 @@ public class GlStateManager {
         return textureState[activeTextureUnit].textureName;
     }
 
-    public static void checkBoundTexture() {
-        if (Config.isMinecraftThread()) {
-            int i = GL11.glGetInteger(GL13.GL_ACTIVE_TEXTURE);
-            int j = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-            int k = getActiveTextureUnit();
-            int l = getBoundTexture();
-
-            if (l > 0) {
-                if (i != k || j != l) {
-                    Config.dbg("checkTexture: act: " + k + ", glAct: " + i + ", tex: " + l + ", glTex: " + j);
-                }
-            }
-        }
-    }
-
     public static void deleteTextures(IntBuffer p_deleteTextures_0_) {
         p_deleteTextures_0_.rewind();
 

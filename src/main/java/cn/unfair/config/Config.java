@@ -29,9 +29,6 @@ public class Config {
         this.file = new File("./config/Unfair/", String.format("%s.json", this.name));
         try {
             file.getParentFile().mkdirs();
-            if (newConfig) {
-                Minecraft.getLogger().info(String.format("Created: %s", this.file.getName()));
-            }
         } catch (Exception e) {
             Minecraft.getLogger().error(e.getMessage());
         }

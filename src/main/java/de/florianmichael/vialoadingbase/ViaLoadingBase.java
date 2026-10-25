@@ -155,7 +155,6 @@ public class ViaLoadingBase {
         manager.getProtocolManager().setMaxPathDeltaIncrease(-1);
         ((ProtocolManagerImpl) manager.getProtocolManager()).refreshVersions();
 
-        ViaLoadingBase.LOGGER.info("ViaLoadingBase has loaded " + Platform.COUNT + "/" + platforms.size() + " platforms");
     }
 
     public static ViaLoadingBase getInstance() {

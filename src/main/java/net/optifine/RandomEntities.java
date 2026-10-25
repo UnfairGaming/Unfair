@@ -179,7 +179,6 @@ public class RandomEntities {
     private static RandomEntityProperties parseProperties(ResourceLocation propLoc, ResourceLocation resLoc) {
         try {
             String s = propLoc.getResourcePath();
-            dbg(resLoc.getResourcePath() + ", properties: " + s);
             InputStream inputstream = Config.getResourceStream(propLoc);
 
             if (inputstream == null) {
@@ -304,7 +303,6 @@ public class RandomEntities {
                 return null;
             } else {
                 ResourceLocation[] aresourcelocation = (ResourceLocation[]) list.toArray(new ResourceLocation[list.size()]);
-                dbg(loc.getResourcePath() + ", variants: " + aresourcelocation.length);
                 return aresourcelocation;
             }
         }
@@ -357,10 +355,6 @@ public class RandomEntities {
         }
 
         active = !mapProperties.isEmpty();
-    }
-
-    public static void dbg(String str) {
-        Config.dbg("RandomEntities: " + str);
     }
 
     public static void warn(String str) {

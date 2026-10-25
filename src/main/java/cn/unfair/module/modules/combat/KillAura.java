@@ -328,22 +328,18 @@ public class KillAura extends Module {
     }
 
     private void interactAttack(float yaw, float pitch) {
-        if (target != null) {
-            Vec3 hitVec = this.getAttackHitVec(yaw, pitch, 8.0);
-            if (hitVec != null) {
-                mc.playerController.syncCurrentPlayItem();
-                PacketUtil.sendPacket(
-                        new C02PacketUseEntity(
-                                target.getEntity(),
-                                new Vec3(hitVec.xCoord - target.getX(), hitVec.yCoord - target.getY(), hitVec.zCoord - target.getZ())
-                        )
-                );
-                PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), Action.INTERACT));
-                PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
-                mc.thePlayer.setItemInUse(mc.thePlayer.getHeldItem(), mc.thePlayer.getHeldItem().getMaxItemUseDuration());
-                this.blockingState = true;
-            }
+        if (target == null) {
+            return;
         }
+        Vec3 hitVec = this.getValidatedHitVec(yaw, pitch);
+        if (hitVec != null) {
+            mc.playerController.syncCurrentPlayItem();
+            PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), this.toEntityOffset(hitVec)));
+        }
+        PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), Action.INTERACT));
+        PacketUtil.sendPacket(new C08PacketPlayerBlockPlacement(mc.thePlayer.getHeldItem()));
+        mc.thePlayer.setItemInUse(mc.thePlayer.getHeldItem(), mc.thePlayer.getHeldItem().getMaxItemUseDuration());
+        this.blockingState = true;
     }
 
     private void runHypixelAutoBlock(UpdateEvent event) {
@@ -416,6 +412,41 @@ public class KillAura extends Module {
             );
         }
         PacketUtil.sendPacket(new C02PacketUseEntity(target.getEntity(), Action.INTERACT));
+    }
+
+    private Vec3 getValidatedHitVec(float yaw, float pitch) {
+        if (target == null || mc.thePlayer == null || mc.theWorld == null) {
+            return null;
+        }
+
+        double reach = (double) this.attackRange.getValue() + 0.5D;
+        MovingObjectPosition hit = RayCastUtil.rayTrace(target.getBox(), yaw, pitch, reach + 1.0D);
+        if (hit == null || hit.hitVec == null) {
+            return null;
+        }
+
+        Vec3 eyePos = mc.thePlayer.getPositionEyes(1.0F);
+        AxisAlignedBB box = target.getEntity().getEntityBoundingBox();
+        Vec3 point = new Vec3(
+                MathHelper.clamp_double(hit.hitVec.xCoord, box.minX, box.maxX),
+                MathHelper.clamp_double(hit.hitVec.yCoord, box.minY, box.maxY),
+                MathHelper.clamp_double(hit.hitVec.zCoord, box.minZ, box.maxZ)
+        );
+        if (eyePos.distanceTo(point) > reach) {
+            return null;
+        }
+        if (mc.theWorld.rayTraceBlocks(eyePos, point, false, true, false) != null) {
+            return null;
+        }
+        return point;
+    }
+
+    private Vec3 toEntityOffset(Vec3 hitVec) {
+        return new Vec3(
+                hitVec.xCoord - target.getX(),
+                hitVec.yCoord - target.getY(),
+                hitVec.zCoord - target.getZ()
+        );
     }
 
     private Vec3 getAttackHitVec(float yaw, float pitch, double distance) {
@@ -1057,6 +1088,7 @@ public class KillAura extends Module {
     private void resetInventoryBlockedState() {
         target = null;
         Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
+        this.autoBlockController.reset();
         this.blockingState = false;
         this.isBlocking = false;
         this.fakeBlockState = false;
@@ -1117,7 +1149,7 @@ public class KillAura extends Module {
             boolean attack = target != null && this.canAttack();
             boolean block = attack && this.canAutoBlock();
             if (this.isHypixelLagAutoBlock()) {
-                if (target != null && !this.isInBlockRange(target.getEntity())) {
+                if (target == null || !this.isInBlockRange(target.getEntity())) {
                     block = false;
                     Unfair.blinkManager.setBlinkState(false, BlinkModules.AUTO_BLOCK);
                     this.isBlocking = false;

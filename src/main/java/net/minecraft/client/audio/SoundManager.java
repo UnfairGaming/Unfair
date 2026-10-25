@@ -139,7 +139,6 @@ public class SoundManager {
                         SoundManager.this.sndSystem = SoundManager.this.new SoundSystemStarterThread();
                         SoundManager.this.loaded = true;
                         SoundManager.this.sndSystem.setMasterVolume(SoundManager.this.options.getSoundLevel(SoundCategory.MASTER));
-                        SoundManager.logger.info("Sound engine started");
                     }, "Sound Library Loader")).start();
                 } catch (RuntimeException runtimeexception) {
                     logger.error("Error starting SoundSystem. Turning off sounds & music", runtimeexception);

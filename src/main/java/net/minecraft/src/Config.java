@@ -24,7 +24,6 @@ import net.optifine.gui.GuiMessage;
 import net.optifine.shaders.Shaders;
 import net.optifine.util.DisplayModeComparator;
 import net.optifine.util.PropertiesOrdered;
-import net.optifine.util.TextureUtils;
 import net.optifine.util.TimedEvent;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -140,37 +139,13 @@ public class Config {
     }
 
     private static void checkOpenGlCaps() {
-        log("");
-        log(getVersion());
-        log("Build: " + getBuild());
-        log("OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ") version " + System.getProperty("os.version"));
-        log("Java: " + System.getProperty("java.version") + ", " + System.getProperty("java.vendor"));
-        log("VM: " + System.getProperty("java.vm.name") + " (" + System.getProperty("java.vm.info") + "), " + System.getProperty("java.vm.vendor"));
-        log("LWJGL: " + Sys.getVersion());
         openGlVersion = GL11.glGetString(GL11.GL_VERSION);
         openGlRenderer = GL11.glGetString(GL11.GL_RENDERER);
         openGlVendor = GL11.glGetString(GL11.GL_VENDOR);
-        log("OpenGL: " + openGlRenderer + ", version " + openGlVersion + ", " + openGlVendor);
-        log("OpenGL Version: " + getOpenGlVersionString());
-
-        if (!GLContext.getCapabilities().OpenGL12) {
-            log("OpenGL Mipmap levels: Not available (GL12.GL_TEXTURE_MAX_LEVEL)");
-        }
 
         fancyFogAvailable = GLContext.getCapabilities().GL_NV_fog_distance;
 
-        if (!fancyFogAvailable) {
-            log("OpenGL Fancy fog: Not available (GL_NV_fog_distance)");
-        }
-
         occlusionAvailable = GLContext.getCapabilities().GL_ARB_occlusion_query;
-
-        if (!occlusionAvailable) {
-            log("OpenGL Occlussion culling: Not available (GL_ARB_occlusion_query)");
-        }
-
-        int i = TextureUtils.getGLMaximumTextureSize();
-        dbg("Maximum texture size: " + i + "x" + i);
     }
 
     public static String getBuild() {
@@ -430,20 +405,12 @@ public class Config {
         }
     }
 
-    public static void dbg(String p_dbg_0_) {
-        LOGGER.info("[OptiFine] " + p_dbg_0_);
-    }
-
     public static void warn(String p_warn_0_) {
         LOGGER.warn("[OptiFine] {}", p_warn_0_);
     }
 
     public static void error(String p_error_0_) {
         LOGGER.error("[OptiFine] {}", p_error_0_);
-    }
-
-    public static void log(String p_log_0_) {
-        dbg(p_log_0_);
     }
 
     public static int getUpdatesPerFrame() {
@@ -491,7 +458,6 @@ public class Config {
                     return;
                 }
 
-                dbg("Texture pack clouds: " + s);
                 s = s.toLowerCase();
 
                 if (s.equals("fast")) {
@@ -1448,7 +1414,6 @@ public class Config {
 
         if (i > 0) {
             DisplayMode displaymode = Display.getDisplayMode();
-            dbg("FSAA Samples: " + i);
 
             Display.destroy();
             Display.setDisplayMode(displaymode);

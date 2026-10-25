@@ -2221,7 +2221,6 @@ public class ConnectedTextures
         for (int i = 0; i < astring.length; ++i)
         {
             String s = astring[i];
-            Config.dbg("ConnectedTextures: " + s);
 
             try
             {
@@ -2260,7 +2259,6 @@ public class ConnectedTextures
         blockProperties = propertyListToArray(list1);
         tileProperties = propertyListToArray(list);
         multipass = detectMultipass();
-        Config.dbg("Multipass connected textures: " + multipass);
     }
 
     private static List makePropertyList(ConnectedProperties[][] propsArr)

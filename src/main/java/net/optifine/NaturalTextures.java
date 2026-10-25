@@ -31,7 +31,6 @@ public class NaturalTextures
 
                 if (!Config.hasResource(resourcelocation))
                 {
-                    Config.dbg("NaturalTextures: configuration \"" + s + "\" not found");
                     return;
                 }
 
@@ -44,12 +43,9 @@ public class NaturalTextures
 
                 if (flag)
                 {
-                    Config.dbg("Natural Textures: Parsing default configuration \"" + s + "\"");
-                    Config.dbg("Natural Textures: Valid only for textures from default resource pack");
                 }
                 else
                 {
-                    Config.dbg("Natural Textures: Parsing configuration \"" + s + "\"");
                 }
 
                 TextureMap texturemap = TextureUtils.getTextureMapBlocks();
@@ -101,7 +97,6 @@ public class NaturalTextures
                                         }
 
                                         arraylist.set(j, naturalproperties);
-                                        Config.dbg("NaturalTextures: " + s3 + " = " + s4);
                                     }
                                 }
                             }
